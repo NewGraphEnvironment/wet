@@ -81,3 +81,72 @@ Relates to NewGraphEnvironment/fresh#114, NewGraphEnvironment/link#284, NewGraph
 - Not installed: exactextractr.
 - The database follows the `PG_*_SHARE` pattern (`fresh::frs_db_conn`, `link::lnk_db_conn`).
 
+
+## Phase 1 — Product inventory (2026-09-25)
+
+### Endpoint status
+
+| Endpoint | Status 2026-09-25 |
+|---|---|
+| `data.pacificclimate.org/...` (host fwapg and `pcic_dl_sh()` use) | **301 → `services.pacificclimate.org/...`** |
+| `services.pacificclimate.org/portal/hydro_model_out/catalog/catalog.json` | 200, 169 datasets |
+| `services.pacificclimate.org/data/hydro_model_out/<file>.nc` (OPeNDAP: `.das`, `.dds`, `?VAR[t][y][x]`) | 200 |
+| `services.pacificclimate.org/portal/hydro_stn_cmip5/` | 200 ("Modelled Streamflow Data" portal) |
+| `services.pacificclimate.org/portal/downscaled_cmip6/catalog/catalog.json` | 200 (BCCAQv2 CMIP6 *climate*, not hydrology) |
+| `uvic.ca/pcic/data-analysis-tools/data-portal/hydrology-gridded/` | 200 (human docs) |
+
+fwapg's `discharge.sh:13-14` runs `curl -o` **without `-L`**. Against the redirecting host it saves the 301 body, not the NetCDF, so the script is broken as written. Put this in the fwapg issue draft (Phase 5).
+
+### PCIC `hydro_model_out` (gridded VIC-GL), parsed from `catalog.json`
+
+- **Historical:** `VICGL-RGM-HydroConductor`, forcing PNWNAmet (observed), 1945-01-01 to 2012-12-31, domain `nwna`. The file name says "1945to2099" but the data end in 2012. Has 13 variables, including RUNOFF, BASEFLOW, SWE, SNOW_MELT, GLAC_OUTFLOW, PREC and EVAP. This is the run fwapg uses.
+- **Scenarios:** `VICGL` (no glacier dynamics), BCCAQ-downscaled CMIP5 driven by 6 GCMs × 2 RCPs = 12 runs, 1945-01-01 to 2099-12-31, domain attribute `columbia`. The title reads "COLUMBIA+PEACE+FRASER_CMIP5_Hydrologic_Projection". There are 13 variables per run in the catalog, and RUNOFF and BASEFLOW are present for every run.
+  - GCMs: ACCESS1-0, CanESM2, CCSM4 (r2i1p1), CNRM-CM5, HadGEM2-ES, MPI-ESM-LR (r3i1p1).
+- **Grid:** 0.0625°, sliced to lon −139.97…−109.03, lat 41.09…63.97. Only Peace, Fraser and Columbia hold values; the rest is fill.
+- **Units:** mm per day, stored as packed shorts (`_FillValue` −32767). Calendar `standard`, time "days since 1945-1-1". Calibration 1985–2005 against the TPS/ClimateWNA target.
+- **The historical and scenario model versions differ** (RGM glacier model vs none). A delta computed as scenario minus historical mixes model structure with climate signal. Deltas must come from the same run: scenario future period minus scenario baseline period.
+- **Terms:** PCIC terms of use, "AS IS", and cite as "Pacific Climate Impacts Consortium, University of Victoria, (Jan 2020). VIC-GL BCCAQ CMIP5: Gridded Hydrologic Model Output." No open licence is named; confirm redistribution rights before publishing derived values.
+- **No CMIP6 hydrology on the portal.**
+
+### PCIC `hydro_stn_cmip5` (routed station streamflow)
+
+- 190 locations in Peace, Fraser and Columbia. VIC-GL runoff routed with RVIC.
+- One CSV per station: daily m³/s, 1945–2099, with a PNWNAmet column plus 12 CMIP5 columns. Released Feb 2020.
+- Use: an **independent check on the station comparison** — routed modelled flow vs our area-weighted accumulation at the same outlets, plus HYDAT where gauged. Not a per-segment product.
+
+### PCIC Salmon Climate Impacts Portal (Mar 2024)
+
+- VIC-GL coupled to dynWat (streamflow + water temperature), BC coastal domain.
+- 10 streamflow/temperature hazard indices at yearly, monthly and daily resolution. 6 CMIP5 GCMs × RCP 4.5/8.5 × historical, 2020s, 2050s, 2080s.
+- Regions: watershed group, salmon conservation unit, or a custom outlet. The spatial unit behind them is not documented on the page.
+- Terms: PCIC terms of use.
+
+### PCIC VIC-GL → Raven, CMIP6 (announced Feb 2026, NOT yet released)
+
+- PCIC Update Feb 2026, "Improved Modelling of BC's Salmon Habitats".
+- VIC-GL runoff drives Raven routing on a **vector (sub-basin + channel) discretisation**, "about a factor of five" finer than VIC-GL's ~25 km² minimum. Outputs are streamflow, water temperature and saturated dissolved oxygen.
+- Deployed "across BC's entire coastal domain, including the Fraser Basin" (~405,000 km²), driven by CMIP6. The example is CNRM-ESM2-1, SSP5-8.5.
+- "Near completion … will be available from a new data portal." Funded by BCSRIF and BC Hydro.
+- **This is the biggest scope risk for `wet`.** It overlaps the monthly, scenario and coverage items for the coastal domain and the Fraser, it adds water temperature, and it is routed. It is not expected to cover the Peace, Columbia or northern interior. Things to find out before building scenarios: the sub-basin geometry (can it be crosswalked to FWA?), the release date, and the licence. Contact Markus Schnorbus (PCIC hydrology lead, named in the NetCDF metadata).
+
+### Provincial and other products
+
+| Product | Coverage | Time axis | Scenarios | Access / licence | Relevance |
+|---|---|---|---|---|---|
+| BC Water Tools (NEWT: BC Energy Regulator; Omineca, Cariboo, Kootenay-Boundary, NW: FLNRORD; built by Foundry Spatial) | Regional, together covering much of the interior and north | Mean annual + monthly discharge for a user-picked watershed | Climate summary only | Web UI, per-watershed reports. No bulk per-segment download found | A reference to compare against in gap regions (Skeena, north). Not a data source |
+| HYDAT (ECCC), via `tidyhydat` | ~ all gauged stations; local sqlite 2025-12-04 | Daily/monthly, long records | None | Open Government Licence – Canada | Station check (item 5); training data for gap-fill regression |
+| ECCC realtime (`water-temp-bc`) | ~250 discharge stations | 18-month window | None | OGL-Canada | Short; not useful for climatologies |
+| BCUB (ESSD 2025): British Columbia Ungauged Basin attributes | 1.2 M ungauged catchments, BC-wide | Static attributes (terrain, soil, land cover, climate indices) | None | Open (ESSD data paper) | Predictors for a regional regression gap-fill (item 4) |
+| Morrison et al. 2012 (Atmos-Ocean), monthly freshwater discharge to BC coastal waters | Coastal BC | Monthly | None | Paper | Method precedent for pluvial vs nival regional regression |
+| ClimateBC / `climr` (already used in fwapg `extras/precipitation`) | BC + transboundary | Monthly normals, CMIP6 scenarios | Yes (CMIP6) | Open | Possible precipitation-scaled downscaling of VIC-GL (the fwapg README's "upsampling" idea), or a regression predictor |
+
+### Coverage gap (item 4)
+
+PCIC gridded hydrology covers only Peace, Fraser and Columbia. The Skeena, Nass, Stikine, coastal and northern basins have no VIC-GL product on the portal. The Raven CMIP6 release would add the coastal domain. The north (Liard, Stikine, Nass, Skeena interior) stays uncovered by any modelled product, so it needs regional regression: HYDAT response + BCUB/ClimateBC predictors.
+
+### Corrections to the issue text (confirmed)
+
+- Grid is 1/16° (≈ 30 km², PCIC's own number is ~25 km²), not "~30 km cells".
+- fwapg's MAD uses the **historical PNWNAmet run with the RGM glacier model**, not a CMIP5 scenario.
+- The raster → watershed step is a **centroid point sample**, not area-weighted.
+- The 1981–2010 slice is exact (time indices 13149–24105).

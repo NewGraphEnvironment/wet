@@ -11,10 +11,10 @@ The only per-segment discharge available is fwapg's `extras/discharge` (`whse_ba
 Station data is separate: water-temp-bc holds ~290 ECCC stations (temperature, discharge, level) over the ~18-month realtime window. Long HYDAT records are reachable through `tidyhydat` / `fasstr`, but nothing combines them with modelled flow on the network.
 
 ## Phase 1 — Product inventory (no code)
-- [ ] Check that the PCIC endpoints are live: `data.pacificclimate.org/portal/hydro_model_out/catalog/catalog.json`, the OPeNDAP base, and the uvic.ca portal page. Record the working URLs.
-- [ ] List PCIC hydrologic model output: the historical run (PNWNAmet), the scenario runs (GCMs, RCP/SSP, CMIP5 vs CMIP6), periods, basins covered beyond Fraser/Columbia/Peace, and variables. Include routed streamflow at stations if it exists.
-- [ ] List other candidate products: provincial water tools, ECCC, other groups' scenario runs, and regional regression from HYDAT. For each, record licence, coverage, resolution, time axis, scenarios and access method.
-- [ ] Write the inventory table and the issue-text corrections to `findings.md`.
+- [x] Check that the PCIC endpoints are live: `data.pacificclimate.org/portal/hydro_model_out/catalog/catalog.json`, the OPeNDAP base, and the uvic.ca portal page. Record the working URLs.
+- [x] List PCIC hydrologic model output: the historical run (PNWNAmet), the scenario runs (GCMs, RCP/SSP, CMIP5 vs CMIP6), periods, basins covered beyond Fraser/Columbia/Peace, and variables. Include routed streamflow at stations if it exists.
+- [x] List other candidate products: provincial water tools, ECCC, other groups' scenario runs, and regional regression from HYDAT. For each, record licence, coverage, resolution, time axis, scenarios and access method.
+- [x] Write the inventory table and the issue-text corrections to `findings.md`.
 
 ## Phase 2 — Decisions (each one user-approved, recorded in `findings.md` under `## Decisions (user-approved)`)
 - [ ] R package vs scripts-plus-data repo. Precedents: `cd`/`fresh`/`link` are packages; `water-temp-bc`/`stac_dem_bc` use `Type: Project`.
