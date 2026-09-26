@@ -12,3 +12,7 @@
 - Parsed `hydro_model_out` catalog: historical PNWNAmet (1945–2012, VICGL-RGM) + 12 CMIP5 runs (6 GCM × RCP4.5/8.5, VICGL, 1945–2099). No CMIP6 hydrology.
 - Found PCIC VIC-GL→Raven CMIP6 vector-routed streamflow + water temperature (coastal + Fraser), "near completion", unreleased. Biggest scope risk.
 - Started local fwapg (`fresh-db` container): discharge table 2,716,652 rows / 2,003,189 with mad_m3s.
+
+### Phase 2 — Decisions (proposed)
+- User said "go all phases to pr", so the decisions are recorded as proposals for PR review, not as user-approved.
+- D1 R package; D2 compute per watershed, publish per segment; D3 parity mode + area-weighted/covered-area default, no order-8 skip; D4 Hive parquet + STAC Collection with table ext, `wet_db_load()` for fresh#114. Bucket and PCIC redistribution are left open.

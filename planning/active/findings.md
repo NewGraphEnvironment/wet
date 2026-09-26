@@ -150,3 +150,44 @@ PCIC gridded hydrology covers only Peace, Fraser and Columbia. The Skeena, Nass,
 - fwapg's MAD uses the **historical PNWNAmet run with the RGM glacier model**, not a CMIP5 scenario.
 - The raster → watershed step is a **centroid point sample**, not area-weighted.
 - The 1981–2010 slice is exact (time indices 13149–24105).
+
+## Decisions (proposed — pending user review in the PR)
+
+The user asked for all phases through to a PR in one pass. So these are **proposals with reasons**, not user-approved decisions. Each one is open for revision in PR review. D3 was revisited after the Phase 4 sensitivity run (see below).
+
+### D1. R package, not scripts-plus-data
+
+`wet` is an R package: `wet_*` prefix, `noun_verb` naming, testthat 3e, and producer scripts in `scripts/`. This mirrors `cd`/`fresh`/`link`.
+
+- The same logic runs in several places: the parity check, historical monthly, 12 scenario runs, and later regions. As exported functions with fixture tests it is written once and tested once.
+- Scripts-plus-data (`water-temp-bc`, `stac_dem_bc`) suits repos whose code is mostly one ingestion job.
+- A consumer-side reader (`wet_catalog()`, as with `cd_catalog()`) will be wanted by fresh/link, and that needs a package.
+
+### D2. Compute per fundamental watershed, publish per FWA segment
+
+The raster → polygon step and the upstream accumulation are both defined on `fwa_watersheds_poly`. Segments inherit their watershed's accumulated value through `fwa_streams_watersheds_lut`, exactly as fwapg does.
+
+- **Published key:** `linear_feature_id`. This is what `fresh::frs_col_join(by = "linear_feature_id")` and fresh#114 consume.
+- **Also kept:** `watershed_feature_id`, as a published intermediate. It is about 3× smaller, and it is the unit a regression gap-fill would predict on.
+
+### D3. Method: fix fwapg's two biases, keep parity reproducible
+
+- **Keep `wet_mad_parity()` as a parity mode.** It uses a centroid sample and divides by total area, so any run can still be diffed against `fwa_stream_networks_discharge`.
+- **Production default:** area-weighted cell extraction (exact polygon ∩ cell fraction), and normalisation by **covered** area. Publish a `coverage` fraction (covered upstream area / total upstream area) so consumers can mask partial coverage instead of receiving silently low values.
+  - Phase 4 measured how far each of these moves results (see below).
+- **Do not skip order ≥ 8 mainstems.** fwapg skipped them for SQL runtime, because each polygon joins every upstream polygon through `FWA_Upstream`, so cost grows with depth.
+  - The Fraser at Hope is exactly the kind of reach a station check needs.
+  - The fix is to accumulate once per watershed group, pre-aggregated by `wscode`/`localcode` (fwapg's own `discharge.sh:48-56` comment points at this), and carry group totals downstream across group boundaries. The full-province build issue should design and benchmark this; Phase 4 runs on one headwater group and does not settle it.
+- **Sum runoff and baseflow before or after averaging:** mathematically identical when both share one NA mask (checked in Phase 4, below). `wet` sums per time step, then aggregates.
+
+### D4. Publish shape
+
+- **Format:** Hive-partitioned parquet.
+  - Path: `s3://<bucket>/wet/v<major>/unit=segment/scenario=<run>/period=<yyyy-yyyy>/part-0.parquet`
+  - Columns: `linear_feature_id`, `month` (1–12, plus 0 = annual), `runoff_mm`, `discharge_m3s`, `coverage`.
+  - Readers stream it with duckdb/arrow and push predicates down to the partitions.
+- **Versioning:** in the key (`v1/`), not in place (a fix over `cd`). A breaking method change bumps `v`, and old versions stay readable.
+- **STAC:** one proper `Collection` (not `cd`'s inline-items Catalog), one Item per scenario × period, declaring the **table extension** (`table:columns`, `table:row_count`) and the version extension.
+- **Bucket:** open question for the user. Options are a prefix under `s3://fresh-bc` (needs a bucket-policy grant; public read is only on `bcfishpass/*` today) or a dedicated bucket as `cd` has.
+- **Getting it into fwapg for fresh#114:** `wet_db_load()` writes one scenario/period slice into a Postgres table (for example `wet.discharge_monthly`). `frs_col_join(from = "(select linear_feature_id, discharge_m3s as mad_m3s from wet.discharge_monthly where month = 0 and scenario = 'PNWNAmet')")` then works unchanged. fresh needs no S3 reader.
+- **Licence caveat (blocker for public publish):** PCIC data come under PCIC terms of use with no named open licence. Before publishing derived values publicly, confirm redistribution with PCIC (the same contact as the Raven question).

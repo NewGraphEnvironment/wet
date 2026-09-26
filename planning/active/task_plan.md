@@ -16,15 +16,15 @@ Station data is separate: water-temp-bc holds ~290 ECCC stations (temperature, d
 - [x] List other candidate products: provincial water tools, ECCC, other groups' scenario runs, and regional regression from HYDAT. For each, record licence, coverage, resolution, time axis, scenarios and access method.
 - [x] Write the inventory table and the issue-text corrections to `findings.md`.
 
-## Phase 2 — Decisions (each one user-approved, recorded in `findings.md` under `## Decisions (user-approved)`)
-- [ ] R package vs scripts-plus-data repo. Precedents: `cd`/`fresh`/`link` are packages; `water-temp-bc`/`stac_dem_bc` use `Type: Project`.
-- [ ] Output unit: FWA segment (`linear_feature_id`) vs fundamental watershed.
-- [ ] Method choices to carry forward:
+## Phase 2 — Decisions (recorded in `findings.md` under `## Decisions (proposed — pending user review in the PR)`; the user asked for all phases to the PR in one pass)
+- [x] R package vs scripts-plus-data repo. Precedents: `cd`/`fresh`/`link` are packages; `water-temp-bc`/`stac_dem_bc` use `Type: Project`.
+- [x] Output unit: FWA segment (`linear_feature_id`) vs fundamental watershed.
+- [x] Method choices to carry forward:
   - centroid sample vs area-weighted cell extraction
   - NULL-cell handling (divide by covered area vs total area)
   - the order ≥ 8 mainstem skip
   - whether runoff and baseflow are summed before or after averaging
-- [ ] Publish shape:
+- [x] Publish shape:
   - parquet key layout and versioning, and which bucket
   - a STAC Collection with the table extension
   - the path into fwapg so `frs_col_join` can consume it (fresh#114)
