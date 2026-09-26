@@ -1,4 +1,4 @@
-# Issue drafts — split of #5 (not filed; awaiting approval)
+# Issue drafts — split of #5 (approved 2026-09-26)
 
 ## NEW — Open province-wide runoff estimate: water balance after Chapman et al. 2018
 
@@ -16,6 +16,15 @@ Build our own estimate, in the open, with the method the BC Water Tools use (Cha
 - **Monthly:** share-of-annual regressions per month, fitted to unregulated HYDAT stations, with the shares constrained to sum to 1.
 - **Stations:** `wet_station_select()`, `wet_station_snap()` (fresh snapping plus a drainage-area check) and `wet_station_monthly()`, shared with #6.
 - **Validation:** blocked cross-validation by watershed group or WSC sub-drainage, with headwater and nested gauges reported separately and an incremental-area check on nested pairs. Plain leave-one-out is reported alongside, for comparability with Chapman.
+- **Decisions (approved 2026-09-26):**
+  1. Climate normal **1981–2010**, matching PCIC's baseline and the HYDAT overlap. climr labels its reference map 1961–1990, so building 1981–2010 from its observed series is the first probe. ClimateNA 1 km grids or `cd` ERA5-Land are the fallbacks.
+  2. ET from the **CGIAR Global Soil-Water Balance v3 AET** (CC0, annual and monthly), adjusted by land cover as in Chapman. climr cannot compute Eref or CMD yet.
+  3. **No final adjustment to gauges.** Values are pure predictions, so skill is measured honestly.
+  4. climr 0.2.2 installed from `bcgov/climr`.
+- **Data handling, using our own packages where they fit:**
+  - `trap` pins snapshots of external inputs: the CGIAR AET, climr extracts, the hydrologic zones and HYDAT station tables, each with its source, md5 and row count.
+  - `crate` declares schemas for shape-shifting sources: the BC Water Tool release (in #5) and HYDAT reductions.
+  - `cd` supplies ERA5-Land snow variables (snowmelt timing, peak SWE) as candidate monthly-share predictors. It is also the place to add ERA5-Land evaporation and runoff if needed.
 - **Every choice where the paper is silent** (23 are listed in `research/water_balance_method.md` §7) is recorded with its reason.
 
 Research: [`research/water_balance_method.md`](../../research/water_balance_method.md), [`research/runoff_prior_art.md`](../../research/runoff_prior_art.md).
@@ -40,7 +49,7 @@ PCIC gridded VIC-GL covers the Peace, Fraser and Columbia. PCIC Raven covers the
 ## Proposed
 
 - **Coverage map per watershed group:** PCIC gridded (domain mask), Raven (26,662 reaches from the `bbox-server` OGC API), BC Water Tool (when released) and ours. Tracked report plus map.
-- **BC Water Tool ingest when released:** `wet_bcwt_read()` on `fund_rollup_report`; check whether IDs are FWA or Foundry `watershed_feature_id`.
+- **BC Water Tool ingest when released:** `wet_bcwt_read()` on `fund_rollup_report`, with the release schema declared in `crate` and the snapshot pinned in `trap`. Check whether IDs are FWA or Foundry `watershed_feature_id`.
 - **Compare against ours and HYDAT:** PCIC-`wet` in the three basins; Raven at the #9 pilot sites; BC Water Tool wherever it has coverage.
   - Their accuracy numbers are treated as in-sample; ours are out-of-sample.
   - Metadata inconsistencies already found go in the log. For example, Cariboo's accuracy numbers are a copy of Omineca's, and the station counts do not match the news releases.
