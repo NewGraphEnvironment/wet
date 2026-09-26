@@ -60,6 +60,15 @@ Method chosen: an open reimplementation of Chapman, Kerr & Wilford 2018 (the BC 
 - climr is not installed, and it is needed for Phase 4.
 - Where Obedkoff (2000) regions exist as data is still unknown.
 
+## Local sweep before building (2026-09-26)
+
+- **The P half of P − ET already exists.** fwapg `extras/precipitation` computes ClimateBC mean annual precipitation per fundamental watershed and the area-weighted upstream mean.
+  - Source: `Normal_1991_2020` `MAP.tif` from climatena.ca, cached on NRS object storage. climr mosaics cover transboundary areas.
+  - Output: `whse_basemapping.fwa_stream_networks_mean_annual_precip`, which is populated in the local `fresh-db`: 3,075,336 rows, all 246 groups, MAP 12–9,108 mm.
+  - It is **annual only and 1991–2020**. Chapman needs monthly P and T, and the PCIC baseline is 1981–2010, so the period is a choice to make.
+- NGE packages: no exported runoff, discharge or HYDAT station functions. `ngr` imports tidyhydat for realtime flows only, and `fresh` has watershed delineation (`frs_watershed_at_measure`). Nothing to reuse beyond fresh snapping and delineation.
+- Zotero has neither Chapman et al. 2018 nor Obedkoff 2000.
+
 ## Errors Encountered
 
 | Error | Resolution |
