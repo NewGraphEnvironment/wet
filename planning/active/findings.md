@@ -51,6 +51,15 @@ Relates to #1, #9.
 
 Station selection, snapping and the observed climatologies are the machinery #6 also needs. They are built here as exported `wet_station_*` functions, and #6's body is edited to reuse them. #6 keeps the PCIC-inside-domain bias report.
 
+## Scope revision (2026-09-26, after the plan gate)
+
+The user redirected the work: do not wait on PCIC or adopt another group's product. Spin our own estimate and evaluate it against other groups' data. The reason: in the past the model code has not shipped with the data (BC Water Tool ships data and sparse method notes, no model code). Building our own tells us whether we are on the right track, and the comparison may surface inconsistencies, errors and inaccuracies on either side.
+
+Method chosen: an open reimplementation of Chapman, Kerr & Wilford 2018 (the BC Water Tool method). It is like-for-like with BC Water Tool, so a disagreement traces to a step. It also runs inside the PCIC basins, where it can be checked against VIC-GL.
+
+- climr is not installed, and it is needed for Phase 4.
+- Where Obedkoff (2000) regions exist as data is still unknown.
+
 ## Errors Encountered
 
 | Error | Resolution |
