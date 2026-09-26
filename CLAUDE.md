@@ -8,7 +8,8 @@ R package for per-segment stream discharge on BC's Freshwater Atlas (FWA): mean 
 **Primary Language:** R
 **Framework:** R package (devtools, roxygen2, testthat 3e)
 **Spatial:** `terra` (NetCDF subsets), fwapg (PostGIS) for FWA topology
-**Scope issue:** #1 (decisions and parity result in `planning/`, archived on close)
+**Scope issue:** #1 (archive: `planning/archive/2026-09-issue-1-scope-discharge/`)
+**Research:** [`research/README.md`](research/README.md) — PCIC products and hosts, fwapg MAD method and parity
 
 ## Architecture
 
