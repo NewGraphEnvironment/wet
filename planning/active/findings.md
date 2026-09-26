@@ -191,3 +191,89 @@ The raster → polygon step and the upstream accumulation are both defined on `f
 - **Bucket:** open question for the user. Options are a prefix under `s3://fresh-bc` (needs a bucket-policy grant; public read is only on `bcfishpass/*` today) or a dedicated bucket as `cd` has.
 - **Getting it into fwapg for fresh#114:** `wet_db_load()` writes one scenario/period slice into a Postgres table (for example `wet.discharge_monthly`). `frs_col_join(from = "(select linear_feature_id, discharge_m3s as mad_m3s from wet.discharge_monthly where month = 0 and scenario = 'PNWNAmet')")` then works unchanged. fresh needs no S3 reader.
 - **Licence caveat (blocker for public publish):** PCIC data come under PCIC terms of use with no named open licence. Before publishing derived values publicly, confirm redistribution with PCIC (the same contact as the Raven question).
+
+## Phase 4 — MAD parity prototype (SALR, 2026-09-25)
+
+Run it with `Rscript scripts/mad_parity.R SALR` against the local fwapg (`fresh-db`). It takes about 1.5 min on a cold cache (the PCIC fetch is ~54 s) and ~8 s warm. Outputs go to `data/parity/` (gitignored).
+
+### Why SALR
+
+- Of the groups where fwapg MAD has good coverage, SALR (Salmon River, Fraser) is a **headwater** group: its maximum `upstream_area_ha` equals the group's area (ratio 1.000).
+- It is small: 9,384 segments, 4,587 fundamental watersheds, maximum stream order 6. So fwapg's order ≥ 8 skip does not touch it.
+- Candidates with the same ratio: SALR, MUSK, DEAD, CRKD, BOWR, HORS, UFRA, NATR, and others.
+- **Group boundaries cut mainstems.** Two small LSAL polygons (0.7 ha and 2 ha, on wscode `100.591289`) sit upstream of two SALR polygons. The script therefore samples every polygon that `wet_upstream_pairs()` returns, not only the group's own. The first run, which sampled only the group, stopped on exactly this.
+
+### Coverage ceiling is the lookup, not PCIC
+
+- 384 of SALR's 9,384 segments (4 %) are not in `fwa_streams_watersheds_lut`, mostly edge types 1400 and 1100. So neither fwapg nor `wet` can give them a value.
+- All 9,000 segments in the lookup have fwapg MAD.
+- The "2.0 M of 2.7 M" province-wide figure in the issue mixes three things: this lookup gap, the order ≥ 8 skip, and the basins PCIC does not cover.
+
+### Parity result
+
+| Check | Result |
+|---|---|
+| Segments compared | 9,000 of 9,000 |
+| `mad_mm`, abs diff | ≤ 5.8e-6 mm on all segments (fwapg stores 5 decimals) |
+| `mad_m3s`, after rounding `wet` to 5 decimals | **identical on 100 %** |
+| `mad_m3s`, raw abs diff | ≤ 5e-6 m³/s on all segments (the 5-decimal rounding) |
+| `mad_m3s` ≥ 0.01 m³/s (3,859 segments), max rel diff | 0.045 % |
+| `mad_m3s` range in SALR | 2e-5 to 10.2 m³/s; `mad_mm` 52.5 to 504.6 |
+
+The planned threshold (≥ 99 % within 0.1 % relative) is **the wrong test for small flows**. fwapg rounds `mad_m3s` to 5 decimals, so a 2e-5 m³/s headwater carries up to 25 % rounding error. The right parity statement is the absolute one above: identical after rounding. **The R chain reproduces fwapg exactly**, including the PCIC data (same values after PCIC's host move) and fwapg's centroid rule. The plan's threshold is kept for large flows, where it holds with a wide margin.
+
+### The two aggregation orders
+
+- Runoff and baseflow share one NA mask (0 NA in the 255 cells of this subset).
+- max |sum per day, then annual − annual each, then add| = 5.7e-14 mm/yr, which is float noise. D3 is confirmed: the order doesn't matter.
+
+### Sensitivity (per watershed, `mad_mm`, vs the parity build)
+
+| Variant | Median | 1st–99th percentile | Share with change > 5 % |
+|---|---|---|---|
+| Area-weighted cells, total denominator | +0.00 % | −10.75 % to +19.85 % | 9.6 % |
+| Centroid, covered denominator | +0.00 % | 0 | 0 % |
+| Area-weighted + covered | +0.00 % | −10.75 % to +19.85 % | 9.6 % |
+
+Area-weighted sampling, broken down by upstream area:
+
+| Upstream area | Watersheds | 1st–99th percentile | Max \|change\| |
+|---|---|---|---|
+| > 1 km² | 2,167 | −10.6 % to +18.9 % | 84 % |
+| > 10 km² | 827 | −3.7 % to +8.4 % | 13 % |
+| > 100 km² | 314 | −0.3 % to +2.8 % | 2.8 % |
+| SALR outlet (1,794 km²) | 1 | | +0.09 % |
+
+**What this means for D3.**
+- Centroid sampling gives a headwater watershed the value of whichever single cell its centroid lands in. With 1/16° cells (~25–30 km²), a watershed of a few km² can take a cell that mostly lies over a different slope, which moves its value by up to 84 %. Area weighting removes that arbitrariness. Large rivers barely change, so the choice matters for exactly the small streams that habitat models (fresh/bcfishpass MAD thresholds such as CH spawning ≥ 0.46 m³/s) sit near.
+- Keep the proposal: area-weighted by default, centroid for the parity mode.
+- **The covered denominator had no effect in SALR** because every cell has a value; this subset cannot test it. It matters only where polygons fall on NA cells at the edge of the PCIC domain. The build issue should measure it on a group on the domain boundary.
+
+### What Phase 4 does not settle
+
+- **Scaling:** `wet_upstream_pairs()` materialises every (watershed, upstream polygon) pair. That is 722 k pairs for SALR in 3–45 s. It will not scale to the Fraser mainstem, so pre-aggregate by `wscode`/`localcode` as D3 says.
+- **Monthly climatology:** not built. It is the same chain with `tapp` by month, and belongs to the monthly child issue.
+- **Performance of `terra::extract(exact = TRUE)`** over ~1.3 M province polygons has not been measured.
+
+### Code check (Phase 4 commit)
+
+Four review rounds, then a full list of affected code. Files: `planning/active/review-round{1..4}.md`.
+
+| Round | Findings | Fixed | Accepted | Inside previous fix? |
+|---|---|---|---|---|
+| 1 | 2 | 2 | 0 | — |
+| 2 | 0 | 0 | 0 | n |
+| 3 | 2 (1 bug, 1 fragile) | 2 | 0 | n (same mechanism, pre-existing code) |
+| 4 | 1 (fragile) | 1 | 0 | **y**: the no-data guard still tested value presence after the numerator became cover-weighted |
+
+**Mechanism.** Rows or values present were taken to stand for the whole population. Missing data became a neutral 0, or dropped out of a denominator.
+- **Fixes:**
+  - No upstream data now gives `NA`, not 0 m³/s.
+  - Ground beyond the raster edge counts as uncovered (the raster is padded before `extract`).
+  - The "total" numerator is cover-weighted.
+  - The no-data guard is `area_cov > 0`.
+  - The sensitivity summary counts watersheds that are NA in only one build.
+- **The loop ended on an enumeration**: every term in `wet_upstream_mean()` (`cv`, `v`, `num`, `area_cov`, `up`, both value formulas, the NA guard, `coverage`, unmatched ids), plus round 3's ~30-site sweep, which round 4 re-verified.
+- **None of these changed a SALR number.** Parity is identical after rounding, before and after the fixes, because SALR is fully covered and centroid cover is 0 or 1.
+
+**Accepted divergence from cdo.** One missing day makes the whole annual cell NA; `cdo yearsum` skips missing days. This can only happen if PCIC's mask varies in time, and it does not.

@@ -1,11 +1,38 @@
-# wet
+# wet — Stream discharge for the Freshwater Atlas
 
-Stream discharge for BC's Freshwater Atlas: monthly and seasonal flow per segment, historical and climate-scenario, from modelled runoff and hydrometric stations.
+R package for per-segment stream discharge on BC's Freshwater Atlas (FWA): mean annual, monthly and seasonal flow, historical and climate-scenario. Built from PCIC VIC-GL gridded runoff and baseflow, accumulated upstream over FWA fundamental watersheds.
 
 ## Repository Context
 
 **Repository:** NewGraphEnvironment/wet
-**Primary Language:** TBD
+**Primary Language:** R
+**Framework:** R package (devtools, roxygen2, testthat 3e)
+**Spatial:** `terra` (NetCDF subsets), fwapg (PostGIS) for FWA topology
+**Scope issue:** #1 (decisions and parity result in `planning/`, archived on close)
+
+## Architecture
+
+`wet_pcic_url()` → `wet_pcic_index()` → `wet_pcic_fetch()` (OPeNDAP subset of one VIC-GL variable, cached under `data/pcic/`) → `wet_runoff_annual()` (daily mm → mean annual mm per cell) → `wet_ws_sample()` (cell value per fundamental watershed, centroid or area-weighted) → `wet_upstream_pairs()` (topology from fwapg) + `wet_upstream_mean()` (area-weighted upstream mean, pure R) → `wet_mm_to_m3s()`.
+
+`scripts/mad_parity.R` runs the chain for one watershed group and diffs it against fwapg's `whse_basemapping.fwa_stream_networks_discharge`.
+
+## Function Prefix
+
+All functions use the `wet_*` prefix with `noun_verb` naming (`wet_pcic_fetch`, not `wet_fetch_pcic`).
+
+## Data Sources
+
+- **PCIC** `hydro_model_out` over OPeNDAP at `services.pacificclimate.org` (the old `data.pacificclimate.org` host answers 301, so follow redirects). Historical run `TPS_gridded_obs_init` (PNWNAmet, VICGL-RGM, 1945–2012). Twelve CMIP5 runs (6 GCMs × RCP 4.5/8.5, VICGL, 1945–2099). Coverage is Peace, Fraser and Columbia only.
+- Time axis is "days since 1945-1-1", standard calendar: index = days since 1945-01-01. Grid is 0.0625°, lon −139.96875 + 0.0625·i, lat 41.09375 + 0.0625·j.
+- Units are mm/day (packed shorts, fill −32767). Annual mm/yr = sum over the days of each year, then mean over years. That is cdo's `yearsum` then `timmean`, which is what fwapg does.
+
+## Database
+
+Local fwapg in Docker (`fresh-db` container, `fresh/docker/`): `localhost:5432`, db `fwapg`. Scripts connect with `DBI::dbConnect(RPostgres::Postgres(), ...)` using `PG*` env vars; never hardcode remote hosts.
+
+## Gitignored
+
+`data/` holds PCIC downloads and pipeline outputs. Regenerate them with `scripts/`.
 
 <!-- BEGIN SOUL CONVENTIONS — DO NOT EDIT BELOW THIS LINE -->
 
