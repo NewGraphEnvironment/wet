@@ -42,6 +42,10 @@ Local fwapg in Docker (`fresh-db` container, `fresh/docker/`): `localhost:5432`,
 
 `data/` holds PCIC downloads and pipeline outputs. Regenerate them with `scripts/`. The exceptions are the small text reports and run logs that `research/` cites (`data/checks/*.txt`, `data/basin/*_report.txt`, `data/basin/*_run.log`), which are tracked.
 
+## Own estimates first; other groups' products are references
+
+Build our own open estimate, then score other groups' products against it and HYDAT. Do not adopt a product whose model code does not ship. PCIC and the BC Water Tools are yardsticks, not inputs to publish. The reason: without the code we cannot tell whether a product is right, and building our own surfaces inconsistencies and errors on either side (airvine, 2026-09-26; #5, #11). When you find a disagreement, attribute it: ours, theirs or unresolved. Use NGE's `trap` for pinned input snapshots, `crate` for shape-shifting source schemas, and `cd` for ERA5-Land variables.
+
 <!-- BEGIN SOUL CONVENTIONS — DO NOT EDIT BELOW THIS LINE -->
 
 
