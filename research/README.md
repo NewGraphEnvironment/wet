@@ -6,6 +6,7 @@ What is known, outliving the issue that found it. Each file is one topic, revise
 |---|---|
 | [pcic_hydrology.md](pcic_hydrology.md) | PCIC hydrologic products: hosts, gridded runs (historical + 12 CMIP5), grid and time axis, station and salmon products, the channel-scale VIC-GL-Raven CMIP6 portal (May 2026), terms |
 | [fwapg_mad_method.md](fwapg_mad_method.md) | How fwapg builds `fwa_stream_networks_discharge`, the `wet` parity result, and how much area-weighted sampling moves it |
+| [water_balance_method.md](water_balance_method.md) | Chapman, Kerr & Wilford 2018 (the BC Water Tools method): inputs, annual and monthly models, stations, hydrologic zone data, per-tool metadata in `nr-bcwat`, and 23 points where a reimplementation must choose |
 
 Naming: `<topic>.md`, revised in place, from 2026-09-06.
 
