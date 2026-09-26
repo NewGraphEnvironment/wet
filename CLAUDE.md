@@ -708,6 +708,9 @@ Test the result before parsing it: `gdal_utils("info", ...)` on a source GDAL ca
 ### A shift measured on one grid is wrong when applied on another
 Apply a displacement in the CRS it was measured in: transform the point there, add the shift, transform back.
 
+### Writing KML: `<color>` is `aabbggrr`, and a remote icon href renders nothing offline
+Do the hex swap in **one** helper and omit `<Icon><href>` entirely.
+
 # Code Check Conventions
 Structured checklist for reviewing diffs before commit.
 
