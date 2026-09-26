@@ -416,6 +416,12 @@ A numeric formatter such as `sprintf("%.10g", x)` has no SQL form for non-finite
 ### An `information_schema` lookup by the literal table name misses what Postgres resolves
 `WHERE table_schema = 's' AND table_name = 'T'` compares the text you passed, but Postgres folds unquoted identifiers to lower case, puts temp tables in `pg_temp_N`, and resolves unqualified names through `search_path`.
 
+### Rscript reads a script as it runs, so never edit a script while a run of it is in flight
+Copy the script and run the copy (`cp scripts/x.R "$TMPDIR/x_frozen.R" && Rscript "$TMPDIR/x_frozen.R"`) for anything long-running, or leave the file alone until the run exits.
+
+### A range total taken as the difference of two large running totals loses the small ranges
+Sum a range directly (segment tree, per-range `sum()`, or grouped sums) rather than as `cumsum[hi] - cumsum[lo]` when ranges are small relative to the running total.
+
 # Code Check — Shell
 Tool-level traps in bash, sed, git and `gh`, and in the host toolchain those commands depend on.
 
