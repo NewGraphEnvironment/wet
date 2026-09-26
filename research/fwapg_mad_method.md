@@ -60,7 +60,7 @@ fwapg, bcfishpass and fresh all compute upstream aggregates with the pairwise `F
 - **Scale.** The whole Fraser (644,710 polygons) takes 13 s: fetch 1.5 s, pairs 1.2 s, sums 4.2 s, 2.1 GB peak. That is the first build to cover order ≥ 8 mainstems.
 
 **fwapg's stored `fwa_watersheds_upstream_area` is a stale snapshot.**
-- It disagrees with accumulated area on 1,731 Fraser polygons. A live `FWA_Upstream` re-check of 401 of them (400 sampled plus the basin mouth) found wet = live on all 401 (maximum relative difference 3.6e-14) and stored = live on none (`data/checks/upstream_area_100_sample.txt`, regenerate with `WET_LIVE_MAX=400`). A re-check of all 1,731 was still running at the time of writing.
+- It disagrees with accumulated area on 1,731 Fraser polygons. A live `FWA_Upstream` re-check of **all 1,731** found wet = live on every one (maximum relative difference 3.6e-14, including the basin mouth) and stored = live on none (`data/checks/upstream_area_100_full.txt`; 3.1 h, `WET_LIVE_MAX=5000 Rscript scripts/upstream_area_check.R 100`). A 401-polygon sample gives the same result in minutes (`data/checks/upstream_area_100_sample.txt`).
 - It even contradicts itself: polygons sharing a code pair have different stored areas (9633006: 50,837 m² vs 7949160: 12,738,815 m²).
 - Parity with fwapg's discharge must therefore divide by the stored table, because that is what fwapg did. Every other use should take accumulated area.
 

@@ -7,7 +7,7 @@ Replaced the pairwise `FWA_Upstream` join with exact join-free range sums (`wet_
 
 ## Measurement
 
-- **Topology:** Fraser, 644,710 polygons, in 13 s at a 2.1 GB peak. Exact against a brute-force `fwa_upstream` transcription on 1,540 random trees. Accumulated area equals the live `FWA_Upstream` join on all 401 re-checked polygons (max relative difference 3.6e-14); fwapg's stored table equals live on none.
+- **Topology:** Fraser, 644,710 polygons, in 13 s at a 2.1 GB peak. Exact against a brute-force `fwa_upstream` transcription on 1,540 random trees. Accumulated area equals the live `FWA_Upstream` join on all 1,731 polygons where fwapg's stored table disagrees (max relative difference 3.6e-14); the stored table equals live on none.
 - **Discharge:** Fraser, 1,012,100 segments, 3.4 min from cache (24 min for the first PCIC fetch), ~3.2 GB peak.
   - 99.782 % match fwapg within rounding. The tolerance has a clean gap between 2e-8 and 1e-6 relative.
   - 9,529 segments newly valued (7,720 of order ≥ 8).
@@ -22,11 +22,11 @@ Replaced the pairwise `FWA_Upstream` join with exact join-free range sums (`wet_
   - "Covered denominator changes nothing" was false.
   - Each was replaced by a rebuild-and-compare reproduction.
 - **Code check:** two loops (Phases 1–3 and Phase 4), each with a round that found a defect inside the previous fix, and each ended on an enumeration. See `review-round*.md` and `review-p4-round*.md`.
-- **Not finished:** the live re-check of all 1,731 stale-area polygons was still running at close; only the 401-polygon sample is committed.
+- **The first full live re-check was lost** after 3.2 h: its script was edited while Rscript was still reading it. It was rerun from a frozen copy (3.1 h).
 
 ## Evidence
 
 - `data/basin/100_report.txt` and `data/basin/100_run.log` (regenerate with `/usr/bin/time -l Rscript scripts/mad_basin.R 100`).
-- `data/checks/upstream_area_100_sample.txt` (regenerate with `WET_LIVE_MAX=400 Rscript scripts/upstream_area_check.R 100`).
+- `data/checks/upstream_area_100_sample.txt` and `data/checks/upstream_area_100_full.txt` (regenerate with `WET_LIVE_MAX=400` or `5000` `Rscript scripts/upstream_area_check.R 100`).
 
 Closed by: PR (branch `2-province-scale-upstream-accumulation-wit`)
