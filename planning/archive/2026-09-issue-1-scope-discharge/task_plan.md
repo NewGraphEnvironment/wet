@@ -43,13 +43,13 @@ Station data is separate: water-temp-bc holds ~290 ECCC stations (temperature, d
 - [x] Sensitivity: rerun with area-weighted cell extraction and with covered-area normalisation, and report how far each moves the results. This feeds back into the Phase 2 method decision.
 
 ## Phase 5 — Close out
-- [ ] Post the decision record and parity result as a comment on #1.
-- [ ] Open child issues: monthly/seasonal climatologies, scenario period means, coverage gap-fill, station check (HYDAT snapped with `frs_point_snap`, bias by region and season), and publish (parquet + STAC + fwapg load). Cross-reference fresh#114, link#284 and knowledge#19.
-- [ ] Open an issue on fwapg about the mislabelled forcing in the README and the `mad_m3s` column comment.
+- [x] Post the decision record and parity result as a comment on #1.
+- [x] Open child issues (#2–#7): monthly/seasonal climatologies, scenario period means, coverage gap-fill, station check (HYDAT snapped with `frs_point_snap`, bias by region and season), and publish (parquet + STAC + fwapg load). Cross-reference fresh#114, link#284 and knowledge#19.
+- [ ] Open an issue on fwapg about the mislabelled forcing in the README and the `mad_m3s` column comment. **Drafted in findings.md, not filed**: fork vs upstream is the user's call.
 
 ## Validation
 
-- [ ] Tests pass
-- [ ] `/code-check` clean on each commit
-- [ ] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] Tests pass
+- [x] `/code-check` clean on each commit (run on the Phase 4 code commit, 4 rounds + enumeration; Phases 1–3 were planning notes and package metadata)
+- [x] PWF checkboxes match landed work
+- [x] `/planning-archive` on completion

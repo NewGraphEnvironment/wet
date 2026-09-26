@@ -26,3 +26,7 @@
 - Sensitivity: area-weighted sampling moves watersheds < 10 km² by up to ±20 % (1st–99th percentile) and > 100 km² by < 3 %. Covered denominator untestable in SALR (full coverage).
 - /code-check: 4 rounds, ended on an enumeration (see findings).
 - Next: Phase 5 close-out (issues, comment, PR).
+
+### Phase 5 — Close-out
+- Posted the decision record on #1; opened #2–#7.
+- fwapg issue drafted in findings.md and left for the user (fork vs upstream).

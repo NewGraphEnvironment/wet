@@ -277,3 +277,17 @@ Four review rounds, then a full list of affected code. Files: `planning/active/r
 - **None of these changed a SALR number.** Parity is identical after rounding, before and after the fixes, because SALR is fully covered and centroid cover is 0 or 1.
 
 **Accepted divergence from cdo.** One missing day makes the whole annual cell NA; `cdo yearsum` skips missing days. This can only happen if PCIC's mask varies in time, and it does not.
+
+## Phase 5 — Close-out
+
+- Commented the decision record and parity on #1: https://github.com/NewGraphEnvironment/wet/issues/1#issuecomment-5843851193
+- Child issues: #2 accumulation, #3 monthly, #4 scenarios, #5 coverage, #6 stations, #7 publish.
+- **fwapg issue: drafted, NOT filed.** `NewGraphEnvironment/fwapg` is a fork of Simon Norris's `smnorris/fwapg`, so where to file (fork or upstream) is the user's call. Draft follows.
+
+### fwapg issue draft
+
+> Title: discharge: PCIC host moved (curl saves the 301 page); forcing mislabelled in README and mad_m3s comment
+> 
+> 1. **Download is broken.** `data.pacificclimate.org` now answers **301** to `services.pacificclimate.org` (checked 2026-09-25). `extras/discharge/discharge.sh:13-14` runs `curl -o` without `-L`, so `data/baseflow.nc` and `data/runoff.nc` are the redirect body, not NetCDF. The `cdo` step that follows cannot read them. Fix: use `curl -fL`, or point at `services.pacificclimate.org`. Checking for a NetCDF signature before running `cdo` would also help.
+> 2. **Forcing is mislabelled.** The files downloaded are the historical run `allwsbc.TPS_gridded_obs_init…` (title "VICGL with glacier dynamics driven with observed forcings"; forcing PNWNAmet; method VICGL+RGM+HydroConductor; 1945–2012). The README citation and the `fwa_streams.mad_m3s` column comment describe it as BCCAQ-downscaled CMIP5 output. The values are fine; the metadata is wrong.
+> 3. **Also noted, no action needed.** The centroid-in-cell sampling reproduces exactly in R (NewGraphEnvironment/wet#1, identical to 5 decimals on SALR). Area-weighted sampling moves small headwater watersheds (< 10 km²) by up to ±20 % (1st–99th percentile), and watersheds over 100 km² by less than 3 %.
