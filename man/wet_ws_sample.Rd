@@ -10,7 +10,8 @@ wet_ws_sample(r, ws, method = c("centroid", "area"))
 \item{r}{One-layer \code{terra::SpatRaster}.}
 
 \item{ws}{\code{terra::SpatVector} of polygons with a \code{watershed_feature_id}
-attribute.}
+attribute; or, for \code{"centroid"} only, a \code{data.frame(watershed_feature_id, lon, lat)} of centroids already computed (e.g. by \code{\link[=wet_ws_fetch]{wet_ws_fetch()}}),
+which avoids transferring geometry for a whole basin.}
 
 \item{method}{\code{"centroid"} or \code{"area"}.}
 }

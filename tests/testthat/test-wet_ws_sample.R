@@ -55,3 +55,11 @@ test_that("inputs are checked", {
   ws$watershed_feature_id <- NULL
   expect_error(wet_ws_sample(grid(), ws))
 })
+
+test_that("centroid sampling from lon/lat points matches polygons", {
+  ws <- polys(c("POLYGON((0.1 1.1,0.9 1.1,0.9 1.9,0.1 1.9,0.1 1.1))",
+                "POLYGON((1.1 0.1,1.9 0.1,1.9 0.9,1.1 0.9,1.1 0.1))"), 1:2)
+  pts <- data.frame(watershed_feature_id = 1:2, lon = c(0.5, 1.5), lat = c(1.5, 0.5))
+  expect_equal(wet_ws_sample(grid(), pts, "centroid"), wet_ws_sample(grid(), ws, "centroid"))
+  expect_error(wet_ws_sample(grid(), pts, "area"), "needs polygons")
+})

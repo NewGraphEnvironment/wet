@@ -1,9 +1,10 @@
 #' Watershed-to-upstream-polygon pairs for one watershed group, from fwapg
 #'
-#' Uses `FWA_Upstream()` on fundamental watershed codes and fwapg's
-#' precomputed `fwa_watersheds_upstream_area`, as fwapg's own discharge build
-#' does. Upstream polygons are not restricted to the group, so run it on a
-#' group whose upstream area lies inside it or expect a large result.
+#' The slow oracle: the pairwise `FWA_Upstream()` join fwapg's own builds use,
+#' with fwapg's stored `fwa_watersheds_upstream_area`. It materialises every
+#' (watershed, upstream polygon) pair (722 k for SALR), so use it only to spot
+#' check [wet_upstream_sums()] / [wet_upstream_mean()] on small headwater
+#' groups. Upstream polygons are not restricted to the group.
 #'
 #' @param conn A DBI connection to an fwapg database.
 #' @param wsg Watershed group code, e.g. `"SALR"`.

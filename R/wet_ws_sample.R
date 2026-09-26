@@ -14,15 +14,28 @@
 #'
 #' @param r One-layer `terra::SpatRaster`.
 #' @param ws `terra::SpatVector` of polygons with a `watershed_feature_id`
-#'   attribute.
+#'   attribute; or, for `"centroid"` only, a `data.frame(watershed_feature_id,
+#'   lon, lat)` of centroids already computed (e.g. by [wet_ws_fetch()]),
+#'   which avoids transferring geometry for a whole basin.
 #' @param method `"centroid"` or `"area"`.
 #' @return `data.frame(watershed_feature_id, value, cover)`.
 #' @export
 wet_ws_sample <- function(r, ws, method = c("centroid", "area")) {
   method <- match.arg(method)
   stopifnot(inherits(r, "SpatRaster"), terra::nlyr(r) == 1L,
-            inherits(ws, "SpatVector"), "watershed_feature_id" %in% names(ws))
+            "watershed_feature_id" %in% names(ws))
   id <- ws$watershed_feature_id
+
+  if (is.data.frame(ws)) {
+    if (method != "centroid") stop("method = \"area\" needs polygons (a SpatVector)", call. = FALSE)
+    stopifnot(all(c("lon", "lat") %in% names(ws)), !anyNA(ws$lon), !anyNA(ws$lat))
+    pts <- terra::vect(data.frame(lon = ws$lon, lat = ws$lat), geom = c("lon", "lat"),
+                       crs = "EPSG:4326")
+    value <- terra::extract(r, terra::project(pts, terra::crs(r)), ID = FALSE)[[1]]
+    return(data.frame(watershed_feature_id = id, value = value,
+                      cover = as.numeric(!is.na(value))))
+  }
+  stopifnot(inherits(ws, "SpatVector"))
 
   if (method == "centroid") {
     pts <- terra::project(terra::centroids(ws, inside = FALSE), terra::crs(r))
