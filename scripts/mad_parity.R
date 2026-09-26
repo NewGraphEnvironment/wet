@@ -1,16 +1,20 @@
 # MAD parity check: rebuild fwapg's mean annual discharge for one watershed
 # group from PCIC VIC-GL and diff it against
-# whse_basemapping.fwa_stream_networks_discharge (#1, Phase 4).
+# whse_basemapping.fwa_stream_networks_discharge (#1, Phase 4; #2 Phase 3).
 #
-# Then rerun with the two method changes proposed in #1 (area-weighted cell
-# extraction, covered-area normalisation) and report how far each moves
-# the result.
+# Accumulates over the whole basin with wet_upstream_mean() (range sums, no
+# pairs), and cross-checks the result against the old pairwise formula
+# (wet_upstream_pairs()) on the group. Then reruns with the method changes
+# proposed in #1 (area-weighted cells, covered-area denominator).
 #
 #   Rscript scripts/mad_parity.R [WSG]        # default SALR
 #
-# Needs a local fwapg (fresh/docker, container `fresh-db`). Connection comes
-# from WET_PG* env vars, defaulting to that container; PG* is deliberately
-# not read, because it often points at a different server.
+# The group must be a headwater group: its upstream polygons must fall inside
+# the PCIC subset fetched for its extent (checked). For a whole basin use
+# scripts/mad_basin.R.
+#
+# Connection from WET_PG* env vars, defaulting to the local fresh-db container;
+# PG* is deliberately not read, because it often points at a different server.
 
 devtools::load_all(quiet = TRUE)
 
@@ -37,16 +41,12 @@ bb <- DBI::dbGetQuery(conn, "
 bbox <- unlist(bb[1, ]) + c(-1, -1, 1, 1) * 0.0625
 message("bbox: ", paste(round(bbox, 4), collapse = ", "))
 
-t0 <- Sys.time()
 f_run <- wet_pcic_fetch("RUNOFF", bbox, "1981-01-01", "2010-12-31")
 f_base <- wet_pcic_fetch("BASEFLOW", bbox, "1981-01-01", "2010-12-31")
-message("fetched in ", format(round(Sys.time() - t0, 1)))
-
 runoff <- terra::rast(f_run)
 baseflow <- terra::rast(f_base)
 stopifnot(terra::nlyr(runoff) == 10957, terra::nlyr(baseflow) == 10957)
 
-# Same NA mask in both? (If so, summing before or after averaging is identical.)
 na_run <- as.vector(is.na(terra::values(runoff[[1]])))
 na_base <- as.vector(is.na(terra::values(baseflow[[1]])))
 message("NA mask identical: ", identical(na_run, na_base),
@@ -54,42 +54,61 @@ message("NA mask identical: ", identical(na_run, na_base),
 
 # fwapg: annual means separately, then add (cdo add).
 mad_cell <- wet_runoff_annual(runoff) + wet_runoff_annual(baseflow)
-# Sum per day first, then annual: must agree.
 mad_cell_b <- wet_runoff_annual(runoff + baseflow)
 d_order <- max(abs(terra::values(mad_cell - mad_cell_b)), na.rm = TRUE)
 message("max |sum-then-average - average-then-sum| = ", signif(d_order, 3), " mm/yr")
 
-# ---- upstream topology, then every polygon it touches -----------------------
-t0 <- Sys.time()
-pairs <- wet_upstream_pairs(conn, wsg)
-message(nrow(pairs), " upstream pairs in ", format(round(Sys.time() - t0, 1)))
+# ---- basin polygons, topology, values ---------------------------------------
+basin <- DBI::dbGetQuery(conn, "
+  SELECT DISTINCT subltree(wscode_ltree, 0, 1)::text AS b
+  FROM whse_basemapping.fwa_watersheds_poly WHERE watershed_group_code = $1",
+  params = list(wsg))$b
+stopifnot(length(basin) == 1L)
+ws <- wet_ws_fetch(conn, basin)
+irr <- wet_upstream_irregular(conn, basin)
+stored <- DBI::dbGetQuery(conn, "
+  SELECT u.watershed_feature_id, u.upstream_area_ha * 10000 AS upstream_area_m2
+  FROM whse_basemapping.fwa_watersheds_upstream_area u
+  JOIN whse_basemapping.fwa_watersheds_poly w USING (watershed_feature_id)
+  WHERE w.wscode_ltree <@ $1::ltree", params = list(basin))
+message(nrow(ws), " polygons in basin ", basin, ", ", nrow(irr), " irregular pairs")
 
-# Group boundaries can cut a mainstem, leaving slivers of the next group
-# upstream of the group's lowest polygons. Sample every upstream polygon, not
-# only the group's own, or those slivers would count as uncovered.
-ws_df <- DBI::dbGetQuery(conn, "
-  SELECT watershed_feature_id, watershed_group_code, ST_AsText(geom) wkt
-  FROM whse_basemapping.fwa_watersheds_poly
-  WHERE watershed_feature_id = ANY($1::integer[])",
-  params = list(paste0("{", paste(unique(pairs$id_up), collapse = ","), "}")))
-ws <- terra::vect(ws_df$wkt, crs = "EPSG:3005")
-ws$watershed_feature_id <- ws_df$watershed_feature_id
-n_out <- sum(ws_df$watershed_group_code != wsg)
-message(nrow(ws_df), " polygons sampled (", n_out, " outside ", wsg, ")")
-stopifnot(setequal(ws_df$watershed_feature_id, pairs$id_up))
-w <- terra::project(terra::ext(ws), "EPSG:3005", "EPSG:4326")
-stopifnot(w$xmin >= bbox[1], w$ymin >= bbox[2], w$xmax <= bbox[3], w$ymax <= bbox[4])
+# Only polygons inside the fetched extent get values; everything else counts as
+# uncovered. So the group is valid for parity only if its upstream ground is
+# fully covered.
+in_bb <- ws$lon >= bbox[1] & ws$lon <= bbox[3] & ws$lat >= bbox[2] & ws$lat <= bbox[4]
+cen <- wet_ws_sample(mad_cell, ws[in_bb, c("watershed_feature_id", "lon", "lat")], "centroid")
+grp <- ws$watershed_group_code == wsg
 
-# ---- parity: centroid sample, total-area denominator -------------------------
-build <- function(method, denom) {
-  v <- wet_ws_sample(mad_cell, ws, method)
-  u <- wet_upstream_mean(pairs, v, denom)
+build <- function(values, denom, upstream_area = NULL) {
+  u <- wet_upstream_mean(ws, values, denom, irregular_pairs = irr,
+                         upstream_area = upstream_area)
   u$mad_mm <- u$value
   u$mad_m3s <- wet_mm_to_m3s(u$value, u$upstream_area_m2)
   u
 }
-parity <- build("centroid", "total")
+parity <- build(cen, "total", upstream_area = stored)  # fwapg mode
+live <- build(cen, "total")                            # accumulated upstream area
+# Coverage against the accumulated (live) upstream area: the stored table can
+# be stale, which would fail a covered group or pass an uncovered one.
+if (any(live$coverage[grp] < 1 - 1e-12)) {
+  stop(wsg, " has upstream ground outside the fetched extent; not a headwater group",
+       call. = FALSE)
+}
 
+# ---- cross-check against the old pairwise formula ---------------------------
+pairs <- wet_upstream_pairs(conn, wsg)
+i <- match(pairs$id_up, cen$watershed_feature_id)
+old <- tapply(ifelse(is.na(cen$value[i]), 0, cen$value[i]) * pairs$area_up_m2,
+              pairs$watershed_feature_id, sum) /
+  tapply(pairs$upstream_area_m2, pairs$watershed_feature_id, `[`, 1)
+j <- match(as.integer(names(old)), parity$watershed_feature_id)
+d_old <- max(abs(parity$mad_mm[j] - old) / old)
+message("range sums vs pairwise join on ", length(old), " ", wsg,
+        " watersheds: max relative difference ", signif(d_old, 3))
+stopifnot(d_old < 1e-9)
+
+# ---- compare with fwapg -------------------------------------------------------
 ref <- DBI::dbGetQuery(conn, "
   SELECT s.linear_feature_id, l.watershed_feature_id, d.mad_mm, d.mad_m3s
   FROM whse_basemapping.fwa_stream_networks_sp s
@@ -97,8 +116,12 @@ ref <- DBI::dbGetQuery(conn, "
   LEFT JOIN whse_basemapping.fwa_stream_networks_discharge d USING (linear_feature_id)
   WHERE s.watershed_group_code = $1", params = list(wsg))
 
+# coverage always from the live build: the stored upstream area can be stale
+parity$coverage <- live$coverage[match(parity$watershed_feature_id, live$watershed_feature_id)]
 cmp <- merge(ref, parity[, c("watershed_feature_id", "mad_mm", "mad_m3s", "coverage")],
              by = "watershed_feature_id", suffixes = c("_fwapg", "_wet"), all.x = TRUE)
+lv <- live[match(cmp$watershed_feature_id, live$watershed_feature_id), ]
+cmp$mad_m3s_live <- lv$mad_m3s
 cmp$rel_m3s <- (cmp$mad_m3s_wet - cmp$mad_m3s_fwapg) / cmp$mad_m3s_fwapg
 cmp$abs_mm <- cmp$mad_mm_wet - cmp$mad_mm_fwapg
 both <- !is.na(cmp$mad_m3s_fwapg) & !is.na(cmp$mad_m3s_wet) & cmp$mad_m3s_fwapg > 0
@@ -118,28 +141,30 @@ cat("within 0.1% (mad_m3s):", pct(mean(abs(cmp$rel_m3s[both]) <= 0.001)),
     pct(mean(abs(cmp$rel_m3s[both & cmp$mad_m3s_fwapg >= 0.01]) <= 0.001)), "\n")
 cat("within 1e-4 mm (mad_mm):", pct(mean(abs(cmp$abs_mm[both]) <= 1e-4)), "\n")
 cat("rel diff mad_m3s quantiles (0,1,50,99,100%):", q(cmp$rel_m3s[both]), "\n")
-cat("abs diff mad_mm quantiles:", q(cmp$abs_mm[both]), "\n")
-worst <- cmp[both, ][order(-abs(cmp$rel_m3s[both])), ][1:10,
-  c("linear_feature_id", "watershed_feature_id", "mad_m3s_fwapg", "mad_m3s_wet", "rel_m3s")]
-cat("\nworst 10:\n"); print(worst, row.names = FALSE)
+rl <- (cmp$mad_m3s_live[both] - cmp$mad_m3s_wet[both]) / cmp$mad_m3s_wet[both]
+cat("live upstream area vs fwapg's stored table: segments that change:",
+    sum(abs(rl) > 1e-9), "| max rel change", signif(max(abs(rl)), 3), "\n")
 
 # ---- sensitivity: the proposed method changes -------------------------------
 cat("\n## Sensitivity vs parity build (per watershed, mad_mm)\n\n")
+geom <- do.call(rbind, lapply(unique(ws$watershed_group_code[in_bb]), function(g) wet_ws_geom(conn, g)))
+area_vals <- wet_ws_sample(mad_cell, geom, "area")
 for (m in list(c("area", "total"), c("centroid", "covered"), c("area", "covered"))) {
-  s <- build(m[1], m[2])
-  j <- merge(parity[, c("watershed_feature_id", "mad_mm")],
-             s[, c("watershed_feature_id", "mad_mm", "coverage")],
-             by = "watershed_feature_id", suffixes = c("_p", "_s"))
-  r <- (j$mad_mm_s - j$mad_mm_p) / j$mad_mm_p
+  vals <- if (m[1] == "area") area_vals else cen
+  s <- build(vals, m[2], upstream_area = stored)
+  # coverage against the live upstream area, not the possibly stale stored one
+  s$coverage <- build(vals, m[2])$coverage
+  j <- data.frame(p = parity$mad_mm[grp], s = s$mad_mm[grp], coverage = s$coverage[grp])
+  r <- (j$s - j$p) / j$p
   # A watershed valued by one build and NA in the other is the largest change
   # of all; count it rather than let na.rm drop it from the summary.
-  n_flip <- sum(is.na(j$mad_mm_p) != is.na(j$mad_mm_s))
+  n_flip <- sum(is.na(j$p) != is.na(j$s))
   cat(sprintf("%-8s / %-7s: median %+.2f%%, 1-99%% [%+.2f%%, %+.2f%%], |change|>5%%: %s, NA in one build only: %d, min coverage %.3f\n",
               m[1], m[2], 100 * stats::median(r, na.rm = TRUE),
               100 * stats::quantile(r, 0.01, na.rm = TRUE),
               100 * stats::quantile(r, 0.99, na.rm = TRUE),
               pct(mean(abs(r) > 0.05, na.rm = TRUE)), n_flip, min(j$coverage, na.rm = TRUE)))
-  write.csv(s, file.path(out_dir, sprintf("%s_%s_%s.csv", wsg, m[1], m[2])), row.names = FALSE)
+  write.csv(s[grp, ], file.path(out_dir, sprintf("%s_%s_%s.csv", wsg, m[1], m[2])), row.names = FALSE)
 }
 
 DBI::dbDisconnect(conn)

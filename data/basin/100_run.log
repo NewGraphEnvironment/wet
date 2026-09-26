@@ -1,0 +1,24 @@
+03:08:52 644710 polygons, 676496 irregular pairs
+03:08:53 bbox -127.969, 48.59, -117.044, 56.239
+03:09:02 PCIC annual in 0.1 min; 21648 cells, 14954 with values
+03:11:09 sampled: centroid 0.6 s, area 2.1 min
+03:11:42 accumulation 7.3 s per build
+      206.62 real       175.94 user         7.89 sys
+          3298492416  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              583951  page reclaims
+                 814  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                 250  messages sent
+               67475  messages received
+                   0  signals received
+               17011  voluntary context switches
+               88474  involuntary context switches
+       2569256652644  instructions retired
+        677067426746  cycles elapsed
+          1099375328  peak memory footprint
+exit 0

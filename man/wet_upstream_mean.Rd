@@ -4,34 +4,55 @@
 \alias{wet_upstream_mean}
 \title{Area-weighted mean over each watershed's upstream area}
 \usage{
-wet_upstream_mean(pairs, values, denom = c("total", "covered"))
+wet_upstream_mean(
+  ws,
+  values,
+  denom = c("total", "covered"),
+  irregular_pairs = NULL,
+  upstream_area = NULL
+)
 }
 \arguments{
-\item{pairs}{\code{data.frame(watershed_feature_id, id_up, area_up_m2, upstream_area_m2)}: one row per (watershed, upstream polygon).}
+\item{ws}{\code{data.frame(watershed_feature_id, wscode, localcode, area_m2)},
+e.g. from \code{\link[=wet_ws_fetch]{wet_ws_fetch()}}: every polygon of the basin.}
 
 \item{values}{\code{data.frame(watershed_feature_id, value, cover)} from
-\code{\link[=wet_ws_sample]{wet_ws_sample()}}.}
+\code{\link[=wet_ws_sample]{wet_ws_sample()}}. Polygons absent from it count as uncovered.}
 
 \item{denom}{\code{"total"} or \code{"covered"}.}
+
+\item{irregular_pairs}{Passed to \code{\link[=wet_upstream_sums]{wet_upstream_sums()}}; from
+\code{\link[=wet_upstream_irregular]{wet_upstream_irregular()}}. Without it, irregularly coded polygons drop
+out of every upstream sum (a warning says how many), and the result no
+longer matches \code{FWA_Upstream}.}
+
+\item{upstream_area}{Optional \code{data.frame(watershed_feature_id, upstream_area_m2)} overriding the accumulated upstream area.}
 }
 \value{
-\code{data.frame(watershed_feature_id, value, coverage, upstream_area_m2)}.
+\code{data.frame(watershed_feature_id, value, coverage, upstream_area_m2)}, one row per row of \code{ws}, with attribute \code{"irregular"}
+(ids of irregularly coded polygons).
 }
 \description{
-Pure R over a pairs table, so the weighting is testable without a database;
-\code{\link[=wet_upstream_pairs]{wet_upstream_pairs()}} supplies the pairs from fwapg.
+Weights each polygon's value by its area and cover, and accumulates over
+the \code{FWA_Upstream} set of every watershed with \code{\link[=wet_upstream_sums]{wet_upstream_sums()}}, so it
+runs on a whole basin without materialising upstream pairs.
 }
 \details{
 For watershed \code{a} with upstream polygons \code{u} (including \code{a} itself):
 \itemize{
-\item \code{denom = "total"}: \code{sum(value_u * area_u * cover_u) / upstream_area_a}, where
-\code{upstream_area_a} is fwapg's precomputed total. Ground without a value
-(a polygon's uncovered share, or a polygon with no value) adds nothing to
-the numerator but still counts in the denominator, so
-partial coverage biases the mean low. This reproduces fwapg, including
-\code{NA} where no upstream polygon has a value.
-\item \code{denom = "covered"}: \code{sum(value_u * area_u * cover_u) / sum(area_u * cover_u)} over polygons with a value: the mean over the
-area that has data. \code{coverage} then says how much of the upstream
-area that is.
+\item \code{denom = "total"}: \code{sum(value_u * area_u * cover_u) / upstream_area_a}.
+Ground without a value (a polygon's uncovered share, or a polygon with no
+value) adds nothing to the numerator but still counts in the denominator,
+so partial coverage biases the mean low. This reproduces fwapg, including
+\code{NA} where no upstream ground is covered.
+\item \code{denom = "covered"}: \code{sum(value_u * area_u * cover_u) / sum(area_u * cover_u)}: the mean over the area that has data. \code{coverage}
+says how much of the upstream area that is.
 }
+
+\code{upstream_area_a} is the accumulated polygon area, unless \code{upstream_area}
+supplies it. fwapg's discharge build divides by its stored
+\code{fwa_watersheds_upstream_area}, a snapshot that can differ from the live
+polygons, so pass that table to reproduce fwapg exactly. The override
+applies to the \code{"total"} value and to the returned \code{upstream_area_m2};
+\code{coverage} is always covered area over accumulated area.
 }

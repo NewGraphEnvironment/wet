@@ -14,9 +14,14 @@ R package for per-segment stream discharge on BC's Freshwater Atlas (FWA): mean 
 
 ## Architecture
 
-`wet_pcic_url()` → `wet_pcic_index()` → `wet_pcic_fetch()` (OPeNDAP subset of one VIC-GL variable, cached under `data/pcic/`) → `wet_runoff_annual()` (daily mm → mean annual mm per cell) → `wet_ws_sample()` (cell value per fundamental watershed, centroid or area-weighted) → `wet_upstream_pairs()` (topology from fwapg) + `wet_upstream_mean()` (area-weighted upstream mean, pure R) → `wet_mm_to_m3s()`.
+`wet_pcic_url()` → `wet_pcic_index()` → `wet_pcic_fetch()` (OPeNDAP subset of one VIC-GL variable, cached under `data/pcic/`) → `wet_pcic_annual()` (one year at a time; daily mm → mean annual mm per cell via `wet_runoff_annual()`) → `wet_ws_fetch()` (a whole basin's polygons: codes, area, centroid) → `wet_ws_sample()` (cell value per fundamental watershed: centroid from points, or area-weighted over `wet_ws_geom()` per group) → `wet_upstream_mean()` (area-weighted upstream mean via `wet_upstream_sums()`, join-free range sums over FWA codes, with `wet_upstream_irregular()` pairs) → `wet_mm_to_m3s()`.
 
-`scripts/mad_parity.R` runs the chain for one watershed group and diffs it against fwapg's `whse_basemapping.fwa_stream_networks_discharge`.
+Scripts:
+- `scripts/mad_basin.R 100` builds a whole basin (the Fraser in about 3 min from cache) and attributes every difference from fwapg.
+- `scripts/mad_parity.R SALR` is the headwater-group regression gate, and cross-checks against the slow pairwise oracle `wet_upstream_pairs()`.
+- `scripts/upstream_area_check.R` checks topology against fwapg's upstream areas.
+
+fwapg's stored `fwa_watersheds_upstream_area` is a **stale snapshot**. Use accumulated area, except to reproduce fwapg's own numbers. See `research/fwapg_mad_method.md`.
 
 ## Function Prefix
 
@@ -35,7 +40,7 @@ Local fwapg in Docker (`fresh-db` container, `fresh/docker/`): `localhost:5432`,
 
 ## Gitignored
 
-`data/` holds PCIC downloads and pipeline outputs. Regenerate them with `scripts/`.
+`data/` holds PCIC downloads and pipeline outputs. Regenerate them with `scripts/`. The exceptions are the small text reports and run logs that `research/` cites (`data/checks/*.txt`, `data/basin/*_report.txt`, `data/basin/*_run.log`), which are tracked.
 
 <!-- BEGIN SOUL CONVENTIONS — DO NOT EDIT BELOW THIS LINE -->
 

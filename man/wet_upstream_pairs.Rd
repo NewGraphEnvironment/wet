@@ -15,8 +15,9 @@ wet_upstream_pairs(conn, wsg)
 \code{data.frame(watershed_feature_id, id_up, area_up_m2, upstream_area_m2)}.
 }
 \description{
-Uses \code{FWA_Upstream()} on fundamental watershed codes and fwapg's
-precomputed \code{fwa_watersheds_upstream_area}, as fwapg's own discharge build
-does. Upstream polygons are not restricted to the group, so run it on a
-group whose upstream area lies inside it or expect a large result.
+The slow oracle: the pairwise \code{FWA_Upstream()} join fwapg's own builds use,
+with fwapg's stored \code{fwa_watersheds_upstream_area}. It materialises every
+(watershed, upstream polygon) pair (722 k for SALR), so use it only to spot
+check \code{\link[=wet_upstream_sums]{wet_upstream_sums()}} / \code{\link[=wet_upstream_mean]{wet_upstream_mean()}} on small headwater
+groups. Upstream polygons are not restricted to the group.
 }

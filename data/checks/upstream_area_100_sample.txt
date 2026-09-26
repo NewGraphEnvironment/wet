@@ -1,0 +1,12 @@
+
+## Upstream area check, basin 100 
+
+polygons: 644710 | reference rows: 644710 | missing either side: 0 
+max relative difference: 251 | mismatches > 1e-9: 1731 
+without the irregular correction: mismatches > 1e-9: 26541 | max 251 
+timing (s): fetch 2.7 | irregular 2 | sums 5.6 
+
+live FWA_Upstream re-check of 401 mismatched polygons (of 1731 ; includes the basin mouth):
+  wet == live (<= 1e-9): 401 | stored == live: 0 
+  max |wet - live| / live: 3.59e-14 
+  basin mouth 7659748 : wet 232150864900 | live 232150864900 | stored 232150814000 
