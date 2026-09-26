@@ -93,3 +93,32 @@ The exploration agent checked this on the live DB. For 15 Salmon polygons it mat
   - Pairs missing an irregular id, or with duplicate rows, are an error.
   - Duplicate `upstream_area` ids are an error.
   - Coverage is always live.
+
+## Phase 4 — Whole Fraser (2026-09-26)
+
+See `research/fwapg_mad_method.md` "Fraser parity (#2)" for the tables.
+- **Scale:** 1,012,100 segments; 99.782 % match fwapg within tolerance; 9,529 segments valued that fwapg lacks (7,720 of order ≥ 8). 3.4 min from cache (24 min first PCIC fetch); ~3.2 GB peak (run log).
+- **Attribution:** all 2,189 differences reproduced or labelled. 1,197 from 5 centroid flips (0.020–0.431 m from an edge; the rebuild breaks 0 prior matches); 196 from LDEN never valued; 10 from an older fwapg lookup; 786 stale stored area (necessary condition only); 0 unexplained.
+- **Hope:** 2,476 m³/s vs HYDAT 2,664 (−7 %); upstream area 216,659 vs 217,000 km².
+- **Wrong turns, kept as evidence:**
+  - "Identical after rounding" on `mad_mm` gave 86.6 %. That was float noise at 1e-8 relative crossing 5th-decimal rounding on 1,000+ mm headwaters; the tolerance has a clean gap between 2e-8 and 1e-6.
+  - An absolute 1e-5 mm tolerance still left 22,528 mismatches, for the same reason.
+  - First attribution: "any near-edge centroid upstream" labelled 752 watersheds as tie-breaks. Code check showed that test is true for ~all large rivers (useless), that the flips are not ties, and that one case was an old lookup. Replaced by reproduction: 5 flips found greedily, rebuilt, re-compared, and guarded against breaking prior matches. Round 2 then found the lookup test matched mm only (3 coincidental hits on long mainstems); it now matches both columns.
+  - "Covered denominator changes nothing" was false: 54 segments change by more than 5 %.
+- **Local DB change:** enabled `postgis_raster` in the local fwapg container (`CREATE EXTENSION`, undo with `DROP EXTENSION postgis_raster`) to test PostGIS `ST_Value` cell assignment. fwapg's `discharge.sh` does the same.
+
+### Code check (Phase 4: `mad_basin.R`, research, CLAUDE.md)
+
+| Round | Findings | Fixed | Inside previous fix? |
+|---|---|---|---|
+| 1 | 2 bugs, 2 fragile, minor. The edge-proximity attribution was a necessary condition only (true for ~all big rivers) and mislabelled a lookup case; "covered denominator changes nothing" was false; NA cells are out-of-domain, not missing days; memory figure; tolerance wording; float32 tif | all | — |
+| 2 | 2 bugs, 1 fragile, minor. The new lookup test matched mm only (3 of 4 "reproduced" were coincidences); no guard that the flip rebuild didn't break prior matches; flip distances and mechanism overstated | all | **y** |
+| 3 | Enumeration of every acceptance test and claim, with 1 bug, 1 fragile, 3 minor. "Disagrees with live on 1,731" was sampled (401), not measured; the prior-match guard was one-sided (the flip search could fit stale watersheds); the mechanism evidence was weaker than the stronger evidence in the run; two script comments stated a hedged mechanism as fact; memory figure | all | n (same mechanism) |
+
+- **Mechanism:** a claim accepted on a test that proves something weaker than what is written: necessary-not-sufficient, one-sided, sampled-then-generalised, single-column; or a number carried from an earlier run rather than read from the committed one.
+- **Closed by:**
+  - Every cause is now a rebuild-and-compare reproduction or explicitly labelled as not reproduced.
+  - The guards print: 0 prior matches broken, 0 flipped polygons stale.
+  - Research numbers are read from the committed report, log and check files.
+  - Those evidence files are now tracked.
+- **Loop end:** round 3's enumeration (every `cause` assignment and every number and causal sentence in the research sections). The remaining findings were fixed and the run regenerated; counts were unchanged.

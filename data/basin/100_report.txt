@@ -1,0 +1,66 @@
+
+## Basin 100 - mean annual discharge, PCIC VIC-GL historical 1981-2010
+
+segments: 1012100 | fwapg has value: 1002468 | wet has value: 1011997 | compared: 1002468 
+matches fwapg within rounding (mad_mm and mad_m3s): 99.782% ( 2189 differ )
+watershed groups compared: 69 | groups at 100%: 56 
+  SALR: 9000 segments, identical 100.000%
+  LSAL: 9286 segments, identical 100.000%
+  BOWR: 14453 segments, identical 100.000%
+  LFRA: 16467 segments, identical 100.000%
+  FRCN: 19654 segments, identical 100.000%
+cells outside the PCIC domain (NA): 6694 of 21648 | centroids within 1 m of a cell edge: 466 | flips needed to reproduce fwapg: 5 
+flipped centroids' distance to the cell edge (m): 0.020, 0.069, 0.103, 0.117, 0.431 | groups: USHU UFRA NICL LNTH STHM 
+segments that matched before and not after the rebuilds (must be 0): never-valued 0 | flips 0 | flipped polygons with a stale stored area (must be 0): 0  
+near-edge centroids closer than the farthest flip ( 0.431  m) that match unflipped: 186 
+
+not identical, by cause (segments | watersheds):
+  centroid flipped to the next cell (reproduced)                                1197 |   751
+  fwapg segment-to-watershed lookup older (reproduced)                            10 |     1
+  fwapg stored area stale (consistent with older polygons; not reproduced)       786 |   502
+  group fwapg never valued (reproduced)                                          196 |   102
+
+not identical, by group:
+
+GRNL BONP UFRA NICL USHU LNIC UEUT LNTH MORK STHM SHUL LILL THOM 
+ 394  392  388  255  205  198  196   59   47   23   20   10    2 
+largest relative differences:
+ linear_feature_id watershed_group_code stream_order mad_m3s     wet_m3s
+         703519101                 UEUT            1 0.00348 0.007151133
+         703518966                 UEUT            1 0.00348 0.007151133
+         703518945                 UEUT            1 0.00348 0.007151133
+         703519350                 UEUT            1 0.00348 0.007151133
+         703519134                 UEUT            1 0.00348 0.007151133
+         832628711                 UEUT            1 0.00348 0.007151133
+         703519250                 UEUT            1 0.00348 0.007151133
+         703801534                 USHU            1 0.00762 0.005000954
+         702607507                 NICL            1 0.00609 0.007673508
+         702607367                 NICL            1 0.00609 0.007673508
+    live_m3s
+ 0.007151133
+ 0.007151133
+ 0.007151133
+ 0.007151133
+ 0.007151133
+ 0.007151133
+ 0.007151133
+ 0.005000954
+ 0.007673508
+ 0.007673508
+
+segments fwapg lacks that wet values: 9529 | of them order >= 8: 7720 | max stream order: 10 
+live upstream area vs fwapg's stored table: segments whose mad_mm changes: 786 
+
+## Sensitivity (per segment, mad_m3s vs the live centroid/total build)
+
+area / total       median +0.00%, 1-99% [-13.56%, +24.11%], |change|>5%: 10.178%, NA in one build only: 29
+centroid / covered median +0.00%, 1-99% [+0.00%, +0.00%], |change|>5%: 0.005%, NA in one build only: 0
+area / covered     median +0.00%, 1-99% [-13.54%, +24.11%], |change|>5%: 10.176%, NA in one build only: 29
+covered vs total denominator (centroid): segments changing > 5%: 54 | max +716% | groups: LFRA DRIR 
+coverage < 1 (area sampling): segments 12723 | < 0.9: 162 | min 0 
+
+## Fraser River at Hope (08MF005)
+HYDAT 1981-2010 mean 2664 m3/s (10957 days), gross drainage 217000 km2
+wet segment 701253017 (146 m from gauge): upstream 216659 km2 | centroid/total 2476 m3/s | area/covered 2477 m3/s (coverage 1.000) | fwapg no value (order >= 8 skipped)
+
+timing: PCIC 0.1 min | centroid 0.6 s | area sampling 2.1 min | accumulation 7.3 s/build | total 3.4 min

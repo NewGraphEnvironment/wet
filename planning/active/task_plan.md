@@ -18,7 +18,7 @@ Needed by every build below. The #1 prototype (`wet_upstream_pairs()`) materiali
 ## Phase 2 — Basin fetch and irregular-code correction (fwapg)
 - [x] `wet_ws_fetch(conn, wscode)`: all polygons in a basin (`wscode_ltree <@ $1`) with `watershed_group_code`, codes as text, `ST_Area(geom)`, and centroid lon/lat (`ST_Transform(ST_Centroid(geom), 4326)`, as fwapg does).
 - [x] `wet_upstream_irregular(conn, wscode)`: (a, b) pairs from `FWA_Upstream` for irregular b in the basin. Merge them into the sums in R so the result equals `FWA_Upstream` exactly.
-- [ ] `scripts/upstream_area_check.R`: accumulated area vs `fwa_watersheds_upstream_area` for all 644,710 Fraser polygons (relative tolerance 1e-9). Report mismatches, runtime and peak memory.
+- [x] `scripts/upstream_area_check.R`: accumulated area vs `fwa_watersheds_upstream_area` for all 644,710 Fraser polygons (relative tolerance 1e-9). Report mismatches, runtime and peak memory.
 
 ## Phase 3 — Wire into the chain
 - [x] `wet_upstream_mean()` takes accumulated sums (`sum(value·area·cover)`, `sum(area·cover)`, upstream area) instead of pairs, with the same `total`/`covered` semantics and NA rules (#1 code-check). Update its tests.
@@ -28,11 +28,11 @@ Needed by every build below. The #1 prototype (`wet_upstream_pairs()`) materiali
 - [x] `scripts/mad_parity.R` on the new path. **SALR stays identical to fwapg after 5-decimal rounding** (regression gate).
 
 ## Phase 4 — Whole Fraser
-- [ ] `scripts/mad_basin.R 100`: fetch PCIC 1981–2010 for the Fraser, sample (centroid and area), accumulate, and join to segments.
-- [ ] Record runtime and peak memory (`/usr/bin/time -l`).
-- [ ] Parity vs `fwa_stream_networks_discharge` on every Fraser segment where fwapg has a value, identical after rounding. Break it down by watershed group, and name LSAL and BOWR explicitly as non-headwater cases.
-- [ ] Report the order ≥ 8 mainstem segments fwapg lacks. Sanity-check Fraser at Hope against HYDAT 08MF005's 1981–2010 mean (reported, not gated; station validation is #6).
-- [ ] Update `research/fwapg_mad_method.md` with the range method, the area check and the Fraser parity/sensitivity. Update the CLAUDE.md architecture line.
+- [x] `scripts/mad_basin.R 100`: fetch PCIC 1981–2010 for the Fraser, sample (centroid and area), accumulate, and join to segments.
+- [x] Record runtime and peak memory (`/usr/bin/time -l`).
+- [x] Parity vs `fwa_stream_networks_discharge` on every Fraser segment where fwapg has a value, identical after rounding. Break it down by watershed group, and name LSAL and BOWR explicitly as non-headwater cases.
+- [x] Report the order ≥ 8 mainstem segments fwapg lacks. Sanity-check Fraser at Hope against HYDAT 08MF005's 1981–2010 mean (reported, not gated; station validation is #6).
+- [x] Update `research/fwapg_mad_method.md` with the range method, the area check and the Fraser parity/sensitivity. Update the CLAUDE.md architecture line.
 
 ## Phase 5 — Close out
 - [ ] Comment the result on #2, and note in #3/#4/#6 that basin-scale accumulation is available.
