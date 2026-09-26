@@ -107,6 +107,24 @@ The HESS preprint hess-2024-355 is by other authors and was **withdrawn** [S], s
 
 ---
 
+## Measured after the survey (2026-09-26)
+
+These override the rows above where they conflict.
+
+- **CGIAR Global High-Resolution Soil-Water Balance (figshare 7707605) is CC0.**
+  - Read from the figshare API: published 2019-02-12, with files `AET_YR.rar` (0.11 GB), `aet_monthly.rar` (0.46 GB), `swc_fr.rar` and a documentation PDF.
+  - Annual and monthly AET are both available.
+- **climr 0.2.2** (installed from `bcgov/climr@36edf57`) **does not compute Eref or CMD.**
+  - `downscale(vars = "Eref")` and `vars = "CMD"` both print "calculation is not supported yet" and then error.
+  - The survey table's Eref and CMD rows describe code the package does not yet run.
+- **climr's `refmap_climr` reports its period as `1961_1990`** (`return_refperiod = TRUE`), although the mosaic vignette describes 1981–2010 source climatologies. Label and content disagree.
+  - Test point: lon −127.2, lat 54.8, elev 600: MAP 560.5 mm, July PPT 50.7 mm, July Tave 13.9 °C.
+- **Getting a 1981–2010 normal from climr's observed series is unresolved.** `obs_years = 1981:2010` alone returned only the reference row; it presumably needs `obs_ts_dataset`, and the helper for listing datasets was not found.
+- **ERA5-Land through NGE's `cd` package:**
+  - `cd` serves monthly `prcp`, `tmean`/`tmax`/`tmin`, `swe`, `snowmelt`, `snowfall`, `swe_max` and `snowmelt_doy_50` for BC as COGs + STAC.
+  - It does **not** yet carry ERA5-Land total evaporation or runoff. Adding them to `cd` would give an ET alternative and a further comparison product.
+  - The snow variables are candidate predictors for the monthly shares.
+
 ## Open questions (cheap probes)
 - climr reference period label: one `downscale()` call after installing climr (not installed yet; installing it changes the machine, so state the plan first).
 - Licences to confirm: CGIAR Soil-Water Balance AET (figshare returned 403 here), CGIAR ET0 v3, and AdaptWest/ClimateNA grids.
