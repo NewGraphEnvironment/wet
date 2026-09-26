@@ -30,7 +30,7 @@ Station data is separate: water-temp-bc holds ~290 ECCC stations (temperature, d
   - the path into fwapg so `frs_col_join` can consume it (fresh#114)
 
 ## Phase 3 — Repo scaffold (per the Phase 2 decisions)
-- [ ] DESCRIPTION (package, or `Type: Project` manifest), LICENSE, `.Rbuildignore`, and `R/` + `tests/testthat/` with a `wet_` prefix if it is a package.
+- [x] DESCRIPTION (package, or `Type: Project` manifest), LICENSE, `.Rbuildignore`, and `R/` + `tests/testthat/` with a `wet_` prefix if it is a package.
 - [ ] Add the project section of CLAUDE.md above the marker: language, data sources, database connection pattern, gitignored data directories.
 
 ## Phase 4 — MAD parity prototype, one watershed group
