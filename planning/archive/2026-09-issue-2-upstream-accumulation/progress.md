@@ -13,3 +13,4 @@
 - Fraser run (`scripts/mad_basin.R 100`) downloading PCIC per year in the background.
 - Phase 4: whole Fraser, 99.782 % within tolerance; all 2,189 differences attributed (1,403 reproduced as fwapg-side, 786 stale-area necessary condition, 0 unexplained); Hope −7 % vs HYDAT. /code-check on Phase 4: 3 rounds, ended on enumeration. Evidence files tracked.
 - Next: Phase 5 — comment on #2, notes on #3/#4/#6, archive, PR.
+- Phase 5: commented on #2 (result) and #3/#4/#6 (availability). Archived; PR next. Full live re-check of all 1,731 stale-area polygons still running (only the 401-sample is committed).

@@ -35,11 +35,11 @@ Needed by every build below. The #1 prototype (`wet_upstream_pairs()`) materiali
 - [x] Update `research/fwapg_mad_method.md` with the range method, the area check and the Fraser parity/sensitivity. Update the CLAUDE.md architecture line.
 
 ## Phase 5 — Close out
-- [ ] Comment the result on #2, and note in #3/#4/#6 that basin-scale accumulation is available.
+- [x] Comment the result on #2, and note in #3/#4/#6 that basin-scale accumulation is available.
 
 ## Validation
 
-- [ ] Tests pass
-- [ ] `/code-check` clean on each commit
-- [ ] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] Tests pass
+- [x] `/code-check` clean on each commit (Phases 1–3 reviewed together before their three commits; Phase 4 reviewed separately; both loops ended on an enumeration)
+- [x] PWF checkboxes match landed work
+- [x] `/planning-archive` on completion
