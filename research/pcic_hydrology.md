@@ -1,6 +1,6 @@
 # PCIC hydrologic model output: what exists, where, and on what terms
 
-**Verified:** 2026-09-25 · **Issues:** #1 (found), #3, #4, #5, #6, #7 (use it) · **Produced by:** `curl` of the PCIC catalogs and OPeNDAP `.das`/`.dds` (commands in `planning/archive/2026-09-issue-1-scope-discharge/`), PCIC web pages and the PCIC Update of Feb 2026.
+**Verified:** 2026-09-25; channel-scale section 2026-09-26 · **Issues:** #1 (found), #3, #4, #5, #6, #7, #9 (use it) · **Produced by:** `curl` of the PCIC catalogs and OPeNDAP `.das`/`.dds` (commands in `planning/archive/2026-09-issue-1-scope-discharge/`), PCIC web pages and the PCIC Update of Feb 2026.
 
 ## Hosts
 
@@ -29,7 +29,19 @@
 
 - **`hydro_stn_cmip5`** ("Modelled Streamflow Data"): routed (RVIC) daily m³/s at 190 stations in the three basins. The PNWNAmet run plus 12 CMIP5 runs, one CSV per station, dated Feb 2020.
 - **Salmon Climate Impacts Portal** (Mar 2024): VIC-GL coupled to dynWat on the BC coastal domain. 10 streamflow and water-temperature hazard indices, CMIP5, periods historical/2020s/2050s/2080s. Regions: watershed group, conservation unit or custom outlet.
-- **VIC-GL → Raven, CMIP6 (announced Feb 2026, unreleased as of 2026-09-25):** vector sub-basin routing, about 5× finer than VIC-GL's ~25 km². Streamflow, water temperature and dissolved-oxygen saturation, over "BC's entire coastal domain, including the Fraser Basin" (~405,000 km²). "Near completion", with a new portal planned. Funded by BCSRIF and BC Hydro.
+- **Channel-scale: "VIC-GL-Raven MBCn CMIP6: Vector Hydrologic Model Output"** (released May 2026). *Corrects the 2026-09-25 version of this file, which called it unreleased on the strength of the Feb 2026 PCIC Update.*
+  - Portal: `https://services.pacificclimate.org/chyp`. Docs: `uvic.ca/pcic/data-analysis-tools/data-portal/hydrology-vector/`.
+  - Model: VIC-GL runoff routed by Raven on a vector network of reaches and lakes.
+  - Variables: daily streamflow (or lake outflow), water temperature and saturated dissolved oxygen, each at the outlet of a reach or lake.
+  - Runs: historical driven by PNWNAmet, plus 9 CMIP6 GCMs × SSP2-4.5/SSP5-8.5, MBCn bias-corrected, to 2100.
+  - Downloads: CSV per feature, NetCDF for upstream/downstream networks, GeoJSON geometry.
+  - The portal loads `/chyp/fwa_index.json`, a place-name search index keyed on FWA `blue_line_key` and lake keys (2,391 streams, 4,967 lakes). It covers names province-wide, so it does **not** show where there is model output.
+  - **From PCIC correspondence, 2026-07-20:**
+    - The portal is designed for specific sites, not domain-wide extraction.
+    - The network is based on the FWA, with "subtle differences … necessary for consistently routing flow", so domain-wide use meets many model/FWA edge cases.
+    - PCIC suggests piloting a few representative sites first, then possibly scaling up with their support (#9).
+    - The Peace and Upper Columbia are to be added "in the next year or so". Current coverage is the coastal domain plus the Fraser (Feb 2026 Update).
+  - Recommended use: compare PNWNAmet-driven runs with observations, and take climate impacts within one model-scenario combination.
 - **`downscaled_cmip6`:** BCCAQv2 CMIP6 *climate* (not hydrology), Canada-wide.
 
 ## Terms

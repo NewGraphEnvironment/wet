@@ -8,6 +8,7 @@ R package for per-segment stream discharge on BC's Freshwater Atlas (FWA): mean 
 **Primary Language:** R
 **Framework:** R package (devtools, roxygen2, testthat 3e)
 **Spatial:** `terra` (NetCDF subsets), fwapg (PostGIS) for FWA topology
+**SRED:** `NewGraphEnvironment/sred#40`
 **Scope issue:** #1 (archive: `planning/archive/2026-09-issue-1-scope-discharge/`)
 **Research:** [`research/README.md`](research/README.md) — PCIC products and hosts, fwapg MAD method and parity
 
@@ -24,6 +25,7 @@ All functions use the `wet_*` prefix with `noun_verb` naming (`wet_pcic_fetch`, 
 ## Data Sources
 
 - **PCIC** `hydro_model_out` over OPeNDAP at `services.pacificclimate.org` (the old `data.pacificclimate.org` host answers 301, so follow redirects). Historical run `TPS_gridded_obs_init` (PNWNAmet, VICGL-RGM, 1945–2012). Twelve CMIP5 runs (6 GCMs × RCP 4.5/8.5, VICGL, 1945–2099). Coverage is Peace, Fraser and Columbia only.
+- **PCIC channel-scale** (VIC-GL-Raven CMIP6, May 2026) at `services.pacificclimate.org/chyp`: routed per reach on an FWA-derived network. Coast + Fraser now; Peace and Upper Columbia expected in about a year. Pilot before domain-wide use (#9).
 - Time axis is "days since 1945-1-1", standard calendar: index = days since 1945-01-01. Grid is 0.0625°, lon −139.96875 + 0.0625·i, lat 41.09375 + 0.0625·j.
 - Units are mm/day (packed shorts, fill −32767). Annual mm/yr = sum over the days of each year, then mean over years. That is cdo's `yearsum` then `timmean`, which is what fwapg does.
 
