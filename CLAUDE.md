@@ -21,6 +21,16 @@ Scripts:
 - `scripts/mad_parity.R SALR` is the headwater-group regression gate, and cross-checks against the slow pairwise oracle `wet_upstream_pairs()`.
 - `scripts/upstream_area_check.R` checks topology against fwapg's upstream areas.
 
+The open water balance (#11), a second pipeline run in this order. Each script's outputs are keyed on its inputs and code, and later scripts refuse a run without `upstream/_complete`:
+- `scripts/wb_inputs.R`: CGIAR AET, GLO-90 DEM, climr 1981–2010 normals (MSWX anomalies) and zones, all on one 30″ grid.
+- `scripts/wb_stations.R`: HYDAT stations snapped to the FWA.
+- `scripts/wb_province.R 4`: multi-layer `wet_ws_sample()` per group and `wet_upstream_means()` per basin, across the whole province in about 11 min.
+- `scripts/wb_validate.R`: blocked-CV fits via `wet_wb_fit()` and `wet_share_fit()`, and the gate.
+- `scripts/wb_output.R`: per-basin parquet under `data/wb/<key>/output/`.
+- `scripts/wb_map.R`: the runoff map.
+
+Results and the open method decision: `research/water_balance_method.md` §0.
+
 fwapg's stored `fwa_watersheds_upstream_area` is a **stale snapshot**. Use accumulated area, except to reproduce fwapg's own numbers. See `research/fwapg_mad_method.md`.
 
 ## Function Prefix
