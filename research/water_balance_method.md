@@ -1,10 +1,88 @@
 # Chapman, Kerr & Wilford (2018): the BC Water Tools method, and what a reimplementation must decide
 
-**Verified:** 2026-09-26 (hydrologic zones layer and PDF access re-checked by hand) · **Issues:** #5 (found; `wet` builds an open reimplementation) · **Produced by:** reading the open-access PDF, the 2012 Geoscience BC precursor, `bcgov/nr-bcwat` (main), a 2022 Kootenay-Boundary Water Tool report, BC news releases, and the BC Data Catalogue API and openmaps WFS. **Status:** desk research. Nothing has been fitted yet.
+**Verified:** 2026-09-26 · **Issues:** #5 (found), #11 (built and validated) · **Produced by:** desk research (sections 1–7) and the #11 build (section 0): `scripts/wb_inputs.R`, `wb_stations.R`, `wb_province.R`, `wb_validate.R`, `wb_output.R`, with reports in `data/checks/wb_*.txt`, `stations_wb.txt` and `climr_eccc.txt`. **Status:** built. The adjustment helps only slightly out of sample (blocked-CV MAE 33.1 % against 34.7 % raw). It passes its gate only under a variant added after the pre-set specification failed, so whether it ships is an open decision (section 0).
 
 Legend: **[S]** stated in the source cited · **[I]** inferred · **[U]** unknown or not published. Sources are listed at the end; all are online.
 
 ---
+
+## 0. As built in `wet` (#11), and what the validation showed
+
+### Inputs, all on CGIAR's 30″ grid over BC
+
+- **P and T:** climr 1981–2010 monthly normals. The reference map is downscaled onto a Copernicus GLO-90 DEM, shifted by the mean of the MSWX-blend anomalies over 1981–2010.
+  - Averaging the anomalies first matches climr's per-year point average within 0.1 %.
+  - Against 57 ECCC 1981–2010 WMO normals: MAP ratio median 1.03, MAT difference median about 0 °C (`data/checks/climr_eccc.txt`).
+  - The ClimateNA series was tried first. Its 1° anomalies are NA over Haida Gwaii and northern Vancouver Island, which blanked about 160 k land cells.
+- **AET:** CGIAR Soil-Water Balance v3 (CC0), annual and monthly. No land-cover ratio.
+- **Zones:** the extended BC Hydrologic Zones (43 features, 29 in BC).
+
+### Stations
+
+- 352 natural HYDAT stations with ≥ 10 complete years in 1981–2010.
+- 309 snapped to FWA within ±10 % area (median ratio 1.000).
+- 290 calibrated on: basin ≥ 95 % in BC and on the grid. They fall in 93 blocked folds (WSC sub-sub-drainages); 218 are headwater gauges and 72 nested.
+
+### Choices where the paper is silent (section 7)
+
+The item numbers refer to section 7.
+
+- **2:** the gauge period matches the 1981–2010 normal.
+- **3, 5:** a different ET product and land cover, with no land-cover ratio.
+- **7:** area-weighted catchment integration on one analysis mask.
+- **8:** the residual is fitted as obs − pred and added.
+- **9:** zone intercept + P per zone, applied through zone-share-weighted upstream means, so fit and application agree exactly. Zones with fewer than 8 dominant gauges are pooled.
+- **10:** cells stay signed; the output is floored at 0.
+- **11:** no final adjustment to the gauges.
+- **12:** blocked CV and leave-one-out are reported separately from in-sample.
+- **13, 14:** OLS on shares, floored at 0 and renormalised.
+- **15:** monthly regressions pooled over the province.
+- **16:** predictors per watershed, as upstream means.
+- **20:** 365.25 days a year, February 28.25, so months sum to the year.
+
+### Skill (`data/checks/wb_validation.txt`)
+
+Annual runoff; percentages are mean absolute error.
+
+| Model | All 290 | Headwater | Nested | Within ±20 % | Monthly NSE on shares (median) |
+|---|---|---|---|---|---|
+| Raw P − AET, no fitting | 34.7 % | 39.8 % | 19.4 % | 47 % | — |
+| **Adjusted, blocked CV (headline)** | **33.1 %** | **38.1 %** | 17.9 % | 50 % | 0.87 |
+| Adjusted, leave-one-out | 32.3 % | 37.8 % | 15.5 % | 54 % | 0.88 |
+| Adjusted, in-sample | 22.6 % | 25.5 % | 13.8 % | 58 % | 0.88 |
+| (transparency) every fold forced to one fitted "other" level for pooled zones | 39.1 % | 46.4 % | 16.9 % | 52 % | 0.87 |
+
+**Pooled zones, and an open decision.** Zones with fewer than 8 dominant gauges are pooled.
+- **The pre-set specification** gave them one fitted "other" level. Under it the gate **fails**: headwater blocked CV 46.4 % against raw 39.8 %. The level's ~+170 mm intercept lands on dry pooled zones (17, 06, 04).
+- **The "none" variant** (no adjustment for pooled zones) was added **after** seeing that result. An inner blocked CV on each fold's training stations then chose between the two, and all 93 folds (and the all-station fit) chose "none". The gate passes: 38.1 % against 39.8 %.
+- **This is mildly optimistic.** Nesting guards the choice between the candidates, not the decision to offer "none". Which result decides what ships is left to the maintainer; flipping to raw P − AET is one line (`keep_adjust`).
+
+**What the numbers say:**
+- **The adjustment helps only a little out of sample, and only where a zone has its own coefficients.** Headwater stations under blocked CV (`data/checks/wb_validation.txt`):
+  - with their own zone in the fold (n = 118): 34.1 % raw → 30.9 % adjusted;
+  - pooled (n = 100): 46.4 % → 46.6 %.
+
+  Most of the in-sample gain (22.6 %) does not transfer to ungauged basins.
+- **Chapman's published figures:** MAE 16.1 %, 77.8 % within ±20 %, monthly NSE 0.92. They come from 45 gauges in two plains zones, and are likely in-sample or near it. Our in-sample 22.6 %, over 20 fitted zone levels, is the comparable number.
+- **The error is concentrated.** Basins under 100 km² run at about 59 % MAE raw. The semi-arid interior plateaus (zones 15, 17, 23, 24) run +56 % to +234 % raw: CGIAR AET, capped by its own WorldClim P, is far too low next to climr's P there. Example: Greata Creek has P 746 mm and AET 281 mm, against 50 mm observed.
+- **Large rivers are good.** Basins over 10,000 km² score 21 % raw MAE. At the major-river mouths (`data/checks/wb_output.txt`) the ratio of modelled to observed flow is 0.86–1.17:
+  - Fraser at Hope 1.05 (PCIC through `wet`: 0.93), Thompson 1.17.
+  - Columbia at Birchbank 1.05, although only 86 % of its basin is in BC.
+  - Stikine 1.05, Peace 0.94, Skeena 0.86, Nass 0.86.
+- **Zone steps.** The annual map ([wb_runoff_annual.png](wb_runoff_annual.png)) shows straight-edged steps where hydrologic zones meet. The method applies each zone's coefficients up to a hard boundary (§7 item 9). Blending across boundaries is a candidate refinement.
+- **No output.** 22,041 watersheds (0.7 %), on small coastal islands that the 30″ inputs do not cover.
+
+### What this says about the BC Water Tools
+
+Their accuracy figures are in-sample, and after the undocumented "final adjustment to measured flows" they are near 0 % at the gauges. They are not a measure of skill at ungauged sites. The open reimplementation suggests that out-of-sample skill of this method family, province-wide, is about 33 % MAE on annual runoff (38 % for headwater basins). Our release comparison (#5) should score their values at stations held out of *their* fit where possible.
+
+### Follow-ups
+
+- #14: transboundary upstream area.
+- #15: an ET experiment for the semi-arid interior (land-cover ratios, TerraClimate AET, a Budyko constraint).
+- #16: snow predictors for the monthly shares.
+- An upstream note to climr on the ClimateNA coastal gap: drafted, not posted.
+- rspatial/terra#2195: `rasterize(filename = )` with an integer datatype writes NA as 0 (worked around in `scripts/wb_inputs.R`).
 
 ## 1. Citation and companion sources
 

@@ -8,3 +8,21 @@
   skip. `wet_upstream_mean()` now takes `(ws, values, denom, irregular_pairs,
   upstream_area)` instead of a pairs table. `wet_pcic_annual()` fetches PCIC
   one year at a time; `scripts/mad_basin.R` builds the Fraser (#2).
+
+* An open, province-wide water balance after Chapman et al. (2018), the
+  BC Water Tools method, validated out of sample at 290 HYDAT stations (#11).
+  - Inputs: CGIAR AET (`wet_cgiar_aet()`), a GLO-90 DEM (`wet_dem_glo90()`)
+    and climr 1981-2010 normals (`wet_climr_normals()`).
+  - Stations: `wet_station_select()`, `wet_station_monthly()`,
+    `wet_station_snap()`, shared with #6.
+  - Multi-layer sampling and accumulation: `wet_ws_sample()` now takes
+    several layers; `wet_upstream_means()`.
+  - The Chapman fit and monthly shares: `wet_wb_fit()`, `wet_wb_adjust()`,
+    `wet_wb_pooled()`, `wet_share_fit()`, `wet_share_predict()`.
+  - Blocked cross-validation: `wet_cv_folds()`, `wet_flow_validate()`.
+  - Out of sample, the zone adjustment improves annual runoff only slightly
+    (blocked-CV mean absolute error 33.1 % against 34.7 % raw), and passes its
+    gate only under a variant added after the pre-set specification failed.
+    The `scripts/wb_output.R` province output applies it, with the monthly
+    shares. See `research/water_balance_method.md`.
+  - `wet_mm_to_m3s()` gains `days`; `wet_month_days()` is new.

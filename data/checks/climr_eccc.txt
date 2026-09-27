@@ -1,0 +1,65 @@
+# climr 1981-2010 (refmap_climr + mswx.blend obs, averaged by year) vs ECCC 1981-2010 normals
+
+stations (BC, WMO 'A' code, both P and T): 57 (dropped, no climr value: 0)
+MAP ratio climr / ECCC, p10 / median / p90: 0.915 / 1.034 / 1.153
+MAT difference climr - ECCC (deg C), p10 / median / p90: -0.547 / -0.098 / 0.346
+MAP ratio outside 0.8-1.25: 5 stations
+
+Per station (climate_id, station, elev, ECCC MAP, climr MAP, ratio, ECCC MAT, climr MAT):
+1012040  COWICHAN LAKE FORESTRY          177  2206.9  2076.1  0.94   9.84   9.68
+1016995  SALTSPRING ST MARY'S L           46   987.0  1033.5  1.05  10.67  10.25
+1017230  SHAWNIGAN LAKE                  159  1250.0  1286.1  1.03   9.89   9.88
+1018620  VICTORIA INT'L A                 20   882.9   928.1  1.05  10.04  10.35
+1021261  CAMPBELL RIVER A                109  1489.3  1551.9  1.04   9.03   9.17
+1021480  CHATHAM POINT                    23  2316.4  2036.4  0.88   9.48   9.38
+1021830  COMOX A                          26  1153.6  1272.0  1.10   9.99   9.85
+1025240  MUD BAY                           4  1686.8  1324.3  0.79   9.65   9.93
+1025370  NANAIMO A                        28  1165.4  1053.4  0.90  10.08  10.27
+1026270  PORT HARDY A                     22  1907.5  1946.3  1.02   8.56   9.03
+1026565  QUALICUM R FISH RESEARCH          8  1309.4  1196.7  0.91   9.59   9.92
+1032730  ESTEVAN POINT                     6  3184.4  3137.5  0.99   9.68   9.64
+1033232  GOLD RIVER TOWNSITE             119  2851.1  2805.2  0.98   9.41   9.54
+1035614  NOOTKA LIGHTSTATION              16  3279.7  3305.8  1.01  10.21   9.88
+1038205  TOFINO A                         24  3270.7  3255.1  1.00   9.45   9.55
+1045100  MERRY ISLAND LIGHTSTATION         7  1028.8  1029.5  1.00  10.99  10.29
+1048898  WHISTLER                        658  1227.7  1398.7  1.14   6.65   6.77
+1060080  ADDENBROKE ISLAND                21  3262.2  2903.8  0.89   9.24   8.95
+1060901  BOAT BLUFF                       11  5046.8  4624.2  0.92   8.65   8.11
+1062544  DRYAD POINT                       4  2628.7  2867.5  1.09   9.38   8.95
+1063298  GREEN ISLAND                     12  2474.3  1918.2  0.78   8.53   8.16
+1067742  STEWART A                         7  1866.8  2051.9  1.10   6.14   6.86
+1068130  TERRACE A                       217  1340.8  1462.0  1.09   6.59   6.32
+1077500  SMITHERS A                      522   508.5   540.1  1.06   4.22   3.92
+1078209  TOPLEY LANDING                  722   538.1   565.7  1.05   3.44   2.95
+1084351  KLEENA KLEENE 2                 914   318.6   453.3  1.42   3.13   3.20
+1093474  HIXON                           551   645.0   619.3  0.96   5.32   5.11
+1096450  PRINCE GEORGE A                 691   594.9   666.2  1.12   4.31   4.23
+1096468  PRINCE GEORGE STP               579   558.1   614.1  1.10   5.30   4.83
+1098940  WILLIAMS LAKE A                 940   450.6   495.0  1.10   4.52   4.10
+109C0LF  FRASER LAKE NORTH SHORE         674   525.8   543.7  1.03   3.68   3.37
+1100030  ABBOTSFORD A                     59  1537.8  1526.5  0.99  10.44  10.22
+1105192  MISSION WEST ABBEY              197  1883.3  1854.8  0.98  10.25   9.65
+1108447  VANCOUVER INT'L A                 4  1189.0  1167.9  0.98  10.40  10.72
+1125079  MERRITT STP                     609   321.1   331.1  1.03   7.77   6.91
+1125865  OSOYOOS WEST                    297   323.2   333.9  1.03  10.41  10.20
+1126150  PENTICTON A                     344   346.0   363.6  1.05   9.45   9.83
+1126510  PRINCETON A                     702   346.9   476.4  1.37   6.55   6.77
+1133270  GRAND FORKS                     532   534.3   510.1  0.95   8.02   8.24
+1141455  CASTLEGAR A                     496   750.9   774.3  1.03   8.69   8.71
+1142160  CRESTON                         610   662.4   626.1  0.95   8.52   7.96
+1142574  DUNCAN LAKE DAM                 549   806.8   870.6  1.08   7.01   7.64
+1142820  FAUQUIER                        490   791.3   811.3  1.03   7.87   7.92
+1145460  NEW DENVER                      568   872.6   926.3  1.06   8.12   7.93
+1152102  CRANBROOK A                     940   385.2   465.8  1.21   6.03   5.67
+1154909  MARYSVILLE                      960   443.3   503.2  1.14   5.47   5.60
+1157630  SPARWOOD                       1138   613.3   634.5  1.03   4.43   4.61
+1160899  BLUE RIVER A                    690  1024.4  1034.3  1.01   4.77   5.13
+1162265  DARFIELD                        466   485.1   509.4  1.05   7.35   7.14
+1163780  KAMLOOPS A                      345   277.6   314.7  1.13   9.27   8.89
+1173191  GLACIER NP ROGERS PASS         1330  1494.6  1483.9  0.99   1.93   3.36
+1173210  GOLDEN A                        785   466.8   551.8  1.18   5.08   4.89
+1182285  DAWSON CREEK A                  655   453.1   471.7  1.04   1.92   2.21
+1183000  FORT ST JOHN A                  695   444.7   445.0  1.00   2.30   1.74
+1183090  GERMANSEN LANDING               766   553.2   609.1  1.10   1.45   1.71
+1192940  FORT NELSON A                   382   452.1   530.2  1.17  -0.41  -0.11
+1200560  ATLIN                           674   364.7   580.3  1.59   1.12   0.27
