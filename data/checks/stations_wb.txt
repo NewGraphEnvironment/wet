@@ -1,0 +1,65 @@
+# HYDAT stations for the open water balance (#11)
+
+HYDAT release: 2025-10-14 15:09:54.000
+window 1981-2010; complete year = 12 months each with >= 20 days of flow; >= 10 complete years
+
+## Selection (BC stations with daily flow in the window)
+regulated (flag 1): 251
+no regulation record (left out): 2
+natural, no complete year in the window (seasonal or gappy record): 118
+natural, fewer than 10 complete years: 137
+selected: 352
+
+## Snapping (fwa_indexpoint, 5 candidates within 1 km, picked by drainage area)
+accepted (area within +/- 10 %): 309
+rejected: 43
+area ratio of accepted, min / p10 / median / p90 / max: 0.900 / 0.975 / 1.000 / 1.026 / 1.099
+accepted lake outlets (lake >= 100 ha within 3 km, upstream on the network, draining 50-110 % of the gauge's area): 21
+
+## Accepted by WSC sub-sub-drainage (97; in 18 sub-drainages)
+07EA 4, 07EB 1, 07EC 3, 07ED 2, 07EE 3, 07EF 1, 07FA 3, 07FB 7, 07FC 2, 07FD 2, 08CA 3, 08CB 1, 08CC 1, 08CD 1, 08CE 1, 08CF 1, 08CG 4, 08DA 1, 08DB 4, 08DC 1, 08DD 1, 08EB 2, 08EC 1, 08ED 2, 08EE 7, 08EF 2, 08EG 2, 08FA 1, 08FB 5, 08FC 1, 08FE 1, 08FF 3, 08GA 7, 08GB 1, 08GD 3, 08GE 2, 08GF 1, 08HA 6, 08HB 8, 08HC 1, 08HD 3, 08HE 1, 08HF 3, 08JA 3, 08JB 1, 08JD 1, 08JE 2, 08KA 8, 08KB 3, 08KC 2, 08KD 3, 08KE 3, 08KF 1, 08KG 2, 08KH 6, 08LA 3, 08LB 7, 08LC 1, 08LD 1, 08LE 5, 08LF 4, 08LG 6, 08MA 3, 08MB 2, 08MC 1, 08ME 4, 08MF 3, 08MG 4, 08MH 9, 08NA 3, 08NB 7, 08NC 1, 08ND 3, 08NE 10, 08NF 4, 08NG 7, 08NH 9, 08NJ 7, 08NK 8, 08NL 9, 08NM 6, 08NN 6, 08NP 2, 08OA 2, 08OB 1, 09AA 2, 09AE 1, 10AC 4, 10AD 1, 10BA 1, 10BB 1, 10BC 1, 10BE 8, 10CA 1, 10CB 1, 10CC 1, 10CD 4
+
+## Rejected snaps (station, gross km2, reason)
+07FB005       29.5  area ratio 0.89 outside 1 +/- 0.10
+07FD004      295.0  area ratio 1.15 outside 1 +/- 0.10
+08CG003     1250.0  area ratio 0.01 outside 1 +/- 0.10
+08DB013       26.0  area ratio 0.86 outside 1 +/- 0.10
+08EG017       12.5  area ratio 1.14 outside 1 +/- 0.10
+08FF006        3.2  area ratio 1.80 outside 1 +/- 0.10
+08GA061        3.6  area ratio 0.71 outside 1 +/- 0.10
+08GF005       54.3  area ratio 0.33 outside 1 +/- 0.10
+08HA016       15.5  area ratio 1.30 outside 1 +/- 0.10
+08HA026       12.4  area ratio 0.79 outside 1 +/- 0.10
+08HA069        8.1  area ratio 1.37 outside 1 +/- 0.10
+08HB032       86.2  area ratio 1.16 outside 1 +/- 0.10
+08HB069        2.5  area ratio 1.16 outside 1 +/- 0.10
+08HC006         NA  no gross drainage area
+08HE007         NA  no gross drainage area
+08HE009       33.3  area ratio 1.11 outside 1 +/- 0.10
+08HE010       19.6  area ratio 1.11 outside 1 +/- 0.10
+08HF006       64.4  area ratio 1.12 outside 1 +/- 0.10
+08HF012       22.3  area ratio 1.13 outside 1 +/- 0.10
+08JA028         NA  no gross drainage area
+08JB002     3600.0  area ratio 1.11 outside 1 +/- 0.10
+08JC017         NA  no gross drainage area
+08KE032       60.2  area ratio 1.11 outside 1 +/- 0.10
+08LA027         NA  no gross drainage area
+08LB012       55.7  area ratio 1.27 outside 1 +/- 0.10
+08LE108       20.8  area ratio 0.88 outside 1 +/- 0.10
+08MA003     1520.0  area ratio 1.15 outside 1 +/- 0.10
+08MB007      232.0  area ratio 0.87 outside 1 +/- 0.10
+08MH029      144.0  area ratio 1.20 outside 1 +/- 0.10
+08MH154         NA  no gross drainage area
+08MH166         NA  no gross drainage area
+08ND018      139.0  area ratio 0.83 outside 1 +/- 0.10
+08NH016       57.0  area ratio 0.87 outside 1 +/- 0.10
+08NH138        8.8  area ratio 0.89 outside 1 +/- 0.10
+08NJ162        5.6  area ratio 0.85 outside 1 +/- 0.10
+08NK021      104.0  area ratio 1.25 outside 1 +/- 0.10
+08NL076         NA  no gross drainage area
+08NM241        4.5  area ratio 1.19 outside 1 +/- 0.10
+08NM242        3.7  area ratio 0.61 outside 1 +/- 0.10
+08NP002      118.0  area ratio 0.89 outside 1 +/- 0.10
+10BE001   104000.0  area ratio 0.88 outside 1 +/- 0.10
+10BE005   119000.0  area ratio 0.89 outside 1 +/- 0.10
+10BE006    61600.0  area ratio 0.79 outside 1 +/- 0.10

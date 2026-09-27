@@ -91,7 +91,7 @@ The HESS preprint hess-2024-355 is by other authors and was **withdrawn** [S], s
 **The problem [I, reasoning].** Chapman-style models regress gauge residuals on location (UTM E/N) and climate, and the product is accumulated downstream. When an upstream gauge is in training and its downstream partner is held out, the residual surface already "knows" most of the held-out basin. Plain LOO therefore overstates skill, and it does so most for large nested mainstem gauges. Two effects stack: the shared contributing area, and spatial autocorrelation of residuals between neighbours.
 
 **Recommended protocol [I, from the references below]:**
-1. **Blocked CV by hydrologic group**, not by station. Hold out all gauges in a block together. A block is an FWA watershed group, or a WSC sub-sub-drainage (e.g. `08L*`), or a connected nested cluster. This is Roberts et al.'s block/hierarchical CV.
+1. **Blocked CV by hydrologic group**, not by station. Hold out all gauges in a block together. A block is an FWA watershed group, or a WSC sub-sub-drainage (e.g. `08LB`; `08L` is a sub-drainage), or a connected nested cluster. This is Roberts et al.'s block/hierarchical CV.
 2. **Report skill by nesting class**: headwater (no gauge upstream) vs nested, and by fraction of area gauged upstream. The headwater-only score is the honest "ungauged" number.
 3. **Incremental-area check** for nested pairs: (Q_down − Q_up) / (A_down − A_up) against the modelled incremental runoff. It tests the ungauged part directly.
 4. **Weight or regress with GLS** so overlapping, cross-correlated basins are not counted as independent (Stedinger & Tasker). For a mean-annual regression, at minimum weight by record length and down-weight nested duplicates.

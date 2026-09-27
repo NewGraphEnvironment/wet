@@ -26,7 +26,9 @@ Imports:
 Suggests:
     climr,
     RPostgres,
+    RSQLite,
     testthat (>= 3.0.0),
+    tidyhydat,
     withr
 Remotes:
     bcgov/climr

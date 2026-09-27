@@ -52,10 +52,10 @@ PCIC gridded hydrology covers only the Peace, Fraser and Columbia. The BC Water 
 - [ ] DESCRIPTION: Imports curl and jsonlite; Suggests climr (with `Remotes: bcgov/climr`), fresh, tidyhydat, arrow, sf.
 
 ## Phase 2: Stations (shared with #6)
-- [ ] `wet_station_select()`: HYDAT BC stations never flagged regulated, with at least 10 complete years in 1981–2010 (complete as in decision 2). Tests against the local sqlite (skip if absent). Count inside the window per zone.
-- [ ] `wet_station_monthly()`: monthly and annual mean flow from the same years, as volumes and shares, converted with the chosen day convention. Tested with synthetic daily flows, including missing days and months.
-- [ ] `wet_station_snap()`: `fresh::frs_point_snap(num_features = n)` plus a picker on the ratio of accumulated upstream FWA area to `DRAINAGE_AREA_GROSS`. Returns the snapped watershed ids, codes, FWA area, area ratio and a lake-outlet flag. Tests on a confluence, a mainstem and a headwater station.
-- [ ] Tracked report `data/checks/stations_wb.txt`: counts by zone and sub-drainage, seasonal gauges dropped, area-ratio distribution, and rejected snaps with reasons.
+- [x] `wet_station_select()`: HYDAT BC stations never flagged regulated, with at least 10 complete years in 1981–2010 (complete as in decision 2). Tests against the local sqlite (skip if absent). Count inside the window per zone.
+- [x] `wet_station_monthly()`: monthly and annual mean flow from the same years, as volumes and shares, converted with the chosen day convention. Tested with synthetic daily flows, including missing days and months.
+- [x] `wet_station_snap()`: `fresh::frs_point_snap(num_features = n)` plus a picker on the ratio of accumulated upstream FWA area to `DRAINAGE_AREA_GROSS`. Returns the snapped watershed ids, codes, FWA area, area ratio and a lake-outlet flag. Tests on a confluence, a mainstem and a headwater station.
+- [x] Tracked report `data/checks/stations_wb.txt`: counts by sub-sub-drainage (by zone moves to Phase 3, which samples the basins), seasonal gauges dropped, area-ratio distribution, and rejected snaps with reasons.
 
 ## Phase 3: Province topology and sampling
 - [ ] Generalise `wet_ws_sample()` to multi-layer rasters, with `cover` per layer, keeping the one-layer output unchanged (existing tests stay green).

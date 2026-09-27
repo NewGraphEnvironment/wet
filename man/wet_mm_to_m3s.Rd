@@ -2,22 +2,27 @@
 % Please edit documentation in R/wet_mm_to_m3s.R
 \name{wet_mm_to_m3s}
 \alias{wet_mm_to_m3s}
-\title{Convert a mean annual depth over an area to discharge}
+\title{Convert a depth over an area to discharge}
 \usage{
-wet_mm_to_m3s(mm, area_m2)
+wet_mm_to_m3s(mm, area_m2, days = 365)
 }
 \arguments{
-\item{mm}{Mean annual depth, mm/yr.}
+\item{mm}{Depth over the period, mm.}
 
 \item{area_m2}{Contributing area, m^2.}
+
+\item{days}{Length of the period, days.}
 }
 \value{
 Discharge, m^3/s.
 }
 \description{
-\code{m3/s = mm/yr * area_m2 / 1000 / (365 * 86400)}, the conversion fwapg uses
-(a 365-day year).
+\code{m3/s = mm * area_m2 / 1000 / (days * 86400)}. The default \code{days = 365} is
+the conversion fwapg uses for mean annual discharge. The water balance uses
+365.25 for a year and \code{\link[=wet_month_days]{wet_month_days()}} for months, so that monthly volumes
+sum to the annual one.
 }
 \examples{
 wet_mm_to_m3s(500, 1e8)  # 500 mm/yr over 100 km2 is about 1.59 m3/s
+wet_mm_to_m3s(40, 1e8, days = wet_month_days()[7])  # 40 mm in July
 }
