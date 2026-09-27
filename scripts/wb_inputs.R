@@ -65,7 +65,8 @@ if (!file.exists(f_hz)) {
   # written to a temp file and renamed, so a killed run never leaves a
   # truncated grid at the cached path
   # Rasterised in memory, then written: rasterize(filename = , wopt =
-  # list(datatype = "INT1U")) writes the NA background as 0 (terra 1.9.46).
+  # list(datatype = "INT1U")) writes the NA background as 0 (terra 1.9.46 and
+  # 1.9.50; rspatial/terra#2195). Drop this once that is fixed.
   tmp <- tempfile(fileext = ".tif", tmpdir = hz_dir)
   z <- terra::rasterize(terra::project(hz, "EPSG:4326"), terra::rast(f_aet)[[1]], field = "HYDZN_NO")
   terra::writeRaster(z, tmp, datatype = "INT1U", overwrite = TRUE)

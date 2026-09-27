@@ -70,7 +70,9 @@ Relates to #5, #6.
   - A single `fwa_indexpoint()` LATERAL query for all stations, not `fresh::frs_point_snap()` per station. It wraps the same fwapg function, without ~350 round trips or a new dependency.
   - Trial run: 352 stations selected, 309 snapped within ±10 % (median area ratio 0.9997) in 8 s.
 
-## Upstream defect: terra `rasterize(filename = , wopt = list(datatype = "INT1U"))` writes NA as 0 (draft, NOT posted)
+## Upstream defect: terra `rasterize(filename = , wopt = list(datatype = "INT1U"))` writes NA as 0 (filed as rspatial/terra#2195)
+
+Filed 2026-09-26 after approval. It was re-tested first on CRAN terra 1.9.50: still present, and it covers any integer datatype (INT2S too), not only unsigned ones. The filed text supersedes the draft below.
 
 Reproduced minimally on terra 1.9.46 / GDAL 3.8.5. No existing issue was found (searched rspatial/terra, 2026-09-26). The draft for `rspatial/terra` awaits approval:
 

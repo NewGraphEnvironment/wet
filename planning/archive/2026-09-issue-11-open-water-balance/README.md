@@ -59,6 +59,6 @@ Durable record: [`research/water_balance_method.md`](../../../research/water_bal
 ## Open
 
 - Follow-up issues are drafted in `issue_drafts_followup.md` and not filed. They cover transboundary area, ET in the semi-arid interior (the land-cover experiment), snow predictors for the monthly shares, and an upstream note for climr (outward-facing, needs approval).
-- The terra `rasterize(filename = , INT1U)` NA-as-0 draft is in `findings.md`, also not posted.
+- The terra `rasterize(filename = , INT1U)` NA-as-0 defect was filed after approval as rspatial/terra#2195 (it reproduces on 1.9.50, for any integer datatype).
 
 Closed by: PR from `11-open-province-wide-runoff-estimate-water` (Relates to #11, #5, #6)
