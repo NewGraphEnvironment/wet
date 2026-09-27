@@ -196,6 +196,170 @@ drift::dft_map_interactive(classified, aoi = aoi)
 - For production COGs on S3, `dft_map_interactive()` serves tiles via titiler — set `options(drift.titiler_url = "...")`
 - See the [drift vignette](https://www.newgraphenvironment.com/drift/articles/neexdzii-kwa.html) for a worked example (Neexdzii Kwa floodplain, 2017-2023)
 
+
+# CI Monitoring
+
+When this repo has GitHub Actions workflows, scan recent runs on session start. Catches failed pkgdown deploys, broken vignette builds, and stale citation regenerations that would otherwise linger until the user manually checks.
+
+## On Session Start
+
+```bash
+gh run list --limit 5 --json status,conclusion,name,createdAt,databaseId \
+  --jq '.[] | select(.conclusion == "failure")'
+```
+
+If any failures since the last visit, surface to the user before starting other work:
+
+> Workflow `<name>` failed `<time>` ago (run `<id>`). Investigate with `gh run view <id> --log-failed`. Fix or proceed with current task?
+
+User decides; do not auto-fix.
+
+## Particular Failures Worth Naming
+
+- **pkgdown** — docs site on GitHub Pages broken
+- **R-CMD-check** — package may not install
+- **Vignette / build-vignettes** — vignette docs incomplete
+- **update-citation-cff** — CITATION.cff stale
+
+## Why This Matters
+
+Without this scan, post-merge workflow failures linger until someone (often the user) notices a stale docs site or a missing vignette. The session-start sweep catches them on the first re-entry into the repo.
+
+## Pairs with `/gh-pr-merge`
+
+The skill watches workflows triggered by a fresh merge in real time — that's the targeted catch. This convention is the backstop for failures that landed when no one was watching (merges via web UI, scheduled triggers, manually-triggered workflows).
+
+## A green run does not mean the site is current
+
+CI conclusion and published content are two different facts. Check the second one
+directly when it matters — the deploy commit, not the run status:
+
+```bash
+git fetch -q origin gh-pages && git log -1 --format='%s' FETCH_HEAD
+# "Deploying to gh-pages from @ owner/repo@<sha> 🚀"  <- is <sha> your HEAD?
+```
+
+GitHub can create a workflow run minutes after the push that triggered it, and
+out of order with a later push. Observed 2026-08-26 in `fly`: `7a7700c` built and
+deployed at 17:21, then its own *parent* `be77eca` had its run created at 17:22:52
+— twelve minutes after that push — and deployed over it. Both runs green, `gh run
+list` all success, published site one commit stale.
+
+Things that do **not** fix this, so don't reach for them:
+
+- `cancel-in-progress: true` — cancels an *overlapping* run. Here the runs never
+  overlapped (`created == started` on both, second created after first finished),
+  so there was nothing to cancel.
+- A `concurrency:` group — the r-lib pkgdown template already sets one at the job
+  level (`group: pkgdown-${{ github.event_name != 'pull_request' || github.run_id }}`).
+  Grepping for a top-level `concurrency:` key misses it and invites a redundant
+  "fix". Serializing runs doesn't order events that arrive late.
+
+There is no workflow-side fix, because the reordering happens before the workflow
+exists. The remedy is detection: check the deploy provenance, and re-dispatch
+(`gh workflow run <file> --ref main`) if it's behind. Harmless when the stale
+commit changed nothing the site publishes — confirm via `.Rbuildignore` / `_pkgdown.yml`
+rather than assuming.
+
+## Don't push to the default branch between a merge and its CI settling
+
+The r-lib templates set `concurrency` with `cancel-in-progress: true`, so a second push
+to `main` cancels the first push's still-running workflows. That is correct behaviour and
+it is not the problem; the problem is that a **cancelled** run and a **failed** run look
+the same in the status column, so a routine follow-up push turns a green merge into
+something the next person has to go read a log about — and the log does not exist.
+
+The routine follow-up is the one that bites, because it is the one nobody counts as a
+push: a `CLAUDE.md` drift sync, a typo fix, a `.gitignore` line. `/compact-prep` step 6
+runs `claude_md_drift.sh apply`, which **pushes**, and after `/gh-pr-merge` that lands
+seconds after the merge.
+
+Order them: watch the merge's runs to completion, *then* push anything else. Measured
+2026-09-08 in gq — the merge's pkgdown and R-CMD-check were allowed to finish green and
+the deploy provenance checked before the sync went out, and the sync's own runs then went
+green on their own SHA. Holding it cost about three minutes.
+
+Where a push has already gone out and cancelled something, `/gh-pr-merge` step 10 has the
+reading: `cancelled`/`skipped` is `⊘ superseded`, not `✗ failed`, and the thing to confirm
+is that the **newer** SHA's run passed. Do not re-dispatch the cancelled one.
+
+## Don't use `gh run watch` to wait
+
+It polls hard enough to trip GitHub's *secondary* rate limit, which `gh api
+/rate_limit` does not report — every primary bucket reads full while calls return
+403. Retrying extends it. Poll sparsely with `gh run view <id> --json status,conclusion`,
+and prefer `git fetch` over the REST API for anything git can answer.
+
+## A setup failure and a build failure look identical in the status column
+
+`gh pr checks` and the Actions UI report one word per job. A run that died fetching its
+own toolchain and a run that died because the code is broken both read `fail`, and only
+the second says anything about what you just shipped.
+
+```
+Error in download.file(...) : status was 'SSL connect error'
+download of package 'pak' failed
+Error in loadNamespace(x) : there is no package called 'pak'
+```
+
+That is `setup-r-dependencies` failing before the package was ever built. Seen
+2026-09-02 on a tagged spacehakr release, where the same workflow had passed on the merge
+commit minutes earlier with identical content — the natural but wrong reading is "the
+release is broken".
+
+**Read which step failed before drawing a conclusion**, especially on a release commit
+where the instinct is to distrust the tag:
+
+```bash
+gh run view <id> --log-failed | grep -iE 'error|fatal' | head
+```
+
+If it died in dependency setup, rerun once. If it dies the same way again it is the
+upstream CDN, and the honest move is to say so and stop — not to keep spending runs on
+something no change in the repo can fix.
+
+## A job-level `concurrency` group must vary with the matrix, or the jobs cancel each other
+
+`concurrency` at the **job** level is evaluated **per matrix job**, so a group string that
+does not vary with the matrix puts every runner in one group — and with
+`cancel-in-progress: true` they cancel each other. At most one platform runs per push,
+which is the entire justification for having a matrix.
+
+```yaml
+# WRONG: identical for all three entries
+concurrency:
+  group: check-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# right
+  group: check-${{ github.workflow }}-${{ github.ref }}-${{ matrix.config.os }}
+```
+
+`fail-fast: false` does not help — that governs failures, not cancellation.
+
+**It fails in the quiet direction.** A cancelled run reports `cancelled`, not `failure`,
+which `/gh-pr-merge` step 10 correctly reads as `⊘ superseded` — so two platforms that
+never ran look like two platforms that were superseded by a newer push. Nothing is red and
+nothing says the coverage was lost.
+
+The decisive evidence is GitHub's own context-availability table: `matrix` is listed for
+`jobs.<job_id>.concurrency` and **not** for the top-level `concurrency`. If it were not
+evaluated per job, the context could not be in scope there.
+
+```bash
+curl -s https://raw.githubusercontent.com/github/docs/main/content/actions/reference/workflows-and-actions/contexts.md \
+  | grep 'concurrency'
+```
+
+Cheapest confirmation on a live workflow: the first run's job list. Three jobs
+`in_progress` at once is the pass; one running while two read `cancelled` is this.
+
+The entries above concern cancellation **between pushes**, which is the behaviour you
+want. This is cancellation **within one push**, which is never what you want.
+
+*4 lines of evidence for this rule are in `conventions/ci-monitoring.md`, which `/code-check` reads in full.*
+
+
 # Code Check — R
 Traps in R: the language and base/utils behaviour, package internals (`R CMD build`, `.Rbuildignore`, roxygen, lintr, `data-raw/`, testthat, pak), and the DBI/duckdb/arrow data layer.
 
@@ -426,6 +590,9 @@ Copy the script and run the copy (`cp scripts/x.R "$TMPDIR/x_frozen.R" && Rscrip
 ### A range total taken as the difference of two large running totals loses the small ranges
 Sum a range directly (segment tree, per-range `sum()`, or grouped sums) rather than as `cumsum[hi] - cumsum[lo]` when ranges are small relative to the running total.
 
+### A `pkg::` call in a test passes `devtools::test()` and fails `R CMD check` if `pkg` is undeclared
+`R CMD check` warns "'::' or ':::' import not declared from" for any package a test reaches with `::` that `DESCRIPTION` does not list, and under `error-on: "warning"` that reddens every runner.
+
 # Code Check — Shell
 Tool-level traps in bash, sed, git and `gh`, and in the host toolchain those commands depend on.
 
@@ -568,6 +735,9 @@ Supply a default ssh command only when `GIT_SSH_COMMAND`, `core.sshCommand` and 
 
 ### `curl -o` without `-L` saves the redirect page as the download
 `curl` does not follow redirects unless it is given `-L`, and it exits 0 on a 3xx.
+
+### `conda run` captures its child's output, so a pipe gets nothing
+`conda run -n env cmd` buffers the child's stdout and re-emits it, and that re-emission does not reach a pipe.
 
 # Code Check — Spatial
 terra, sf, bcdata, GDAL/OGR CLIs.
@@ -714,6 +884,9 @@ Apply a displacement in the CRS it was measured in: transform the point there, a
 
 ### Writing KML: `<color>` is `aabbggrr`, and a remote icon href renders nothing offline
 Do the hex swap in **one** helper and omit `<Icon><href>` entirely.
+
+### `rio cogeo validate` exits 0 when the file is NOT a valid COG
+It reports the verdict in text and returns success either way, so the exit status carries no information at all:
 
 # Code Check Conventions
 Structured checklist for reviewing diffs before commit.
