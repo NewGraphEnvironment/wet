@@ -7,3 +7,4 @@
 - Scaffolded PWF baseline from issue #11 with the approved phases
 - Next: start Phase 1
 - User: "go all phases to pr".
+- Plan review (Plan agent): 12 findings, 3 blockers, all adopted; plan revised (planning/active/review-plan.md). Phases renumbered 1-8: province topology and sampling now precede the fits.

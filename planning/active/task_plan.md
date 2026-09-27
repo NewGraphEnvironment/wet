@@ -2,73 +2,88 @@
 
 PCIC gridded hydrology covers only the Peace, Fraser and Columbia. The BC Water Tools (Foundry, now `bcgov/nr-bcwat`) will release per-watershed discharge, but their model code does not ship. Their published accuracy may be in-sample, and after an undocumented "adjustment to measured flows" step their values sit at about 0 % error at the gauges. Adopting any single product leaves us unable to tell whether it is right.
 
-## Decisions (approved at the plan gate, 2026-09-26)
+## Decisions (approved at the plan gate 2026-09-26; revised after the plan review, see `review-plan.md`)
 
-From the 23 open points in `research/water_balance_method.md` §7, with the reason for each:
-
-1. **Grid:** CGIAR's native 30″ grid (EPSG:4326). A DEM is resampled onto it, climr downscales onto the same DEM, and all inputs are aligned there, so AET is never resampled.
-2. **Gauge period:** the 1981–2010 window, with at least 10 complete years (research option b). This matches the climate normal.
-3. **Residual sign:** fit obs − pred, and add it to the prediction (resolves the sign ambiguity between Eqs. 2 and 3).
-4. **Residual regression** per BC hydrologic zone (`HYDZ_HYDROLOGICZONE_SP`, 29 zones):
-   - Candidates are P, T, elevation, area, and BC Albers easting/northing; selection by blocked-CV skill.
-   - Zones with too few gauges are pooled with a neighbour.
-   - Applied cell-wise, so accumulation stays consistent.
-5. **Monthly shares:**
-   - One regression per month.
-   - Predictors are upstream-mean values, so shares are computed per watershed, not per cell.
-   - Predictions are floored at 0 and renormalised to sum to 1.
-   - Region-specific fits are tested against a single pooled fit and kept only if blocked CV improves.
-6. **Land-cover AET adjustment** is an experiment, not the baseline. It is kept only if it improves blocked-CV skill, because its published ratios do not exist.
-7. **Calibration and output area:**
-   - Calibrate on gauges with at least 95 % of their basin inside FWA coverage.
-   - Segments with upstream area outside BC (Liard, Yukon, Alsek, Columbia headwaters) carry `coverage < 1` and are flagged.
-   - Transboundary upstream area, via fwapg `extras/xborder`, goes to a follow-up issue.
-8. **Station screening:**
-   - HYDAT regulation flag never set; lake outlets flagged and reported separately rather than dropped.
+1. **Grid:** CGIAR's native 30″ grid (EPSG:4326). The GLO-90 DEM is averaged onto it and climr downscales onto that DEM, so AET is never resampled.
+2. **Gauge period:** 1981–2010.
+   - A complete year has all 12 months, each with at least 20 days of flow; stations need at least 10 complete years.
+   - The monthly climatology comes from the same years as the annual, and shares are computed from monthly volumes.
+   - Seasonal-only gauges drop out, and are counted in the station report.
+3. **Residual:** obs − pred (mm), added to the prediction.
+4. **Residual regression, exactly consistent between fit and application:**
+   - Every predictor is an upstream area-weighted mean of a cell layer: P, T, elevation, BC Albers easting and northing. There is no drainage-area term.
+   - Zone effects enter as upstream means of `1[zone = z]` and `1[zone = z]·x` (built with `wet_upstream_sums()`), so a basin that straddles zones is fitted with exactly the mix of coefficients that the cell-wise surface applies.
+   - Denominator: `"covered"` throughout.
+   - Cells stay signed; only the watershed output is floored at 0.
+5. **Fixed primary specification, set before seeing skill:**
+   - Per zone: intercept + P, Chapman's form, with zones that have fewer than 8 training gauges pooled into one "other" level.
+   - Pooling is decided from counts within the training fold.
+   - Experiments (extra predictors, land cover, snow, per-zone monthly fits) are scored with selection **inside** the training fold.
+   - CV needs no grid rebuilds: by linearity, a held-out prediction is the raw upstream mean plus the fold's coefficients times the held-out station's upstream predictor means.
+6. **Monthly shares:**
+   - One regression per month on upstream-mean predictors: monthly P, T and AET, elevation, easting and northing.
+   - Shares are floored at 0 and renormalised to sum to 1.
+   - Monthly m³/s uses calendar days (February 28.25); annual uses 365.25. The same convention applies to observed and modelled flows.
+7. **Land-cover AET adjustment** is an experiment. The ratio for a class is Chapman's Table 3 class-midpoint AET ÷ the mean CGIAR AET over that class's cells. It is kept only if nested blocked CV improves.
+8. **Area and flags:**
+   - Calibrate on gauges whose accumulated FWA area lies at least 95 % inside BC.
+   - Every output row carries `coverage` (raster cover) and a separate `bc_fraction` (share of upstream FWA area inside `fwa_bcboundary`).
+   - Zones come from the extended 43-feature BC Hydrologic Zones layer, which reaches the FWA polygons outside BC.
+   - Transboundary area with no FWA polygons goes to a follow-up issue.
+9. **Stations:**
+   - HYDAT regulation flag never set. Lake outlets are flagged, not dropped.
    - Snaps accepted within ±10 % drainage area.
-9. **Validation:**
-   - Blocked cross-validation by WSC sub-sub-drainage (e.g. `08LB`), with a check that no nested pair spans folds.
-   - Headline metrics: MAE %, % within ±20 %, log-ratio bias, and NSE on the monthly climatology and on the shares.
-   - Plain leave-one-out is reported alongside, for comparability with Chapman.
-   - Headwater, nested and incremental-area results reported separately.
-10. **Output:** a `watershed_feature_id × month` table (month 0 = annual) with `runoff_mm`, `discharge_m3s` and `coverage`, as parquet under `data/wb/` (gitignored). Publishing is #7's job.
+   - Observed mm uses the accumulated FWA area of the snapped watershed; the area ratio is reported.
+10. **Validation:**
+    - Blocked CV by WSC sub-sub-drainage.
+    - Each held-out station's leak exposure is measured (the share of its basin gauged in training), and **headwater-only skill is the headline**. Nested and incremental-area results are reported alongside, with plain leave-one-out for comparability with Chapman.
+    - Metrics: MAE %, % within ±20 %, log-ratio bias, and NSE on the monthly climatology and on the shares. Stations with observed runoff under 10 mm are excluded from the % metrics and counted.
+11. **Output:**
+    - A `watershed_feature_id × month` table (month 0 = annual) with `runoff_mm`, `discharge_m3s`, `coverage` and `bc_fraction`, as parquet under `data/wb/` (gitignored).
+    - Publishing is #7's job.
 
 ## Phase 1: Inputs on one grid
-- [ ] `wet_cgiar_aet()`: fetch the CGIAR Soil-Water Balance v3 annual and monthly AET (figshare 7707605, CC0), extract with 7z, and crop to BC. Cached under `data/cgiar/`. Test on a small crop.
-- [ ] Working DEM on CGIAR's 30″ grid over BC: source it (BC TRIM via bcdata, aggregated, or Copernicus GLO-90), record the choice, and cache it.
-- [ ] `wet_climr_normals()`: climr ClimateNA observed series 1981–2010 averaged to monthly P and T normals on the working DEM, tiled and cached. Test against a point `downscale()`. Measure the BC-wide runtime on one tile before committing to the full build.
-- [ ] Hydrologic zones: fetch `WHSE_WATER_MANAGEMENT.HYDZ_HYDROLOGICZONE_SP` and rasterise it to the grid.
-- [ ] Pin every input snapshot (source URL, md5, date, dims) in a tracked manifest. Use `trap`'s snapshot/manifest if it fits a raster input on inspection; otherwise use `data/checks/wb_inputs.txt`.
+- [ ] `wet_cgiar_aet()`: CGIAR Soil-Water Balance v3 annual and monthly AET (figshare 7707605, CC0), with the md5 checked and extraction by bsdtar, cropped to BC on its native grid.
+- [ ] `wet_dem_glo90()`: Copernicus GLO-90 averaged onto the CGIAR grid.
+- [ ] `wet_climr_normals()`: 1981–2010 monthly P and T normals on the DEM grid, averaging the anomalies before downscaling if the API allows. Measure the runtime on one tile first.
+- [ ] Check climr's 1981–2010 normals against ECCC 1981–2010 station normals (about 20 stations): P ratio and T difference, in a tracked report.
+- [ ] Hydrologic zones (the extended 43-feature layer) rasterised to the grid.
+- [ ] Input manifest (source URL, md5, date, dims). Use `trap` if it fits a raster input, otherwise `data/checks/wb_inputs.txt`.
+- [ ] DESCRIPTION: Imports curl and jsonlite; Suggests climr (with `Remotes: bcgov/climr`), fresh, tidyhydat, arrow, sf.
 
 ## Phase 2: Stations (shared with #6)
-- [ ] `wet_station_select()`: HYDAT BC stations never flagged regulated, with at least 10 complete years in 1981–2010, plus `DRAINAGE_AREA_GROSS` and lat/lon. Tests against the local sqlite (skip if absent).
-- [ ] `wet_station_monthly()`: observed monthly and annual mean flow over the window, converted to mm with drainage area, plus monthly shares. Tested with synthetic daily flows, including missing months.
-- [ ] `wet_station_snap()`: `fresh::frs_point_snap(num_features = n)` plus a candidate picker on the ratio of accumulated upstream area to `DRAINAGE_AREA_GROSS`. Returns `linear_feature_id`, `watershed_feature_id`, `wscode`, `localcode`, upstream area, area ratio and a lake-outlet flag. Tests on a confluence, a mainstem and a headwater station.
-- [ ] Tracked report `data/checks/stations_wb.txt`: count by zone and sub-drainage, area-ratio distribution, and rejected snaps with reasons.
+- [ ] `wet_station_select()`: HYDAT BC stations never flagged regulated, with at least 10 complete years in 1981–2010 (complete as in decision 2). Tests against the local sqlite (skip if absent). Count inside the window per zone.
+- [ ] `wet_station_monthly()`: monthly and annual mean flow from the same years, as volumes and shares, converted with the chosen day convention. Tested with synthetic daily flows, including missing days and months.
+- [ ] `wet_station_snap()`: `fresh::frs_point_snap(num_features = n)` plus a picker on the ratio of accumulated upstream FWA area to `DRAINAGE_AREA_GROSS`. Returns the snapped watershed ids, codes, FWA area, area ratio and a lake-outlet flag. Tests on a confluence, a mainstem and a headwater station.
+- [ ] Tracked report `data/checks/stations_wb.txt`: counts by zone and sub-drainage, seasonal gauges dropped, area-ratio distribution, and rejected snaps with reasons.
 
-## Phase 3: Validation harness
-- [ ] `wet_cv_folds()`: blocked folds by WSC sub-sub-drainage, with a nesting-leak test (no station and its upstream or downstream gauge in different folds), plus plain leave-one-out.
-- [ ] `wet_flow_validate(modelled, observed)`: MAE %, % within ±20 %, log-ratio bias, and NSE on the monthly climatology and on the shares. Grouped by zone, drainage-area class and nesting class. Unit tests on synthetic inputs, including zero flow and missing months.
+## Phase 3: Province topology and sampling
+- [ ] Generalise `wet_ws_sample()` to multi-layer rasters, with `cover` per layer, keeping the one-layer output unchanged (existing tests stay green).
+- [ ] Runner `scripts/wb_province.R`, part 1: over the 24 top-level FWA codes, fetch topology once, sample each watershed group once (not once per basin), and cache the per-watershed layer means and cover.
+- [ ] Accumulation of any set of layers to every watershed (upstream means and indicator sums), plus `bc_fraction`. Station values read from their snapped watershed.
 
-## Phase 4: Annual water balance
-- [ ] Raw P − AET grid. Sample it per fundamental watershed (`wet_ws_sample(..., "area")`), accumulate with `wet_upstream_mean()`, and read the value at each station's watershed.
-- [ ] `wet_wb_fit()` and `wet_wb_adjust()`: residual regression by zone (obs − pred), selected by blocked CV, then applied cell-wise to give the adjusted grid. Tests on a synthetic grid with a known residual surface.
-- [ ] Blocked CV and plain leave-one-out on raw and adjusted, in `data/checks/wb_validation.txt` (tracked).
-- [ ] Land-cover AET experiment: class ratios from Chapman's Table 3 on a current land-cover product. Kept only if blocked-CV skill improves; the result is recorded either way.
+## Phase 4: Validation harness
+- [ ] `wet_cv_folds()`: blocked folds by WSC sub-sub-drainage, the leak exposure of each held-out station, the nesting class, and plain leave-one-out.
+- [ ] `wet_flow_validate(modelled, observed)`: the decision 10 metrics grouped by zone, drainage-area class and nesting class. Unit tests on synthetic inputs, including zero and near-zero flow and missing months.
 
-## Phase 5: Monthly shares
-- [ ] `wet_share_fit()` and `wet_share_predict()`: one regression per month on upstream-mean predictors, floor at 0, renormalise. Tests: shares sum to 1, no negatives.
-- [ ] Pooled vs per-zone (or per-regime) fits compared on blocked CV. Keep the better one.
-- [ ] Snow-predictor experiment: `cd` ERA5-Land `snowmelt_doy_50` and `swe_max` as upstream means. Kept only if blocked CV improves.
+## Phase 5: Annual water balance
+- [ ] Raw P − AET: upstream means at the stations and skill (blocked CV and leave-one-out).
+- [ ] `wet_wb_fit()` and `wet_wb_adjust()`: the zone-interacted residual regression on upstream-mean predictors, with in-fold pooling and fallback, applied cell-wise. Tests: on a synthetic grid with a known residual surface, the fitted surface accumulated at the stations reproduces the fitted values exactly.
+- [ ] Gate: the adjusted model must beat raw P − AET on headwater blocked CV, or the adjustment is dropped. Report in `data/checks/wb_validation.txt` (tracked).
+- [ ] Land-cover AET experiment under nested CV; the result is recorded either way.
+
+## Phase 6: Monthly shares
+- [ ] `wet_share_fit()` and `wet_share_predict()`: one regression per month on upstream-mean predictors, floored at 0 and renormalised. Tests: shares sum to 1, no negatives.
+- [ ] Per-zone monthly fits and the `cd` ERA5-Land snow predictors (`snowmelt_doy_50`, `swe_max`) as experiments under nested CV.
 - [ ] Monthly skill added to `data/checks/wb_validation.txt`.
 
-## Phase 6: Province run
-- [ ] `scripts/wb_province.R`: iterate the FWA top-level basins (batching small coastal ones) and write annual plus 12 months per fundamental watershed to `data/wb/` as parquet, with `coverage`.
-- [ ] Tracked run log and report (`data/wb/*_report.txt`): counts, NA and low-coverage watersheds, timing. Check sums at the mouths of major rivers.
+## Phase 7: Province output
+- [ ] `scripts/wb_province.R`, part 2: annual plus 12 months per fundamental watershed to `data/wb/` as parquet, with `coverage` and `bc_fraction`.
+- [ ] Tracked run log and report: counts, NA and low-coverage watersheds, timing. Mouth sums against HYDAT gauges near major river mouths, and a comparison with PCIC-`wet` at gauges in 100/200/300.
 - [ ] Sanity map of annual runoff (tmap + gq), committed under `research/`, with the full self-review list.
 
-## Phase 7: Record
-- [ ] Revise `research/water_balance_method.md`: each choice as built, the validation numbers, and the skill of raw vs adjusted vs Chapman's published figures.
+## Phase 8: Record
+- [ ] Revise `research/water_balance_method.md`: each choice as built, the validation numbers, and raw vs adjusted vs Chapman's published figures.
 - [ ] Edit the #6 body to use the `wet_station_*` functions. File the transboundary follow-up issue.
 - [ ] NEWS entry, and any README touch the exports need.
 
