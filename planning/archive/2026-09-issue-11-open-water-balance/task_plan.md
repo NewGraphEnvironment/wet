@@ -89,7 +89,7 @@ PCIC gridded hydrology covers only the Peace, Fraser and Columbia. The BC Water 
 
 ## Validation
 
-- [ ] Tests pass (`devtools::test()`), lintr clean, `devtools::document()`
-- [ ] `/code-check` clean on each commit
-- [ ] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] Tests pass (`devtools::test()`), lintr clean, `devtools::document()`
+- [x] `/code-check` clean on each commit
+- [x] PWF checkboxes match landed work
+- [x] `/planning-archive` on completion
