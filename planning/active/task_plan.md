@@ -15,7 +15,7 @@ PCIC gridded hydrology covers only the Peace, Fraser and Columbia. The BC Water 
    - Zone effects enter as upstream means of `1[zone = z]` and `1[zone = z]·x` (built with `wet_upstream_sums()`), so a basin that straddles zones is fitted with exactly the mix of coefficients that the cell-wise surface applies.
    - Denominator: `"covered"` throughout.
    - Cells stay signed; only the watershed output is floored at 0.
-5. **Fixed primary specification, set before seeing skill:**
+5. **Fixed primary specification, set before seeing skill** (revised in the run; see `findings.md`, "Final run"). Under this specification the gate failed. A "no adjustment for pooled zones" candidate was then added, and chosen by nested CV. Which result ships is open for the maintainer:
    - Per zone: intercept + P, Chapman's form, with zones that have fewer than 8 training gauges pooled into one "other" level.
    - Pooling is decided from counts within the training fold.
    - Experiments (extra predictors, land cover, snow, per-zone monthly fits) are scored with selection **inside** the training fold.
@@ -49,7 +49,7 @@ PCIC gridded hydrology covers only the Peace, Fraser and Columbia. The BC Water 
 - [x] Check climr's 1981–2010 normals against ECCC 1981–2010 station normals (about 20 stations): P ratio and T difference, in a tracked report.
 - [x] Hydrologic zones (the extended 43-feature layer) rasterised to the grid.
 - [x] Input manifest (source URL, md5, date, dims). Use `trap` if it fits a raster input, otherwise `data/checks/wb_inputs.txt`.
-- [ ] DESCRIPTION: Imports curl and jsonlite; Suggests climr (with `Remotes: bcgov/climr`), fresh, tidyhydat, arrow, sf.
+- [x] DESCRIPTION: Imports curl and jsonlite; Suggests climr (with `Remotes: bcgov/climr`), RSQLite and tidyhydat. `fresh` turned out not to be needed (snapping calls fwapg directly); `arrow`, `sf`, `tmap` and `gq` are used only by `scripts/`, which is outside the built package.
 
 ## Phase 2: Stations (shared with #6)
 - [x] `wet_station_select()`: HYDAT BC stations never flagged regulated, with at least 10 complete years in 1981–2010 (complete as in decision 2). Tests against the local sqlite (skip if absent). Count inside the window per zone.
@@ -58,34 +58,34 @@ PCIC gridded hydrology covers only the Peace, Fraser and Columbia. The BC Water 
 - [x] Tracked report `data/checks/stations_wb.txt`: counts by sub-sub-drainage (by zone moves to Phase 3, which samples the basins), seasonal gauges dropped, area-ratio distribution, and rejected snaps with reasons.
 
 ## Phase 3: Province topology and sampling
-- [ ] Generalise `wet_ws_sample()` to multi-layer rasters, with `cover` per layer, keeping the one-layer output unchanged (existing tests stay green).
-- [ ] Runner `scripts/wb_province.R`, part 1: over the 24 top-level FWA codes, fetch topology once, sample each watershed group once (not once per basin), and cache the per-watershed layer means and cover.
-- [ ] Accumulation of any set of layers to every watershed (upstream means and indicator sums), plus `bc_fraction`. Station values read from their snapped watershed.
+- [x] Generalise `wet_ws_sample()` to multi-layer rasters, with `cover` per layer, keeping the one-layer output unchanged (existing tests stay green).
+- [x] Runner `scripts/wb_province.R`, part 1: over the 24 top-level FWA codes, fetch topology once, sample each watershed group once (not once per basin), and cache the per-watershed layer means and cover.
+- [x] Accumulation of any set of layers to every watershed (upstream means and indicator sums), plus `bc_fraction`. Station values read from their snapped watershed.
 
 ## Phase 4: Validation harness
-- [ ] `wet_cv_folds()`: blocked folds by WSC sub-sub-drainage, the leak exposure of each held-out station, the nesting class, and plain leave-one-out.
-- [ ] `wet_flow_validate(modelled, observed)`: the decision 10 metrics grouped by zone, drainage-area class and nesting class. Unit tests on synthetic inputs, including zero and near-zero flow and missing months.
+- [x] `wet_cv_folds()`: blocked folds by WSC sub-sub-drainage, the leak exposure of each held-out station, the nesting class, and plain leave-one-out.
+- [x] `wet_flow_validate(modelled, observed)`: the decision 10 metrics grouped by zone, drainage-area class and nesting class. Unit tests on synthetic inputs, including zero and near-zero flow and missing months.
 
 ## Phase 5: Annual water balance
-- [ ] Raw P − AET: upstream means at the stations and skill (blocked CV and leave-one-out).
-- [ ] `wet_wb_fit()` and `wet_wb_adjust()`: the zone-interacted residual regression on upstream-mean predictors, with in-fold pooling and fallback, applied cell-wise. Tests: on a synthetic grid with a known residual surface, the fitted surface accumulated at the stations reproduces the fitted values exactly.
-- [ ] Gate: the adjusted model must beat raw P − AET on headwater blocked CV, or the adjustment is dropped. Report in `data/checks/wb_validation.txt` (tracked).
-- [ ] Land-cover AET experiment under nested CV; the result is recorded either way.
+- [x] Raw P − AET: upstream means at the stations and skill (blocked CV and leave-one-out).
+- [x] `wet_wb_fit()` and `wet_wb_adjust()`: the zone-interacted residual regression on upstream-mean predictors, with in-fold pooling and fallback, applied cell-wise. Tests: on a synthetic grid with a known residual surface, the fitted surface accumulated at the stations reproduces the fitted values exactly.
+- [x] Gate: the adjusted model must beat raw P − AET on headwater blocked CV, or the adjustment is dropped. Report in `data/checks/wb_validation.txt` (tracked).
+- [ ] Land-cover AET experiment under nested CV — **moved to a follow-up (drafted in `issue_drafts_followup.md` #2, awaiting approval to file)**. The run found CGIAR AET far too low in the semi-arid interior, so the experiment is widened to alternative AET and a Budyko constraint.
 
 ## Phase 6: Monthly shares
-- [ ] `wet_share_fit()` and `wet_share_predict()`: one regression per month on upstream-mean predictors, floored at 0 and renormalised. Tests: shares sum to 1, no negatives.
-- [ ] Per-zone monthly fits and the `cd` ERA5-Land snow predictors (`snowmelt_doy_50`, `swe_max`) as experiments under nested CV.
-- [ ] Monthly skill added to `data/checks/wb_validation.txt`.
+- [x] `wet_share_fit()` and `wet_share_predict()`: one regression per month on upstream-mean predictors, floored at 0 and renormalised. Tests: shares sum to 1, no negatives.
+- [ ] Per-zone monthly fits and the `cd` ERA5-Land snow predictors as experiments — **moved to a follow-up (drafted #3)**. Pooled monthly shares reach a median blocked-CV NSE of 0.87.
+- [x] Monthly skill added to `data/checks/wb_validation.txt`.
 
 ## Phase 7: Province output
-- [ ] `scripts/wb_province.R`, part 2: annual plus 12 months per fundamental watershed to `data/wb/` as parquet, with `coverage` and `bc_fraction`.
-- [ ] Tracked run log and report: counts, NA and low-coverage watersheds, timing. Mouth sums against HYDAT gauges near major river mouths, and a comparison with PCIC-`wet` at gauges in 100/200/300.
-- [ ] Sanity map of annual runoff (tmap + gq), committed under `research/`, with the full self-review list.
+- [x] `scripts/wb_output.R` (split from the province runner): annual plus 12 months per fundamental watershed to `data/wb/` as parquet, with `coverage` and `bc_fraction`.
+- [x] Tracked run log and report: counts, NA and low-coverage watersheds, timing. Mouth sums against HYDAT gauges near major river mouths, and a comparison with PCIC-`wet` at gauges in 100/200/300.
+- [x] Sanity map of annual runoff (tmap + gq), committed under `research/`, with the full self-review list.
 
 ## Phase 8: Record
-- [ ] Revise `research/water_balance_method.md`: each choice as built, the validation numbers, and raw vs adjusted vs Chapman's published figures.
-- [ ] Edit the #6 body to use the `wet_station_*` functions. File the transboundary follow-up issue.
-- [ ] NEWS entry, and any README touch the exports need.
+- [x] Revise `research/water_balance_method.md`: each choice as built, the validation numbers, and raw vs adjusted vs Chapman's published figures.
+- [x] Edit the #6 body to use the `wet_station_*` functions. The transboundary follow-up is drafted (`issue_drafts_followup.md` #1) and awaits approval to file.
+- [x] NEWS entry, and any README touch the exports need.
 
 ## Validation
 

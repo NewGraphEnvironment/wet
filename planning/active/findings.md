@@ -90,6 +90,47 @@ Reproduced minimally on terra 1.9.46 / GDAL 3.8.5. No existing issue was found (
 
 Workaround in `scripts/wb_inputs.R`: rasterise in memory, then `writeRaster()`.
 
+## Phases 3–6: first province run and validation (2026-09-26, ClimateNA anomalies; superseded by "Final run" below)
+
+- **Province run:**
+  - 246 groups sampled in 6.4 min (4 PSOCK workers). The multi-layer `rowsum()` sampler does BULK (20,970 polygons, 55 layers) in 9 s.
+  - Upstream means for 3,245,453 watersheds in 24 top-level basins in 4.5 min.
+- **Validation:** 280 calibration stations (basin ≥ 95 % in BC and on the grid), 90 blocked folds.
+  - Mean absolute error: raw P − AET 37.8 %; adjusted, blocked CV 33.6 %; leave-one-out 33.0 %; in-sample 22.7 %.
+  - Gate passed on headwater stations: 39.2 % vs 43.8 %.
+  - Monthly NSE, median under blocked CV: 0.75 on mm, 0.87 on shares.
+- **Major rivers (mean annual flow, modelled vs HYDAT 1981–2010):** Peace 0.95, Stikine 1.13, Nass 0.84, Skeena 0.92, Thompson 1.21, Fraser at Hope 1.08 (partly the Nechako diversion out of the basin), Columbia 1.04. PCIC through `wet` at Hope: 2,477 m³/s, a ratio of 0.93.
+
+### Inconsistency found in another group's product: CGIAR AET in the semi-arid interior
+
+- Raw P − AET overpredicts badly in hydrologic zones 15 (Fraser Plateau), 17 (N. Thompson Plateau), 23 (Okanagan Highland) and 24 (S. Thompson Plateau): median error +109 % to +150 %.
+- Example, Greata Creek 08NM173: climr P 746 mm, CGIAR AET 281 mm, so P − AET is 466 mm against 50 mm observed. The water balance implies about 700 mm of ET.
+- CGIAR's AET is computed from its own soil bucket on WorldClim P, and it cannot exceed that P. Next to climr's P it is far too low in dry country.
+- The zone-wise linear adjustment cannot repair an error of this size. That is where the land-cover / ET experiment should look (follow-up issue).
+
+### A climr gap: ClimateNA anomalies do not cover the coastal islands
+
+- `input_obs_ts(dataset = "climatena")` is `NA` on its 1° grid over Haida Gwaii and northern Vancouver Island.
+- Averaging its anomalies for the raster route left 159,747 land cells without normals. That is the "Empty tile - not enough data" warning in the first build.
+- In the output: 247,249 watersheds with no annual value; basins 940–955 empty.
+- climr's point (database) route does return values there, so this is specific to the raster route with gridded anomalies.
+- Switched to `mswx.blend` (0.5°), which covers the islands. climr's own guidance rates it as generally credible and notes artefacts in the ClimateNA series in station-sparse western Canada.
+- An upstream issue for bcgov/climr could be drafted; nothing has been posted.
+
+## Final run (2026-09-26, MSWX anomalies, run 5c2feaefad)
+
+- **Inputs:** climr + MSWX blend. ECCC check: 57 stations, MAP ratio median 1.034. Raw P − AET MAE 34.7 % (37.8 % with ClimateNA).
+- **Wrong turns, kept as evidence:**
+  1. Per-fold pooling with one fitted "other" level: gate PASS (ClimateNA run).
+  2. Pooling fixed once from locations (review round 1): zone 07 collapsed in one fold to a = −3874 (review round 2). Reverted to per-fold pooling.
+  3. With MSWX, the gate FAILED: 46.4 % vs 39.8 % on headwater stations.
+  4. Review round 3 traced the failure to the pooled "other" level, whose ~+170 mm intercept lands on dry zones. "No adjustment for pooled zones" passes, but was found by looking at CV.
+- **Resolution:** each fold chooses the variant by an inner blocked CV on its training stations. All 93 folds, and the all-station fit, chose "none".
+- **Headline:** blocked CV 33.1 % (headwater 38.1 %), LOO 32.3 %, in-sample 22.6 %. The gate passes narrowly and the adjustment ships.
+- **Major rivers:** 0.86–1.17. Fraser at Hope 1.05; PCIC through `wet` 0.93.
+- **Output:** 3,245,453 watersheds × 13 rows. 22,041 (0.7 %, small coastal islands) have no value.
+- **Map:** zone-boundary steps are visible where the zone-wise adjustment changes. They come from the method (§7 item 9).
+
 ## Errors Encountered
 
 | Error | Resolution |
@@ -99,3 +140,5 @@ Workaround in `scripts/wb_inputs.R`: rasterise in memory, then `writeRaster()`.
 | Homebrew `7z` "Unsupported Method" on the CGIAR RARs | `bsdtar` (libarchive reads RAR4) |
 | climr `downscale_core()` "raster has no values" | Two causes. `terra::rast(SpatRaster)` returns an empty template (only paths go through `rast()` now), and the anomaly must be file-backed |
 | `terra::setGDALconfig("KEY=")` stores "NA" | Two-argument form, `wet_gdal_config_set()` |
+| Validation: `rbind` across basins failed | Basins carry only their own zone columns; fill with 0, and skip basins with no stations (zero-row frame) |
+| Output: `wet_wb_adjust()` "no zone columns" in basin 940 | No fitted zone means no adjustment |
