@@ -32,9 +32,9 @@ md5:    08233c638a3cf0995198e3c518a2840d
 grid:   1428 x 3012 x 1, res 0.0083333, ext -139.1 -114 48.20001 60.10001
 
 ## climr normals
-source: climr refmap_climr + climatena obs 1981-2010 via wet_climr_normals()
-file:   data/climr/climr_climatena_1981-2010_98f0f8e0_d7671654.tif
-md5:    4c25939be203f8b581d186cc98b75bd4
+source: climr refmap_climr + mswx.blend obs 1981-2010 via wet_climr_normals()
+file:   data/climr/climr_mswx.blend_1981-2010_98f0f8e0_d7671654.tif
+md5:    607e618af47d4be230fb84bdc3d7f9ff
 grid:   1428 x 3012 x 24, res 0.0083333, ext -139.1 -114 48.20001 60.10001
 
 ## Hydrologic zones grid

@@ -10,8 +10,11 @@
 #' @param dem Path to a one-layer elevation raster (m, EPSG:4326), or a
 #'   `SpatRaster`. Its grid is the output grid.
 #' @param years Integer vector of years to average.
-#' @param dataset climr observed time series: `"climatena"`, `"cru.gpcc"` or
-#'   `"mswx.blend"`.
+#' @param dataset climr observed time series: `"mswx.blend"` (default),
+#'   `"climatena"` or `"cru.gpcc"`. The ClimateNA series is `NA` over coastal
+#'   islands (Haida Gwaii, northern Vancouver Island) on its 1-degree grid, so
+#'   averaging its anomalies leaves those islands without normals; the 0.5-degree
+#'   MSWX blend covers them.
 #' @param vars climr variable codes to return: monthly `PPT_MM`, `Tave_MM`,
 #'   `Tmax_MM`, `Tmin_MM`, and `MAP`, `MAT`. Derived variables that are not
 #'   linear in the anomalies (degree days, PAS, CMD) are refused, since
@@ -20,7 +23,7 @@
 #' @param overwrite Logical. Rebuild even when cached.
 #' @return Path to a GeoTIFF with one layer per variable in `vars`.
 #' @export
-wet_climr_normals <- function(dem, years = 1981:2010, dataset = "climatena",
+wet_climr_normals <- function(dem, years = 1981:2010, dataset = "mswx.blend",
                               vars = c(sprintf("PPT_%02d", 1:12), sprintf("Tave_%02d", 1:12)),
                               dir = "data/climr", overwrite = FALSE) {
   vars <- unique(vars)
@@ -78,7 +81,10 @@ wet_climr_normals <- function(dem, years = 1981:2010, dataset = "climatena",
 # whose layers are named "<dataset>_<VAR>_<MM>_<YYYY>".
 wet_climr_anomaly_mean <- function(ts, dataset, years) {
   nm <- names(ts)
-  var <- sub(paste0("^", dataset, "_(.*)_[0-9]{4}$"), "\\1", nm)
+  # the dataset name is literal ("mswx.blend" has a dot), so strip it by length
+  pre <- paste0(dataset, "_")
+  if (!all(startsWith(nm, pre))) stop("layers are not all from climr dataset ", dataset, call. = FALSE)
+  var <- sub("_[0-9]{4}$", "", substring(nm, nchar(pre) + 1))
   yr <- as.integer(sub(".*_([0-9]{4})$", "\\1", nm))
   missing <- setdiff(years, yr)
   if (length(missing)) stop("climr ", dataset, " lacks years: ", paste(missing, collapse = ", "),

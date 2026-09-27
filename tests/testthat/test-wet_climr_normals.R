@@ -34,7 +34,7 @@ test_that("a cached normal is returned without calling climr, keyed on its varia
     substr(wet:::wet_md5_text(paste(c(paste(y, collapse = ","), v, wet:::wet_raster_md5(d)),
                                     collapse = "|")), 1, 8)
   }
-  f <- file.path(dir, sprintf("climr_climatena_1981-2010_%s_%s.tif",
+  f <- file.path(dir, sprintf("climr_mswx.blend_1981-2010_%s_%s.tif",
                               substr(wet:::wet_grid_key(dem), 1, 8), key(c("PPT_07", "Tave_07"))))
   file.create(f)
   expect_equal(wet_climr_normals(dem, vars = c("PPT_07", "Tave_07"), dir = dir), f)
@@ -69,7 +69,7 @@ test_that("the gridded normal matches climr's per-year point average", {
   g <- terra::extract(x, p)
   pt <- suppressMessages(climr::downscale(
     data.frame(id = 1, lon = p[1], lat = p[2], elev = 600), which_refmap = "refmap_climr",
-    obs_ts_dataset = "climatena", obs_years = 1981:2010, vars = c("PPT_07", "Tave_07"),
+    obs_ts_dataset = "mswx.blend", obs_years = 1981:2010, vars = c("PPT_07", "Tave_07"),
     return_refperiod = FALSE
   ))
   pt <- as.data.frame(pt)

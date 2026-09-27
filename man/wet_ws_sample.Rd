@@ -2,12 +2,12 @@
 % Please edit documentation in R/wet_ws_sample.R
 \name{wet_ws_sample}
 \alias{wet_ws_sample}
-\title{Cell value for each fundamental watershed}
+\title{Cell values for each fundamental watershed}
 \usage{
 wet_ws_sample(r, ws, method = c("centroid", "area"))
 }
 \arguments{
-\item{r}{One-layer \code{terra::SpatRaster}.}
+\item{r}{\code{terra::SpatRaster}, one or more layers.}
 
 \item{ws}{\code{terra::SpatVector} of polygons with a \code{watershed_feature_id}
 attribute; or, for \code{"centroid"} only, a \code{data.frame(watershed_feature_id, lon, lat)} of centroids already computed (e.g. by \code{\link[=wet_ws_fetch]{wet_ws_fetch()}}),
@@ -16,7 +16,8 @@ which avoids transferring geometry for a whole basin.}
 \item{method}{\code{"centroid"} or \code{"area"}.}
 }
 \value{
-\code{data.frame(watershed_feature_id, value, cover)}.
+For one layer, \code{data.frame(watershed_feature_id, value, cover)}.
+For several, \verb{data.frame(watershed_feature_id, <layer names>, cover)}.
 }
 \description{
 Two methods:
@@ -33,4 +34,10 @@ the polygon's overlap that falls on cells with a value, so a polygon
 half off the model domain reports \code{cover = 0.5} rather than a silently
 halved value downstream.
 }
+
+With several layers, a cell counts only where \strong{every} layer has a value,
+and all layers are averaged over those same cells. There is then one
+\code{cover} per polygon, so upstream means of every layer share one
+denominator and a linear combination of layers is exactly the same
+combination of their means.
 }

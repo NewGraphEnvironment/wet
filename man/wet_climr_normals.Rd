@@ -7,7 +7,7 @@
 wet_climr_normals(
   dem,
   years = 1981:2010,
-  dataset = "climatena",
+  dataset = "mswx.blend",
   vars = c(sprintf("PPT_\%02d", 1:12), sprintf("Tave_\%02d", 1:12)),
   dir = "data/climr",
   overwrite = FALSE
@@ -19,8 +19,11 @@ wet_climr_normals(
 
 \item{years}{Integer vector of years to average.}
 
-\item{dataset}{climr observed time series: \code{"climatena"}, \code{"cru.gpcc"} or
-\code{"mswx.blend"}.}
+\item{dataset}{climr observed time series: \code{"mswx.blend"} (default),
+\code{"climatena"} or \code{"cru.gpcc"}. The ClimateNA series is \code{NA} over coastal
+islands (Haida Gwaii, northern Vancouver Island) on its 1-degree grid, so
+averaging its anomalies leaves those islands without normals; the 0.5-degree
+MSWX blend covers them.}
 
 \item{vars}{climr variable codes to return: monthly \code{PPT_MM}, \code{Tave_MM},
 \code{Tmax_MM}, \code{Tmin_MM}, and \code{MAP}, \code{MAT}. Derived variables that are not

@@ -1,4 +1,4 @@
-#' Cell value for each fundamental watershed
+#' Cell values for each fundamental watershed
 #'
 #' Two methods:
 #'
@@ -12,37 +12,46 @@
 #'   half off the model domain reports `cover = 0.5` rather than a silently
 #'   halved value downstream.
 #'
-#' @param r One-layer `terra::SpatRaster`.
+#' With several layers, a cell counts only where **every** layer has a value,
+#' and all layers are averaged over those same cells. There is then one
+#' `cover` per polygon, so upstream means of every layer share one
+#' denominator and a linear combination of layers is exactly the same
+#' combination of their means.
+#'
+#' @param r `terra::SpatRaster`, one or more layers.
 #' @param ws `terra::SpatVector` of polygons with a `watershed_feature_id`
 #'   attribute; or, for `"centroid"` only, a `data.frame(watershed_feature_id,
 #'   lon, lat)` of centroids already computed (e.g. by [wet_ws_fetch()]),
 #'   which avoids transferring geometry for a whole basin.
 #' @param method `"centroid"` or `"area"`.
-#' @return `data.frame(watershed_feature_id, value, cover)`.
+#' @return For one layer, `data.frame(watershed_feature_id, value, cover)`.
+#'   For several, `data.frame(watershed_feature_id, <layer names>, cover)`.
 #' @export
 wet_ws_sample <- function(r, ws, method = c("centroid", "area")) {
   method <- match.arg(method)
-  stopifnot(inherits(r, "SpatRaster"), terra::nlyr(r) == 1L,
-            "watershed_feature_id" %in% names(ws))
+  stopifnot(inherits(r, "SpatRaster"), "watershed_feature_id" %in% names(ws))
+  lyr <- names(r)
+  if (terra::nlyr(r) > 1 && (anyDuplicated(lyr) || any(lyr %in% c("watershed_feature_id", "cover")))) {
+    stop("layer names must be unique and not 'watershed_feature_id' or 'cover'", call. = FALSE)
+  }
   id <- ws$watershed_feature_id
 
-  if (is.data.frame(ws)) {
-    if (method != "centroid") stop("method = \"area\" needs polygons (a SpatVector)", call. = FALSE)
-    stopifnot(all(c("lon", "lat") %in% names(ws)), !anyNA(ws$lon), !anyNA(ws$lat))
-    pts <- terra::vect(data.frame(lon = ws$lon, lat = ws$lat), geom = c("lon", "lat"),
-                       crs = "EPSG:4326")
-    value <- terra::extract(r, terra::project(pts, terra::crs(r)), ID = FALSE)[[1]]
-    return(data.frame(watershed_feature_id = id, value = value,
-                      cover = as.numeric(!is.na(value))))
-  }
-  stopifnot(inherits(ws, "SpatVector"))
-
   if (method == "centroid") {
-    pts <- terra::project(terra::centroids(ws, inside = FALSE), terra::crs(r))
-    value <- terra::extract(r, pts, ID = FALSE)[[1]]
-    return(data.frame(watershed_feature_id = id, value = value,
-                      cover = as.numeric(!is.na(value))))
+    if (is.data.frame(ws)) {
+      stopifnot(all(c("lon", "lat") %in% names(ws)), !anyNA(ws$lon), !anyNA(ws$lat))
+      pts <- terra::vect(data.frame(lon = ws$lon, lat = ws$lat), geom = c("lon", "lat"),
+                         crs = "EPSG:4326")
+    } else {
+      stopifnot(inherits(ws, "SpatVector"))
+      pts <- terra::centroids(ws, inside = FALSE)
+    }
+    v <- as.matrix(terra::extract(r, terra::project(pts, terra::crs(r)), ID = FALSE))
+    ok <- stats::complete.cases(v)
+    v[!ok, ] <- NA
+    return(wet_ws_frame(id, v, as.numeric(ok), lyr))
   }
+  if (is.data.frame(ws)) stop("method = \"area\" needs polygons (a SpatVector)", call. = FALSE)
+  stopifnot(inherits(ws, "SpatVector"))
 
   poly <- terra::project(ws, terra::crs(r))
   # extract() returns no rows for ground beyond the raster, so pad with NA
@@ -50,15 +59,32 @@ wet_ws_sample <- function(r, ws, method = c("centroid", "area")) {
   # cover.
   r <- terra::extend(r, terra::union(terra::ext(r), terra::ext(poly)), snap = "out")
   ex <- terra::extract(r, poly, exact = TRUE, ID = TRUE)
-  names(ex) <- c("ID", "v", "fraction")
-  ok <- !is.na(ex$v)
-  tot <- tapply(ex$fraction, factor(ex$ID, levels = seq_along(id)), sum)
-  cov <- tapply(ex$fraction[ok], factor(ex$ID[ok], levels = seq_along(id)), sum)
-  wv <- tapply(ex$v[ok] * ex$fraction[ok],
-               factor(ex$ID[ok], levels = seq_along(id)), sum)
-  cov[is.na(cov)] <- 0
-  value <- ifelse(cov > 0, wv / cov, NA_real_)
-  cover <- ifelse(is.na(tot) | tot == 0, 0, cov / tot)
-  data.frame(watershed_feature_id = id, value = as.numeric(value),
-             cover = as.numeric(cover))
+  v <- as.matrix(ex[, seq_along(lyr) + 1L, drop = FALSE])
+  ok <- stats::complete.cases(v)
+  n <- length(id)
+  # sums placed by polygon index: rowsum() returns only the groups present
+  by_id <- function(x) {
+    s <- rowsum(x, ex$ID)
+    out <- matrix(0, n, ncol(s))
+    out[as.integer(rownames(s)), ] <- s
+    out
+  }
+  tot <- by_id(ex$fraction)[, 1]
+  fr <- ifelse(ok, ex$fraction, 0)
+  cov <- by_id(fr)[, 1]
+  v[!ok, ] <- 0
+  wv <- by_id(v * fr)
+  val <- wv / cov
+  val[!(cov > 0), ] <- NA
+  wet_ws_frame(id, val, ifelse(tot > 0, cov / tot, 0), lyr)
+}
+
+wet_ws_frame <- function(id, v, cover, lyr) {
+  if (length(lyr) == 1L) {
+    return(data.frame(watershed_feature_id = id, value = as.numeric(v[, 1]), cover = cover))
+  }
+  out <- data.frame(watershed_feature_id = id, v, cover = cover, check.names = FALSE)
+  names(out)[seq_along(lyr) + 1L] <- lyr
+  rownames(out) <- NULL
+  out
 }

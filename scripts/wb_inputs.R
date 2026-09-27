@@ -87,7 +87,7 @@ rows <- data.frame(
   source = c("https://figshare.com/articles/dataset/7707605 (CC0)",
              "https://figshare.com/articles/dataset/7707605 (CC0)", paste(hz_url, "(OGL-BC)"),
              "wet_cgiar_aet()", "Copernicus DEM GLO-90 via wet_dem_glo90()",
-             "climr refmap_climr + climatena obs 1981-2010 via wet_climr_normals()",
+             "climr refmap_climr + mswx.blend obs 1981-2010 via wet_climr_normals()",
              "terra::rasterize(HYDZN_NO)"),
   file = c("data/cgiar/AET_YR.rar", "data/cgiar/aet_monthly.rar", hz_zip, f_aet, f_dem, f_clim, f_hz)
 )
@@ -135,7 +135,7 @@ obs <- merge(merge(ppt, tav, by = c("climate_id", "station"), suffixes = c("_ppt
 obs <- obs[stats::complete.cases(obs), ]
 pts <- data.frame(id = seq_len(nrow(obs)), lon = obs$lon, lat = obs$lat, elev = obs$elev)
 cl <- suppressMessages(climr::downscale(
-  pts, which_refmap = "refmap_climr", obs_ts_dataset = "climatena", obs_years = 1981:2010,
+  pts, which_refmap = "refmap_climr", obs_ts_dataset = "mswx.blend", obs_years = 1981:2010,
   vars = c("MAP", "MAT"), return_refperiod = FALSE
 ))
 cl <- as.data.frame(cl)
@@ -150,7 +150,7 @@ obs$mat_diff <- obs$climr_mat - obs$value_tave
 q <- function(x) paste(sprintf("%.3f", stats::quantile(x, c(0.1, 0.5, 0.9), na.rm = TRUE)), collapse = " / ")
 con <- file("data/checks/climr_eccc.txt", "w")
 writeLines(c(
-  "# climr 1981-2010 (refmap_climr + climatena obs, averaged by year) vs ECCC 1981-2010 normals",
+  "# climr 1981-2010 (refmap_climr + mswx.blend obs, averaged by year) vs ECCC 1981-2010 normals",
   "", sprintf("stations (BC, WMO 'A' code, both P and T): %d (dropped, no climr value: %d)",
               nrow(obs), n_no_climr),
   sprintf("MAP ratio climr / ECCC, p10 / median / p90: %s", q(obs$map_ratio)),
