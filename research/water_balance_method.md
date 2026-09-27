@@ -76,12 +76,13 @@ Annual runoff; percentages are mean absolute error.
 
 Their accuracy figures are in-sample, and after the undocumented "final adjustment to measured flows" they are near 0 % at the gauges. They are not a measure of skill at ungauged sites. The open reimplementation suggests that out-of-sample skill of this method family, province-wide, is about 33 % MAE on annual runoff (38 % for headwater basins). Our release comparison (#5) should score their values at stations held out of *their* fit where possible.
 
-### Follow-ups (drafted, not filed)
+### Follow-ups
 
-- Transboundary upstream area.
-- An ET experiment for the semi-arid interior (land-cover ratios, TerraClimate AET, a Budyko constraint).
-- Snow predictors for the monthly shares.
-- An upstream note to climr on the ClimateNA coastal gap.
+- #14: transboundary upstream area.
+- #15: an ET experiment for the semi-arid interior (land-cover ratios, TerraClimate AET, a Budyko constraint).
+- #16: snow predictors for the monthly shares.
+- An upstream note to climr on the ClimateNA coastal gap: drafted, not posted.
+- rspatial/terra#2195: `rasterize(filename = )` with an integer datatype writes NA as 0 (worked around in `scripts/wb_inputs.R`).
 
 ## 1. Citation and companion sources
 
