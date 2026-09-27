@@ -43,12 +43,12 @@ PCIC gridded hydrology covers only the Peace, Fraser and Columbia. The BC Water 
     - Publishing is #7's job.
 
 ## Phase 1: Inputs on one grid
-- [ ] `wet_cgiar_aet()`: CGIAR Soil-Water Balance v3 annual and monthly AET (figshare 7707605, CC0), with the md5 checked and extraction by bsdtar, cropped to BC on its native grid.
-- [ ] `wet_dem_glo90()`: Copernicus GLO-90 averaged onto the CGIAR grid.
-- [ ] `wet_climr_normals()`: 1981–2010 monthly P and T normals on the DEM grid, averaging the anomalies before downscaling if the API allows. Measure the runtime on one tile first.
-- [ ] Check climr's 1981–2010 normals against ECCC 1981–2010 station normals (about 20 stations): P ratio and T difference, in a tracked report.
-- [ ] Hydrologic zones (the extended 43-feature layer) rasterised to the grid.
-- [ ] Input manifest (source URL, md5, date, dims). Use `trap` if it fits a raster input, otherwise `data/checks/wb_inputs.txt`.
+- [x] `wet_cgiar_aet()`: CGIAR Soil-Water Balance v3 annual and monthly AET (figshare 7707605, CC0), with the md5 checked and extraction by bsdtar, cropped to BC on its native grid.
+- [x] `wet_dem_glo90()`: Copernicus GLO-90 averaged onto the CGIAR grid.
+- [x] `wet_climr_normals()`: 1981–2010 monthly P and T normals on the DEM grid, averaging the anomalies before downscaling if the API allows. Measure the runtime on one tile first.
+- [x] Check climr's 1981–2010 normals against ECCC 1981–2010 station normals (about 20 stations): P ratio and T difference, in a tracked report.
+- [x] Hydrologic zones (the extended 43-feature layer) rasterised to the grid.
+- [x] Input manifest (source URL, md5, date, dims). Use `trap` if it fits a raster input, otherwise `data/checks/wb_inputs.txt`.
 - [ ] DESCRIPTION: Imports curl and jsonlite; Suggests climr (with `Remotes: bcgov/climr`), fresh, tidyhydat, arrow, sf.
 
 ## Phase 2: Stations (shared with #6)
