@@ -898,6 +898,12 @@ Do the hex swap in **one** helper and omit `<Icon><href>` entirely.
 ### `rio cogeo validate` exits 0 when the file is NOT a valid COG
 It reports the verdict in text and returns success either way, so the exit status carries no information at all:
 
+### `terra::rast()` on a SpatRaster returns an empty template, not a copy
+Pass a SpatRaster through as is (`if (inherits(x, "SpatRaster")) x else terra::rast(x)`): `rast(x)` on one builds a new raster with the same geometry and **no values**, so a function that normalises its input with `terra::rast()` silently receives an all-empty grid when handed an object rather …
+
+### `terra::rasterize(filename = , datatype = <integer>)` writes the background as 0, not NA
+Rasterise in memory and then `writeRaster(datatype = …)`: written directly through `filename` with an integer `datatype` (INT1U, INT2S), cells no polygon covers come out as 0, while the file's NoData is 255, so they read back as data (terra 1.9.46 and 1.9.50; rspatial/terra#2195).
+
 # Code Check Conventions
 Structured checklist for reviewing diffs before commit.
 
