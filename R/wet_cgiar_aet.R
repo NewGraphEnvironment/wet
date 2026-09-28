@@ -97,10 +97,13 @@ wet_figshare_files <- function(article) {
 # serves files from a redirect).
 # Written to "<dest>.part" and renamed only on HTTP 200, so a timeout or an
 # error page never leaves a file at `dest` that a cache check would trust.
-wet_download <- function(url, dest, timeout) {
+# `netrc` names a netrc file for hosts that ask for a login (Earthdata's
+# redirects), with cookies kept across the redirect chain.
+wet_download <- function(url, dest, timeout, netrc = NULL) {
   part <- paste0(dest, ".part")
   on.exit(unlink(part), add = TRUE)
   h <- curl::new_handle(followlocation = TRUE, timeout = timeout, useragent = "wet")
+  if (!is.null(netrc)) curl::handle_setopt(h, netrc = 1L, netrc_file = netrc, cookiefile = "")
   res <- curl::curl_fetch_disk(url, part, handle = h)
   if (res$status_code != 200) stop("HTTP ", res$status_code, " from ", url, call. = FALSE)
   if (!file.rename(part, dest)) stop("could not move download to ", dest, call. = FALSE)
