@@ -606,6 +606,12 @@ Sum a range directly (segment tree, per-range `sum()`, or grouped sums) rather t
 ### Inside a dplyr verb, a column named like a local variable wins
 Inject a local value into a data-masked verb with `!!x` or `.env$x`, never a bare `x`: `transmute(d, aoi_id = id)` inside `for (id in ids)` reads the frame's own `id` column whenever one exists, with no warning, and the result is well-typed and plausible.
 
+### `earthdatalogin`'s search and download calls overwrite the netrc when they find no Earthdata entry
+Call NASA's CMR search with `curl` and download with `curl` given the netrc directly (`netrc = 1, netrc_file = <path>, cookiefile = ""` follows the URS redirect), or check `earthdatalogin:::has_edl_netrc()` yourself first.
+
+### A fetcher's test helper must make the network fail, not just mock the reader
+When a test mocks a downloader's reader and supplies fixture files, also mock the search and download functions to `stop()` by default, and re-mock them only in the tests that exercise that path.
+
 # Code Check — Shell
 Tool-level traps in bash, sed, git and `gh`, and in the host toolchain those commands depend on.
 
@@ -909,6 +915,9 @@ Rasterise in memory and then `writeRaster(datatype = …)`: written directly thr
 
 ### GDAL's `average` warp across a rotated CRS weights the wrong pixels; average in the target CRS instead
 To take class fractions or means from a fine grid in one CRS onto a coarse grid in another, resample nearest onto a grid aligned with the target and `fact` times finer (`terra::disagg(terra::rast(target), fact)`), then `terra::aggregate(fact, mean)`.
+
+### `terra::densify()` on lon/lat follows great circles, so a raster extent's parallel edges bow poleward
+Pass `flat = TRUE` (with the interval in degrees) when densifying a lon/lat extent before projecting it.
 
 # Code Check Conventions
 Structured checklist for reviewing diffs before commit.
