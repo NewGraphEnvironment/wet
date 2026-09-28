@@ -77,6 +77,7 @@ The rule and the phases were revised on these points before Phase 3; the full re
 
 | Error | Resolution |
 |-------|------------|
+| Province smoke run: `[compareGeom] CRS do not match`. The TerraClimate netCDF reports a lon/lat CRS on an unnamed datum, and `resample()` kept it. The fixture had declared EPSG:4326, so it could not see this | Set EPSG:4326 on the source; the fixture now carries the real file's WKT, and the test fails without the fix |
 | One-step average warp of land cover off by up to 0.3 per cell in western BC | Nearest to an aligned 1″ grid, then `aggregate(30)`; rotated-CRS test |
 | `terra` `%in%` on a SpatRaster: `'match' requires vector arguments` (terra imported, not attached) | `x == a | x == b` |
 | TerraClimate NCSS subset `.../ncss/grid/...?var=aet&north=..` returned HTTP 200 and 0 bytes | Download the whole climatology file from `fileServer/` (95 MB) |

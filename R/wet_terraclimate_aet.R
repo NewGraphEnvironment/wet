@@ -55,12 +55,14 @@ wet_terraclimate_aet <- function(grid, period = "19812010", vars = c("aet", "ppt
   dest
 }
 
-wet_terraclimate_method <- "annual-sum-bilinear-1"
+wet_terraclimate_method <- "annual-sum-bilinear-2"
 
 # Annual totals of each monthly file, resampled onto `grid`.
 wet_terraclimate_grid <- function(ncs, vars, grid) {
   out <- lapply(seq_along(ncs), function(i) {
     r <- terra::rast(ncs[i])
+    # the netCDF declares no CRS; TerraClimate is on a WGS 84 lon/lat lattice
+    terra::crs(r) <- "EPSG:4326"
     if (terra::nlyr(r) != 12) stop(basename(ncs[i]), " has ", terra::nlyr(r), " layers, not 12", call. = FALSE)
     # a margin of two source cells, so bilinear at the grid's edge has neighbours
     r <- terra::crop(r, terra::extend(terra::ext(grid), 2 * terra::res(r)), snap = "out")

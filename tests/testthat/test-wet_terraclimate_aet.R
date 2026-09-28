@@ -1,9 +1,13 @@
 # Synthetic stand-in for a TerraClimate monthly climatology: 12 layers on the
-# 1/24-degree lattice. GDAL identifies files by content, so a GeoTIFF at the
-# .nc path reads the same way.
+# 1/24-degree lattice, carrying the CRS the real netCDF reports (a lon/lat on an
+# unnamed datum, which compareGeom() does not take as WGS 84). GDAL identifies
+# files by content, so a GeoTIFF at the .nc path reads the same way.
+tc_crs <- paste0('GEOGCRS["unknown",DATUM["unnamed",ELLIPSOID["Spheroid",6378137,298.257223563]],',
+                 'PRIMEM["Greenwich",0],CS[ellipsoidal,2],AXIS["latitude",north,ORDER[1]],',
+                 'AXIS["longitude",east,ORDER[2]],ANGLEUNIT["degree",0.0174532925199433]]')
 local_tc <- function(dir, var, month_value, na_cols = integer()) {
   r <- terra::rast(nrows = 24, ncols = 48, xmin = -121, xmax = -119, ymin = 49, ymax = 50,
-                   crs = "EPSG:4326", nlyrs = 12)
+                   crs = tc_crs, nlyrs = 12)
   for (m in 1:12) {
     v <- rep(month_value * m, terra::ncell(r))
     v[((seq_len(terra::ncell(r)) - 1) %% 48 + 1) %in% na_cols] <- NA
