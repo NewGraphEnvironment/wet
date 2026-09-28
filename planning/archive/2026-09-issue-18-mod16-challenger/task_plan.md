@@ -69,7 +69,7 @@ Disclosed up front:
 ## Phase 4: Ship and write-up
 - [x] Re-run `scripts/wb_output.R` and `scripts/wb_map.R` on the new key, whichever variant wins (`wb_map.R` always rewrites `research/wb_runoff_annual.png`). If the winner changed, do the cartography self-review and revisit the "1981–2010" legend.
 - [x] `research/water_balance_method.md` §0: add a MOD16 subsection with the results and the attribution (ours, theirs or unresolved). Replace the "MOD16 was deferred" line and update the header line. Also update the `research/README.md` row, and the CLAUDE.md blurb if the shipped AET changes.
-- [ ] Edit the issue #18 body with the outcome.
+- [x] Edit the issue #18 body with the outcome.
 
 ## Validation
 
@@ -77,6 +77,6 @@ Disclosed up front:
 - [x] #15's stage reproduces `cfu` and its table on the new key
 - [x] If `cfu` stays, `wb_output.txt` is unchanged apart from the run key
 - [x] `wb_validation_aet-cgiar.txt` unchanged apart from the run-key line *(and the order of zone rows and of the pooled-zone list: the zone columns follow the unordered watershed rows; see findings)*
-- [ ] `/code-check` clean on each commit
-- [ ] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] `/code-check` clean on each code commit (three rounds each for eae0669 and 30cb17b; the results and write-up commits carry no code, and their numbers were checked mechanically against `data/checks/wb_aet_compare.txt`)
+- [x] PWF checkboxes match landed work
+- [x] `/planning-archive` on completion
