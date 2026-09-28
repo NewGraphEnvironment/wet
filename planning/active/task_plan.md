@@ -47,8 +47,8 @@ Disclosed up front: the candidates were motivated by the zone 15/17/23/24 residu
 - [x] `scripts/wb_aet_compare.R`: read the `cv_aet-*.rds` files (not the text reports), run the fully nested selection CV, and collate into `data/checks/wb_aet_compare.txt`. Per variant it lists raw and as-shipped MAE (all 290 and headwater), mean % in zones 15/17/23/24, MAE for basins under 100 km², Greata Creek (P, AET, raw, obs), and the ω transparency rows. It then applies the pre-set rule and names the winner.
 
 ## Phase 5: Adopt and ship
-- [ ] Make the winner the default AET in `wb_validate.R`. `wb_output.R` reads `fits$aet` (missing means cgiar) for both the per-basin raw (`up$raw`) and the `runoff_annual.tif` grid (`ro`). Always re-run `wb_validate.R`, `wb_output.R` and `wb_map.R` on the new run key, even if cgiar wins.
-- [ ] Re-render `scripts/wb_map.R` to `research/wb_runoff_annual.png`, then run the cartography self-review.
+- [x] Make the winner the default AET in `wb_validate.R`. `wb_output.R` reads `fits$aet` (missing means cgiar) for both the per-basin raw (`up$raw`) and the `runoff_annual.tif` grid (`ro`). Always re-run `wb_validate.R`, `wb_output.R` and `wb_map.R` on the new run key, even if cgiar wins.
+- [x] Re-render `scripts/wb_map.R` to `research/wb_runoff_annual.png`, then run the cartography self-review.
 
 ## Phase 6: Write-up
 - [ ] Revise `research/water_balance_method.md` §0 with the results and the header line. Attribute each disagreement as ours, theirs or unresolved (CGIAR's P-cap versus climr P). Record MOD16 as deferred and why.
