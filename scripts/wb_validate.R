@@ -1,7 +1,7 @@
 # Fit and validate the open water balance at HYDAT stations (#11, Phases 4-6),
-# for one annual AET variant (#15).
+# for one annual AET variant (#15, #18).
 #
-#   Rscript scripts/wb_validate.R [AET]    # AET: cgiar (default), lc, tc, fu, cfu, fu15, fu20, fu35
+#   Rscript scripts/wb_validate.R [AET]    # AET: a name in wet:::wet_wb_aet_cols(); default the shipped one
 #
 # Reads data/wb/stations.rds (scripts/wb_stations.R) and the upstream means
 # from scripts/wb_province.R. Writes the tracked report
@@ -9,7 +9,7 @@
 # (read by scripts/wb_aet_compare.R). For the shipped variant it also writes
 # data/checks/wb_validation.txt and data/wb/<key>/fits.rds (the fits the
 # province output uses). The shipped variant is the one scripts/wb_aet_compare.R
-# chose for this run by the #15 decision rule (data/wb/<key>/aet_winner.txt),
+# chose for this run by the #15 and #18 decision rules (data/wb/<key>/aet_winner.txt),
 # or cgiar before a comparison exists.
 
 source("scripts/wb_cv_lib.R")

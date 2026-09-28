@@ -1,8 +1,11 @@
 test_that("cgiar keeps the stored ro_raw; other variants are p_yr minus their column", {
-  d <- data.frame(ro_raw = 101, p_yr = 500, aet_yr = 400, aet_tc = 450, aet_fu = 480)
+  d <- data.frame(ro_raw = 101, p_yr = 500, aet_yr = 400, aet_tc = 450, aet_fu = 480, aet_mod16 = 430,
+                  aet_cmod16 = 440)
   expect_equal(wet:::wet_wb_raw(d), 101)
   expect_equal(wet:::wet_wb_raw(d, "tc"), 50)
   expect_equal(wet:::wet_wb_raw(d, "fu"), 20)
+  expect_equal(wet:::wet_wb_raw(d, "mod16"), 70)
+  expect_equal(wet:::wet_wb_raw(d, "cmod16"), 60)
 })
 
 test_that("an unknown variant or a missing column is an error, not NULL arithmetic", {

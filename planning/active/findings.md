@@ -37,7 +37,15 @@ Relates to #15
 
 - `wet_mod16_aet(<CGIAR grid>)`: 180 granules (9 tiles × 20 years) in 13.8 min, giving `data/mod16/mod16_2001_2020_9ca6be3764.tif`. ET is 183–786 mm/yr (mean 410).
 - **Over BC** (in_bc ≥ 0.5, CGIAR valid; 1.91 M cells): mean MOD16 cover is 0.926, and 4.7 % of cells have none (water, ice, barren). On fully covered cells MOD16 averages 409 mm against CGIAR's 430 mm, correlation 0.67. At the Greata Creek area (-119.85, 49.75) MOD16 gives 429 mm against CGIAR's 266 mm: higher in the dry interior, the direction #15 needed.
-- **Smoke** (`WET_WB_GROUPS=SALR,OKAN`, run key 711a9d102f): every column of the #15 run (495b33ec47) is identical in both groups, `cover` included, so the mask did not move. The new columns `aet_mod16`, `aet_cmod16` and `frac_mod16` have no NA where the #11 layers have values. `ex_filled_cells.txt` keeps its nine lines byte-identical and adds: full 137,890 cells, partial 179,665, gap 208,815 cell-equivalents (whole grid, analysis mask).
+- **Smoke** (`WET_WB_GROUPS=SALR,OKAN`, run key 711a9d102f): every column of the #15 run (495b33ec47) is identical in both groups, `cover` included, so the mask did not move. The new columns `aet_mod16`, `aet_cmod16` and `frac_mod16` have no NA where the #11 layers have values. `ex_filled_cells.txt` keeps its nine lines byte-identical and added three MOD16 lines, labelled "full" 137,890, "partial" 179,665 and "gap" 208,815.4. "full" was in fact the count of cells with **no** MOD16 (frac 0). Code-check measured the smoke layers.tif and found 2,124,695 cells with frac 1. The code now writes `mod16_whole`, `cfu_whole`, `cfu_part` and `cfu_cell_equivalents`, and the full run's file is the record. The smoke directory was deleted when the relabel changed the run key.
+
+## Compare dry run against the #15 run (2026-09-28 UTC)
+
+This was a scratch copy with mod16 and cmod16 stood in by cfu's scores, the md5 check relaxed, and no tracked or winner file written (their md5s were checked unchanged afterwards).
+- **Stage 1 reproduces #15 exactly.** The top table matches, (a)-(c) pick cfu, the nested selection gives 32.3 / 28.6 / 17.3 / 70.8, and the folds give fu 6 / cfu 87. The reproduction assertion passed.
+- **Stage 2 with challengers identical to cfu:** (a)-(c) keep cfu, all 93 folds pick cfu, and the nested headwater MAE is **33.2**, against cfu's as-shipped 31.2, so (d) fails.
+- **The plan review's R1 premise is false.** It held that a fold picking cfu reproduces cfu's shipped predictions. It does not: each fold's inner gate (adjust or raw) and pooled variant are chosen on its own training stations.
+- **(d), against the as-shipped score, is therefore about 2 points stricter** than comparing nested with nested. The rule is kept as approved, because it is the same form #15 used against cgiar and no MOD16 score exists yet. The report adds cfu alone under the nested procedure, so the bar is visible.
 
 ## Plan review (2026-09-27)
 

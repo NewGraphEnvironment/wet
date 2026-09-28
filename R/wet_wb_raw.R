@@ -1,4 +1,5 @@
-# Raw annual runoff P - AET (mm) for one AET variant of the ET experiment (#15),
+# Raw annual runoff P - AET (mm) for one AET variant of the ET experiments (#15,
+# #18: mod16 and cmod16),
 # from upstream means (or cell layers) named as scripts/wb_province.R names
 # them. cgiar keeps the stored ro_raw (p - aet per cell before accumulation,
 # equal to p_yr - aet_yr within float rounding), so the #11 numbers reproduce
@@ -6,7 +7,7 @@
 # cannot disagree about which column a variant is.
 wet_wb_aet_cols <- function() {
   c(cgiar = "aet_yr", lc = "aet_lc", tc = "aet_tc", fu = "aet_fu", cfu = "aet_cfu",
-    fu15 = "aet_fu15", fu20 = "aet_fu20", fu35 = "aet_fu35")
+    fu15 = "aet_fu15", fu20 = "aet_fu20", fu35 = "aet_fu35", mod16 = "aet_mod16", cmod16 = "aet_cmod16")
 }
 
 wet_wb_raw <- function(d, aet = "cgiar") {

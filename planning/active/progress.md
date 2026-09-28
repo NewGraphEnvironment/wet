@@ -11,3 +11,8 @@
 - `wet_mod16_aet()` and 37 tests. The mutation checks fire: one-step average, fill-code mask, min_years, download validation, plausibility cap, and the great-circle densify.
 - Real build started 04:43 UTC (180 granules, 9 tiles); log in data/logs/20260928_mod16_build.log (gitignored).
 - /code-check on Phase 1, three rounds. Round 1: an empty extra tile row at 40/50/60 N edges (fixed with a 1 m tile shrink). Round 2: a projected grid was not refused (fixed with a lon/lat check). Round 3: Clean, and it named the shared mechanism (tile choice derived from the extent, not from what is sampled) and cleared every place it reaches.
+- Phase 2–3 script edits: wb_province layers and counts, the wb_inputs manifest, wet_wb_aet_cols, and the two-stage wb_aet_compare.
+  - A smoke run (SALR, OKAN) reproduced every old column.
+  - Two compare dry runs against the #15 run reproduced #15 exactly and ran stage 2 end to end.
+- /code-check, three rounds on the scripts. Round 1: the "full" count label was inverted. Round 2: untagged stage-2 rows, a loose granule manifest, and a stale "full" restatement in findings (a defect inside round 1's fix). Round 3: the period disclosure had been copied from the plan and was wrong for CGIAR.
+  - It ended by enumerating all 29 report lines against their sources (`review-p23-enumeration.md`).

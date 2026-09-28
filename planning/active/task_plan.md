@@ -25,8 +25,8 @@ If several challengers pass, the lowest headwater MAE wins. If none passes, the 
 Transparency only, never deciding: a two-stage nested selection (each fold runs #15's stage, then this one with its own stage-1 winner as incumbent), the per-fold choice counts, the distribution of each station's upstream MOD16 share, and headwater MAE for stations whose basin is at least 80 % MOD16.
 
 Disclosed up front:
-- **Period:** MOD16 covers 2001–2020, while the rest of the model uses 1981–2010 normals.
-- **Gap fill:** gaps take the shipped AET, which pulls those cells toward the incumbent's behaviour and dilutes the challengers' power to clear the 2-point margin. The gap codes (MOD16 v6.1 user guide, MOD16A3/A3GF) are 65529 unclassified, 65530 urban, 65531 permanent wetland, 65532 perennial snow/ice, 65533 barren/sparse, 65534 water, and 65535 fill. Gap cells also mix periods (1981–2010 there, 2001–2020 elsewhere).
+- **Period:** MOD16 covers 2001–2020. climr P and T (so `fu`) and TerraClimate are 1981–2010. CGIAR AET (so `cgiar`, and the CGIAR half of `cfu` and `cmod16`) is a WorldClim-based climatology, WorldClim 2.1 at about 1970–2000 (`research/water_balance_method.md` §7 item 3). *(Corrected at code-check, before scoring: this line said "the rest 1981–2010 normals".)*
+- **Gap fill:** gaps take the shipped AET, which pulls those cells toward the incumbent's behaviour and dilutes the challengers' power to clear the 2-point margin. The gap codes (MOD16 v6.1 user guide, MOD16A3/A3GF) are 65529 unclassified, 65530 urban, 65531 permanent wetland, 65532 perennial snow/ice, 65533 barren/sparse, 65534 water, and 65535 fill. Gap cells also mix periods: there they take `cfu`, i.e. CGIAR's WorldClim period or climr's 1981–2010, where elsewhere they are MOD16's 2001–2020.
 - **MOD16 can exceed P in dry cells:** cells stay signed and only the output is floored at 0, as now.
 - **Fixed incumbent:** the incumbent's score is itself the best of #15's candidates on these stations, so it is optimistic, and measuring challengers against it is conservative toward the incumbent. The two-stage nested selection above is reported for that reason.
 - **Adoption principle:** MOD16's production code does not ship. It would enter as an input AET (CGIAR's position), not as a discharge product we publish. The issue authorizes shipping it if it wins. If it wins, rebuilding the inputs needs an Earthdata login.
@@ -48,18 +48,18 @@ Disclosed up front:
 - [x] ~~Add `earthdatalogin` to Suggests~~ *(not needed: `curl` and `jsonlite` are already imported)*. Add roxygen with `@examplesIf interactive()`, run `devtools::document()`, then run lintr and the tests.
 
 ## Phase 2: Inputs and province layers
-- [ ] `scripts/wb_inputs.R`: build MOD16 on the CGIAR grid, and add a manifest row (granule count, combined md5) to `data/checks/wb_inputs.txt`.
-- [ ] `scripts/wb_province.R`: add `m16` to `f_in` and `compareGeom`, and `R/wet_mod16_aet.R` to `code_files`. Then add two layers:
+- [x] `scripts/wb_inputs.R`: build MOD16 on the CGIAR grid, and add a manifest row (granule count, combined md5) to `data/checks/wb_inputs.txt`.
+- [x] `scripts/wb_province.R`: add `m16` to `f_in` and `compareGeom`, and `R/wet_mod16_aet.R` to `code_files`. Then add two layers:
   - `aet_mod16 = frac·et_mod16 + (1 − frac)·aet_cfu`, with `aet_cfu` wherever frac is 0 or NA, computed after `ex` is masked;
   - `frac_mod16` as a layer (NA → 0 before masking), for the transparency report;
   - `aet_cmod16 = max(aet_yr, aet_mod16)`.
 
   Append the counts of fully and partly filled cells to `ex_filled_cells.txt`, keeping its existing lines byte-identical. The mask-unmoved assertion then covers the new layers.
-- [ ] `wet_wb_aet_cols()`: add `mod16` and `cmod16`, and update `test-wet_wb_raw.R`.
+- [x] `wet_wb_aet_cols()`: add `mod16` and `cmod16`, and update `test-wet_wb_raw.R`.
 - [ ] Smoke-test with `WET_WB_GROUPS=SALR,OKAN`, then run the full province under `caffeinate -i`. Move the old run to `data/wb_old/`. Check that the #11/#15 layers match the old run exactly (upstream means to about 1e-12 relative) and that the calibration set is the same 290 stations. Do not re-run `wb_stations.R`. The tracked run record goes in `data/checks/wb_province_run.txt`, because `data/logs/` is gitignored.
 
 ## Phase 3: Rule and scoring
-- [ ] `scripts/wb_aet_compare.R`: change `decide(m, incumbent, eligible)` and the nested selection to take the incumbent and the candidates. Then:
+- [x] `scripts/wb_aet_compare.R`: change `decide(m, incumbent, eligible)` and the nested selection to take the incumbent and the candidates. Then:
   - **Stage 1** is #15's rule, unchanged. It asserts it still picks `cfu`, and matches #15's numbers (hard-coded to 0.1) in the top table, the nested selection and the fold counts.
   - **Stage 2** is the #18 rule above.
 
