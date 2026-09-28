@@ -6,7 +6,9 @@
 # monthly P and T normals, and the extended BC Hydrologic Zones rasterised to
 # the grid; for the ET experiment (#15) also climr Tmax/Tmin normals, the
 # TerraClimate 1981-2010 AET and precipitation, and NRCan 2020 land-cover
-# fractions per Chapman Table 3 class. Writes two tracked reports:
+# fractions per Chapman Table 3 class; for #18 the MOD16A3GF 2001-2020 mean
+# annual ET (an Earthdata login in a netrc, for granules not yet in
+# data/mod16). Writes two tracked reports:
 #   * data/checks/wb_inputs.txt    - the input manifest (source, md5, grid)
 #   * data/checks/climr_eccc.txt   - climr 1981-2010 vs ECCC station normals
 # Connection from WET_PG* env vars (for the BC extent).
@@ -49,6 +51,12 @@ f_tc <- wet_terraclimate_aet(f_aet)
 stamp("TerraClimate ", f_tc)
 f_lc <- wet_landcover_nrcan(f_aet)
 stamp("land cover ", f_lc)
+# MOD16A3GF v061 annual ET, 2001-2020 (#18); needs an Earthdata login for new granules
+f_m16 <- wet_mod16_aet(f_aet)
+stamp("MOD16 ", f_m16)
+# the granules wet_mod16_aet() read (its tiles x 2001-2020), not whatever else is in the directory
+f_m16_granules <- sort(basename(wet:::wet_mod16_local("data/mod16", wet:::wet_modis_tiles(terra::rast(f_aet)),
+                                                      2001:2020)$path))
 
 # Extended BC Hydrologic Zones (43 features; reaches the FWA polygons outside BC)
 hz_url <- paste0("https://catalogue.data.gov.bc.ca/dataset/f1f86c41-ae83-49d5-92e1-526897b99fa2/",
@@ -115,11 +123,19 @@ rows <- data.frame(
            "data/landcover/landcover-2020-classification.tif", f_lc)
 )
 rows$md5 <- vapply(rows$file, md5, "")
+# the MOD16 granules as one row: their count, and the md5 of their names and md5s
+m16_g <- file.path("data/mod16", f_m16_granules)
+rows <- rbind(rows, data.frame(
+  input = c(sprintf("MOD16A3GF v061 annual ET, 2001-2020 (%d granules)", length(m16_g)), "MOD16 annual grid"),
+  source = c("https://doi.org/10.5067/MODIS/MOD16A3GF.061 (NASA LP DAAC; CMR search, Earthdata login)",
+             "wet_mod16_aet() (year mean, two-step onto the grid)"),
+  file = c("data/mod16/MOD16A3GF.A*.hdf", f_m16),
+  md5 = c(wet:::wet_md5_text(paste(f_m16_granules, md5(m16_g))), md5(f_m16))))
 is_tif <- grepl("\\.tif$", rows$file)
 rows$grid <- ""
 rows$grid[is_tif] <- vapply(rows$file[is_tif], grid_of, "")
 con <- file("data/checks/wb_inputs.txt", "w")
-writeLines(c("# Inputs for the open water balance (#11) and the ET experiment (#15)", "",
+writeLines(c("# Inputs for the open water balance (#11) and the ET experiments (#15, #18)", "",
              sprintf("built: %s", Sys.Date()),
              sprintf("bbox (EPSG:4326): %s", paste(bbox, collapse = ", ")),
              sprintf("climr %s, terra %s", utils::packageVersion("climr"),

@@ -1,4 +1,4 @@
-# Inputs for the open water balance (#11) and the ET experiment (#15)
+# Inputs for the open water balance (#11) and the ET experiments (#15, #18)
 
 built: 2026-09-27
 bbox (EPSG:4326): -139.1, 48.2, -114, 60.1
@@ -76,4 +76,15 @@ source: wet_landcover_nrcan() (inst/extdata/chapman_table3.csv crosswalk)
 file:   data/landcover/lc2020_frac_f8ea97a030.tif
 md5:    ffc456fbd0139286ef735e9d75842074
 grid:   1428 x 3012 x 11, res 0.0083333, ext -139.1 -114 48.20001 60.10001
+
+## MOD16A3GF v061 annual ET, 2001-2020 (180 granules)
+source: https://doi.org/10.5067/MODIS/MOD16A3GF.061 (NASA LP DAAC; CMR search, Earthdata login)
+file:   data/mod16/MOD16A3GF.A*.hdf
+md5:    092c7774a570fb30e5f3ad6dc9c51cdf
+
+## MOD16 annual grid
+source: wet_mod16_aet() (year mean, two-step onto the grid)
+file:   data/mod16/mod16_2001_2020_9ca6be3764.tif
+md5:    fe38e82ecd2d41dfd1eec961944d3b2e
+grid:   1428 x 3012 x 2, res 0.0083333, ext -139.1 -114 48.20001 60.10001
 

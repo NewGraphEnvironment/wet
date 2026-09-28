@@ -1,6 +1,6 @@
 # Open water balance: province output (#11)
 
-province run: 495b33ec47; annual AET: cfu; adjustment applied
+province run: adc88b19c8; annual AET: cfu; adjustment applied
 watersheds: 3245453 in 24 top-level basins; rows: 42190889 (annual + 12 months)
 annual NA: 22041; coverage < 0.9: 39288; bc_fraction < 0.95: 76431
 

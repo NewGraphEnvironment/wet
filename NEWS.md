@@ -39,3 +39,10 @@
   - `scripts/wb_validate.R` scores one AET variant per run, and
     `scripts/wb_aet_compare.R` applies the rule. Shipping is tied to the
     comparison and to the current scoring code.
+
+* MOD16A3GF v061 annual ET (`wet_mod16_aet()`) was scored as a challenger to
+  the shipped AET under a rule fixed before scoring (#18). It improves on CGIAR
+  alone but not on CGIAR floored by Fu-Budyko, which stays: headwater MAE is
+  36.3 % for MOD16 and 34.6 % for max(CGIAR, MOD16), against 31.2 %.
+  `scripts/wb_aet_compare.R` now re-runs #15's comparison, which must
+  reproduce, before the #18 one. See `research/water_balance_method.md`.

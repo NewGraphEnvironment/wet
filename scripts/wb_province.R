@@ -39,14 +39,16 @@ climr_with <- function(layer) {
 f_in <- c(aet = one("data/cgiar", "^cgiar_aet_c.*\\.tif$"), clim = climr_with("PPT_01"),
           dem = one("data/dem", "^glo90v3_.*\\.tif$"), hz = one("data/hydz", "^hydz_.*\\.tif$"),
           tx = climr_with("Tmax_01"), tc = one("data/terraclimate", "^tc_19812010_.*\\.tif$"),
-          lc = one("data/landcover", "^lc2020_frac_.*\\.tif$"))
+          lc = one("data/landcover", "^lc2020_frac_.*\\.tif$"),
+          m16 = one("data/mod16", "^mod16_.*\\.tif$"))
 # Each input's name already encodes its content; the key adds this script's
 # own md5 and that of every package file it calls, so a code change never
 # reuses old samples.
 code_files <- c("scripts/wb_province.R", "R/wet_ws_sample.R", "R/wet_upstream_means.R",
                 "R/wet_upstream_sums.R", "R/wet_ws_fetch.R", "R/wet_climr_normals.R",
                 "R/wet_pet_hargreaves.R", "R/wet_aet_budyko.R", "R/wet_aet_landcover.R",
-                "R/wet_terraclimate_aet.R", "R/wet_landcover_nrcan.R", "R/wet_mm_to_m3s.R",
+                "R/wet_terraclimate_aet.R", "R/wet_landcover_nrcan.R", "R/wet_mod16_aet.R",
+                "R/wet_mm_to_m3s.R",
                 "inst/extdata/chapman_table3.csv")
 # a missing file would hash as NA and leave the key unchanged
 if (!all(file.exists(code_files))) stop("missing: ", paste(code_files[!file.exists(code_files)], collapse = ", "))
@@ -83,8 +85,9 @@ if (!file.exists(lay_file)) {
   tx <- terra::rast(f_in[["tx"]])
   tc <- terra::rast(f_in[["tc"]])
   lc <- terra::rast(f_in[["lc"]])
+  m16 <- terra::rast(f_in[["m16"]])
   inbc <- terra::rast(bc_file)
-  stopifnot(terra::compareGeom(aet, cl, dem, hz, tx, tc, lc, inbc))
+  stopifnot(terra::compareGeom(aet, cl, dem, hz, tx, tc, lc, m16, inbc))
   p_yr <- sum(cl[[sprintf("PPT_%02d", 1:12)]])
   t_yr <- terra::mean(cl[[sprintf("Tave_%02d", 1:12)]])
   xy <- terra::project(terra::vect(terra::crds(aet[[1]], na.rm = FALSE), crs = "EPSG:4326"), "EPSG:3005")
@@ -122,8 +125,22 @@ if (!file.exists(lay_file)) {
   n_fill <- unlist(terra::global(is.na(ex) & !bad, "sum"))
   ex[["aet_tc"]] <- terra::cover(ex[["aet_tc"]], lay[["aet_yr"]])
   ex[["ppt_tc"]] <- terra::cover(ex[["ppt_tc"]], lay[["p_yr"]])
-  writeLines(sprintf("%s %d", names(ex), n_fill), file.path(out_dir, "ex_filled_cells.txt"))
-  lay <- c(lay, ex)
+  # MOD16 (#18): each cell is its MOD16 mean over its valid part, and the shipped
+  # AET (cfu) over the rest, by area. Built from the masked cfu, so it carries
+  # the mask. Counted apart: cells MOD16 covers wholly, cells cfu fills wholly
+  # (no MOD16) or in part, and the cfu fill in cell-equivalents.
+  fr <- terra::mask(terra::ifel(is.na(m16[["frac_mod16"]]), 0, m16[["frac_mod16"]]), bad, maskvalues = TRUE)
+  aet_m16 <- terra::ifel(fr > 0, fr * m16[["et_mod16"]] + (1 - fr) * ex[["aet_cfu"]], ex[["aet_cfu"]])
+  m16x <- c(aet_m16, max(lay[["aet_yr"]], aet_m16), fr)
+  names(m16x) <- c("aet_mod16", "aet_cmod16", "frac_mod16")
+  m16x <- terra::mask(m16x, bad, maskvalues = TRUE)
+  n_m16 <- unlist(terra::global(c(fr == 1, fr == 0, fr > 0 & fr < 1, 1 - fr), "sum", na.rm = TRUE))
+  writeLines(c(sprintf("%s %d", names(ex), n_fill),
+               sprintf("aet_mod16 mod16_whole %d", n_m16[[1]]), sprintf("aet_mod16 cfu_whole %d", n_m16[[2]]),
+               sprintf("aet_mod16 cfu_part %d", n_m16[[3]]),
+               sprintf("aet_mod16 cfu_cell_equivalents %.1f", n_m16[[4]])),
+             file.path(out_dir, "ex_filled_cells.txt"))
+  lay <- c(lay, ex, m16x)
   # the mask must not have moved: every layer has a value exactly where the
   # #11 layers all do
   moved <- unlist(terra::global(is.na(lay) != bad, "sum"))
