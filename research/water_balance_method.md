@@ -156,7 +156,7 @@ Their accuracy figures are in-sample, and after the undocumented "final adjustme
 - #15: the ET experiment. Done; see "The ET experiment" above.
 - The Budyko floor is annual only. The monthly shares still regress on CGIAR's monthly AET (see #16 for the monthly predictors).
 - Zone 24 (Okanagan Highland) still runs at +102 % as shipped; the candidates are listed in "The ET experiment" above.
-- The pre-#15 input caches (CGIAR, climr, DEM, zones raster) are keyed on content and parameters but not on their builder code, as #15's two new builders now are. An issue is drafted, not yet filed.
+- The pre-#15 input caches (CGIAR, climr, DEM, zones raster) are keyed on content and parameters but not on their builder code, as #15's two new builders now are (#19).
 - #16: snow predictors for the monthly shares.
 - An upstream note to climr on the ClimateNA coastal gap: drafted, not posted.
 - rspatial/terra#2195: `rasterize(filename = )` with an integer datatype writes NA as 0 (worked around in `scripts/wb_inputs.R`).
