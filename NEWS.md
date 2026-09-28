@@ -26,3 +26,16 @@
     The `scripts/wb_output.R` province output applies it, with the monthly
     shares. See `research/water_balance_method.md`.
   - `wet_mm_to_m3s()` gains `days`; `wet_month_days()` is new.
+
+* The water balance's annual AET is now CGIAR floored by a Fu-Budyko AET,
+  chosen from four candidates by a rule fixed before scoring (#15). Blocked-CV
+  mean absolute error on annual runoff drops from 33.1 % to 27.7 % (headwater
+  basins 38.1 % to 31.2 %; 32.3 % under a fully nested selection), mostly on
+  the dry interior plateaus.
+  - New: `wet_pet_hargreaves()`, `wet_aet_budyko()`, `wet_aet_landcover()`,
+    `wet_chapman_table3()`, `wet_landcover_nrcan()`, `wet_terraclimate_aet()`.
+  - Chapman's land-cover AET ratios, built from their published Table 3,
+    make the interior worse; see `research/water_balance_method.md`.
+  - `scripts/wb_validate.R` scores one AET variant per run, and
+    `scripts/wb_aet_compare.R` applies the rule. Shipping is tied to the
+    comparison and to the current scoring code.
