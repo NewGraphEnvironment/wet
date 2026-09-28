@@ -6,7 +6,7 @@ What is known, outliving the issue that found it. Each file is one topic, revise
 |---|---|
 | [pcic_hydrology.md](pcic_hydrology.md) | PCIC hydrologic products: hosts, gridded runs (historical + 12 CMIP5), grid and time axis, station and salmon products, the channel-scale VIC-GL-Raven CMIP6 portal (May 2026), terms |
 | [fwapg_mad_method.md](fwapg_mad_method.md) | How fwapg builds `fwa_stream_networks_discharge`, the `wet` parity result, and how much area-weighted sampling moves it |
-| [water_balance_method.md](water_balance_method.md) | Chapman, Kerr & Wilford 2018 (the BC Water Tools method) and `wet`'s open reimplementation (#11): the method, 23 points where a reimplementation must choose and what was chosen, and blocked-CV skill at 290 HYDAT stations (33 % MAE out of sample, against 23 % in-sample). Map: [wb_runoff_annual.png](wb_runoff_annual.png) |
+| [water_balance_method.md](water_balance_method.md) | Chapman, Kerr & Wilford 2018 (the BC Water Tools method) and `wet`'s open reimplementation (#11): the method, 23 points where a reimplementation must choose and what was chosen, and blocked-CV skill at 290 HYDAT stations. The ET experiment (#15) scored land-cover, TerraClimate and Fu–Budyko AET under a pre-set rule, and ships CGIAR floored by Fu–Budyko: 27.7 % MAE out of sample (31.2 % headwater), against 33.1 % (38.1 %) with CGIAR alone. Map: [wb_runoff_annual.png](wb_runoff_annual.png) |
 | [runoff_prior_art.md](runoff_prior_art.md) | Inputs for an open BC water balance (climr, ET sources), ranked comparison products (PCIC, GEOGLOWS, GloFAS, TerraClimate, BC runoff isolines, …), gauged-basin datasets, and nested-gauge validation practice |
 
 Naming: `<topic>.md`, revised in place, from 2026-09-06.

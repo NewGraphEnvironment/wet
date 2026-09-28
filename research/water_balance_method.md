@@ -1,6 +1,6 @@
 # Chapman, Kerr & Wilford (2018): the BC Water Tools method, and what a reimplementation must decide
 
-**Verified:** 2026-09-26 · **Issues:** #5 (found), #11 (built and validated) · **Produced by:** desk research (sections 1–7) and the #11 build (section 0): `scripts/wb_inputs.R`, `wb_stations.R`, `wb_province.R`, `wb_validate.R`, `wb_output.R`, with reports in `data/checks/wb_*.txt`, `stations_wb.txt` and `climr_eccc.txt`. **Status:** built. The adjustment helps only slightly out of sample (blocked-CV MAE 33.1 % against 34.7 % raw). It passes its gate only under a variant added after the pre-set specification failed, so whether it ships is an open decision (section 0).
+**Verified:** 2026-09-28 · **Issues:** #5 (found), #11 (built and validated), #15 (ET experiment) · **Produced by:** desk research (sections 1–7), the #11 build and the #15 experiment (section 0): `scripts/wb_inputs.R`, `wb_stations.R`, `wb_province.R`, `wb_validate.R`, `wb_aet_compare.R`, `wb_output.R`. Reports: `data/checks/wb_*.txt`, `stations_wb.txt` and `climr_eccc.txt`. **Status:** built. The shipped model uses CGIAR AET constrained from below by a Fu–Budyko AET. A rule fixed before scoring chose it (#15). Blocked-CV MAE on annual runoff is 27.7 % (31.2 % headwater), against 33.1 % (38.1 %) with CGIAR alone (section 0).
 
 Legend: **[S]** stated in the source cited · **[I]** inferred · **[U]** unknown or not published. Sources are listed at the end; all are online.
 
@@ -14,7 +14,7 @@ Legend: **[S]** stated in the source cited · **[I]** inferred · **[U]** unknow
   - Averaging the anomalies first matches climr's per-year point average within 0.1 %.
   - Against 57 ECCC 1981–2010 WMO normals: MAP ratio median 1.03, MAT difference median about 0 °C (`data/checks/climr_eccc.txt`).
   - The ClimateNA series was tried first. Its 1° anomalies are NA over Haida Gwaii and northern Vancouver Island, which blanked about 160 k land cells.
-- **AET:** CGIAR Soil-Water Balance v3 (CC0), annual and monthly. No land-cover ratio.
+- **AET:** CGIAR Soil-Water Balance v3 (CC0), annual and monthly. No land-cover ratio. Since #15 the annual AET that ships is `max(CGIAR, Fu–Budyko)` (below, "The ET experiment"). The monthly shares still use CGIAR's monthly AET.
 - **Zones:** the extended BC Hydrologic Zones (43 features, 29 in BC).
 
 ### Stations
@@ -40,9 +40,9 @@ The item numbers refer to section 7.
 - **16:** predictors per watershed, as upstream means.
 - **20:** 365.25 days a year, February 28.25, so months sum to the year.
 
-### Skill (`data/checks/wb_validation.txt`)
+### Skill with CGIAR AET, as built in #11 (`data/checks/wb_validation_aet-cgiar.txt`)
 
-Annual runoff; percentages are mean absolute error.
+Annual runoff; percentages are mean absolute error. This table is the #11 model. The model that ships since #15 is scored in the next section.
 
 | Model | All 290 | Headwater | Nested | Within ±20 % | Monthly NSE on shares (median) |
 |---|---|---|---|---|---|
@@ -64,7 +64,7 @@ Annual runoff; percentages are mean absolute error.
 
   Most of the in-sample gain (22.6 %) does not transfer to ungauged basins.
 - **Chapman's published figures:** MAE 16.1 %, 77.8 % within ±20 %, monthly NSE 0.92. They come from 45 gauges in two plains zones, and are likely in-sample or near it. Our in-sample 22.6 %, over 20 fitted zone levels, is the comparable number.
-- **The error is concentrated.** Basins under 100 km² run at about 59 % MAE raw. The semi-arid interior plateaus (zones 15, 17, 23, 24) run +56 % to +234 % raw: CGIAR AET, capped by its own WorldClim P, is far too low next to climr's P there. Example: Greata Creek has P 746 mm and AET 281 mm, against 50 mm observed.
+- **The error is concentrated.** Basins under 100 km² run at about 59 % MAE raw. The semi-arid interior plateaus (zones 15, 17, 23, 24) run +56 % to +234 % raw: CGIAR AET, capped by its own WorldClim P, is far too low next to climr's P there. Example: Greata Creek has P 746 mm and AET 281 mm, against 50 mm observed. The #15 experiment below addresses this.
 - **Large rivers are good.** Basins over 10,000 km² score 21 % raw MAE. At the major-river mouths (`data/checks/wb_output.txt`) the ratio of modelled to observed flow is 0.86–1.17:
   - Fraser at Hope 1.05 (PCIC through `wet`: 0.93), Thompson 1.17.
   - Columbia at Birchbank 1.05, although only 86 % of its basin is in BC.
@@ -72,14 +72,91 @@ Annual runoff; percentages are mean absolute error.
 - **Zone steps.** The annual map ([wb_runoff_annual.png](wb_runoff_annual.png)) shows straight-edged steps where hydrologic zones meet. The method applies each zone's coefficients up to a hard boundary (§7 item 9). Blending across boundaries is a candidate refinement.
 - **No output.** 22,041 watersheds (0.7 %), on small coastal islands that the 30″ inputs do not cover.
 
+### The ET experiment (#15): which annual AET to subtract
+
+**Verified:** 2026-09-28 · **Produced by:** `scripts/wb_validate.R <variant>`, `scripts/wb_aet_compare.R` → `data/checks/wb_aet_compare.txt` and `data/checks/wb_validation_aet-*.txt`. Run logs: `data/logs/2026092[78]_*`.
+
+**The question.** CGIAR's AET comes from a soil bucket driven by WorldClim P, so it is capped by that P. In dry country climr's P is higher, and P − AET overshoots. Four alternatives were scored under the same blocked CV:
+- **`lc`:** Chapman's land-cover ratio on CGIAR, using the Table 3 class values, NRCan 2020 land cover and nothing fitted;
+- **`tc`:** TerraClimate 1981–2010 AET;
+- **`fu`:** Fu–Budyko AET from climr P and Hargreaves PET (climr Tmax/Tmin), ω = 2.6;
+- **`cfu`:** max(CGIAR, `fu`), i.e. CGIAR constrained from below by the Budyko demand.
+
+MOD16 was deferred. It needs an Earthdata login, which breaks unattended runs, and it has gaps over alpine and non-vegetated cells.
+
+**The rule, fixed before any variant was scored** (`planning/archive/…issue-15…/task_plan.md`). Scores are as shipped under blocked CV. A variant replaces CGIAR only if all four hold:
+- (a) headwater MAE at least 2.0 points lower;
+- (b) all-station MAE no higher;
+- (c) nested MAE at most 1.0 point higher, and nested within ±20 % at most 3 points lower;
+- (d) a fully nested selection, in which each outer fold picks the variant by the same rule on an inner CV, also beats CGIAR's headwater MAE.
+
+`fu` at ω = 1.5, 2.0 and 3.5 was scored for transparency only.
+
+| AET | Shipped as | Headwater | All 290 | Nested | Nested within ±20 % | Raw headwater |
+|---|---|---|---|---|---|---|
+| CGIAR (#11) | adjusted | 38.1 % | 33.1 % | 17.9 % | 72 % | 39.8 % |
+| `lc` land-cover ratio | adjusted | 44.1 % | 37.1 % | 16.0 % | 76 % | 69.2 % |
+| `tc` TerraClimate | adjusted | 33.5 % | 29.0 % | 15.3 % | 82 % | 35.4 % |
+| `fu` Fu–Budyko | adjusted | 32.0 % | 28.1 % | 16.3 % | 75 % | 32.8 % |
+| **`cfu` max(CGIAR, Fu)** | adjusted | **31.2 %** | **27.7 %** | 17.4 % | 71 % | 31.6 % |
+| `fu` ω = 3.5 (transparency) | raw | 28.9 % | 27.6 % | 23.5 % | 39 % | 28.9 % |
+
+**Result.** `cfu` passes (a) to (c) with the lowest headwater error. `tc` and `fu` pass too. Under the fully nested selection it scores 32.3 % headwater against CGIAR's 38.1 %, so it passes (d). 87 of 93 outer folds chose `cfu` and 6 chose `fu`. It ships.
+
+The selected number (31.2 %) is optimistic by about a point; the nested 32.3 % is the honest estimate for an ungauged basin.
+
+**Where it helped** (mean error as shipped; `data/checks/wb_aet_compare.txt`):
+
+| Zone | CGIAR | `cfu` |
+|---|---|---|
+| 17 | +56 % | +48 % |
+| 23 | +57 % | +20 % |
+| 24 | +231 % | +102 % |
+| Basins < 100 km², MAE | 61 % | 44 % |
+
+Greata Creek (P 743 mm, observed 50 mm) goes from 462 mm to 243 mm.
+
+**What it cost.** At the major-river mouths the modelled-to-observed ratio moves by 0.01–0.05 (`data/checks/wb_output.txt`, the #11 run against this one):
+
+| River | #11 | `cfu` |
+|---|---|---|
+| Fraser at Hope | 1.05 | 1.04 |
+| Thompson | 1.17 | 1.14 |
+| Columbia at Birchbank | 1.05 | 1.04 |
+| Stikine | 1.05 | 1.00 |
+| Peace | 0.94 | 0.93 |
+| Skeena | 0.86 | 0.83 |
+| Nass | 0.86 | 0.85 |
+
+The Budyko floor raises AET a little in the wet north too, which moves the already-low Skeena and Nass further down.
+
+**What the variants say, and who is wrong where:**
+- **The overshoot is a mismatch between two products, not a defect in either.** CGIAR is internally consistent: its AET is capped by its own P, which is lower than climr's in the dry interior. Attribution: ours. The model paired a P with an AET computed from a different P. A Budyko floor, computed from climr's own P and demand, removes much of the mismatch.
+- **Chapman's land-cover step makes it worse (`lc`),** everywhere and most in zone 17 (+345 %). The Table 3 values are Canada-wide means from Liu et al. (2003). The majority-cell CGIAR means in BC are higher (conifer 441 mm against 276 mm), so the ratios fall below 1 almost everywhere: conifer 0.63, shrub 0.45, barren 0.31, snow/ice clamped at 0.25. This lowers AET, where the interior needs more. Chapman's ratios were "adjusted within the model" (tuned to gauges) and never published.
+  - Attribution: **unresolved.** Table 3 as published cannot reproduce what their calibration did. This is a reason their product cannot be checked without its code.
+- **TerraClimate helps (`tc`) but stays P-capped.** Its AET comes from its own bucket on its own P. At the Greata mouth cell that P is 428 mm, against climr's 614 mm.
+- **ω = 3.5 wins on headwater raw and loses the nested basins** (23.5 % MAE, 39 % within ±20 %). A per-cell Budyko at high ω over-evaporates large, snow-fed basins, where P and demand are out of phase. The pre-set rule would have refused it, and it was never eligible.
+- **Still unresolved.** Zone 24 (Okanagan Highland) remains at +102 %. The candidates are:
+  - licensed withdrawals and groundwater losses at "natural" gauges in the Okanagan;
+  - climr P possibly high on the interior plateaus (the ECCC check is province-wide, median ratio 1.03);
+  - the per-cell Budyko at ω = 2.6 still under-evaporating there.
+
+**Mechanics** (all in `scripts/wb_province.R`; the numbers are in the PWF archive):
+- **One analysis mask.** It is taken from the #11 layers only, so no variant moves the CGIAR baseline. The CGIAR report reproduces #11's byte for byte apart from its run-key line. The new run's upstream means match #11's to within 6e-16 relative.
+- **Land-cover fractions.** Codes are resampled nearest onto a 1″ grid aligned with the 30″ grid, then block-averaged. A single average warp from NRCan's Lambert grid treats a lon/lat cell as an axis-aligned box. In western BC that put cells off by up to 0.3; the two-step method is within 0.009 on the same 40 cells.
+- **Gap fill.** TerraClimate has no cell on 117 coastal cells of the grid; those take CGIAR's AET.
+
 ### What this says about the BC Water Tools
 
-Their accuracy figures are in-sample, and after the undocumented "final adjustment to measured flows" they are near 0 % at the gauges. They are not a measure of skill at ungauged sites. The open reimplementation suggests that out-of-sample skill of this method family, province-wide, is about 33 % MAE on annual runoff (38 % for headwater basins). Our release comparison (#5) should score their values at stations held out of *their* fit where possible.
+Their accuracy figures are in-sample, and after the undocumented "final adjustment to measured flows" they are near 0 % at the gauges. They are not a measure of skill at ungauged sites. The open reimplementation suggests that out-of-sample skill of this method family, province-wide, is about 33 % MAE on annual runoff (38 % for headwater basins) with the CGIAR AET Chapman used, and about 28 % (31 %; 32 % under a fully nested selection) with that AET floored by a Fu–Budyko demand (#15). Our release comparison (#5) should score their values at stations held out of *their* fit where possible.
 
 ### Follow-ups
 
 - #14: transboundary upstream area.
-- #15: an ET experiment for the semi-arid interior (land-cover ratios, TerraClimate AET, a Budyko constraint).
+- #15: the ET experiment. Done; see "The ET experiment" above.
+- The Budyko floor is annual only. The monthly shares still regress on CGIAR's monthly AET (see #16 for the monthly predictors).
+- Zone 24 (Okanagan Highland) still runs at +102 % as shipped; the candidates are listed in "The ET experiment" above.
+- The pre-#15 input caches (CGIAR, climr, DEM, zones raster) are keyed on content and parameters but not on their builder code, as #15's two new builders now are. An issue is drafted, not yet filed.
 - #16: snow predictors for the monthly shares.
 - An upstream note to climr on the ClimateNA coastal gap: drafted, not posted.
 - rspatial/terra#2195: `rasterize(filename = )` with an integer datatype writes NA as 0 (worked around in `scripts/wb_inputs.R`).

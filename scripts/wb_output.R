@@ -18,6 +18,26 @@ if (length(keys) != 1) stop("expected one complete province run under data/wb, f
 if (!file.exists(file.path(keys, "fits.rds"))) stop("run scripts/wb_validate.R first: no fits in ", keys)
 key_dir <- keys
 fits <- readRDS(file.path(key_dir, "fits.rds"))
+aet <- if (is.null(fits$aet)) "cgiar" else fits$aet  # fits from before #15 carry no aet: cgiar
+# Ship only a fit made under the current scoring code, and only the variant
+# the comparison chose under that code (scripts/wb_aet_compare.R, #15);
+# without a comparison, cgiar. The old outputs go first, so a refused fit never
+# leaves the parquet or the map (scripts/wb_map.R) of an earlier one.
+unlink(c(file.path(key_dir, "runoff_annual.tif"), file.path(key_dir, "output")), recursive = TRUE)
+source("scripts/wb_score_md5.R")  # score_code_md5
+if (!identical(fits$code_md5, score_code_md5)) {
+  stop("fits.rds was made under other scoring code: rerun scripts/wb_validate.R (and the comparison)")
+}
+f_winner <- file.path(key_dir, "aet_winner.txt")
+if (file.exists(f_winner)) {
+  w <- readLines(f_winner)
+  if (!identical(w[2], score_code_md5)) stop(f_winner, " was chosen under other code: rerun scripts/wb_aet_compare.R")
+  if (!identical(aet, w[1])) {
+    stop("fits.rds ships ", aet, " but the comparison chose ", w[1], ": run scripts/wb_validate.R ", w[1])
+  }
+} else if (aet != "cgiar") {
+  stop("fits.rds ships ", aet, " but no comparison chose it (no ", f_winner, ")")
+}
 dir.create(file.path(key_dir, "output"), showWarnings = FALSE)
 days <- c(365.25, wet_month_days())
 
@@ -26,7 +46,7 @@ tally <- list()
 for (f in list.files(file.path(key_dir, "upstream"), "\\.rds$", full.names = TRUE)) {
   code <- sub("\\.rds$", "", basename(f))
   up <- readRDS(f)
-  up$raw <- up$ro_raw
+  up$raw <- wet:::wet_wb_raw(up, aet)
   zc <- grep("^zp?[0-9]+$", names(up), value = TRUE)
   known <- c(paste0("z", fits$wb$coef$zone), paste0("zp", fits$wb$coef$zone))
   # a zone the fit never saw (no calibration station anywhere in it) gets no
@@ -92,7 +112,7 @@ pcic_hope <- if (length(hope)) sub(".*area/covered ([0-9.]+) m3/s.*", "\\1", hop
 
 # ---- annual runoff grid, for the map -------------------------------------------------------------
 lay <- terra::rast(file.path(key_dir, "layers.tif"))
-ro <- lay[["ro_raw"]]
+ro <- wet:::wet_wb_raw(lay, aet)
 if (fits$keep_adjust) {
   for (i in seq_len(nrow(fits$wb$coef))) {
     k <- as.integer(fits$wb$coef$zone[i])
@@ -108,7 +128,7 @@ terra::writeRaster(ro, file.path(key_dir, "runoff_annual.tif"), overwrite = TRUE
 con <- file("data/checks/wb_output.txt", "w")
 writeLines(c(
   "# Open water balance: province output (#11)", "",
-  sprintf("province run: %s; adjustment %s", basename(key_dir),
+  sprintf("province run: %s; annual AET: %s; adjustment %s", basename(key_dir), aet,
           if (fits$keep_adjust) "applied" else "not applied (gate failed)"),
   sprintf("watersheds: %d in %d top-level basins; rows: %d (annual + 12 months)",
           sum(tally$n), nrow(tally), 13 * sum(tally$n)),

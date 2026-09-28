@@ -1,6 +1,6 @@
 # Open water balance: province output (#11)
 
-province run: 5c2feaefad; adjustment applied
+province run: 495b33ec47; annual AET: cfu; adjustment applied
 watersheds: 3245453 in 24 top-level basins; rows: 42190889 (annual + 12 months)
 annual NA: 22041; coverage < 0.9: 39288; bc_fraction < 0.95: 76431
 
@@ -34,12 +34,12 @@ annual NA: 22041; coverage < 0.9: 39288; bc_fraction < 0.95: 76431
 Regulated gauges keep their mean annual flow except where water is diverted out of the basin:
 the Nechako (Kemano) diversion takes Fraser water to the coast above 08MF005.
 station  name                                  area_km2   obs_m3s   mod_m3s  ratio  in_bc
-07FD002  PEACE RIVER NEAR TAYLOR                 100760    1461.5    1367.5   0.94   1.00
-08CE001  STIKINE RIVER AT TELEGRAPH CREEK         28932     414.7     436.1   1.05   1.00
-08DB001  NASS RIVER ABOVE SHUMAL CREEK            18295     769.4     658.7   0.86   1.00
-08EF001  SKEENA RIVER AT USK                      42260     901.2     772.8   0.86   1.00
-08LF051  THOMPSON RIVER NEAR SPENCES BRIDGE       55439     763.7     896.9   1.17   1.00
-08MF005  FRASER RIVER AT HOPE                    216660    2656.4    2789.8   1.05   1.00
-08NE049  COLUMBIA RIVER AT BIRCHBANK              87443    1998.1    2094.2   1.05   0.86
+07FD002  PEACE RIVER NEAR TAYLOR                 100760    1461.5    1363.2   0.93   1.00
+08CE001  STIKINE RIVER AT TELEGRAPH CREEK         28932     414.7     412.8   1.00   1.00
+08DB001  NASS RIVER ABOVE SHUMAL CREEK            18295     769.4     655.7   0.85   1.00
+08EF001  SKEENA RIVER AT USK                      42260     901.2     751.5   0.83   1.00
+08LF051  THOMPSON RIVER NEAR SPENCES BRIDGE       55439     763.7     870.1   1.14   1.00
+08MF005  FRASER RIVER AT HOPE                    216660    2656.4    2752.2   1.04   1.00
+08NE049  COLUMBIA RIVER AT BIRCHBANK              87443    1998.1    2085.0   1.04   0.86
 
 PCIC VIC-GL through wet at 08MF005, area-weighted (data/basin/100_report.txt): 2477 m3/s

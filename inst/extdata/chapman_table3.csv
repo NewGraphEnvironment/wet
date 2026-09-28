@@ -1,0 +1,12 @@
+class,aet_mm,table3_setting,table3_aet,reference,nrcan_2020_codes
+coniferous,276,Coniferous forest (Canada),276 +/- 71,Liu et al. (2003),1;2
+deciduous,492,Deciduous forest (Canada),492 +/- 86,Liu et al. (2003),5
+mixed,405,Mixed forest (Canada),405 +/- 78,Liu et al. (2003),6
+shrub,195,Shrub (Canada),195 +/- 51,Liu et al. (2003),8;11
+grass,275,Grass (Canada),275 +/- 42,Liu et al. (2003),10;12
+barren,126,Barren (Canada),126 +/- 32,Liu et al. (2003),13;16
+wetland,327,Subarctic boreal fen (North Manitoba),313-341,Chapman (1988),14
+crop,341,Crop (Canada),341 +/- 63,Liu et al. (2003),15
+urban,195,Urban (Canada),195 +/- 32,Liu et al. (2003),17
+water,425,Water (NE British Columbia),350-500,Canada (1978),18
+snow_ice,51,Snow/ice (Canada),51 +/- 7,Liu et al. (2003),19
