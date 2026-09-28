@@ -35,16 +35,16 @@ Disclosed up front: the candidates were motivated by the zone 15/17/23/24 residu
 ## Phase 2: Fetchers and inputs
 - [x] `wet_terraclimate_aet(grid)`: an NCSS/OPeNDAP bbox subset of the TerraClimate 1981–2010 summary AET (and PPT, for diagnosis only). It follows `wet_cgiar_aet()`: cached by content key, written to `.part` and renamed, then bilinear-resampled onto the 30″ grid. Tests use synthetic sources, plus a test that a cached file is returned without a download.
 - [x] `wet_landcover_nrcan(grid)`: NRCan 2020 30 m land cover (OGL-Canada; no published md5, so the download is size-checked and its md5 pinned in the manifest), turned into per-class cover fractions on the 30″ grid in one GDAL warp: a VRT with one LUT band per Table 3 class, averaged by `terra::project(method = "average")`. *(Revised: nearest to an aligned 1″ grid, then `aggregate(30)`. A single average warp from the Lambert CRS was off by up to 0.3 per cell; see findings.)* Outside Canada there is no cover, so the ratio defaults to 1; this is stated in the docs. Tests use synthetic sources.
-- [ ] `scripts/wb_inputs.R`: build the climr `Tmax`/`Tmin` normals, TerraClimate and NRCan, and add their manifest rows to `data/checks/wb_inputs.txt`.
+- [x] `scripts/wb_inputs.R`: build the climr `Tmax`/`Tmin` normals, TerraClimate and NRCan, and add their manifest rows to `data/checks/wb_inputs.txt`.
 
 ## Phase 3: Province layers
-- [ ] `scripts/wb_province.R`: add the layers `pet_yr`, `aet_lc`, `aet_tc`, `aet_fu`, `aet_cfu`, `aet_fu15`, `aet_fu20`, `aet_fu35`. Build the analysis mask from the original layers only, fill every new layer onto it, and assert the mask is unchanged. Add the new R files **and `inst/extdata/chapman_table3.csv`** to the run key, and the new inputs to `f_in` and `compareGeom`. Pick the climr files by their layer names, since their file names differ only by a hash.
-- [ ] Smoke test with `WET_WB_GROUPS=SALR,OKAN`. Then run the full province under `caffeinate -i` and commit the run log as evidence.
-- [ ] Move `data/wb/5c2feaefad` to `data/wb_old/`, because the downstream scripts need exactly one complete run. Check that the new run's `p_yr`, `aet_yr`, `ro_raw`, `coverage` and `bc_fraction` match the old run exactly, and that the 290 calibration stations are the same.
+- [x] `scripts/wb_province.R`: add the layers `pet_yr`, `aet_lc`, `aet_tc`, `aet_fu`, `aet_cfu`, `aet_fu15`, `aet_fu20`, `aet_fu35`. Build the analysis mask from the original layers only, fill every new layer onto it, and assert the mask is unchanged. Add the new R files **and `inst/extdata/chapman_table3.csv`** to the run key, and the new inputs to `f_in` and `compareGeom`. Pick the climr files by their layer names, since their file names differ only by a hash.
+- [x] Smoke test with `WET_WB_GROUPS=SALR,OKAN`. Then run the full province under `caffeinate -i` and commit the run log as evidence.
+- [x] Move `data/wb/5c2feaefad` to `data/wb_old/`, because the downstream scripts need exactly one complete run. Check that the new run's `p_yr`, `aet_yr`, `ro_raw`, `coverage` and `bc_fraction` match the old run exactly, and that the 290 calibration stations are the same.
 
 ## Phase 4: Scoring
-- [ ] `scripts/wb_validate.R`: take an AET argument (default: the shipped variant; checked against the allowed set) and set `raw` from `ro_raw` for cgiar or `p_yr − aet_<v>` otherwise. Save `cv_aet-<v>.rds` under the run directory (per-station errors and summaries). Write `data/checks/wb_validation_aet-<v>.txt`, plus `fits.rds` and `data/checks/wb_validation.txt` only for the shipped variant, and record `aet` in `fits.rds`. Label the report header with the note that monthly shares stay on CGIAR's monthly AET.
-- [ ] `scripts/wb_aet_compare.R`: read the `cv_aet-*.rds` files (not the text reports), run the fully nested selection CV, and collate into `data/checks/wb_aet_compare.txt`. Per variant it lists raw and as-shipped MAE (all 290 and headwater), mean % in zones 15/17/23/24, MAE for basins under 100 km², Greata Creek (P, AET, raw, obs), and the ω transparency rows. It then applies the pre-set rule and names the winner.
+- [x] `scripts/wb_validate.R`: take an AET argument (default: the shipped variant; checked against the allowed set) and set `raw` from `ro_raw` for cgiar or `p_yr − aet_<v>` otherwise. Save `cv_aet-<v>.rds` under the run directory (per-station errors and summaries). Write `data/checks/wb_validation_aet-<v>.txt`, plus `fits.rds` and `data/checks/wb_validation.txt` only for the shipped variant, and record `aet` in `fits.rds`. Label the report header with the note that monthly shares stay on CGIAR's monthly AET.
+- [x] `scripts/wb_aet_compare.R`: read the `cv_aet-*.rds` files (not the text reports), run the fully nested selection CV, and collate into `data/checks/wb_aet_compare.txt`. Per variant it lists raw and as-shipped MAE (all 290 and headwater), mean % in zones 15/17/23/24, MAE for basins under 100 km², Greata Creek (P, AET, raw, obs), and the ω transparency rows. It then applies the pre-set rule and names the winner.
 
 ## Phase 5: Adopt and ship
 - [ ] Make the winner the default AET in `wb_validate.R`. `wb_output.R` reads `fits$aet` (missing means cgiar) for both the per-basin raw (`up$raw`) and the `runoff_annual.tif` grid (`ro`). Always re-run `wb_validate.R`, `wb_output.R` and `wb_map.R` on the new run key, even if cgiar wins.
@@ -60,5 +60,5 @@ Disclosed up front: the candidates were motivated by the zone 15/17/23/24 residu
 - [ ] Tests pass
 - [ ] `/code-check` clean on each commit
 - [ ] PWF checkboxes match landed work
-- [ ] `wb_validation_aet-cgiar.txt` matches today's `wb_validation.txt` byte for byte, apart from the run-key line
+- [x] `wb_validation_aet-cgiar.txt` matches today's `wb_validation.txt` byte for byte, apart from the run-key line
 - [ ] `/planning-archive` on completion

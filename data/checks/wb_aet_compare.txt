@@ -1,0 +1,38 @@
+# ET experiment (#15): annual AET variants scored as shipped under blocked CV
+
+province run: 495b33ec47; stations: 290 (headwater 218, nested 72); folds: 93
+Variants: cgiar (CGIAR SWB v3), lc (CGIAR x Chapman Table 3 land-cover ratio, NRCan 2020), tc (TerraClimate 1981-2010), fu (Fu-Budyko, climr P and Hargreaves PET, omega 2.6), cfu (max of CGIAR and fu); fu15/fu20/fu35 are fu at omega 1.5/2.0/3.5, transparency only.
+Monthly shares use CGIAR monthly AET for every variant; differences here are annual only.
+
+Rule (fixed before scoring): a variant replaces cgiar only if, under blocked CV and as shipped,
+(a) headwater MAE is at least 2.0 points below cgiar, (b) all-station MAE is no higher, (c) nested MAE is at most 1.0 points higher and nested within +/-20 % at most 3 points lower, and (d) a fully nested selection beats cgiar's headwater MAE.
+
+## As shipped (adjusted if it passes the headwater gate, raw otherwise), blocked CV, MAE %
+aet    shipped      head    all nested nes_in20 raw_head  raw_all
+cgiar  adjusted     38.1   33.1   17.9    72.2     39.8     34.7 
+lc     adjusted     44.1   37.1   16.0    76.4     69.2     59.4 
+tc     adjusted     33.5   29.0   15.3    81.9     35.4     30.4 
+fu     adjusted     32.0   28.1   16.3    75.0     32.8     29.1 
+cfu    adjusted     31.2   27.7   17.4    70.8     31.6     28.6 
+fu15   adjusted     42.8   36.3   16.6    75.0     66.3     56.6 (transparency)
+fu20   adjusted     37.8   32.2   15.1    80.6     42.8     36.1 (transparency)
+fu35   raw          28.9   27.6   23.5    38.9     28.9     27.6 (transparency)
+
+(a)-(c) choose: cfu
+(d) nested selection (outer: 93 WSC folds; inner: blocked CV on each fold's training stations, pooled variant chosen once per training set): headwater 32.3, all 28.6, nested 17.3, nested in +/-20 % 70.8; cgiar as shipped: headwater 38.1 -> pass
+    variant chosen by the outer folds: cgiar 0, lc 0, tc 0, fu 6, cfu 87
+
+WINNER: cfu
+
+## Detail, as shipped: mean error % in the semi-arid zones, MAE % for basins < 100 km2,
+## and Greata Creek 08NM173 (upstream AET, raw P - AET, shipped; observed below)
+aet        z15     z17     z23     z24  <100km2    G_aet  G_raw  G_mod
+cgiar     10.3    55.8    56.6   231.2     60.5      281    462    462
+lc         4.8   344.5    79.3   231.4     80.2      173    570    449
+tc         2.2     0.4    41.0   147.2     49.3      424    318    318
+fu         8.0   114.4    20.3   102.4     46.7      499    243    243
+cfu        8.5    47.5    20.4   102.4     43.5      499    243    243
+fu15       4.7   367.4    60.2   168.5     72.9      297    446    341
+fu20       6.2   241.7    46.8   154.4     62.3      422    321    321
+fu35      26.0    21.8     0.4    61.5     32.6      561    182    182
+Greata Creek: upstream P 743 mm, observed 50 mm

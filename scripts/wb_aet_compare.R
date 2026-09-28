@@ -3,15 +3,20 @@
 #
 #   for v in cgiar lc tc fu cfu fu15 fu20 fu35; do Rscript scripts/wb_validate.R $v; done
 #   Rscript scripts/wb_aet_compare.R
+#   Rscript scripts/wb_validate.R <winner>   # writes fits.rds and wb_validation.txt
 #
 # Reads data/wb/<key>/cv_aet-<v>.rds (scripts/wb_validate.R) and writes the
-# tracked report data/checks/wb_aet_compare.txt. It also runs a fully nested
+# tracked report data/checks/wb_aet_compare.txt, and the winner to
+# data/wb/<key>/aet_winner.txt, which scripts/wb_validate.R ships (run it
+# again for the winner to write fits.rds). It also runs a fully nested
 # selection: each outer blocked fold picks the AET variant (and whether to
 # adjust) by the same rule applied to an inner blocked CV on its training
 # stations, so the winner's error is estimated without having been selected on
 # the stations it is scored on.
 
 source("scripts/wb_cv_lib.R")
+# a winner is only ever the result of a complete comparison under this code
+unlink(file.path(key_dir, "aet_winner.txt"))
 eligible <- c("lc", "tc", "fu", "cfu")
 transparency <- c("fu15", "fu20", "fu35")
 variants_all <- c("cgiar", eligible, transparency)
@@ -171,4 +176,5 @@ writeLines(c(
   sprintf("Greata Creek: upstream P %.0f mm, observed %.0f mm", cal$p_yr[g], cal$obs[g])
 ), con)
 close(con)
+writeLines(c(winner, score_code_md5), file.path(key_dir, "aet_winner.txt"))
 stamp("report written; winner ", winner)

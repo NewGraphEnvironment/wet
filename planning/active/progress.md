@@ -17,3 +17,17 @@
   - Round 2, inside that fix: the key omitted `stations.rds` and `wet_mm_to_m3s.R`, and a missing file hashed as NA.
   - Round 3: enumerated every key and guard. The call graph was derived with `codetools::findGlobals()`: 19 functions in 9 files for the province run, 17 in 9 for scoring, all covered. It found that the input caches are not keyed on their builder code, so the two new builders (`wet_landcover_nrcan`, `wet_terraclimate_aet`) now carry a method version in their key.
   - Deferred: the same gap in the pre-existing CGIAR, climr, DEM and zones caches (follow-up).
+
+## Session 2026-09-28 (UTC)
+
+- **Inputs** (`wb_inputs.R`, 28.1 min): two-step land-cover fractions within 0.009 of exact-overlap counts on 40 cells, against 0.30 for the one-step method.
+- **First province attempt:** stopped at `compareGeom`, because the TerraClimate CRS was an unnamed datum. Fixed in 4a9b82b.
+- **Province run 495b33ec47** (11.6 min): the baseline columns equal the #11 run's to within 5.9e-16 relative once rows are aligned by id (the database order differs).
+- **Scoring:** 8 variants scored twice. The second pass ran on the final scripts after the ship guard was added, and gave identical numbers.
+- **Rule:** `cfu` passes (a)–(d). Fully nested selection: headwater 32.3 % against cgiar's 38.1 %, with 87/93 outer folds choosing `cfu`.
+- **Ship-change code-check:** four rounds.
+  - Round 1: nothing checked that the winner file was current.
+  - Round 2, inside that fix: output compared two stored md5s, never the current code. The runner read both winner lines, and a refused output left a stale grid.
+  - Round 3: my guard edit had deleted `wb_output.R`'s output loop, a blocker. Round 3 also found the map not tied to the fit, and the rule script missing from the md5.
+  - Round 4: clean, with round 3's enumeration table re-walked.
+- **Shipped:** `cfu` through `wb_validate.R cfu`, `wb_output.R` and `wb_map.R`.

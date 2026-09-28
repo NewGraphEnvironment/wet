@@ -6,12 +6,25 @@
 # Reads data/wb/stations.rds (scripts/wb_stations.R) and the upstream means
 # from scripts/wb_province.R. Writes the tracked report
 # data/checks/wb_validation_aet-<AET>.txt and data/wb/<key>/cv_aet-<AET>.rds
-# (read by scripts/wb_aet_compare.R). For the shipped variant (ship_aet) it also
-# writes data/checks/wb_validation.txt and data/wb/<key>/fits.rds (the fits
-# the province output uses).
+# (read by scripts/wb_aet_compare.R). For the shipped variant it also writes
+# data/checks/wb_validation.txt and data/wb/<key>/fits.rds (the fits the
+# province output uses). The shipped variant is the one scripts/wb_aet_compare.R
+# chose for this run by the #15 decision rule (data/wb/<key>/aet_winner.txt),
+# or cgiar before a comparison exists.
 
 source("scripts/wb_cv_lib.R")
-ship_aet <- "cgiar"  # the AET the province output uses (#15 decision rule)
+f_winner <- file.path(key_dir, "aet_winner.txt")
+# The winner file holds the variant and the score_code_md5 it was chosen
+# under. One chosen under other code is not shipped (the scores are still
+# written, so the comparison can be rerun); fits.rds then stays as it was, and
+# scripts/wb_output.R refuses it because it was made under other code.
+ship_aet <- "cgiar"
+if (file.exists(f_winner)) {
+  w <- readLines(f_winner)
+  if (length(w) != 2 || !w[1] %in% names(wet:::wet_wb_aet_cols())) stop("bad ", f_winner)
+  ship_aet <- if (identical(w[2], score_code_md5)) w[1] else NA_character_
+  if (is.na(ship_aet)) message(f_winner, " was chosen under other code: not shipping; rerun scripts/wb_aet_compare.R")
+}
 aet_v <- commandArgs(trailingOnly = TRUE)[1]
 if (is.na(aet_v)) aet_v <- ship_aet
 cal$raw <- wet:::wet_wb_raw(cal, aet_v)
@@ -45,9 +58,12 @@ stamp("validation done")
 # gate: the adjustment must beat raw P - AET on headwater stations under blocked CV
 hw <- function(v) v$summary$mae_pct[v$summary$group == "nesting" & v$summary$value == "headwater"]
 keep_adjust <- hw(cv_v) < hw(raw_v)
-if (aet_v == ship_aet) {
+if (aet_v %in% ship_aet) {
+  # outputs of any earlier fit go with it, so scripts/wb_map.R cannot draw them
+  # beside this fit's stations; scripts/wb_output.R rebuilds them
+  unlink(c(file.path(key_dir, "runoff_annual.tif"), file.path(key_dir, "output")), recursive = TRUE)
   saveRDS(list(wb = ins_fit, share = ins_share, keep_adjust = keep_adjust, min_frac = min_frac,
-               calibration = cal$station_number, aet = aet_v),
+               calibration = cal$station_number, aet = aet_v, code_md5 = score_code_md5),
           file.path(key_dir, "fits.rds"))
 }
 # per-station held-out predictions and summaries, for scripts/wb_aet_compare.R
@@ -118,5 +134,5 @@ writeLines(c(
           ifelse(co$zone %in% ins_fit$pooled, sprintf("  (pooled: %s)", ship_variant), ""))
 ), con)
 close(con)
-if (aet_v == ship_aet) invisible(file.copy(report, "data/checks/wb_validation.txt", overwrite = TRUE))
+if (aet_v %in% ship_aet) invisible(file.copy(report, "data/checks/wb_validation.txt", overwrite = TRUE))
 stamp("report written (", aet_v, "); gate ", if (keep_adjust) "PASS" else "FAIL")

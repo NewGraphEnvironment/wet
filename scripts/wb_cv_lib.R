@@ -119,14 +119,4 @@ long <- function(d, ann, share) {
 groups <- cal[c("station_number", "nesting", "zone", "area_class")]
 groups$lake <- ifelse(cal$lake %in% TRUE, "lake outlet", "not lake outlet")
 
-# md5 of what a variant's scores depend on besides the province run itself
-# (its own run directory): the scoring code and the stations file, which
-# scripts/wb_stations.R rewrites from HYDAT. Stored with each variant's results
-# so scripts/wb_aet_compare.R never compares variants scored from different
-# code or observations. A missing file stops here: tools::md5sum() would hash
-# it as NA on both sides and the check would pass.
-score_files <- c("scripts/wb_cv_lib.R", "scripts/wb_validate.R", "data/wb/stations.rds",
-                 "R/wet_wb_fit.R", "R/wet_wb_adjust.R", "R/wet_share_fit.R", "R/wet_share_predict.R",
-                 "R/wet_flow_validate.R", "R/wet_cv_folds.R", "R/wet_wb_raw.R", "R/wet_mm_to_m3s.R")
-if (!all(file.exists(score_files))) stop("missing: ", paste(score_files[!file.exists(score_files)], collapse = ", "))
-score_code_md5 <- wet_md5_text(unname(tools::md5sum(score_files)))
+source("scripts/wb_score_md5.R")  # score_code_md5
