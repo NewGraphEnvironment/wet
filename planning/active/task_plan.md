@@ -51,8 +51,8 @@ Disclosed up front: the candidates were motivated by the zone 15/17/23/24 residu
 - [x] Re-render `scripts/wb_map.R` to `research/wb_runoff_annual.png`, then run the cartography self-review.
 
 ## Phase 6: Write-up
-- [ ] Revise `research/water_balance_method.md` §0 with the results and the header line. Attribute each disagreement as ours, theirs or unresolved (CGIAR's P-cap versus climr P). Record MOD16 as deferred and why.
-- [ ] Update the `research/README.md` row and the CLAUDE.md water-balance blurb.
+- [x] Revise `research/water_balance_method.md` §0 with the results and the header line. Attribute each disagreement as ours, theirs or unresolved (CGIAR's P-cap versus climr P). Record MOD16 as deferred and why.
+- [x] Update the `research/README.md` row and the CLAUDE.md water-balance blurb.
 - [ ] Edit the issue #15 body with the outcome.
 
 ## Validation
