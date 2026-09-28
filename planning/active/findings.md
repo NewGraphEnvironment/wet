@@ -52,3 +52,16 @@ is the verification.
 ## Code-check
 
 Three rounds, all Clean. Round 2 noted that `wet_md5_text()` writes via text-mode `writeLines()`, so keys would differ on Windows (CRLF); this predates #19, is consistent per platform, and `data/` never moves between OSes.
+
+## Phase 4: inputs rebuilt under the new keys (2026-09-28)
+
+`wb_inputs.R` in 6.5 min (07:38–07:45 PT; DEM over `/vsicurl/` the bulk). Log: `data/logs/20260928_wb_inputs_run.log` (gitignored).
+TerraClimate, land cover and MOD16 hit their caches; CGIAR, DEM, climr ×2 and zones rebuilt.
+
+Every rebuilt raster against the cache it replaces (names, geometry, `wet_raster_md5()` values): **all identical**.
+The byte md5s in `data/checks/wb_inputs.txt` are unchanged too; only the file names and the build date moved.
+`data/checks/climr_eccc.txt` is unchanged (MAP ratio median 1.034).
+
+So the pre-#19 caches were not stale, despite A3's timing: the CGIAR crop and DEM predate 156317e and the P/T
+normals predate 3658923, and none of those changes altered the values. The old files are in
+`data/wb_old/pre19_inputs/`; the #18 run `adc88b19c8` is in `data/wb_old/`.

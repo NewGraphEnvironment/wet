@@ -39,11 +39,11 @@ Found in the #15 review. The two builders #15 added (`wet_landcover_nrcan()` and
 ## Phase 4: Re-run the pipeline and prove it reproduces
 Each script runs from a frozen copy (Rscript reads incrementally) under `caffeinate -i`.
 `scripts/wb_stations.R` is not re-run (plan review A4).
-- [ ] `wb_inputs.R`: rebuilds CGIAR, DEM, climr x2 and zones; TerraClimate, land cover, MOD16 still hit
-- [ ] Compare each rebuilt raster to the cache it replaces: names, geometry, `wet_raster_md5()` values.
+- [x] `wb_inputs.R`: rebuilds CGIAR, DEM, climr x2 and zones; TerraClimate, land cover, MOD16 still hit
+- [x] Compare each rebuilt raster to the cache it replaces: names, geometry, `wet_raster_md5()` values.
       On a mismatch attribute it (A3: CGIAR/DEM predate 156317e, P/T normals predate 3658923; DEM and
       climr read remote data) and stop and report; never let a changed input into a no-op re-run (G2)
-- [ ] Move the old CGIAR, DEM (`glo90v3_*`), climr x2 and zones files to `data/wb_old/`, so `one()` and
+- [x] Move the old CGIAR, DEM (`glo90v3_*`), climr x2 and zones files to `data/wb_old/`, so `one()` and
       `climr_with()` see one file each (O3)
 - [ ] `mv data/wb/adc88b19c8 data/wb_old/`; `wb_province.R 4 | tee data/checks/wb_province_run.txt` (G5)
 - [ ] `layers.tif` identical layer by layer; upstream means equal matched by `watershed_feature_id`
