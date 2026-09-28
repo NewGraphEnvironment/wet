@@ -53,12 +53,12 @@ Disclosed up front: the candidates were motivated by the zone 15/17/23/24 residu
 ## Phase 6: Write-up
 - [x] Revise `research/water_balance_method.md` §0 with the results and the header line. Attribute each disagreement as ours, theirs or unresolved (CGIAR's P-cap versus climr P). Record MOD16 as deferred and why.
 - [x] Update the `research/README.md` row and the CLAUDE.md water-balance blurb.
-- [ ] Edit the issue #15 body with the outcome.
+- [x] Edit the issue #15 body with the outcome.
 
 ## Validation
 
-- [ ] Tests pass
-- [ ] `/code-check` clean on each commit
-- [ ] PWF checkboxes match landed work
+- [x] Tests pass
+- [x] `/code-check` clean on each commit
+- [x] PWF checkboxes match landed work
 - [x] `wb_validation_aet-cgiar.txt` matches today's `wb_validation.txt` byte for byte, apart from the run-key line
-- [ ] `/planning-archive` on completion
+- [x] `/planning-archive` on completion
