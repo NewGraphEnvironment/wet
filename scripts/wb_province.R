@@ -28,13 +28,29 @@ one <- function(d, pattern) {
   if (length(f) != 1) stop("expected one ", pattern, " in ", d, ", found ", length(f))
   f
 }
-f_in <- c(aet = one("data/cgiar", "^cgiar_aet_c.*\\.tif$"), clim = one("data/climr", "^climr_.*\\.tif$"),
-          dem = one("data/dem", "^glo90v3_.*\\.tif$"), hz = one("data/hydz", "^hydz_.*\\.tif$"))
+# The climr files differ only by a hash of their variables, so pick them by
+# the layers they carry.
+climr_with <- function(layer) {
+  f <- list.files("data/climr", "^climr_.*\\.tif$", full.names = TRUE)
+  f <- f[vapply(f, function(x) layer %in% names(terra::rast(x)), TRUE)]
+  if (length(f) != 1) stop("expected one climr file with ", layer, ", found ", length(f))
+  f
+}
+f_in <- c(aet = one("data/cgiar", "^cgiar_aet_c.*\\.tif$"), clim = climr_with("PPT_01"),
+          dem = one("data/dem", "^glo90v3_.*\\.tif$"), hz = one("data/hydz", "^hydz_.*\\.tif$"),
+          tx = climr_with("Tmax_01"), tc = one("data/terraclimate", "^tc_19812010_.*\\.tif$"),
+          lc = one("data/landcover", "^lc2020_frac_.*\\.tif$"))
 # Each input's name already encodes its content; the key adds this script's
 # own md5 and that of every package file it calls, so a code change never
 # reuses old samples.
-code_md5 <- unname(tools::md5sum(c("scripts/wb_province.R", "R/wet_ws_sample.R", "R/wet_upstream_means.R",
-                                   "R/wet_upstream_sums.R", "R/wet_ws_fetch.R", "R/wet_climr_normals.R")))
+code_files <- c("scripts/wb_province.R", "R/wet_ws_sample.R", "R/wet_upstream_means.R",
+                "R/wet_upstream_sums.R", "R/wet_ws_fetch.R", "R/wet_climr_normals.R",
+                "R/wet_pet_hargreaves.R", "R/wet_aet_budyko.R", "R/wet_aet_landcover.R",
+                "R/wet_terraclimate_aet.R", "R/wet_landcover_nrcan.R", "R/wet_mm_to_m3s.R",
+                "inst/extdata/chapman_table3.csv")
+# a missing file would hash as NA and leave the key unchanged
+if (!all(file.exists(code_files))) stop("missing: ", paste(code_files[!file.exists(code_files)], collapse = ", "))
+code_md5 <- unname(tools::md5sum(code_files))
 key <- substr(wet:::wet_md5_text(paste(c(basename(f_in), code_md5), collapse = "|")), 1, 10)
 out_dir <- file.path("data", "wb", key)
 dir.create(file.path(out_dir, "sample"), recursive = TRUE, showWarnings = FALSE)
@@ -42,13 +58,33 @@ dir.create(file.path(out_dir, "upstream"), recursive = TRUE, showWarnings = FALS
 stamp("run key ", key)
 
 # ---- derived layers, on the input grid ------------------------------------------------
+# in-BC indicator, over whole polygons (not masked)
+bc_file <- file.path(out_dir, "in_bc.tif")
+if (!file.exists(bc_file)) {
+  conn <- pg()
+  wkt <- DBI::dbGetQuery(conn, "SELECT ST_AsText(geom) wkt FROM whse_basemapping.fwa_bcboundary")$wkt
+  DBI::dbDisconnect(conn)
+  g <- terra::rast(f_in[["aet"]])[[1]]
+  # stored as ~28,000 subdivided pieces: dissolve first, so a cell split
+  # between pieces gets its whole cover
+  bc <- terra::project(terra::aggregate(terra::vect(wkt, crs = "EPSG:3005")), "EPSG:4326")
+  inbc <- terra::rasterize(bc, g, cover = TRUE, background = 0)
+  tmp <- tempfile(fileext = ".tif", tmpdir = out_dir)
+  terra::writeRaster(inbc, tmp, datatype = "FLT4S")
+  file.rename(tmp, bc_file)
+}
+
 lay_file <- file.path(out_dir, "layers.tif")
 if (!file.exists(lay_file)) {
   aet <- terra::rast(f_in[["aet"]])
   cl <- terra::rast(f_in[["clim"]])
   dem <- terra::rast(f_in[["dem"]])
   hz <- terra::rast(f_in[["hz"]])
-  stopifnot(terra::compareGeom(aet, cl, dem, hz))
+  tx <- terra::rast(f_in[["tx"]])
+  tc <- terra::rast(f_in[["tc"]])
+  lc <- terra::rast(f_in[["lc"]])
+  inbc <- terra::rast(bc_file)
+  stopifnot(terra::compareGeom(aet, cl, dem, hz, tx, tc, lc, inbc))
   p_yr <- sum(cl[[sprintf("PPT_%02d", 1:12)]])
   t_yr <- terra::mean(cl[[sprintf("Tave_%02d", 1:12)]])
   xy <- terra::project(terra::vect(terra::crds(aet[[1]], na.rm = FALSE), crs = "EPSG:4326"), "EPSG:3005")
@@ -62,29 +98,41 @@ if (!file.exists(lay_file)) {
            aet[[sprintf("aet_%02d", 1:12)]], hz)
   names(lay) <- c("p_yr", "aet_yr", "ro_raw", "t_yr", "elev", "e_km", "n_km",
                   sprintf("ppt_%02d", 1:12), sprintf("tave_%02d", 1:12), sprintf("aet_%02d", 1:12), "zone")
-  # one analysis mask: a cell counts only where every layer has a value
-  lay <- terra::mask(lay, sum(is.na(lay)) > 0, maskvalues = TRUE)
+  # one analysis mask: a cell counts only where every one of these layers has a
+  # value. It is taken from the #11 layers alone, so the ET-experiment layers
+  # below cannot move it (and with it the cgiar baseline).
+  bad <- sum(is.na(lay)) > 0
+  lay <- terra::mask(lay, bad, maskvalues = TRUE)
+
+  # ET experiment (#15): alternative annual AET, each filled onto the mask
+  lat <- terra::init(aet[[1]], "y")
+  pet <- lapply(1:12, function(m) {
+    wet_pet_hargreaves(tx[[sprintf("Tmax_%02d", m)]], tx[[sprintf("Tmin_%02d", m)]], lat, m)
+  })
+  pet_yr <- sum(terra::rast(pet))
+  fu <- lapply(c(2.6, 1.5, 2.0, 3.5), function(w) wet_aet_budyko(lay[["p_yr"]], pet_yr, w))
+  lcv <- wet_aet_landcover(lay[["aet_yr"]], lc, domain = inbc >= 0.5, min_cells = 100, clamp = c(0.25, 4))
+  utils::write.csv(lcv$ratio, file.path(out_dir, "lc_ratios.csv"), row.names = FALSE)
+  ex <- c(pet_yr, lcv$aet, tc[["aet_tc"]], tc[["ppt_tc"]], fu[[1]], max(lay[["aet_yr"]], fu[[1]]),
+          fu[[2]], fu[[3]], fu[[4]])
+  names(ex) <- c("pet_yr", "aet_lc", "aet_tc", "ppt_tc", "aet_fu", "aet_cfu", "aet_fu15", "aet_fu20", "aet_fu35")
+  ex <- terra::mask(ex, bad, maskvalues = TRUE)
+  # TerraClimate has no cell on some coastal ground the 30" grid has: CGIAR
+  # AET there (and climr P for the diagnostic TerraClimate P), counted
+  n_fill <- unlist(terra::global(is.na(ex) & !bad, "sum"))
+  ex[["aet_tc"]] <- terra::cover(ex[["aet_tc"]], lay[["aet_yr"]])
+  ex[["ppt_tc"]] <- terra::cover(ex[["ppt_tc"]], lay[["p_yr"]])
+  writeLines(sprintf("%s %d", names(ex), n_fill), file.path(out_dir, "ex_filled_cells.txt"))
+  lay <- c(lay, ex)
+  # the mask must not have moved: every layer has a value exactly where the
+  # #11 layers all do
+  moved <- unlist(terra::global(is.na(lay) != bad, "sum"))
+  if (any(moved > 0)) stop("layers off the analysis mask: ", paste(names(lay)[moved > 0], collapse = ", "))
   tmp <- tempfile(fileext = ".tif", tmpdir = out_dir)
   terra::writeRaster(lay, tmp, datatype = "FLT4S")
   file.rename(tmp, lay_file)
 }
 stamp("layers ", lay_file)
-
-# in-BC indicator, over whole polygons (not masked)
-bc_file <- file.path(out_dir, "in_bc.tif")
-if (!file.exists(bc_file)) {
-  conn <- pg()
-  wkt <- DBI::dbGetQuery(conn, "SELECT ST_AsText(geom) wkt FROM whse_basemapping.fwa_bcboundary")$wkt
-  DBI::dbDisconnect(conn)
-  g <- terra::rast(lay_file)[[1]]
-  # stored as ~28,000 subdivided pieces: dissolve first, so a cell split
-  # between pieces gets its whole cover
-  bc <- terra::project(terra::aggregate(terra::vect(wkt, crs = "EPSG:3005")), "EPSG:4326")
-  inbc <- terra::rasterize(bc, g, cover = TRUE, background = 0)
-  tmp <- tempfile(fileext = ".tif", tmpdir = out_dir)
-  terra::writeRaster(inbc, tmp, datatype = "FLT4S")
-  file.rename(tmp, bc_file)
-}
 
 # ---- sampling, one watershed group at a time, in parallel --------------------------------
 conn <- pg()

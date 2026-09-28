@@ -55,13 +55,15 @@ wet_landcover_nrcan <- function(grid, table = wet_chapman_table3(), dir = "data/
   wet_landcover_fractions(src, grid, table, dest, fact)
 }
 
-# Cache path: keyed on the grid, the class table (codes and classes) and the
-# md5 of the source file actually read, so a changed crosswalk or a revised
-# source never reuses old fractions. The url is not in the key: it only says
-# where a missing file is fetched from.
+# Cache path: keyed on the grid, the class table (codes and classes), the md5
+# of the source file actually read and the method version, so a changed
+# crosswalk, a revised source or a changed method never reuses old fractions.
+# The url is not in the key: it only says where a missing file is fetched from.
+# Bump the version whenever wet_landcover_fractions() changes what it computes.
+wet_landcover_method <- "two-step-near-aggregate-1"
 wet_landcover_dest <- function(grid, table, dir, source_id) {
-  key <- wet_md5_text(paste(c(wet_grid_key(grid), table$class, table$nrcan_2020_codes, source_id),
-                            collapse = "|"))
+  key <- wet_md5_text(paste(c(wet_grid_key(grid), table$class, table$nrcan_2020_codes, source_id,
+                              wet_landcover_method), collapse = "|"))
   file.path(dir, sprintf("lc2020_frac_%s.tif", substr(key, 1, 10)))
 }
 

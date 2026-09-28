@@ -41,8 +41,10 @@ wet_terraclimate_aet <- function(grid, period = "19812010", vars = c("aet", "ppt
   for (i in seq_along(ncs)) {
     if (!file.exists(ncs[i])) wet_download(paste0(base, "/", basename(ncs[i])), ncs[i], timeout)
   }
-  # keyed on the grid and on the source files' content
-  key <- wet_md5_text(paste(c(wet_grid_key(grid), vars, unname(tools::md5sum(ncs))), collapse = "|"))
+  # keyed on the grid, the source files' content and the method version (bump it
+  # whenever wet_terraclimate_grid() changes what it computes)
+  key <- wet_md5_text(paste(c(wet_grid_key(grid), vars, unname(tools::md5sum(ncs)), wet_terraclimate_method),
+                            collapse = "|"))
   dest <- file.path(dir, sprintf("tc_%s_%s.tif", period, substr(key, 1, 10)))
   if (file.exists(dest) && !overwrite) return(dest)
   out <- wet_terraclimate_grid(ncs, vars, grid)
@@ -52,6 +54,8 @@ wet_terraclimate_aet <- function(grid, period = "19812010", vars = c("aet", "ppt
   if (!file.rename(tmp, dest)) stop("could not move TerraClimate grid to ", dest, call. = FALSE)
   dest
 }
+
+wet_terraclimate_method <- "annual-sum-bilinear-1"
 
 # Annual totals of each monthly file, resampled onto `grid`.
 wet_terraclimate_grid <- function(ncs, vars, grid) {
