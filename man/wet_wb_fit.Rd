@@ -25,9 +25,10 @@ annual P), e.g. \code{z08}, \code{zp08}.}
 \code{"none"} (no adjustment for them).}
 }
 \value{
-A \code{wet_wb_fit} object: \code{list(coef, pooled, n)}, where \code{coef} is a
-\code{data.frame(zone, a, b)} for every zone in \code{d} (pooled zones repeat the
-pooled coefficients).
+A \code{wet_wb_fit} object: \code{list(coef, pooled, pooled_adjust, n)},
+where \code{coef} is a \code{data.frame(zone, a, b)} for every zone in \code{d}. Pooled
+zones repeat the \code{"other"} coefficients, or are 0 under
+\code{pooled_adjust = "none"}.
 }
 \description{
 Chapman et al. (2018) adjust the raw water balance (P - AET) with a

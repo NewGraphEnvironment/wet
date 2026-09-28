@@ -4,7 +4,9 @@
 #
 # Builds (cached, gitignored): CGIAR AET, the GLO-90 DEM, climr 1981-2010
 # monthly P and T normals, and the extended BC Hydrologic Zones rasterised to
-# the grid. Writes two tracked reports:
+# the grid; for the ET experiment (#15) also climr Tmax/Tmin normals, the
+# TerraClimate 1981-2010 AET and precipitation, and NRCan 2020 land-cover
+# fractions per Chapman Table 3 class. Writes two tracked reports:
 #   * data/checks/wb_inputs.txt    - the input manifest (source, md5, grid)
 #   * data/checks/climr_eccc.txt   - climr 1981-2010 vs ECCC station normals
 # Connection from WET_PG* env vars (for the BC extent).
@@ -39,6 +41,14 @@ f_dem <- wet_dem_glo90(f_aet)
 stamp("DEM ", f_dem)
 f_clim <- wet_climr_normals(f_dem)
 stamp("climr ", f_clim)
+# Tmax/Tmin for Hargreaves PET (#15), in a file of their own so the P/T normals
+# above keep their cache key
+f_tx <- wet_climr_normals(f_dem, vars = c(sprintf("Tmax_%02d", 1:12), sprintf("Tmin_%02d", 1:12)))
+stamp("climr Tmax/Tmin ", f_tx)
+f_tc <- wet_terraclimate_aet(f_aet)
+stamp("TerraClimate ", f_tc)
+f_lc <- wet_landcover_nrcan(f_aet)
+stamp("land cover ", f_lc)
 
 # Extended BC Hydrologic Zones (43 features; reaches the FWA polygons outside BC)
 hz_url <- paste0("https://catalogue.data.gov.bc.ca/dataset/f1f86c41-ae83-49d5-92e1-526897b99fa2/",
@@ -84,20 +94,32 @@ grid_of <- function(f) {
 rows <- data.frame(
   input = c("CGIAR Soil-Water Balance v3 AET (annual)", "CGIAR Soil-Water Balance v3 AET (monthly)",
             "BC Hydrologic Zones (extended)", "AET crop", "GLO-90 DEM", "climr normals",
-            "Hydrologic zones grid"),
+            "Hydrologic zones grid", "climr Tmax/Tmin normals", "TerraClimate 1981-2010 AET",
+            "TerraClimate 1981-2010 precipitation", "TerraClimate annual grid",
+            "NRCan 2020 land cover", "Land-cover fractions (Chapman Table 3 classes)"),
   source = c("https://figshare.com/articles/dataset/7707605 (CC0)",
              "https://figshare.com/articles/dataset/7707605 (CC0)", paste(hz_url, "(OGL-BC)"),
              "wet_cgiar_aet()", "Copernicus DEM GLO-90 via wet_dem_glo90()",
              "climr refmap_climr + mswx.blend obs 1981-2010 via wet_climr_normals()",
-             "terra::rasterize(HYDZN_NO)"),
-  file = c("data/cgiar/AET_YR.rar", "data/cgiar/aet_monthly.rar", hz_zip, f_aet, f_dem, f_clim, f_hz)
+             "terra::rasterize(HYDZN_NO)",
+             "climr refmap_climr + mswx.blend obs 1981-2010 via wet_climr_normals()",
+             "http://thredds.northwestknowledge.net:8080/thredds/fileServer/TERRACLIMATE_ALL/climatology (CC0)",
+             "http://thredds.northwestknowledge.net:8080/thredds/fileServer/TERRACLIMATE_ALL/climatology (CC0)",
+             "wet_terraclimate_aet() (annual sums, bilinear)",
+             paste("https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/land/landcover/",
+                   "(OGL-Canada)"),
+             "wet_landcover_nrcan() (inst/extdata/chapman_table3.csv crosswalk)"),
+  file = c("data/cgiar/AET_YR.rar", "data/cgiar/aet_monthly.rar", hz_zip, f_aet, f_dem, f_clim, f_hz,
+           f_tx, "data/terraclimate/TerraClimate_19812010_aet.nc",
+           "data/terraclimate/TerraClimate_19812010_ppt.nc", f_tc,
+           "data/landcover/landcover-2020-classification.tif", f_lc)
 )
 rows$md5 <- vapply(rows$file, md5, "")
 is_tif <- grepl("\\.tif$", rows$file)
 rows$grid <- ""
 rows$grid[is_tif] <- vapply(rows$file[is_tif], grid_of, "")
 con <- file("data/checks/wb_inputs.txt", "w")
-writeLines(c("# Inputs for the open water balance (#11)", "",
+writeLines(c("# Inputs for the open water balance (#11) and the ET experiment (#15)", "",
              sprintf("built: %s", Sys.Date()),
              sprintf("bbox (EPSG:4326): %s", paste(bbox, collapse = ", ")),
              sprintf("climr %s, terra %s", utils::packageVersion("climr"),
