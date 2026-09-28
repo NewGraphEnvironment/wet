@@ -22,14 +22,14 @@ Scripts:
 - `scripts/upstream_area_check.R` checks topology against fwapg's upstream areas.
 
 The open water balance (#11), a second pipeline run in this order. Each script's outputs are keyed on its inputs and code, and later scripts refuse a run without `upstream/_complete`:
-- `scripts/wb_inputs.R`: CGIAR AET, GLO-90 DEM, climr 1981–2010 normals (MSWX anomalies) and zones, all on one 30″ grid.
+- `scripts/wb_inputs.R`: CGIAR AET, GLO-90 DEM, climr 1981–2010 normals (MSWX anomalies) and zones, all on one 30″ grid. Also the ET-experiment inputs, including MOD16 via `wet_mod16_aet()`, which needs an Earthdata login in a netrc for granules not yet in `data/mod16/` (#18).
 - `scripts/wb_stations.R`: HYDAT stations snapped to the FWA.
 - `scripts/wb_province.R 4`: multi-layer `wet_ws_sample()` per group and `wet_upstream_means()` per basin, across the whole province in about 11 min.
-- `scripts/wb_validate.R [AET]`: blocked-CV fits via `wet_wb_fit()` and `wet_share_fit()`, and the gate, for one annual-AET variant (#15). Run it for every variant, then `scripts/wb_aet_compare.R` (the pre-set rule, which records the winner), then `scripts/wb_validate.R <winner>` to write the shipped fit.
+- `scripts/wb_validate.R [AET]`: blocked-CV fits via `wet_wb_fit()` and `wet_share_fit()`, and the gate, for one annual-AET variant (#15, #18). Run it for every variant, then `scripts/wb_aet_compare.R` (the pre-set rules: #15's stage, which must reproduce, then #18's; it records the winner), then `scripts/wb_validate.R <winner>` to write the shipped fit.
 - `scripts/wb_output.R`: per-basin parquet under `data/wb/<key>/output/`.
 - `scripts/wb_map.R`: the runoff map.
 
-Results, the ET experiment (#15) that chose the shipped AET, and the open pooled-zone decision: `research/water_balance_method.md` §0.
+Results, the ET experiment (#15) that chose the shipped AET, the MOD16 challenger (#18) that did not replace it, and the open pooled-zone decision: `research/water_balance_method.md` §0.
 
 fwapg's stored `fwa_watersheds_upstream_area` is a **stale snapshot**. Use accumulated area, except to reproduce fwapg's own numbers. See `research/fwapg_mad_method.md`.
 

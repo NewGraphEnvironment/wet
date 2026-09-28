@@ -1,6 +1,6 @@
 # Chapman, Kerr & Wilford (2018): the BC Water Tools method, and what a reimplementation must decide
 
-**Verified:** 2026-09-28 · **Issues:** #5 (found), #11 (built and validated), #15 (ET experiment) · **Produced by:** desk research (sections 1–7), the #11 build and the #15 experiment (section 0): `scripts/wb_inputs.R`, `wb_stations.R`, `wb_province.R`, `wb_validate.R`, `wb_aet_compare.R`, `wb_output.R`. Reports: `data/checks/wb_*.txt`, `stations_wb.txt` and `climr_eccc.txt`. **Status:** built. The shipped model uses CGIAR AET constrained from below by a Fu–Budyko AET. A rule fixed before scoring chose it (#15). Blocked-CV MAE on annual runoff is 27.7 % (31.2 % headwater), against 33.1 % (38.1 %) with CGIAR alone (section 0).
+**Verified:** 2026-09-28 · **Issues:** #5 (found), #11 (built and validated), #15 (ET experiment), #18 (MOD16 challenger) · **Produced by:** desk research (sections 1–7), the #11 build and the #15 and #18 experiments (section 0): `scripts/wb_inputs.R`, `wb_stations.R`, `wb_province.R`, `wb_validate.R`, `wb_aet_compare.R`, `wb_output.R`. Reports: `data/checks/wb_*.txt`, `stations_wb.txt` and `climr_eccc.txt`. **Status:** built. The shipped model uses CGIAR AET constrained from below by a Fu–Budyko AET. A rule fixed before scoring chose it (#15). Blocked-CV MAE on annual runoff is 27.7 % (31.2 % headwater), against 33.1 % (38.1 %) with CGIAR alone (section 0). MOD16 was scored against it under a second pre-set rule (#18) and does not replace it.
 
 Legend: **[S]** stated in the source cited · **[I]** inferred · **[U]** unknown or not published. Sources are listed at the end; all are online.
 
@@ -82,7 +82,7 @@ Annual runoff; percentages are mean absolute error. This table is the #11 model.
 - **`fu`:** Fu–Budyko AET from climr P and Hargreaves PET (climr Tmax/Tmin), ω = 2.6;
 - **`cfu`:** max(CGIAR, `fu`), i.e. CGIAR constrained from below by the Budyko demand.
 
-MOD16 was deferred. It needs an Earthdata login, which breaks unattended runs, and it has gaps over alpine and non-vegetated cells.
+MOD16 was deferred here, because it needed an Earthdata login. #18 scored it against the shipped AET; see "MOD16 as a challenger (#18)" below.
 
 **The rule, fixed before any variant was scored** (`planning/archive/…issue-15…/task_plan.md`). Scores are as shipped under blocked CV. A variant replaces CGIAR only if all four hold:
 - (a) headwater MAE at least 2.0 points lower;
@@ -146,6 +146,56 @@ The Budyko floor raises AET a little in the wet north too, which moves the alrea
 - **Land-cover fractions.** Codes are resampled nearest onto a 1″ grid aligned with the 30″ grid, then block-averaged. A single average warp from NRCan's Lambert grid treats a lon/lat cell as an axis-aligned box. In western BC that put cells off by up to 0.3; the two-step method is within 0.009 on the same 40 cells.
 - **Gap fill.** TerraClimate has no cell on 117 coastal cells of the grid; those take CGIAR's AET.
 
+### MOD16 as a challenger (#18)
+
+**Verified:** 2026-09-28 · **Produced by:**
+- `wet_mod16_aet()` and `scripts/wb_province.R` (run adc88b19c8);
+- `scripts/wb_aet_compare.R` stage 2 → `data/checks/wb_aet_compare.txt`;
+- `data/checks/wb_validation_aet-{mod16,cmod16}.txt`.
+
+**The question.** MOD16A3GF v061 (NASA LP DAAC; Penman–Monteith on MODIS land cover, LAI and albedo with GMAO meteorology) estimates ET without a precipitation field, so it is the independent AET #15 lacked.
+- **mod16:** its 2001–2020 mean per 500 m pixel (a pixel counts with at least 10 valid years), put on the 30″ grid in two steps, as the land cover was.
+- **Gaps:** codes 65529–65535 (unclassified, urban, permanent wetland, snow/ice, barren, water) take the shipped `cfu`, weighted by area. MOD16 covers 91.5 % of the analysis grid by area, and the calibration basins are mostly MOD16 (median 0.99 of the basin).
+- **cmod16:** max(CGIAR, `mod16`).
+
+**The rule, fixed before scoring** (`planning/archive/…issue-18…/task_plan.md`):
+- It is #15's (a)–(d), with `cfu` as the incumbent and `mod16` and `cmod16` as the eligible challengers.
+- (d) is judged against `cfu`'s as-shipped headwater MAE.
+- #15's stage is re-run first and must reproduce its published result, or the comparison stops. It reproduced exactly.
+
+| AET | Shipped as | Headwater | All 290 | Nested | Nested within ±20 % | Raw headwater |
+|---|---|---|---|---|---|---|
+| **`cfu` (incumbent)** | adjusted | **31.2 %** | **27.7 %** | 17.4 % | 71 % | 31.6 % |
+| `mod16` | adjusted | 36.3 % | 31.4 % | 16.5 % | 75 % | 40.5 % |
+| `cmod16` max(CGIAR, MOD16) | adjusted | 34.6 % | 30.4 % | 17.7 % | 69 % | 36.3 % |
+| CGIAR (reference) | adjusted | 38.1 % | 33.1 % | 17.9 % | 72 % | 39.8 % |
+
+**Result.** Both challengers fail (a): they are 5.1 and 3.4 points above `cfu`, where the rule needs 2 below. In the nested selection all 93 folds chose `cfu`. **`cfu` stays.**
+- **The gap fill does not explain it.** On the 200 headwater basins at least 80 % MOD16, `mod16` scores 37.5 % against `cfu`'s 31.9 %.
+- **(d) is strict here.** `cfu` alone scores 33.2 % under the nested procedure, because each fold picks its own gate. A challenger therefore had to beat `cfu`'s nested score by about two points. It did not come close on (a), so this did not decide anything.
+
+| Zone (mean error, as shipped) | CGIAR | `cfu` | `mod16` | `cmod16` |
+|---|---|---|---|---|
+| 17 | +56 % | +48 % | +108 % | +48 % |
+| 23 | +57 % | +20 % | +45 % | +44 % |
+| 24 | +231 % | +102 % | +166 % | +165 % |
+| Basins < 100 km², MAE | 61 % | 44 % | 55 % | 52 % |
+
+At Greata Creek the upstream AET is 281 mm with CGIAR, 419 mm with MOD16 and 499 mm with `cfu`. P is 743 mm and the gauge reports 50 mm, which implies about 693 mm.
+
+**What it says, and who is wrong where:**
+- **MOD16 is better than CGIAR and worse than the Budyko floor on headwater basins.** It is the best of the three on nested basins (16.5 % MAE, 75 % within ±20 %). Where it runs below CGIAR, flooring by CGIAR (`cmod16`) helps.
+- **In the dry interior MOD16 leaves most of the overshoot.** Two readings fit:
+  - MOD16 under-evaporates water-limited terrain (theirs);
+  - climr's P, or the gauges, are off there (ours, or withdrawals).
+- **Attribution: unresolved. [I]** The Budyko floor is built from climr's own P, so it absorbs a P bias by construction; MOD16 cannot. That MOD16's advantage over CGIAR, and its independence from P, were not enough is weak evidence that part of the zone 24 residual is on the P or gauge side, not the ET side.
+
+**Mechanics:**
+- The two-step reprojection is tested against an exact polygon-overlap oracle on a sheared stripe; a one-step average warp fails that test.
+- The tiles are the 9 sinusoidal tiles the grid reaches, not CMR's loose bounding-box match, which returns 12.
+- Granules are listed through CMR and downloaded with `curl` and an Earthdata netrc. That is 180 granules, about 3.9 GB, in 14 minutes.
+- The province run reproduces #15's layers exactly, and its upstream means within 5.4e-14 after matching by watershed id. Row order is not stable between runs, because the watershed query has no ORDER BY.
+
 ### What this says about the BC Water Tools
 
 Their accuracy figures are in-sample, and after the undocumented "final adjustment to measured flows" they are near 0 % at the gauges. They are not a measure of skill at ungauged sites. The open reimplementation suggests that out-of-sample skill of this method family, province-wide, is about 33 % MAE on annual runoff (38 % for headwater basins) with the CGIAR AET Chapman used, and about 28 % (31 %; 32 % under a fully nested selection) with that AET floored by a Fu–Budyko demand (#15). Our release comparison (#5) should score their values at stations held out of *their* fit where possible.
@@ -154,8 +204,9 @@ Their accuracy figures are in-sample, and after the undocumented "final adjustme
 
 - #14: transboundary upstream area.
 - #15: the ET experiment. Done; see "The ET experiment" above.
+- #18: MOD16 as a challenger. Done; `cfu` stays. See "MOD16 as a challenger (#18)" above.
 - The Budyko floor is annual only. The monthly shares still regress on CGIAR's monthly AET (see #16 for the monthly predictors).
-- Zone 24 (Okanagan Highland) still runs at +102 % as shipped; the candidates are listed in "The ET experiment" above.
+- Zone 24 (Okanagan Highland) still runs at +102 % as shipped; the candidates are listed in "The ET experiment" above. MOD16, which is independent of P, left +166 % there (#18).
 - The pre-#15 input caches (CGIAR, climr, DEM, zones raster) are keyed on content and parameters but not on their builder code, as #15's two new builders now are (#19).
 - #16: snow predictors for the monthly shares.
 - An upstream note to climr on the ClimateNA coastal gap: drafted, not posted.

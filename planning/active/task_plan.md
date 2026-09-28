@@ -68,7 +68,7 @@ Disclosed up front:
 
 ## Phase 4: Ship and write-up
 - [x] Re-run `scripts/wb_output.R` and `scripts/wb_map.R` on the new key, whichever variant wins (`wb_map.R` always rewrites `research/wb_runoff_annual.png`). If the winner changed, do the cartography self-review and revisit the "1981–2010" legend.
-- [ ] `research/water_balance_method.md` §0: add a MOD16 subsection with the results and the attribution (ours, theirs or unresolved). Replace the "MOD16 was deferred" line and update the header line. Also update the `research/README.md` row, and the CLAUDE.md blurb if the shipped AET changes.
+- [x] `research/water_balance_method.md` §0: add a MOD16 subsection with the results and the attribution (ours, theirs or unresolved). Replace the "MOD16 was deferred" line and update the header line. Also update the `research/README.md` row, and the CLAUDE.md blurb if the shipped AET changes.
 - [ ] Edit the issue #18 body with the outcome.
 
 ## Validation
