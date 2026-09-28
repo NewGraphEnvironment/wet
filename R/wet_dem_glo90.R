@@ -20,8 +20,9 @@ wet_dem_glo90 <- function(template, dir = "data/dem", overwrite = FALSE) {
   # the cache key is the extent and dims, which identify a grid only in lon/lat
   if (!terra::is.lonlat(tmpl)) stop("template must be in lon/lat (EPSG:4326)", call. = FALSE)
   e <- as.vector(terra::ext(tmpl))
-  # v3: VRT at the finest tile resolution. v2: gaps between tiles are NA.
-  dest <- file.path(dir, sprintf("glo90v3_%s.tif", substr(wet_grid_key(tmpl), 1, 12)))
+  # keyed on the grid and the method version, so a changed build never reuses an old DEM
+  key <- wet_md5_text(paste(c(wet_grid_key(tmpl), wet_dem_method), collapse = "|"))
+  dest <- file.path(dir, sprintf("glo90_%s.tif", substr(key, 1, 10)))
   if (file.exists(dest) && !overwrite) return(dest)
   dir.create(dir, recursive = TRUE, showWarnings = FALSE)
 
@@ -51,6 +52,11 @@ wet_dem_glo90 <- function(template, dir = "data/dem", overwrite = FALSE) {
   if (!file.rename(tmp, dest)) stop("could not move DEM to ", dest, call. = FALSE)
   dest
 }
+
+# Bump whenever wet_dem_glo90() changes what it computes. 3: VRT at the finest
+# tile resolution. 2: gaps between tiles are NA. (Before #19 the version sat in
+# the file name as "glo90v3_".)
+wet_dem_method <- "vrt-highest-average-3"
 
 # GLO-90 tile names covering c(xmin, ymin, xmax, ymax). A tile is named by
 # its south-west corner, e.g. N54_00_W128_00 covers 54-55 N, 128-127 W.

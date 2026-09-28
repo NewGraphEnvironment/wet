@@ -41,8 +41,11 @@ wet_climr_normals <- function(dem, years = 1981:2010, dataset = "mswx.blend",
   # set never returns a cached file built from another one.
   years <- sort(unique(as.integer(years)))
   # ... and the elevations themselves, which drive the lapse-rate downscaling:
-  # the same grid with other values is other normals.
-  vkey <- wet_md5_text(paste(c(paste(years, collapse = ","), vars, wet_raster_md5(elev)),
+  # the same grid with other values is other normals. And the method version
+  # and climr's own version, since most of the computation is climr's code, so
+  # a changed build never reuses old normals.
+  vkey <- wet_md5_text(paste(c(paste(years, collapse = ","), vars, wet_raster_md5(elev),
+                               wet_climr_method, as.character(utils::packageVersion("climr"))),
                              collapse = "|"))
   dest <- file.path(dir, sprintf("climr_%s_%d-%d_%s_%s.tif", dataset, min(years), max(years),
                                  substr(wet_grid_key(elev), 1, 8), substr(vkey, 1, 8)))
@@ -76,6 +79,10 @@ wet_climr_normals <- function(dem, years = 1981:2010, dataset = "mswx.blend",
   if (!file.rename(tmp, dest)) stop("could not move normals to ", dest, call. = FALSE)
   dest
 }
+
+# Bump whenever wet_climr_normals() or wet_climr_anomaly_mean() changes what
+# the normals hold.
+wet_climr_method <- "anomaly-mean-downscale-core-1"
 
 # Mean anomaly per variable over the years of a climr observed time series,
 # whose layers are named "<dataset>_<VAR>_<MM>_<YYYY>".

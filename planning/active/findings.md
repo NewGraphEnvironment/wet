@@ -43,3 +43,12 @@ is the verification.
 
 | Error | Resolution |
 |-------|------------|
+
+## Scoped out (plan review A2, G8)
+
+- The CGIAR crop name keys the lattice cells, not the source archives' content; the rar md5s are checked against figshare only while `src/.extracted` is missing. The DEM name keys the grid, not the GLO-90 tiles on AWS. Both are source-content gaps, not code gaps, and are left for a follow-up.
+- terra and GDAL versions are in no builder's key. climr's version is now in the normals key because most of that computation is climr's code.
+
+## Code-check
+
+Three rounds, all Clean. Round 2 noted that `wet_md5_text()` writes via text-mode `writeLines()`, so keys would differ on Windows (CRLF); this predates #19, is consistent per platform, and `data/` never moves between OSes.

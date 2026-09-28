@@ -75,10 +75,14 @@ utils::unzip(hz_zip, exdir = hz_src, overwrite = TRUE)
 hz_shp <- list.files(hz_src, "\\.shp$", full.names = TRUE, recursive = TRUE)
 if (length(hz_shp) != 1) stop("expected one .shp in ", hz_zip, ", found ", length(hz_shp))
 hz <- terra::vect(hz_shp)
-# Keyed on the grid it was rasterised to and on the zones' own content.
-f_hz <- file.path(hz_dir, sub("^cgiar_aet_(.*)\\.tif$",
-                              paste0("hydz_\\1_", substr(hz_md5, 1, 8), ".tif"),
-                              basename(f_aet)))
+# Keyed on the grid it was rasterised to, on the zones' own content and on
+# the method version below. No package file holds this step, so no run key
+# covers its code: bump hz_method whenever the rasterising below changes what
+# the grid holds (#19).
+hz_method <- "rasterize-in-memory-int1u-1"
+hz_key <- wet:::wet_md5_text(paste(c(wet:::wet_grid_key(terra::rast(f_aet)), hz_md5, hz_method),
+                                   collapse = "|"))
+f_hz <- file.path(hz_dir, sprintf("hydz_%s.tif", substr(hz_key, 1, 10)))
 if (!file.exists(f_hz)) {
   # written to a temp file and renamed, so a killed run never leaves a
   # truncated grid at the cached path
