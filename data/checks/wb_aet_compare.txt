@@ -1,8 +1,10 @@
-# ET experiment (#15): annual AET variants scored as shipped under blocked CV
+# ET experiments (#15, #18): annual AET variants scored as shipped under blocked CV
 
-province run: 495b33ec47; stations: 290 (headwater 218, nested 72); folds: 93
-Variants: cgiar (CGIAR SWB v3), lc (CGIAR x Chapman Table 3 land-cover ratio, NRCan 2020), tc (TerraClimate 1981-2010), fu (Fu-Budyko, climr P and Hargreaves PET, omega 2.6), cfu (max of CGIAR and fu); fu15/fu20/fu35 are fu at omega 1.5/2.0/3.5, transparency only.
+province run: adc88b19c8; stations: 290 (headwater 218, nested 72); folds: 93
+Variants: cgiar (CGIAR SWB v3), lc (CGIAR x Chapman Table 3 land-cover ratio, NRCan 2020), tc (TerraClimate 1981-2010), fu (Fu-Budyko, climr P and Hargreaves PET, omega 2.6), cfu (max of CGIAR and fu); fu15/fu20/fu35 are fu at omega 1.5/2.0/3.5, transparency only; mod16 (MOD16A3GF v061, mean 2001-2020, gaps filled with cfu by area), cmod16 (max of CGIAR and mod16).
 Monthly shares use CGIAR monthly AET for every variant; differences here are annual only.
+
+## Stage 1 (#15): cgiar against lc, tc, fu, cfu
 
 Rule (fixed before scoring): a variant replaces cgiar only if, under blocked CV and as shipped,
 (a) headwater MAE is at least 2.0 points below cgiar, (b) all-station MAE is no higher, (c) nested MAE is at most 1.0 points higher and nested within +/-20 % at most 3 points lower, and (d) a fully nested selection beats cgiar's headwater MAE.
@@ -17,12 +19,32 @@ cfu    adjusted     31.2   27.7   17.4    70.8     31.6     28.6
 fu15   adjusted     42.8   36.3   16.6    75.0     66.3     56.6 (transparency)
 fu20   adjusted     37.8   32.2   15.1    80.6     42.8     36.1 (transparency)
 fu35   raw          28.9   27.6   23.5    38.9     28.9     27.6 (transparency)
+mod16  adjusted     36.3   31.4   16.5    75.0     40.5     34.8 (stage 2)
+cmod16 adjusted     34.6   30.4   17.7    69.4     36.3     32.1 (stage 2)
 
 (a)-(c) choose: cfu
 (d) nested selection (outer: 93 WSC folds; inner: blocked CV on each fold's training stations, pooled variant chosen once per training set): headwater 32.3, all 28.6, nested 17.3, nested in +/-20 % 70.8; cgiar as shipped: headwater 38.1 -> pass
     variant chosen by the outer folds: cgiar 0, lc 0, tc 0, fu 6, cfu 87
+Stage 1 winner: cfu (reproduces #15)
+
+## Stage 2 (#18): cfu against mod16 and cmod16
+
+Rule (fixed before scoring): the same (a)-(c) thresholds with cfu as the incumbent, and (d) a fully nested selection among cfu, mod16, cmod16 beating the as-shipped headwater MAE of cfu on this run.
+Disclosed: MOD16 is 2001-2020; climr P and T (so fu) and TerraClimate are 1981-2010; CGIAR AET (so cgiar and the CGIAR half of cfu and cmod16) is a WorldClim-based climatology (WorldClim 2.1, about 1970-2000; research/water_balance_method.md section 7 item 3); MOD16's gaps (codes 65529-65535: unclassified, urban, permanent wetland, snow/ice, barren, water, fill) take cfu, which dilutes a challenger's margin; the incumbent's score is itself post-selection, so the comparison leans toward keeping it.
+MOD16 cover, cells on the analysis grid (mod16_whole: all MOD16; cfu_whole: no MOD16, all cfu; cfu_part: both): mod16_whole 2124695; cfu_whole 137890; cfu_part 179665; cfu_cell_equivalents 208815.4
+
+(a)-(c) choose: cfu
+(d) nested selection: headwater 33.2, all 29.2, nested 17.1, nested in +/-20 % 70.8; cfu as shipped: headwater 31.2 -> fail
+    variant chosen by the outer folds: cfu 93, mod16 0, cmod16 0
 
 WINNER: cfu
+
+## Transparency (never deciding)
+cfu alone under the same nested procedure (inner gate per fold): headwater 33.2, all 29.2, nested 17.1, nested in +/-20 % 70.8
+Two-stage nested selection (stage 1 then stage 2 inside each fold): headwater 32.3, all 28.6, nested 17.3, nested in +/-20 % 70.8
+    variant chosen by the outer folds: cgiar 0, lc 0, tc 0, fu 6, cfu 87, mod16 0, cmod16 0
+Upstream MOD16 share of the 290 stations: min 0.18, quartiles 0.94 / 0.99 / 1.00, max 1.00
+Headwater MAE, stations whose basin is >= 80 % MOD16 (n = 200): cfu 31.9, mod16 37.5, cmod16 35.6
 
 ## Detail, as shipped: mean error % in the semi-arid zones, MAE % for basins < 100 km2,
 ## and Greata Creek 08NM173 (upstream AET, raw P - AET, shipped; observed below)
@@ -35,4 +57,6 @@ cfu        8.5    47.5    20.4   102.4     43.5      499    243    243
 fu15       4.7   367.4    60.2   168.5     72.9      297    446    341
 fu20       6.2   241.7    46.8   154.4     62.3      422    321    321
 fu35      26.0    21.8     0.4    61.5     32.6      561    182    182
+mod16      8.7   107.6    45.4   166.3     55.0      419    324    324
+cmod16    10.2    48.2    44.0   164.7     51.7      419    324    324
 Greata Creek: upstream P 743 mm, observed 50 mm

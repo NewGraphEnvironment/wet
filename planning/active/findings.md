@@ -47,6 +47,47 @@ This was a scratch copy with mod16 and cmod16 stood in by cfu's scores, the md5 
 - **The plan review's R1 premise is false.** It held that a fold picking cfu reproduces cfu's shipped predictions. It does not: each fold's inner gate (adjust or raw) and pooled variant are chosen on its own training stations.
 - **(d), against the as-shipped score, is therefore about 2 points stricter** than comparing nested with nested. The rule is kept as approved, because it is the same form #15 used against cgiar and no MOD16 score exists yet. The report adds cfu alone under the nested procedure, so the bar is visible.
 
+## Full province run (2026-09-28 UTC; key adc88b19c8)
+
+- `wb_inputs.R` in 37 s: every input was cached, the manifest was rewritten with the MOD16 rows, and climr vs ECCC is unchanged (MAP ratio median 1.034). `wb_province.R 4` took 13.5 min. Its record is `data/checks/wb_province_run.txt`.
+- **Reproduces #15** (`data/wb_old/495b33ec47`):
+  - all 53 old layers in `layers.tif` are identical;
+  - all 24 upstream basin files hold the same watershed set;
+  - every old column agrees within 5.4e-14 relative after matching by `watershed_feature_id`.
+  - **Row order differs between runs**, because the watershed query has no ORDER BY. The first verifier compared by position and stopped the chain; everything downstream joins by id.
+- **MOD16 cover on the analysis mask:** `mod16_whole` 2,124,695 cells, `cfu_whole` 137,890, `cfu_part` 179,665, and 208,815 cfu cell-equivalents (8.5 % of 2,442,250 cells).
+
+## Scoring and the decision (2026-09-28 UTC; chain log data/logs/20260928_chain18b.log)
+
+- 10 × `wb_validate.R` at about 4 min each, `wb_aet_compare.R` 9.8 min, then ship, output and map, for 06:02–06:55 UTC in all. Report: `data/checks/wb_aet_compare.txt`.
+- **Stage 1 reproduces #15 exactly**, so the assertion passed: cfu at 31.2 / 27.7 / 17.4 / 70.8, nested 32.3, and folds fu 6 / cfu 87.
+- **Stage 2: cfu stays.**
+
+| AET | Headwater | All 290 | Nested | Nested ±20 % | Raw headwater |
+|---|---|---|---|---|---|
+| cfu (incumbent) | 31.2 | 27.7 | 17.4 | 70.8 | 31.6 |
+| mod16 | 36.3 | 31.4 | 16.5 | 75.0 | 40.5 |
+| cmod16 | 34.6 | 30.4 | 17.7 | 69.4 | 36.3 |
+| cgiar (reference) | 38.1 | 33.1 | 17.9 | 72.2 | 39.8 |
+
+- **(a)** fails for both: they are 5.1 and 3.4 points *above* cfu, where the rule needed 2 below. In the nested selection all 93 folds chose cfu (33.2 against 31.2, fail).
+- **Not the gap fill.** On the 200 headwater basins that are at least 80 % MOD16: cfu 31.9, mod16 37.5, cmod16 35.6. Station basins are mostly MOD16 (quartiles 0.94 / 0.99 / 1.00; min 0.18).
+- **Semi-arid zones, mean error as shipped:**
+
+| Zone | cgiar | cfu | mod16 | cmod16 |
+|---|---|---|---|---|
+| 17 | +56 | +48 | +108 | +48 |
+| 23 | +57 | +20 | +45 | +44 |
+| 24 | +231 | +102 | +166 | +165 |
+| < 100 km² MAE | 61 | 44 | 55 | 52 |
+
+  - **Greata Creek:** upstream AET is 281 with cgiar, 499 with cfu and 419 with mod16; P 743 and observed 50 imply about 693.
+- **MOD16 improves on CGIAR but not on the Budyko floor.** Its nested-basin error is the best of the three (16.5, and 75 % within ±20 %), so it does well on large basins.
+- **Other tracked reports changed only by run key**, apart from ordering:
+  - `wb_validation*.txt` list the pooled zones 16 17 12 rather than 16 12 17, and the coefficient table's row order moved. The zone columns are ordered by first appearance, which follows the unordered watershed rows. The same set of zones, and byte-identical lines otherwise.
+  - `wb_output.txt` changed by the run key only.
+  - `research/wb_runoff_annual.png` is byte-identical.
+
 ## Plan review (2026-09-27)
 
 `review-plan.md` has every finding and its disposition. The rule was clarified before any MOD16 variant was scored: the (d) threshold, the frozen knobs, the transparency rows and the disclosures.
@@ -57,3 +98,4 @@ This was a scratch copy with mod16 and cmod16 stood in by cfu's scores, the md5 
 |-------|------------|
 | A test downloaded a real granule: the stripe grid touched h11v03, the fixture had only h10v03, and `wet_mod16_aet()` searched and fetched with the real netrc | Moved the grid inside h10v03. `mock_read()` now stubs search and download to error, so a forgotten tile fails the test instead of reaching the network |
 | `terra::densify(p, 1000)` over-included a tile (great-circle edges) | `densify(p, 0.01, flat = TRUE)` |
+| The chain's verifier stopped at `identical(watershed_feature_id)` | Upstream rows come back in a different order each run (no ORDER BY). Compare by id: they reproduce within 5.4e-14 |

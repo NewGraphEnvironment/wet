@@ -56,7 +56,7 @@ Disclosed up front:
 
   Append the counts of fully and partly filled cells to `ex_filled_cells.txt`, keeping its existing lines byte-identical. The mask-unmoved assertion then covers the new layers.
 - [x] `wet_wb_aet_cols()`: add `mod16` and `cmod16`, and update `test-wet_wb_raw.R`.
-- [ ] Smoke-test with `WET_WB_GROUPS=SALR,OKAN`, then run the full province under `caffeinate -i`. Move the old run to `data/wb_old/`. Check that the #11/#15 layers match the old run exactly (upstream means to about 1e-12 relative) and that the calibration set is the same 290 stations. Do not re-run `wb_stations.R`. The tracked run record goes in `data/checks/wb_province_run.txt`, because `data/logs/` is gitignored.
+- [x] Smoke-test with `WET_WB_GROUPS=SALR,OKAN`, then run the full province under `caffeinate -i`. Move the old run to `data/wb_old/`. Check that the #11/#15 layers match the old run exactly (upstream means to about 1e-12 relative) and that the calibration set is the same 290 stations. Do not re-run `wb_stations.R`. The tracked run record goes in `data/checks/wb_province_run.txt`, because `data/logs/` is gitignored.
 
 ## Phase 3: Rule and scoring
 - [x] `scripts/wb_aet_compare.R`: change `decide(m, incumbent, eligible)` and the nested selection to take the incumbent and the candidates. Then:
@@ -64,19 +64,19 @@ Disclosed up front:
   - **Stage 2** is the #18 rule above.
 
   The report shows both stages. It adds `mod16` / `cmod16` detail rows (zones 15/17/23/24, < 100 km², Greata), the gap-fill counts and the period disclosure. `WINNER` is stage 2's result, and `aet_winner.txt` holds it.
-- [ ] Update `wb_validate.R`'s usage line. Commit every `score_files` edit (and `/code-check` it) **before** the 10-variant loop. Run `wb_validate.R` for all 10 variants, then `wb_aet_compare.R`, then `wb_validate.R <winner>`. The tracked record is the `data/checks/` reports.
+- [x] Update `wb_validate.R`'s usage line. Commit every `score_files` edit (and `/code-check` it) **before** the 10-variant loop. Run `wb_validate.R` for all 10 variants, then `wb_aet_compare.R`, then `wb_validate.R <winner>`. The tracked record is the `data/checks/` reports.
 
 ## Phase 4: Ship and write-up
-- [ ] Re-run `scripts/wb_output.R` and `scripts/wb_map.R` on the new key, whichever variant wins (`wb_map.R` always rewrites `research/wb_runoff_annual.png`). If the winner changed, do the cartography self-review and revisit the "1981–2010" legend.
+- [x] Re-run `scripts/wb_output.R` and `scripts/wb_map.R` on the new key, whichever variant wins (`wb_map.R` always rewrites `research/wb_runoff_annual.png`). If the winner changed, do the cartography self-review and revisit the "1981–2010" legend.
 - [ ] `research/water_balance_method.md` §0: add a MOD16 subsection with the results and the attribution (ours, theirs or unresolved). Replace the "MOD16 was deferred" line and update the header line. Also update the `research/README.md` row, and the CLAUDE.md blurb if the shipped AET changes.
 - [ ] Edit the issue #18 body with the outcome.
 
 ## Validation
 
-- [ ] Tests pass (no network needed)
-- [ ] #15's stage reproduces `cfu` and its table on the new key
-- [ ] If `cfu` stays, `wb_output.txt` is unchanged apart from the run key
-- [ ] `wb_validation_aet-cgiar.txt` unchanged apart from the run-key line
+- [x] Tests pass (no network needed)
+- [x] #15's stage reproduces `cfu` and its table on the new key
+- [x] If `cfu` stays, `wb_output.txt` is unchanged apart from the run key
+- [x] `wb_validation_aet-cgiar.txt` unchanged apart from the run-key line *(and the order of zone rows and of the pooled-zone list: the zone columns follow the unordered watershed rows; see findings)*
 - [ ] `/code-check` clean on each commit
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion

@@ -16,3 +16,7 @@
   - Two compare dry runs against the #15 run reproduced #15 exactly and ran stage 2 end to end.
 - /code-check, three rounds on the scripts. Round 1: the "full" count label was inverted. Round 2: untagged stage-2 rows, a loose granule manifest, and a stale "full" restatement in findings (a defect inside round 1's fix). Round 3: the period disclosure had been copied from the plan and was wrong for CGIAR.
   - It ended by enumerating all 29 report lines against their sources (`review-p23-enumeration.md`).
+
+## Session 2026-09-28 (UTC)
+- Full province run adc88b19c8 (13.5 min). It reproduces #15 (53 layers identical; upstream means within 5.4e-14 after matching by id; row order is not stable between runs).
+- Scored all 10 variants and compared. Stage 1 reproduced #15. Stage 2: mod16 36.3 and cmod16 34.6 headwater against cfu 31.2, so **cfu stays**. Shipped fit, output and map re-run.
