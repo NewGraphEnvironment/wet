@@ -43,6 +43,12 @@ All functions use the `wet_*` prefix with `noun_verb` naming (`wet_pcic_fetch`, 
 - **PCIC channel-scale** (VIC-GL-Raven CMIP6, May 2026) at `services.pacificclimate.org/chyp`: routed per reach on an FWA-derived network. Coast + Fraser now; Peace and Upper Columbia expected in about a year. Pilot before domain-wide use (#9).
 - Time axis is "days since 1945-1-1", standard calendar: index = days since 1945-01-01. Grid is 0.0625°, lon −139.96875 + 0.0625·i, lat 41.09375 + 0.0625·j.
 - Units are mm/day (packed shorts, fill −32767). Annual mm/yr = sum over the days of each year, then mean over years. That is cdo's `yearsum` then `timmean`, which is what fwapg does.
+- **Station flow after HYDAT.** HYDAT's approved record lags by one to two years. ECCC real-time (`tidyhydat::realtime_ws()`) reaches back about 18 months, and GeoMet `hydrometric-realtime` only 30 days, so the two need not meet. water-temp-bc (`s3://water-temp-bc/data`, public) archives ECCC provisional data monthly: daily discharge (Parameter 6), sensor discharge (47) and water temperature (5). It covers `canonical/` from 2024-10 and `historic/` from about 2016, and the two are not yet one read path (water-temp-bc#19). Measured 2026-09-28 in #25.
+- A newer HYDAT release does not replace the one the water balance (#11) was fit against: download it to its own path, or the fit's inputs change underneath it.
+
+## Hydrology home
+
+wet owns hydrology data, observed and modelled (decided 2026-09-28, sred#26). `ngr_hyd_q_daily()` ports here (#25), and the ngr copy is deprecated once wet is public. Departure statistics (baseline, anomaly, trend, window comparison) are cd's: wet produces per-year values in cd's long format (`variable`, `period`, `year`, `value`) and does not reimplement them (cd#92).
 
 ## Database
 
