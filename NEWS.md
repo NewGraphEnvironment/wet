@@ -53,3 +53,16 @@
   normals on climr's version too), so a builder change never reuses an old
   file (#19). Existing caches rebuild once under the new names; re-run under
   them, the water balance reproduces every shipped number.
+
+* Flow departure at hydrometric stations (#25).
+  - `wet_station_daily()` gives one daily flow series per station, from
+    approved HYDAT through ECCC provisional daily means (the water-temp-bc
+    archive) to real-time. Each source continues the one before it, from its
+    whole record. Ported from `ngr::ngr_hyd_q_daily()`.
+  - `wet_window_stats()` summarises any daily series over month-day windows
+    once per year, in cd's long format, and `wet_windows_calendar()` supplies
+    the calendar windows. Departure and trend come from cd.
+  - `scripts/station_departure.R` runs it for real-time stations. At Buck
+    Creek and Bulkley nr Houston, 2023-2026 summer and early-fall flow ran
+    54-87 % below the 1981-2010 mean. Provisional winter flows are
+    uncorrected ice readings; see `research/station_flow_departure.md`.
