@@ -21,48 +21,51 @@ water-temp-bc archives ECCC's provisional data every month, so it covers the per
 - [x] Signature settled here: `wet_station_daily(stations, hydat = wet_hydat_path(), from = NULL, to = Sys.Date(), sources = c("hydat", "provisional", "realtime"))`, where `stations` is a character vector of station numbers
 
 ## Phase 2: provisional and real-time sources, joined
-- [ ] Internal readers:
+- [x] Internal readers:
   - `wet_provisional_daily()`: duckdb over `s3://water-temp-bc/data/canonical/Parameter=6/`, filtered by station and date, with `Symbol` kept
   - `wet_realtime_daily()`: `tidyhydat::realtime_ws(parameters = 6)` for days after the archive's last date
-- [ ] Tests with both readers mocked to `stop()` by default and re-mocked per test (code-check-r, "A fetcher's test helper must make the network fail"). They cover:
+- [x] Per-station cutoffs (review 3): provisional only after HYDAT's last date, real-time only after the sources before it; days on or after today dropped from real-time; an unknown station returns empty with a warning; anonymous duckdb S3 secret
+- [x] Fixture: a non-NA Feb FLOW30 so the invalid-date drop is tested (review 14)
+- [x] Download HYDAT 2026-07-17 to `data/hydat/20260717/` and check coverage (moved up from Phase 4, review 12)
+- [x] Tests with both readers mocked to `stop()` by default and re-mocked per test (code-check-r, "A fetcher's test helper must make the network fail"). They cover:
   - precedence on overlap: HYDAT > provisional > real-time
-  - the UTC 08:00 → date conversion
+  - the UTC 08:00 → date conversion, and a 07:00 row
   - a gap between sources reported with a `warning()` naming station and date range, not filled
   - a source that errors is skipped with a warning, and the rest returned
-- [ ] A live test for 08EE013 with `skip_on_ci()` and `skip_if_not_installed("duckdb")`
-- [ ] DESCRIPTION: duckdb to Suggests, with an `rlang`-free `requireNamespace` check and a clear message
-- [ ] Output columns: `station_number, date, q_m3s, symbol, source, status`
+- [x] A live test for 08EE013 with `skip_on_ci()` and `skip_if_not_installed("duckdb")`
+- [x] DESCRIPTION: duckdb to Suggests, with an `rlang`-free `requireNamespace` check and a clear message
+- [x] Output columns: `station_number, date, q_m3s, symbol, source, status`
 
 ## Phase 3: window statistics
-- [ ] `wet_windows_calendar()`: months and seasons as a windows table (`window, start, end`, month-day strings), mirroring `cd_seasons()`
+- [ ] `wet_windows_calendar()`: months and seasons as a windows table (`window, start, end`, month-day strings). Seasons are named `djf`, `mam`, `jja`, `son`, not cd's `winter` (review 6)
 - [ ] Tests first for `wet_window_stats(x, windows, stats, min_frac = 0.8, threshold = NULL)`. `x` is any daily `date, value` series with optional id columns carried through. Covers:
   - a window crossing 1 January is assigned to the year it starts in, with year boundaries hand-checked
   - a window-year below `min_frac` of its days is dropped
-  - `frac_ice` is the share of `B` days when `symbol` is present
-  - each statistic on a hand-computed series: `mean`, `min`, `max`, `min7` (rolling 7-day mean minimum within the window), `days_below` (value < threshold), `cov_doy` (day of window by which half the window's volume has passed)
+  - `frac_ice` is the share of present days with `B`; `frac_provisional` the share with `status == "provisional"` (review 10)
+  - each statistic on a hand-computed series: `mean`, `min`, `max`, `min7` (lowest mean over 7 consecutive calendar days inside the window), `frac_below` (share of present days below the threshold), `cov_day` (day of window by which half the window's volume has passed; complete window-years only)
+  - leap rules: start `02-29` refused, end `02-29` means end of February, `start == end` is one day, a window-year ending after the series' last date dropped; leap vs non-leap cross-year case (review 5)
   - 29 February handled for both window membership and the day count
-- [ ] Output in cd's long format: `variable` (e.g. `q_mean`), `period` (= window), `year`, `value`, plus `anomaly_type` and `unit` columns per the cd#92 contract, id columns, `n_days` and `frac_ice`
+- [ ] Output in cd's long format: `variable` (e.g. `q_mean`), `period` (= window), `year`, `value`, plus `anomaly_type` and `unit` per cd PR #94 (unit of the anomaly: mean/min/max/min7 pct_normal `%`; frac_below and cov_day absolute), id columns, `n_days`, `frac_ice`, `frac_provisional`
 - [ ] A threshold per id through a named vector or a column, documented with station MAD from `wet_station_monthly()`
 
 ## Phase 4: departure through cd, and the station run
-- [ ] cd to Suggests with `Remotes: NewGraphEnvironment/cd`. A test that `wet_window_stats()` output passes `cd_baseline()` → `cd_anomaly()` → `cd_trend()` without `NA`, with `skip_if_not()` on cd having the #92 behaviour, so it activates once #92 is installed
-- [ ] Download the 2026-07-17 HYDAT to its own path under `data/hydat/<version>/`; the water-balance HYDAT is left in place (CLAUDE.md)
+- [ ] cd to Suggests with `Remotes: NewGraphEnvironment/cd`. A test that one station's `wet_window_stats()` output passes `cd_baseline()` → `cd_anomaly()` → `cd_trend()` without `NA`, skipped unless cd, Kendall and zyp are installed and cd has the #92 behaviour (review 15)
 - [ ] `scripts/station_departure.R 08EE013 08EE003`:
   - daily series → calendar windows plus two example life-history windows, labelled as examples until knowledge#25 lands
-  - per station: cd baseline, anomaly and trend, with baseline 1981–2010 and the per-station years used stated
+  - per station (cd takes one series per call, review 1): cd baseline, anomaly and trend, with baseline 1981–2010 and n baseline years per window stated (review 7)
   - output: a report at `data/checks/station_departure_report.txt` (tracked, per the gitignore exception)
 - [ ] Record coverage, the gaps found and the headline departures in `findings.md`, and in `research/station_flow_departure.md` if a durable method verdict comes out of it (plus its `research/README.md` row)
 
 ## Phase 5: docs and wrap-up
 - [ ] Roxygen with runnable examples on the fixture-free parts (`wet_windows_calendar()`, `wet_window_stats()` on a synthetic series); HYDAT and network examples in `\dontrun{}`
-- [ ] `_pkgdown.yml` reference index if present, `devtools::document()`, `lintr`, full `devtools::test()`
+- [ ] `devtools::document()`, `lintr`, full `devtools::test()`
 - [ ] CLAUDE.md Architecture: a line for the station-departure path
 - [ ] `/planning-archive`, `/gh-pr-push`
 
 ## Decisions (approved at the plan gate, 2026-09-28)
 
 1. **Function names.** `wet_station_daily()` (matches `wet_station_monthly()`), `wet_window_stats()` (series-agnostic, so it can take temperature), `wet_windows_calendar()`. The alternative is `wet_flow_windows()`, which reads flow-only.
-2. **Multi-station through cd.** Recommended: add one line to cd#92 now, while it is in flight, asking cd's consumer functions to carry extra id columns (e.g. `station_number`) into their `.by`. It costs one line there and removes a split/rebind step in every caller. Fallback if cd#92 has already merged: the script splits per station.
+2. **Multi-station through cd.** Superseded by review 1: cd PR #94 rejects several series per table by design. The script splits per station, and the id-columns request is cd#95.
 3. **historic/ (2016–2024) is out of scope.** A fresh HYDAT covers flow through the provisional archive's start. Pre-2024-10 provisional data waits for water-temp-bc#19.
 
 ## Validation

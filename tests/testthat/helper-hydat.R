@@ -40,6 +40,9 @@ local_hydat <- function(env = parent.frame()) {
   d[i, sprintf("FLOW_SYMBOL%d", 1:31)] <- "B"
   i <- d$STATION_NUMBER == "08AA001" & d$YEAR == 1983 & d$MONTH == 6
   d[i, "FLOW_SYMBOL15"] <- "E"
+  # a value in FLOW30 of February 1983, a day that does not exist
+  i <- d$STATION_NUMBER == "08AA001" & d$YEAR == 1983 & d$MONTH == 2
+  d[i, "FLOW30"] <- 99
   DBI::dbWriteTable(con, "DLY_FLOWS", d)
   path
 }

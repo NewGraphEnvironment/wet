@@ -68,7 +68,22 @@ Ice dominates the winter record. Symbols by station:
 
 43% of Buck Creek's daily flows are ice-affected estimates. Any winter window statistic there rests mostly on them, which is why `frac_ice` is carried per window-year.
 
+## Sources joined (2026-09-28)
+
+HYDAT 2026-07-17 (`data/hydat/20260717/`) ends March 2025 for both stations (`MAX(YEAR*100+MONTH)` = 202503). `wet_station_daily(c("08EE013", "08EE003"), <that path>)` joins with no seam gaps:
+
+| station | hydat | provisional | realtime |
+|---|---|---|---|
+| 08EE003 | 1930-09-09 .. 2025-03-04 | 2025-03-05 .. 2026-09-12 | 2026-09-13 .. 2026-09-27 |
+| 08EE013 | 1973-01-01 .. 2025-03-02 | 2025-03-03 .. 2026-09-12 | 2026-09-13 .. 2026-09-27 |
+
+The water-temp-bc canonical `Symbol` is NA on every row for both stations, so provisional winters carry no ice flag. `frac_provisional` is what marks them.
+
+The duckdb read uses an explicit keyless S3 secret (region us-west-2), so AWS credentials in the environment are never sent.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
+| `tidyhydat::download_hydat(dl_hy_path=)` "unused argument", yet the backgrounded call reported exit 0 through a pipe | The argument is `dl_hydat_here`; read the output, not the exit status |
+| `max(c(NULL, <Date>, ...))` returned a plain number (c dispatches on its first argument) | Put a Date first; regression test "real-time alone still gets Dates" |

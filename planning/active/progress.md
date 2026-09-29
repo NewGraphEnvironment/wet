@@ -7,3 +7,5 @@
 - Scaffolded PWF baseline from issue #25 with approved phases
 - Next: Phase 1
 - Phase 1: `wet_station_daily()` HYDAT reader, fixture gains `FLOW_SYMBOL*`; matches tidyhydat exactly on 08EE013
+- Plan review (Plan agent) → `review-1.md`; 18 findings, all adopted or answered; task_plan updated. cd PR #94 rejects several series per table, so the id-columns request moved out of cd#92 into cd#95
+- Phase 2: provisional (duckdb over water-temp-bc) and real-time readers, per-station cutoffs, seam warnings; HYDAT 2026-07-17 downloaded to `data/hydat/20260717/`; live test green. The cutoff was proven by restoring the bug (FAIL 2)

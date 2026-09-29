@@ -9,7 +9,7 @@ wet_station_daily(
   hydat = wet_hydat_path(),
   from = NULL,
   to = Sys.Date(),
-  sources = "hydat"
+  sources = c("hydat", "provisional", "realtime")
 )
 }
 \arguments{
@@ -22,14 +22,26 @@ download location.}
 \code{as.Date()} reads). \code{NULL} means no bound.}
 
 \item{sources}{Which sources to read, from \code{"hydat"}, \code{"provisional"} and
-\code{"realtime"}.}
+\code{"realtime"}. Each source continues the one before it, per station:
+provisional days are used only after HYDAT's last day, and real-time days
+only after both. \code{"provisional"} reads the water-temp-bc archive of ECCC daily means
+(option \code{wet.provisional_root}, default
+\verb{s3://water-temp-bc/data/canonical/Parameter=6/}) with duckdb, and
+\code{"realtime"} calls \code{\link[tidyhydat:realtime_ws]{tidyhydat::realtime_ws()}} for the days after the
+other sources end (at most about 18 months back).}
 }
 \value{
 \code{data.frame(station_number, date, q_m3s, symbol, source, status)},
 one row per station-day that has a flow, ordered by station and date.
 \code{symbol} is HYDAT's daily symbol (\code{"B"} ice, \code{"E"} estimated, \code{"A"}
 partial day, \code{"D"} dry) or \code{NA}; \code{status} is \code{"approved"} or
-\code{"provisional"}.
+\code{"provisional"}. Provisional days carry no ice symbol, so their \code{NA}
+means "not recorded", not "open water".
+
+A gap between the end of one source and the start of the next (for
+example an old HYDAT ending before the provisional archive begins) is
+left unfilled and reported with a warning. A source that fails is skipped
+with a warning and the others are returned.
 }
 \description{
 One daily discharge series per station. Approved HYDAT flows come first;
@@ -44,8 +56,8 @@ months of real-time flow.
 }
 \examples{
 \dontrun{
-# Buck Creek at the mouth, approved HYDAT only
-q <- wet_station_daily("08EE013", sources = "hydat")
-table(q$symbol, useNA = "ifany")
+# Buck Creek at the mouth, from the start of its record to last week
+q <- wet_station_daily("08EE013")
+table(q$source, q$status)
 }
 }

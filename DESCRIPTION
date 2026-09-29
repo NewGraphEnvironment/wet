@@ -25,6 +25,7 @@ Imports:
     terra
 Suggests:
     climr,
+    duckdb,
     RPostgres,
     RSQLite,
     testthat (>= 3.2.0),
