@@ -22,9 +22,10 @@ download location.}
 \code{as.Date()} reads). \code{NULL} means no bound.}
 
 \item{sources}{Which sources to read, from \code{"hydat"}, \code{"provisional"} and
-\code{"realtime"}. Each source continues the one before it, per station:
-provisional days are used only after HYDAT's last day, and real-time days
-only after both. \code{"provisional"} reads the water-temp-bc archive of ECCC daily means
+\code{"realtime"}. Each source continues the one before it, per station, from
+that source's last day over its whole record: provisional days are used
+only after HYDAT's last day, and real-time days only after both, whatever
+\code{from} and \code{to} are. \code{"provisional"} reads the water-temp-bc archive of ECCC daily means
 (option \code{wet.provisional_root}, default
 \verb{s3://water-temp-bc/data/canonical/Parameter=6/}) with duckdb, and
 \code{"realtime"} calls \code{\link[tidyhydat:realtime_ws]{tidyhydat::realtime_ws()}} for the days after the
@@ -35,12 +36,13 @@ other sources end (at most about 18 months back).}
 one row per station-day that has a flow, ordered by station and date.
 \code{symbol} is HYDAT's daily symbol (\code{"B"} ice, \code{"E"} estimated, \code{"A"}
 partial day, \code{"D"} dry) or \code{NA}; \code{status} is \code{"approved"} or
-\code{"provisional"}. Provisional days carry no ice symbol, so their \code{NA}
-means "not recorded", not "open water".
+\code{"provisional"} (any ECCC approval other than final counts as
+provisional). Provisional days carry no ice symbol, so their \code{NA} means
+"not recorded", not "open water".
 
 A gap between the end of one source and the start of the next (for
 example an old HYDAT ending before the provisional archive begins) is
-left unfilled and reported with a warning. A source that fails is skipped
+left unfilled and reported with a warning when it overlaps \code{from}-\code{to}. A source that fails is skipped
 with a warning and the others are returned.
 }
 \description{

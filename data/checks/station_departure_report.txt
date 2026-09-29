@@ -2,7 +2,7 @@
 
 Run 2026-09-28. HYDAT data/hydat/20260717/Hydat.sqlite3. Baseline 1981-2010. Threshold for frac_below: 20% of the station's MAD (1981-2010, or its whole record of complete years where 1981-2010 has fewer than 5).
 Anomalies: q_mean and q_min7 in % of normal; q_frac_below as a change in the share of days below the threshold.
-ice = share of the window's days flagged B (ice); prov = share that is provisional (no ice flag recorded).
+ice = share of the days present flagged B (ice); prov = share of the days present that are provisional (no ice flag recorded).
 The ch_* windows are examples from the template's Bulkley life-history CSV, pending knowledge#25.
 Windows touching Nov-Apr (djf, son) drop any year with provisional days: provisional winter flow is not ice-corrected.
 
@@ -19,7 +19,7 @@ Dropped as provisional winter: djf 2025, son 2025
 No departure (fewer than 10 baseline years): none
 
 Baseline years per window (q_mean):
-  aug 29, ch_migration_example 30, ch_spawning_example 29, djf 30, jja 30, sep 29, son 29
+  aug 29, sep 29, djf 30, jja 30, son 29, ch_migration_example 30, ch_spawning_example 29
 
 Recent departures:
 
@@ -107,7 +107,7 @@ Dropped as provisional winter: djf 2025, son 2025
 No departure (fewer than 10 baseline years): djf
 
 Baseline years per window (q_mean):
-  aug 18, ch_migration_example 18, ch_spawning_example 18, djf 1, jja 18, sep 19, son 10
+  aug 18, sep 19, djf 1, jja 18, son 10, ch_migration_example 18, ch_spawning_example 18
 
 Recent departures:
 

@@ -112,8 +112,8 @@ wet_window_stats <- function(x, windows = wet_windows_calendar(),
   out$variable <- if (nrow(out)) paste0(prefix, "_", out$stat) else character()
   out$anomaly_type <- meta$anomaly_type[m]
   out$unit <- meta$unit[m]
-  ord <- do.call(order, c(unname(as.list(out[by])), list(m, match(out$period, w$window),
-                                                          out$year)))
+  keys <- c(unname(as.list(out[by])), list(m, match(out$period, w$window), out$year))
+  ord <- do.call(order, keys)
   out <- out[ord, c(by, "variable", "period", "year", "value", "anomaly_type", "unit", "n_days",
                     "frac_ice", "frac_provisional")]
   rownames(out) <- NULL

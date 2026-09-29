@@ -14,9 +14,10 @@
 #' @param from,to Optional first and last date (a `Date` or a string
 #'   `as.Date()` reads). `NULL` means no bound.
 #' @param sources Which sources to read, from `"hydat"`, `"provisional"` and
-#'   `"realtime"`. Each source continues the one before it, per station:
-#'   provisional days are used only after HYDAT's last day, and real-time days
-#'   only after both. `"provisional"` reads the water-temp-bc archive of ECCC daily means
+#'   `"realtime"`. Each source continues the one before it, per station, from
+#'   that source's last day over its whole record: provisional days are used
+#'   only after HYDAT's last day, and real-time days only after both, whatever
+#'   `from` and `to` are. `"provisional"` reads the water-temp-bc archive of ECCC daily means
 #'   (option `wet.provisional_root`, default
 #'   `s3://water-temp-bc/data/canonical/Parameter=6/`) with duckdb, and
 #'   `"realtime"` calls [tidyhydat::realtime_ws()] for the days after the
@@ -25,12 +26,13 @@
 #'   one row per station-day that has a flow, ordered by station and date.
 #'   `symbol` is HYDAT's daily symbol (`"B"` ice, `"E"` estimated, `"A"`
 #'   partial day, `"D"` dry) or `NA`; `status` is `"approved"` or
-#'   `"provisional"`. Provisional days carry no ice symbol, so their `NA`
-#'   means "not recorded", not "open water".
+#'   `"provisional"` (any ECCC approval other than final counts as
+#'   provisional). Provisional days carry no ice symbol, so their `NA` means
+#'   "not recorded", not "open water".
 #'
 #'   A gap between the end of one source and the start of the next (for
 #'   example an old HYDAT ending before the provisional archive begins) is
-#'   left unfilled and reported with a warning. A source that fails is skipped
+#'   left unfilled and reported with a warning when it overlaps `from`-`to`. A source that fails is skipped
 #'   with a warning and the others are returned.
 #' @examples
 #' \dontrun{
@@ -48,44 +50,51 @@ wet_station_daily <- function(stations, hydat = wet_hydat_path(), from = NULL, t
   if (!length(sources) || length(bad)) {
     stop("`sources` must be some of \"hydat\", \"provisional\", \"realtime\"", call. = FALSE)
   }
-  from <- if (is.null(from)) as.Date(-Inf) else as.Date(from)
-  to <- if (is.null(to)) as.Date(Inf) else as.Date(to)
+  # numeric as.Date() needs an origin before R 4.3
+  from <- if (is.null(from)) as.Date(-Inf, origin = "1970-01-01") else as.Date(from)
+  to <- if (is.null(to)) as.Date(Inf, origin = "1970-01-01") else as.Date(to)
   if (from > to) stop("`from` is after `to`", call. = FALSE)
   stations <- unique(stations)
 
-  hy <- if ("hydat" %in% sources) {
-    wet_daily_try("hydat", wet_hydat_daily(hydat, stations, from, to))
-  } else wet_daily_empty()
-  pv <- if ("provisional" %in% sources) {
-    wet_daily_try("provisional", wet_provisional_daily(stations, from, to))
-  } else wet_daily_empty()
-  # Each source only continues the one before it: provisional flows never fill
-  # a hole inside HYDAT's approved record, which ECCC chose not to publish.
-  pv <- wet_daily_after(pv, hy)
-  rt <- wet_daily_empty()
+  # The readers return each source's whole record for the stations. Where one
+  # source ends, where the next continues, and the gaps between them are all
+  # taken from those rows; from/to trims only the result. A provisional flow
+  # therefore never fills a hole inside HYDAT's approved record, which ECCC
+  # chose not to publish, whatever window is asked for.
+  out <- wet_daily_empty()
+  if ("hydat" %in% sources) {
+    out <- wet_daily_try("hydat", wet_hydat_daily(hydat, stations))
+  }
+  if ("provisional" %in% sources) {
+    pv <- wet_daily_try("provisional", wet_provisional_daily(stations))
+    out <- rbind(out, wet_daily_after(pv, out))
+  }
   if ("realtime" %in% sources) {
-    have <- rbind(hy, pv)
     # today's daily mean is still accumulating
     end <- min(to, Sys.Date() - 1)
-    rt <- do.call(rbind, c(list(rt), lapply(stations, function(st) {
-      last <- have$date[have$station_number == st]
-      # c() dispatches on its first argument, so it must be a Date, never NULL
-      start <- max(c(from, Sys.Date() - 540, if (length(last)) max(last) + 1))
+    rt <- lapply(stations, function(st) {
+      have <- out$date[out$station_number == st]
+      # the feed's whole reachable record, not from `from`: gaps are read from
+      # whole records, and the final trim applies from/to. c() dispatches on
+      # its first argument, so it must be a Date, never NULL
+      start <- max(c(Sys.Date() - 540, if (length(have)) max(have) + 1))
       if (start > end) return(NULL)
       wet_daily_try("realtime", wet_realtime_daily(st, start, end))
-    })))
-    rt <- wet_daily_after(rt, have)
+    })
+    rt <- do.call(rbind, c(list(wet_daily_empty()), rt))
+    out <- rbind(out, wet_daily_after(rt, out))
   }
-  out <- rbind(hy, pv, rt)
   out <- out[order(out$station_number, out$date), ]
+  wet_daily_gaps(out, from, to)
+  out <- out[out$date >= from & out$date <= to, ]
   rownames(out) <- NULL
   none <- setdiff(stations, out$station_number)
   if (length(none)) warning("no flow found for: ", paste(none, collapse = ", "), call. = FALSE)
-  wet_daily_gaps(out)
   out
 }
 
 # Rows of `x` dated after the last day `prior` holds for the same station.
+# `prior` is always a whole record, never a from/to window of one.
 wet_daily_after <- function(x, prior) {
   if (!nrow(x) || !nrow(prior)) return(x)
   last <- vapply(split(as.numeric(prior$date), prior$station_number), max, 0)
@@ -101,13 +110,15 @@ wet_daily_try <- function(source, expr) {
   })
 }
 
-# Warn where one source ends and the next starts more than a day later. Holes
+# Warn where one source ends and the next starts more than a day later, when
+# that gap overlaps from-to. `d` is the whole joined record, sorted. Holes
 # inside a single source (a seasonal gauge's winters) are part of the record.
-wet_daily_gaps <- function(d) {
+wet_daily_gaps <- function(d, from, to) {
   if (nrow(d) < 2) return(invisible())
   n <- nrow(d)
   i <- which(d$station_number[-1] == d$station_number[-n] & d$source[-1] != d$source[-n] &
                as.numeric(d$date[-1] - d$date[-n]) > 1)
+  i <- i[d$date[i] + 1 <= to & d$date[i + 1] - 1 >= from]
   if (length(i)) {
     warning("gap between sources, left unfilled: ",
             paste(sprintf("%s %s to %s (%s -> %s)", d$station_number[i], d$date[i] + 1,
@@ -124,25 +135,24 @@ wet_daily_empty <- function() {
 
 # DLY_FLOWS holds one row per station-month with FLOW1..31 and FLOW_SYMBOL1..31.
 # Days past the end of a month are NULL there, and so are missing days: both
-# are dropped rather than returned as NA.
-wet_hydat_daily <- function(hydat, stations, from, to) {
+# are dropped rather than returned as NA. The whole record is read: a station
+# has at most about 1,200 station-months.
+wet_hydat_daily <- function(hydat, stations) {
   con <- wet_hydat_connect(hydat)
   on.exit(DBI::dbDisconnect(con), add = TRUE)
-  yrs <- c(if (is.finite(from)) as.integer(format(from, "%Y")) else -9999L,
-           if (is.finite(to)) as.integer(format(to, "%Y")) else 9999L)
   d <- DBI::dbGetQuery(con, sprintf(
     "SELECT STATION_NUMBER station_number, YEAR year, MONTH month, %s, %s FROM DLY_FLOWS
-     WHERE STATION_NUMBER IN (%s) AND YEAR BETWEEN %d AND %d",
+     WHERE STATION_NUMBER IN (%s)",
     paste(sprintf("FLOW%d", 1:31), collapse = ", "),
     paste(sprintf("FLOW_SYMBOL%d", 1:31), collapse = ", "),
-    paste(DBI::dbQuoteString(con, stations), collapse = ", "), yrs[1], yrs[2]))
+    paste(DBI::dbQuoteString(con, stations), collapse = ", ")))
   if (!nrow(d)) return(wet_daily_empty())
   q <- as.vector(t(as.matrix(d[sprintf("FLOW%d", 1:31)])))
   s <- as.vector(t(as.matrix(d[sprintf("FLOW_SYMBOL%d", 1:31)])))
   n <- nrow(d)
   date <- as.Date(sprintf("%04d-%02d-%02d", rep(d$year, each = 31), rep(d$month, each = 31),
                           rep(1:31, n)), optional = TRUE)
-  keep <- !is.na(q) & !is.na(date) & date >= from & date <= to
+  keep <- !is.na(q) & !is.na(date)
   # data.frame() cannot recycle the scalar source onto zero rows
   if (!any(keep)) return(wet_daily_empty())
   data.frame(station_number = rep(d$station_number, each = 31)[keep], date = date[keep],
@@ -150,9 +160,10 @@ wet_hydat_daily <- function(hydat, stations, from, to) {
              status = "approved")
 }
 
-# ECCC daily means archived monthly by water-temp-bc. Timestamps are 08:00 UTC,
-# local midnight, so the UTC calendar date is the day the mean describes.
-wet_provisional_daily <- function(stations, from, to) {
+# ECCC daily means archived monthly by water-temp-bc: the whole archive for the
+# stations. Timestamps are 08:00 UTC, local midnight, so the UTC calendar date
+# is the day the mean describes.
+wet_provisional_daily <- function(stations) {
   if (!requireNamespace("duckdb", quietly = TRUE)) {
     stop("install duckdb to read provisional flows", call. = FALSE)
   }
@@ -170,7 +181,7 @@ wet_provisional_daily <- function(stations, from, to) {
      FROM read_parquet(%s) WHERE STATION_NUMBER IN (%s) AND Value IS NOT NULL",
     DBI::dbQuoteString(con, paste0(sub("/?$", "/", root), "*.parquet")),
     paste(DBI::dbQuoteString(con, stations), collapse = ", ")))
-  wet_eccc_daily(d, from, to, "provisional")
+  wet_eccc_daily(d, "provisional")
 }
 
 # The last days, from ECCC's real-time web service.
@@ -182,17 +193,15 @@ wet_realtime_daily <- function(station, from, to) {
                               end_date = to)
   d <- data.frame(station_number = d$STATION_NUMBER, date = d$Date, q_m3s = d$Value,
                   symbol = d$Symbol, approval = d$Approval)
-  wet_eccc_daily(d[!is.na(d$q_m3s), ], from, to, "realtime")
+  d <- wet_eccc_daily(d[!is.na(d$q_m3s), ], "realtime")
+  d[d$date >= from & d$date <= to, ]
 }
 
-# Shared shaping for the two ECCC feeds.
-wet_eccc_daily <- function(d, from, to, source) {
+# Shared shaping for the two ECCC feeds. Only an approval that says final is
+# "approved"; anything else, unrecognised included, stays provisional.
+wet_eccc_daily <- function(d, source) {
   if (!nrow(d)) return(wet_daily_empty())
-  date <- as.Date(d$date, tz = "UTC")
-  keep <- date >= from & date <= to
-  if (!any(keep)) return(wet_daily_empty())
-  data.frame(station_number = as.character(d$station_number[keep]), date = date[keep],
-             q_m3s = as.numeric(d$q_m3s[keep]), symbol = as.character(d$symbol[keep]),
-             source = source,
-             status = ifelse(grepl("^Provisional", d$approval[keep]), "provisional", "approved"))
+  data.frame(station_number = as.character(d$station_number), date = as.Date(d$date, tz = "UTC"),
+             q_m3s = as.numeric(d$q_m3s), symbol = as.character(d$symbol), source = source,
+             status = ifelse(grepl("^(Final|Approved)", d$approval), "approved", "provisional"))
 }

@@ -90,6 +90,26 @@ The duckdb read uses an explicit keyless S3 secret (region us-west-2), so AWS cr
 - **Artifact.** Buck Creek DJF 2025 came out at +200% (cd's cap). The provisional Dec 2025 - Feb 2026 means are 6.5-15 m3/s against approved winters of 0.2-2: ice, not flow. Winter-touching windows now drop provisional years.
 - **Cross-check.** August departures were checked against `tidyhydat::hy_monthly_flows()`: 2023 0.356 and 2024 0.212 m3/s against 1981-2010 August means of 0.14-4.12 (median 0.73). The −62% and −78% are correct. The mean-based normal is pulled up by two wet years (3.72, 4.12).
 
+## /code-check (2026-09-28): four rounds, ended by enumeration
+
+| Round | Findings | Fixed | Accepted | Inside previous fix? |
+|-------|----------|-------|----------|----------------------|
+| 1 | 3 | 3 | 0 | — |
+| 2 | 3 | 3 | 0 | y (origin in R1's `as.Date(last)`, the "last" attribute leak, the no-MAD message) |
+| 3 | 4 | 4 | 0 | y (HYDAT end derived twice, gap check on windowed rows) |
+| 4 | 1 | 1 | 0 | y (real-time read cut to `from`) |
+
+- **Round 3's mechanism:** a set or extent taken from what is at hand stands in for the set the rule is defined over; and one fact derived twice under two definitions.
+- **Remedy (a restructure, not patches):**
+  - readers return whole records;
+  - cutoffs, seams and gaps are derived once from those rows;
+  - from/to trims only the result;
+  - `wet_hydat_last()` and the "last" attribute are removed;
+  - status fails closed.
+- **Round 4 enumerated** every set and extent in the diff (about 25) and every fact computed twice. One mismatch remained (the real-time start); it was fixed, and the regression test fails on the prior code.
+- **Guards proven by mutation**, each red when removed: cutoff (FAIL 6), gap order (FAIL 1), status (FAIL 1), attribute (FAIL 1), real-time start (FAIL 1), zero-row reader (FAIL 2).
+- **Residuals** are in `research/station_flow_departure.md`.
+
 ## Errors Encountered
 
 | Error | Resolution |

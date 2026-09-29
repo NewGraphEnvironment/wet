@@ -32,6 +32,11 @@ Each source continues the one before it, per station. A provisional value is nev
   - Chinook spawning-window mean −1.8 %/yr (p 0.03).
 - At 08EE003 the same windows' slopes are negative but not significant (p 0.07–0.32, 15–16 years since 2000).
 
+## Known residuals
+
+- **HYDAT's approved end is taken as its last day with a value.** `DLY_FLOWS` has no column that states where approval ends. The March 2025 row for 08EE013 has `NO_DAYS` 31 but values only on the 1st and 2nd. A station whose last approved month ends in NULL days would get those days filled with provisional flows. For 08EE013 and 08EE003 the proxy matches GeoMet's approved end (2025-03-02, 2025-03-04).
+- **Two definitions of a day with flow.** `wet_station_select()` and `wet_station_monthly()` count the 31 FLOW columns, so an impossible day counts. `wet_station_daily()` drops impossible days. They agree on real HYDAT, which leaves impossible days NULL.
+
 ## Method choices
 
 - Windows are month-day pairs. One that crosses 1 January takes the year it starts in. An end of `02-29` is the end of February.

@@ -64,14 +64,27 @@ mad_base <- station_mad(baseline)
 mad_all <- station_mad(1900:as.integer(format(Sys.Date(), "%Y")))
 mad <- mad_base$q
 mad_years <- mad_base$years
-for (st in setdiff(stations, names(mad))) {
-  if (is.null(mad_all$q[st]) || is.na(mad_all$q[st])) stop("no complete years at all for ", st)
+for (st in intersect(setdiff(stations, names(mad)), names(mad_all$q))) {
   mad[st] <- mad_all$q[[st]]
   mad_years[[st]] <- mad_all$years[[st]]
 }
 min_baseline <- 10
 
-stats <- wet_window_stats(daily, windows, threshold = 0.2 * mad)
+# A station wet_station_select() leaves out (fewer than 5 complete years, a
+# regulation flag other than 0, or outside BC) has no MAD, so it gets
+# every statistic but frac_below rather than stopping the run.
+with_mad <- intersect(stations, names(mad))
+no_mad <- setdiff(stations, with_mad)
+stats <- rbind(
+  if (length(with_mad)) {
+    wet_window_stats(daily[daily$station_number %in% with_mad, ], windows,
+                     threshold = 0.2 * mad[with_mad])
+  },
+  if (length(no_mad)) {
+    wet_window_stats(daily[daily$station_number %in% no_mad, ], windows,
+                     stats = c("mean", "min", "max", "min7", "cov_day"))
+  }
+)
 
 # Provisional winter flows are not ice-corrected: at 08EE013 the provisional
 # Dec 2025-Feb 2026 means are 6.5-15 m3/s against approved winters of
@@ -96,7 +109,7 @@ out <- c(
   sprintf("Run %s. HYDAT %s. Baseline %d-%d. Threshold for frac_below: 20%% of the station's MAD (1981-2010, or its whole record of complete years where 1981-2010 has fewer than 5).",
           format(Sys.Date()), hydat, min(baseline), max(baseline)),
   "Anomalies: q_mean and q_min7 in % of normal; q_frac_below as a change in the share of days below the threshold.",
-  "ice = share of the window's days flagged B (ice); prov = share that is provisional (no ice flag recorded).",
+  "ice = share of the days present flagged B (ice); prov = share of the days present that are provisional (no ice flag recorded).",
   "The ch_* windows are examples from the template's Bulkley life-history CSV, pending knowledge#25.",
   sprintf("Windows touching Nov-Apr (%s) drop any year with provisional days: provisional winter flow is not ice-corrected.",
           paste(ice_windows, collapse = ", ")),
@@ -106,19 +119,24 @@ for (st in stations) {
   d <- daily[daily$station_number == st, ]
   s <- stats[stats$station_number == st, names(stats) != "station_number"]
   # cd_baseline() warns about baseline years without data; the count per window is reported
-  nb <- stats::aggregate(year ~ variable + period, s[s$year %in% baseline, ], length)
+  # Baseline years per variable and window, over every window asked for: a
+  # window with no qualifying year at all counts 0, it does not vanish.
+  sb <- s[s$year %in% baseline, ]
+  vars <- unique(c("q_mean", s$variable))
+  nb <- expand.grid(variable = vars, period = windows$window, stringsAsFactors = FALSE)
+  nb$year <- vapply(seq_len(nrow(nb)), function(k) {
+    sum(sb$variable == nb$variable[k] & sb$period == nb$period[k])
+  }, 0L)
   keep <- paste(nb$variable, nb$period)[nb$year >= min_baseline]
-  thin <- unique(s$period[!paste(s$variable, s$period) %in% keep & s$variable == "q_mean"])
+  thin <- nb$period[nb$variable == "q_mean" & nb$year < min_baseline]
   s <- s[paste(s$variable, s$period) %in% keep, ]
-  b <- suppressWarnings(cd::cd_baseline(s, baseline))
-  a <- cd::cd_anomaly(s, b)
-  a <- merge(a, s[c("variable", "period", "year", "value", "n_days", "frac_ice",
-                    "frac_provisional")], by = c("variable", "period", "year"))
-  tr <- cd::cd_trend(a, trend_start = trend_start)
 
   out <- c(out, sprintf("## %s", st), "",
-           sprintf("MAD: %s m3/s over %d complete years (%s)", fmt(mad[[st]], 2),
-                   length(mad_years[[st]]), paste(range(mad_years[[st]]), collapse = "-")),
+           if (st %in% with_mad) {
+             sprintf("MAD: %s m3/s over %d complete years (%s)", fmt(mad[[st]], 2),
+                     length(mad_years[[st]]), paste(range(mad_years[[st]]), collapse = "-"))
+           } else paste("MAD: none (not a natural-flow BC station with 5+ complete years in HYDAT),",
+                        "so no frac_below"),
            "")
   for (so in c("hydat", "provisional", "realtime")) {
     z <- d$date[d$source == so]
@@ -132,7 +150,17 @@ for (st in stations) {
            "", "Baseline years per window (q_mean):",
            paste0("  ", paste(sprintf("%s %d", nb$period[nb$variable == "q_mean"],
                                       nb$year[nb$variable == "q_mean"]), collapse = ", ")),
-           "", "Recent departures:", "",
+           "")
+  if (!nrow(s)) {
+    out <- c(out, sprintf("No window has %d baseline years, so no departures.", min_baseline), "")
+    next
+  }
+  b <- suppressWarnings(cd::cd_baseline(s, baseline))
+  a <- cd::cd_anomaly(s, b)
+  a <- merge(a, s[c("variable", "period", "year", "value", "n_days", "frac_ice",
+                    "frac_provisional")], by = c("variable", "period", "year"))
+  tr <- cd::cd_trend(a, trend_start = trend_start)
+  out <- c(out, "Recent departures:", "",
            sprintf("  %-22s %4s %9s %9s %11s %5s %5s", "window", "year", "q_mean%", "q_min7%",
                    "frac_below", "ice", "prov"))
   for (w in windows$window) for (y in recent) {

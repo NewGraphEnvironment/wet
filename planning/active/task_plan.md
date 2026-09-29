@@ -57,9 +57,9 @@ water-temp-bc archives ECCC's provisional data every month, so it covers the per
 - [x] Record coverage, the gaps found and the headline departures in `findings.md`, and in `research/station_flow_departure.md` if a durable method verdict comes out of it (plus its `research/README.md` row)
 
 ## Phase 5: docs and wrap-up
-- [ ] Roxygen with runnable examples on the fixture-free parts (`wet_windows_calendar()`, `wet_window_stats()` on a synthetic series); HYDAT and network examples in `\dontrun{}`
-- [ ] `devtools::document()`, `lintr`, full `devtools::test()`
-- [ ] CLAUDE.md Architecture: a line for the station-departure path
+- [x] Roxygen with runnable examples on the fixture-free parts (`wet_windows_calendar()`, `wet_window_stats()` on a synthetic series); HYDAT and network examples in `\dontrun{}`
+- [x] `devtools::document()`, `lintr`, full `devtools::test()`
+- [x] CLAUDE.md Architecture: a line for the station-departure path
 - [ ] `/planning-archive`, `/gh-pr-push`
 
 ## Decisions (approved at the plan gate, 2026-09-28)
