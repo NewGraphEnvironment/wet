@@ -15,10 +15,10 @@ wet reads HYDAT only as long-term averages (`wet_station_select()`, `wet_station
 water-temp-bc archives ECCC's provisional data every month, so it covers the period between approved HYDAT and the 30-day real-time feed. It also holds water temperature for both stations from 2017–2018.
 
 ## Phase 1: HYDAT daily series
-- [ ] Extend `local_hydat()` with `FLOW_SYMBOL1..31` (a `B` stretch in winter and an `E` day), keeping existing tests green
-- [ ] Tests first: `wet_station_daily(stations, hydat, sources = "hydat")` returns one row per station-day. Covers: days not in the month dropped (Feb 30), missing days absent rather than `NA`-padded, `symbol` carried, `source = "hydat"`, `status = "approved"`
-- [ ] Implement the HYDAT reader, one SQL query over `DLY_FLOWS`, unpivoted in R, using `wet_hydat_connect()`
-- [ ] Signature settled here: `wet_station_daily(stations, hydat = wet_hydat_path(), from = NULL, to = Sys.Date(), sources = c("hydat", "provisional", "realtime"))`, where `stations` is a character vector of station numbers
+- [x] Extend `local_hydat()` with `FLOW_SYMBOL1..31` (a `B` stretch in winter and an `E` day), keeping existing tests green
+- [x] Tests first: `wet_station_daily(stations, hydat, sources = "hydat")` returns one row per station-day. Covers: days not in the month dropped (Feb 30), missing days absent rather than `NA`-padded, `symbol` carried, `source = "hydat"`, `status = "approved"`
+- [x] Implement the HYDAT reader, one SQL query over `DLY_FLOWS`, unpivoted in R, using `wet_hydat_connect()`
+- [x] Signature settled here: `wet_station_daily(stations, hydat = wet_hydat_path(), from = NULL, to = Sys.Date(), sources = c("hydat", "provisional", "realtime"))`, where `stations` is a character vector of station numbers
 
 ## Phase 2: provisional and real-time sources, joined
 - [ ] Internal readers:

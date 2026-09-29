@@ -55,6 +55,19 @@ Relates to #6
 - **water-temp-bc layout.** `canonical/Parameter=6/` holds daily mean discharge. `Date` is a UTC timestamp at 08:00 (local midnight), so the day is `as.Date(Date, tz = "UTC")`. Measured coverage for both stations is 2024-10-10 → 2026-09-12. `historic/` (2016–2024) is not one read path until water-temp-bc#19, so this issue reads `canonical/` only. A fresh HYDAT reaches about 2025-03 and overlaps it.
 - **cd's consumer functions group by `variable` and `period` only.** A multi-station table sent through `cd_baseline()` gets averaged across stations. See Decision 2.
 
+## HYDAT reader check (2026-09-28)
+
+`wet_station_daily(c("08EE013", "08EE003"), sources = "hydat")` against the local HYDAT (version 2025-10-14) matches `tidyhydat::hy_daily_flows()` exactly for 08EE013: 18,193 non-NA days in both, max abs difference 5e-14.
+
+Ice dominates the winter record. Symbols by station:
+
+| station | A | B (ice) | E | none |
+|---|---|---|---|---|
+| 08EE003 | 16 | 2,402 | 2,008 | 8,068 |
+| 08EE013 | 142 | 7,885 | 605 | 9,561 |
+
+43% of Buck Creek's daily flows are ice-affected estimates. Any winter window statistic there rests mostly on them, which is why `frac_ice` is carried per window-year.
+
 ## Errors Encountered
 
 | Error | Resolution |

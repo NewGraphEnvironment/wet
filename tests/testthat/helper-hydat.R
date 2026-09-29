@@ -1,6 +1,6 @@
 # A tiny HYDAT with the three tables the station functions read.
 # Station flows are constant within a month and equal to the month number,
-# except where a test knocks days out.
+# except where a test knocks days out. Symbols are NA except the ones set below.
 local_hydat <- function(env = parent.frame()) {
   path <- withr::local_tempfile(fileext = ".sqlite3", .local_envir = env)
   con <- DBI::dbConnect(RSQLite::SQLite(), path)
@@ -22,6 +22,7 @@ local_hydat <- function(env = parent.frame()) {
       fl <- rep(NA_real_, 31)
       fl[seq_len(dim_of(y, m))] <- m
       r[sprintf("FLOW%d", 1:31)] <- as.list(fl)
+      r[sprintf("FLOW_SYMBOL%d", 1:31)] <- as.list(rep(NA_character_, 31))
       rows[[length(rows) + 1]] <<- r
     }
   }
@@ -34,6 +35,11 @@ local_hydat <- function(env = parent.frame()) {
   # 08AA001 in 1982: March loses 5 days, still complete (26 >= 20)
   i <- d$STATION_NUMBER == "08AA001" & d$YEAR == 1982 & d$MONTH == 3
   d[i, sprintf("FLOW%d", 1:5)] <- NA
+  # 08AA001: January 1981 is under ice, and 15 June 1983 is estimated
+  i <- d$STATION_NUMBER == "08AA001" & d$YEAR == 1981 & d$MONTH == 1
+  d[i, sprintf("FLOW_SYMBOL%d", 1:31)] <- "B"
+  i <- d$STATION_NUMBER == "08AA001" & d$YEAR == 1983 & d$MONTH == 6
+  d[i, "FLOW_SYMBOL15"] <- "E"
   DBI::dbWriteTable(con, "DLY_FLOWS", d)
   path
 }

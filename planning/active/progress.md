@@ -6,3 +6,4 @@
 - Created branch `25-flow-in-date-windows-at-hydrometric-stat` off main
 - Scaffolded PWF baseline from issue #25 with approved phases
 - Next: Phase 1
+- Phase 1: `wet_station_daily()` HYDAT reader, fixture gains `FLOW_SYMBOL*`; matches tidyhydat exactly on 08EE013
