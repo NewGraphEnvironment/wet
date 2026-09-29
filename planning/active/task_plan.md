@@ -37,16 +37,16 @@ water-temp-bc archives ECCC's provisional data every month, so it covers the per
 - [x] Output columns: `station_number, date, q_m3s, symbol, source, status`
 
 ## Phase 3: window statistics
-- [ ] `wet_windows_calendar()`: months and seasons as a windows table (`window, start, end`, month-day strings). Seasons are named `djf`, `mam`, `jja`, `son`, not cd's `winter` (review 6)
-- [ ] Tests first for `wet_window_stats(x, windows, stats, min_frac = 0.8, threshold = NULL)`. `x` is any daily `date, value` series with optional id columns carried through. Covers:
+- [x] `wet_windows_calendar()`: months and seasons as a windows table (`window, start, end`, month-day strings). Seasons are named `djf`, `mam`, `jja`, `son`, not cd's `winter` (review 6)
+- [x] Tests first for `wet_window_stats(x, windows, stats, min_frac = 0.8, threshold = NULL)`. `x` is any daily `date, value` series with optional id columns carried through. Covers:
   - a window crossing 1 January is assigned to the year it starts in, with year boundaries hand-checked
   - a window-year below `min_frac` of its days is dropped
   - `frac_ice` is the share of present days with `B`; `frac_provisional` the share with `status == "provisional"` (review 10)
   - each statistic on a hand-computed series: `mean`, `min`, `max`, `min7` (lowest mean over 7 consecutive calendar days inside the window), `frac_below` (share of present days below the threshold), `cov_day` (day of window by which half the window's volume has passed; complete window-years only)
   - leap rules: start `02-29` refused, end `02-29` means end of February, `start == end` is one day, a window-year ending after the series' last date dropped; leap vs non-leap cross-year case (review 5)
   - 29 February handled for both window membership and the day count
-- [ ] Output in cd's long format: `variable` (e.g. `q_mean`), `period` (= window), `year`, `value`, plus `anomaly_type` and `unit` per cd PR #94 (unit of the anomaly: mean/min/max/min7 pct_normal `%`; frac_below and cov_day absolute), id columns, `n_days`, `frac_ice`, `frac_provisional`
-- [ ] A threshold per id through a named vector or a column, documented with station MAD from `wet_station_monthly()`
+- [x] Output in cd's long format: `variable` (e.g. `q_mean`), `period` (= window), `year`, `value`, plus `anomaly_type` and `unit` per cd PR #94 (unit of the anomaly: mean/min/max/min7 pct_normal `%`; frac_below and cov_day absolute), id columns, `n_days`, `frac_ice`, `frac_provisional`
+- [x] A threshold per id through a named vector or a column, documented with station MAD from `wet_station_monthly()`
 
 ## Phase 4: departure through cd, and the station run
 - [ ] cd to Suggests with `Remotes: NewGraphEnvironment/cd`. A test that one station's `wet_window_stats()` output passes `cd_baseline()` → `cd_anomaly()` → `cd_trend()` without `NA`, skipped unless cd, Kendall and zyp are installed and cd has the #92 behaviour (review 15)
