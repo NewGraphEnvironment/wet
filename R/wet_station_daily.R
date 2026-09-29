@@ -143,6 +143,8 @@ wet_hydat_daily <- function(hydat, stations, from, to) {
   date <- as.Date(sprintf("%04d-%02d-%02d", rep(d$year, each = 31), rep(d$month, each = 31),
                           rep(1:31, n)), optional = TRUE)
   keep <- !is.na(q) & !is.na(date) & date >= from & date <= to
+  # data.frame() cannot recycle the scalar source onto zero rows
+  if (!any(keep)) return(wet_daily_empty())
   data.frame(station_number = rep(d$station_number, each = 31)[keep], date = date[keep],
              q_m3s = as.numeric(q[keep]), symbol = as.character(s[keep]), source = "hydat",
              status = "approved")
@@ -188,6 +190,7 @@ wet_eccc_daily <- function(d, from, to, source) {
   if (!nrow(d)) return(wet_daily_empty())
   date <- as.Date(d$date, tz = "UTC")
   keep <- date >= from & date <= to
+  if (!any(keep)) return(wet_daily_empty())
   data.frame(station_number = as.character(d$station_number[keep]), date = date[keep],
              q_m3s = as.numeric(d$q_m3s[keep]), symbol = as.character(d$symbol[keep]),
              source = source,

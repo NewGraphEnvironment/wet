@@ -49,12 +49,12 @@ water-temp-bc archives ECCC's provisional data every month, so it covers the per
 - [x] A threshold per id through a named vector or a column, documented with station MAD from `wet_station_monthly()`
 
 ## Phase 4: departure through cd, and the station run
-- [ ] cd to Suggests with `Remotes: NewGraphEnvironment/cd`. A test that one station's `wet_window_stats()` output passes `cd_baseline()` → `cd_anomaly()` → `cd_trend()` without `NA`, skipped unless cd, Kendall and zyp are installed and cd has the #92 behaviour (review 15)
-- [ ] `scripts/station_departure.R 08EE013 08EE003`:
+- [x] cd to Suggests with `Remotes: NewGraphEnvironment/cd`. A test that one station's `wet_window_stats()` output passes `cd_baseline()` → `cd_anomaly()` → `cd_trend()` without `NA`, skipped unless cd, Kendall and zyp are installed and cd has the #92 behaviour (review 15)
+- [x] `scripts/station_departure.R 08EE013 08EE003`:
   - daily series → calendar windows plus two example life-history windows, labelled as examples until knowledge#25 lands
   - per station (cd takes one series per call, review 1): cd baseline, anomaly and trend, with baseline 1981–2010 and n baseline years per window stated (review 7)
   - output: a report at `data/checks/station_departure_report.txt` (tracked, per the gitignore exception)
-- [ ] Record coverage, the gaps found and the headline departures in `findings.md`, and in `research/station_flow_departure.md` if a durable method verdict comes out of it (plus its `research/README.md` row)
+- [x] Record coverage, the gaps found and the headline departures in `findings.md`, and in `research/station_flow_departure.md` if a durable method verdict comes out of it (plus its `research/README.md` row)
 
 ## Phase 5: docs and wrap-up
 - [ ] Roxygen with runnable examples on the fixture-free parts (`wet_windows_calendar()`, `wet_window_stats()` on a synthetic series); HYDAT and network examples in `\dontrun{}`

@@ -81,9 +81,19 @@ The water-temp-bc canonical `Symbol` is NA on every row for both stations, so pr
 
 The duckdb read uses an explicit keyless S3 secret (region us-west-2), so AWS credentials in the environment are never sent.
 
+## Station run (2026-09-28)
+
+`scripts/station_departure.R` (with cd from PR #94, installed to a scratch library) → `data/checks/station_departure_report.txt`. Verdicts are in `research/station_flow_departure.md`. In the order they came up:
+
+- **Wrong turn.** The first run stopped on "no 1981-2010 MAD for 08EE003". The station was seasonal until 2010 (complete years 1971 and 2011-2024 only), so MAD now falls back to the whole record, and windows with fewer than 10 baseline years get no departure (08EE003 DJF: 1 year).
+- **Real bug**, found by a spot check with `from = 2025-11-15`. When HYDAT rows are read for a year but none fall in `from`/`to`, `data.frame()` could not recycle the scalar `source` onto zero rows. `wet_eccc_daily()` had the same bug. Both are fixed, with tests; the mutation run gave FAIL 2.
+- **Artifact.** Buck Creek DJF 2025 came out at +200% (cd's cap). The provisional Dec 2025 - Feb 2026 means are 6.5-15 m3/s against approved winters of 0.2-2: ice, not flow. Winter-touching windows now drop provisional years.
+- **Cross-check.** August departures were checked against `tidyhydat::hy_monthly_flows()`: 2023 0.356 and 2024 0.212 m3/s against 1981-2010 August means of 0.14-4.12 (median 0.73). The −62% and −78% are correct. The mean-based normal is pulled up by two wet years (3.72, 4.12).
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
 | `tidyhydat::download_hydat(dl_hy_path=)` "unused argument", yet the backgrounded call reported exit 0 through a pipe | The argument is `dl_hydat_here`; read the output, not the exit status |
+| `data.frame(..., source = "hydat")` errored "differing number of rows: 0, 1" when a year's rows all fell outside from/to | Return `wet_daily_empty()` when nothing is kept (both readers) |
 | `max(c(NULL, <Date>, ...))` returned a plain number (c dispatches on its first argument) | Put a Date first; regression test "real-time alone still gets Dates" |

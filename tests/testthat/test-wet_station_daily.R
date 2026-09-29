@@ -50,6 +50,19 @@ test_that("a station with no record returns zero rows of the same shape", {
   expect_s3_class(d$date, "Date")
 })
 
+test_that("HYDAT rows that all fall outside from/to give zero rows, not an error", {
+  h <- local_hydat()
+  expect_warning(d <- wet_station_daily("08AA001", h, from = "1984-12-31", to = "1984-12-31",
+                                        sources = "hydat"), NA)
+  expect_equal(nrow(d), 1)
+  # 1984 rows are read for the year, but 08AA004 has none on this day
+  w <- capture_warnings(e <- wet_station_daily("08AA004", h, from = "1984-12-31",
+                                               to = "1984-12-31", sources = "hydat"))
+  expect_false(any(grepl("skipped", w)))
+  expect_match(w, "no flow found", all = FALSE)
+  expect_equal(nrow(e), 0)
+})
+
 test_that("bad inputs are refused", {
   h <- local_hydat()
   expect_error(wet_station_daily(character(), h, sources = "hydat"), "stations")
@@ -80,6 +93,13 @@ test_that("ECCC timestamps become the day they describe, and status follows Appr
   expect_equal(e$date, as.Date(c("2025-03-01", "2025-03-02")))
   expect_equal(e$status, c("provisional", "approved"))
   expect_equal(e$source, c("provisional", "provisional"))
+})
+
+test_that("ECCC rows all outside from/to give zero rows, not an error", {
+  d <- eccc_rows("08AA001", "2025-03-01", 1)
+  e <- wet_eccc_daily(d, as.Date("2026-01-01"), as.Date("2026-12-31"), "provisional")
+  expect_equal(nrow(e), 0)
+  expect_named(e, names(wet_daily_empty()))
 })
 
 test_that("provisional flows continue HYDAT and never fill a hole inside it", {

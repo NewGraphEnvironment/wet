@@ -131,3 +131,35 @@ test_that("bad series are refused", {
   x$date <- as.character(x$date)
   expect_error(wet_window_stats(x, jan), "Date")
 })
+
+# cd with #92: variables outside cd_variables() carry their own anomaly type.
+skip_if_no_cd92 <- function() {
+  skip_if_not_installed("cd")
+  skip_if_not_installed("Kendall")
+  skip_if_not_installed("zyp")
+  x <- data.frame(variable = "zz", period = "p", year = 2000:2001, value = 1:2,
+                  anomaly_type = "absolute", unit = "u")
+  ok <- tryCatch(!anyNA(cd::cd_anomaly(x, cd::cd_baseline(x, 2000:2001))$anomaly),
+                 error = function(e) FALSE)
+  if (!ok) skip("cd without the #92 contract")
+}
+
+test_that("one station's window statistics go through cd's baseline, anomaly and trend", {
+  skip_if_no_cd92()
+  date <- seq(as.Date("1990-01-01"), as.Date("2009-12-31"), by = "day")
+  yr <- as.numeric(format(date, "%Y"))
+  x <- data.frame(station_number = "A", date = date, q_m3s = 10 - 0.2 * (yr - 1990) +
+                    sin(as.numeric(format(date, "%j")) / 58))
+  # level statistics only: a constant series (frac_below, cov_day here) makes
+  # Kendall print a Fortran error, though cd_trend() still returns slope 0, p 1
+  s <- wet_window_stats(x, wet_windows_calendar()[c(8, 15), ],
+                        stats = c("mean", "min", "max", "min7"))
+  s <- s[names(s) != "station_number"]
+  b <- cd::cd_baseline(s, 1990:1999)
+  a <- cd::cd_anomaly(s, b)
+  expect_false(anyNA(a$anomaly))
+  expect_equal(unique(a$unit[a$variable == "q_mean"]), "%")
+  tr <- cd::cd_trend(a, trend_start = 1990)
+  # flow falls every year, so every level statistic trends down
+  expect_true(all(tr$slope[tr$variable %in% c("q_mean", "q_min", "q_max", "q_min7")] < 0))
+})
