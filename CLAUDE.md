@@ -29,6 +29,8 @@ The open water balance (#11), a second pipeline run in this order. Each script's
 - `scripts/wb_output.R`: per-basin parquet under `data/wb/<key>/output/`.
 - `scripts/wb_map.R`: the runoff map.
 
+Station flow departure (#25): `wet_station_daily()` (HYDAT, then water-temp-bc provisional, then real-time, each continuing the one before per station) → `wet_window_stats()` (per-year statistics over month-day windows, in cd's long format) → cd's `cd_baseline()`/`cd_anomaly()`/`cd_trend()`, one station per call. `scripts/station_departure.R` runs it for real-time stations; limits (ice, provisional winters, seasonal-gauge baselines) are in `research/station_flow_departure.md`.
+
 Results, the ET experiment (#15) that chose the shipped AET, the MOD16 challenger (#18) that did not replace it, and the open pooled-zone decision: `research/water_balance_method.md` §0.
 
 fwapg's stored `fwa_watersheds_upstream_area` is a **stale snapshot**. Use accumulated area, except to reproduce fwapg's own numbers. See `research/fwapg_mad_method.md`.

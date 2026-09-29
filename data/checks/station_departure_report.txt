@@ -1,0 +1,175 @@
+# Flow departure at hydrometric stations (#25)
+
+Run 2026-09-28. HYDAT data/hydat/20260717/Hydat.sqlite3. Baseline 1981-2010. Threshold for frac_below: 20% of the station's MAD (1981-2010, or its whole record of complete years where 1981-2010 has fewer than 5).
+Anomalies: q_mean and q_min7 in % of normal; q_frac_below as a change in the share of days below the threshold.
+ice = share of the days present flagged B (ice); prov = share of the days present that are provisional (no ice flag recorded).
+The ch_* windows are examples from the template's Bulkley life-history CSV, pending knowledge#25.
+Windows touching Nov-Apr (djf, son) drop any year with provisional days: provisional winter flow is not ice-corrected.
+
+## 08EE013
+
+MAD: 4.27 m3/s over 29 complete years (1981-2010)
+
+  hydat       1973-01-01 .. 2025-03-02  (18620 days)
+  provisional 2025-03-03 .. 2026-09-12  (559 days)
+  realtime    2026-09-13 .. 2026-09-27  (15 days)
+
+Dropped as provisional winter: djf 2025, son 2025
+
+No departure (fewer than 10 baseline years): none
+
+Baseline years per window (q_mean):
+  aug 29, sep 29, djf 30, jja 30, son 29, ch_migration_example 30, ch_spawning_example 29
+
+Recent departures:
+
+  window                 year   q_mean%   q_min7%  frac_below   ice  prov
+  aug                    2023     -62.5     -66.8        0.33  0.00  0.00
+  aug                    2024     -77.6     -68.2        0.33  0.00  0.00
+  aug                    2025     -69.2     -60.4        0.33  0.00  1.00
+  aug                    2026     -65.1     -61.1        0.33  0.00  1.00
+  sep                    2023     -81.2     -72.5        0.30  0.00  0.00
+  sep                    2024     -73.0     -78.3        0.30  0.00  0.00
+  sep                    2025     -73.7     -66.4        0.30  0.00  1.00
+  djf                    2023     -56.3     -43.0        0.21  1.00  0.00
+  djf                    2024      62.0      82.3       -0.55  1.00  0.00
+  jja                    2023     -87.4     -66.9        0.54  0.00  0.00
+  jja                    2024     -56.8     -68.2        0.25  0.00  0.00
+  jja                    2025     -76.2     -61.6        0.39  0.00  1.00
+  jja                    2026     -81.6     -61.2        0.46  0.00  1.00
+  son                    2023     -73.7     -69.6        0.53  0.33  0.00
+  son                    2024      -1.1     -76.0       -0.06  0.14  0.00
+  ch_migration_example   2023     -30.1     -84.6        0.43  0.00  0.00
+  ch_migration_example   2024     -55.3     -65.0        0.14  0.00  0.00
+  ch_migration_example   2025     -44.6     -79.7        0.28  0.00  1.00
+  ch_migration_example   2026     -40.8     -73.7        0.34  0.00  1.00
+  ch_spawning_example    2023     -68.0     -65.1        0.31  0.00  0.00
+  ch_spawning_example    2024     -80.1     -74.5        0.31  0.00  0.00
+  ch_spawning_example    2025     -71.6     -60.4        0.31  0.00  1.00
+  ch_spawning_example    2026     -62.6     -51.6        0.31  0.00  1.00
+
+Trends in the anomaly (Theil-Sen slope per year, Mann-Kendall p):
+
+  variable      window                  from  slope/yr       p    n
+  q_frac_below  aug                     1981     0.002   0.060   44
+  q_frac_below  aug                     2000    -0.000   0.088   26
+  q_frac_below  sep                     1981    -0.000   0.442   43
+  q_frac_below  sep                     2000     0.007   0.047   25
+  q_frac_below  djf                     1981    -0.001   0.079   42
+  q_frac_below  djf                     2000     0.001   0.557   23
+  q_frac_below  jja                     1981     0.005   0.028   45
+  q_frac_below  jja                     2000     0.014   0.020   26
+  q_frac_below  son                     1981    -0.001   0.696   42
+  q_frac_below  son                     2000     0.013   0.264   24
+  q_frac_below  ch_migration_example    1981     0.000   0.174   45
+  q_frac_below  ch_migration_example    2000     0.007   0.065   26
+  q_frac_below  ch_spawning_example     1981     0.001   0.081   44
+  q_frac_below  ch_spawning_example     2000     0.002   0.089   26
+  q_mean        aug                     1981    -0.785   0.064   44
+  q_mean        aug                     2000    -1.247   0.067   26
+  q_mean        sep                     1981    -0.263   0.496   43
+  q_mean        sep                     2000    -2.639   0.006   25
+  q_mean        djf                     1981     1.126   0.062   42
+  q_mean        djf                     2000    -0.520   0.673   23
+  q_mean        jja                     1981    -1.010   0.049   45
+  q_mean        jja                     2000    -2.089   0.028   26
+  q_mean        son                     1981     0.324   0.761   42
+  q_mean        son                     2000    -2.567   0.087   24
+  q_mean        ch_migration_example    1981    -0.194   0.646   45
+  q_mean        ch_migration_example    2000    -0.499   0.628   26
+  q_mean        ch_spawning_example     1981    -0.780   0.106   44
+  q_mean        ch_spawning_example     2000    -1.804   0.034   26
+  q_min7        aug                     1981    -0.661   0.322   44
+  q_min7        aug                     2000    -1.183   0.158   26
+  q_min7        sep                     1981    -0.373   0.336   43
+  q_min7        sep                     2000    -1.870   0.021   25
+  q_min7        djf                     1981     0.255   0.573   42
+  q_min7        djf                     2000    -0.443   0.751   23
+  q_min7        jja                     1981    -0.663   0.273   45
+  q_min7        jja                     2000    -1.209   0.172   26
+  q_min7        son                     1981    -0.309   0.455   42
+  q_min7        son                     2000    -2.249   0.021   24
+  q_min7        ch_migration_example    1981    -0.792   0.109   45
+  q_min7        ch_migration_example    2000    -1.667   0.117   26
+  q_min7        ch_spawning_example     1981    -0.383   0.401   44
+  q_min7        ch_spawning_example     2000    -1.163   0.217   26
+
+## 08EE003
+
+MAD: 15.52 m3/s over 15 complete years (1971-2024)
+
+  hydat       1930-09-09 .. 2025-03-04  (12557 days)
+  provisional 2025-03-05 .. 2026-09-12  (540 days)
+  realtime    2026-09-13 .. 2026-09-27  (15 days)
+
+Dropped as provisional winter: djf 2025, son 2025
+
+No departure (fewer than 10 baseline years): djf
+
+Baseline years per window (q_mean):
+  aug 18, sep 19, djf 1, jja 18, son 10, ch_migration_example 18, ch_spawning_example 18
+
+Recent departures:
+
+  window                 year   q_mean%   q_min7%  frac_below   ice  prov
+  aug                    2023     -71.2     -76.2        0.18  0.00  0.00
+  aug                    2024     -78.1     -77.5        0.18  0.00  0.00
+  aug                    2026     -69.9     -68.9        0.18  0.00  1.00
+  sep                    2023     -86.7     -83.2        0.13  0.00  0.00
+  sep                    2024     -81.3     -87.7        0.13  0.00  0.00
+  sep                    2025     -76.1     -70.8        0.13  0.00  1.00
+  jja                    2023     -85.2     -76.1        0.46  0.00  0.00
+  jja                    2024     -54.0     -77.4        0.16  0.00  0.00
+  jja                    2025     -58.2     -53.1        0.24  0.00  1.00
+  jja                    2026     -70.8     -68.8        0.30  0.00  1.00
+  son                    2023     -75.9     -76.6        0.40  0.12  0.00
+  son                    2024      24.1     -82.9       -0.13  0.14  0.00
+  ch_migration_example   2023     -33.6     -86.5        0.40  0.00  0.00
+  ch_migration_example   2024     -57.0     -67.9        0.10  0.00  0.00
+  ch_migration_example   2025     -32.2     -72.4        0.19  0.00  1.00
+  ch_migration_example   2026     -35.3     -77.6        0.24  0.00  1.00
+  ch_spawning_example    2023     -75.4     -80.2        0.17  0.00  0.00
+  ch_spawning_example    2024     -81.5     -86.4        0.17  0.00  0.00
+  ch_spawning_example    2025     -71.5     -67.7        0.17  0.00  1.00
+  ch_spawning_example    2026     -58.5     -56.5        0.17  0.00  1.00
+
+Trends in the anomaly (Theil-Sen slope per year, Mann-Kendall p):
+
+  variable      window                  from  slope/yr       p    n
+  q_frac_below  aug                     1981     0.000   0.290   33
+  q_frac_below  aug                     2000    -0.000   0.311   15
+  q_frac_below  sep                     1981    -0.000   0.507   34
+  q_frac_below  sep                     2000     0.000   0.321   16
+  q_frac_below  jja                     1981     0.004   0.106   34
+  q_frac_below  jja                     2000     0.019   0.096   16
+  q_frac_below  son                     1981     0.000   0.901   24
+  q_frac_below  son                     2000     0.018   0.370   15
+  q_frac_below  ch_migration_example    1981     0.002   0.125   34
+  q_frac_below  ch_migration_example    2000     0.016   0.095   16
+  q_frac_below  ch_spawning_example     1981    -0.000   0.192   34
+  q_frac_below  ch_spawning_example     2000     0.000   0.252   16
+  q_mean        aug                     1981    -0.765   0.154   33
+  q_mean        aug                     2000    -2.200   0.276   15
+  q_mean        sep                     1981    -0.665   0.241   34
+  q_mean        sep                     2000    -3.703   0.192   16
+  q_mean        jja                     1981    -1.013   0.116   34
+  q_mean        jja                     2000    -5.686   0.065   16
+  q_mean        son                     1981    -0.210   0.843   24
+  q_mean        son                     2000    -2.893   0.519   15
+  q_mean        ch_migration_example    1981    -0.392   0.343   34
+  q_mean        ch_migration_example    2000    -5.945   0.017   16
+  q_mean        ch_spawning_example     1981    -0.779   0.119   34
+  q_mean        ch_spawning_example     2000    -2.808   0.163   16
+  q_min7        aug                     1981    -0.748   0.314   33
+  q_min7        aug                     2000    -3.526   0.322   15
+  q_min7        sep                     1981    -0.834   0.197   34
+  q_min7        sep                     2000    -2.034   0.260   16
+  q_min7        jja                     1981    -0.810   0.248   34
+  q_min7        jja                     2000    -3.516   0.300   16
+  q_min7        son                     1981    -1.127   0.297   24
+  q_min7        son                     2000    -2.459   0.255   15
+  q_min7        ch_migration_example    1981    -0.692   0.177   34
+  q_min7        ch_migration_example    2000    -3.204   0.260   16
+  q_min7        ch_spawning_example     1981    -0.780   0.230   34
+  q_min7        ch_spawning_example     2000    -4.598   0.137   16
+
