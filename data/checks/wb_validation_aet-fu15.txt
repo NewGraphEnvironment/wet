@@ -1,8 +1,8 @@
 # Open water balance (Chapman et al. 2018 method) validated at HYDAT stations (#11)
 
-province run: adc88b19c8; annual AET: fu15 (monthly shares use CGIAR monthly AET)
+province run: 962a9cc2c4; annual AET: fu15 (monthly shares use CGIAR monthly AET)
 stations: 309 accepted snaps, 309 with predictors; 290 calibrated on (basin >= 95 % in BC and on the grid)
-pooled zones in the shipped fit (fewer than 8 stations with their largest share): 16 17 12 09 04 02 05 06 11
+pooled zones in the shipped fit (fewer than 8 stations with their largest share): 16 12 17 09 04 02 05 06 11
 zones no calibration station touches (no adjustment): 
 pooled zones: one fitted 'other' level, or no adjustment, chosen by an inner blocked CV on each fold's training stations; blocked-CV folds chose other 93 / none 0; the shipped fit (chosen over all stations): other
 held-out stations predicted with their zone pooled in the fold: blocked CV 136, LOO 72; held-out predictions floored to 0: blocked CV 0, LOO 0
@@ -272,8 +272,8 @@ lake       not lake outlet     271     0     13.6      0.4    27.5    62.7    0.
 16      -0.22   -0.0763  (pooled: other)
 13    -234.70    0.1843
 08    -262.92    0.1909
-17      -0.22   -0.0763  (pooled: other)
 12      -0.22   -0.0763  (pooled: other)
+17      -0.22   -0.0763  (pooled: other)
 25    -214.75    0.2221
 26     243.95    0.0199
 27    -845.24    0.3292

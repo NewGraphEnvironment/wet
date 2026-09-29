@@ -31,7 +31,9 @@ test_that("a cached normal is returned without calling climr, keyed on its varia
                      crs = "EPSG:4326")
   terra::values(dem) <- 600
   key <- function(v, y = 1981:2010, d = dem) {
-    substr(wet:::wet_md5_text(paste(c(paste(y, collapse = ","), v, wet:::wet_raster_md5(d)),
+    substr(wet:::wet_md5_text(paste(c(paste(y, collapse = ","), v, wet:::wet_raster_md5(d),
+                                      wet:::wet_climr_method,
+                                      as.character(utils::packageVersion("climr"))),
                                     collapse = "|")), 1, 8)
   }
   f <- file.path(dir, sprintf("climr_mswx.blend_1981-2010_%s_%s.tif",
@@ -46,6 +48,29 @@ test_that("a cached normal is returned without calling climr, keyed on its varia
   dem2 <- dem
   terra::values(dem2) <- 900
   expect_false(key("PPT_07") == key("PPT_07", d = dem2))
+})
+
+test_that("a normal cached under another builder method is rebuilt, not returned", {
+  skip_if_not_installed("climr")
+  dir <- withr::local_tempdir()
+  dem <- terra::rast(xmin = -128, xmax = -127, ymin = 54, ymax = 55, res = 1 / 120,
+                     crs = "EPSG:4326")
+  terra::values(dem) <- 600
+  vars <- c("PPT_07", "Tave_07")
+  name <- function(method) {
+    k <- paste(c(paste(1981:2010, collapse = ","), vars, wet:::wet_raster_md5(dem), method),
+               collapse = "|")
+    sprintf("climr_mswx.blend_1981-2010_%s_%s.tif", substr(wet:::wet_grid_key(dem), 1, 8),
+            substr(wet:::wet_md5_text(k), 1, 8))
+  }
+  # the name the normals had before their builder's method was in the key (#19)
+  old <- substr(wet:::wet_md5_text(paste(c(paste(1981:2010, collapse = ","), vars,
+                                           wet:::wet_raster_md5(dem)), collapse = "|")), 1, 8)
+  file.create(file.path(dir, sprintf("climr_mswx.blend_1981-2010_%s_%s.tif",
+                                     substr(wet:::wet_grid_key(dem), 1, 8), old)))
+  file.create(file.path(dir, name("superseded")))
+  local_mocked_bindings(get_bb = function(...) stop("climr reached"), .package = "climr")
+  expect_error(wet_climr_normals(dem, vars = vars, dir = dir), "climr reached")
 })
 
 test_that("variables that are not linear in the anomalies are refused", {

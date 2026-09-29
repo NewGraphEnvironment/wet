@@ -37,13 +37,16 @@ climr_with <- function(layer) {
   f
 }
 f_in <- c(aet = one("data/cgiar", "^cgiar_aet_c.*\\.tif$"), clim = climr_with("PPT_01"),
-          dem = one("data/dem", "^glo90v3_.*\\.tif$"), hz = one("data/hydz", "^hydz_.*\\.tif$"),
+          dem = one("data/dem", "^glo90_.*\\.tif$"), hz = one("data/hydz", "^hydz_.*\\.tif$"),
           tx = climr_with("Tmax_01"), tc = one("data/terraclimate", "^tc_19812010_.*\\.tif$"),
           lc = one("data/landcover", "^lc2020_frac_.*\\.tif$"),
           m16 = one("data/mod16", "^mod16_.*\\.tif$"))
-# Each input's name already encodes its content; the key adds this script's
-# own md5 and that of every package file it calls, so a code change never
-# reuses old samples.
+# Each input's name already encodes its content and, since #19, its builder's
+# method version, so a builder change reaches the key through basename(f_in).
+# The key adds this script's own md5 and that of every package file it calls,
+# so a code change never reuses old samples. (The builder files listed below
+# are redundant with their method versions but harmless; wet_climr_normals.R
+# also holds the hash helpers the key itself uses.)
 code_files <- c("scripts/wb_province.R", "R/wet_ws_sample.R", "R/wet_upstream_means.R",
                 "R/wet_upstream_sums.R", "R/wet_ws_fetch.R", "R/wet_climr_normals.R",
                 "R/wet_pet_hargreaves.R", "R/wet_aet_budyko.R", "R/wet_aet_landcover.R",

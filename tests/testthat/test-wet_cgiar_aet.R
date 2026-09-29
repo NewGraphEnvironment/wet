@@ -17,6 +17,12 @@ local_cgiar_src <- function() {
   src
 }
 
+# The crop's cache name for lattice cells c(col0, col1, row0, row1).
+cgiar_name <- function(cells, method = wet:::wet_cgiar_method) {
+  sprintf("cgiar_aet_c%d-%d_r%d-%d_%s.tif", cells[1], cells[2], cells[3], cells[4],
+          substr(wet:::wet_md5_text(method), 1, 8))
+}
+
 test_that("the stack is cropped, ordered and named month by month", {
   src <- local_cgiar_src()
   r <- wet:::wet_cgiar_stack(src, wet:::wet_cgiar_cells(c(-127.2, 54.1, -126.8, 54.4)))
@@ -37,9 +43,20 @@ test_that("a missing grid is named in the error", {
 test_that("a cached crop is returned without downloading", {
   dir <- withr::local_tempdir()
   bbox <- c(-139.1, 48.2, -114, 60.1)
-  f <- file.path(dir, "cgiar_aet_c4908-7920_r3588-5016.tif")
+  f <- file.path(dir, cgiar_name(c(4908, 7920, 3588, 5016)))
   file.create(f)
   expect_equal(wet_cgiar_aet(bbox, dir = dir), f)
+})
+
+test_that("a crop cached under another builder method is rebuilt, not returned", {
+  dir <- withr::local_tempdir()
+  bbox <- c(-139.1, 48.2, -114, 60.1)
+  # the name the crop had before its builder's method was in the key (#19)
+  file.create(file.path(dir, "cgiar_aet_c4908-7920_r3588-5016.tif"))
+  # and one under a method since superseded
+  file.create(file.path(dir, cgiar_name(c(4908, 7920, 3588, 5016), method = "superseded")))
+  withr::local_options(wet.figshare_api = "http://127.0.0.1:9")
+  expect_error(wet_cgiar_aet(bbox, dir = dir), "127.0.0.1")
 })
 
 test_that("an invalid bbox is refused", {
@@ -67,7 +84,7 @@ test_that("extracted directories without the completion marker are not trusted",
 
 test_that("bboxes that crop differently never share a cache key", {
   dir <- withr::local_tempdir()
-  f <- file.path(dir, "cgiar_aet_c4920-7920_r3600-5040.tif")
+  f <- file.path(dir, cgiar_name(c(4920, 7920, 3600, 5040)))
   file.create(f)
   expect_equal(wet_cgiar_aet(c(-139, 48, -114, 60), dir = dir), f)
   withr::local_options(wet.figshare_api = "http://127.0.0.1:9")

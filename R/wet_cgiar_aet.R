@@ -23,9 +23,11 @@ wet_cgiar_aet <- function(bbox, dir = "data/cgiar", overwrite = FALSE,
   # The crop is computed from the bbox snapped outward to the CGIAR cell
   # lattice, and keyed on those integer cell indices, so the cached content is
   # a function of the key alone. Any decimal encoding of the requested bbox
-  # can collide, because terra snaps a cell edge with no tolerance.
+  # can collide, because terra snaps a cell edge with no tolerance. The method
+  # version rides along, so a changed crop never reuses an old file.
   cells <- wet_cgiar_cells(bbox)
-  dest <- file.path(dir, sprintf("cgiar_aet_c%d-%d_r%d-%d.tif", cells[1], cells[2], cells[3], cells[4]))
+  dest <- file.path(dir, sprintf("cgiar_aet_c%d-%d_r%d-%d_%s.tif", cells[1], cells[2], cells[3], cells[4],
+                                 substr(wet_md5_text(wet_cgiar_method), 1, 8)))
   if (file.exists(dest) && !overwrite) return(dest)
   dir.create(dir, recursive = TRUE, showWarnings = FALSE)
 
@@ -59,6 +61,9 @@ wet_cgiar_aet <- function(bbox, dir = "data/cgiar", overwrite = FALSE,
   if (!file.rename(tmp, dest)) stop("could not move crop to ", dest, call. = FALSE)
   dest
 }
+
+# Bump whenever wet_cgiar_aet() or wet_cgiar_stack() changes what the crop holds.
+wet_cgiar_method <- "crop-near-int2u-1"
 
 # Column and row indices (0-based edges) of the CGIAR 1/120-degree lattice,
 # origin -180 / 90, that enclose bbox. The 1e-6-cell tolerance keeps a value

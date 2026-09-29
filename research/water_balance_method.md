@@ -149,7 +149,7 @@ The Budyko floor raises AET a little in the wet north too, which moves the alrea
 ### MOD16 as a challenger (#18)
 
 **Verified:** 2026-09-28 · **Produced by:**
-- `wet_mod16_aet()` and `scripts/wb_province.R` (run adc88b19c8);
+- `wet_mod16_aet()` and `scripts/wb_province.R` (run adc88b19c8, reproduced as 962a9cc2c4 when #19 re-keyed the input caches);
 - `scripts/wb_aet_compare.R` stage 2 → `data/checks/wb_aet_compare.txt`;
 - `data/checks/wb_validation_aet-{mod16,cmod16}.txt`.
 
