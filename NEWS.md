@@ -46,3 +46,10 @@
   36.3 % for MOD16 and 34.6 % for max(CGIAR, MOD16), against 31.2 %.
   `scripts/wb_aet_compare.R` now re-runs #15's comparison, which must
   reproduce, before the #18 one. See `research/water_balance_method.md`.
+
+* The input builders `wet_cgiar_aet()`, `wet_dem_glo90()` and
+  `wet_climr_normals()`, and the hydrologic-zones grid in
+  `scripts/wb_inputs.R`, now key their caches on a method version (and the
+  normals on climr's version too), so a builder change never reuses an old
+  file (#19). Existing caches rebuild once under the new names; re-run under
+  them, the water balance reproduces every shipped number.
