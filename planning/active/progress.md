@@ -12,3 +12,4 @@
 - Phase 3: zones and province script; `/code-check` 3 rounds, all Clean (`review-round1..3.md`)
 - Tests: FAIL 0 PASS 464
 - Next: Phase 4 re-run
+- Phase 4: inputs rebuilt (values and bytes identical), province run 962a9cc2c4 reproduces adc88b19c8 (5.8e-16), all 10 variants scored, cfu stays, output and map byte-identical

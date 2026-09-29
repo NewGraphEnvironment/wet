@@ -1,31 +1,31 @@
-22:34:18 run key adc88b19c8
+07:45:50 run key 962a9cc2c4
 |---------|---------|---------|---------|=========================================                                          [1] TRUE
 [1] TRUE
-22:35:40 layers data/wb/adc88b19c8/layers.tif
-22:35:42 246 groups, 246 to sample with 4 workers
-22:42:20 sampling done
-22:43:39 100: 644710 watersheds in 78 s
-22:45:11 200: 930163 watersheds in 92 s
-22:45:44 300: 307101 watersheds in 33 s
-22:46:01 400: 189441 watersheds in 17 s
-22:46:09 500: 98095 watersheds in 9 s
-22:46:27 600: 201372 watersheds in 18 s
-22:46:33 700: 70044 watersheds in 6 s
-22:46:40 800: 90774 watersheds in 7 s
-22:46:54 900: 151321 watersheds in 14 s
-22:46:55 905: 11974 watersheds in 1 s
-22:47:19 910: 230418 watersheds in 23 s
-22:47:28 915: 94810 watersheds in 9 s
-22:47:32 920: 49325 watersheds in 4 s
-22:47:32 925: 1049 watersheds in 0 s
-22:47:38 930: 73956 watersheds in 6 s
-22:47:39 935: 7484 watersheds in 1 s
-22:47:41 940: 22691 watersheds in 2 s
-22:47:41 945: 1602 watersheds in 0 s
-22:47:42 950: 15843 watersheds in 1 s
-22:47:43 955: 6544 watersheds in 1 s
-22:47:44 960: 20210 watersheds in 2 s
-22:47:45 970: 6501 watersheds in 1 s
-22:47:46 990: 19965 watersheds in 2 s
-22:47:47 999: 60 watersheds in 0 s
-22:47:47 accumulation done
+07:47:12 layers data/wb/962a9cc2c4/layers.tif
+07:47:14 246 groups, 246 to sample with 4 workers
+07:53:54 sampling done
+07:55:10 100: 644710 watersheds in 75 s
+07:56:39 200: 930163 watersheds in 90 s
+07:57:11 300: 307101 watersheds in 32 s
+07:57:28 400: 189441 watersheds in 17 s
+07:57:36 500: 98095 watersheds in 8 s
+07:57:53 600: 201372 watersheds in 17 s
+07:57:59 700: 70044 watersheds in 6 s
+07:58:06 800: 90774 watersheds in 7 s
+07:58:19 900: 151321 watersheds in 13 s
+07:58:20 905: 11974 watersheds in 1 s
+07:58:43 910: 230418 watersheds in 23 s
+07:58:51 915: 94810 watersheds in 8 s
+07:58:55 920: 49325 watersheds in 4 s
+07:58:55 925: 1049 watersheds in 0 s
+07:59:02 930: 73956 watersheds in 6 s
+07:59:02 935: 7484 watersheds in 1 s
+07:59:04 940: 22691 watersheds in 2 s
+07:59:04 945: 1602 watersheds in 0 s
+07:59:05 950: 15843 watersheds in 1 s
+07:59:06 955: 6544 watersheds in 0 s
+07:59:08 960: 20210 watersheds in 2 s
+07:59:08 970: 6501 watersheds in 1 s
+07:59:10 990: 19965 watersheds in 2 s
+07:59:10 999: 60 watersheds in 0 s
+07:59:10 accumulation done

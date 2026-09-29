@@ -65,3 +65,28 @@ The byte md5s in `data/checks/wb_inputs.txt` are unchanged too; only the file na
 So the pre-#19 caches were not stale, despite A3's timing: the CGIAR crop and DEM predate 156317e and the P/T
 normals predate 3658923, and none of those changes altered the values. The old files are in
 `data/wb_old/pre19_inputs/`; the #18 run `adc88b19c8` is in `data/wb_old/`.
+
+## Phase 4: province run 962a9cc2c4 (2026-09-28)
+
+`wb_province.R 4` in 13.4 min (14:45:49–14:59:10 UTC); record `data/checks/wb_province_run.txt`.
+Against the #18 run `adc88b19c8` (`compare_runs.R`, log `data/logs/20260928_wb_equality_check.log`):
+56 layers of `layers.tif` identical by value, `in_bc.tif` identical, the same 24 upstream files, upstream
+means matched by `watershed_feature_id` within **5.76e-16** of each column's largest magnitude
+(800.rds `aet_05`) — floating-point summation order only. The comparison script was first run on #15 vs #18,
+where it reported reproduction despite different layer sets; it was made strict (any structural difference
+fails) before this run.
+
+## Phase 4: downstream chain and acceptance (2026-09-28)
+
+10 × `wb_validate.R` at 4.0 min each, `wb_aet_compare.R` 9.6 min (its stage-1 check reproduced #15), winner **cfu**,
+ship, output and map: 08:03–08:59 UTC. Driver log `data/logs/20260928_downstream.log` (gitignored).
+
+- `research/wb_runoff_annual.png`: byte-identical (unchanged in git).
+- 13 tracked reports (`wb_validation*.txt`, `wb_aet_compare.txt`, `wb_output.txt`): identical as line sets once the run
+  key is normalised and the pooled-zone list sorted. What moved: the run key, the pooled-zone order
+  (16 17 12 → 16 12 17) and the position of the zone-17 coefficient rows — the unordered-rows effect #18 recorded.
+- `wb_province_run.txt`: only the run key, the `layers.tif` path, timestamps and durations.
+- `wb_inputs.txt`: file names and build date; byte md5s unchanged. `climr_eccc.txt`: unchanged.
+
+A first version of this check used BSD awk's missing `asort()`, errored per file and printed `bad=0`; it was redone
+in Python before being relied on.

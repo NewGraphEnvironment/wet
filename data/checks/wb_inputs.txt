@@ -1,6 +1,6 @@
 # Inputs for the open water balance (#11) and the ET experiments (#15, #18)
 
-built: 2026-09-27
+built: 2026-09-28
 bbox (EPSG:4326): -139.1, 48.2, -114, 60.1
 climr 0.2.2, terra 1.9.46
 
@@ -21,31 +21,31 @@ md5:    f369d684fd3939acbdd6b06097a3d4b0
 
 ## AET crop
 source: wet_cgiar_aet()
-file:   data/cgiar/cgiar_aet_c4908-7920_r3588-5016.tif
+file:   data/cgiar/cgiar_aet_c4908-7920_r3588-5016_f24bedbc.tif
 md5:    dca547edb6427dd4b90ac384266559ad
 grid:   1428 x 3012 x 13, res 0.0083333, ext -139.1 -114 48.20001 60.10001
 
 ## GLO-90 DEM
 source: Copernicus DEM GLO-90 via wet_dem_glo90()
-file:   data/dem/glo90v3_98f0f8e01707.tif
+file:   data/dem/glo90_ae0bdc5602.tif
 md5:    08233c638a3cf0995198e3c518a2840d
 grid:   1428 x 3012 x 1, res 0.0083333, ext -139.1 -114 48.20001 60.10001
 
 ## climr normals
 source: climr refmap_climr + mswx.blend obs 1981-2010 via wet_climr_normals()
-file:   data/climr/climr_mswx.blend_1981-2010_98f0f8e0_d7671654.tif
+file:   data/climr/climr_mswx.blend_1981-2010_98f0f8e0_7b7e72fc.tif
 md5:    607e618af47d4be230fb84bdc3d7f9ff
 grid:   1428 x 3012 x 24, res 0.0083333, ext -139.1 -114 48.20001 60.10001
 
 ## Hydrologic zones grid
 source: terra::rasterize(HYDZN_NO)
-file:   data/hydz/hydz_c4908-7920_r3588-5016_f369d684.tif
+file:   data/hydz/hydz_0b6c03d470.tif
 md5:    cd4d32e2afa385937d0ac97d27500cd2
 grid:   1428 x 3012 x 1, res 0.0083333, ext -139.1 -114 48.20001 60.10001
 
 ## climr Tmax/Tmin normals
 source: climr refmap_climr + mswx.blend obs 1981-2010 via wet_climr_normals()
-file:   data/climr/climr_mswx.blend_1981-2010_98f0f8e0_f392d935.tif
+file:   data/climr/climr_mswx.blend_1981-2010_98f0f8e0_1da84725.tif
 md5:    0230e6e59b0e6d0c45232241992d473a
 grid:   1428 x 3012 x 24, res 0.0083333, ext -139.1 -114 48.20001 60.10001
 

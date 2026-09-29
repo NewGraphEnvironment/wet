@@ -45,16 +45,16 @@ Each script runs from a frozen copy (Rscript reads incrementally) under `caffein
       climr read remote data) and stop and report; never let a changed input into a no-op re-run (G2)
 - [x] Move the old CGIAR, DEM (`glo90v3_*`), climr x2 and zones files to `data/wb_old/`, so `one()` and
       `climr_with()` see one file each (O3)
-- [ ] `mv data/wb/adc88b19c8 data/wb_old/`; `wb_province.R 4 | tee data/checks/wb_province_run.txt` (G5)
-- [ ] `layers.tif` identical layer by layer; upstream means equal matched by `watershed_feature_id`
+- [x] `mv data/wb/adc88b19c8 data/wb_old/`; `wb_province.R 4 | tee data/checks/wb_province_run.txt` (G5)
+- [x] `layers.tif` identical layer by layer; upstream means equal matched by `watershed_feature_id`
       within 1e-12 relative (G1)
-- [ ] `wb_validate.R` for `cgiar lc tc fu cfu fu15 fu20 fu35 mod16 cmod16`; `wb_aet_compare.R` (its
+- [x] `wb_validate.R` for `cgiar lc tc fu cfu fu15 fu20 fu35 mod16 cmod16`; `wb_aet_compare.R` (its
       stage-1 check `stop()`s unless #15 reproduces); `wb_validate.R cfu`; `wb_output.R`; `wb_map.R`
-- [ ] Acceptance (B1): winner cfu; `research/wb_runoff_annual.png` byte-identical (G6); report diffs
+- [x] Acceptance (B1): winner cfu; `research/wb_runoff_annual.png` byte-identical (G6); report diffs
       limited to run key, dates, timings, zone/coefficient row order, and `wb_inputs.txt` byte md5s
       whose values matched; `climr_eccc.txt` unchanged or its drift attributed to ECCC
-- [ ] Update `research/water_balance_method.md`'s run citation to the new key (G4)
-- [ ] Commit the regenerated tracked reports and the run record in findings
+- [x] Update `research/water_balance_method.md`'s run citation to the new key (G4)
+- [x] Commit the regenerated tracked reports and the run record in findings
 
 ## Validation
 
