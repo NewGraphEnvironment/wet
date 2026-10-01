@@ -56,8 +56,16 @@ Relates to #25
 - **The registry needs changes.** `inst/cartography/wet_station.csv` `recent_year` has four ordinal classes and needs five. `record_source` and the `dropped`/`no_baseline` departure classes become unused.
 - `tmap` 4.4.1, `sf` 1.1.2 and `bcdata` are installed. `sf` and `tmap` are not yet in Suggests.
 
+## Phase 1: map inputs (2026-10-01)
+
+- **Separate script, not a section of `station_vignette_data.R`.** The daily bundle was retrieved 2026-10-01 against HYDAT 2026-07-17, the same release that tidyhydat's default path holds on m1. Re-running the daily script would refetch S3 and real-time for no change, so the map has its own `data-raw/station_vignette_map.R`. The plan said one script.
+- **rds, not GeoPackage.** The six layers as a gpkg were 2.9 MB, 804 KB of it the BC outline: `fwa_bcboundary` unioned and simplified at 2 km keeps 144k vertices in its islands. The fix keeps parts of at least 2,000 km² and simplifies them at 5 km, giving 736 vertices. The layers are then saved as one xz rds, like `station_daily.rds`: 64 KB. The total bundle is 132 KB.
+- **Catchments check against HYDAT.** FWA upstream area / HYDAT gross area is 0.997 for 08EE013 (567 km²) and 0.998 for 08EE003 (2,315 km²). `wet_station_snap()` accepted both, and the catchment is cut with `fwa_watershedatmeasure()` at the snapped segment's measure.
+- **Streams grouped by `blue_line_key` alone.** Grouping by key and `gnis_name` split the Bulkley into several rows, because some segments have no name.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
+| `sum(streams$main) == 2` failed | group by blue_line_key only (unnamed segments split the group) |
 | Vignette render stops at `all(spawn$anomaly < 0)` with NA anomalies | Locally installed cd is 0.4.0; DESCRIPTION needs >= 0.5.0. Upgrade cd (Phase 1). |

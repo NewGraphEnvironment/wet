@@ -12,8 +12,8 @@ The first pass (#29) built the path and the pkgdown scaffold, but the vignette i
 Decided at the issue revision and the plan gate (2026-10-01): Chinook open-water windows only (migration, spawning, fry migration); baseline 1981–2010; recent years 2022–2026; heat strip and trends kept for the three windows; record-by-source figure and ice prose removed. Machine change approved with the plan: upgrade `cd` to >= 0.5.0 via `pak::pak("NewGraphEnvironment/cd")`.
 
 ## Phase 1: Map inputs
-- [ ] `pak::pak("NewGraphEnvironment/cd")`, then confirm the current vignette renders locally (baseline before changes)
-- [ ] `data-raw/station_vignette_data.R` gains a map section writing `inst/vignette-data/station_map.gpkg` (EPSG:3005). Its layers:
+- [x] `pak::pak("NewGraphEnvironment/cd")`, then confirm the current vignette renders locally (baseline before changes)
+- [x] ~~`data-raw/station_vignette_data.R` gains a map section writing `inst/vignette-data/station_map.gpkg`~~ → `data-raw/station_vignette_map.R` writing `inst/vignette-data/station_map.rds` (EPSG:3005; see findings). Its layers:
   - BULK watershed group;
   - order-≥5 streams in BULK, plus the full Bulkley and Buck Creek by blue_line_key, simplified after length is taken;
   - lakes over 100 ha;
@@ -21,9 +21,9 @@ Decided at the issue revision and the plan gate (2026-10-01): Chinook open-water
   - each station's upstream catchment, via `wet_station_snap()` and `fwa_watershedatmeasure()`;
   - Houston from BC Geographic Names (bcdata);
   - a simplified BC outline for the keymap.
-- [ ] Re-run the script. The daily series refreshes too, and its provenance records the new retrieval date. Check the bundle stays under 500 KB.
-- [ ] `tests/testthat/test-vignette_data.R`: the gpkg has the expected layers, CRS 3005, both stations, and is inside the size cap
-- [ ] `sf` and `tmap` added to Suggests
+- [x] ~~Re-run the script. The daily series refreshes too~~ Run the map script; the daily series was already retrieved 2026-10-01 and is left as is. Bundle 132 KB, under 500 KB.
+- [x] `tests/testthat/test-vignette_data.R`: the map bundle has the expected layers, CRS 3005, both stations, and is inside the size cap
+- [x] `sf` and `tmap` added to Suggests
 
 ## Phase 2: Vignette, Chinook open-water
 - [ ] Filter windows to CH rows that do not touch November–April, computed with the existing `touches_ice` test rather than hand-listed. Assert the result is exactly migration, spawning and fry migration.
