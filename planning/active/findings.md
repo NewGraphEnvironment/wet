@@ -48,3 +48,14 @@ Asked whether to keep provisional winter days and note them instead of dropping.
 
 | Error | Resolution |
 |-------|------------|
+
+## Bundled data (Phase 2, 2026-10-01)
+
+`data-raw/station_vignette_data.R` → `inst/vignette-data/`, 61 KB total (rds xz, 60 KB; csv 1 KB). Retrieved 2026-10-01 with HYDAT 20260717:
+
+| station | hydat | provisional | realtime |
+|---|---|---|---|
+| 08EE003 | 1930-09-09 .. 2025-03-04 (12,557 d) | 2025-03-05 .. 2026-09-12 (540 d) | 2026-09-13 .. 2026-09-30 (18 d) |
+| 08EE013 | 1973-01-01 .. 2025-03-02 (18,620 d) | 2025-03-03 .. 2026-09-12 (559 d) | 2026-09-13 .. 2026-09-30 (18 d) |
+
+The species windows: 12 BULK rows at knowledge `c97c4d0`; CO migration was dropped for having no end, leaving 11. **Wrong turn:** at planning I reported two exact duplicate BULK rows. That came from a `head -3` printed together with a grep of all BULK rows, so the first two rows appeared twice. The script's `duplicated()` check found none.

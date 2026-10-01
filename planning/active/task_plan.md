@@ -7,11 +7,7 @@ wet has no vignettes and no pkgdown site. The station-departure path (#25) runs 
 ## What I found that shaped the plan
 
 - **Repo.** wet is **PRIVATE** and Pages is not enabled (the Pages API returns 404). The standard r-lib pkgdown workflow still builds the site and pushes `gh-pages`, but nothing serves it until the repo goes public and Pages is turned on. That switch belongs to the public flip, not to this issue.
-- **The species-timing CSV.** knowledge `data/life_history_timing.csv` (knowledge is private; HEAD `c97c4d0`, 2026-09-30) has 12 BULK rows.
-  - Two are exact duplicates (CH migration and CH spawning each appear twice).
-  - CO migration has no `end`.
-  - That leaves 9 usable unique windows: CH migration, spawning, incubation, emergence and fry_migration; CO spawning; ST spawning; SK spawning; BT migration, spawning and incubation. That is 11 rows minus the two duplicates and minus CO migration, so I'll recount at build.
-  - Most rows carry the note "no source in template; to confirm with knowledge holders", and the vignette's limits section will say so.
+- **The species-timing CSV.** knowledge `data/life_history_timing.csv` (knowledge is private; pinned at `c97c4d0`, 2026-09-30) has 12 BULK rows. CO migration has no `end`, which leaves 11 usable windows: CH migration, spawning, incubation, emergence and fry_migration; CO spawning; ST spawning; SK spawning; BT migration, spawning and incubation. Most rows carry the note "no source in template; to confirm with knowledge holders", and the vignette's limits section will say so. (Corrected in Phase 2: the planning-time claim of two duplicate rows was wrong. It came from reading `head -3` and a grep together, so the first two rows were printed twice.)
 - **Sibling patterns** (drift `origin/main`, since the local clone is stale):
   - the `wordcount` chunk in `vignettes/articles/temporal-composition.Rmd`, which strips the YAML, code fences and inline R, then `stop()`s over the cap;
   - the gq registry built as `gq_reg_merge(gq_reg_main(), gq_reg_custom(system.file("cartography", "<x>.csv", package = ...)))` → `gq_tmap_classes()` → named `values` and `labels`, with a `stopifnot()` on the class set;
@@ -45,16 +41,16 @@ wet has no vignettes and no pkgdown site. The station-departure path (#25) runs 
 
 ## Phase 2: bundled data
 
-- [ ] `data-raw/station_vignette_data.R`, run against `data/hydat/20260717/Hydat.sqlite3`:
+- [x] `data-raw/station_vignette_data.R`, run against `data/hydat/20260717/Hydat.sqlite3`:
   - `wet_station_daily(c("08EE013", "08EE003"), hydat)`, trimmed to the columns the vignette uses, → `inst/vignette-data/station_daily.rds` (xz).
   - The knowledge CSV is fetched at a **pinned SHA** via `gh api`. The BULK rows, deduplicated and with incomplete rows dropped (each drop logged by the script), go to `inst/vignette-data/life_history_bulk.csv`.
   - Provenance (HYDAT release, knowledge SHA, retrieval date, per-source date ranges) is stored with the rds, so the vignette's "Cached inputs" note is computed, not typed.
-- [ ] `tests/testthat/test-vignette_data.R`, written first:
+- [x] `tests/testthat/test-vignette_data.R`, written first:
   - total `inst/vignette-data/` size under 500 KB;
   - the expected columns, and every `start`/`end` matching `MM-DD`;
   - no duplicate windows;
   - both stations and all three sources present.
-- [ ] Run the script and commit the data together with the test.
+- [x] Run the script and commit the data together with the test.
 
 ## Phase 3: vignette
 
@@ -99,5 +95,5 @@ wet has no vignettes and no pkgdown site. The station-departure path (#25) runs 
 ## Out of scope and follow-ups
 
 - Enabling GitHub Pages happens at the public flip.
-- **knowledge CSV defects** (two duplicate BULK rows, CO migration with no end). I'll put a draft issue for knowledge in the final report and won't file it unasked.
+- **knowledge CSV defect**: CO migration has no end. I'll put a draft issue for knowledge in the final report and won't file it unasked.
 - No R-CMD-check workflow is added; the issue doesn't ask for one.
