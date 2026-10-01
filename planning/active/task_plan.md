@@ -33,15 +33,15 @@ wet has no vignettes and no pkgdown site. The station-departure path (#25) runs 
 
 ## Phase 1: pkgdown scaffold
 
-- [ ] `_pkgdown.yml`: `url: https://newgraphenvironment.github.io/wet/` and `template: bootstrap: 5`. No `reference:` section, so pkgdown lists every export and `check_pkgdown()` can't fail on a missing one.
-- [ ] `.github/workflows/pkgdown.yaml`: the r-lib template as in drift, with `needs: website`.
-- [ ] `DESCRIPTION`:
+- [x] `_pkgdown.yml`: `url: https://newgraphenvironment.github.io/wet/` and `template: bootstrap: 5`. No `reference:` section, so pkgdown lists every export and `check_pkgdown()` can't fail on a missing one.
+- [x] `.github/workflows/pkgdown.yaml`: the r-lib template as in drift, with `needs: website`.
+- [x] `DESCRIPTION`:
   - add the pkgdown site to `URL`;
   - `VignetteBuilder: knitr`;
   - Suggests: `bookdown`, `ggplot2`, `gq`, `Kendall`, `knitr`, `rmarkdown`, `zyp`;
   - Remotes: add `NewGraphEnvironment/gq`.
-- [ ] `.Rbuildignore`: `^_pkgdown\.yml$`, `^docs$`, `^pkgdown$`, `^data-raw$`. `.gitignore`: `docs/`, `vignettes/*.html`, `vignettes/*_files/`.
-- [ ] Verify with `pkgdown::check_pkgdown()` and a local `pkgdown::build_site()` (reference pages only).
+- [x] `.Rbuildignore`: `^_pkgdown\.yml$`, `^docs$`, `^pkgdown$`, `^data-raw$`. `.gitignore`: `docs/`, `vignettes/*.html`, `vignettes/*_files/`.
+- [x] Verify with `pkgdown::check_pkgdown()` and a local `pkgdown::build_site()` (reference pages only).
 
 ## Phase 2: bundled data
 

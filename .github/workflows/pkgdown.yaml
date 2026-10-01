@@ -1,0 +1,92 @@
+# Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+name: pkgdown.yaml
+
+permissions: read-all
+
+jobs:
+  pkgdown:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pkgdown-${{ github.event_name != 'pull_request' || github.run_id }}
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::pkgdown, local::.
+          needs: website
+
+      # pkgdown renders EVERY root-level .md except a hardcoded allowlist
+      # (README, LICENSE, NEWS, two GitHub templates) and there is no config
+      # option to exclude one. .Rbuildignore does not apply. So CLAUDE.md is
+      # published — as a rendered page, a verbatim copy, AND full-text in
+      # search.json. Remove it before the build, not after: deleting
+      # docs/CLAUDE.html leaves the other two.
+      - name: Keep internal notes out of the published site
+        run: rm -f CLAUDE.md
+
+      - name: Build site
+        run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
+        shell: Rscript {0}
+
+      # Declared allowlist, so a NEW root markdown file cannot leak silently.
+      # Add to `allowed` only after deciding the page should be public.
+      - name: Fail if an unexpected page reached the site
+        run: |
+          # Premise: a loop over an empty docs/ runs zero times, prints nothing
+          # and exits 0 — "the build produced nothing" and "all clear" would be
+          # indistinguishable. Assert we are looking at a real site first.
+          [ -f docs/index.html ] || { echo "::error::docs/index.html missing — the site did not build"; exit 1; }
+          allowed="404 authors index LICENSE LICENSE-text"
+          # Explicit loop, NOT `case " $allowed " in *" $b "*)`: that matches a
+          # substring, so a name spanning two entries ("authors index") passes.
+          is_allowed() {
+            for a in $allowed; do [ "$a" = "$1" ] && return 0; done
+            return 1
+          }
+          rc=0
+          for f in docs/*.html docs/*.md; do
+            [ -e "$f" ] || continue
+            b=$(basename "$f")
+            # strip only the suffix that actually matched, or index.md.html
+            # would reduce to "index"
+            case "$b" in
+              *.html) b="${b%.html}" ;;
+              *.md)   b="${b%.md}" ;;
+            esac
+            if ! is_allowed "$b"; then
+              echo "::error::unexpected root page published: $f"
+              rc=1
+            fi
+          done
+          exit $rc
+
+      - name: Deploy to GitHub pages
+        if: github.event_name != 'pull_request'
+        uses: JamesIves/github-pages-deploy-action@v4.5.0
+        with:
+          # clean: false NEVER deletes, so removing a file from source does not
+          # unpublish it — the already-published CLAUDE.html/CLAUDE.md would
+          # survive this fix forever. Safe to flip here: gh-pages carries no
+          # CNAME (the domain comes from the org site repo) and no dev/ tree.
+          clean: true
+          branch: gh-pages
+          folder: docs

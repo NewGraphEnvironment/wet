@@ -14,7 +14,8 @@ Description: Per-segment stream discharge for the British Columbia
     mean annual and monthly discharge per stream segment for historical
     and climate-scenario runs.
 License: MIT + file LICENSE
-URL: https://github.com/NewGraphEnvironment/wet
+URL: https://github.com/NewGraphEnvironment/wet,
+    https://newgraphenvironment.github.io/wet/
 BugReports: https://github.com/NewGraphEnvironment/wet/issues
 Depends:
     R (>= 4.1)
@@ -24,17 +25,26 @@ Imports:
     jsonlite,
     terra
 Suggests:
+    bookdown,
     cd,
     climr,
     duckdb,
+    ggplot2,
+    gq,
+    Kendall,
+    knitr,
+    rmarkdown,
     RPostgres,
     RSQLite,
     testthat (>= 3.2.0),
     tidyhydat,
-    withr
+    withr,
+    zyp
+VignetteBuilder: knitr
 Remotes:
     bcgov/climr,
-    NewGraphEnvironment/cd
+    NewGraphEnvironment/cd,
+    NewGraphEnvironment/gq
 Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

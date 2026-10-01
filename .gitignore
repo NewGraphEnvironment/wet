@@ -18,3 +18,8 @@ data/basin/*
 !.claude/
 .claude/*
 !.claude/visibility
+
+# pkgdown site and rendered vignettes
+docs/
+vignettes/*.html
+vignettes/*_files/
