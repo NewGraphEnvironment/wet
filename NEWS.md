@@ -66,3 +66,11 @@
     Creek and Bulkley nr Houston, 2023-2026 summer and early-fall flow ran
     54-87 % below the 1981-2010 mean. Provisional winter flows are
     uncorrected ice readings; see `research/station_flow_departure.md`.
+
+* A pkgdown site and the first vignette, *Flow in species windows at two
+  stations* (#27). It runs the station path on Buck Creek and Bulkley nr
+  Houston from bundled data (`data-raw/station_vignette_data.R`): the record
+  by source, the hydrograph against its 1981-2010 median with the BULK species
+  windows beneath, departure per window and year, and trends. Chinook spawning
+  flow was 58-81 % below the 1981-2010 mean at both stations in every year
+  2023-2026.
