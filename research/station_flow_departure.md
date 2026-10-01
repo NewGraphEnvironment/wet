@@ -1,6 +1,6 @@
 # Station flow departure: sources, seams and what a departure rests on
 
-**Verified:** 2026-09-28 (species windows 2026-10-01) · **Issues:** #25 (from #6; feeds knowledge#25, cd#92, cd#95, water-temp-bc#19), #27 (vignette) · **Produced by:** `scripts/station_departure.R` → `data/checks/station_departure_report.txt`, HYDAT 2026-07-17; species windows by `vignettes/station-flow.Rmd` on `data-raw/station_vignette_data.R`'s bundle (retrieved 2026-10-01)
+**Verified:** 2026-09-28 (species windows and Chinook open-water 2026-10-01) · **Issues:** #25 (from #6; feeds knowledge#25, cd#92, cd#95, water-temp-bc#19), #27 (vignette) · **Produced by:** `scripts/station_departure.R` → `data/checks/station_departure_report.txt`, HYDAT 2026-07-17; species windows by `vignettes/station-flow.Rmd` on `data-raw/station_vignette_data.R`'s bundle (retrieved 2026-10-01) and `data-raw/station_vignette_map.R`'s map layers
 
 ## Sources and where they meet
 
@@ -45,14 +45,24 @@ Each source continues the one before it, per station. A provisional value is nev
 - Departure and trend are cd's (baseline mean; % of normal for levels, absolute for shares and timing; Theil-Sen and Mann-Kendall), one station per call (cd#95 would lift that).
 - Mann-Kendall on a constant series (a share that is 0 every year) prints a Kendall Fortran message. cd still returns slope 0, p 1.
 
-## Species windows (#27)
+## Species windows (#27, first pass)
 
-`vignettes/station-flow.Rmd` runs the same path over the 11 complete BULK windows in knowledge's `life_history_timing.csv` at c97c4d0. The 12th, CO migration, has no end date. Seven of the 11 have no source yet.
+The first version of `vignettes/station-flow.Rmd` (#29) ran the same path over the 11 complete BULK windows in knowledge's `life_history_timing.csv` at c97c4d0. The 12th, CO migration, has no end date. Seven of the 11 have no source yet.
 
-- **The provisional-winter rule reaches spring windows.** Five of the 11 touch November–April: CH and BT incubation, CH emergence, CO spawning and ST spawning. CH emergence and ST spawning lose 2025–2026 only because they start on 15 April. That is the rule as decided at #27's plan gate, and the vignette lists every window-year it drops.
+- **The provisional-winter rule reaches spring windows.** Five of the 11 touch November–April: CH and BT incubation, CH emergence, CO spawning and ST spawning. CH emergence and ST spawning lose 2025–2026 only because they start on 15 April. That was the rule as decided at #27's first plan gate, and that version listed every window-year it dropped.
 - **08EE003 is gauged through the winter only in 1971 and 2011–2026**, taking at least 80% of January–February days as the test. So CH incubation, BT incubation and ST spawning have under 10 baseline years and get no departure. Its "from 2000" trends start in 2010 or 2011.
 - **Median against mean.** The CH spawning window's 1981–2010 mean at Buck Creek is 0.91 m³/s; the median year is 0.59. A typical year therefore reads 36% below the mean normal, so a figure drawn against the daily median and a departure from the mean must be named apart.
 - **Trends, from 1981 and from 2000, for window mean and 7-day minimum.**
   - There are 68 distinct slopes; CH and SK spawning share their dates, so they count once.
   - 5 are significant at p < 0.05, where chance alone would give about 3.
   - All 5 are negative: at Buck Creek, CH/SK spawning mean, CO spawning and BT spawning 7-day minimum since 2000; at 08EE003, CH migration and CH emergence mean since 2000.
+
+## Chinook open-water windows, 2022–2026 (#27 revision)
+
+The revised vignette keeps only the Chinook windows that stay in open water: migration (05-01–08-01), spawning (08-01–09-15) and fry migration (07-15–09-07). Incubation (08-01–03-31) and emergence (04-15–07-07) touch November–April, so they are left out rather than corrected. That removes the provisional-winter drop rule from the vignette (it was a no-op for these three windows) and the ice discussion, leaving one sentence on why the winter-touching windows are out.
+
+- **Every window at both stations was below its 1981–2010 mean in 2023–2026.** That is 24 station-window values (2 stations × 3 windows × 4 years): 21 of them fall below the baseline's 10th percentile, and 6 below its minimum (08EE003 migration 2023–2026, 08EE013 migration 2024–2025). The lowest is 08EE003 spawning 2024, at 19% of the mean. 2022 was wet in migration and fry migration, above the mean at both stations (126–206%); its spawning window was below (71% and 99%).
+- **A median baseline year is 64–96% of the mean** across the six station-windows. The key figure therefore draws the median year as a second reference line, and the interpretation is anchored on rank, not on sign.
+- **08EE003's 1981–2010 baseline is 1981–1998** (18 years) in all three windows. It has no window with 80% of its days in 1999–2010: only a few spot values a year in 2000–2009, and a record from September 2010 that is continuous except for two provisional gaps in 2025 (1–8 July and 3–11 August). Its three 2025 windows rest on 80–91% of their days (37 of 46, 85 of 93 and 46 of 55), which `wet_window_stats()` accepts at `min_frac = 0.8`.
+- **The catchments are nested.** Buck Creek's FWA catchment (567 km²) lies inside 08EE003's (2,315 km²): 24% of its area. FWA area against HYDAT gross area is 0.997 and 0.998. For each window and recent year (15 pairs), the two stations fall on the same side of the mean, partly by construction.
+- **Trends** use the three windows, 2 variables, 2 starts and 2 stations: 24 slopes, 2 significant at p < 0.05, both negative. These are 08EE013 spawning mean and 08EE003 migration mean, both since 2000. Fry migration shares 38 of its 55 days with spawning, so the tests are not independent.

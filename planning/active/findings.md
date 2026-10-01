@@ -63,9 +63,20 @@ Relates to #25
 - **Catchments check against HYDAT.** FWA upstream area / HYDAT gross area is 0.997 for 08EE013 (567 km²) and 0.998 for 08EE003 (2,315 km²). `wet_station_snap()` accepted both, and the catchment is cut with `fwa_watershedatmeasure()` at the snapped segment's measure.
 - **Streams grouped by `blue_line_key` alone.** Grouping by key and `gnis_name` split the Bulkley into several rows, because some segments have no name.
 
+## Phases 2–4: the vignette (2026-10-01)
+
+- **One commit for Phases 2–4.** Filtering the windows breaks the ice and thin-baseline guards, the `dropped`/`kept` cascade and the registry assertions all at once (review-27b #1–3, #20). An intermediate commit would not render.
+- **ggplot2 for the map, not tmap.** gq's main-registry styles for streams are classed by FWA `feature_code`, which the bundled layers do not carry. `gq_tmap_keymap()` prints a second viewport, which knitr would emit as a second figure. The map takes its colours from the registries (`streams_all` WA24111110, `lake`, `town`, plus the custom `station_map`), its frame from `gq_bbox_aspect()` and its scale bar from `gq_scale_breaks()`. tmap stays out of Suggests.
+- **The key figure is bars at 100 + cd's anomaly.** Each panel carries cd's `baseline_mean` in m³/s and a dashed line for the median baseline year, at 64–96% of the mean. Provisional years (2025, 2026) are drawn lighter.
+- **A silent zero, caught on reading the render.** "0 of those 24 window-years were drier than nine years in ten" came from `low$value`. `anom` has no `value` column, so `$` returned NULL, and `sum(NULL < x)` is 0. Fixed by carrying `value` through `cols_flag`, with `stopifnot(is.numeric(low[["value"]]))` and `n_dec > 0`. The corrected figures are 21 of 24 below the 10th percentile and 6 below the baseline minimum, matching the plan review's independent count.
+- **Hydrograph clipped to May–October.** April 2026 at Buck Creek opened at about 8 m³/s against a median of 0.7: a provisional under-ice reading.
+- **Prose:** 480 words, under the 600 cap.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
 | `sum(streams$main) == 2` failed | group by blue_line_key only (unnamed segments split the group) |
+| Interpretation said 0 of 24 below the 10th percentile | `anom` had no `value`; carry it through `cols_flag` and guard it |
+| R CMD check: `test-wet_pcic_annual.R` fails, no package 'ncdf4' | Fails the same way on main; `terra::writeCDF()` needs ncdf4, which is not in Suggests. Outside this issue; drafted as a follow-up issue |
 | Vignette render stops at `all(spawn$anomaly < 0)` with NA anomalies | Locally installed cd is 0.4.0; DESCRIPTION needs >= 0.5.0. Upgrade cd (Phase 1). |
