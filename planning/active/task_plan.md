@@ -54,13 +54,13 @@ wet has no vignettes and no pkgdown site. The station-departure path (#25) runs 
 
 ## Phase 3: vignette
 
-- [ ] `inst/cartography/wet_station.csv`, a gq custom registry. The class layers are:
+- [x] `inst/cartography/wet_station.csv`, a gq custom registry. The class layers are:
   - `record_source`: HYDAT open water, HYDAT ice, provisional, real-time;
   - `departure_class`: binned % of normal, diverging;
   - `recent_year`: lines for 2023–2026, plus the baseline band;
   - `station`.
   - Hex values appear only in this CSV, with the source palette noted per row (Okabe-Ito or ColorBrewer, as in drift). The vignette asserts the class sets.
-- [ ] `vignettes/station-flow.Rmd` (`bookdown::html_vignette2`, about 150–200 lines):
+- [x] `vignettes/station-flow.Rmd` (`bookdown::html_vignette2`, about 150–200 lines):
   1. Framing: one paragraph.
   2. Recipe: an `eval = FALSE` chunk with the real calls (`wet_station_daily()`, `wet_window_stats()`, `cd_baseline()`/`cd_anomaly()`/`cd_trend()`), then a hidden loader that reads `inst/vignette-data/` and builds the windows from the CSV.
   3. **The record by source:** annual day counts per station, stacked by source, with ice days shaded within HYDAT.
@@ -75,7 +75,7 @@ wet has no vignettes and no pkgdown site. The station-departure path (#25) runs 
      - the windows come from the literature, and most are not yet sourced;
      - plus a "Cached inputs" disclosure.
   - Captions and inline numbers are computed. Figures are referred to in words. A `wordcount` chunk enforces a cap of about 900 words, set from the first draft.
-- [ ] README: one line linking the vignette or site. CLAUDE.md: name the vignette and its `data-raw/` script under "Station flow departure".
+- [x] README: one line linking the vignette or site. CLAUDE.md: name the vignette and its `data-raw/` script under "Station flow departure".
 
 ## Phase 4: verification
 
@@ -83,7 +83,7 @@ wet has no vignettes and no pkgdown site. The station-departure path (#25) runs 
 - [ ] `pkgdown::build_site()` locally: the article renders, with no `\@ref`.
 - [ ] `devtools::document()`, `lintr::lint_package()` and `devtools::test()`.
 - [ ] `devtools::check()` with vignettes. Report the result, including anything skipped.
-- [ ] Spawn a Plan review once the baseline lands, running concurrently and not as a gate. Fold its findings in as they arrive.
+- [x] Spawn a Plan review once the baseline lands, running concurrently and not as a gate. Fold its findings in as they arrive. (`review-27.md`)
 
 ## Validation
 

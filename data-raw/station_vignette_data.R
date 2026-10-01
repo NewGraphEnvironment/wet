@@ -6,7 +6,9 @@
 # Writes to inst/vignette-data/:
 #   - station_daily.rds: wet_station_daily() for 08EE013 and 08EE003 (HYDAT,
 #     then water-temp-bc provisional, then ECCC real-time), with a
-#     "provenance" attribute the vignette's cached-inputs note reads.
+#     "provenance" attribute (HYDAT release and station names, retrieval
+#     date, knowledge commit, each source's date range) that the vignette's
+#     cached-inputs note reads.
 #   - life_history_bulk.csv: the BULK rows of knowledge's
 #     data/life_history_timing.csv at a pinned commit, one row per species and
 #     life stage, keeping only rows with both a start and an end.
@@ -21,7 +23,7 @@ stations <- c("08EE013", "08EE003")
 hydat <- Sys.getenv("WET_HYDAT", file.path("data", "hydat", "20260717", "Hydat.sqlite3"))
 knowledge_sha <- "c97c4d0e5443d4272ab9ac1a19a5cfa81135bbe0"
 out_dir <- file.path("inst", "vignette-data")
-fs::dir_create(out_dir)
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 
 # ---- daily series -------------------------------------------------------------
 daily <- wet_station_daily(stations, hydat, to = Sys.Date() - 1)
@@ -32,8 +34,14 @@ ranges <- do.call(rbind, lapply(split(daily, list(daily$station_number, daily$so
                                                        first = min(d$date), last = max(d$date),
                                                        days = nrow(d))))
 rownames(ranges) <- NULL
+con <- wet_hydat_connect(hydat)
+names_hydat <- DBI::dbGetQuery(con, sprintf(
+  "SELECT STATION_NUMBER AS station_number, STATION_NAME AS station_name FROM STATIONS
+   WHERE STATION_NUMBER IN (%s)", paste0("'", stations, "'", collapse = ", ")))
+DBI::dbDisconnect(con)
 attr(daily, "provenance") <- list(
   hydat = basename(dirname(hydat)),
+  stations = names_hydat[match(stations, names_hydat$station_number), ],
   retrieved = Sys.Date(),
   knowledge_sha = knowledge_sha,
   ranges = ranges
@@ -50,8 +58,8 @@ if (!is.null(attr(csv, "status"))) stop("gh api failed reading life_history_timi
 lh <- utils::read.csv(text = csv, stringsAsFactors = FALSE, na.strings = "")
 lh <- lh[lh$wsg_code == "BULK", ]
 
-# The table has exact duplicate rows and rows missing an end; report both
-# rather than pass them on.
+# Report exact duplicate rows and rows missing a start or an end rather than
+# pass them on (at c97c4d0, CO migration has no end).
 dup <- duplicated(lh)
 if (any(dup)) message("dropped duplicate rows: ",
                       paste(lh$species_code[dup], lh$life_stage[dup], collapse = ", "))

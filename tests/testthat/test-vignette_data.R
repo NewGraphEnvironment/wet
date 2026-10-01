@@ -19,7 +19,8 @@ test_that("the daily series has both stations, all three sources and its provena
   }
   expect_false(anyDuplicated(d[c("station_number", "date")]) > 0)
   p <- attr(d, "provenance")
-  expect_true(all(c("hydat", "retrieved", "knowledge_sha") %in% names(p)))
+  expect_true(all(c("hydat", "stations", "retrieved", "knowledge_sha", "ranges") %in% names(p)))
+  expect_setequal(p$stations$station_number, c("08EE013", "08EE003"))
 })
 
 test_that("the species windows are complete, unique month-days", {
