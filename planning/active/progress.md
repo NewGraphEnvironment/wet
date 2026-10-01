@@ -20,3 +20,4 @@
     - the HYDAT release is read from its VERSION table;
     - `man/wet-package.Rd` was regenerated and committed.
   - README now links the Rmd on GitHub, since a relative link is not rewritten by pkgdown.
+- Code-check round 2 (`review-round2.md`): two defects inside round 1's fixes (the year-round test; the 08EE003 trend start taken from the wrong table) and one fragile spot (shared-date and zero-significance phrasing). All fixed. Named the mechanism and enumerated every computed claim (findings.md); the remaining hard-coded constants in prose, captions and registry labels are now computed.

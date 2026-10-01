@@ -59,3 +59,30 @@ Asked whether to keep provisional winter days and note them instead of dropping.
 | 08EE013 | 1973-01-01 .. 2025-03-02 (18,620 d) | 2025-03-03 .. 2026-09-12 (559 d) | 2026-09-13 .. 2026-09-30 (18 d) |
 
 The species windows: 12 BULK rows at knowledge `c97c4d0`; CO migration was dropped for having no end, leaving 11. **Wrong turn:** at planning I reported two exact duplicate BULK rows. That came from a `head -3` printed together with a grep of all BULK rows, so the first two rows appeared twice. The script's `duplicated()` check found none.
+
+## Code-check: the mechanism and the enumeration (rounds 1–2)
+
+**The mechanism.** Two defects in round 1 and two inside round 1's fixes share one shape: a claim in the prose is computed from a different table, or a looser test, than the object the figure or statistic is built from. Examples:
+- "year-round" from a ≥360-day count instead of winter coverage;
+- the dropped list from `stats$dropped` while the strip shows `heat$class`;
+- the 08EE003 trend start from `kept` instead of the fitted series;
+- hard-coded "1981–2010" / "2000" / "0.05" restating constants.
+
+**The enumeration**, after the round-2 fixes. Every inline `r` claim, each caption, and every digit in the prose was extracted with `grep -no '`r [^`]*`'` and `awk` over the non-chunk lines, and each was checked against its source:
+
+| claim | source | same object as the figure/statistic? |
+|---|---|---|
+| station names | HYDAT `STATIONS` via provenance | yes |
+| HYDAT end month, last date | `daily` | yes (Fig 1 is built from `daily`) |
+| spawning 58–81%, every year, both stations | `anom` (the heat strip's departures) | yes; `stopifnot` on row count and sign |
+| provisional winter 6.6–15.0 vs approved max 3.9 | `daily` monthly means | yes |
+| dropped window-years | `heat$class` | yes, the strip's own classes |
+| ice share of incubation windows | `heat$frac_ice` | yes; `stopifnot` non-empty |
+| shared-date windows, 68 distinct, 5 significant, ~3 by chance, all negative | `tr` (the trend figure's data) | yes; empty/zero cases phrased |
+| 08EE003 "from 2000" starts 2010 or 2011 | `anom` rows of the fitted series (`trend`) | yes; `stopifnot` one start per series |
+| winter-gauged years 1971, 2011–2026 | `daily` Jan–Feb coverage ≥ 80% | yes (matches Fig 1 bars) |
+| refused windows at 08EE003 | `thin` (the strip's `no_baseline`) | yes |
+| mean 0.91 / median 0.59 / 36% | `kept` baseline CH spawning | yes (the values cd's normal is built on) |
+| 7 of 11 unsourced | `lh` | yes |
+| cached inputs | provenance (HYDAT VERSION table, retrieval date, SHA) | yes |
+| 1981–2010, 1981/2000, 0.05, 10, 80% in prose, captions and legends | `baseline`, `trend_start`, `alpha`, `min_baseline`, `formals(wet_window_stats)$min_frac` | yes. The registry labels no longer carry years. The only remaining literals are in the not-run recipe chunk, which is meant to be literal. |

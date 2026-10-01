@@ -3,8 +3,8 @@ record_source,polygon,,source_class,hydat_open,"HYDAT, open water",#0072b2,1,,,,
 record_source,polygon,,source_class,hydat_ice,"HYDAT, ice (B)",#a6cee3,1,,,,,,,,,,,,,,,,ColorBrewer Paired light blue: the ice share of the HYDAT record
 record_source,polygon,,source_class,provisional,Provisional,#e69f00,1,,,,,,,,,,,,,,,,Okabe-Ito orange
 record_source,polygon,,source_class,realtime,Real-time,#d55e00,1,,,,,,,,,,,,,,,,Okabe-Ito vermillion
-hydrograph,polygon,,part,band,1981-2010 middle half,#d9d9d9,1,,,,,,,,,,,,,,,,ColorBrewer Greys light: interquartile band
-hydrograph,polygon,,part,median,1981-2010 median,#636363,1,,,,,,,,,,,,,,,,ColorBrewer Greys dark
+hydrograph,polygon,,part,band,Baseline middle half,#d9d9d9,1,,,,,,,,,,,,,,,,ColorBrewer Greys light: interquartile band
+hydrograph,polygon,,part,median,Baseline median,#636363,1,,,,,,,,,,,,,,,,ColorBrewer Greys dark
 hydrograph,polygon,,part,window,Species window,#525252,1,,,,,,,,,,,,,,,,ColorBrewer Greys darker: window strips
 recent_year,line,,year,latest_3,Three years before the latest,#56b4e9,1,,,,,,,,,,,,,,,,Okabe-Ito sky blue; class colour is fill_color in gq's schema
 recent_year,line,,year,latest_2,Two years before the latest,#009e73,1,,,,,,,,,,,,,,,,Okabe-Ito bluish green
