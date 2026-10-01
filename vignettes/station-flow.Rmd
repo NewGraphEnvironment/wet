@@ -40,7 +40,8 @@ to_title <- function(x) {
 }
 station_label <- stats::setNames(
   sprintf("%s (%s)", to_title(prov$stations$station_name), prov$stations$station_number),
-  prov$stations$station_number)
+  prov$stations$station_number
+)
 stations <- names(station_label)
 
 baseline <- 1981:2010
@@ -76,8 +77,8 @@ by_station <- function(d) {
 years_text <- function(y) {
   y <- sort(unique(y))
   runs <- split(y, cumsum(c(1, diff(y) != 1)))
-  paste(vapply(runs, function(r) if (length(r) > 1) paste0(r[1], "–", r[length(r)]) else
-    as.character(r), ""), collapse = ", ")
+  one <- function(r) if (length(r) > 1) paste0(r[1], "–", r[length(r)]) else as.character(r)
+  paste(vapply(runs, one, ""), collapse = ", ")
 }
 ```
 
@@ -159,11 +160,14 @@ rec <- stats::aggregate(list(days = rec$date), rec[c("station_number", "year", "
 rec$class <- factor(rec$class, names(pal_source$values))
 buck_ice <- with(daily[daily$station_number == "08EE013" & daily$source == "hydat", ],
                  mean(symbol %in% "B"))
-first_full <- with(rec[rec$station_number == "08EE003", ],
-                   min(year[ave(days, year, FUN = sum) >= 360 & year > 1971]))
-cap_record <- sprintf(
-  "Days with flow per year, by source. HYDAT's ice-affected days (symbol B) are an estimate, not a measurement: %s of Buck Creek's approved days. Bulkley River near Houston ran only in open water until %d.",
-  pct(100 * buck_ice), first_full - 1)
+# the first year of 08EE003's last unbroken run of year-round records
+full <- with(rec[rec$station_number == "08EE003", ], sort(unique(year[ave(days, year, FUN = sum) >= 360])))
+first_full <- utils::tail(split(full, cumsum(c(1, diff(full) != 1))), 1)[[1]][1]
+cap_record <- sprintf(paste(
+  "Days with flow per year, by source. HYDAT's ice-affected days (symbol B) are an estimate,",
+  "not a measurement: %s of Buck Creek's approved days.",
+  "Bulkley River near Houston ran only in open water until %d."
+), pct(100 * buck_ice), first_full - 1)
 ```
 
 Every number below rests on this record. Approved HYDAT flows end in early
@@ -220,9 +224,10 @@ strip_lab <- strip[!duplicated(strip[c("station_number", "window")]), ]
 month_start <- doy_of(as.Date(sprintf("2001-%02d-01", 1:12)))
 
 spawn <- anom[anom$period == "CH spawning" & anom$variable == "q_mean" & anom$year %in% recent, ]
-cap_hydro <- sprintf(
-  "Daily flow, %d–%d (lines; dashed where provisional), over the %d–%d median and middle half (drawn only on days with at least %d years). Species windows run beneath. Log scale.",
-  min(recent), max(recent), min(baseline), max(baseline), min_baseline)
+cap_hydro <- sprintf(paste(
+  "Daily flow, %d–%d (lines; dashed where provisional), over the %d–%d median and middle half",
+  "(drawn only on days with at least %d years). Species windows run beneath. Log scale."
+), min(recent), max(recent), min(baseline), max(baseline), min_baseline)
 ```
 
 This is the key figure. Each recent year is drawn over the 1981–2010 normal
@@ -299,15 +304,18 @@ drop_text <- gsub("(\\d[0-9–, ]*) ([A-Z]{2} [a-z ]+)", "\\2 \\1", drop_text)
 drop_body <- sub("^[^:]+: ", "", drop_text)
 drop_sentence <- if (length(unique(drop_body)) == 1) {
   paste("the same at both stations:", drop_body[1])
-} else paste(drop_text, collapse = ". ")
+} else {
+  paste(drop_text, collapse = ". ")
+}
 pw <- daily[daily$station_number == "08EE013" & format(daily$date, "%m") %in% c("12", "01", "02"), ]
 pw$month <- format(pw$date, "%Y-%m")
 pm <- stats::aggregate(q_m3s ~ month + status, pw, mean)
 prov_range <- range(pm$q_m3s[pm$status == "provisional"])
 appr_max <- max(pm$q_m3s[pm$status == "approved" & substr(pm$month, 1, 4) >= min(baseline)])
-cap_heat <- sprintf(
-  "Window mean flow in %% of the %d–%d normal. A triangle marks a window-year resting on provisional days. Blank cells have under 80%% of their days.",
-  min(baseline), max(baseline))
+cap_heat <- sprintf(paste(
+  "Window mean flow in %% of the %d–%d normal. A triangle marks a window-year resting on",
+  "provisional days. Blank cells have under 80%% of their days."
+), min(baseline), max(baseline))
 ```
 
 Each cell is one window in one year, as a percentage of its 1981–2010 mean.
@@ -347,7 +355,10 @@ tr$trend_start <- factor(tr$trend_start, names(pal_trend$values))
 tr$sig <- factor(ifelse(tr$mk_pvalue < 0.05, "sig", "ns"), c("sig", "ns"))
 n_neg <- sum(tr$sig == "sig" & tr$slope < 0)
 n_pos <- sum(tr$sig == "sig" & tr$slope > 0)
-cap_trend <- sprintf("Theil-Sen slope of the departure, in percentage points of normal per year, from 1981 and from 2000. Filled where the Mann-Kendall p is below 0.05. A window with no point has under %d baseline years.", min_baseline)
+cap_trend <- sprintf(paste(
+  "Theil-Sen slope of the departure, in percentage points of normal per year, from %s.",
+  "Filled where the Mann-Kendall p is below 0.05. A window with no point has under %d baseline years."
+), paste(trend_start, collapse = " and from "), min_baseline)
 ```
 
 The slope of each window's departure, from 1981 and from 2000, for the window

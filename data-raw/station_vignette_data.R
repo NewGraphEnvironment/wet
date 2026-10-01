@@ -29,15 +29,16 @@ dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 daily <- wet_station_daily(stations, hydat, to = Sys.Date() - 1)
 rownames(daily) <- NULL
 ranges <- do.call(rbind, lapply(split(daily, list(daily$station_number, daily$source), drop = TRUE),
-                                function(d) data.frame(station_number = d$station_number[1],
-                                                       source = d$source[1],
-                                                       first = min(d$date), last = max(d$date),
-                                                       days = nrow(d))))
+                                function(d) {
+                                  data.frame(station_number = d$station_number[1], source = d$source[1],
+                                             first = min(d$date), last = max(d$date), days = nrow(d))
+                                }))
 rownames(ranges) <- NULL
 con <- wet_hydat_connect(hydat)
 names_hydat <- DBI::dbGetQuery(con, sprintf(
   "SELECT STATION_NUMBER AS station_number, STATION_NAME AS station_name FROM STATIONS
-   WHERE STATION_NUMBER IN (%s)", paste0("'", stations, "'", collapse = ", ")))
+   WHERE STATION_NUMBER IN (%s)", paste0("'", stations, "'", collapse = ", ")
+))
 DBI::dbDisconnect(con)
 attr(daily, "provenance") <- list(
   hydat = basename(dirname(hydat)),
