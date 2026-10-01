@@ -626,6 +626,12 @@ Assign inside the call, `expect_message(h <- f(x), "msg")`, never `h <- expect_m
 ### `c()` dispatches on its first argument, so `c(NULL, <Date>)` is a plain number
 Put a Date first when `c()` combines an optional piece with Dates: `c(NULL, <Date>)` takes the default method and returns a bare day count.
 
+### `bind_rows()` of all-`NULL` is a 0 x 0 tibble, and a typed template must take its types from the rows' source
+Bind per-group results under a zero-row template so an all-dropped result keeps its columns, and build that template's key columns from the same object the rows are built from (`combos$variable[0]`, not `character()`).
+
+### `sample.int(prob =)` without replacement is not a probability-proportional draw, so weighting its result again double-counts
+Draw a subsample to be design-weighted **uniformly** (`sample.int(n, k)`), or keep every unit.
+
 # Code Check — Shell
 Tool-level traps in bash, sed, git and `gh`, and in the host toolchain those commands depend on.
 
@@ -953,6 +959,18 @@ Run it on the invalid rows only (`!st_is_valid(x)`), or keep the original geomet
 
 ### terra: `unique()` and `freq()` on a factor return its labels, not its codes
 Read a factor raster's codes from a copy with its levels stripped (`levels(y) <- NULL`, or `set.cats(y, layer = 1, value = NULL)` on a copy you own), never from `terra::unique(x)[, 1]` or `terra::freq(x)$value`: on a factor both return the active category's labels, so matching …
+
+### A GDAL failure partway through `sf::st_read()` returns the rows read so far, with only a warning
+Treat any warning during a read whose completeness matters as a failed read: wrap it in `withCallingHandlers(st_read(...), warning = function(w) stop(...))`, retry, then stop.
+
+### `terra::project()` over a remote strip-organised TIFF issues a range request per strip, so download it first
+Check `gdalinfo` for `Block=<width>x1` before reading a remote raster through `/vsicurl/`, and where it is strip-organised (one row per block, no overviews) download the whole file to a tempfile and read that.
+
+### LidarBC tiles can carry an undeclared nodata of -3.4e38, which a mean takes as data
+Clamp a LidarBC DEM or DSM to plausible elevations before any aggregate: `terra::clamp(r, -100, 5000, values = FALSE)`.
+
+### bcdata returns a column whose values are all missing as character, not numeric
+Coerce every field you do arithmetic on (`as.numeric(v$PROJ_AGE_1)`) right after `bcdata::collect()`.
 
 # Code Check Conventions
 Structured checklist for reviewing diffs before commit.
@@ -2528,6 +2546,152 @@ stated boundary is a documented history. Two coexisting silently is rot.
 | Fish passage field/reporting | **Fish Passage 2025 (#6)** |
 | Restoration planning | **Aquatic Restoration Planning (#5)** |
 | QGIS, Mergin, field forms | **Collaborative GIS (#3)** |
+
+
+# pkgdown Publishing
+
+What a pkgdown deploy puts on the public internet, and the two ways that has
+already gone wrong.
+
+## A pkgdown site publishes every root-level markdown file
+
+`pkgdown:::package_mds()` renders **every** `.md` in the package root except a
+hardcoded allowlist — `README`, `LICENSE`, `NEWS`, and two GitHub templates.
+There is **no config option to exclude a file**.
+
+So `CLAUDE.md` gets published. So would `INTERNAL.md`, `NOTES.md`, or a PWF
+`task_plan.md` left at the root.
+
+**Repo visibility does not protect you.** GitHub Pages serves publicly
+regardless of whether the repo is private, and there is no private Pages mode
+below Enterprise Cloud. A private repo with a pkgdown deploy has public docs.
+
+Measured 2026-08-23: `CLAUDE.html` was live on six NGE sites. On `rfp` and `gq` —
+both private repos, so their `CLAUDE.md` legitimately carried the internal-only
+conventions — that put the SR&ED section on the public web: claim structure,
+field code, fiscal year, and the consultant by name.
+
+The visibility filter was working correctly the whole time. It rests on an
+assumption pkgdown breaks: that a private repo's `CLAUDE.md` stays private.
+
+### Remove it before the build, not after
+
+There are three copies, not one:
+
+| file | what it is |
+|---|---|
+| `CLAUDE.html` | the rendered page |
+| `CLAUDE.md` | a **verbatim copy of the source**, served as-is |
+| `search.json` | the full-text index, containing the text |
+
+Deleting `docs/CLAUDE.html` after the build leaves the other two. It looks like a
+fix and achieves nothing. Remove the file from the CI checkout **before**
+`build_site()` runs:
+
+```yaml
+- name: Keep internal notes out of the published site
+  run: rm -f CLAUDE.md
+```
+
+### Gate on a declared allowlist
+
+Each repo states which extra root pages it *intends* to publish. Anything else
+fails the build, so a new root markdown file cannot leak silently:
+
+```yaml
+- name: Fail if an unexpected page reached the site
+  run: |
+    allowed="404 authors index LICENSE LICENSE-text"   # + declared extras
+    ...
+```
+
+Add to `allowed` only after deciding the page should be public. `link` publishes
+`NOTICE` and `RUNBOOK` deliberately — it is a public repo and both are genuine
+documentation. That is the decision the allowlist is meant to record.
+
+Test the gate against **both** known answers before shipping it: it must exit
+non-zero on a site that does contain the file, and zero on one that does not. A
+guard that only ever returns one value is indistinguishable from a broken one.
+
+## Deploy with `clean: true`
+
+`JamesIves/github-pages-deploy-action` defaults matter here. With
+`clean: false`, the action **never deletes** — every file ever deployed stays on
+`gh-pages` forever, whether or not the source still produces it.
+
+Two consequences, both observed:
+
+- Removing a file from the repo does **not** unpublish it. Measured on `gq`:
+  `task_plan.html`, `progress.html` and `findings.html` were still returning 200
+  long after the PWF documents had been moved out of the root.
+- A leak cannot be fixed by fixing the build. The stale copies need a separate
+  explicit purge, which is a step people forget.
+
+`clean: true` makes the deployed site equal to what the build produced, so
+removing a file from source removes it from the web on the next deploy. That is
+the property you want, and it makes the site auditable.
+
+### Check before flipping it
+
+`clean: true` deletes anything on `gh-pages` not present in `docs/`. Confirm
+none of these exist first:
+
+- **`CNAME`** — a custom domain file would be deleted and the domain would break.
+  (NGE repos have none; the domain comes from the org site repo, and project
+  sites inherit it as subpaths.)
+- **`dev/`** — versioned docs from `development: mode: devel`, if the deploying
+  build is not the dev one.
+- **hand-added assets** not produced by the build. Favicons and web manifests
+  under `pkgdown/favicon/` *are* produced by the build and are safe.
+
+Use `clean-exclude` for anything that must survive.
+
+```bash
+gh api "repos/OWNER/REPO/contents?ref=gh-pages" --jq '.[] | "\(.type) \(.name)"'
+```
+
+## Removing something already published
+
+1. **Stop generating it** — the pre-build removal above.
+2. **Remove the deployed copy** — automatic once `clean: true` is in; otherwise
+   an explicit purge.
+3. **De-index** — a Search Console removal request per property, *after* the URL
+   404s.
+
+Do **not** add a `robots.txt` block first. Blocking crawl prevents crawlers from
+seeing the 404, which keeps stale search entries alive longer than doing
+nothing.
+
+`gh-pages` history is not a problem the way normal git history is: on a private
+repo the branch is not publicly browsable, and only the currently-served content
+is public. Deleting the file genuinely ends the exposure — no history rewriting.
+
+## pkgdown drops a footnote's body and keeps its marker
+
+A pandoc footnote — `text[^k]` with a `[^k]: …` block — renders in an article as a
+**superscript marker with no footnote section under it**. The marker is emitted
+(`class="footnote-ref"`), the content is not, and nothing warns.
+
+So the failure is silent and lands on exactly the material a footnote is for: the caveat, the
+definition, the reconciliation. Measured 2026-09-06 in drift#66, where a footnote carrying the
+reconciliation of two circulating hectare totals — the sentence that stops a reader treating them
+as a disagreement — was absent from the published page while `rmarkdown::render()` of the same
+source showed it fine.
+
+- **Do not write footnotes in a pkgdown article.** Promote the content to a block quote, a
+  parenthetical, or its own short paragraph. If it is worth a footnote it is usually worth being
+  visible.
+- **Check the rendered HTML, not the source.** The tell is a marker with nothing to jump to:
+
+  ```bash
+  grep -c 'footnote-ref' docs/articles/<name>.html     # markers emitted
+  grep -c 'class="footnotes' docs/articles/<name>.html # section emitted — expect these to agree
+  ```
+
+Same family as the cross-reference gotcha already noted for vignettes (`\@ref(fig:…)` compiling
+to a literal): bookdown output formats do not carry all of bookdown's machinery through pkgdown,
+and each missing piece fails quietly in its own way. Verify anything structural — footnotes,
+cross-references, numbered captions — against the built page the first time you use it.
 
 
 # Planning Conventions
