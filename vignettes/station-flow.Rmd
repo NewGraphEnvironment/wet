@@ -48,6 +48,9 @@ baseline <- 1981:2010
 min_baseline <- 10
 trend_start <- c(1981, 2000)
 alpha <- 0.05
+ice_months <- c(11:12, 1:4)    # a window touching these drops provisional years
+winter_months <- c(12, 1, 2)   # the months compared for provisional vs approved winter
+month_span <- function(m) paste0(month.name[m[1]], "–", month.name[m[length(m)]])
 base_text <- paste0(min(baseline), "–", max(baseline))
 trend_text <- paste("from", trend_start, collapse = " and ")
 last_year <- as.integer(format(max(daily$date), "%Y"))
@@ -69,6 +72,9 @@ pal_year <- classes("recent_year", c("latest_3", "latest_2", "latest_1", "latest
 names(pal_year$values) <- names(pal_year$labels) <- pal_year$labels <- as.character(recent)
 pal_dep <- classes("departure_class", c(paste0("d", 1:8), "dropped", "no_baseline"))
 pal_trend <- classes("trend_start", as.character(trend_start))
+# labels that restate a variable are built from it, not read from the registry
+pal_dep$labels[["no_baseline"]] <- sprintf("Under %d baseline years", min_baseline)
+pal_trend$labels[] <- paste("Since", names(pal_trend$values))
 
 theme_set(theme_minimal(base_size = 10) +
             theme(legend.position = "bottom", panel.grid.minor = element_blank()))
@@ -95,7 +101,7 @@ touches_ice <- vapply(seq_len(nrow(windows)), function(k) {
   a <- as.Date(paste0("2001-", windows$start[k]))
   b <- as.Date(paste0(2001 + (windows$end[k] < windows$start[k]), "-",
                       sub("02-29", "02-28", windows$end[k])))
-  any(as.integer(format(seq(a, b, by = "day"), "%m")) %in% c(11:12, 1:4))
+  any(as.integer(format(seq(a, b, by = "day"), "%m")) %in% ice_months)
 }, TRUE)
 stats$dropped <- stats$period %in% windows$window[touches_ice] & stats$frac_provisional > 0
 kept <- stats[!stats$dropped, ]
@@ -238,10 +244,11 @@ cap_hydro <- sprintf(paste(
 ), min(recent), max(recent), min(baseline), max(baseline), min_baseline)
 ```
 
-This is the key figure. Each recent year is drawn over the `r base_text` normal
+This is the key figure. Each recent year is drawn over the `r base_text` median
 for that day, with the species windows underneath. In the Chinook spawning
-window, both stations ran `r pct(max(spawn$anomaly))`–`r pct(min(spawn$anomaly))`
-below normal in every year from `r min(recent)` to `r max(recent)`. The
+window, mean flow at both stations was `r pct(max(spawn$anomaly))`–`r pct(min(spawn$anomaly))`
+below its `r base_text` mean in every year from `r min(recent)` to `r max(recent)`
+(the departures below). The
 dashed winter lines are provisional readings under ice; they are
 the reason those years are dropped below.
 
@@ -316,22 +323,24 @@ drop_sentence <- if (length(unique(drop_text)) == 1) {
 } else {
   paste(sprintf("at %s, %s", station_label, drop_text), collapse = "; and ")
 }
-pw <- daily[daily$station_number == "08EE013" & format(daily$date, "%m") %in% c("12", "01", "02"), ]
+pw <- daily[daily$station_number == "08EE013" &
+              as.integer(format(daily$date, "%m")) %in% winter_months, ]
 pw$month <- format(pw$date, "%Y-%m")
 pm <- stats::aggregate(q_m3s ~ month + status, pw, mean)
 prov_range <- range(pm$q_m3s[pm$status == "provisional"])
 appr_max <- max(pm$q_m3s[pm$status == "approved" & substr(pm$month, 1, 4) >= min(baseline)])
 cap_heat <- sprintf(paste(
-  "Window mean flow in %% of the %d–%d normal. A triangle marks a window-year resting on",
+  "Window mean flow above or below its %d–%d mean, in %%. A triangle marks a window-year resting on",
   "provisional days. Blank cells have under %s of their days, or none."
 ), min(baseline), max(baseline), pct(100 * formals(wet_window_stats)$min_frac))
 ```
 
-Each cell is one window in one year, as a percentage of its `r base_text` mean.
+Each cell is one window in one year: how far its mean flow sits above or below
+its `r base_text` mean, in percent.
 Two kinds of cell carry no departure. A window at a station with fewer than
 `r min_baseline` baseline years has no normal to compare against. And a window
-touching November–April drops every year with a provisional day: Buck Creek's
-provisional December–February means were
+touching `r month_span(ice_months)` drops every year with a provisional day: Buck Creek's
+provisional `r month_span(winter_months)` means were
 `r sprintf("%.1f–%.1f", prov_range[1], prov_range[2])` m³/s, where no approved
 winter month since `r min(baseline)` exceeded `r sprintf("%.1f", appr_max)` m³/s. The
 window-years dropped for that reason are `r drop_sentence`. Winter windows
@@ -389,7 +398,8 @@ fit <- trend[trend$station_number == "08EE003" & trend$trend_start == trend_star
 a3 <- anom[anom$station_number == "08EE003" & anom$year >= trend_start[2] & !is.na(anom$anomaly), ]
 a3 <- a3[paste(a3$period, a3$variable) %in% paste(fit$period, fit$variable), ]
 start_003 <- tapply(a3$year, paste(a3$period, a3$variable), min)
-stopifnot(length(start_003) == nrow(fit))
+# the sentence says the series start after trend_start[2]
+stopifnot(length(start_003) > 0, all(start_003 > trend_start[2]))
 since_2000_003 <- if (length(unique(start_003)) == 1) {
   as.character(start_003[1])
 } else {
@@ -405,7 +415,7 @@ The slope of each window's departure, `r trend_text`, for the window
 mean and its lowest seven-day mean. `r same_text`Of `r n_tested` distinct
 slopes, `r n_sig` are significant at p < `r alpha`, where chance alone would give
 about `r round(alpha * n_tested)``r sign_text`. At Bulkley River near Houston,
-"from `r trend_start[2]`" starts in `r since_2000_003`, depending on the window,
+"from `r trend_start[2]`" starts in `r since_2000_003``r if (length(unique(start_003)) > 1) ", depending on the window," else ","`
 because it has no window-years from `r trend_start[2]` until then.
 
 ```{r trend, fig.height = 6.5, fig.cap = cap_trend}
@@ -424,7 +434,6 @@ ggplot(tr, aes(slope, period, colour = trend_start, shape = sig)) +
 
 ```{r limits}
 n_unsourced <- sum(is.na(lh$source))
-b3 <- nb$year[nb$station_number == "08EE003" & nb$period == "CH incubation"]
 thin_003 <- sub(", ([^,]*)$", " and \\1",
                 paste(intersect(windows$window, thin$period[thin$station_number == "08EE003"]),
                       collapse = ", "))
@@ -438,8 +447,7 @@ sp <- kept[kept$station_number == "08EE013" & kept$period == "CH spawning" &
   rule, not a correction.
 - **Bulkley River near Houston was a seasonal gauge for most of its record**,
   gauged through the winter only in `r years_text(full)`. Its `r thin_003` windows have under
-  `r min_baseline` baseline years (Chinook incubation has `r b3`), so no
-  departure.
+  `r min_baseline` baseline years, so no departure.
 - **A mean-based normal is skewed by wet years.** At Buck Creek the
   `r base_text` Chinook spawning mean is `r sprintf("%.2f", mean(sp))` m³/s, and the median
   year `r sprintf("%.2f", stats::median(sp))` m³/s, so a typical year already reads
@@ -465,7 +473,7 @@ if (!is.null(f)) {
   y <- y[!grepl("^\\s*$", y)]
   n <- sum(lengths(strsplit(trimws(y), "\\s+")))
   message("body prose: ", n, " words")
-  cap <- 600   # 485 at #27
+  cap <- 600   # 511 at #27
   if (n > cap) stop("body prose is ", n, " words; the cap is ", cap)
 }
 ```

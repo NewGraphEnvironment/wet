@@ -19,6 +19,6 @@ departure_class,polygon,,class,d6,25-50% above,#80cdc1,1,,,,,,,,,,,,,,,,ColorBre
 departure_class,polygon,,class,d7,50-100% above,#35978f,1,,,,,,,,,,,,,,,,ColorBrewer BrBG 8-class
 departure_class,polygon,,class,d8,More than 100% above,#01665e,1,,,,,,,,,,,,,,,,ColorBrewer BrBG 8-class
 departure_class,polygon,,class,dropped,"Provisional winter, dropped",#969696,1,,,,,,,,,,,,,,,,ColorBrewer Greys mid
-departure_class,polygon,,class,no_baseline,Under 10 baseline years,#f0f0f0,1,,,,,,,,,,,,,,,,ColorBrewer Greys lightest
+departure_class,polygon,,class,no_baseline,Too few baseline years,#f0f0f0,1,,,,,,,,,,,,,,,,ColorBrewer Greys lightest
 trend_start,point,,trend_start,1981,Since 1981,#636363,1,,,,,,,,,,,,,,,,ColorBrewer Greys dark
 trend_start,point,,trend_start,2000,Since 2000,#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue

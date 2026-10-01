@@ -86,3 +86,13 @@ The species windows: 12 BULK rows at knowledge `c97c4d0`; CO migration was dropp
 | 7 of 11 unsourced | `lh` | yes |
 | cached inputs | provenance (HYDAT VERSION table, retrieval date, SHA) | yes |
 | 1981–2010, 1981/2000, 0.05, 10, 80% in prose, captions and legends | `baseline`, `trend_start`, `alpha`, `min_baseline`, `formals(wet_window_stats)$min_frac` | yes. The registry labels no longer carry years. The only remaining literals are in the not-run recipe chunk, which is meant to be literal. |
+
+### Round 3: verification of the enumeration (`review-round3.md`)
+
+Every computed claim re-derived. The same mechanism reached a reference the enumeration had missed: the prose called the hydrograph's line "the normal", but that line is the daily **median**, while the 58–81% is the departure from the window **mean**. The text now names each. Also fixed:
+- a guard that could not fire (it now asserts that the series start after 2000);
+- the registry's "Under 10" and "Since 1981/2000" labels, now built from `min_baseline` and `trend_start`;
+- month spans now computed from `ice_months` and `winter_months`;
+- the cell meaning: a departure, not "% of".
+
+**Terminal set.** The only literals left in the prose are the station names (Buck Creek, Bulkley River near Houston) and the species names (Chinook) beside the keys the code fixes (`08EE013`, `08EE003`, `CH`), plus the not-run recipe. These are accepted: the vignette is about these two stations, and the code keys on those literals itself.
