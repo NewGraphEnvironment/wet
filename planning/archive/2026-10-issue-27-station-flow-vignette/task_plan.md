@@ -79,18 +79,18 @@ wet has no vignettes and no pkgdown site. The station-departure path (#25) runs 
 
 ## Phase 4: verification
 
-- [ ] `rmarkdown::render()` the vignette. Read every figure PNG and self-review: is each prominent element in a legend, is there a hierarchy, is the type readable at about 700 px?
-- [ ] `pkgdown::build_site()` locally: the article renders, with no `\@ref`.
-- [ ] `devtools::document()`, `lintr::lint_package()` and `devtools::test()`.
-- [ ] `devtools::check()` with vignettes. Report the result, including anything skipped.
+- [x] `rmarkdown::render()` the vignette. Read every figure PNG and self-review: is each prominent element in a legend, is there a hierarchy, is the type readable at about 700 px?
+- [x] `pkgdown::build_site()` locally: the article renders, with no `\@ref`.
+- [x] `devtools::document()`, `lintr::lint_package()` and `devtools::test()`.
+- [x] `devtools::check()` with vignettes. Report the result, including anything skipped.
 - [x] Spawn a Plan review once the baseline lands, running concurrently and not as a gate. Fold its findings in as they arrive. (`review-27.md`)
 
 ## Validation
 
-- [ ] Tests pass
-- [ ] `/code-check` clean on each commit
-- [ ] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] Tests pass
+- [x] `/code-check` clean on each commit
+- [x] PWF checkboxes match landed work
+- [x] `/planning-archive` on completion
 
 ## Out of scope and follow-ups
 
