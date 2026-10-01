@@ -1,0 +1,24 @@
+layer_key,type,source_layer,class_field,class_value,class_label,fill_color,fill_opacity,stroke_color,stroke_width,stroke_opacity,mark_color,mark_shape,mark_radius,mark_stroke_color,mark_stroke_width,label_color,label_size,label_font,label_halo_color,label_halo_width,label_offset_x,label_offset_y,note
+record_source,polygon,,source_class,hydat_open,"HYDAT, open water",#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue
+record_source,polygon,,source_class,hydat_ice,"HYDAT, ice (B)",#a6cee3,1,,,,,,,,,,,,,,,,ColorBrewer Paired light blue: the ice share of the HYDAT record
+record_source,polygon,,source_class,provisional,Provisional,#e69f00,1,,,,,,,,,,,,,,,,Okabe-Ito orange
+record_source,polygon,,source_class,realtime,Real-time,#d55e00,1,,,,,,,,,,,,,,,,Okabe-Ito vermillion
+hydrograph,polygon,,part,band,Baseline middle half,#d9d9d9,1,,,,,,,,,,,,,,,,ColorBrewer Greys light: interquartile band
+hydrograph,polygon,,part,median,Baseline median,#636363,1,,,,,,,,,,,,,,,,ColorBrewer Greys dark
+hydrograph,polygon,,part,window,Species window,#525252,1,,,,,,,,,,,,,,,,ColorBrewer Greys darker: window strips
+recent_year,line,,year,latest_3,Three years before the latest,#56b4e9,1,,,,,,,,,,,,,,,,Okabe-Ito sky blue; class colour is fill_color in gq's schema
+recent_year,line,,year,latest_2,Two years before the latest,#009e73,1,,,,,,,,,,,,,,,,Okabe-Ito bluish green
+recent_year,line,,year,latest_1,The year before the latest,#cc79a7,1,,,,,,,,,,,,,,,,Okabe-Ito reddish purple
+recent_year,line,,year,latest,Latest year,#000000,1,,,,,,,,,,,,,,,,Okabe-Ito black: the latest year
+departure_class,polygon,,class,d1,75% or more below,#8c510a,1,,,,,,,,,,,,,,,,ColorBrewer BrBG 8-class
+departure_class,polygon,,class,d2,50-75% below,#bf812d,1,,,,,,,,,,,,,,,,ColorBrewer BrBG 8-class
+departure_class,polygon,,class,d3,25-50% below,#dfc27d,1,,,,,,,,,,,,,,,,ColorBrewer BrBG 8-class
+departure_class,polygon,,class,d4,0-25% below,#f6e8c3,1,,,,,,,,,,,,,,,,ColorBrewer BrBG 8-class
+departure_class,polygon,,class,d5,0-25% above,#c7eae5,1,,,,,,,,,,,,,,,,ColorBrewer BrBG 8-class
+departure_class,polygon,,class,d6,25-50% above,#80cdc1,1,,,,,,,,,,,,,,,,ColorBrewer BrBG 8-class
+departure_class,polygon,,class,d7,50-100% above,#35978f,1,,,,,,,,,,,,,,,,ColorBrewer BrBG 8-class
+departure_class,polygon,,class,d8,More than 100% above,#01665e,1,,,,,,,,,,,,,,,,ColorBrewer BrBG 8-class
+departure_class,polygon,,class,dropped,"Provisional winter, dropped",#969696,1,,,,,,,,,,,,,,,,ColorBrewer Greys mid
+departure_class,polygon,,class,no_baseline,Too few baseline years,#f0f0f0,1,,,,,,,,,,,,,,,,ColorBrewer Greys lightest
+trend_start,point,,trend_start,1981,Since 1981,#636363,1,,,,,,,,,,,,,,,,ColorBrewer Greys dark
+trend_start,point,,trend_start,2000,Since 2000,#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue

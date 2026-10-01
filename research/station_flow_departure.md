@@ -1,6 +1,6 @@
 # Station flow departure: sources, seams and what a departure rests on
 
-**Verified:** 2026-09-28 · **Issues:** #25 (from #6; feeds knowledge#25, cd#92, cd#95, water-temp-bc#19) · **Produced by:** `scripts/station_departure.R` → `data/checks/station_departure_report.txt`, HYDAT 2026-07-17
+**Verified:** 2026-09-28 (species windows 2026-10-01) · **Issues:** #25 (from #6; feeds knowledge#25, cd#92, cd#95, water-temp-bc#19), #27 (vignette) · **Produced by:** `scripts/station_departure.R` → `data/checks/station_departure_report.txt`, HYDAT 2026-07-17; species windows by `vignettes/station-flow.Rmd` on `data-raw/station_vignette_data.R`'s bundle (retrieved 2026-10-01)
 
 ## Sources and where they meet
 
@@ -44,3 +44,15 @@ Each source continues the one before it, per station. A provisional value is nev
 - `min7` uses seven consecutive calendar days inside the window. `cov_day` needs a complete window-year.
 - Departure and trend are cd's (baseline mean; % of normal for levels, absolute for shares and timing; Theil-Sen and Mann-Kendall), one station per call (cd#95 would lift that).
 - Mann-Kendall on a constant series (a share that is 0 every year) prints a Kendall Fortran message. cd still returns slope 0, p 1.
+
+## Species windows (#27)
+
+`vignettes/station-flow.Rmd` runs the same path over the 11 complete BULK windows in knowledge's `life_history_timing.csv` at c97c4d0. The 12th, CO migration, has no end date. Seven of the 11 have no source yet.
+
+- **The provisional-winter rule reaches spring windows.** Five of the 11 touch November–April: CH and BT incubation, CH emergence, CO spawning and ST spawning. CH emergence and ST spawning lose 2025–2026 only because they start on 15 April. That is the rule as decided at #27's plan gate, and the vignette lists every window-year it drops.
+- **08EE003 is gauged through the winter only in 1971 and 2011–2026**, taking at least 80% of January–February days as the test. So CH incubation, BT incubation and ST spawning have under 10 baseline years and get no departure. Its "from 2000" trends start in 2010 or 2011.
+- **Median against mean.** The CH spawning window's 1981–2010 mean at Buck Creek is 0.91 m³/s; the median year is 0.59. A typical year therefore reads 36% below the mean normal, so a figure drawn against the daily median and a departure from the mean must be named apart.
+- **Trends, from 1981 and from 2000, for window mean and 7-day minimum.**
+  - There are 68 distinct slopes; CH and SK spawning share their dates, so they count once.
+  - 5 are significant at p < 0.05, where chance alone would give about 3.
+  - All 5 are negative: at Buck Creek, CH/SK spawning mean, CO spawning and BT spawning 7-day minimum since 2000; at 08EE003, CH migration and CH emergence mean since 2000.

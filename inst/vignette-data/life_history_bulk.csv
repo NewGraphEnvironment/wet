@@ -1,0 +1,12 @@
+"species_code","life_stage","start","end","source","note"
+"CH","migration","05-01","08-01","gottesfeld_rabnett2007SkeenaFish","see Shepher 1979 for peak spawning"
+"CH","spawning","08-01","09-15","gottesfeld_rabnett2007SkeenaFish",
+"CH","incubation","08-01","03-31",,"no source in template; to confirm with knowledge holders"
+"CH","emergence","04-15","07-07","gottesfeld_rabnett2007SkeenaFish",
+"CH","fry_migration","07-15","09-07","gottesfeld_rabnett2007SkeenaFish","citation listed under the other area in the template"
+"CO","spawning","09-15","11-15",,"no source in template; to confirm with knowledge holders"
+"ST","spawning","04-15","06-15",,"no source in template; to confirm with knowledge holders"
+"SK","spawning","08-01","09-15",,"no source in template; to confirm with knowledge holders"
+"BT","migration","07-15","09-01",,"no source in template; to confirm with knowledge holders"
+"BT","spawning","09-01","10-15",,"no source in template; to confirm with knowledge holders"
+"BT","incubation","09-01","04-30",,"no source in template; to confirm with knowledge holders"

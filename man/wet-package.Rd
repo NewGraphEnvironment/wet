@@ -12,6 +12,7 @@ Per-segment stream discharge for the British Columbia Freshwater Atlas (FWA). Ag
 Useful links:
 \itemize{
   \item \url{https://github.com/NewGraphEnvironment/wet}
+  \item \url{https://newgraphenvironment.github.io/wet/}
   \item Report bugs at \url{https://github.com/NewGraphEnvironment/wet/issues}
 }
 
