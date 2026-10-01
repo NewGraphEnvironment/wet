@@ -6,7 +6,7 @@
 # Writes to inst/vignette-data/:
 #   - station_daily.rds: wet_station_daily() for 08EE013 and 08EE003 (HYDAT,
 #     then water-temp-bc provisional, then ECCC real-time), with a
-#     "provenance" attribute (HYDAT release and station names, retrieval
+#     "provenance" attribute (HYDAT release date and station names, retrieval
 #     date, knowledge commit, each source's date range) that the vignette's
 #     cached-inputs note reads.
 #   - life_history_bulk.csv: the BULK rows of knowledge's
@@ -39,9 +39,11 @@ names_hydat <- DBI::dbGetQuery(con, sprintf(
   "SELECT STATION_NUMBER AS station_number, STATION_NAME AS station_name FROM STATIONS
    WHERE STATION_NUMBER IN (%s)", paste0("'", stations, "'", collapse = ", ")
 ))
+# the release date from HYDAT itself, not from the directory it sits in
+hydat_release <- as.Date(DBI::dbGetQuery(con, "SELECT Date FROM VERSION")$Date[1])
 DBI::dbDisconnect(con)
 attr(daily, "provenance") <- list(
-  hydat = basename(dirname(hydat)),
+  hydat = format(hydat_release),
   stations = names_hydat[match(stations, names_hydat$station_number), ],
   retrieved = Sys.Date(),
   knowledge_sha = knowledge_sha,

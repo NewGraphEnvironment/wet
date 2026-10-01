@@ -78,7 +78,7 @@ years_text <- function(y) {
   y <- sort(unique(y))
   runs <- split(y, cumsum(c(1, diff(y) != 1)))
   one <- function(r) if (length(r) > 1) paste0(r[1], "–", r[length(r)]) else as.character(r)
-  paste(vapply(runs, one, ""), collapse = ", ")
+  sub(", ([^,]*)$", " and \\1", paste(vapply(runs, one, ""), collapse = ", "))
 }
 ```
 
@@ -160,14 +160,13 @@ rec <- stats::aggregate(list(days = rec$date), rec[c("station_number", "year", "
 rec$class <- factor(rec$class, names(pal_source$values))
 buck_ice <- with(daily[daily$station_number == "08EE013" & daily$source == "hydat", ],
                  mean(symbol %in% "B"))
-# the first year of 08EE003's last unbroken run of year-round records
+# the years 08EE003 has a (near) complete record, every other year is seasonal or sparse
 full <- with(rec[rec$station_number == "08EE003", ], sort(unique(year[ave(days, year, FUN = sum) >= 360])))
-first_full <- utils::tail(split(full, cumsum(c(1, diff(full) != 1))), 1)[[1]][1]
 cap_record <- sprintf(paste(
   "Days with flow per year, by source. HYDAT's ice-affected days (symbol B) are an estimate,",
   "not a measurement: %s of Buck Creek's approved days.",
-  "Bulkley River near Houston ran only in open water until %d."
-), pct(100 * buck_ice), first_full - 1)
+  "Bulkley River near Houston has a year-round record only in %s."
+), pct(100 * buck_ice), years_text(full))
 ```
 
 Every number below rests on this record. Approved HYDAT flows end in early
@@ -224,6 +223,8 @@ strip_lab <- strip[!duplicated(strip[c("station_number", "window")]), ]
 month_start <- doy_of(as.Date(sprintf("2001-%02d-01", 1:12)))
 
 spawn <- anom[anom$period == "CH spawning" & anom$variable == "q_mean" & anom$year %in% recent, ]
+# the sentence below claims every recent year at both stations, all below normal
+stopifnot(nrow(spawn) == length(recent) * length(stations), all(spawn$anomaly < 0))
 cap_hydro <- sprintf(paste(
   "Daily flow, %d–%d (lines; dashed where provisional), over the %d–%d median and middle half",
   "(drawn only on days with at least %d years). Species windows run beneath. Log scale."
@@ -294,18 +295,18 @@ ice_win <- ice_win[ice_win$frac_ice > 0.25, ]
 ice_text <- paste(sprintf("%s of the %s days", pct(100 * ice_win$frac_ice), ice_win$period),
                   collapse = " and ")
 
+# from the strip's own classes, so the sentence and the figure cannot disagree
+# (a window with too few baseline years shows as that, whatever else applies)
 drop_text <- vapply(stations, function(st) {
-  d <- stats[stats$station_number == st & stats$dropped & stats$variable == "q_mean", ]
-  if (!nrow(d)) return(paste0(st, ": none"))
-  paste0(st, ": ", paste(vapply(split(d$year, d$period), years_text, ""),
-                         names(split(d$year, d$period)), sep = " ", collapse = "; "))
+  d <- heat[heat$station_number == st & heat$class %in% "dropped", ]
+  if (!nrow(d)) return("none")
+  w <- intersect(windows$window, as.character(d$period))
+  paste(w, vapply(w, function(x) years_text(d$year[d$period == x]), ""), collapse = "; ")
 }, "")
-drop_text <- gsub("(\\d[0-9–, ]*) ([A-Z]{2} [a-z ]+)", "\\2 \\1", drop_text)
-drop_body <- sub("^[^:]+: ", "", drop_text)
-drop_sentence <- if (length(unique(drop_body)) == 1) {
-  paste("the same at both stations:", drop_body[1])
+drop_sentence <- if (length(unique(drop_text)) == 1) {
+  paste("the same at both stations:", drop_text[1])
 } else {
-  paste(drop_text, collapse = ". ")
+  paste(sprintf("at %s, %s", station_label, drop_text), collapse = "; and ")
 }
 pw <- daily[daily$station_number == "08EE013" & format(daily$date, "%m") %in% c("12", "01", "02"), ]
 pw$month <- format(pw$date, "%Y-%m")
@@ -353,8 +354,16 @@ tr$variable <- factor(tr$variable, c("q_mean", "q_min7"),
 tr$period <- factor(tr$period, rev(windows$window))
 tr$trend_start <- factor(tr$trend_start, names(pal_trend$values))
 tr$sig <- factor(ifelse(tr$mk_pvalue < 0.05, "sig", "ns"), c("sig", "ns"))
-n_neg <- sum(tr$sig == "sig" & tr$slope < 0)
-n_pos <- sum(tr$sig == "sig" & tr$slope > 0)
+# windows with the same dates give the same slope, so count each result once
+tr$dates <- paste(windows$start, windows$end)[match(tr$period, windows$window)]
+same <- windows$window[duplicated(paste(windows$start, windows$end)) |
+                         duplicated(paste(windows$start, windows$end), fromLast = TRUE)]
+distinct <- tr[!duplicated(tr[c("station_number", "variable", "trend_start", "dates")]), ]
+n_tested <- nrow(distinct)
+n_sig <- sum(distinct$sig == "sig")
+n_neg <- sum(distinct$sig == "sig" & distinct$slope < 0)
+sign_text <- if (n_neg == n_sig) "all of them negative" else sprintf("%d of them negative", n_neg)
+since_2000_003 <- min(kept$year[kept$station_number == "08EE003" & kept$year >= 2000])
 cap_trend <- sprintf(paste(
   "Theil-Sen slope of the departure, in percentage points of normal per year, from %s.",
   "Filled where the Mann-Kendall p is below 0.05. A window with no point has under %d baseline years."
@@ -362,8 +371,12 @@ cap_trend <- sprintf(paste(
 ```
 
 The slope of each window's departure, from 1981 and from 2000, for the window
-mean and its lowest seven-day mean. Of the slopes significant at p < 0.05,
-`r n_neg` are negative and `r n_pos` positive.
+mean and its lowest seven-day mean. `r paste(same, collapse = " and ")` share
+their dates, so they count once. Of `r n_tested` distinct slopes, `r n_sig` are
+significant at p < 0.05, about `r round(0.05 * n_tested)` of which chance alone
+would give, `r sign_text`. At Bulkley River near
+Houston, "from 2000" starts in `r since_2000_003`, its first window-year since
+then.
 
 ```{r trend, fig.height = 6.5, fig.cap = cap_trend}
 tr <- by_station(tr)
@@ -389,8 +402,8 @@ sp <- kept[kept$station_number == "08EE013" & kept$period == "CH spawning" &
 - **Provisional winters are ice readings.** ECCC's provisional archive
   records no ice symbol, so nothing marks those days. The drop above is a
   rule, not a correction.
-- **Bulkley River near Houston was a seasonal gauge until
-  `r first_full - 1`.** It has `r b3` baseline `r if (b3 == 1) "year" else "years"` for Chinook incubation,
+- **Bulkley River near Houston was a seasonal gauge for most of its record**,
+  year-round only in `r years_text(full)`. It has `r b3` baseline `r if (b3 == 1) "year" else "years"` for Chinook incubation,
   so its winter windows have no departure.
 - **A mean-based normal is skewed by wet years.** At Buck Creek the
   1981–2010 Chinook spawning mean is `r sprintf("%.2f", mean(sp))` m³/s, and the median

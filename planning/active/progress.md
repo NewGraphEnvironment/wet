@@ -10,3 +10,13 @@
 - Phase 2: `data-raw/station_vignette_data.R` run; 61 KB bundled; `test-vignette_data.R` 13 pass. Corrected the plan's duplicate-row claim (it was a misread).
 - Plan review returned (no blockers); folded in. See `review-27.md`.
 - Phase 3: `vignettes/station-flow.Rmd` (485 words, cap 600, proved to fire), `inst/cartography/wet_station.csv`. Window stats computed live in 0.4 s. Figures self-reviewed. Fixes from that pass: clipped hydrograph legend, y ticks among the strips, station order, title case, per-cell ice dots replaced by one computed sentence, slope units, a caption for empty trend rows. README and CLAUDE.md lines added.
+- Code-check round 1 (`review-round1.md`): 2 bugs, 4 fragile; all fixed.
+  - Bug: 08EE003's "seasonal until 2010" was wrong; it is year-round only in 1971 and 2011–2024 (computed).
+  - Bug: the dropped-years sentence disagreed with the strip, where `no_baseline` overrides `dropped`. The sentence is now built from the strip's classes.
+  - Fragile, all fixed:
+    - the spawning claim is now guarded with `stopifnot`;
+    - trend counts are distinct by window dates (CH and SK spawning share them), with the denominator and the count expected by chance;
+    - the 08EE003 "from 2000" start is stated;
+    - the HYDAT release is read from its VERSION table;
+    - `man/wet-package.Rd` was regenerated and committed.
+  - README now links the Rmd on GitHub, since a relative link is not rewritten by pkgdown.
