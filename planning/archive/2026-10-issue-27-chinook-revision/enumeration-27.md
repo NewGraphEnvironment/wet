@@ -24,7 +24,7 @@ The candidate set was extracted mechanically from `vignettes/station-flow.Rmd`, 
 | 43–45 | "has a shorter normal … 1981–2010 baseline has complete windows in S only" | `base_span` (cut to baseline years) | round-2 fix: `base_span != base_text`; qualifier "1981–2010 baseline" in the bullet and caption |
 | 46 | "fry migration citation is carried over from a neighbouring watershed's row" | `ch$note` matches "other area" | `stopifnot(identical(borrowed, "Fry migration"))`, and one source key |
 | cap_map | "lies inside … so the two records are not independent" | `catch` | containment guard |
-| cap_recent | "At 08EE003, the 1981–2010 baseline has complete windows in S only" | `base_span` | as #43–45 |
+| cap_recent | "At 08EE003, the 1981–2010 baseline has complete windows in S only" | `base_span` | as rows 43–45 |
 | cap_hydro | "drawn only on days with at least 10 years" | `band$n >= min_baseline` | definition |
 | cap_heat | "Blank cells have under 80% of their days" | `formals(wet_window_stats)$min_frac` | definition |
 | cap_trend | slope units; "filled where p < alpha" | `tr$sig` | definition |

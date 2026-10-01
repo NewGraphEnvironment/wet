@@ -65,14 +65,14 @@ Decided at the issue revision and the plan gate (2026-10-01): Chinook open-water
 - [x] `research/station_flow_departure.md` § Species windows: add the Chinook open-water result, and a dated verified line
 
 ## Phase 5: Verify and ship
-- [ ] `devtools::test()`, `devtools::check()` (vignette rebuilds), `pkgdown::check_pkgdown()`, local `pkgdown::build_site()`
-- [ ] Read every figure PNG at delivered width. Enumerate every computed claim against the object it is computed from.
+- [x] `devtools::test()` (603 pass), `devtools::check()` (vignette rebuilds; 1 ERROR predates the branch, see findings), `pkgdown::check_pkgdown()`, local `pkgdown::build_site()`
+- [x] Read every figure PNG at delivered width. Enumerate every computed claim against the object it is computed from.
 - [x] `/code-check` per commit; Plan-agent review of the baseline, run concurrently (review-27b, review-round1–4, enumeration-27)
-- [ ] `/planning-archive` (as `2026-10-issue-27-chinook-revision`), then `/gh-pr-push`
+- [x] `/planning-archive` (as `2026-10-issue-27-chinook-revision`), then `/gh-pr-push`
 
 ## Validation
 
-- [ ] Tests pass
-- [ ] `/code-check` clean on each commit
-- [ ] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] Tests pass
+- [x] `/code-check` clean on each commit
+- [x] PWF checkboxes match landed work
+- [x] `/planning-archive` on completion

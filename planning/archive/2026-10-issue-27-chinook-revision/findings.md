@@ -65,7 +65,7 @@ Relates to #25
 
 ## Phases 2–4: the vignette (2026-10-01)
 
-- **One commit for Phases 2–4.** Filtering the windows breaks the ice and thin-baseline guards, the `dropped`/`kept` cascade and the registry assertions all at once (review-27b #1–3, #20). An intermediate commit would not render.
+- **One commit for Phases 2–4.** Filtering the windows breaks the ice and thin-baseline guards, the `dropped`/`kept` cascade and the registry assertions all at once (review-27b items 1–3 and 20). An intermediate commit would not render.
 - **ggplot2 for the map, not tmap.** gq's main-registry styles for streams are classed by FWA `feature_code`, which the bundled layers do not carry. `gq_tmap_keymap()` prints a second viewport, which knitr would emit as a second figure. The map takes its colours from the registries (`streams_all` WA24111110, `lake`, `town`, plus the custom `station_map`), its frame from `gq_bbox_aspect()` and its scale bar from `gq_scale_breaks()`. tmap stays out of Suggests.
 - **The key figure is bars at 100 + cd's anomaly.** Each panel carries cd's `baseline_mean` in m³/s and a dashed line for the median baseline year, at 64–96% of the mean. Provisional years (2025, 2026) are drawn lighter.
 - **A silent zero, caught on reading the render.** "0 of those 24 window-years were drier than nine years in ten" came from `low$value`. `anom` has no `value` column, so `$` returned NULL, and `sum(NULL < x)` is 0. Fixed by carrying `value` through `cols_flag`, with `stopifnot(is.numeric(low[["value"]]))` and `n_dec > 0`. The corrected figures are 21 of 24 below the 10th percentile and 6 below the baseline minimum, matching the plan review's independent count.
