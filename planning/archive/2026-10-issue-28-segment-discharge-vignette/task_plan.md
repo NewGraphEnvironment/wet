@@ -56,8 +56,8 @@ What exploring m1 found:
 - [x] `research/README.md` / `fwapg_mad_method.md`: link the vignette, and update the SALR parity numbers if the rerun moves them
 
 ## Validation
-- [ ] Tests pass; `devtools::check()` builds the vignette with no network or DB
-- [ ] `/code-check` clean on each commit
-- [ ] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion, then `/gh-pr-push`
+- [x] Tests pass; `devtools::check()` builds the vignette with no network or DB
+- [x] `/code-check` clean on each commit
+- [x] PWF checkboxes match landed work
+- [x] `/planning-archive` on completion, then `/gh-pr-push`
 
