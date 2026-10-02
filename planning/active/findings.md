@@ -40,7 +40,44 @@ Depends on #27's scaffold (merged in #30). The data is rebuilt on m1: PCIC for S
 - `scripts/mad_parity.R SALR` writes `data/parity/SALR_parity.csv` and `SALR_{area,centroid}_{total,covered}.csv`.
 - 7 calibration gauges in 08EE (`stations_wb.txt`).
 
+## Data build (2026-10-02)
+
+- `scripts/mad_parity.R SALR` on m1 (log `data/logs/20261002_mad_parity_salr.log`, gitignored):
+  - 9,000 of 9,000 segments are identical to fwapg after 5-decimal rounding.
+  - Live upstream area against fwapg's stored table: **0** SALR segments change. So the vignette's "stale snapshot" limit cites the Fraser-wide check instead: 1,731 of 644,710 polygons (`data/checks/upstream_area_100_full.txt`).
+  - Area-weighted against centroid sampling: median 0.00 %, 1–99 % range −10.75 % to +19.85 %; 9.59 % of watersheds move more than 5 %.
+- `data/wb/` came from m4 as a 21 MB reduced bundle, cut down on m4:
+  - `stations.rds`, `fits.rds`, `aet_winner.txt` and `cv_aet-*.rds`, md5 identical to m4;
+  - each `upstream/*.rds` cut to the 309 accepted station watersheds, which is what `wb_cv_lib.R` keeps;
+  - `output/{100,400}.parquet` cut to month 0 (annual).
+  The full copy ran at about 1 MB/s (2.5 GB) and m4 had to go off. Every guard in `segment_vignette_data.R` passed: `fits$code_md5 == score_code_md5` under m1's code, the winner is `cfu`, and the MAE equals the tracked report.
+- **SALR: the open water balance runs a median 1.47x PCIC through wet.** Attributed against the calibration gauges within 30 km plus SALR's outlet gauge 08KC001. The water balance is high at all five (+6 to +38 %) and fwapg low at all five (−1 to −25 %). At 08KC001, which holds SALR: WB +38 %, fwapg −25 %. So the gap is **both** products, bracketing the observation.
+- BULK: 7,748 of 7,755 order ≥ 3 segments get a value from the water balance; 7 have no lut watershed. BULK holds 7 calibration gauges (08EE004 Bulkley at Quick, nested; the others headwater).
+- Vignette data: 416 KB of the 500 KB budget (`segment_map.rds` 193 KB, `segment_values.rds` 223 KB).
+
+## Code-check on the data scripts (rounds 1-3)
+
+| Round | Finding | Inside previous fix? | Outcome |
+|---|---|---|---|
+| 1 | `linear_feature_id` (bigint) saved as integer64; a fresh session joins 0 of 2,181 | — | fixed: `::int` in SQL + no-integer64 guard |
+| 2 | integer64 fix complete; provenance records HEAD while the scripts were uncommitted | n | fixed: refuse a dirty tree |
+| 3 | dirty guard passes when git fails (`system2` warns, returns `character(0)`); guard misses `data/checks/`; `data/parity` CSVs are unstamped | **y** | fixed: `git()` checks status; scope adds `data/checks`; the build runs `mad_parity.R` itself after deleting the old CSVs |
+
+Ended by enumeration, after round 3 found a defect inside round 2's fix. Mechanism (round 3): the script treated its own session as where the output is read, so every saved value and provenance claim must trace to a commit or a code-stamped input. The inputs, found by grepping every read in the scripts:
+- **Tied to the recorded commit:**
+  - code in `R/`, `scripts/` and `data-raw/`, and the three `data/checks` reports: the clean-tree guard;
+  - the parity CSVs: regenerated in the run;
+  - `stations.rds`, `fits.rds`, the CV results and the winner file: the md5 check.
+- **Accepted:**
+  - `upstream/*.rds`: the run key, with the station set asserted;
+  - the output parquet: `wb_output.R` is not in `score_files`;
+  - fwapg, PCIC and BC Geographic Names: external.
+- Both guards were shown to fire: git fails outside a repo, and the tree is dirty.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
+| `ST_SnapToGrid` collapsed sub-metre segments to empty | Keep the unsnapped line when the snapped one is empty |
+| `bcdata::BBOX(sf::st_bbox(groups))`: "No known SQL translation" | Compute the bbox first, pass `local(bb)` |
+| `fwa_upstream()` puts 4,586 of 4,587 SALR polygons upstream of 08KC001, so the "all" containment test found no outlet gauge | 99 % test, plus `stopifnot(length(outlet) == 1)` |
