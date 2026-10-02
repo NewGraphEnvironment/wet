@@ -10,3 +10,5 @@
 - Copied a reduced data/wb bundle from m4 (md5 identical for fits, stations, cv); m4 then went off
 - Wrote data-raw/segment_vignette_map.R and data-raw/segment_vignette_data.R; data 416 KB
 - Found the SALR gap between WB and PCIC; attributed to both products at nearby gauges
+- Code-check rounds 1-3 on the data scripts; ended by enumeration (findings.md). Committed c5b8f9b
+- Rebuilt segment_map.rds and segment_values.rds from c5b8f9b (mad_parity rerun inside the build); 417 KB
