@@ -30,3 +30,19 @@ test_that("the species windows are complete, unique month-days", {
   expect_true(all(grepl("^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$", c(w$start, w$end))))
   expect_false(anyDuplicated(w[c("species_code", "life_stage")]) > 0)
 })
+
+test_that("the map layers are sf in BC Albers, with both stations and their catchments", {
+  skip_if_not_installed("sf")
+  m <- readRDS(vignette_data("station_map.rds"))
+  expect_named(m, c("stations", "catchments", "streams", "lakes", "places", "bc"))
+  for (nm in names(m)) {
+    expect_s3_class(m[[nm]], "sf")
+    expect_equal(sf::st_crs(m[[nm]])$epsg, 3005L, info = nm)
+    expect_gt(nrow(m[[nm]]), 0)
+  }
+  expect_setequal(m$stations$station_number, c("08EE013", "08EE003"))
+  expect_setequal(m$catchments$station_number, c("08EE013", "08EE003"))
+  # each catchment is the station's own: FWA area within 10% of HYDAT's gross area
+  expect_true(all(abs(m$catchments$area_ratio - 1) < 0.1))
+  expect_equal(sum(m$streams$main), 2L)
+})

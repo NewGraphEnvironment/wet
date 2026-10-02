@@ -36,6 +36,7 @@ Suggests:
     rmarkdown,
     RPostgres,
     RSQLite,
+    sf,
     testthat (>= 3.2.0),
     tidyhydat,
     withr,
