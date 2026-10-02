@@ -11,6 +11,7 @@ fake_year <- function(dir, y, fill) {
 }
 
 test_that("per-year reduction equals the whole-period annual mean", {
+  skip_if_not_installed("ncdf4")   # terra::writeCDF() builds the fixtures with it
   dir <- withr::local_tempdir()
   files <- c(`1983` = fake_year(dir, 1983, c(1, 2, 3, NA)),
              `1984` = fake_year(dir, 1984, c(3, 2, 1, NA)))

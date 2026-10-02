@@ -33,6 +33,7 @@ Suggests:
     gq,
     Kendall,
     knitr,
+    ncdf4,
     rmarkdown,
     RPostgres,
     RSQLite,
