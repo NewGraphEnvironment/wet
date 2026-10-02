@@ -34,13 +34,13 @@ What exploring m1 found:
 - [x] Assert that the new `inst/vignette-data/` files total < 500 KB (xz-compressed rds, as in #27)
 
 ## Phase 3: Registry and vignette
-- [ ] `inst/cartography/wet_segment.csv`, a gq custom registry:
+- [x] `inst/cartography/wet_segment.csv`, a gq custom registry:
   - MAD classes, sequential on a log scale;
   - parity and sampling marks;
   - headwater and nested skill marks;
   - the gauge point.
   Assert each class set in the vignette, as #27 does. No hex literals in the Rmd.
-- [ ] `vignettes/segment-discharge.Rmd` (`bookdown::html_vignette2`, same setup and load chunks as #27):
+- [x] `vignettes/segment-discharge.Rmd` (`bookdown::html_vignette2`, same setup and load chunks as #27):
   - **Parity:** wet against fwapg `mad_m3s` on SALR, log-log with the 1:1 line, and the share identical after 5-decimal rounding.
   - **Sampling change:** % change from area-weighted against centroid sampling, by upstream area (log), on SALR watersheds.
   - **Map:** MAD per order ≥ 3 segment, SALR (PCIC through wet) and BULK (open water balance), with shared classes. BULK gauges are labelled with their held-out error. Keymap of both groups on BC. Follows the cartography rules: four corners, bbox aspect, legend from the registry.
@@ -48,12 +48,12 @@ What exploring m1 found:
   - A short recipe chunk (`eval = FALSE`): `wet_pcic_fetch` → `wet_ws_sample` → `wet_upstream_mean` → `wet_mm_to_m3s`, and the water-balance path.
   - **What it does not show:** the stale stored upstream area (with SALR's count), PCIC covering only the Peace, Fraser and Columbia (hence BULK has no fwapg MAD, which is link#286/#300's gap), and the pooled-zone gate passing only under the later "none" variant (`research/water_balance_method.md` §0).
   - Every number in the prose is computed in a chunk and pinned with `stopifnot`, as in #27. No footnotes.
-- [ ] Render (`pkgdown::build_article("segment-discharge")`). Self-review each PNG against the cartography checklist (placement and communication), at the delivered width.
+- [x] Render (`pkgdown::build_article("segment-discharge")`). Self-review each PNG against the cartography checklist (placement and communication), at the delivered width.
 
 ## Phase 4: Docs
-- [ ] NEWS.md entry. README line linking the vignette next to the station one.
-- [ ] CLAUDE.md Architecture: a paragraph on the new vignette and its data-raw scripts
-- [ ] `research/README.md` / `fwapg_mad_method.md`: link the vignette, and update the SALR parity numbers if the rerun moves them
+- [x] NEWS.md entry. README line linking the vignette next to the station one.
+- [x] CLAUDE.md Architecture: a paragraph on the new vignette and its data-raw scripts
+- [x] `research/README.md` / `fwapg_mad_method.md`: link the vignette, and update the SALR parity numbers if the rerun moves them
 
 ## Validation
 - [ ] Tests pass; `devtools::check()` builds the vignette with no network or DB

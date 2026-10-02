@@ -12,3 +12,6 @@
 - Found the SALR gap between WB and PCIC; attributed to both products at nearby gauges
 - Code-check rounds 1-3 on the data scripts; ended by enumeration (findings.md). Committed c5b8f9b
 - Rebuilt segment_map.rds and segment_values.rds from c5b8f9b (mad_parity rerun inside the build); 417 KB
+- Vignette, registry and docs; code-check vignette rounds 1-2, ended by enumeration of every prose claim and its pin
+- R CMD check: vignettes build offline; per-vignette size test (66 pass); 3 NOTEs predate the branch
+- Reviewer agents: 5 total (3 data scripts, 2 vignette)

@@ -65,6 +65,13 @@ Annual runoff; percentages are mean absolute error. This table is the #11 model.
   Most of the in-sample gain (22.6 %) does not transfer to ungauged basins.
 - **Chapman's published figures:** MAE 16.1 %, 77.8 % within ±20 %, monthly NSE 0.92. They come from 45 gauges in two plains zones, and are likely in-sample or near it. Our in-sample 22.6 %, over 20 fitted zone levels, is the comparable number.
 - **The error is concentrated.** Basins under 100 km² run at about 59 % MAE raw. The semi-arid interior plateaus (zones 15, 17, 23, 24) run +56 % to +234 % raw: CGIAR AET, capped by its own WorldClim P, is far too low next to climr's P there. Example: Greata Creek has P 746 mm and AET 281 mm, against 50 mm observed. The #15 experiment below addresses this.
+- **Against PCIC near Prince George, the balance runs high everywhere, and PCIC low in the large basins** (#28; `data-raw/segment_vignette_data.R`, `vignettes/segment-discharge.Rmd`).
+  - On SALR the balance gives a median 1.47 times PCIC through wet per order ≥ 3 segment.
+  - Five calibration gauges are used: those within 30 km of SALR plus its outlet gauge 08KC001.
+  - Held-out balance error at those gauges: +6 % to +38 %.
+  - fwapg (PCIC) error: −1 % and −2 % at the two small basins (297 and 439 km²), −14 % to −25 % at the three large ones (4,227–14,235 km²).
+  - Splitting the gap in log terms, log(wb/fwapg) = log(wb/obs) + log(obs/fwapg): at the two small basins it is 94–98 % the balance's. At the three large ones the two share it, with the balance's share 28–52 %. At 08KC001 they bracket the observation, +38 % against −25 %, and split it about evenly.
+  - No gauge measures the SALR median itself: 08KC001's basin is 4,227 km², of which SALR is 1,794.
 - **Large rivers are good.** Basins over 10,000 km² score 21 % raw MAE. At the major-river mouths (`data/checks/wb_output.txt`) the ratio of modelled to observed flow is 0.86–1.17:
   - Fraser at Hope 1.05 (PCIC through `wet`: 0.93), Thompson 1.17.
   - Columbia at Birchbank 1.05, although only 86 % of its basin is in BC.

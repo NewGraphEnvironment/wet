@@ -74,6 +74,15 @@ Ended by enumeration, after round 3 found a defect inside round 2's fix. Mechani
   - fwapg, PCIC and BC Geographic Names: external.
 - Both guards were shown to fire: git fails outside a repo, and the tree is dirty.
 
+## Code-check on the vignette (rounds 1-2)
+
+| Round | Findings | Inside previous fix? | Outcome |
+|---|---|---|---|
+| 1 | 9,000 is fwapg's count, not SALR's 9,384; the no-watershed bullet miscounted and its segments are not drawn; NEWS "five nearest gauges" false; "fwapg runs low" overstated (−1, −2 % at two); two claims unpinned | — | all fixed |
+| 2 | "most of the gap is the balance's" is wrong at the large basins, where PCIC holds 48–72 % of the gap in log terms; the guard `mean(abs(wb)) > mean(abs(fw))` was a proxy carried by the two small basins. The "order 3" lower bound came from the threshold, not the data | **y** | rewritten per size class, guarded by the per-gauge log share; range from data |
+
+Ended by enumeration: every paragraph's quantitative claims were listed against their pins (progress.md, session 2026-10-02). Separately, `R CMD check` failed #27's whole-directory 500 KB cap on `inst/vignette-data` (548 KB). Made it per vignette, matching each issue's own budget; a test pins the file list so no file escapes both budgets.
+
 ## Errors Encountered
 
 | Error | Resolution |

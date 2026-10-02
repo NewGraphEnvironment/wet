@@ -16,6 +16,8 @@
 
 The forcing is **observed (PNWNAmet), not a CMIP5 scenario**. fwapg's README citation and the `fwa_streams.mad_m3s` column comment say otherwise.
 
+A worked version of the parity and the sampling sensitivity on SALR, with figures, is the vignette `vignettes/segment-discharge.Rmd` (#28).
+
 ## Coverage ceiling
 
 In SALR, 384 of 9,384 segments (4 %) are absent from `fwa_streams_watersheds_lut`, mostly edge types 1400 and 1100, so they carry no MAD from any method. All 9,000 segments in the lookup have fwapg MAD.

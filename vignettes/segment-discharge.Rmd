@@ -1,0 +1,454 @@
+---
+title: "Mean Annual Discharge per Segment"
+output: bookdown::html_vignette2
+vignette: >
+  %\VignetteIndexEntry{Mean Annual Discharge per Segment}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 7,
+  out.width = "100%",
+  dpi = 150
+)
+```
+
+```{r load}
+library(wet)
+library(ggplot2)
+sf::sf_use_s2(FALSE)
+
+vd <- function(f) system.file("vignette-data", f, package = "wet")
+v <- readRDS(vd("segment_values.rds"))
+prov <- v$provenance
+map <- readRDS(vd("segment_map.rds"))
+bc <- readRDS(vd("station_map.rds"))$bc
+
+# colours come from the gq registries, so no hex literal appears in this
+# vignette; assert each class set, because a malformed CSV row adds a layer silently
+reg <- gq::gq_reg_custom(system.file("cartography", "wet_segment.csv", package = "wet"))
+reg_main <- gq::gq_reg_main()
+classes <- function(layer, expect) {
+  x <- gq::gq_tmap_classes(reg$layers[[layer]])
+  stopifnot(identical(names(x$values), expect))
+  list(values = x$values, labels = stats::setNames(x$labels, names(x$values)))
+}
+pal_mad <- classes("mad_class", paste0("m", 1:6))
+pal_map <- classes("segment_map", c("group", "outline", "key"))
+pal_skill <- classes("skill_nesting", c("headwater", "nested", "mae"))
+pal_prod <- classes("product", c("obs", "wb", "fwapg"))
+pal_par <- classes("parity", c("segment", "one_to_one"))
+pal_err <- classes("gauge_error", paste0("e", 1:4))
+lake_sty <- reg_main$layers$lake
+town_sty <- reg_main$layers$town
+
+# discharge classes: labels that restate the breaks are built from them
+mad_breaks <- c(0, 0.1, 0.5, 2, 10, 50, Inf)
+mad_width <- c(0.15, 0.25, 0.4, 0.6, 0.85, 1.1)
+fmt_q <- function(x) format(x, drop0trailing = TRUE, trim = TRUE)
+pal_mad$labels[] <- c(paste("Under", fmt_q(mad_breaks[2])),
+                      paste0(fmt_q(mad_breaks[2:5]), "–", fmt_q(mad_breaks[3:6])),
+                      paste(fmt_q(mad_breaks[6]), "or more"))
+mad_class <- function(q) factor(names(pal_mad$values)[findInterval(q, mad_breaks)], names(pal_mad$values))
+err_breaks <- c(-Inf, -20, 0, 20, Inf)
+pal_err$labels[] <- c(paste0("More than ", -err_breaks[2], "% under"), paste0("0–", -err_breaks[2], "% under"),
+                      paste0("0–", err_breaks[4], "% over"), paste0("More than ", err_breaks[4], "% over"))
+err_class <- function(e) factor(names(pal_err$values)[findInterval(e, err_breaks)], names(pal_err$values))
+
+group_name <- stats::setNames(map$groups$watershed_group_name, map$groups$watershed_group_code)
+group_km2 <- stats::setNames(map$groups$area_km2, map$groups$watershed_group_code)
+theme_set(theme_minimal(base_size = 10) +
+            theme(legend.position = "bottom", panel.grid.minor = element_blank()))
+pct <- function(x) paste0(round(x), "%")
+signed <- function(x) sub("^-", "−", sprintf("%+.0f%%", x))
+num <- function(x, d = 0) format(round(x, d), big.mark = ",", nsmall = d)
+and_text <- function(x) sub(", ([^,]*)$", " and \\1", paste(x, collapse = ", "))
+to_title <- function(x) {
+  vapply(strsplit(tolower(x), " "), function(w) {
+    big <- !w %in% c("at", "the", "near", "of", "in", "above", "below", "north")
+    w[big] <- paste0(toupper(substring(w[big], 1, 1)), substring(w[big], 2))
+    paste(w, collapse = " ")
+  }, "")
+}
+```
+
+wet estimates mean annual discharge (MAD) for every stream segment of BC's
+Freshwater Atlas, in two ways. The first follows fwapg: PCIC's VIC-GL runoff
+and baseflow, averaged over 1981–2010 and accumulated upstream. It covers only
+the Peace, Fraser and Columbia. The second is wet's own open water balance,
+precipitation less evapotranspiration, adjusted by zone against HYDAT gauges.
+It covers the province. This vignette shows both on two watershed groups: the
+`r group_name[["SALR"]]` (`r num(group_km2[["SALR"]])` km²), a headwater
+Fraser group, and the `r group_name[["BULK"]]` (`r num(group_km2[["BULK"]])`
+km²), in the Skeena, where fwapg has no discharge.
+
+## Reproducing fwapg
+
+```{r parity-data}
+p <- v$parity
+n_par <- nrow(p)
+same5 <- mean(round(p$mad_m3s_wet, 5) == round(p$mad_m3s_fwapg, 5))
+stopifnot(n_par == prov$fwapg_discharge_rows[["SALR"]], same5 == 1)   # the prose says "every"
+# fwapg has no discharge in the Bulkley: the intro and the limits say so
+stopifnot(prov$fwapg_discharge_rows[["BULK"]] == 0)
+cap_par <- sprintf(paste(
+  "Mean annual discharge on the %s %s segments fwapg gives a value: its stored value against wet's rebuild",
+  "of it from PCIC VIC-GL, 1981–2010, with the 1:1 line dashed. Both axes are logarithmic."
+), num(n_par), group_name[["SALR"]])
+```
+
+fwapg samples each watershed polygon at the PCIC cell under its centroid. It
+then averages over the polygon and everything upstream of it, weighted by
+area. wet rebuilds that number with its own code. On every one of the
+`r num(n_par)` `r group_name[["SALR"]]` segments that fwapg gives a value,
+it matches fwapg to the five decimals fwapg stores.
+
+```{r parity, fig.width = 4.5, fig.height = 4.5, out.width = "65%", fig.cap = cap_par}
+q_lab <- function(x) format(x, scientific = FALSE, drop0trailing = TRUE, trim = TRUE)
+ggplot(p, aes(mad_m3s_fwapg, mad_m3s_wet)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = pal_par$values[["one_to_one"]],
+              linewidth = 0.4) +
+  geom_point(colour = pal_par$values[["segment"]], size = 0.6, alpha = 0.4) +
+  scale_x_log10(labels = q_lab) +
+  scale_y_log10(labels = q_lab) +
+  coord_equal() +
+  labs(x = "fwapg (m³/s)", y = "wet (m³/s)")
+```
+
+## Sampling small watersheds
+
+```{r sampling-data}
+sm <- v$sampling
+sm$change <- 100 * (sm$mm_area / sm$mm_centroid - 1)
+area_cut <- c(0, 10, 100, Inf)
+sm$size <- cut(sm$upstream_area_km2, area_cut)
+moved <- tapply(abs(sm$change) > 5, sm$size, mean)
+q99 <- tapply(abs(sm$change), sm$size, stats::quantile, 0.99)
+# the prose: small watersheds move, large ones barely
+stopifnot(moved[[1]] > moved[[3]], q99[[1]] > 5 * q99[[3]])
+# PCIC's 0.0625-degree cell, in km at the group's latitude
+lat <- sf::st_coordinates(sf::st_transform(sf::st_centroid(sf::st_geometry(
+  map$groups[map$groups$watershed_group_code == "SALR", ])), 4326))[, 2]
+cell_ns <- 0.0625 * 111.2
+cell_ew <- cell_ns * cos(lat * pi / 180)
+cap_samp <- sprintf(paste(
+  "Change in mean annual runoff from area-weighted sampling, against centroid sampling, for",
+  "the %s %s watersheds that carry a stream. Upstream area is on a logarithmic axis."
+), num(nrow(sm)), group_name[["SALR"]])
+```
+
+A PCIC cell is 0.0625°, about `r round(cell_ns)` by `r round(cell_ew)` km
+here, so the centroid rule hands a small watershed the value of one cell. wet can instead weight every cell by the
+area it covers. Under `r area_cut[2]` km², `r pct(100 * moved[[1]])` of
+watersheds move by more than 5%, by up to `r pct(q99[[1]])` at the 99th
+percentile. Above `r area_cut[3]` km², the 99th percentile is
+`r format(round(q99[[3]], 1), nsmall = 1)`%, because a large basin averages
+many cells either way.
+
+```{r sampling, fig.height = 4, fig.cap = cap_samp}
+ggplot(sm, aes(upstream_area_km2, change)) +
+  geom_hline(yintercept = 0, colour = pal_par$values[["one_to_one"]], linewidth = 0.3) +
+  geom_point(colour = pal_par$values[["segment"]], size = 0.6, alpha = 0.4) +
+  scale_x_log10(labels = function(x) format(x, big.mark = ",", scientific = FALSE, drop0trailing = TRUE)) +
+  labs(x = "Upstream area (km²)", y = "Change (%)")
+```
+
+## Two groups, two products
+
+```{r map-data}
+seg <- merge(map$segments, v$segments, by = c("linear_feature_id", "watershed_group_code"))
+stopifnot(nrow(seg) == nrow(map$segments))
+# the Salmon River is drawn from PCIC through wet (fwapg's numbers), the
+# Bulkley from the open water balance, the only product there
+seg$mad <- ifelse(seg$watershed_group_code == "SALR", seg$mad_pcic_m3s, seg$mad_wb_m3s)
+seg$class <- mad_class(seg$mad)
+n_no_value <- sum(is.na(seg$mad))
+stopifnot(identical(is.na(seg$mad), is.na(seg$mad_wb_m3s)))   # the bullet says neither product has them
+order_no_value <- range(seg$stream_order[is.na(seg$mad)])
+n_total <- table(seg$watershed_group_code)
+seg <- seg[!is.na(seg$mad), ]
+seg <- seg[order(seg$class), ]   # large rivers drawn last, on top
+
+sk <- v$skill
+gauges <- sf::st_transform(sf::st_as_sf(sk[sk$watershed_group_code == "BULK", ], coords = c("lon", "lat"),
+                                        crs = 4326), 3005)
+gauges$class <- err_class(gauges$err_pct)
+stopifnot(nrow(gauges) > 0)
+
+panel_w <- 4.6
+panel_h <- 6.4
+frame <- function(code) {
+  g <- map$groups[map$groups$watershed_group_code == code, ]
+  bb <- sf::st_bbox(sf::st_buffer(g, 4000))
+  bb <- gq::gq_bbox_aspect(bb, asp = panel_w / panel_h)
+  list(group = g, bb = bb, lim_x = bb[c("xmin", "xmax")], lim_y = bb[c("ymin", "ymax")],
+       dx = bb[["xmax"]] - bb[["xmin"]], dy = bb[["ymax"]] - bb[["ymin"]])
+}
+
+draw_map <- function(code, gauges = NULL) {
+  f <- frame(code)
+  s <- seg[seg$watershed_group_code == code, ]
+  lakes <- map$lakes[map$lakes$watershed_group_code == code, ]
+  sb_km <- max(gq::gq_scale_breaks(f$bb))
+  sb <- data.frame(x = f$lim_x[[2]] - 0.05 * f$dx - sb_km * 1000, y = f$lim_y[[1]] + 0.04 * f$dy)
+  sb$xend <- sb$x + sb_km * 1000
+  key <- ggplot() +
+    geom_sf(data = bc, fill = "white", colour = pal_map$values[["outline"]], linewidth = 0.2) +
+    geom_sf(data = f$group, fill = pal_map$values[["key"]], colour = NA) +
+    geom_sf(data = sf::st_centroid(sf::st_geometry(f$group)), shape = 1, size = 6, stroke = 0.6,
+            colour = pal_map$values[["key"]]) +
+    theme_void() +
+    theme(panel.background = element_rect(fill = "white", colour = pal_map$values[["outline"]],
+                                          linewidth = 0.3))
+  key_w <- 0.34 * f$dx
+  key_h <- key_w * 1.05
+  out <- ggplot() +
+    geom_sf(data = f$group, fill = pal_map$values[["group"]], colour = pal_map$values[["outline"]],
+            linewidth = 0.4) +
+    geom_sf(data = lakes, fill = lake_sty$fill$color, colour = lake_sty$stroke$color, linewidth = 0.15) +
+    geom_sf(data = s, aes(colour = class, linewidth = class)) +
+    scale_colour_manual(values = pal_mad$values, labels = pal_mad$labels,
+                        name = "Mean annual\ndischarge (m³/s)") +
+    scale_linewidth_manual(values = stats::setNames(mad_width, names(pal_mad$values)),
+                           labels = pal_mad$labels, name = "Mean annual\ndischarge (m³/s)") +
+    geom_segment(data = sb, aes(x = x, xend = xend, y = y, yend = y), linewidth = 1) +
+    geom_text(data = sb, aes(x = (x + xend) / 2, y = y, label = paste(sb_km, "km")), vjust = -0.7, size = 3.2) +
+    annotation_custom(ggplotGrob(key), xmin = f$lim_x[[2]] - key_w - 0.02 * f$dx,
+                      xmax = f$lim_x[[2]] - 0.02 * f$dx,
+                      ymin = f$lim_y[[2]] - key_h - 0.02 * f$dy, ymax = f$lim_y[[2]] - 0.02 * f$dy)
+  pl <- map$places[map$places$watershed_group_code == code, ]
+  if (nrow(pl)) {
+    # a name sits left of its town, or right of it where the left would leave
+    # the frame; a few pixels above, so a gauge at the town stays visible
+    xy <- sf::st_coordinates(pl)
+    w <- nchar(pl$name) * 3 * 0.6 / (25.4 * panel_w) * f$dx   # label width at size 3, in metres
+    left <- xy[, 1] - 0.012 * f$dx - w > f$lim_x[[1]] + 0.01 * f$dx
+    lab <- data.frame(x = xy[, 1] + ifelse(left, -0.012, 0.012) * f$dx, y = xy[, 2] + 0.012 * f$dy,
+                      label = pl$name, hjust = ifelse(left, 1, 0))
+    out <- out +
+      geom_point(data = data.frame(x = xy[, 1], y = xy[, 2]), aes(x, y), size = 1.2,
+                 colour = town_sty$label$color) +
+      geom_label(data = lab, aes(x, y, label = label, hjust = hjust), colour = town_sty$label$color,
+                 fontface = "bold", size = 3, linewidth = 0, fill = "white", alpha = 0.8,
+                 label.padding = unit(1.2, "pt"))
+  }
+  if (!is.null(gauges)) {
+    out <- out +
+      geom_sf(data = gauges, aes(fill = class), shape = 21, colour = "black", size = 2.8, stroke = 0.4) +
+      scale_fill_manual(values = pal_err$values, labels = pal_err$labels, name = "Gauge, held-out\nerror")
+  }
+  out +
+    coord_sf(xlim = f$lim_x, ylim = f$lim_y, expand = FALSE, datum = NA) +
+    theme_void() +
+    theme(legend.position = "right", legend.key.width = unit(14, "pt"),
+          panel.border = element_rect(fill = NA, colour = pal_map$values[["outline"]], linewidth = 0.3))
+}
+
+# SALR: both products, and the gauges that arbitrate between them
+ss <- v$segments[v$segments$watershed_group_code == "SALR" & !is.na(v$segments$mad_wb_m3s), ]
+ratio_salr <- stats::median(ss$mad_wb_m3s / ss$mad_pcic_m3s)
+ga <- v$gauges_salr
+ga$wb_err <- 100 * (ga$wb_mm / ga$obs_mm - 1)
+ga$fw_err <- 100 * (ga$fwapg_mm / ga$obs_mm - 1)
+outlet <- ga[ga$holds_salr, ]
+# the balance's share of the gap at each gauge, in log terms like the ratio:
+# log(wb / fwapg) = log(wb / obs) + log(obs / fwapg)
+ga$wb_share <- log(ga$wb_mm / ga$obs_mm) / log(ga$wb_mm / ga$fwapg_mm)
+close <- abs(ga$fw_err) <= 5
+# the prose: the balance reads high at every gauge; at the small basins fwapg is
+# within 5% and the gap is nearly all the balance's; at the large ones, the
+# outlet among them, fwapg is low and the two share it
+stopifnot(ratio_salr > 1, all(ga$wb_err > 0), nrow(outlet) == 1,
+          any(close), any(!close), max(ga$area_km2[close]) < min(ga$area_km2[!close]),
+          all(ga$wb_share[close] > 0.9), all(ga$fw_err[!close] < -5),
+          all(ga$wb_share[!close] > 0.25 & ga$wb_share[!close] < 0.75), !close[ga$holds_salr])
+gauge_tab <- data.frame(
+  Gauge = sprintf("%s %s", ga$station_number, to_title(ga$station_name)),
+  `Area (km²)` = num(ga$area_km2),
+  `Observed (mm)` = num(ga$obs_mm),
+  `Water balance (held out)` = signed(ga$wb_err),
+  fwapg = signed(ga$fw_err),
+  check.names = FALSE
+)
+gauge_tab <- gauge_tab[order(!ga$holds_salr, ga$area_km2), ]
+
+nb <- nrow(gauges)
+bulk_zones <- sort(unique(sk$zone[sk$watershed_group_code == "BULK"]))
+bulk_mae <- mean(abs(gauges$err_pct))
+cap_salr <- sprintf(paste(
+  "Mean annual discharge on %s of the %s %s segments of order %d or more, from PCIC VIC-GL",
+  "through wet (fwapg's values). The keymap marks the group in BC."
+), num(sum(seg$watershed_group_code == "SALR")), num(n_total[["SALR"]]), group_name[["SALR"]],
+prov$min_order)
+cap_bulk <- sprintf(paste(
+  "Mean annual discharge on %s of the %s %s segments of order %d or more, from the open water",
+  "balance, and the %d calibration gauges in the group, filled by the held-out error of the",
+  "balance at each."
+), num(sum(seg$watershed_group_code == "BULK")), num(n_total[["BULK"]]), group_name[["BULK"]],
+prov$min_order, nb)
+```
+
+Both products cover the `r group_name[["SALR"]]`, and they disagree there.
+The open water balance gives a median `r format(round(ratio_salr, 2), nsmall = 2)`
+times the PCIC value per segment. The gauges nearby show where each misses.
+The balance runs high at all `r nrow(ga)` of them, by
+`r signed(min(ga$wb_err))` to `r signed(max(ga$wb_err))`. At the
+`r sum(close)` smallest basins fwapg is within 5%, so the gap there is the
+balance's. At the `r sum(!close)` larger ones fwapg runs
+`r signed(max(ga$fw_err[!close]))` to `r signed(min(ga$fw_err[!close]))`, and
+the two share it. At `r outlet$station_number`, which drains the group, they
+bracket the observation: `r signed(outlet$wb_err)` against
+`r signed(outlet$fw_err)`. The map below shows PCIC's values. The balance's
+errors in the table are out of sample (blocked cross-validation).
+
+```{r gauges-salr}
+knitr::kable(gauge_tab, align = "lrrrr", row.names = FALSE,
+             caption = sprintf(paste(
+               "Calibration gauges within %d km of the %s group, and its outlet gauge (first row):",
+               "mean annual runoff observed in 1981–2010, and each product's error against it."
+             ), prov$near_km, group_name[["SALR"]]))
+```
+
+```{r map-salr, fig.width = panel_w + 1.8, fig.height = panel_h, fig.cap = cap_salr}
+draw_map("SALR")
+```
+
+fwapg has `r prov$fwapg_discharge_rows[["BULK"]]` discharge rows in the
+`r group_name[["BULK"]]`, which lies outside PCIC's coverage. The open water
+balance supplies a value for every segment that has a watershed. The
+`r nb` gauges in the group are part of the balance's validation. Their
+held-out error averages `r pct(bulk_mae)` in absolute terms.
+
+```{r map-bulk, fig.width = panel_w + 1.8, fig.height = panel_h, fig.cap = cap_bulk}
+draw_map("BULK", gauges)
+```
+
+## Skill out of sample
+
+```{r skill-data}
+sk$ratio <- sk$mod / sk$obs
+mae_of <- function(i) mean(abs(sk$err_pct[i]))
+mae_all <- mae_of(TRUE)
+mae_head <- mae_of(sk$nesting == "headwater")
+mae_nest <- mae_of(sk$nesting == "nested")
+in20 <- mean(abs(sk$err_pct) <= 20)
+zone_mae <- sort(tapply(abs(sk$err_pct), sk$zone, mean))
+sk$zone <- factor(sk$zone, names(zone_mae))
+zl <- data.frame(zone = factor(names(zone_mae), names(zone_mae)), mae = zone_mae,
+                 n = as.vector(table(sk$zone)[names(zone_mae)]))
+worst <- names(zone_mae)[length(zone_mae)]
+# the prose: nested gauges score better than headwater, and the worst zone is a
+# semi-arid interior plateau (15, 17, 23 or 24: research/water_balance_method.md)
+# that stands out
+stopifnot(mae_nest < mae_head, sum(zone_mae > 2 * mae_all) == 1, worst %in% c("15", "17", "23", "24"))
+ratio_breaks <- c(0.5, 0.75, 1, 1.5, 2, 3, 5)
+cap_skill <- sprintf(paste(
+  "Modelled against observed mean annual runoff at the %d calibration gauges, each predicted",
+  "with its own sub-sub-drainage held out of the fit, by hydrologic zone. Zones are ordered by",
+  "mean absolute error, printed at the right with the number of gauges."
+), nrow(sk))
+```
+
+The balance's coefficients are fitted on HYDAT gauges, so its skill is
+scored on gauges the fit did not see. Each WSC sub-sub-drainage is held out
+in turn and predicted from the rest. Over `r nrow(sk)` gauges, the mean
+absolute error in annual runoff is `r pct(mae_all)`, and `r pct(100 * in20)`
+fall within ±20%. Headwater gauges score `r pct(mae_head)`, and nested ones,
+whose basins hold other gauges, score `r pct(mae_nest)`. Zone `r worst`, a
+semi-arid interior plateau, is the outlier at `r pct(zone_mae[[worst]])`.
+The `r group_name[["BULK"]]` gauges fall in zones `r and_text(bulk_zones)`.
+
+```{r skill, fig.height = 6.5, fig.cap = cap_skill}
+x_lab <- max(ratio_breaks) * 1.6
+ggplot(sk, aes(ratio, zone)) +
+  geom_vline(xintercept = 1, colour = pal_par$values[["one_to_one"]], linewidth = 0.3) +
+  geom_point(aes(colour = nesting), size = 1.6, alpha = 0.8) +
+  geom_text(data = zl, aes(x = x_lab, y = zone, label = sprintf("%s%% (%d)", round(mae), n)),
+            hjust = 1, size = 2.8, colour = pal_skill$values[["mae"]]) +
+  scale_x_log10(breaks = ratio_breaks, labels = sub("^\\+0%$", "0%", signed(100 * (ratio_breaks - 1))),
+                limits = c(min(sk$ratio, ratio_breaks), x_lab)) +
+  scale_colour_manual(values = pal_skill$values[c("headwater", "nested")],
+                      labels = pal_skill$labels[c("headwater", "nested")], name = NULL) +
+  labs(x = "Held-out error in mean annual runoff (logarithmic)", y = "Hydrologic zone")
+```
+
+## The recipe
+
+This is the PCIC path for one headwater group, as `scripts/mad_parity.R` runs
+it. It needs fwapg and the PCIC server. The open water balance is a pipeline of
+scripts (`scripts/wb_inputs.R` to `scripts/wb_output.R`; see the package's
+`CLAUDE.md`). Both run on cached outputs here (see Cached inputs, below).
+
+```{r recipe, echo = TRUE, eval = FALSE}
+library(wet)
+conn <- DBI::dbConnect(RPostgres::Postgres(), dbname = "fwapg")
+
+# PCIC VIC-GL runoff and baseflow over the group's extent, 1981-2010
+bbox <- c(-124.12, 54.22, -123.12, 55.11)
+runoff <- terra::rast(wet_pcic_fetch("RUNOFF", bbox, "1981-01-01", "2010-12-31"))
+baseflow <- terra::rast(wet_pcic_fetch("BASEFLOW", bbox, "1981-01-01", "2010-12-31"))
+mad_cell <- wet_runoff_annual(runoff) + wet_runoff_annual(baseflow)   # mm/yr per cell
+
+# every watershed polygon in the Fraser; those inside the extent get a cell value
+ws <- wet_ws_fetch(conn, "100")
+in_bb <- ws$lon >= bbox[1] & ws$lon <= bbox[3] & ws$lat >= bbox[2] & ws$lat <= bbox[4]
+cells <- wet_ws_sample(mad_cell, ws[in_bb, c("watershed_feature_id", "lon", "lat")], "centroid")
+up <- wet_upstream_mean(ws, cells, "total", irregular_pairs = wet_upstream_irregular(conn, "100"))
+up$mad_m3s <- wet_mm_to_m3s(up$value, up$upstream_area_m2)
+```
+
+## What it does not show
+
+```{r limits}
+stale <- prov$upstream_area_100
+# the bullet: stale polygons exist in the Fraser, and none moves a SALR segment
+stopifnot(stale[["stale"]] > 0, prov$salr_stale_segments == 0)
+```
+
+- **fwapg's stored upstream area is a stale snapshot.** In the Fraser,
+  `r num(stale[["stale"]])` of `r num(stale[["polygons"]])` polygons carry a
+  stored area that differs from the live accumulation. None of them changes
+  a `r group_name[["SALR"]]` segment, so the parity above does not test it. wet
+  uses the accumulated area except to reproduce fwapg.
+- **PCIC covers only the Peace, Fraser and Columbia.** Elsewhere, as in the
+  `r group_name[["BULK"]]`, the open water balance is the only estimate. A
+  model that classifies habitat on fwapg's discharge gets nothing there.
+- **The zone adjustment passes its gate only under a variant added later.**
+  The pre-set specification gave sparsely gauged zones one shared level and
+  failed. The "no adjustment" variant that passes was offered after that
+  result, so the skill above is mildly optimistic
+  (`research/water_balance_method.md`).
+- **Segments without a watershed.** `r n_no_value` segments of order
+  `r order_no_value[1]` to `r order_no_value[2]` have no watershed polygon in the
+  Freshwater Atlas lookup, so neither product gives them a value. They are
+  left off the maps, which leaves short gaps in some streams.
+
+**Cached inputs.** PCIC VIC-GL through `scripts/mad_parity.R`; the open
+water balance from province run `r prov$province_run` (annual AET
+`r prov$aet`, HYDAT release `r substr(prov$hydat_release, 1, 10)`); built
+`r paste(as.integer(format(prov$built, "%d")), format(prov$built, "%B %Y"))` at commit `r prov$wet_commit`. Regenerated by
+`data-raw/segment_vignette_data.R`. Map layers from the Freshwater Atlas
+(fwapg) and BC Geographic Names, by `data-raw/segment_vignette_map.R`.
+
+```{r wordcount, include = FALSE}
+f <- knitr::current_input()
+if (!is.null(f)) {
+  x <- readLines(f, warn = FALSE)
+  y <- utils::tail(x, -utils::head(which(x == "---"), 2)[2])   # drop the YAML header
+  fence <- cumsum(grepl("^```", y)) %% 2 == 1
+  y <- y[!fence & !grepl("^```", y)]
+  y <- gsub("`r [^`]*`", "", y)          # inline code is not body prose
+  y <- y[!grepl("^\\s*$", y)]
+  n <- sum(lengths(strsplit(trimws(y), "\\s+")))
+  message("body prose: ", n, " words")
+  cap <- 800
+  if (n > cap) stop("body prose is ", n, " words; the cap is ", cap)
+}
+```
