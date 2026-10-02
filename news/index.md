@@ -122,12 +122,12 @@
     are uncorrected ice readings; see
     `research/station_flow_departure.md`.
 
-- A pkgdown site and the first vignette, *Flow in species windows at two
-  stations*
+- A pkgdown site and the first vignette, *Chinook flow at two stations*
   ([\#27](https://github.com/NewGraphEnvironment/wet/issues/27)). It
-  runs the station path on Buck Creek and Bulkley nr Houston from
-  bundled data (`data-raw/station_vignette_data.R`): the record by
-  source, the hydrograph against its 1981-2010 median with the BULK
-  species windows beneath, departure per window and year, and trends.
-  Chinook spawning flow was 58-81 % below the 1981-2010 mean at both
-  stations in every year 2023-2026.
+  maps Buck Creek and Bulkley nr Houston and their nested catchments,
+  then compares the last five years with 1981-2010 in the three
+  open-water Chinook windows (migration, spawning, fry migration), from
+  bundled data (`data-raw/station_vignette_data.R`,
+  `data-raw/station_vignette_map.R`). Every window at both stations was
+  below its 1981-2010 mean in 2023-2026, and 21 of the 24 station-window
+  values from those years were drier than nine baseline years in ten.
