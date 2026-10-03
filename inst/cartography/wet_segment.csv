@@ -1,0 +1,22 @@
+layer_key,type,source_layer,class_field,class_value,class_label,fill_color,fill_opacity,stroke_color,stroke_width,stroke_opacity,mark_color,mark_shape,mark_radius,mark_stroke_color,mark_stroke_width,label_color,label_size,label_font,label_halo_color,label_halo_width,label_offset_x,label_offset_y,note
+mad_class,line,,class,m1,Under 0.1 m³/s,#c7e9b4,1,,,,,,,,,,,,,,,,ColorBrewer YlGnBu 7-class without its lightest: segments on a light ground
+mad_class,line,,class,m2,0.1-0.5,#7fcdbb,1,,,,,,,,,,,,,,,,ColorBrewer YlGnBu 7-class
+mad_class,line,,class,m3,0.5-2,#41b6c4,1,,,,,,,,,,,,,,,,ColorBrewer YlGnBu 7-class
+mad_class,line,,class,m4,2-10,#1d91c0,1,,,,,,,,,,,,,,,,ColorBrewer YlGnBu 7-class
+mad_class,line,,class,m5,10-50,#225ea8,1,,,,,,,,,,,,,,,,ColorBrewer YlGnBu 7-class
+mad_class,line,,class,m6,50 m³/s or more,#0c2c84,1,,,,,,,,,,,,,,,,ColorBrewer YlGnBu 7-class darkest
+segment_map,polygon,,part,group,Watershed group,#f0f0f0,1,,,,,,,,,,,,,,,,"ColorBrewer Greys lightest: the subject's ground, against a white exterior"
+segment_map,line,,part,outline,Group boundary,#636363,1,,,,,,,,,,,,,,,,ColorBrewer Greys dark
+segment_map,point,,part,key,This group,#000000,1,,,,,,,,,,,,,,,,Black: the group in the keymap; ringed so a small one still reads
+skill_nesting,point,,nesting,headwater,Headwater gauge,#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue
+skill_nesting,point,,nesting,nested,Nested gauge,#e69f00,1,,,,,,,,,,,,,,,,Okabe-Ito orange
+skill_nesting,point,,nesting,mae,Zone mean absolute error,#000000,1,,,,,,,,,,,,,,,,Okabe-Ito black
+product,point,,product,obs,Observed (HYDAT),#000000,1,,,,,,,,,,,,,,,,Okabe-Ito black: the reference
+product,point,,product,wb,Open water balance,#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue: wet's own estimate
+product,point,,product,fwapg,fwapg (PCIC VIC-GL),#e69f00,1,,,,,,,,,,,,,,,,Okabe-Ito orange: the reference product
+parity,point,,part,segment,Segment,#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue
+parity,line,,part,one_to_one,1:1,#636363,1,,,,,,,,,,,,,,,,ColorBrewer Greys dark
+gauge_error,point,,class,e1,More than 20% under,#e66101,1,,,,,,,,,,,,,,,,ColorBrewer PuOr 4-class: under-prediction in the orange arm
+gauge_error,point,,class,e2,0-20% under,#fdb863,1,,,,,,,,,,,,,,,,ColorBrewer PuOr 4-class
+gauge_error,point,,class,e3,0-20% over,#b2abd2,1,,,,,,,,,,,,,,,,ColorBrewer PuOr 4-class
+gauge_error,point,,class,e4,More than 20% over,#5e3c99,1,,,,,,,,,,,,,,,,ColorBrewer PuOr 4-class: over-prediction in the purple arm

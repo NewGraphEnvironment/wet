@@ -75,3 +75,14 @@
   Every window at both stations was below its 1981-2010 mean in 2023-2026, and
   21 of the 24 station-window values from those years were drier than nine
   baseline years in ten.
+
+* A second vignette, *Mean annual discharge per segment* (#28). It reproduces
+  fwapg's discharge on the 9,000 Salmon River (SALR) segments it gives a value, and shows how
+  area-weighted sampling moves small watersheds. It maps discharge per segment
+  for SALR and for the Bulkley (BULK), where fwapg has none and the open water
+  balance is the only estimate, and plots the balance's blocked-CV skill at
+  290 HYDAT gauges by zone. On SALR the balance runs a median 1.47 times PCIC.
+  At the four gauges within 30 km of SALR and its outlet gauge, the balance is
+  high at all five. PCIC is within 5 % at the two small basins and low at the
+  three large ones. Data from `data-raw/segment_vignette_data.R` and
+  `data-raw/segment_vignette_map.R`.
