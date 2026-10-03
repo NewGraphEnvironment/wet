@@ -645,6 +645,9 @@ Read the exit status off the result: `st <- attr(out, "status")`, which is `NULL
 ### Forked `parallel::mclapply()` workers segfault in `glm.fit` under macOS Accelerate BLAS
 Fit models in parallel on socket workers (`parallel::makeCluster()` with `parLapply()`), not forks: with R linked to Accelerate's vecLib, `mclapply` children segfault inside `glm.fit` (`address 0x110, cause 'invalid permissions'`), and `mclapply` returns try-errors with a warning rather than stopping.
 
+### `c(name = x)` keeps `x`'s own name, so a value from a named vector becomes `name.X`
+Strip the name before you label it: `c(axis = unname(v[1]))` or `c(axis = v[[1]])`.
+
 # Code Check — Shell
 Tool-level traps in bash, sed, git and `gh`, and in the host toolchain those commands depend on.
 
@@ -1704,7 +1707,7 @@ Five habits:
   sits in three documents is not fixed by repairing the one that was quoted; the other two
   still read as authoritative.
 
-*31 lines of evidence for this rule are in `conventions/karpathy.md`, which `/code-check` reads in full.*
+*39 lines of evidence for this rule are in `conventions/karpathy.md`, which `/code-check` reads in full.*
 
 ### "It can only be answered by testing" is a claim with an author
 
@@ -1720,6 +1723,8 @@ The claim is usually made by someone who knows the domain, at a moment before th
 looked. Not wrong so much as **unexamined**, which is what lets it survive into the
 plan. Then **bound what the probe closed**: reading a desktop plugin says nothing
 about the mobile app. An over-claimed probe is worse than none.
+
+*6 lines of evidence for this rule are in `conventions/karpathy.md`, which `/code-check` reads in full.*
 
 ### A real bug is not necessarily the reported bug
 
@@ -1846,7 +1851,7 @@ Sibling of *"An inventory is only complete relative to a boundary"* in `code-che
 step earlier: that one is about a search that was complete for the wrong scope, this is
 about never having searched the scope where the answer lived.
 
-*25 lines of evidence for this rule are in `conventions/karpathy.md`, which `/code-check` reads in full.*
+*26 lines of evidence for this rule are in `conventions/karpathy.md`, which `/code-check` reads in full.*
 
 #### The storage version: one store is not the world
 
