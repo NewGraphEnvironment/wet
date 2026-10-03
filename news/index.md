@@ -1,5 +1,10 @@
 # Changelog
 
+## wet 0.1.1
+
+- Hex sticker, and a README that follows fresh, link and drift: install,
+  prerequisites, a station example, vignettes and the package ecosystem.
+
 ## wet 0.1.0
 
 - Package scaffold, PCIC VIC-GL OPeNDAP subsetting, annual/monthly
