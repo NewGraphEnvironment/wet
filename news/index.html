@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,7 +38,7 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="development version" id="wet-development-version">wet (development version)<a class="anchor" aria-label="anchor" href="#wet-development-version"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0" id="wet-010">wet 0.1.0<a class="anchor" aria-label="anchor" href="#wet-010"></a></h2>
 <ul><li><p>Package scaffold, PCIC VIC-GL OPeNDAP subsetting, annual/monthly runoff aggregation, upstream area weighting and an fwapg MAD parity check (<a href="https://github.com/NewGraphEnvironment/wet/issues/1" class="external-link">#1</a>).</p></li>
 <li><p>Join-free upstream accumulation over FWA codes (<code><a href="../reference/wet_upstream_sums.html">wet_upstream_sums()</a></code>, <code><a href="../reference/wet_upstream_irregular.html">wet_upstream_irregular()</a></code>, <code><a href="../reference/wet_ws_fetch.html">wet_ws_fetch()</a></code>): whole basins, no order-8 skip. <code><a href="../reference/wet_upstream_mean.html">wet_upstream_mean()</a></code> now takes <code>(ws, values, denom, irregular_pairs, upstream_area)</code> instead of a pairs table. <code><a href="../reference/wet_pcic_annual.html">wet_pcic_annual()</a></code> fetches PCIC one year at a time; <code>scripts/mad_basin.R</code> builds the Fraser (<a href="https://github.com/NewGraphEnvironment/wet/issues/2" class="external-link">#2</a>).</p></li>
 <li>
