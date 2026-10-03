@@ -9,7 +9,7 @@ type: software
 license: MIT
 title: 'wet: Monthly, Seasonal and Scenario Stream Discharge for the BC Freshwater
   Atlas'
-version: 0.0.0.9000
+version: 0.1.0
 abstract: Per-segment stream discharge for the British Columbia Freshwater Atlas (FWA).
   Aggregates Pacific Climate Impacts Consortium (PCIC) VIC-GL gridded runoff and baseflow
   to FWA fundamental watersheds, accumulates them upstream by area weighting, and
@@ -22,7 +22,7 @@ authors:
   orcid: https://orcid.org/0000-0002-3495-2128
 repository-code: https://github.com/NewGraphEnvironment/wet
 url: https://newgraphenvironment.github.io/wet/
-date-released: '2026-09-25'
+date-released: '2026-10-03'
 contact:
 - family-names: Irvine
   given-names: Allan
