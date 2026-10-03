@@ -18,7 +18,8 @@
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/station-flow.html">Chinook Flow at Two Stations</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/segment-discharge.html">Mean Annual Discharge per Segment</a></li>
+    <li><a class="dropdown-item" href="../articles/station-flow.html">Chinook Flow at Two Stations</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -70,6 +71,7 @@
 <code>scripts/station_departure.R</code> runs it for real-time stations. At Buck Creek and Bulkley nr Houston, 2023-2026 summer and early-fall flow ran 54-87 % below the 1981-2010 mean. Provisional winter flows are uncorrected ice readings; see <code>research/station_flow_departure.md</code>.</li>
 </ul></li>
 <li><p>A pkgdown site and the first vignette, <em>Chinook flow at two stations</em> (<a href="https://github.com/NewGraphEnvironment/wet/issues/27" class="external-link">#27</a>). It maps Buck Creek and Bulkley nr Houston and their nested catchments, then compares the last five years with 1981-2010 in the three open-water Chinook windows (migration, spawning, fry migration), from bundled data (<code>data-raw/station_vignette_data.R</code>, <code>data-raw/station_vignette_map.R</code>). Every window at both stations was below its 1981-2010 mean in 2023-2026, and 21 of the 24 station-window values from those years were drier than nine baseline years in ten.</p></li>
+<li><p>A second vignette, <em>Mean annual discharge per segment</em> (<a href="https://github.com/NewGraphEnvironment/wet/issues/28" class="external-link">#28</a>). It reproduces fwapg’s discharge on the 9,000 Salmon River (SALR) segments it gives a value, and shows how area-weighted sampling moves small watersheds. It maps discharge per segment for SALR and for the Bulkley (BULK), where fwapg has none and the open water balance is the only estimate, and plots the balance’s blocked-CV skill at 290 HYDAT gauges by zone. On SALR the balance runs a median 1.47 times PCIC. At the four gauges within 30 km of SALR and its outlet gauge, the balance is high at all five. PCIC is within 5 % at the two small basins and low at the three large ones. Data from <code>data-raw/segment_vignette_data.R</code> and <code>data-raw/segment_vignette_map.R</code>.</p></li>
 </ul></div>
   </main></div>
 
