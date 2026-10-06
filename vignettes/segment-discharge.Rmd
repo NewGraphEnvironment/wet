@@ -93,15 +93,10 @@ km²), in the Skeena, where fwapg has no discharge.
 
 ```{r parity-data}
 p <- v$parity
-n_par <- nrow(p)
-same5 <- mean(round(p$mad_m3s_wet, 5) == round(p$mad_m3s_fwapg, 5))
-stopifnot(n_par == prov$fwapg_discharge_rows[["SALR"]], same5 == 1)   # the prose says "every"
+n_par <- p$n_segments
+stopifnot(n_par == prov$fwapg_discharge_rows[["SALR"]], p$n_match5 == n_par)   # the prose says "every"
 # fwapg has no discharge in the Bulkley: the intro and the limits say so
 stopifnot(prov$fwapg_discharge_rows[["BULK"]] == 0)
-cap_par <- sprintf(paste(
-  "Mean annual discharge on the %s %s segments fwapg gives a value: its stored value against wet's rebuild",
-  "of it from PCIC VIC-GL, 1981–2010, with the 1:1 line dashed. Both axes are logarithmic."
-), num(n_par), group_name[["SALR"]])
 ```
 
 fwapg samples each watershed polygon at the PCIC cell under its centroid. It
@@ -109,18 +104,6 @@ then averages over the polygon and everything upstream of it, weighted by
 area. wet rebuilds that number with its own code. On every one of the
 `r num(n_par)` `r group_name[["SALR"]]` segments that fwapg gives a value,
 it matches fwapg to the five decimals fwapg stores.
-
-```{r parity, fig.width = 4.5, fig.height = 4.5, out.width = "65%", fig.cap = cap_par}
-q_lab <- function(x) format(x, scientific = FALSE, drop0trailing = TRUE, trim = TRUE)
-ggplot(p, aes(mad_m3s_fwapg, mad_m3s_wet)) +
-  geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = pal_par$values[["one_to_one"]],
-              linewidth = 0.4) +
-  geom_point(colour = pal_par$values[["segment"]], size = 0.6, alpha = 0.4) +
-  scale_x_log10(labels = q_lab) +
-  scale_y_log10(labels = q_lab) +
-  coord_equal() +
-  labs(x = "fwapg (m³/s)", y = "wet (m³/s)")
-```
 
 ## Sampling small watersheds
 

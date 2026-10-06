@@ -40,7 +40,7 @@ The pre-set rule is written into `findings.md` before the scoring runs. At the c
 - [x] `data-raw/segment_vignette_map.R`:
   - PCIC coverage outline (union of the watershed groups fwapg gives discharge);
   - places for the widened Salmon River frame (Prince George, Fort St. James), since the frame grows to hold all five gauges.
-- [ ] Commit the scripts, rerun both, commit `inst/vignette-data/`. Update `tests/testthat/test-vignette_data.R` for the new fields and stay under the 500 KB budget.
+- [x] Commit the scripts, rerun both, commit `inst/vignette-data/`. Update `tests/testthat/test-vignette_data.R` for the new fields and stay under the 500 KB budget.
 - [x] Registry rows for any new layer (coverage outline, gauge label) in `inst/cartography/wet_segment.csv`
 
 ### Phase 2: The article, reordered

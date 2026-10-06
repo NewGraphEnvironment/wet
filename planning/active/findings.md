@@ -47,7 +47,33 @@ Scored at the calibration gauges inside PCIC's coverage (those with a fwapg `mad
 
 **Rule:** if the balance's mean absolute error at those gauges is more than 5 percentage points worse than fwapg's, stop and bring the evidence to the user before writing the recommendation. Otherwise write it as above. Either way the article says the balance's error is out of sample and fwapg's may be partly in sample (PCIC calibrates VIC-GL to gauges).
 
+## Pre-set rule outcome (2026-10-06, rebuilt data at 2d4a1de)
+
+**The rule fires.** At the 168 calibration gauges in PCIC's coverage (groups with >= 50 % of fwapg's rows valued) that have a fwapg value:
+
+| | water balance (held out) | fwapg |
+|---|---|---|
+| MAE | 30.5 % | 25.5 % |
+| median absolute error | 22.2 % | 16.7 % |
+| within ±20 % | 48 % | 60 % |
+| Peace (n = 21) MAE | 19.6 % | 14.2 % |
+| Fraser (n = 73) MAE | 29.4 % | 28.8 % |
+| Columbia (n = 74) MAE | 34.7 % | 25.4 % |
+
+Gap 5.03 points against the 5-point line. Under the first coverage definition (any valued row, 169 gauges including 10CB001 in the grid-edge USIK group) the gap was 4.70; code-check round 3 narrowed coverage to exclude the Liard grid-edge groups, which moved one gauge out. 18 in-coverage gauges have no fwapg value (median 11,859 km², mostly order-8 mainstems and null rows); the balance scores 13.3 % MAE there. 8 scored gauges are in zone 24.
+
+Per the rule: stopped before writing the recommendation; question goes to the user with the rest of the article built. Caveats either way: the balance's error is out of sample and mildly optimistic; VIC-GL was calibrated 1985–2005 on gauges not published with fwapg's values.
+
+## fwapg's gaps inside its own coverage (attributed: theirs)
+
+- 27 groups in fwapg's discharge table hold only null rows; 11 Liard groups at PCIC's grid edge hold values on 0.02–23 % of rows. Coverage (>= 50 % valued) is 112 groups.
+- No order-8+ segment has a row (the Fraser mainstem, Fraser at Shelley, Thompson near Spences Bridge, Quesnel near Quesnel are unscored). Matches `research/fwapg_mad_method.md`'s order-8 skip.
+- `parity$max_rel_diff` is 0.15 although all 9,000 segments match to five decimals: the largest relative difference is on a value near 1e-5 m³/s, where the fifth decimal is the whole value. Not cited in the article.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
+| GEOS union of the hydrologic zones: "LinearRing ... not closed" after reprojection | the source mixes XY and XYZ rings; `st_zm()` before the union |
+| `sf::st_snap_to_grid` not exported | round via `st_as_binary(precision = 0.01)` |
+| `st_collection_extract` split one zone into several rows | process one zone at a time, union its polygons back |
