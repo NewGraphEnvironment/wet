@@ -6,6 +6,8 @@
 \alias{wet-package}
 \title{wet: Monthly, Seasonal and Scenario Stream Discharge for the BC Freshwater Atlas}
 \description{
+\if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
+
 Per-segment stream discharge for the British Columbia Freshwater Atlas (FWA). Aggregates Pacific Climate Impacts Consortium (PCIC) VIC-GL gridded runoff and baseflow to FWA fundamental watersheds, accumulates them upstream by area weighting, and reports mean annual and monthly discharge per stream segment for historical and climate-scenario runs.
 }
 \seealso{

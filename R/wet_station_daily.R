@@ -197,11 +197,14 @@ wet_realtime_daily <- function(station, from, to) {
   d[d$date >= from & d$date <= to, ]
 }
 
+# An ECCC approval that says final. Also matched in SQL by wet_temp_daily().
+wet_approval_final <- "^(Final|Approved)"
+
 # Shared shaping for the two ECCC feeds. Only an approval that says final is
 # "approved"; anything else, unrecognised included, stays provisional.
 wet_eccc_daily <- function(d, source) {
   if (!nrow(d)) return(wet_daily_empty())
   data.frame(station_number = as.character(d$station_number), date = as.Date(d$date, tz = "UTC"),
              q_m3s = as.numeric(d$q_m3s), symbol = as.character(d$symbol), source = source,
-             status = ifelse(grepl("^(Final|Approved)", d$approval), "approved", "provisional"))
+             status = ifelse(grepl(wet_approval_final, d$approval), "approved", "provisional"))
 }
