@@ -45,33 +45,33 @@ The pre-set rule is written into `findings.md` before the scoring runs. At the c
 
 ### Phase 2: The article, reordered
 
-- [ ] **What mean annual discharge is.**
+- [x] **What mean annual discharge is.**
   - A worked unit example: a 100 km² basin at 300 mm/yr carries about 0.95 m³/s.
   - A short "Terms" list, each with a link where one exists: Freshwater Atlas, stream segment and order, watershed group, fwapg, PCIC hydrologic model output and VIC-GL, HYDAT, the water balance after Chapman et al. 2018, BC Water Tools, calibration gauge, held out, headwater/nested gauge, hydrologic zone. Every URL is checked live before it goes in.
 - [ ] **Which estimate to use.**
   - The recommendation, then the two products scored at the same in-coverage gauges.
   - One figure: each gauge's error under both products on the single % over/under scale.
   - A small table of mean absolute error and share within ±20 %, all gauges and split headwater/nested.
-- [ ] **How close it is, province-wide.**
+- [x] **How close it is, province-wide.**
   - A map of BC with the 290 gauges filled by held-out error, PCIC coverage outlined, and the Salmon and Bulkley groups marked.
   - A strip or histogram of the errors with the ±20 % band.
   - The weak dry-interior zone, named in text, shown on the map.
   - The 25-row zone plot is replaced.
-- [ ] **Salmon River: two estimates side by side.**
+- [x] **Salmon River: two estimates side by side.**
   - A two-panel map, fwapg | water balance, on the same discharge classes.
   - The frame holds all five gauges, each labelled with its station number and filled by that panel's product error.
   - The table lists the same five gauges.
-- [ ] **Bulkley River: the water balance alone.**
+- [x] **Bulkley River: the water balance alone.**
   - The map with its seven gauges labelled.
   - A table of the seven: name, area, observed, modelled, error.
   - One worked example traced from segment value to gauge.
-- [ ] **Limits, ordered by what affects a user:** coverage, dry zones, small streams, missing segments.
-- [ ] **How it is built.**
+- [x] **Limits, ordered by what affects a user:** coverage, dry zones, small streams, missing segments.
+- [x] **How it is built.**
   - The fwapg match in one sentence (no scatter plot).
   - The sampling change, with its figure kept small.
   - The recipe and cached inputs.
   - The stale-upstream-area note moves here.
-- [ ] Keep a `stopifnot()` behind each prose claim. Add one that fails if a station named in the prose or a table is missing from a map. Raise the word cap from 800 to 1,600.
+- [x] Keep a `stopifnot()` behind each prose claim. Add one that fails if a station named in the prose or a table is missing from a map. Raise the word cap from 800 to 1,600.
 
 ### Phase 3: Verify and record
 

@@ -76,7 +76,7 @@ test_that("the segment values carry plain ids, the 290 gauges and their provenan
   expect_equal(sum(v$gauges_salr$holds_salr), 1L)
   expect_true(all(c("wet_commit", "province_run", "aet", "hydat_release", "near_km",
                     "salr_stale_segments", "upstream_area_100", "fwapg_groups", "fwapg_cov_rows",
-                    "fwapg_max_order") %in% names(v$provenance)))
+                    "fwapg_max_order", "fwapg_order8") %in% names(v$provenance)))
 })
 
 test_that("the segment map layers are sf in BC Albers and join the values", {
