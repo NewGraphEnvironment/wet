@@ -32,7 +32,7 @@ wet reads only discharge from water-temp-bc (`Parameter=6`, in `wet_station_dail
 
 ## Phase 1: `wet_temp_daily()` with tests
 
-- [ ] Tests first, `tests/testthat/test-wet_temp_daily.R`: write a tiny parquet with a
+- [x] Tests first, `tests/testthat/test-wet_temp_daily.R`: write a tiny parquet with a
   real `TIMESTAMPTZ` column via duckdb into a temp dir, point `wet.temp_root` at it
   (exercises the real SQL, no network). Cases: hourly day → mean/min/max/n_hours;
   19-hour day dropped, 20-hour kept; sentinels (99999, −99999, 999) dropped before
@@ -43,21 +43,23 @@ wet reads only discharge from water-temp-bc (`Parameter=6`, in `wet_station_dail
   (`stations`, `from > to`, `valid`). Plus a `skip_on_ci()` live test on 08EE013 and a
   round-trip through `wet_window_stats(value = "t_mean_c", level_anomaly = "absolute",
   unit = "degC", prefix = "t")`.
-- [ ] `R/wet_temp_daily.R`: `wet_temp_daily(stations, from = NULL, to = Sys.Date(),
+- [x] `R/wet_temp_daily.R`: `wet_temp_daily(stations, from = NULL, to = Sys.Date(),
   valid = c(-1, 35), min_hours = 20)`. Reads option `wet.temp_root` (default
   `s3://water-temp-bc/data/canonical/Parameter=5/`) with the same keyless-secret duckdb
-  connection as `wet_provisional_daily()`; loads icu and sets `TimeZone = 'UTC'`. The
+  connection as `wet_provisional_daily()`. *(Changed in build: no icu and no session zone;
+  local hour and day come from `epoch_ms()` integer arithmetic, because `epoch()` plus a
+  double fails to bind or segfaults across duckdb instances in 1.5.2.)* The
   station offsets go in as a small table, and SQL shifts `Date` by the offset, buckets
   by local date and hour, and returns one row per station-day. Returns
   `data.frame(station_number, date, t_mean_c, t_min_c, t_max_c, n_hours, source, status)`,
   `source = "provisional"`, sorted by station and date, `from`/`to` trimmed in SQL.
   Reuses `wet_eccc_daily()`'s approval rule (factor out a one-line helper rather
   than duplicate the regex).
-- [ ] roxygen: documents the filter, the day boundary, the 20-hour rule and
+- [x] roxygen: documents the filter, the day boundary, the 20-hour rule and
   `n_hours`, that there is no ice flag, and that the departure baseline is
   **2016–2025, never 1981–2010** (with the coverage counts from the issue).
   `@examples` in `\dontrun{}` (network), ending in `wet_window_stats()`.
-- [ ] `devtools::document()`, `lintr`, `devtools::test()`; `pkgdown::check_pkgdown()`
+- [x] `devtools::document()`, `lintr`, `devtools::test()`; `pkgdown::check_pkgdown()`
   (no `reference:` index, so it should pass as is).
 
 ## Phase 2: Measurement record and docs

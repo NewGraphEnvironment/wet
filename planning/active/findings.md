@@ -34,3 +34,5 @@ See task_plan.md, "What the probe found". Probe scripts were scratch; `scripts/t
 | Error | Resolution |
 |-------|------------|
 | duckdb parser error on alias `day` | reserved word; alias `dd` |
+| `Binder Error: No function matches '+(DOUBLE, DOUBLE)'` (empty candidates), then segfaults, intermittent | duckdb 1.5.2 across instances in one session; integer `epoch_ms()` arithmetic |
+| An edit slice dropped the `sprintf()` arguments ("too few arguments") | restored the argument lines |
