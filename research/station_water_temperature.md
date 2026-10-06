@@ -53,3 +53,5 @@ In the R client, duckdb 1.5.2 and 1.5.6, `epoch()` on a `TIMESTAMPTZ` autoloads 
 - 1 `INTERNAL Error`.
 
 1.5.2 gave 14 errors and 1 wrong result in 15 runs. The same query succeeds once icu is loaded: run again on the same connection, or after an explicit `LOAD icu`, it was clean every time. The 1.5.6 command-line binary does not show it, because it loads icu at startup. `epoch_ms()` needs no extension, so `wet_temp_daily()` uses integer `epoch_ms()` arithmetic and never loads icu. Any other duckdb query on a `TIMESTAMPTZ` that needs icu (`year()`, casts to `DATE`, …) should `LOAD icu` first. An earlier reading, that this needed a prior database in the session to have shut down, was wrong: it fails on the first connection.
+
+Reported upstream as duckdb/duckdb-r#2883 (2026-10-06).
