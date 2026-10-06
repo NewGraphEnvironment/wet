@@ -8,19 +8,25 @@
 # everything else here.
 #
 # Writes inst/vignette-data/segment_values.rds, a list:
-#   - parity: every SALR segment fwapg has a mean annual discharge for, with
-#     fwapg's value and wet's rebuild of it from PCIC VIC-GL (fwapg mode:
-#     centroid sampling, fwapg's stored upstream area)
+#   - parity: one row summarising wet's rebuild of fwapg on SALR from PCIC
+#     VIC-GL (fwapg mode: centroid sampling, fwapg's stored upstream area): the
+#     segments fwapg has a mean annual discharge for, how many match it to the
+#     five decimals fwapg stores, and the largest relative difference
 #   - sampling: per SALR watershed with a stream, wet's mean annual runoff (mm)
 #     with centroid and with area-weighted sampling, and its upstream area
 #   - segments: per order >= 3 segment of SALR and BULK (segment_map.rds), mean
 #     annual discharge from the open water balance (#11), and for SALR also
 #     from PCIC through wet
 #   - skill: the 290 calibration stations, with their held-out (blocked-CV)
-#     error on annual runoff under the shipped fit, zone, nesting and area
+#     error on annual runoff under the shipped fit, the segment and watershed
+#     each snapped to, zone, nesting and area, whether it lies in a group fwapg
+#     covers (in_pcic), and fwapg's (PCIC) mean annual runoff at the gauge's
+#     watershed where fwapg has one (NA outside PCIC's coverage, and where fwapg
+#     leaves it null or has no row), so both products are scored on one set
 #   - gauges_salr: the calibration gauges within 30 km of SALR and its outlet
-#     gauge, with observed, held-out water-balance and fwapg (PCIC) mean annual
-#     runoff, to say which product the gap between them on SALR belongs to
+#     gauge, with their location and observed, held-out water-balance and fwapg
+#     (PCIC) mean annual runoff, to say which product the gap between them on
+#     SALR belongs to
 #   - provenance: the runs and reports these came from, and the numbers the
 #     vignette quotes about them
 #
@@ -75,8 +81,11 @@ stopifnot(identical(fits$code_md5, score_code_md5),
 # ---- held-out skill at the calibration stations ---------------------------------------------
 sk <- cv$cv_v$stations[c("station_number", "obs", "mod", "err_pct")]
 stopifnot(nrow(sk) == nrow(cal), setequal(sk$station_number, cal$station_number), !anyNA(sk$err_pct))
-sk <- merge(sk, cal[c("station_number", "station_name", "lon", "lat", "watershed_feature_id",
+sk <- merge(sk, cal[c("station_number", "station_name", "lon", "lat", "linear_feature_id", "watershed_feature_id",
                       "zone", "nesting", "area_km2")], by = "station_number")
+# the segment each gauge snapped to, so a gauge can be traced to its segment's value
+sk$linear_feature_id <- as.integer(sk$linear_feature_id)
+stopifnot(!anyNA(sk$linear_feature_id))
 # the tracked report is the published record: the summary must be its blocked-CV rows
 rep_lines <- readLines("data/checks/wb_validation.txt")
 blk <- rep_lines[(grep("^### Adjusted, blocked CV", rep_lines) + 2):length(rep_lines)]
@@ -103,6 +112,27 @@ seg <- DBI::dbGetQuery(conn, sprintf("
   LEFT JOIN whse_basemapping.fwa_streams_watersheds_lut l USING (linear_feature_id)
   WHERE s.watershed_group_code IN (%s) AND s.stream_order >= %d",
   paste0("'", wsg, "'", collapse = ", "), min_order))
+# the watershed groups fwapg gives a discharge in, PCIC's coverage. Some groups
+# carry only null rows, and Liard groups clipped by the edge of PCIC's grid hold
+# values on a few percent of their segments, so a group counts when at least
+# half its rows hold a value (data-raw/segment_vignette_map.R draws the same
+# rule). Inside them fwapg still leaves segments null, and the largest rivers
+# have no row at all
+cov_share <- 0.5
+fwapg_cov <- DBI::dbGetQuery(conn, "
+  SELECT watershed_group_code, count(*)::int AS n_rows, count(mad_mm)::int AS n_values
+  FROM whse_basemapping.fwa_stream_networks_discharge GROUP BY 1")
+fwapg_groups <- fwapg_cov$watershed_group_code[fwapg_cov$n_values >= cov_share * fwapg_cov$n_rows]
+print(fwapg_cov[fwapg_cov$n_values > 0 & !fwapg_cov$watershed_group_code %in% fwapg_groups, ])
+in_groups <- paste0("'", fwapg_groups, "'", collapse = ", ")
+fwapg_max_order <- DBI::dbGetQuery(conn, sprintf("
+  SELECT max(s.stream_order)::int FROM whse_basemapping.fwa_stream_networks_discharge d
+  JOIN whse_basemapping.fwa_stream_networks_sp s USING (linear_feature_id)
+  WHERE d.mad_mm IS NOT NULL AND d.watershed_group_code IN (%s)", in_groups))[[1]]
+fwapg_max_order_all <- DBI::dbGetQuery(conn, sprintf("
+  SELECT max(stream_order)::int FROM whse_basemapping.fwa_stream_networks_sp WHERE watershed_group_code IN (%s)",
+  in_groups))[[1]]
+stopifnot(fwapg_max_order < fwapg_max_order_all)   # the vignette: no value on the largest rivers
 n_fwapg <- DBI::dbGetQuery(conn, sprintf("
   SELECT s.watershed_group_code, count(d.linear_feature_id)::int AS n
   FROM whse_basemapping.fwa_stream_networks_sp s
@@ -112,10 +142,19 @@ n_fwapg <- DBI::dbGetQuery(conn, sprintf("
 st_wsg <- DBI::dbGetQuery(conn, sprintf("
   SELECT watershed_feature_id, watershed_group_code FROM whse_basemapping.fwa_watersheds_poly
   WHERE watershed_feature_id IN (%s)", paste(sk$watershed_feature_id, collapse = ", ")))
+# fwapg's mean annual runoff (PCIC) at each calibration gauge's watershed,
+# which every segment in a watershed shares: one value per watershed, and none
+# outside the groups fwapg covers
+fw_sk <- DBI::dbGetQuery(conn, sprintf("
+  SELECT DISTINCT l.watershed_feature_id::int AS watershed_feature_id, d.mad_mm
+  FROM whse_basemapping.fwa_streams_watersheds_lut l
+  JOIN whse_basemapping.fwa_stream_networks_discharge d USING (linear_feature_id)
+  WHERE l.watershed_feature_id IN (%s) AND d.mad_mm IS NOT NULL", paste(sk$watershed_feature_id, collapse = ", ")))
+stopifnot(!anyDuplicated(fw_sk$watershed_feature_id))
+sk$fwapg_mm <- fw_sk$mad_mm[match(sk$watershed_feature_id, fw_sk$watershed_feature_id)]
 # the calibration gauges near SALR, to arbitrate between the two products there:
 # those within 30 km, and the smallest whose basin holds the whole group (its
-# outlet gauge), with fwapg's mean annual runoff (PCIC) at each gauge's
-# watershed, which every segment in a watershed shares
+# outlet gauge)
 near_km <- 30
 sk_pts <- sf::st_transform(sf::st_as_sf(sk, coords = c("lon", "lat"), crs = 4326), 3005)
 salr <- sf::st_read(conn, quiet = TRUE, query = "
@@ -137,29 +176,34 @@ holds <- sk[sk$watershed_feature_id %in% holds$watershed_feature_id[holds$n >= 0
 outlet <- holds$station_number[which.min(holds$area_km2)]
 stopifnot(length(outlet) == 1)
 near <- sk[sk$salr_km <= near_km | sk$station_number %in% outlet, ]
-fw_near <- DBI::dbGetQuery(conn, sprintf("
-  SELECT DISTINCT l.watershed_feature_id, d.mad_mm
-  FROM whse_basemapping.fwa_streams_watersheds_lut l
-  JOIN whse_basemapping.fwa_stream_networks_discharge d USING (linear_feature_id)
-  WHERE l.watershed_feature_id IN (%s)", paste(near$watershed_feature_id, collapse = ", ")))
 DBI::dbDisconnect(conn)
-stopifnot(nrow(near) > 0, !anyDuplicated(fw_near$watershed_feature_id),
-          setequal(fw_near$watershed_feature_id, near$watershed_feature_id))
+stopifnot(nrow(near) > 0, !anyNA(near$fwapg_mm))
 gauges_salr <- data.frame(station_number = near$station_number, station_name = near$station_name,
                           holds_salr = near$station_number %in% outlet,
+                          lon = near$lon, lat = near$lat,
                           area_km2 = near$area_km2, km_from_salr = near$salr_km,
-                          obs_mm = near$obs, wb_mm = near$mod,
-                          fwapg_mm = fw_near$mad_mm[match(near$watershed_feature_id, fw_near$watershed_feature_id)])
+                          obs_mm = near$obs, wb_mm = near$mod, fwapg_mm = near$fwapg_mm)
 print(gauges_salr)
 sk$salr_km <- NULL
 sk$watershed_group_code <- st_wsg$watershed_group_code[match(sk$watershed_feature_id, st_wsg$watershed_feature_id)]
 stopifnot(!anyNA(sk$watershed_group_code), !anyDuplicated(seg$linear_feature_id))
+# fwapg is scored at the gauges in its coverage that it has a value for. Not
+# every covered gauge has one (a null row, or a large river with no row), and a
+# gauge in a group at the grid's edge can have one: it keeps its value, and
+# in_pcic says it is not scored
+sk$in_pcic <- sk$watershed_group_code %in% fwapg_groups
+print(table(in_pcic = sk$in_pcic, fwapg = !is.na(sk$fwapg_mm)))
+stopifnot(all(sk$watershed_group_code[!is.na(sk$fwapg_mm)] %in% fwapg_cov$watershed_group_code))
 n_fwapg <- stats::setNames(n_fwapg$n, n_fwapg$watershed_group_code)
 
 # ---- PCIC through wet on SALR (scripts/mad_parity.R, run above) -----------------------------------
 par <- utils::read.csv(f_par)
 stopifnot(nrow(par) == n_fwapg[["SALR"]], !anyNA(par$mad_m3s_wet), !anyNA(par$mad_m3s_fwapg))
-parity <- par[c("linear_feature_id", "mad_m3s_fwapg", "mad_m3s_wet")]
+parity <- data.frame(n_segments = nrow(par),
+                     n_match5 = sum(round(par$mad_m3s_wet, 5) == round(par$mad_m3s_fwapg, 5)),
+                     max_rel_diff = max(abs(par$mad_m3s_wet / par$mad_m3s_fwapg - 1)))
+print(parity)
+stopifnot(parity$n_match5 == parity$n_segments)   # the vignette says every segment matches
 # one value per watershed in each build; the area-weighted file holds every
 # watershed in the group, the parity file those with a stream segment
 cen <- unique(par[c("watershed_feature_id", "mad_mm_wet")])
@@ -218,6 +262,13 @@ provenance <- list(
   # live accumulation (the vignette's stale-snapshot bullet)
   salr_stale_segments = sum(abs(par$mad_m3s_live - par$mad_m3s_wet) > 1e-9 * par$mad_m3s_wet),
   fwapg_discharge_rows = n_fwapg,
+  fwapg_groups = length(fwapg_groups),
+  fwapg_cov_share = cov_share,
+  # in the groups fwapg covers: its rows, those holding a value, and the
+  # highest stream order with a value against the highest there
+  fwapg_cov_rows = c(rows = sum(fwapg_cov$n_rows[fwapg_cov$watershed_group_code %in% fwapg_groups]),
+                     values = sum(fwapg_cov$n_values[fwapg_cov$watershed_group_code %in% fwapg_groups])),
+  fwapg_max_order = c(valued = fwapg_max_order, streams = fwapg_max_order_all),
   upstream_area_100 = c(polygons = ua_poly, stale = ua_mis)
 )
 

@@ -33,15 +33,15 @@ The pre-set rule is written into `findings.md` before the scoring runs. At the c
 ### Phase 1: Data for the new figures
 
 - [x] Pre-set recommendation rule recorded in `findings.md` (commit before scoring)
-- [ ] `data-raw/segment_vignette_data.R`:
+- [x] `data-raw/segment_vignette_data.R`:
   - fwapg `mad_mm` at every calibration gauge with a fwapg value (`skill$fwapg_mm`, NA outside coverage), with one value per gauge asserted;
   - lon/lat on `gauges_salr`;
   - the 9,000-row `parity` frame replaced by its summary (segment count, all matched to fwapg's five decimals).
-- [ ] `data-raw/segment_vignette_map.R`:
+- [x] `data-raw/segment_vignette_map.R`:
   - PCIC coverage outline (union of the watershed groups fwapg gives discharge);
   - places for the widened Salmon River frame (Prince George, Fort St. James), since the frame grows to hold all five gauges.
 - [ ] Commit the scripts, rerun both, commit `inst/vignette-data/`. Update `tests/testthat/test-vignette_data.R` for the new fields and stay under the 500 KB budget.
-- [ ] Registry rows for any new layer (coverage outline, gauge label) in `inst/cartography/wet_segment.csv`
+- [x] Registry rows for any new layer (coverage outline, gauge label) in `inst/cartography/wet_segment.csv`
 
 ### Phase 2: The article, reordered
 
