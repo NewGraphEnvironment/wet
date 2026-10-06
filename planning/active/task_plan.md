@@ -64,21 +64,21 @@ wet reads only discharge from water-temp-bc (`Parameter=6`, in `wet_station_dail
 
 ## Phase 2: Measurement record and docs
 
-- [ ] `scripts/temp_coverage.R` → `data/checks/temp_coverage_report.txt` (tracked):
+- [x] `scripts/temp_coverage.R` → `data/checks/temp_coverage_report.txt` (tracked):
   readings, sentinel/out-of-range counts, station-days passing at 20 h, stations per
   year, and stations meeting ≥ 300 days in ≥ 8 of 10 years for 2003–2012, 2011–2020,
   2014–2023, 2016–2025, all after the `valid` filter. Re-derives the issue's numbers
   with the filter applied (they will move slightly).
-- [ ] `research/station_water_temperature.md` (new topic file, provenance header):
+- [x] `research/station_water_temperature.md` (new topic file, provenance header):
   the archive's shape, sentinels, approval codes, cadence, day boundary, the
   coverage table and the 2016–2025 baseline rule; row in `research/README.md`.
-- [ ] Edit issue #36's body with the corrected station-day count and the two
+- [x] Edit issue #36's body with the corrected station-day count and the two
   decisions above; CLAUDE.md architecture line for `wet_temp_daily()` → `wet_window_stats()`.
-- [ ] NEWS.md entry (under the dev heading; no version bump on the branch).
+- [x] NEWS.md entry (under the dev heading; no version bump on the branch).
 
 ## Validation
 
-- [ ] Tests pass
-- [ ] `/code-check` clean on each commit
-- [ ] PWF checkboxes match landed work
+- [x] Tests pass
+- [x] `/code-check` clean on each commit
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion

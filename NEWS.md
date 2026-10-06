@@ -1,3 +1,7 @@
+# wet (development version)
+
+* `wet_temp_daily()` starts a `wet_temp_*` family: daily mean, minimum and maximum water temperature at about 300 hydrometric stations from the water-temp-bc archive, in each station's local standard time, in the shape `wet_window_stats()` takes. Departures are against 2016-2025, since few stations have year-round records before the 2010s (#36).
+
 # wet 0.1.1
 
 * Hex sticker, and a README that follows fresh, link and drift: install, prerequisites, a station example, vignettes and the package ecosystem.

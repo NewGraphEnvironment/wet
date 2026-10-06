@@ -1,0 +1,64 @@
+Run 2026-10-06 08:34 PDT. Archive s3://water-temp-bc/data/canonical/Parameter=5/.
+wet_temp_daily() defaults: valid -1 to 35 degC, min_hours 20.
+
+## Readings
+17,428,356 readings (17,422,356 with a value), 306 stations, 2002-04-30 08:03:00 to 2026-10-01 18:00:00 UTC.
+Dropped below -1: 120,500 (0.69 %). Above 35: 216,872 (1.24 %). ECCC sentinels among them: 193,092.
+Kept although between -1 and -0.5: 12,662.
+Most frequent dropped values:
+    99999.00  184,177
+       99.90    5,148
+      999.00    2,928
+     -108.00    1,092
+       -1.86    1,092
+       -1.87    1,019
+      360.00      995
+   -99999.00      839
+Approval, by first and last reading:
+  4                        2002-04-30 to 2010-07-07     41,057
+  1                        2009-11-22 to 2022-12-13  9,134,402
+  Provisional/Provisoire   2022-06-17 to 2026-10-01  8,202,007
+  (none)                   2023-10-21 to 2025-05-21     50,890
+
+## Time zones (tidyhydat::allstations standard_offset)
+  UTC-8: 276 stations
+  UTC-7: 27 stations
+  not listed (taken as UTC-8): 3 stations
+  not listed: 08DA013, 08DB015, 08NHX18
+
+## Station-days (local standard time)
+630,001 with a valid reading; 615,802 (97.75 %) have readings in at least 20 hours.
+Hours per day with a valid reading: median 24, 10th percentile 24.
+
+Kept days and stations per year:
+  2002      57 days    1 stations
+  2003     257 days    1 stations
+  2004     277 days    1 stations
+  2005     365 days    1 stations
+  2006     362 days    1 stations
+  2007     342 days    1 stations
+  2009       1 days    1 stations
+  2011  10,372 days   38 stations
+  2012  12,407 days   41 stations
+  2013  13,937 days   47 stations
+  2014  16,598 days   61 stations
+  2015  24,897 days   86 stations
+  2016  29,832 days   93 stations
+  2017  31,653 days   94 stations
+  2018  32,865 days  104 stations
+  2019  36,218 days  110 stations
+  2020  38,883 days  117 stations
+  2021  40,838 days  123 stations
+  2022  44,880 days  142 stations
+  2023  41,160 days  144 stations
+  2024  66,315 days  259 stations
+  2025  99,148 days  295 stations
+  2026  74,138 days  292 stations
+
+## Baseline coverage: stations with the bar met in at least 8 of 10 years
+  decade       whole year     ch_migration    ch_spawning     ch_fry_migration
+  2003-2012    0              0               0               0               
+  2011-2020    26             34              35              35              
+  2014-2023    53             58              67              63              
+  2016-2025    69             81              86              86              
+  whole year: at least 300 kept days. Window: at least 80 % of its days kept (wet_window_stats() min_frac).
