@@ -86,7 +86,7 @@ The pre-set rule is written into `findings.md` before the scoring runs. At the c
 - [x] Tests pass
 - [x] `/code-check` clean on each commit
 - [x] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion, then `/gh-pr-push`
+- [x] `/planning-archive` on completion, then `/gh-pr-push`
 
 ### Critical files
 
