@@ -77,6 +77,9 @@
   : Snap HYDAT stations to FWA fundamental watersheds, checked by
   drainage area
 
+- [`wet_temp_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_temp_daily.md)
+  : Daily water temperature at hydrometric stations
+
 - [`wet_terraclimate_aet()`](https://newgraphenvironment.github.io/wet/reference/wet_terraclimate_aet.md)
   : Annual AET and precipitation from the TerraClimate 1981-2010
   climatology
