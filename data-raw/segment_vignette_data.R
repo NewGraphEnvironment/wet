@@ -132,7 +132,15 @@ fwapg_max_order <- DBI::dbGetQuery(conn, sprintf("
 fwapg_max_order_all <- DBI::dbGetQuery(conn, sprintf("
   SELECT max(stream_order)::int FROM whse_basemapping.fwa_stream_networks_sp WHERE watershed_group_code IN (%s)",
   in_groups))[[1]]
-stopifnot(fwapg_max_order < fwapg_max_order_all)   # the vignette: no value on the largest rivers
+stopifnot(fwapg_max_order < fwapg_max_order_all)
+# fwapg skips the largest rivers: its rows and values on segments of order 8
+# and up in the groups it covers, which the vignette quotes
+fwapg_large <- DBI::dbGetQuery(conn, sprintf("
+  SELECT count(*)::int AS segments, count(d.mad_mm)::int AS valued
+  FROM whse_basemapping.fwa_stream_networks_sp s
+  LEFT JOIN whse_basemapping.fwa_stream_networks_discharge d USING (linear_feature_id)
+  WHERE s.watershed_group_code IN (%s) AND s.stream_order >= 8", in_groups))
+stopifnot(fwapg_large$segments > 0, fwapg_large$valued < 0.01 * fwapg_large$segments)
 n_fwapg <- DBI::dbGetQuery(conn, sprintf("
   SELECT s.watershed_group_code, count(d.linear_feature_id)::int AS n
   FROM whse_basemapping.fwa_stream_networks_sp s
@@ -269,6 +277,7 @@ provenance <- list(
   fwapg_cov_rows = c(rows = sum(fwapg_cov$n_rows[fwapg_cov$watershed_group_code %in% fwapg_groups]),
                      values = sum(fwapg_cov$n_values[fwapg_cov$watershed_group_code %in% fwapg_groups])),
   fwapg_max_order = c(valued = fwapg_max_order, streams = fwapg_max_order_all),
+  fwapg_order8 = c(segments = fwapg_large$segments, valued = fwapg_large$valued),
   upstream_area_100 = c(polygons = ua_poly, stale = ua_mis)
 )
 
