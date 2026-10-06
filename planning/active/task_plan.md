@@ -48,7 +48,7 @@ The pre-set rule is written into `findings.md` before the scoring runs. At the c
 - [x] **What mean annual discharge is.**
   - A worked unit example: a 100 km² basin at 300 mm/yr carries about 0.95 m³/s.
   - A short "Terms" list, each with a link where one exists: Freshwater Atlas, stream segment and order, watershed group, fwapg, PCIC hydrologic model output and VIC-GL, HYDAT, the water balance after Chapman et al. 2018, BC Water Tools, calibration gauge, held out, headwater/nested gauge, hydrologic zone. Every URL is checked live before it goes in.
-- [ ] **Which estimate to use.**
+- [x] **Which estimate to use.**
   - The recommendation, then the two products scored at the same in-coverage gauges.
   - One figure: each gauge's error under both products on the single % over/under scale.
   - A small table of mean absolute error and share within ±20 %, all gauges and split headwater/nested.
@@ -75,16 +75,16 @@ The pre-set rule is written into `findings.md` before the scoring runs. At the c
 
 ### Phase 3: Verify and record
 
-- [ ] Build the article (`pkgdown::build_article("segment-discharge")`), then read every rendered map PNG against the cartography self-review: placement checks 1–7 and the "does it communicate" checks 8–12. Fix and re-render until each map passes.
-- [ ] Links resolve (HTTP 200); no footnotes or `\@ref` (pkgdown drops them).
-- [ ] `devtools::test()`, `lintr` on the touched files, `pkgdown::check_pkgdown()`
-- [ ] `research/water_balance_method.md`: the PCIC-vs-balance score at the in-coverage gauges, replacing the five-gauge-only statement
+- [x] Build the article (`pkgdown::build_article("segment-discharge")`), then read every rendered map PNG against the cartography self-review: placement checks 1–7 and the "does it communicate" checks 8–12. Fix and re-render until each map passes.
+- [x] Links resolve (HTTP 200); no footnotes or `\@ref` (pkgdown drops them).
+- [x] `devtools::test()`, `lintr` on the touched files, `pkgdown::check_pkgdown()`
+- [x] `research/water_balance_method.md`: the PCIC-vs-balance score at the in-coverage gauges, replacing the five-gauge-only statement
 - [ ] Issue #39 body reconciled; NEWS line under a dev heading
 
 ### Validation
 
-- [ ] Tests pass
-- [ ] `/code-check` clean on each commit
+- [x] Tests pass
+- [x] `/code-check` clean on each commit
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion, then `/gh-pr-push`
 

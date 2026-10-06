@@ -60,10 +60,13 @@ pal_mad$labels[] <- c(paste("Under", fmt_q(mad_breaks[2])),
 mad_class <- function(q) factor(names(pal_mad$values)[findInterval(q, mad_breaks)], names(pal_mad$values))
 # the one error scale: every figure, map and table below uses these classes
 err_cut <- 20
-err_breaks <- c(-Inf, -err_cut, 0, err_cut, Inf)
 pal_err$labels[] <- c(paste0("More than ", err_cut, "% under"), paste0("0–", err_cut, "% under"),
                       paste0("0–", err_cut, "% over"), paste0("More than ", err_cut, "% over"))
-err_class <- function(e) factor(names(pal_err$values)[findInterval(e, err_breaks)], names(pal_err$values))
+# within ±err_cut (the table's test, ends included) is the two middle classes
+err_class <- function(e) {
+  k <- ifelse(e < -err_cut, 1L, ifelse(e < 0, 2L, ifelse(e <= err_cut, 3L, 4L)))
+  factor(names(pal_err$values)[k], names(pal_err$values))
+}
 err_scale <- function(name = "Error against\nthe gauge") {
   # drop = FALSE keeps a class no gauge falls in; override.aes gives it a symbol
   scale_fill_manual(values = pal_err$values, labels = pal_err$labels, name = name, drop = FALSE,
@@ -75,6 +78,7 @@ group_km2 <- stats::setNames(map$groups$area_km2, map$groups$watershed_group_cod
 theme_set(theme_minimal(base_size = 10) +
             theme(legend.position = "bottom", panel.grid.minor = element_blank()))
 pct <- function(x) paste0(round(x), "%")
+pct1 <- function(x) paste0(format(round(x, 1), nsmall = 1), "%")
 signed <- function(x) sub("^-", "−", sprintf("%+.0f%%", x))
 num <- function(x, d = 0) format(round(x, d), big.mark = ",", nsmall = d)
 and_text <- function(x) sub(", ([^,]*)$", " and \\1", paste(x, collapse = ", "))
@@ -185,22 +189,26 @@ n_both <- nrow(both)
 stopifnot(all(!is.na(both$basin)))   # every scored gauge is in the Peace, Fraser or Columbia
 mae_wb <- mean(abs(both$err_pct))
 mae_fw <- mean(abs(both$fw_err))
-# the pre-set rule (planning findings, #39): the recommendation stands unless
-# the balance is more than 5 points worse than fwapg at these gauges. It fired
-# (5.03); the recommendation below waits on that decision
+# the pre-set rule (#39): the recommendation was to be reopened if the balance
+# were more than 5 points worse than fwapg at these gauges. It fired at 5.03 and
+# the recommendation was kept on the record (2026-10-06); the prose says the gap
+# is just past the line, so a rebuild that moves it far either way stops here
+rule_cut <- 5
 rule_gap <- mae_wb - mae_fw
+stopifnot(round(rule_gap, 2) > rule_cut, rule_gap < rule_cut + 1)   # as printed
 # the prose: fwapg is the closer of the two here, and the gauges it cannot
 # score are larger than the ones it can
 stopifnot(mae_fw < mae_wb)
 dropped <- sk[sk$in_pcic & is.na(sk$fwapg_mm), ]
-stopifnot(stats::median(dropped$area_km2) > stats::median(both$area_km2))
+stopifnot(stats::median(dropped$area_km2) > stats::median(both$area_km2),
+          mean(abs(dropped$err_pct)) < mae_wb)
 o8 <- prov$fwapg_order8
 # the prose: fwapg has values on almost none of the largest rivers
 stopifnot(o8[["valued"]] < 0.01 * o8[["segments"]])
 score_row <- function(lab, i) {
   i <- rep_len(i, nrow(both))
   data.frame(Gauges = lab, n = sum(i),
-             `Error, balance` = pct(mean(abs(both$err_pct[i]))), `Error, fwapg` = pct(mean(abs(both$fw_err[i]))),
+             `Error, balance` = pct1(mean(abs(both$err_pct[i]))), `Error, fwapg` = pct1(mean(abs(both$fw_err[i]))),
              `Within ±20%, balance` = pct(100 * mean(abs(both$err_pct[i]) <= err_cut)),
              `Within ±20%, fwapg` = pct(100 * mean(abs(both$fw_err[i]) <= err_cut)),
              check.names = FALSE)
@@ -238,14 +246,17 @@ which wet can reproduce but not re-run.
 
 fwapg is the closer of the two where both can be scored. At the
 `r n_both` calibration gauges with a fwapg value, its mean absolute error is
-`r pct(mae_fw)` against the balance's `r pct(mae_wb)`. The two numbers are
+`r pct1(mae_fw)` against the balance's `r pct1(mae_wb)`. The two numbers are
 not quite like for like. The balance's is out of sample, and slightly
 optimistic, because its final variant was chosen after its first failed. Some
 of fwapg's may be in sample: PCIC calibrated VIC-GL over 1985–2005, and which
 gauges it was calibrated on is not published with fwapg's values. The comparison also leaves out the `r nrow(dropped)` gauges in
 PCIC's groups where fwapg has no value, mostly large rivers, where the balance
 does best. So where fwapg has a value and the two disagree, check the nearest
-gauge before trusting either.
+gauge before trusting either. A rule set before this comparison was run
+would reopen the recommendation if the balance were more than `r rule_cut`
+points worse. It is `r format(round(rule_gap, 2), nsmall = 2)` points worse,
+just past that line, and the recommendation stands on the first two reasons.
 
 ```{r compare, fig.width = 5.5, fig.height = 5.5, out.width = "80%", fig.cap = cap_cmp}
 sq <- data.frame(xmin = -err_cut, xmax = err_cut, ymin = -err_cut, ymax = err_cut)
@@ -340,17 +351,18 @@ ggplot() +
   geom_sf(data = map$coverage, aes(linetype = "coverage"), fill = NA, colour = pal_prov$values[["coverage"]],
           linewidth = 0.45) +
   geom_sf(data = map$groups, fill = NA, colour = pal_prov$values[["group"]], linewidth = 0.6) +
-  geom_sf(data = gpts, aes(fill = class), shape = 21, colour = "black", size = 1.7, stroke = 0.25) +
   geom_label(data = data.frame(x = xy_g[, 1] + 0.03 * dx_bc, y = xy_g[, 2], label = lab_g$label),
-             aes(x, y, label = label), hjust = 0, size = 2.8, linewidth = 0, fill = "white", alpha = 0.8,
+             aes(x, y, label = label), hjust = 0, size = 2.8, linewidth = 0, fill = "white", alpha = 0.6,
              label.padding = unit(1.2, "pt")) +
+  geom_sf(data = gpts, aes(fill = class), shape = 21, colour = "black", size = 1.7, stroke = 0.25) +
   geom_segment(data = sb, aes(x = x, xend = xend, y = y, yend = y), linewidth = 1) +
   geom_text(data = sb, aes(x = (x + xend) / 2, y = y, label = paste(sb_km, "km")), vjust = -0.7, size = 3) +
   err_scale("Held-out error") +
   scale_alpha_manual(values = c(zone = 1), labels = sprintf("Zone %s, %s", worst, worst_name), name = NULL) +
   scale_linetype_manual(values = c(coverage = "dashed"), labels = pal_prov$labels[["coverage"]], name = NULL) +
   coord_sf(xlim = bb_bc[c("xmin", "xmax")], ylim = bb_bc[c("ymin", "ymax")], expand = FALSE, datum = NA) +
-  guides(fill = guide_legend(order = 1, ncol = 2), alpha = guide_legend(order = 2), linetype = guide_legend(order = 3)) +
+  guides(fill = guide_legend(order = 1, ncol = 2), alpha = guide_legend(order = 2),
+         linetype = guide_legend(order = 3)) +
   theme_void() +
   theme(legend.position = "bottom", legend.box = "vertical", legend.text = element_text(size = 8),
         panel.border = element_rect(fill = NA, colour = pal_map$values[["outline"]], linewidth = 0.3))
@@ -412,7 +424,9 @@ mad_scales <- list(
 # before it and no frame edge; failing that, where it overlaps least. Box sizes
 # are estimated from the text size and the panel's size in inches
 map_labels <- function(towns, gauges, bb, width_in, height_in, avoid = NULL) {
-  in_bb <- function(xy) xy[, 1] > bb[["xmin"]] & xy[, 1] < bb[["xmax"]] & xy[, 2] > bb[["ymin"]] & xy[, 2] < bb[["ymax"]]
+  in_bb <- function(xy) {
+    xy[, 1] > bb[["xmin"]] & xy[, 1] < bb[["xmax"]] & xy[, 2] > bb[["ymin"]] & xy[, 2] < bb[["ymax"]]
+  }
   tx <- sf::st_coordinates(towns)
   towns <- towns[in_bb(tx), ]
   tx <- tx[in_bb(tx), , drop = FALSE]
@@ -429,9 +443,9 @@ map_labels <- function(towns, gauges, bb, width_in, height_in, avoid = NULL) {
   r <- 0.06 * ux   # half a symbol, as an obstacle
   boxes <- data.frame(x0 = item$x - r, x1 = item$x + r, y0 = item$y - r, y1 = item$y + r)
   if (!is.null(avoid)) boxes <- rbind(boxes, avoid[c("x0", "x1", "y0", "y1")])
-  overlap <- function(b, B) {
-    ox <- pmax(0, pmin(b$x1, B$x1) - pmax(b$x0, B$x0))
-    oy <- pmax(0, pmin(b$y1, B$y1) - pmax(b$y0, B$y0))
+  overlap <- function(b, others) {
+    ox <- pmax(0, pmin(b$x1, others$x1) - pmax(b$x0, others$x0))
+    oy <- pmax(0, pmin(b$y1, others$y1) - pmax(b$y0, others$y0))
     sum(ox * oy)
   }
   gap <- 0.07 * ux
@@ -478,7 +492,8 @@ outlet <- ga[ga$holds_salr, ]
 # the balance's share of the gap at each gauge, in log terms like the ratio:
 # log(wb / fwapg) = log(wb / obs) + log(obs / fwapg)
 ga$wb_share <- log(ga$wb_mm / ga$obs_mm) / log(ga$wb_mm / ga$fwapg_mm)
-close <- abs(ga$fw_err) <= 5
+ga$close <- abs(ga$fw_err) <= 5   # a column, so it follows the reorder below
+close <- ga$close
 # the prose: the balance reads high at every gauge; at the small basins fwapg is
 # within 5% and the gap is nearly all the balance's; at the large ones, the
 # outlet among them, fwapg is low and the two share it
@@ -487,6 +502,7 @@ stopifnot(ratio_salr > 1, all(ga$wb_err > 0), nrow(outlet) == 1,
           all(ga$wb_share[close] > 0.9), all(ga$fw_err[!close] < -5),
           all(ga$wb_share[!close] > 0.25 & ga$wb_share[!close] < 0.75), !close[ga$holds_salr])
 ga <- ga[order(!ga$holds_salr, ga$area_km2), ]
+close <- ga$close
 named <- c(named, ga$station_number)
 gauge_tab <- data.frame(
   Gauge = sprintf("%s %s", ga$station_number, to_title(ga$station_name)),
@@ -521,8 +537,8 @@ s2 <- rbind(transform(s2, product = products[["fwapg"]], class = mad_class(s2$ma
             transform(s2, product = products[["wb"]], class = mad_class(s2$mad_wb_m3s)))
 s2$product <- factor(s2$product, products)
 s2 <- s2[order(s2$class), ]   # large rivers drawn last, on top
-g2 <- rbind(transform(ga_pts, product = products[["fwapg"]], class = err_class(ga_pts$fwapg_mm / ga_pts$obs_mm * 100 - 100)),
-            transform(ga_pts, product = products[["wb"]], class = err_class(ga_pts$wb_mm / ga_pts$obs_mm * 100 - 100)))
+g2 <- rbind(transform(ga_pts, product = products[["fwapg"]], class = err_class(ga_pts$fw_err)),
+            transform(ga_pts, product = products[["wb"]], class = err_class(ga_pts$wb_err)))
 g2$product <- factor(g2$product, products)
 lakes_salr <- rbind(map$lakes[map$lakes$watershed_group_code == "SALR", c("gnis_name", "area_ha")],
                     map$context_lakes[c("gnis_name", "area_ha")])
@@ -565,10 +581,10 @@ ggplot() +
   scale_alpha_manual(values = c(river = 1), labels = pal_ctx$labels[["river"]], name = NULL) +
   geom_sf(data = s2, aes(colour = class, linewidth = class)) +
   mad_scales +
-  geom_sf(data = g2, aes(fill = class), shape = 21, colour = "black", size = 2.4, stroke = 0.4,
-          show.legend = c(fill = TRUE, colour = FALSE, linewidth = FALSE, alpha = FALSE)) +
   map_labels(map$places[map$places$watershed_group_code == "SALR", ], ga_pts, bb_salr, salr_w, salr_h,
              avoid = scale_bar_at(bb_salr, "left")) +
+  geom_sf(data = g2, aes(fill = class), shape = 21, colour = "black", size = 2.4, stroke = 0.4,
+          show.legend = c(fill = TRUE, colour = FALSE, linewidth = FALSE, alpha = FALSE)) +
   err_scale() +
   scale_bar(bb_salr, "left") +   # Prince George sits bottom right
   facet_wrap(~product) +
@@ -620,7 +636,7 @@ ex_ho <- wet_mm_to_m3s(ex$mod, ex$area_km2 * 1e6)
 ex_map_err <- 100 * (ex_seg$mad_wb_m3s / ex_obs - 1)
 # the prose: the map's value, fitted with this gauge in, is nearer the gauge
 # than the held-out prediction
-stopifnot(abs(ex_map_err) < abs(ex$err_pct))
+stopifnot(round(abs(ex_map_err)) < round(abs(ex$err_pct)))   # as printed, whole percents
 
 key <- ggplot() +
   geom_sf(data = bc, fill = "white", colour = pal_map$values[["outline"]], linewidth = 0.2) +
@@ -663,10 +679,10 @@ ggplot() +
           colour = lake_sty$stroke$color, linewidth = 0.15) +
   geom_sf(data = sb_bulk, aes(colour = class, linewidth = class)) +
   mad_scales +
-  geom_sf(data = gb_pts, aes(fill = class), shape = 21, colour = "black", size = 2.6, stroke = 0.4,
-          show.legend = c(fill = TRUE, colour = FALSE, linewidth = FALSE, alpha = FALSE)) +
   map_labels(map$places[map$places$watershed_group_code == "BULK", ], gb_pts, bb_bulk, bulk_w, bulk_h,
              avoid = scale_bar_at(bb_bulk)) +
+  geom_sf(data = gb_pts, aes(fill = class), shape = 21, colour = "black", size = 2.6, stroke = 0.4,
+          show.legend = c(fill = TRUE, colour = FALSE, linewidth = FALSE, alpha = FALSE)) +
   err_scale("Held-out error") +
   scale_bar(bb_bulk) +
   annotation_custom(ggplotGrob(key), xmin = bb_bulk[["xmax"]] - key_w - 0.02 * dxb,
@@ -709,9 +725,10 @@ In order of how much they affect a user:
 - **Small streams.** Gauged basins under `r small_km2` km² average
   `r pct(mae_small)` error, and `r pct(100 * small_share)` of the
   `r group_name[["SALR"]]`'s watersheds with a stream are that small.
-- **Segments without a watershed.** `r n_no_value` segments of order
-  `r order_no_value[1]` to `r order_no_value[2]` have no watershed polygon in
-  the Freshwater Atlas lookup, so neither product gives them a value. They are
+- **Segments without a watershed.** In the two groups mapped here,
+  `r n_no_value` segments of order `r order_no_value[1]` to
+  `r order_no_value[2]` have no watershed polygon in the Freshwater Atlas
+  lookup, so neither product gives them a value. They are
   left off the maps, which leaves short gaps in some streams.
 
 ## How it is built

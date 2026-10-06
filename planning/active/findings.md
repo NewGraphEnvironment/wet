@@ -62,7 +62,9 @@ Scored at the calibration gauges inside PCIC's coverage (those with a fwapg `mad
 
 Gap 5.03 points against the 5-point line. Under the first coverage definition (any valued row, 169 gauges including 10CB001 in the grid-edge USIK group) the gap was 4.70; code-check round 3 narrowed coverage to exclude the Liard grid-edge groups, which moved one gauge out. 18 in-coverage gauges have no fwapg value (median 11,859 km², mostly order-8 mainstems and null rows); the balance scores 13.3 % MAE there. 8 scored gauges are in zone 24.
 
-Per the rule: stopped before writing the recommendation; question goes to the user with the rest of the article built. Caveats either way: the balance's error is out of sample and mildly optimistic; VIC-GL was calibrated 1985–2005 on gauges not published with fwapg's values.
+Per the rule: stopped before writing the recommendation; question went to the user with the rest of the article built.
+
+**Decision (user, 2026-10-06): keep "use the balance everywhere, read fwapg beside it where it has a value"**, overriding the rule's stop on the record. Grounds: the repo rule that PCIC is a yardstick, not an input to publish; fwapg's gap on the largest rivers; the gap at 5.03 sits on the line (4.70 under the rule's first coverage definition). The article states the rule, the gap and that the recommendation rests on coverage and openness. Caveats either way: the balance's error is out of sample and mildly optimistic; VIC-GL was calibrated 1985–2005 on gauges not published with fwapg's values.
 
 ## fwapg's gaps inside its own coverage (attributed: theirs)
 

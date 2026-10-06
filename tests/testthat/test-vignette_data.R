@@ -109,7 +109,8 @@ test_that("the segment map layers are sf in BC Albers and join the values", {
   near <- sf::st_transform(sf::st_as_sf(v$gauges_salr, coords = c("lon", "lat"), crs = 4326), 3005)
   expect_true(all(lengths(sf::st_within(near, m$context)) > 0))
   # and each sits on a river the map draws: SALR's segments or the context rivers
-  rivers <- c(sf::st_geometry(m$context_streams), sf::st_geometry(m$segments[m$segments$watershed_group_code == "SALR", ]))
+  rivers <- c(sf::st_geometry(m$context_streams),
+              sf::st_geometry(m$segments[m$segments$watershed_group_code == "SALR", ]))
   expect_true(all(apply(sf::st_distance(near, rivers), 1, min) < 200))
   expect_setequal(m$places$watershed_group_code, c("SALR", "BULK"))
 })
