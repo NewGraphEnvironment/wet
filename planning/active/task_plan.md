@@ -79,13 +79,13 @@ The pre-set rule is written into `findings.md` before the scoring runs. At the c
 - [x] Links resolve (HTTP 200); no footnotes or `\@ref` (pkgdown drops them).
 - [x] `devtools::test()`, `lintr` on the touched files, `pkgdown::check_pkgdown()`
 - [x] `research/water_balance_method.md`: the PCIC-vs-balance score at the in-coverage gauges, replacing the five-gauge-only statement
-- [ ] Issue #39 body reconciled; NEWS line under a dev heading
+- [x] Issue #39 body reconciled; NEWS line under a dev heading
 
 ### Validation
 
 - [x] Tests pass
 - [x] `/code-check` clean on each commit
-- [ ] PWF checkboxes match landed work
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion, then `/gh-pr-push`
 
 ### Critical files
