@@ -1,6 +1,6 @@
 # Water temperature at hydrometric stations: the archive, the daily rule and the baseline
 
-**Verified:** 2026-10-06 · **Issues:** #36 (from #25; uses water-temp-bc#19's canonical store) · **Produced by:** `scripts/temp_coverage.R` → `data/checks/temp_coverage_report.txt`, archive as of its 2026-10-01 rewrite; design probes in `planning/archive/2026-10-issue-36-*/`
+**Verified:** 2026-10-06 · **Issues:** #36 (from #25; uses water-temp-bc#19's canonical store) · **Produced by:** `scripts/temp_coverage.R` → `data/checks/temp_coverage_report.txt` and `scripts/temp_day_boundary.R` → `data/checks/temp_day_boundary_report.txt`, archive as of its 2026-10-01 rewrite; design probes in `planning/archive/2026-10-issue-36-*/`
 
 ## The archive
 
@@ -19,6 +19,7 @@ About 1.9 % of readings fall outside −1…35 °C: 120,500 below and 216,872 ab
 ## Days
 
 - **Local standard time, per station.** UTC midnight is 16:00 PST, close to the diurnal maximum, so UTC days would split each afternoon's peak across two days. Offsets come from `tidyhydat::allstations$standard_offset`: UTC−8 for 276 stations and UTC−7 for 27 (the Peace and parts of the Kootenays). These agree with water-temp-bc's `stations_realtime.parquet` on all 291 stations both list. Three stations are in neither (08DA013, 08DB015, 08NHX18), and are taken as UTC−8 with a warning. Daylight saving is ignored.
+- **Why midnight.** Measured by `scripts/temp_day_boundary.R` → `data/checks/temp_day_boundary_report.txt`, on 189,306 open-water days (May–September, diurnal range ≥ 1 °C). With the split at local midnight, 16.5 % of days have their maximum or minimum in the day's first or last hour. Splits at 03:00, 06:00, 12:00 and 18:00 give 18.6 %, 48.7 %, 17.1 % and 56.5 %. At midnight the maximum falls in hours 15–18 (15:00–18:59) on 60 % of days and the minimum in hours 6–8 on 62 %. The remaining edge cases cluster in hour 0 for the maximum (9.8 %) and hour 23 for the minimum (5.6 %). They may be days that cooled from start to finish, but that was not measured. No split tested gets below about 16 %, and noon is within 0.6 points of midnight, so the data rule out splits at 06:00 and 18:00 rather than choosing midnight over noon. Midnight wins on the other grounds: it is the calendar day, and ECCC's daily flow means are stamped at local standard midnight, so temperature and flow days cover the same hours.
 - **The hour rule.** A day counts when at least 20 of its 24 hours have a valid reading. 630,001 station-days have one; 615,802 (97.75 %) pass. The median day has 24 hours and so does the 10th percentile. Short days are dropped, not filled, and `n_hours` is returned. (The issue's 643,440 station-days and 98 % counted UTC days and did not drop junk.)
 - **The mean weights hours.** `t_mean_c` is the mean of hourly means, so four 15-minute readings in one hour count once. `t_min_c` and `t_max_c` are over the readings.
 
@@ -44,4 +45,11 @@ The departure itself is cd's, in degrees C: `wet_window_stats(value = "t_mean_c"
 
 ## duckdb note
 
-In duckdb 1.5.2 (R), `epoch(<TIMESTAMPTZ>) + <DOUBLE>` failed to bind (`No function matches '+(DOUBLE, …)'`, with an empty candidate list) or segfaulted once an earlier database in the same R session had shut down: 30 failures in 40 fresh connections. `epoch_ms()` with integer arithmetic ran 40 of 40 clean, so `wet_temp_daily()` uses it.
+In the R client, duckdb 1.5.2 and 1.5.6, `epoch()` on a `TIMESTAMPTZ` autoloads the icu extension, and the query that triggers that autoload binds its arithmetic unreliably. Measured 2026-10-06, `epoch(TIMESTAMPTZ '2020-01-01 00:00:00+00') + 1.5` in 15 fresh R processes on 1.5.6:
+
+- 9 binder errors, `No function matches … '+(DOUBLE, DECIMAL(2,1))'` with an empty candidate list (once with the operator name missing);
+- 3 silently wrong results, epoch − 1.5;
+- 2 R aborts;
+- 1 `INTERNAL Error`.
+
+1.5.2 gave 14 errors and 1 wrong result in 15 runs. The same query succeeds once icu is loaded: run again on the same connection, or after an explicit `LOAD icu`, it was clean every time. The 1.5.6 command-line binary does not show it, because it loads icu at startup. `epoch_ms()` needs no extension, so `wet_temp_daily()` uses integer `epoch_ms()` arithmetic and never loads icu. Any other duckdb query on a `TIMESTAMPTZ` that needs icu (`year()`, casts to `DATE`, …) should `LOAD icu` first. An earlier reading, that this needed a prior database in the session to have shut down, was wrong: it fails on the first connection.

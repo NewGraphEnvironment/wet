@@ -114,11 +114,10 @@ wet_temp_daily <- function(stations, from = NULL, to = Sys.Date(), valid = c(-1,
   }
   duckdb::duckdb_register(con, "wet_offset",
                           data.frame(station_number = stations, offset_s = as.integer(offset * 3600)))
-  # Local standard time as whole seconds from the epoch, so no time-zone
-  # extension or session zone is involved; days count from 1970-01-01, which
-  # as.Date() reads. Integer arithmetic on purpose: in duckdb 1.5.2,
-  # epoch(TIMESTAMPTZ) plus a double fails to bind or segfaults once an earlier
-  # database in the same R session has shut down, while epoch_ms() does not.
+  # Local standard time as whole seconds from the epoch; days count from
+  # 1970-01-01, which as.Date() reads. epoch_ms() needs no time-zone extension.
+  # epoch() on a TIMESTAMPTZ autoloads icu, and in duckdb-r 1.5.2 and 1.5.6 the
+  # query that autoloads it can fail to bind `+`, return a wrong sum or abort R.
   # The archive starts in 2002, so // never meets a negative.
   bound <- c(if (is.finite(from)) sprintf("dd >= %d", as.integer(from)),
              if (is.finite(to)) sprintf("dd <= %d", as.integer(to)))
