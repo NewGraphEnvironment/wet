@@ -32,7 +32,7 @@ The pre-set rule is written into `findings.md` before the scoring runs. At the c
 
 ### Phase 1: Data for the new figures
 
-- [ ] Pre-set recommendation rule recorded in `findings.md` (commit before scoring)
+- [x] Pre-set recommendation rule recorded in `findings.md` (commit before scoring)
 - [ ] `data-raw/segment_vignette_data.R`:
   - fwapg `mad_mm` at every calibration gauge with a fwapg value (`skill$fwapg_mm`, NA outside coverage), with one value per gauge asserted;
   - lon/lat on `gauges_salr`;

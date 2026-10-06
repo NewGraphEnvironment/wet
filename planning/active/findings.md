@@ -36,6 +36,17 @@ The 800-word cap on body prose is raised to fit, and the data checks that tie ea
 - The fwapg join is at `data-raw/segment_vignette_data.R:139-145`; the word cap is at `vignettes/segment-discharge.Rmd:451`.
 
 
+## Pre-set recommendation rule (recorded 2026-10-06, before any scoring)
+
+Recommendation to be written: use wet's open water balance everywhere; fwapg/PCIC is a yardstick where it exists.
+
+Scored at the calibration gauges inside PCIC's coverage (those with a fwapg `mad_mm` at the gauge's fundamental watershed), using the same HYDAT observed mean annual runoff (`skill$obs`) for both products:
+
+- balance error = the blocked-CV held-out `err_pct` already in `skill`;
+- fwapg error = 100 * (fwapg_mm / obs - 1), same sign convention.
+
+**Rule:** if the balance's mean absolute error at those gauges is more than 5 percentage points worse than fwapg's, stop and bring the evidence to the user before writing the recommendation. Otherwise write it as above. Either way the article says the balance's error is out of sample and fwapg's may be partly in sample (PCIC calibrates VIC-GL to gauges).
+
 ## Errors Encountered
 
 | Error | Resolution |
