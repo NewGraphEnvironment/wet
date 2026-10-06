@@ -1,6 +1,6 @@
 # Changelog
 
-## wet (development version)
+## wet 0.2.0
 
 - [`wet_temp_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_temp_daily.md)
   starts a `wet_temp_*` family: daily mean, minimum and maximum water
