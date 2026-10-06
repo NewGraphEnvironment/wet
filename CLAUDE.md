@@ -650,6 +650,18 @@ Fit models in parallel on socket workers (`parallel::makeCluster()` with `parLap
 ### `c(name = x)` keeps `x`'s own name, so a value from a named vector becomes `name.X`
 Strip the name before you label it: `c(axis = unname(v[1]))` or `c(axis = v[[1]])`.
 
+### `trace(exit =)` also fires when the function raises, and `returnValue()` then has no value
+Give `returnValue()` a default and check its length: `trace(f, exit = quote(rec(returnValue(NULL))))`, then treat anything not length 1 as "no value".
+
+### `Rscript -e` supplies `--args` itself, so adding your own shifts every argument by one
+Write `Rscript -e 'expr' a b`, not `Rscript -e 'expr' --args a b`.
+
+### `read.delim()` quotes by default, so a `"` in a field silently swallows rows
+Read a TSV you wrote unquoted with `quote = "", na.strings = character(), comment.char = ""`.
+
+### duckdb in R: the query that autoloads `icu` binds unreliably, so `LOAD icu` before it
+Run `LOAD icu` on the connection before any query that needs it (`epoch()`, `year()`, a cast to `DATE` on a `TIMESTAMPTZ`), or use a function that needs no extension (`epoch_ms()`).
+
 # Code Check — Shell
 Tool-level traps in bash, sed, git and `gh`, and in the host toolchain those commands depend on.
 
@@ -992,6 +1004,9 @@ Coerce every field you do arithmetic on (`as.numeric(v$PROJ_AGE_1)`) right after
 
 ### The BC WFS caps an un-paged `GetFeature` at 10,000 features and still answers HTTP 200
 Hold any raw WFS read to the server's own count.
+
+### bcdata's error text does not carry a WFS failure's cause, so read it from the response
+To tell a throttle from any other bcdata failure, record the status off the request itself (wrap `crul:::crul_fetch`), not from the message.
 
 # Code Check Conventions
 Structured checklist for reviewing diffs before commit.
