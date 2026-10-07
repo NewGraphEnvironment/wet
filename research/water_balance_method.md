@@ -329,7 +329,7 @@ All three products are taken at each site, over 900–2,100 m in PCIC's domain. 
 - P between the ridge-top gauges and the basins they drain (the dry gauges sit at 1,360–1,970 m);
 - the gauge side: withdrawals, storage and diversions on the Okanagan and Thompson plateau creeks, which #45 left unresolved.
 
-The cheaper of the two is the gauge side: flag the regulated and diverted calibration basins in zones 23/24 and rescore without them.
+The cheaper of the two is the gauge side: flag the regulated and diverted calibration basins in zones 23/24 and rescore without them (#53).
 
 Also found here: #51. Two older scripts average climr's 1961–1990 reference row into their 1981–2010 means.
 
@@ -343,7 +343,7 @@ Their accuracy figures are in-sample, and after the undocumented "final adjustme
 - #15: the ET experiment. Done; see "The ET experiment" above.
 - #18: MOD16 as a challenger. Done; `cfu` stays. See "MOD16 as a challenger (#18)" above.
 - The Budyko floor is annual only. The monthly shares still regress on CGIAR's monthly AET (see #16 for the monthly predictors).
-- Zone 24 (Southern Thompson Plateau) runs at +93 % held out on the shipped 2026-07-17 fit (+102 % on 2025-10-14). The candidates are listed in "The ET experiment" above. MOD16, which is independent of P, left +166 % there (#18). Against PCIC (#45), the evidence leaned to climr's plateau P without a registered verdict. Against plateau-elevation observations (#50), climr is at most modestly high relative to the interior (D 1.09, not decided), and part of #45's gap is PNWNAmet's. The next candidate is the gauge side: regulated and diverted basins in zones 23/24 ("Plateau precipitation", above).
+- Zone 24 (Southern Thompson Plateau) runs at +93 % held out on the shipped 2026-07-17 fit (+102 % on 2025-10-14). The candidates are listed in "The ET experiment" above. MOD16, which is independent of P, left +166 % there (#18). Against PCIC (#45), the evidence leaned to climr's plateau P without a registered verdict. Against plateau-elevation observations (#50), climr is at most modestly high relative to the interior (D 1.09, not decided), and part of #45's gap is PNWNAmet's. The next candidate is the gauge side: regulated and diverted basins in zones 23/24 (#53).
 - The pre-#15 input caches (CGIAR, climr, DEM, zones raster) are keyed on content and parameters but not on their builder code, as #15's two new builders now are (#19).
 - #16: snow predictors for the monthly shares.
 - An upstream note to climr on the ClimateNA coastal gap: drafted, not posted.
