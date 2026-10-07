@@ -46,4 +46,4 @@
 
 ## Terms
 
-The PCIC terms of use provide data "AS IS" and name no open licence. The citation form is "Pacific Climate Impacts Consortium, University of Victoria, (Jan 2020). VIC-GL BCCAQ CMIP5: Gridded Hydrologic Model Output." **Redistributing derived values is unconfirmed** (#7). The contact named in the file metadata is Markus Schnorbus (PCIC hydrology).
+The PCIC terms of use provide data "AS IS" and name no open licence. The citation form is "Pacific Climate Impacts Consortium, University of Victoria, (Jan 2020). VIC-GL BCCAQ CMIP5: Gridded Hydrologic Model Output." **Publishing derived values is not a concern** (airvine, 2026-10-07): wet publishes values derived from PCIC output, cited as above, without seeking separate confirmation. The contact named in the file metadata is Markus Schnorbus (PCIC hydrology).

@@ -1,6 +1,6 @@
 # Chapman, Kerr & Wilford (2018): the BC Water Tools method, and what a reimplementation must decide
 
-**Verified:** 2026-10-06 · **Issues:** #5 (found), #11 (built and validated), #15 (ET experiment), #18 (MOD16 challenger), #39 (scored against fwapg across PCIC's coverage), #43 (refit on HYDAT 2026-07-17; pooled zones settled) · **Produced by:** desk research (sections 1–7), the #11 build and the #15 and #18 experiments (section 0): `scripts/wb_inputs.R`, `wb_stations.R`, `wb_province.R`, `wb_validate.R`, `wb_aet_compare.R`, `wb_output.R`. Reports: `data/checks/wb_*.txt`, `stations_wb.txt` and `climr_eccc.txt`. **Status:** built. The shipped model uses CGIAR AET constrained from below by a Fu–Budyko AET. A rule fixed before scoring chose it (#15). Blocked-CV MAE on annual runoff was 27.7 % (31.2 % headwater) on the 2025-10-14 fit, against 33.1 % (38.1 %) with CGIAR alone (section 0). Since #43 the shipped fit is on HYDAT 2026-07-17: 27.5 % (30.7 % headwater) at 315 gauges, pooled zones settled on gauges no fit uses, and the zone adjustment kept by a recorded decision ("Refit on HYDAT 2026-07-17"). MOD16 was scored against it under a second pre-set rule (#18) and does not replace it.
+**Verified:** 2026-10-07 · **Issues:** #5 (found), #11 (built and validated), #15 (ET experiment), #18 (MOD16 challenger), #39 (scored against fwapg across PCIC's coverage), #43 (refit on HYDAT 2026-07-17; pooled zones settled), #45 (dry-interior term diagnosis) · **Produced by:** desk research (sections 1–7), the #11 build and the #15, #18 and #45 experiments (section 0): `scripts/wb_inputs.R`, `wb_stations.R`, `wb_province.R`, `wb_validate.R`, `wb_aet_compare.R`, `wb_output.R`, `wb_term_diagnose.R`. Reports: `data/checks/wb_*.txt`, `stations_wb.txt` and `climr_eccc.txt`. **Status:** built. The shipped model uses CGIAR AET constrained from below by a Fu–Budyko AET. A rule fixed before scoring chose it (#15). Blocked-CV MAE on annual runoff was 27.7 % (31.2 % headwater) on the 2025-10-14 fit, against 33.1 % (38.1 %) with CGIAR alone (section 0). Since #43 the shipped fit is on HYDAT 2026-07-17: 27.5 % (30.7 % headwater) at 315 gauges, pooled zones settled on gauges no fit uses, and the zone adjustment kept by a recorded decision ("Refit on HYDAT 2026-07-17"). MOD16 was scored against it under a second pre-set rule (#18) and does not replace it.
 
 Legend: **[S]** stated in the source cited · **[I]** inferred · **[U]** unknown or not published. Sources are listed at the end; all are online.
 
@@ -177,7 +177,7 @@ The Budyko floor raises AET a little in the wet north too, which moves the alrea
   - Attribution: **unresolved.** Table 3 as published cannot reproduce what their calibration did. This is a reason their product cannot be checked without its code.
 - **TerraClimate helps (`tc`) but stays P-capped.** Its AET comes from its own bucket on its own P. At the Greata mouth cell that P is 428 mm, against climr's 614 mm.
 - **ω = 3.5 wins on headwater raw and loses the nested basins** (23.5 % MAE, 39 % within ±20 %). A per-cell Budyko at high ω over-evaporates large, snow-fed basins, where P and demand are out of phase. The pre-set rule would have refused it, and it was never eligible.
-- **Still unresolved.** Zone 24 (Okanagan Highland) remains at +102 %. The candidates are:
+- **Still unresolved.** Zone 24 (Southern Thompson Plateau) remains at +102 %. #45 tested the second and third candidates against PCIC; see "Which term is off in the dry interior (#45)". The candidates are:
   - licensed withdrawals and groundwater losses at "natural" gauges in the Okanagan;
   - climr P possibly high on the interior plateaus (the ECCC check is province-wide, median ratio 1.03);
   - the per-cell Budyko at ω = 2.6 still under-evaporating there.
@@ -237,6 +237,63 @@ At Greata Creek the upstream AET is 281 mm with CGIAR, 419 mm with MOD16 and 499
 - Granules are listed through CMR and downloaded with `curl` and an Earthdata netrc. That is 180 granules, about 3.9 GB, in 14 minutes.
 - The province run reproduces #15's layers exactly, and its upstream means within 5.4e-14 after matching by watershed id. Row order is not stable between runs, because the watershed query has no ORDER BY.
 
+### Which term is off in the dry interior (#45)
+
+**Verified:** 2026-10-07 · **Issues:** #45 · **Produced by:** `scripts/wb_term_diagnose.R` → `data/checks/wb_term_diagnose_20260717.txt`. The rule was pre-registered, then amended before any PCIC value was computed, in `planning/archive/…issue-45…/findings.md`. Reproduced byte-identical on m1 and m4.
+
+**The question.** In the semi-arid interior our runoff is a small remainder of P − AET. Does the overshoot there come from climr's P or from the cfu AET? The test compares both terms with PCIC VIC-GL's own split, used as a reference and not as an input. Corroboration comes from inputs that do not depend on climr:
+- TerraClimate P;
+- MOD16 ET;
+- the implied Fu ω under Hargreaves and under PCIC's PET;
+- ECCC normals.
+
+**The reference holds up.**
+- PCIC PREC, EVAP, RUNOFF, BASEFLOW and PET_NATVEG (1981–2010) were taken as upstream area-weighted means at the shipped fit's calibration gauges: 193 gauges in 192 basins with PCIC over ≥ 95 % of the basin.
+- Its runoff reproduces fwapg's stored MAD (median ratio 1.00, p10–p90 0.99–1.01, 174 basins), and its water balance closes to within 1 %.
+
+**Registered verdicts** (raw runoff, shipped fit 2026-07-17):
+
+| Zone | Basins | Ours, raw | PCIC | Verdict |
+|---|---|---|---|---|
+| 15 Fraser Plateau | 17 | +68 % | +2 % | compensating |
+| 17 Northern Thompson Plateau | 4 | +47 % | −31 % | PCIC not a usable reference |
+| 23 Okanagan Highland | 8 | +4 % | −5 % | no material gap |
+| 24 Southern Thompson Plateau | 8 | +66 % | +17 % | compensating |
+| all four, pooled | 37 | +39 % | +6 % | compensating |
+
+**Result: no single term is named, and no lever is chosen.**
+- "Compensating" means our P exceeds PCIC's by more than 1.5 times our runoff gap, and our AET exceeds PCIC's EVAP by enough to offset more than half of that difference.
+- The two models reach similar runoff through very different splits.
+
+| Median per basin | climr P / PCIC P | TerraClimate P / PCIC P | our AET / EVAP | ΔP (mm) | ΔA (mm) | runoff gap (mm) |
+|---|---|---|---|---|---|---|
+| zone 15 | 1.43 | 1.20 | 1.48 | 152 | 138 | 52 |
+| zone 24 | 1.61 | 1.15 | 1.65 | 302 | 199 | 131 |
+| 155 basins in other zones | 1.15 | 0.93 | 1.63 | 135 | 203 | −25 |
+
+**What it says, and who is wrong where.** This bullet is post hoc, outside the registered rule. **[I]**
+- **The dry zones differ from the rest in P, not AET.** Our AET runs 1.44–1.65 times PCIC's EVAP in every group. climr's P runs 1.36–1.61 times PCIC's in the dry zones, against 1.15 elsewhere.
+- **The P difference tracks the error.** Across the 37 dry basins, our runoff error correlates with the relative P difference (r = 0.32) and not with the AET difference (r = −0.04).
+- **The P products order the same way on the plateaus:** climr > TerraClimate > PNWNAmet.
+- **In zone 24 the implied Fu ω exceeds 5 under both PETs at half the basins.** Greata Creek's is 14–21: almost all of climr's P would have to evaporate. That makes P (or the gauge) the likelier term there, as #18 suggested.
+- **Attribution of our gap: leaning ours on P, unresolved.**
+- **Disagreement with PCIC:** ours in zones 15 and 24; theirs in 17 and 23, where PCIC is further from the gauges.
+
+**Why the decomposition cannot settle it.**
+- `cfu` is Fu–Budyko AET at 8 of 8 zone-24 basins, and Fu rises with P. A high P therefore raises our AET as well, and ΔA partly echoes ΔP.
+- PCIC's calibration gauges are not published, so its closeness to the gauges may be partly in sample.
+- ECCC barely tests plateau P: most ECCC normal stations in the dry zones are valley stations, well below the gauge basins (median basin elevation about 1,350–1,550 m).
+  - Within 500 m of the basins: zone 15 has 6 stations (median climr/ECCC 1.05) and zone 17 has 1; zones 23 and 24 have none.
+  - In the valleys climr runs high at Princeton (1.37), Spences Bridge (1.26), Beaverdell North (1.18) and Hedley (1.17).
+
+**What would decide it.** Precipitation observed at plateau elevation: the River Forecast Centre's automated snow weather stations and snow courses, scored against climr, PNWNAmet and TerraClimate. A precipitation correction is built only if climr is high there.
+
+The rule it would then be scored under is fixed in #45's findings:
+- dry-zone MAE at least 10 points below the shipped 42.8 % (zones 15/17/23/24, 40 gauges; 24 alone 92.8 %);
+- no loss overall (27.5 %), headwater (30.7 %, +0.5 point allowed) or nested;
+- no major river moved more than 0.03 away from its observation;
+- a fully nested selection.
+
 ### What this says about the BC Water Tools
 
 Their accuracy figures are in-sample, and after the undocumented "final adjustment to measured flows" they are near 0 % at the gauges. They are not a measure of skill at ungauged sites. The open reimplementation suggests that out-of-sample skill of this method family, province-wide, is about 33 % MAE on annual runoff (38 % for headwater basins) with the CGIAR AET Chapman used, and about 28 % (31 %; 32 % under a fully nested selection) with that AET floored by a Fu–Budyko demand (#15). Our release comparison (#5) should score their values at stations held out of *their* fit where possible.
@@ -247,7 +304,7 @@ Their accuracy figures are in-sample, and after the undocumented "final adjustme
 - #15: the ET experiment. Done; see "The ET experiment" above.
 - #18: MOD16 as a challenger. Done; `cfu` stays. See "MOD16 as a challenger (#18)" above.
 - The Budyko floor is annual only. The monthly shares still regress on CGIAR's monthly AET (see #16 for the monthly predictors).
-- Zone 24 (Okanagan Highland) still runs at +102 % as shipped; the candidates are listed in "The ET experiment" above. MOD16, which is independent of P, left +166 % there (#18).
+- Zone 24 (Southern Thompson Plateau) runs at +93 % held out on the shipped 2026-07-17 fit (+102 % on 2025-10-14). The candidates are listed in "The ET experiment" above. MOD16, which is independent of P, left +166 % there (#18). Against PCIC (#45), the weight of evidence leans to climr's plateau P, without a registered verdict. The next step is plateau-elevation precipitation (above).
 - The pre-#15 input caches (CGIAR, climr, DEM, zones raster) are keyed on content and parameters but not on their builder code, as #15's two new builders now are (#19).
 - #16: snow predictors for the monthly shares.
 - An upstream note to climr on the ClimateNA coastal gap: drafted, not posted.

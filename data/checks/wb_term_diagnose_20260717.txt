@@ -1,0 +1,125 @@
+# Which term is off in the dry interior (#45): ours (climr P, cfu AET) against PCIC VIC-GL
+
+fit: 20260717, province run 962a9cc2c4, scoring code 94d05b195898abea5bd87cc0bd65018d; PCIC TPS_gridded_obs_init 1981-2010 (cache 30022867b6), upstream area-weighted means
+rule: pre-registered in the #45 findings before any PCIC value was computed, as amended (Amendment 1)
+calibration gauges in basins 100/200/300: 218; with PCIC over >= 95 % of the basin: 193, in 192 distinct basins (merged: 08NM241+08NM240)
+runoff floored at 1 mm for the log error: ours 0, PCIC 0; dry-zone gauges with < 20 years: 11 of 38
+
+## Is PCIC sound as a reference?
+PCIC RUNOFF+BASEFLOW / fwapg stored MAD on the gauge's segment, 174 basins: median 1.00, p10-p90 0.99-1.01
+  (plumbing: the same two variables; fwapg samples centroids over a stale upstream area)
+closure (P - EVAP - runoff) / runoff, all basins: median -0.01, p10-p90 -0.03--0.00
+ECCC 1981-2010 MAP normals (any code) with a climr value: 162; climr/ECCC median 1.03
+
+## Per zone: dry zones first, then contrast zones, then the pooled dry stratum
+Runoff errors are the median raw log error as %. Sums are over distinct basins (mm).
+w>5: share of basins whose implied omega is > 5 or has no solution under both PETs. w<=5: share whose omega is <= 5 under both.
+ec / ratio: ECCC stations no more than 500 m below the median basin elevation, and their median climr/ECCC (needs >= 3).
+zone     n  ours    PCIC   |PCIC| clos.   sumdP  sumdA    gap  shP   shA    tc/Po tc/Pc m16/A  w>5   w<=5  ec ratio  off    verdict
+15      17   +68 %    +2 %   0.21   0.01    4101   2607   1494   2.74 -1.74   0.84  1.20  0.87    29%   59%   6  1.05  ours   compensating (the other term offsets more than half)
+17       4   +47 %   -31 %   0.97   0.00     586    469    117   5.01 -4.01   1.14  1.68  0.94     0%  100%   1     -  theirs unresolved: PCIC not a usable reference
+23       8    +4 %    -5 %   0.15   0.00    1558   1411    148  10.56 -9.56   0.90  1.15  0.82    12%   75%   0     -  theirs no material gap
+24       8   +66 %   +17 %   0.23   0.00    2357   1564    793   2.97 -1.97   0.75  1.15  0.80    50%   12%   0     -  ours   compensating (the other term offsets more than half)
+03       9   -29 %    -9 %   0.10   0.01     -52    952  -1004      -     -   0.86  0.85  0.93     0%  100%   0     -  ours   no material gap
+06       3   +28 %    +9 %   0.09   0.01     175    209    -34      -     -   0.97  1.07  0.92     0%  100%   3  1.00  ours   too few
+07       9    -5 %    -3 %   0.13   0.01     772    928   -156      -     -   0.78  0.89  0.85    11%   89%   0     -  ours   no material gap
+08      16    -1 %   -15 %   0.18   0.01    2124   1925    199  10.65 -9.65   0.81  1.01  0.84     0%  100%  12  1.06  theirs no material gap
+09       2   -31 %   -43 %   0.55   0.01     850    510    340   2.50 -1.50   0.98  1.39  0.85     0%   50%   0     -  theirs too few
+12       3   -30 %   -23 %   0.26   0.01     213    541   -327      -     -   0.62  0.68  0.85     0%  100%   0     -  ours   too few
+13      10   -19 %   -15 %   0.16   0.01    2265   2471   -206      -     -   0.76  0.93  0.91     0%   80%   0     -  ours   no material gap
+14      22   -19 %   -10 %   0.11   0.01    3460   4226   -767      -     -   0.85  0.97  0.85     0%   86%   1     -  ours   no material gap
+16       6   -14 %   -15 %   0.21   0.01     536    698   -161      -     -   0.96  1.05  0.86     0%  100%   0     -  theirs no material gap
+18      11   -15 %    +6 %   0.07   0.02     817   2533  -1716      -     -   0.85  0.94  0.90     0%   64%   0     -  ours   no material gap
+19       8   -27 %    -3 %   0.07   0.01     833   1726   -892      -     -   0.83  0.92  0.83     0%  100%   1     -  ours   no material gap
+20       9   -28 %   -24 %   0.27   0.00    1537   1822   -285      -     -   0.82  1.04  0.85     0%  100%   0     -  ours   no material gap
+21      13    +2 %    +2 %   0.13   0.00    3445   3644   -199      -     -   0.75  0.91  0.85    38%   54%   0     -  ours   no material gap
+22      15   -14 %    -3 %   0.12   0.01    1453   3482  -2029      -     -   0.85  0.90  0.84    13%   67%   1     -  ours   no material gap
+25      10   -25 %   -20 %   0.22   0.01    2020   2650   -630      -     -   0.65  0.79  0.90    10%   50%   0     -  ours   no material gap
+26       4   -13 %    +4 %   0.10   0.03    -428   1189  -1617      -     -   0.59  0.63  0.83     0%   50%   0     -  ours   no material gap
+27       5   -17 %   -23 %   0.26   0.00    2075    822   1253   1.66 -0.66   0.51  0.57  0.82    20%   60%   1     -  theirs no material gap
+dry     37   +39 %    +6 %   0.22   0.00    8603   6051   2552   3.37 -2.37   0.84  1.20  0.86    27%   57%   5  1.10  ours   compensating (the other term offsets more than half)
+
+## Lever (votes over zones 15, 17, 23, 24; P 0, AET 0; pooled dry stratum: compensating (the other term offsets more than half)): none
+
+## Reported, not deciding
+zone 15: overshoot R_o - Q median 56 mm; decomposition alone: compensating (the other term offsets more than half); held-out error -2 %
+zone 17: overshoot R_o - Q median 26 mm; decomposition alone: compensating (the other term offsets more than half); held-out error +47 %
+zone 23: overshoot R_o - Q median 8 mm; decomposition alone: compensating (the other term offsets more than half); held-out error +4 %
+zone 24: overshoot R_o - Q median 122 mm; decomposition alone: compensating (the other term offsets more than half); held-out error +55 %
+zone 15 Fu counterfactual (3 Fu-dominated basins): P term 491 mm, model term (Fu(P_c) - EVAP) 146 mm
+zone 17 Fu counterfactual (0 Fu-dominated basins): P term 0 mm, model term (Fu(P_c) - EVAP) 0 mm
+zone 23 Fu counterfactual (7 Fu-dominated basins): P term 933 mm, model term (Fu(P_c) - EVAP) 811 mm
+zone 24 Fu counterfactual (8 Fu-dominated basins): P term 1477 mm, model term (Fu(P_c) - EVAP) 721 mm
+basins >= 100 km2 only:
+15      14   +65 %   +12 %   0.22   0.01    3576   2345   1232   2.90 -1.90   0.79  1.21  0.87    36%   57%   5  1.07  ours   compensating (the other term offsets more than half)
+23       6    -2 %    -5 %   0.10   0.00    1105   1069     36  30.54 -29.54   0.90  1.11  0.82    17%   83%   0     -  ours   no material gap
+24       3   +27 %   +22 %   0.54   0.01     880    629    251   3.51 -2.51   0.82  1.15  0.80    33%   33%   0     -  theirs too few
+
+## Dry-zone basins (mm/yr): P ours/PCIC/TerraClimate, AET ours/EVAP/MOD16, runoff ours/PCIC/obs, implied AET, PET Harg/PCIC, implied omega
+station          zone nesting      km2   P_o   P_c  P_tc   A_o   E_c  A_16   R_o   R_c   obs   A*  PET_h PET_c  w_h   w_c  name
+08JA014          15   headwater     145   592   447   507   423   280   363   169   168   185   407   634   571  2.40  2.65  VAN TINE CREEK NEAR THE MOUT
+08KE016          15   headwater    1563   537   389   471   429   291   370   107    99    97   440   702   640  2.91  3.19  BAKER CREEK AT QUESNEL
+08KF001          15   headwater    3163   464   344   389   381   289   334    83    55    44   420   711   634  3.44  3.88  NAZKO RIVER ABOVE MICHELLE C
+08KG001          15   nested      12391   518   358   439   406   287   354   112    71    84   434   691   611  3.04  3.48  WEST ROAD RIVER NEAR CINEMA
+08KG003          15   headwater    1017   500   349   430   392   293   345   108    57    64   436   665   585  3.45  4.07  BAEZAEKO RIVER AT LOT 10262
+08LA027          15   headwater     386   622   521   630   474   386   404   147   136    91   531   720   630  3.80  4.89  BRIDGE CREEK BELOW DEKA CREE
+08LB012          15   headwater      71   599   478   544   455   400   452   144    78    78   521   740   759  3.73  3.61  PAUL CREEK AT THE OUTLET OF 
+08LB024          15   headwater     138   627   518   652   459   382   417   168   136   181   446   707   705  2.44  2.45  FISHTRAP CREEK NEAR MCLURE
+08LE075          15   headwater     141   863   587   624   510   329   389   353   258   174   690   683   660   Inf   Inf  SALMON RIVER ABOVE SALMON LA
+08MA001          15   nested       6727   854   546   600   433   185   386   421   511   412   442   613   360  2.17   Inf  CHILKO RIVER NEAR REDSTONE
+08MA006          15   headwater      98   762   451   543   444   289   395   318   161   254   508   573   531  3.67  5.05  LINGFIELD CREEK NEAR THE MOU
+08MB005          15   nested      19276   635   441   467   403   268   353   232   224   169   466   679   534  2.73  4.01  CHILCOTIN RIVER BELOW BIG CR
+08MB006          15   nested       1019  1043   413   599   484   192   374   559   231   187   856   577   464   Inf   Inf  BIG CREEK ABOVE GROUNDHOG CR
+08MB007          15   headwater     195  1264   437   740   460   143   423   804   297   452   812   504   324   Inf   Inf  BIG CREEK BELOW GRAVEYARD CR
+08MC045          15   headwater      94   557   464   476   439   387   407   118    77    66   491   745   740  3.58  3.61  SHERIDAN CREEK ABOVE MCLEESE
+08ME025          15   headwater     579   962   915   662   470   206   378   492   743   236   726   575   314   Inf   Inf  YALAKOM RIVER ABOVE ORE CREE
+08NM174          15   headwater     108   907   549   670   525   374   417   382   176   181   726   672   706   Inf   Inf  WHITEMAN CREEK ABOVE BOULEAU
+08LF081          17   headwater      33   427   333   544   395   283   375    33    49    20   408   660   632  4.48  4.73  AMBUSTEN CREEK NEAR THE MOUT
+08LF084          17   headwater      31   540   409   647   417   289   392   123   120    88   452   597   532  3.78  4.76  ANDERSON CREEK ABOVE DIVERSI
+08LG056          17   headwater      76   437   275   475   366   255   352    72    20    55   382   683   616  3.00  3.28  GUICHON CREEK ABOVE TUNKWA L
+08LG066          17   headwater      30   479   281   512   382   262   328    97    19    62   417   666   527  3.27  4.49  CHATAWAY CREEK NEAR THE MOUT
+08NE077          23   headwater     199  1162  1040  1087   570   490   470   592   553   602   560   686   748  2.41  2.17  BARNES CREEK NEAR NEEDLES
+08NE110          23   headwater     291  1105  1011  1031   569   447   449   535   567   406   699   696   708   Inf  6.39  INONOAKLIN CREEK ABOVE VALLE
+08NM142          23   headwater      63   759   525   739   511   417   471   248   109   130   628   726   793  4.89  4.00  COLDSTREAM CREEK ABOVE MUNIC
+08NN002          23   nested       2061   941   749   786   535   295   438   406   455   464   476   725   718  1.99  2.00  GRANBY RIVER AT GRAND FORKS
+08NN015          23   headwater     230  1001   733   879   541   315   423   461   419   474   528   671   618  2.41  2.74  WEST KETTLE RIVER NEAR MCCUL
+08NN019          23   headwater     148   785   571   732   519   322   445   266   250   304   480   738   731  2.21  2.23  TRAPPING CREEK NEAR THE MOUT
+08NN022          23   nested       1185   812   594   700   523   318   429   289   276   262   550   732   699  2.77  2.95  WEST KETTLE RIVER BELOW CARM
+08NN028          23   headwater      31   824   605   684   508   260   440   316   345   186   638   716   662  4.63  6.85  LOST HORSE CREEK NEAR CHRIST
+08LG016          24   headwater      85   857   502   646   498   294   395   359   208   263   594   632   571  4.80   Inf  PENNASK CREEK NEAR QUILCHENA
+08LG064          24   headwater      90   851   489   631   514   281   391   338   208   166   685   670   624   Inf   Inf  BEAK CREEK AT THE MOUTH
+08NL036          24   headwater     186   892   582   673   517   294   413   374   290   169   723   687   675   Inf   Inf  WHIPSAW CREEK BELOW LAMONT C
+08NL050          24   headwater     395   693   297   585   458   226   377   235    70   186   507   643   536  3.24  5.45  HEDLEY CREEK NEAR THE MOUTH
+08NM134          24   headwater      36   771   477   545   496   334   413   275   143   128   643   681   676  7.16  7.55  CAMP CREEK AT MOUTH NEAR THI
+08NM171          24   headwater     118   792   618   646   499   325   397   293   291   239   552   667   628  3.31  3.80  VASEUX CREEK ABOVE SOLCO CRE
+08NM173          24   headwater      45   743   463   514   499   357   419   243   107    50   693   704   722 20.56 13.55  GREATA CREEK NEAR THE MOUTH
+08NM241+08NM240  24   nested          5   891   703   733   515   320   380   375   383   339   551   650   513  3.07   Inf  TWO FORTY-ONE CREEK NEAR PEN
+
+## ECCC normals in the dry zones: climr against the station normal
+climate_id zone station                       code  elev  ECCC   climr ratio
+1163780    15   KAMLOOPS A                      A   345   277.6   314.7  1.13
+1128553    15   VERNON BELLA VISTA              C   427   428.1   478.1  1.12
+1123970    15   KELOWNA A                       C   430   386.9   406.5  1.05
+1128958    15   WINFIELD                        C   506   382.0   423.9  1.11
+1096630    15   QUESNEL A                       C   545   536.2   529.9  0.99
+1093474    15   HIXON                           A   551   645.0   619.3  0.96
+1098946    15   WILLIAMS LAKE RIVER             C   585   425.9   437.1  1.03
+1168880    15   WESTWOLD                        C   609   408.9   435.6  1.07
+1088010    15   TATLAYOKO LAKE                  C   870   435.5   413.0  0.95
+1098318    15   TWAN CREEK                      C   914   456.7   490.6  1.07
+1098940    15   WILLIAMS LAKE A                 A   940   450.6   495.0  1.10
+1084731    15   LUNCH LAKE                      A  1017   366.9   422.5  1.15
+1097646    15   SPOKIN LAKE 4E                  C  1033   576.8   593.0  1.03
+1160986    15   BRIDGE LAKE 2                   A  1155   595.5   595.0  1.00
+1167637    17   SPENCES BRIDGE NICOLA           C   235   263.7   333.3  1.26
+1123469    17   HIGHLAND VALLEY LORNEX          C  1268   393.2   432.8  1.10
+1133270    23   GRAND FORKS                     A   532   534.3   510.1  0.95
+1130771    23   BEAVERDELL NORTH                C   838   485.7   575.1  1.18
+1123750    23   JOE RICH CREEK                  C   875   596.2   617.5  1.04
+1125766    24   OLIVER STP                      C   297   329.7   345.4  1.05
+1125865    24   OSOYOOS WEST                    A   297   323.2   333.9  1.03
+1126150    24   PENTICTON A                     A   344   346.0   363.6  1.05
+1126070    24   PEACHLAND                       C   345   393.4   383.7  0.98
+1123992    24   KELOWNA PC BURNETTS NURSERY     C   350   344.5   373.5  1.08
+1123360    24   HEDLEY                          C   517   397.2   463.6  1.17
+1126510    24   PRINCETON A                     A   702   346.9   476.4  1.37
