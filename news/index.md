@@ -1,6 +1,6 @@
 # Changelog
 
-## wet (development version)
+## wet 0.2.1
 
 - The segment discharge article is reordered for readers: what mean
   annual discharge is, which estimate to use and why, how close the open
