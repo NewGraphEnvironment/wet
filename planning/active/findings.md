@@ -117,6 +117,18 @@ The plan review (`review-plan.md`) found the rules above underspecified in ways 
 - **Consequence.** The pooled-zone test runs as pre-registered on fit_20260717.
 - **Follow-up issue.** The gate scores headwater basins only and is blind to main stems.
 
+## Phase 4 outcome, after decision 2 (m4, 2026-10-06, da9d20b)
+
+- **fit_20251014** was rerun under the changed scoring code. #15 reproduced again (cfu). Its reports changed only in the gate line's precision.
+- **fit_20260717 gate:** the gate FAILs within the recorded tolerance of 0.10 point (30.72 against 30.69), so the adjustment is kept by override.
+- **Pooled-zone test** (`data/checks/wb_pooled_test_20260717.txt`):
+  - Test gauges by filter: 137 short-record, 117 snapped, 115 in BC and on the grid, 110 not CHANNEL and with at least 10 mm.
+  - 39 decision gauges, each predicted with its sub-sub-drainage's calibration gauges held out.
+  - MAE on the decision gauges: "other" 80.2 %, "none" 46.5 %, a gap of +33.7 points (paired bootstrap +9.1 to +62.3). **"none" is fixed**, the test is informative, and the caveat is retired.
+  - On all 110 test gauges: other 55.3 %, none 43.5 %, raw 41.6 %. On fresh short-record gauges the adjustment is no better than raw, consistent with the headwater gate.
+- **Headline** (blocked CV, variant fixed to "none"): all 27.5 %, headwater 30.7 %, nested 17.6 % (315 gauges). The numbers equal the nested CV, since every fold had chosen "none".
+- **Major rivers** (`wb_output_20260717.txt`), with the adjustment kept: Peace 0.93, Stikine 0.99, Nass 0.81, Skeena 0.81, Thompson 1.13, Fraser at Hope 1.02, Columbia 1.04.
+
 ## Errors Encountered
 
 | Error | Resolution |

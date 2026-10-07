@@ -12,3 +12,4 @@
 - /code-check rounds 1-3 (review-round1..3.md): the md5 split (a fixed variant had staled the AET winner); a default that shipped cgiar; carry checked consistency not currency; pooled test release; closed by the defaults enumeration (review-enumeration.md)
 - Phases 3-4 on m4 (e7e2b68): regression proof passed in full; refit passes acceptance (-0.28) but its headwater gate fails (adjusted 30.72 vs raw 30.69): stopped for the user (amendment 9)
 - Decision 2 (keep adjustment, override 0.1): scripts change reviewed (review-override.md: stale-chain prerequisite, gate_pass persisted, compare refuses override, reason required); gate issue #47 filed
+- Phase 4 complete (da9d20b): override recorded, pooled test fixed none (informative, 39 decision gauges), output and map for the shipped fit; tone PR #42 merged into this branch

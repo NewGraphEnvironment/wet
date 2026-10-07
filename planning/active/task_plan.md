@@ -60,10 +60,10 @@
 - [x] `wb_stations.R` on `data/hydat/20260717/`: report gauges added, dropped and changed.
 - [x] `wb_validate.R cfu` with `WET_AET_CARRY=20251014`.
 - [x] `wb_fit_accept.R 20251014 20260717`: apply the acceptance rule and record the outcome. If it passes but the gate fails, stop for the user.
-- [ ] The override change stales every fit's AET md5 (scoring code changed): rerun fit_20251014's chain first (every AET, `wb_aet_compare.R`, `wb_validate.R cfu`; #15 must reproduce again).
-- [ ] Record the gate override for fit_20260717 (`adjust_override.txt`: 0.1, then who and why) and rerun `WET_AET_CARRY=20251014 wb_validate.R cfu`.
-- [ ] `WET_HYDAT_RELEASE=20260717 wb_pooled_test.R`: apply the pooled-zone rule and record the outcome. Rerun `wb_validate.R cfu` either way; a gate failure beyond the override's tolerance stops for the user.
-- [ ] If the refit is accepted: switch `wb_shipped_release` to 20260717, then run `wb_output.R` and `wb_map.R`. If not: keep 20251014 and report why.
+- [x] The override change stales every fit's AET md5 (scoring code changed): rerun fit_20251014's chain first (every AET, `wb_aet_compare.R`, `wb_validate.R cfu`; #15 must reproduce again).
+- [x] Record the gate override for fit_20260717 (`adjust_override.txt`: 0.1, then who and why) and rerun `WET_AET_CARRY=20251014 wb_validate.R cfu`.
+- [x] `WET_HYDAT_RELEASE=20260717 wb_pooled_test.R`: apply the pooled-zone rule and record the outcome. Rerun `wb_validate.R cfu` either way; a gate failure beyond the override's tolerance stops for the user.
+- [x] If the refit is accepted: switch `wb_shipped_release` to 20260717, then run `wb_output.R` and `wb_map.R`. If not: keep 20251014 and report why.
 
 ## Phase 5: Ship and record
 
