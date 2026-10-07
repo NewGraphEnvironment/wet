@@ -1,12 +1,22 @@
 # HYDAT stations for the open water balance (#11): select, summarise, snap.
 #
-#   Rscript scripts/wb_stations.R
+#   WET_HYDAT=data/hydat/20260717/Hydat.sqlite3 WET_HYDAT_RELEASE=20260717 Rscript scripts/wb_stations.R
 #
-# Writes data/wb/stations.rds (gitignored; the station table later phases
-# read) and the tracked report data/checks/stations_wb.txt.
+# Writes data/wb/stations_<release>.rds (gitignored; the station table later
+# phases read) and the tracked report wb_report("stations_wb", release)
+# (scripts/wb_fit_lib.R). Each HYDAT release gets its own stations file, so a
+# newer one never changes a fit made from an older one (#43).
+#
+# Besides the calibration stations (at least min_years complete years), it
+# snaps the natural stations with 1 to min_years - 1 complete years as `test`:
+# gauges no fit uses, on which scripts/wb_pooled_test.R settles the pooled-zone
+# adjustment (#43).
 # Connection from WET_PG* env vars.
 
 devtools::load_all(quiet = TRUE)
+source("scripts/wb_fit_lib.R")
+release <- wb_release()
+hydat <- wb_hydat(release)
 stamp <- function(...) message(format(Sys.time(), "%H:%M:%S"), " ", ...)
 years <- 1981:2010
 min_years <- 10
@@ -22,7 +32,6 @@ conn <- DBI::dbConnect(
 )
 
 # ---- selection, and what it leaves out -----------------------------------------------
-hydat <- wet:::wet_hydat_path()
 st <- wet_station_select(hydat, years = years, min_years = min_years)
 con <- wet:::wet_hydat_connect(hydat)
 flag <- DBI::dbGetQuery(con, "
@@ -44,22 +53,34 @@ natural <- flag$station_number[flag$regulated %in% 0]
 loose <- wet_station_select(hydat, years = years, min_years = 1)
 n_seasonal <- sum(!natural %in% loose$station_number)
 n_short <- sum(natural %in% loose$station_number & !natural %in% st$station_number)
-stamp(nrow(st), " stations selected")
+# the short-record natural stations, for the pooled-zone test, with the
+# "years" attribute wet_station_monthly() reads set to theirs alone
+test <- loose[!loose$station_number %in% st$station_number, ]
+attr(test, "years") <- attr(loose, "years")[test$station_number]
+stopifnot(nrow(test) == n_short, all(test$n_years < min_years), !anyNA(names(attr(test, "years"))))
+stamp(nrow(st), " stations selected; ", nrow(test), " short-record stations for the pooled-zone test")
 
 # ---- monthly climatology and snapping ------------------------------------------------------
 mon <- wet_station_monthly(st, hydat)
 sn <- wet_station_snap(conn, st)
+test_mon <- wet_station_monthly(test, hydat)
+test_sn <- wet_station_snap(conn, test)
 DBI::dbDisconnect(conn)
 st <- merge(st, sn, by = "station_number", sort = TRUE)
 st$subsubdrainage <- substr(st$station_number, 1, 4)  # WSC sub-sub-drainage, e.g. 08MF
-saveRDS(list(stations = st, monthly = mon, years = years), "data/wb/stations.rds")
-stamp(sum(st$accepted), " snapped within 10 %")
+test <- merge(test, test_sn, by = "station_number", sort = TRUE)
+test$subsubdrainage <- substr(test$station_number, 1, 4)
+stopifnot(!any(test$station_number %in% st$station_number))
+saveRDS(list(stations = st, monthly = mon, years = years, release = release, hydat_release = hydat_release,
+             test = test, test_monthly = test_mon),
+        wb_stations_path(release))
+stamp(sum(st$accepted), " snapped within 10 %; test stations ", sum(test$accepted))
 
 # ---- report --------------------------------------------------------------------------------
 acc <- st[st$accepted, ]
 q <- stats::quantile(acc$area_ratio, c(0, 0.1, 0.5, 0.9, 1))
 tab <- function(x) paste(sprintf("%s %d", names(x), as.integer(x)), collapse = ", ")
-con <- file("data/checks/stations_wb.txt", "w")
+con <- file(wb_report("stations_wb", release), "w")
 writeLines(c(
   "# HYDAT stations for the open water balance (#11)", "",
   sprintf("HYDAT release: %s", hydat_release),
@@ -83,7 +104,10 @@ writeLines(c(
   tab(table(acc$subsubdrainage)),
   "", "## Rejected snaps (station, gross km2, reason)",
   sprintf("%s  %9.1f  %s", st$station_number[!st$accepted],
-          st$drainage_area_gross_km2[!st$accepted], st$reason[!st$accepted])
+          st$drainage_area_gross_km2[!st$accepted], st$reason[!st$accepted]),
+  "", "## Short-record stations for the pooled-zone test (#43; never in a fit)",
+  sprintf("natural, 1 to %d complete years: %d; snapped within +/- 10 %%: %d", min_years - 1, nrow(test),
+          sum(test$accepted))
 ), con)
 close(con)
 stamp("report written")

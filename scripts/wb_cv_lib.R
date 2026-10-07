@@ -1,48 +1,56 @@
-# Shared by scripts/wb_validate.R and scripts/wb_aet_compare.R (#11, #15):
-# the calibration stations with their upstream predictors, their blocked-CV
-# folds, and the cross-validation procedure. Sourced, not run on its own. The
-# caller sets `cal$raw` for the AET variant it scores (wet:::wet_wb_raw()).
+# Shared by scripts/wb_validate.R, scripts/wb_aet_compare.R and
+# scripts/wb_pooled_test.R (#11, #15, #43): the calibration stations with their
+# upstream predictors, their blocked-CV folds, and the cross-validation
+# procedure, for one fit (a province run and a HYDAT release,
+# scripts/wb_fit_lib.R). Sourced, not run on its own. The caller sets
+# `cal$raw` for the AET variant it scores (wet:::wet_wb_raw()).
 
 devtools::load_all(quiet = TRUE)
+source("scripts/wb_fit_lib.R")
 stamp <- function(...) message(format(Sys.time(), "%H:%M:%S"), " ", ...)
-keys <- list.dirs("data/wb", recursive = FALSE, full.names = TRUE)
-keys <- keys[file.exists(file.path(keys, "upstream", "_complete"))]
-if (length(keys) != 1) stop("expected one complete province run under data/wb, found ", length(keys))
-key_dir <- keys
+key_dir <- wb_key_dir()
+release <- wb_release()
+fit_dir <- wb_fit_dir(key_dir, release)
+dir.create(fit_dir, showWarnings = FALSE)
 min_frac <- 0.95  # basin share inside BC and on the grid, to calibrate on
 
 # ---- stations with their upstream predictors --------------------------------------------
-s <- readRDS("data/wb/stations.rds")
-st <- s$stations[s$stations$accepted, ]
-# Basins carry columns only for the zones present in them: fill the rest with
-# share 0 before stacking.
-up <- lapply(list.files(file.path(key_dir, "upstream"), "\\.rds$", full.names = TRUE), function(f) {
-  x <- readRDS(f)
-  x[x$watershed_feature_id %in% st$watershed_feature_id, ]
-})
-up <- up[vapply(up, nrow, 1L) > 0]  # basins with no stations
-all_cols <- unique(unlist(lapply(up, names)))
-up <- do.call(rbind, lapply(up, function(x) {
-  for (k in setdiff(all_cols, names(x))) x[[k]] <- 0
-  x[all_cols]
-}))
-cols_up <- setdiff(names(up), c("wscode", "localcode", "area_m2"))
-zc <- grep("^zp?[0-9]+$", cols_up, value = TRUE)
-st <- merge(st, up[cols_up], by = "watershed_feature_id")
-st$area_km2 <- st$upstream_area_m2 / 1e6
-st$area_ratio_fwa <- st$area_km2 / st$drainage_area_gross_km2
+s <- readRDS(wb_stations_path(release))
+stopifnot(identical(s$release, release))
+# Upstream predictors and observed runoff for a set of accepted stations; run
+# separately for the calibration and the test stations, so neither changes the
+# other's columns.
+with_predictors <- function(st, mon) {
+  # Basins carry columns only for the zones present in them: fill the rest with
+  # share 0 before stacking.
+  up <- lapply(list.files(file.path(key_dir, "upstream"), "\\.rds$", full.names = TRUE), function(f) {
+    x <- readRDS(f)
+    x[x$watershed_feature_id %in% st$watershed_feature_id, ]
+  })
+  up <- up[vapply(up, nrow, 1L) > 0]  # basins with no stations
+  all_cols <- unique(unlist(lapply(up, names)))
+  up <- do.call(rbind, lapply(up, function(x) {
+    for (k in setdiff(all_cols, names(x))) x[[k]] <- 0
+    x[all_cols]
+  }))
+  cols_up <- setdiff(names(up), c("wscode", "localcode", "area_m2"))
+  st <- merge(st, up[cols_up], by = "watershed_feature_id")
+  st$area_km2 <- st$upstream_area_m2 / 1e6
+  st$area_ratio_fwa <- st$area_km2 / st$drainage_area_gross_km2
 
-# observed runoff in mm over the accumulated FWA area (decision 9)
-mon <- s$monthly
-days <- c(365.25, wet_month_days())
-mon$area_m2 <- st$upstream_area_m2[match(mon$station_number, st$station_number)]
-mon <- mon[!is.na(mon$area_m2), ]
-mon$obs_mm <- mon$q_m3s * days[mon$month + 1] * 86400 / mon$area_m2 * 1000
-st$obs <- mon$obs_mm[mon$month == 0][match(st$station_number, mon$station_number[mon$month == 0])]
-for (m in 1:12) {
-  i <- mon$month == m
-  st[[sprintf("share_%02d", m)]] <- mon$share[i][match(st$station_number, mon$station_number[i])]
+  # observed runoff in mm over the accumulated FWA area (decision 9)
+  days <- c(365.25, wet_month_days())
+  mon$area_m2 <- st$upstream_area_m2[match(mon$station_number, st$station_number)]
+  mon <- mon[!is.na(mon$area_m2), ]
+  mon$obs_mm <- mon$q_m3s * days[mon$month + 1] * 86400 / mon$area_m2 * 1000
+  st$obs <- mon$obs_mm[mon$month == 0][match(st$station_number, mon$station_number[mon$month == 0])]
+  for (m in 1:12) {
+    i <- mon$month == m
+    st[[sprintf("share_%02d", m)]] <- mon$share[i][match(st$station_number, mon$station_number[i])]
+  }
+  st
 }
+st <- with_predictors(s$stations[s$stations$accepted, ], s$monthly)
 
 cal <- st[st$bc_fraction >= min_frac & st$coverage >= min_frac & !is.na(st$obs), ]
 # a zone no calibration station touches carries no information: drop it, so

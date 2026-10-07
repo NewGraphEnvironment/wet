@@ -17,7 +17,7 @@
 #     gauges near the group (data-raw/segment_vignette_data.R, near_km) and its
 #     outlet gauge, 46 km off at Prince George
 #   - context_streams, context_lakes: the larger rivers (order >= 6) and the
-#     river each HYDAT gauge in the box sits on (data/wb/stations.rds), as main
+#     river each HYDAT gauge in the box sits on (the shipped fit's stations), as main
 #     flow lines through lakes, wetlands and double-line reaches, and lakes
 #     (>= 1,000 ha) in that box outside SALR, so a gauge off the group sits on its
 #     river
@@ -30,7 +30,8 @@
 # The province outline is station_map.rds's `bc` layer, not a second copy.
 # Separate from the values so a cartographic refresh does not need the PCIC run
 # or the water-balance fit; it reads only the snapped stations of the
-# water-balance inputs (data/wb/stations.rds). fwapg from the WET_PG* variables.
+# water-balance inputs (data/wb/stations_<release>.rds, scripts/wb_fit_lib.R).
+# fwapg from the WET_PG* variables.
 
 devtools::load_all(quiet = TRUE)
 sf::sf_use_s2(FALSE)
@@ -90,7 +91,8 @@ in_box <- sprintf("ST_Intersects(geom, ST_MakeEnvelope(%f, %f, %f, %f, 3005))",
                   box[["xmin"]], box[["ymin"]], box[["xmax"]], box[["ymax"]])
 # the rivers drawn: order 6 and up, and the river each accepted HYDAT gauge in
 # the box sits on (08KC003's Muskeg River is order 5), as main-flow lines
-st <- readRDS(file.path("data", "wb", "stations.rds"))$stations
+source("scripts/wb_fit_lib.R")
+st <- readRDS(wb_stations_path(wb_shipped_release))$stations
 st <- st[st$accepted, ]
 gauge_blk <- DBI::dbGetQuery(conn, sprintf("
   SELECT DISTINCT blue_line_key::int AS blue_line_key FROM whse_basemapping.fwa_stream_networks_sp

@@ -7,25 +7,39 @@
 #   Rscript scripts/wb_aet_compare.R
 #   Rscript scripts/wb_validate.R <winner>   # writes fits.rds and wb_validation.txt
 #
-# Reads data/wb/<key>/cv_aet-<v>.rds (scripts/wb_validate.R) and writes the
-# tracked report data/checks/wb_aet_compare.txt, and the winner to
-# data/wb/<key>/aet_winner.txt, which scripts/wb_validate.R ships (run it
+# Reads <fit>/cv_aet-<v>.rds (scripts/wb_validate.R) and writes the tracked
+# report wb_report("wb_aet_compare", release) and the winner to
+# <fit>/aet_winner.txt (scripts/wb_fit_lib.R), which scripts/wb_validate.R ships (run it
 # again for the winner to write fits.rds). Each stage also runs a fully nested
 # selection: each outer blocked fold picks the AET variant (and whether to
 # adjust) by the same rule applied to an inner blocked CV on its training
 # stations, so the winner's error is estimated without having been selected on
 # the stations it is scored on. Stage 1 must reproduce #15's published result
 # (cfu, and its numbers) or the script stops: stage 2's gap fill is built on cfu.
+# So it runs for the 2025-10-14 fit, as the check that a rebuild reproduces it;
+# a fit on a newer HYDAT carries cfu instead (WET_AET_CARRY, #43).
 
 source("scripts/wb_cv_lib.R")
+# The comparison is the #15 reproduction: it runs for the fit #15 was run on.
+# A fit on another release carries the AET (WET_AET_CARRY, #43), and deleting
+# its winner here would leave it with none.
+if (release != "20251014") stop("the AET comparison reproduces #15 on fit_20251014; fit_", release, " carries its AET")
+missing_cv <- setdiff(c("cgiar", "lc", "tc", "fu", "cfu", "fu15", "fu20", "fu35", "mod16", "cmod16"),
+                      sub("^cv_aet-(.*)\\.rds$", "\\1", list.files(fit_dir, "^cv_aet-.*\\.rds$")))
+if (length(missing_cv)) stop("run scripts/wb_validate.R first for: ", paste(missing_cv, collapse = " "))
 # a winner is only ever the result of a complete comparison under this code
-unlink(file.path(key_dir, "aet_winner.txt"))
+# #15 is reproduced with the pooled variant chosen inside each fold, as it was
+# run: a fit whose variant is fixed (scripts/wb_pooled_test.R) cannot reproduce it
+if (any(file.exists(file.path(fit_dir, c("pooled_variant.txt", "adjust_override.txt"))))) {
+  stop("this fit carries a fixed pooled variant or a gate override: the #15 comparison runs without either")
+}
+unlink(file.path(fit_dir, "aet_winner.txt"))
 eligible <- c("lc", "tc", "fu", "cfu")          # stage 1 (#15)
 transparency <- c("fu15", "fu20", "fu35")
 eligible2 <- c("mod16", "cmod16")                 # stage 2 (#18)
 variants_all <- c("cgiar", eligible, transparency, eligible2)
 res <- lapply(variants_all, function(v) {
-  f <- file.path(key_dir, sprintf("cv_aet-%s.rds", v))
+  f <- file.path(fit_dir, sprintf("cv_aet-%s.rds", v))
   if (!file.exists(f)) stop("no ", f, ": run scripts/wb_validate.R ", v)
   x <- readRDS(f)
   if (!identical(x$station_number, cal$station_number)) stop(v, " was scored on other stations")
@@ -217,7 +231,7 @@ fmt_ns <- function(x) {
   sprintf("headwater %.1f, all %.1f, nested %.1f, nested in +/-20 %% %.1f",
           x[["hw"]], x[["all"]], x[["nes_mae"]], x[["nes_in20"]])
 }
-con <- file("data/checks/wb_aet_compare.txt", "w")
+con <- file(wb_report("wb_aet_compare", release), "w")
 writeLines(c(
   "# ET experiments (#15, #18): annual AET variants scored as shipped under blocked CV", "",
   sprintf("province run: %s; stations: %d (headwater %d, nested %d); folds: %d", basename(key_dir),
@@ -281,5 +295,5 @@ writeLines(c(
   sprintf("Greata Creek: upstream P %.0f mm, observed %.0f mm", cal$p_yr[g], cal$obs[g])
 ), con)
 close(con)
-writeLines(c(winner, score_code_md5), file.path(key_dir, "aet_winner.txt"))
+writeLines(c(winner, aet_code_md5), file.path(fit_dir, "aet_winner.txt"))
 stamp("report written; winner ", winner)

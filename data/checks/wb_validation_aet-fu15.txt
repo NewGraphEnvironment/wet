@@ -1,6 +1,7 @@
 # Open water balance (Chapman et al. 2018 method) validated at HYDAT stations (#11)
 
 province run: 962a9cc2c4; annual AET: fu15 (monthly shares use CGIAR monthly AET)
+HYDAT release: 2025-10-14 15:09:54.000
 stations: 309 accepted snaps, 309 with predictors; 290 calibrated on (basin >= 95 % in BC and on the grid)
 pooled zones in the shipped fit (fewer than 8 stations with their largest share): 16 12 17 09 04 02 05 06 11
 zones no calibration station touches (no adjustment): 
@@ -13,7 +14,7 @@ Metrics: error = 100 (mod - obs) / obs on annual runoff; NSE on the 12-month cli
 and on the shares. Chapman et al. (2018) report, for their adjusted model on 45 NE BC gauges:
 MAE 16.1 %, 77.8 % within +/- 20 %, median monthly NSE 0.92.
 
-GATE (adjusted beats raw P - AET on headwater stations, blocked CV): PASS - adjustment kept (MAE 42.8 % vs 66.3 %)
+GATE (adjusted beats raw P - AET on headwater stations, blocked CV): PASS - adjustment kept (MAE 42.76 % vs 66.29 %)
 Under the pre-set specification (pooled zones share one fitted 'other' level) the gate FAILS: 42.8 % vs 66.3 %. Which to ship is an open decision for the maintainer.
 
 ### Raw P - AET (no fitting)

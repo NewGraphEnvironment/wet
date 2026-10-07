@@ -6,7 +6,7 @@ Monthly, seasonal and mean annual flow per stream segment, historical and climat
 
 Two paths:
 
-- **Segments.** Gridded runoff (PCIC VIC-GL, or an open water balance fitted at 290 HYDAT gauges) is sampled to FWA fundamental watersheds, accumulated upstream by area weighting, and converted to m³/s.
+- **Segments.** Gridded runoff (PCIC VIC-GL, or an open water balance fitted at 315 HYDAT gauges) is sampled to FWA fundamental watersheds, accumulated upstream by area weighting, and converted to m³/s.
 - **Stations.** Daily flow from HYDAT, continued by ECCC provisional and real-time data, summarised per year over month-day windows for [cd](https://github.com/NewGraphEnvironment/cd)'s departure statistics.
 
 ## Installation
@@ -38,7 +38,7 @@ cd::cd_anomaly(s, cd::cd_baseline(s, 1981:2010))
 ## Vignettes
 
 - [Chinook flow at two stations](https://www.newgraphenvironment.com/wet/articles/station-flow.html): the station path on 08EE013 and 08EE003, from map to departure and trend.
-- [Mean annual discharge per segment](https://www.newgraphenvironment.com/wet/articles/segment-discharge.html): parity with fwapg on the Salmon River, the open water balance on the Bulkley, and its out-of-sample skill at 290 gauges.
+- [Mean annual discharge per segment](https://www.newgraphenvironment.com/wet/articles/segment-discharge.html): parity with fwapg on the Salmon River, the open water balance on the Bulkley, the two estimates side by side, and the balance's out-of-sample skill at 315 gauges.
 
 Function reference and both vignettes are on the [pkgdown site](https://www.newgraphenvironment.com/wet/).
 

@@ -1,0 +1,41 @@
+# HYDAT stations for the open water balance (#11)
+
+HYDAT release: 2026-07-17 08:08:08.000
+window 1981-2010; complete year = 12 months each with >= 20 days of flow; >= 10 complete years
+
+## Selection (BC stations with daily flow in the window)
+regulated (flag 1): 251
+no regulation record (left out): 2
+natural, no complete year in the window (seasonal or gappy record): 118
+natural, fewer than 10 complete years: 137
+selected: 352
+
+## Snapping (fwa_indexpoint, 5 candidates within 1 km, picked by drainage area)
+accepted (area within +/- 10 %): 336
+rejected: 16
+area ratio of accepted, min / p10 / median / p90 / max: 0.923 / 0.995 / 1.000 / 1.017 / 1.098
+accepted lake outlets (lake >= 100 ha within 3 km, upstream on the network, draining 50-110 % of the gauge's area): 21
+
+## Accepted by WSC sub-sub-drainage (98; in 18 sub-drainages)
+07EA 4, 07EB 1, 07EC 3, 07ED 2, 07EE 3, 07EF 1, 07FA 3, 07FB 8, 07FC 2, 07FD 3, 08CA 3, 08CB 1, 08CC 1, 08CD 1, 08CE 1, 08CF 1, 08CG 4, 08DA 1, 08DB 5, 08DC 1, 08DD 1, 08EB 2, 08EC 1, 08ED 2, 08EE 7, 08EF 2, 08EG 3, 08FA 1, 08FB 5, 08FC 1, 08FE 1, 08FF 4, 08GA 6, 08GB 1, 08GD 3, 08GE 2, 08GF 2, 08HA 6, 08HB 9, 08HC 2, 08HD 3, 08HE 4, 08HF 5, 08JA 4, 08JB 2, 08JC 1, 08JD 1, 08JE 2, 08KA 8, 08KB 3, 08KC 2, 08KD 2, 08KE 4, 08KF 1, 08KG 2, 08KH 6, 08LA 4, 08LB 8, 08LC 1, 08LD 1, 08LE 6, 08LF 3, 08LG 6, 08MA 3, 08MB 3, 08MC 1, 08ME 4, 08MF 3, 08MG 4, 08MH 11, 08NA 3, 08NB 7, 08NC 1, 08ND 4, 08NE 10, 08NF 4, 08NG 7, 08NH 11, 08NJ 8, 08NK 8, 08NL 10, 08NM 7, 08NN 6, 08NP 3, 08OA 2, 08OB 1, 09AA 2, 09AE 1, 10AC 4, 10AD 1, 10BA 1, 10BB 1, 10BC 1, 10BE 8, 10CA 1, 10CB 1, 10CC 1, 10CD 4
+
+## Rejected snaps (station, gross km2, reason)
+08CG003     1340.0  area ratio 0.01 outside 1 +/- 0.10
+08GA061        2.9  area ratio 0.89 outside 1 +/- 0.10
+08GA065        2.8  area ratio 0.87 outside 1 +/- 0.10
+08HA016       18.2  area ratio 1.11 outside 1 +/- 0.10
+08HA026        8.4  area ratio 1.16 outside 1 +/- 0.10
+08HA068        2.3  area ratio 1.33 outside 1 +/- 0.10
+08HB069        2.6  area ratio 1.14 outside 1 +/- 0.10
+08KD001      804.0  area ratio 0.56 outside 1 +/- 0.10
+08LF080       30.2  area ratio 1.12 outside 1 +/- 0.10
+08MA003     1528.0  area ratio 1.15 outside 1 +/- 0.10
+08MH029      144.8  area ratio 1.19 outside 1 +/- 0.10
+08NK021      117.0  area ratio 1.11 outside 1 +/- 0.10
+08NM242        4.1  area ratio 0.56 outside 1 +/- 0.10
+10BE001   104300.0  area ratio 0.88 outside 1 +/- 0.10
+10BE005   118600.0  area ratio 0.89 outside 1 +/- 0.10
+10BE006    61660.0  area ratio 0.78 outside 1 +/- 0.10
+
+## Short-record stations for the pooled-zone test (#43; never in a fit)
+natural, 1 to 9 complete years: 137; snapped within +/- 10 %: 117

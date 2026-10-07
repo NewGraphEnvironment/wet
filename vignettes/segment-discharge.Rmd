@@ -114,9 +114,9 @@ sk$basin <- basin_of(sk$station_number)
 
 wet gives every stream segment of British Columbia's Freshwater Atlas a mean
 annual discharge: the average flow, in cubic metres per second, over
-1981–2010. This article explains what that number is, which of wet's two
-estimates to use, how close it comes to measured flow, and where it is
-weakest.
+1981–2010. This article explains what that number is, the two estimates
+behind it and what each suits, how close they come to measured flow, and
+where they are weakest.
 
 ## What mean annual discharge is
 
@@ -163,8 +163,8 @@ The terms used below:
   the method behind the province's
   [water tools](https://www2.gov.bc.ca/gov/content/environment/air-land-water/water/water-science-data/water-data-tools).
   Precipitation less evapotranspiration per grid cell is averaged upstream,
-  then adjusted by hydrologic zone against HYDAT gauges. Its code and inputs
-  ship with wet.
+  then adjusted by hydrologic zone against HYDAT gauges. Its code ships
+  with wet, and its inputs are public.
 - **[Hydrologic zone](https://catalogue.data.gov.bc.ca/dataset/bc-hydrologic-zones)**:
   one of BC's `r nrow(map$zones)` regions of similar runoff. The balance fits
   one adjustment per zone.
@@ -179,84 +179,88 @@ The terms used below:
   scale runs through every figure: more than `r err_cut`% under,
   0–`r err_cut`% under, 0–`r err_cut`% over, more than `r err_cut`% over.
 
-## Which estimate to use
+## Two estimates
 
 ```{r compare-data}
 both <- sk[sk$in_pcic & !is.na(sk$fwapg_mm), ]
 both$fw_err <- 100 * (both$fwapg_mm / both$obs - 1)
-n_pcic <- sum(sk$in_pcic)
 n_both <- nrow(both)
 stopifnot(all(!is.na(both$basin)))   # every scored gauge is in the Peace, Fraser or Columbia
 mae_wb <- mean(abs(both$err_pct))
 mae_fw <- mean(abs(both$fw_err))
-# the pre-set rule (#39): the recommendation was to be reopened if the balance
-# were more than 5 points worse than fwapg at these gauges. It fired at 5.03 and
-# the recommendation was kept on the record (2026-10-06); the prose says the gap
-# is just past the line, so a rebuild that moves it far either way stops here
-rule_cut <- 5
-rule_gap <- mae_wb - mae_fw
-stopifnot(round(rule_gap, 2) > rule_cut, rule_gap < rule_cut + 1)   # as printed
-# the prose: fwapg is the closer of the two here, and the gauges it cannot
-# score are larger than the ones it can
-stopifnot(mae_fw < mae_wb)
+in20_wb <- mean(abs(both$err_pct) <= err_cut)
+in20_fw <- mean(abs(both$fw_err) <= err_cut)
+# the guidance: PCIC fits the gauges both cover more closely
+stopifnot(mae_fw < mae_wb, in20_fw > in20_wb)
+# the large-river row: gauges in PCIC's area on rivers fwapg leaves out, where
+# the balance scores better than its average
 dropped <- sk[sk$in_pcic & is.na(sk$fwapg_mm), ]
 stopifnot(stats::median(dropped$area_km2) > stats::median(both$area_km2),
           mean(abs(dropped$err_pct)) < mae_wb)
 o8 <- prov$fwapg_order8
-# the prose: fwapg has values on almost none of the largest rivers
-stopifnot(o8[["valued"]] < 0.01 * o8[["segments"]])
-score_row <- function(lab, i) {
-  i <- rep_len(i, nrow(both))
-  data.frame(Gauges = lab, n = sum(i),
-             `Error, balance` = pct1(mean(abs(both$err_pct[i]))), `Error, fwapg` = pct1(mean(abs(both$fw_err[i]))),
-             `Within ±20%, balance` = pct(100 * mean(abs(both$err_pct[i]) <= err_cut)),
-             `Within ±20%, fwapg` = pct(100 * mean(abs(both$fw_err[i]) <= err_cut)),
-             check.names = FALSE)
-}
-score_tab <- rbind(score_row("All", TRUE),
-                   score_row("Headwater", both$nesting == "headwater"),
-                   score_row("Nested", both$nesting == "nested"),
-                   score_row("Peace", both$basin == "Peace"),
-                   score_row("Fraser", both$basin == "Fraser"),
-                   score_row("Columbia", both$basin == "Columbia"))
+stopifnot(o8[["valued"]] < 0.01 * o8[["segments"]])   # "rivers of order 8 and up are left out"
+# grid cells in km at the Salmon River's latitude
+lat_salr <- sf::st_coordinates(sf::st_transform(sf::st_centroid(sf::st_geometry(
+  map$groups[map$groups$watershed_group_code == "SALR", ])), 4326))[[1, 2]]   # unnamed: c(ew = x) keeps x's name
+cell_km <- function(deg) c(ns = deg * 111.2, ew = deg * 111.2 * cos(lat_salr * pi / 180))
+km_pcic <- cell_km(0.0625)
+km_wb <- cell_km(30 / 3600)
+fmt_cell <- function(k, d) sprintf("about %s × %s km", format(round(k[["ns"]], d), nsmall = d),
+                                   format(round(k[["ew"]], d), nsmall = d))
+models <- data.frame(
+  ` ` = c("What it is", "Where it has values", sprintf("Fit at the %d gauges both cover", n_both),
+          "Largest rivers", "Grid", "Time", "Open to rebuild"),
+  `PCIC VIC-GL, through fwapg` = c(
+    "A physically based model of snow, glaciers, soil and runoff, calibrated over 1985–2005",
+    sprintf("Peace, Fraser and Columbia (%d watershed groups); fwapg's table leaves out rivers of order 8 and up",
+            prov$fwapg_groups),
+    sprintf("%s mean absolute error; %s within ±%d%%", pct1(mae_fw), pct(100 * in20_fw), err_cut),
+    "Not in fwapg's table; wet can rebuild them from PCIC's output (`scripts/mad_basin.R`, run for the Fraser)",
+    sprintf("0.0625°, %s", fmt_cell(km_pcic, 0)),
+    "Daily, 1945–2012; twelve climate projections to 2099",
+    "Output is public; the model runs are PCIC's"),
+  `wet's open water balance` = c(
+    "Precipitation less evapotranspiration per grid cell, adjusted by hydrologic zone against HYDAT gauges",
+    "All of BC: every segment with a watershed",
+    sprintf("%s mean absolute error (held out); %s within ±%d%%", pct1(mae_wb), pct(100 * in20_wb), err_cut),
+    sprintf("%s mean absolute error at the %d gauges in PCIC's area where fwapg has no value, mostly on these",
+            pct1(mean(abs(dropped$err_pct))), nrow(dropped)),
+    sprintf("30″, %s", fmt_cell(km_wb, 1)),
+    "1981–2010 normals, annual and monthly",
+    "Code ships with wet; its inputs are public and fetched by its scripts"),
+  check.names = FALSE
+)
 err_lim <- c(-100, 200)
 n_off <- sum(both$err_pct > err_lim[2] | both$fw_err > err_lim[2])
 cap_cmp <- sprintf(paste(
-  "Held-out error of the water balance against fwapg's error, at the %d calibration gauges where",
-  "fwapg has a value. The shaded square holds the gauges both products put within ±%d%%. Between the",
-  "dashed diagonals, the left and right wedges hold gauges where the balance is closer, the top and",
-  "bottom wedges those where fwapg is.%s"
+  "Error at each of the %d calibration gauges both estimates cover: fwapg's across, the water balance's",
+  "(held out) up. The shaded square holds the gauges both put within ±%d%%. Between the dashed diagonals,",
+  "the left and right wedges hold gauges where the balance is closer, the top and bottom wedges those",
+  "where fwapg is.%s"
 ), n_both, err_cut,
 if (n_off) sprintf(" %d gauge%s beyond +%d%% %s drawn at the edge.", n_off, if (n_off > 1) "s" else "",
                    err_lim[2], if (n_off > 1) "are" else "is") else "")
 ```
 
-**Use wet's open water balance everywhere, and read fwapg beside it where
-fwapg has a value.** Two reasons favour the balance, and one favours fwapg.
+Two estimates of mean annual discharge are available per segment, built
+different ways. They suit different jobs.
 
-The balance covers the province. fwapg covers `r prov$fwapg_groups`
-watershed groups in the Peace, Fraser and Columbia. Even there it skips the
-largest rivers: of the `r num(o8[["segments"]])` segments of order 8 and up,
-the Fraser and Thompson among them, it gives a value on
-`r o8[["valued"]]`.
+```{r models}
+knitr::kable(models, align = "lll", row.names = FALSE,
+             caption = paste(
+               "The two estimates. The balance is scored at gauges held out of its fit; the gauges PCIC",
+               "calibrated to are not listed with its output. The two fits are not strictly like for like."
+             ))
+```
 
-The balance's code and inputs ship with wet, so a wrong value can be traced
-to its cause and fixed in the open. fwapg republishes PCIC's model output,
-which wet can reproduce but not re-run.
+Which to use depends on the job:
 
-fwapg is the closer of the two where both can be scored. At the
-`r n_both` calibration gauges with a fwapg value, its mean absolute error is
-`r pct1(mae_fw)` against the balance's `r pct1(mae_wb)`. The two numbers are
-not quite like for like. The balance's is out of sample, and slightly
-optimistic, because its final variant was chosen after its first failed. Some
-of fwapg's may be in sample: PCIC calibrated VIC-GL over 1985–2005, and which
-gauges it was calibrated on is not published with fwapg's values. The comparison also leaves out the `r nrow(dropped)` gauges in
-PCIC's groups where fwapg has no value, mostly large rivers, where the balance
-does best. So where fwapg has a value and the two disagree, check the nearest
-gauge before trusting either. A rule set before this comparison was run
-would reopen the recommendation if the balance were more than `r rule_cut`
-points worse. It is `r format(round(rule_gap, 2), nsmall = 2)` points worse,
-just past that line, and the recommendation stands on the first two reasons.
+- Inside the Peace, Fraser and Columbia, where fwapg has a value: PCIC's
+  model, which fits gauges more closely there.
+- Outside those basins, on the rivers fwapg leaves out, or for one consistent
+  layer across BC: the open water balance.
+- Where both exist and the number matters: both, checked against the nearest
+  gauge, as the Salmon River section below does.
 
 ```{r compare, fig.width = 5.5, fig.height = 5.5, out.width = "80%", fig.cap = cap_cmp}
 sq <- data.frame(xmin = -err_cut, xmax = err_cut, ymin = -err_cut, ymax = err_cut)
@@ -281,14 +285,6 @@ ggplot(both_plot, aes(fw_err, err_pct)) +
            colour = pal_par$values[["one_to_one"]]) +
   coord_equal() +
   labs(x = "fwapg error", y = "Water balance error (held out)")
-```
-
-```{r compare-table}
-knitr::kable(score_tab, align = "lrrrrr", row.names = FALSE,
-             caption = sprintf(paste(
-               "Mean absolute error and share of gauges within ±%d%% for each product, at the %d",
-               "calibration gauges where both have a value, by gauge type and by basin."
-             ), err_cut, n_both))
 ```
 
 ## How close it is, province-wide
@@ -495,12 +491,17 @@ ga$wb_share <- log(ga$wb_mm / ga$obs_mm) / log(ga$wb_mm / ga$fwapg_mm)
 ga$close <- abs(ga$fw_err) <= 5   # a column, so it follows the reorder below
 close <- ga$close
 # the prose: the balance reads high at every gauge; at the small basins fwapg is
-# within 5% and the gap is nearly all the balance's; at the large ones, the
-# outlet among them, fwapg is low and the two share it
+# within 5% and the gap is nearly all the balance's; at the large ones fwapg is
+# low
 stopifnot(ratio_salr > 1, all(ga$wb_err > 0), nrow(outlet) == 1,
           any(close), any(!close), max(ga$area_km2[close]) < min(ga$area_km2[!close]),
           all(ga$wb_share[close] > 0.9), all(ga$fw_err[!close] < -5),
-          all(ga$wb_share[!close] > 0.25 & ga$wb_share[!close] < 0.75), !close[ga$holds_salr])
+          !close[ga$holds_salr])
+# the larger basins off the group: the balance within 5%, so the gap there is
+# nearly all fwapg's; at the outlet the two bracket the observation and share it
+ga$far <- !ga$close & !ga$holds_salr   # a column, so it follows the reorder below
+stopifnot(sum(ga$far) >= 1, all(abs(ga$wb_err[ga$far]) <= 5), all(ga$wb_share[ga$far] < 0.25),
+          outlet$wb_err > 0, outlet$fw_err < 0, ga$wb_share[ga$holds_salr] > 0.25, ga$wb_share[ga$holds_salr] < 0.75)
 ga <- ga[order(!ga$holds_salr, ga$area_km2), ]
 close <- ga$close
 named <- c(named, ga$station_number)
@@ -551,18 +552,19 @@ prov$min_order)
 ```
 
 Both products cover the `r group_name[["SALR"]]`, a headwater group of the
-Fraser (`r num(group_km2[["SALR"]])` km²), and they disagree there. The open
+Fraser (`r num(group_km2[["SALR"]])` km²), and they differ there. The open
 water balance gives a median `r format(round(ratio_salr, 2), nsmall = 2)`
 times fwapg's value per segment. The `r nrow(ga)` gauges in and around the
-group show where each misses.
+group show which is closer where.
 
 The balance runs high at all of them, by `r signed(min(ga$wb_err))` to
 `r signed(max(ga$wb_err))`. At the `r sum(close)` smallest basins, fwapg is
 within 5%, so the gap there is the balance's. At the `r sum(!close)` larger
 ones, fwapg runs `r signed(max(ga$fw_err[!close]))` to
-`r signed(min(ga$fw_err[!close]))`, and the two share the gap. At
-`r outlet$station_number`, the gauge that drains the whole group, they
-bracket the observation: `r signed(outlet$wb_err)` against
+`r signed(min(ga$fw_err[!close]))`. At the `r sum(ga$far)` of those off the
+group, the balance is within `r pct(max(abs(ga$wb_err[ga$far])))`, so the gap
+there is fwapg's. At `r outlet$station_number`, the gauge that drains the
+whole group, they bracket the observation: `r signed(outlet$wb_err)` against
 `r signed(outlet$fw_err)`.
 
 ```{r gauges-salr}
@@ -708,20 +710,24 @@ stale <- prov$upstream_area_100
 # the bullet: stale polygons exist in the Fraser, and none moves a SALR segment
 stopifnot(stale[["stale"]] > 0, prov$salr_stale_segments == 0)
 small_share <- mean(v$sampling$upstream_area_km2 < small_km2)
+# the bullet: the adjustment ships although the headwater gate does not pass
+# (a recorded override, #43), and pooled zones get none
+stopifnot(isTRUE(prov$keep_adjust), isFALSE(prov$gate_pass), identical(prov$pooled_variant, "none"))
 ```
 
 In order of how much they affect a user:
 
-- **Coverage.** Outside the Peace, Fraser and Columbia, and on the
-  segments fwapg leaves empty inside them, the open water balance is the only
-  estimate. A model that classifies habitat on fwapg's discharge gets nothing
-  there.
+- **Coverage.** Outside the Peace, Fraser and Columbia, the open water
+  balance is the only estimate.
 - **Dry zones.** In zone `r worst` and the other semi-arid interior zones,
   runoff is a small remainder of precipitation, so a small error in
-  evapotranspiration is a large one in runoff. The zone adjustment
-  passes its gate only under a variant offered after the pre-set one failed,
-  so all the skill figures here are mildly optimistic
-  (`research/water_balance_method.md`).
+  evapotranspiration is a large one in runoff.
+- **The zone adjustment is a close call on headwater basins.** On headwater
+  gauges it does not beat raw precipitation less evapotranspiration, and it is
+  kept by a recorded decision for what it does on larger rivers
+  (`research/water_balance_method.md`, "Refit on HYDAT 2026-07-17"). Zones
+  with too few gauges for their own adjustment get none, a choice tested on
+  short-record gauges no fit uses.
 - **Small streams.** Gauged basins under `r small_km2` km² average
   `r pct(mae_small)` error, and `r pct(100 * small_share)` of the
   `r group_name[["SALR"]]`'s watersheds with a stream are that small.
@@ -751,10 +757,8 @@ moved <- tapply(abs(sm$change) > 5, sm$size, mean)
 q99 <- tapply(abs(sm$change), sm$size, stats::quantile, 0.99)
 # the prose: small watersheds move, large ones barely
 stopifnot(moved[[1]] > moved[[3]], q99[[1]] > 5 * q99[[3]])
-# PCIC's 0.0625-degree cell, in km at the group's latitude
-lat <- sf::st_coordinates(sf::st_transform(sf::st_centroid(sf::st_geometry(salr)), 4326))[, 2]
-cell_ns <- 0.0625 * 111.2
-cell_ew <- cell_ns * cos(lat * pi / 180)
+cell_ns <- km_pcic[["ns"]]   # the table's PCIC cell, at the same latitude
+cell_ew <- km_pcic[["ew"]]
 cap_samp <- sprintf(paste(
   "Change in mean annual runoff from area-weighted sampling, against centroid sampling, for",
   "the %s %s watersheds that carry a stream. Upstream area is on a logarithmic axis."
@@ -778,10 +782,10 @@ ggplot(sm, aes(upstream_area_km2, change)) +
   labs(x = "Upstream area (km²)", y = "Change (%)")
 ```
 
-fwapg's stored upstream area is a stale snapshot. In the Fraser,
-`r num(stale[["stale"]])` of `r num(stale[["polygons"]])` polygons carry a
-stored area that differs from the area accumulated from the Freshwater Atlas
-today. None of them changes a `r group_name[["SALR"]]` segment, so the match
+fwapg stores each watershed's upstream area from an earlier build of the
+Freshwater Atlas. In the Fraser, `r num(stale[["stale"]])` of
+`r num(stale[["polygons"]])` polygons carry a stored area that differs from the
+area accumulated from the Atlas today. None of them changes a `r group_name[["SALR"]]` segment, so the match
 above does not test it. wet uses the accumulated area except when it
 reproduces fwapg.
 
