@@ -87,20 +87,20 @@ No package code changes, so no fit goes stale and everything runs on m1.
 
 ## Phase 2: Observations (no product values)
 
-- [ ] `scripts/wb_plateau_p.R` stage 1: fetch and cache the snow-course archive and locations, the ASWS daily archive, the `PC_Archive`/`PC` hourly files and the station locations, under `data/plateau_p/`. Caches are keyed on content md5 and the script.
-- [ ] Zones by intersection with `data/hydz/bc_hydrologic_zones.zip`. Elevation, PCIC-domain flag, and PRISM-input flag (PCDS ENV-ASP climatology list).
-- [ ] Completeness rules:
+- [x] `scripts/wb_plateau_p.R` stage 1: fetch and cache the snow-course archive and locations, the ASWS daily archive, the `PC_Archive`/`PC` hourly files and the station locations, under `data/plateau_p/`. Caches are keyed on content md5 and the script.
+- [x] Zones by intersection with `data/hydz/bc_hydrologic_zones.zip`. Elevation, PCIC-domain flag, and PRISM-input flag (PCDS ENV-ASP climatology list).
+- [x] Completeness rules:
   - snow courses: survey date within the April 1 window;
   - gauges: complete water years (≥ 330 days daily; hourly PC resets and gaps handled; counted).
-- [ ] In-situ catch per ASWS site (observations only).
-- [ ] Inventory section of the report: sites per zone and group, elevations, years, flags.
+- [x] In-situ catch per ASWS site (observations only).
+- [x] Inventory section of the report: sites per zone and group, elevations, years, flags.
 
 ## Phase 3: Products at the sites, and the verdict
 
-- [ ] climr per-year monthly PPT at each site (`climr::downscale`, mswx.blend, ≤ 2024).
-- [ ] PNWNAmet: PCIC `PREC` daily for each site's cell, ≤ 2012. Reuse the cached `data/pcic/` years, fetch any missing ones, report the cell index.
-- [ ] TerraClimate monthly `ppt` for each site's cell, by year, ≤ 2024 (subset fetch, cached).
-- [ ] T1–T3, per zone, pooled dry and contrast, with leave-one-out. Write `data/checks/wb_plateau_p.txt` (tracked; observations do not depend on the HYDAT release) and the per-site rds under `data/plateau_p/`.
+- [x] climr per-year monthly PPT at each site (`climr::downscale`, mswx.blend, ≤ 2024).
+- [x] PNWNAmet: PCIC `PREC` daily for each site's cell, ≤ 2012. Reuse the cached `data/pcic/` years, fetch any missing ones, report the cell index.
+- [x] TerraClimate monthly `ppt` for each site's cell, by year, ≤ 2024 (subset fetch, cached).
+- [x] T1–T3, per zone, pooled dry and contrast, with leave-one-out. Write `data/checks/wb_plateau_p.txt` (tracked; observations do not depend on the HYDAT release) and the per-site rds under `data/plateau_p/`.
 
 ## Phase 4: Write-up
 
@@ -112,6 +112,6 @@ No package code changes, so no fit goes stale and everything runs on m1.
 
 - [ ] Tests pass (`devtools::test()`; no package code expected to change)
 - [ ] `/code-check` clean on each commit (the script gets the full rounds, ending with an enumeration of its caches)
-- [ ] The report reproduces byte-identical on a second run from cache
+- [x] The report reproduces byte-identical on a second run from cache
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
