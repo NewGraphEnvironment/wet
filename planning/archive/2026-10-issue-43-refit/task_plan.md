@@ -75,11 +75,11 @@
 
 ## Validation
 
-- [ ] Tests pass
-- [ ] `/code-check` clean on each commit
-- [ ] Phase 3 reproduces the 2025-10-14 fit exactly
-- [ ] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion, then `/gh-pr-push`
+- [x] Tests pass
+- [x] `/code-check` clean on each commit
+- [x] Phase 3 reproduces the 2025-10-14 fit exactly
+- [x] PWF checkboxes match landed work
+- [x] `/planning-archive` on completion, then `/gh-pr-push`
 
 ### Critical files
 
