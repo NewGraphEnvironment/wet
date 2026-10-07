@@ -5,7 +5,7 @@ HYDAT release: 2026-07-17 08:08:08.000
 stations: 336 accepted snaps, 336 with predictors; 315 calibrated on (basin >= 95 % in BC and on the grid)
 pooled zones in the shipped fit (fewer than 8 stations with their largest share): 16 12 17 09 04 02 05 06 11
 zones no calibration station touches (no adjustment): 
-pooled zones: one fitted 'other' level, or no adjustment, chosen by an inner blocked CV on each fold's training stations; blocked-CV folds chose other 0 / none 94; the shipped fit (chosen over all stations): none
+pooled zones: 'none', fixed on short-record gauges no fit uses (scripts/wb_pooled_test.R, #43); every fold and the shipped fit use it
 held-out stations predicted with their zone pooled in the fold: blocked CV 120, LOO 50; held-out predictions floored to 0: blocked CV 0, LOO 1
 folds: 94 WSC sub-sub-drainages; headwater 238, nested 77; nested with upstream leak > 0: 18 (median leak 0.35)
 observed mm use the accumulated FWA area; FWA / HYDAT gross area median 1.000
@@ -14,8 +14,9 @@ Metrics: error = 100 (mod - obs) / obs on annual runoff; NSE on the 12-month cli
 and on the shares. Chapman et al. (2018) report, for their adjusted model on 45 NE BC gauges:
 MAE 16.1 %, 77.8 % within +/- 20 %, median monthly NSE 0.92.
 
-GATE (adjusted beats raw P - AET on headwater stations, blocked CV): FAIL - adjustment dropped (MAE 30.7 % vs 30.7 %)
-Under the pre-set specification (pooled zones share one fitted 'other' level) the gate FAILS: 42.0 % vs 30.7 %. Which to ship is an open decision for the maintainer.
+GATE (adjusted beats raw P - AET on headwater stations, blocked CV): FAIL within the recorded tie tolerance of 0.10 point - adjustment kept by override (MAE 30.72 % vs 30.69 %)
+override (adjust_override.txt): user (airvine), 2026-10-06, #43: the headwater gate is a 0.03-point tie (adjusted 30.72 vs raw 30.69 %); without the adjustment the main stems read low (Peace 0.77, Skeena 0.68, Nass 0.64 of observed); see #47
+The pooled-zone variant was fixed outside the calibration gauges (pooled_variant.txt), so the headline has no selection caveat. test-gauge MAE on 39 decision gauges: other 80.2 %, none 46.5 %
 
 ### Raw P - AET (no fitting)
 group      value                 n n_low    mean%  median%    MAE%   in20%  logbias  logsd   NSE_mon   NSE_shr
@@ -60,7 +61,7 @@ lake       not lake outlet     296     0      0.5    -12.4    29.0    44.9   -0.
 
 headwater stations, blocked CV MAE, raw -> adjusted: own zone in fold (n 151) 28.5 -> 28.3 %; pooled in fold (n 87) 34.4 -> 34.9 %
 
-### Adjusted, blocked CV, pooled variant chosen inside each fold (headline; CAVEAT: the 'none' candidate was added after the pre-set 'other' specification failed the gate, so this is mildly optimistic)
+### Adjusted, blocked CV, pooled variant fixed to 'none' (headline)
 group      value                 n n_low    mean%  median%    MAE%   in20%  logbias  logsd   NSE_mon   NSE_shr
 all        all                 315     0      8.5     -3.6    27.5    52.7   -0.037  0.321      0.71      0.86
 nesting    headwater           238     0     11.5     -0.6    30.7    47.1   -0.006  0.345      0.68      0.85
@@ -103,7 +104,7 @@ lake       not lake outlet     296     0      8.9     -3.2    27.8    52.7   -0.
 zone_in_fold own zone            195     0     10.0      2.7    26.6    54.4    0.027  0.308      0.63      0.82
 zone_in_fold pooled              120     0      5.9     -8.3    29.0    50.0   -0.087  0.340      0.80      0.91
 
-### Adjusted, leave-one-out, pooled variant chosen inside each fold (comparable with Chapman)
+### Adjusted, leave-one-out, pooled variant fixed to 'none' (comparable with Chapman)
 group      value                 n n_low    mean%  median%    MAE%   in20%  logbias  logsd   NSE_mon   NSE_shr
 all        all                 315     0      7.3     -1.2    25.4    56.8   -0.011  0.300      0.73      0.87
 nesting    headwater           238     0      9.7      0.3    28.5    52.1    0.006  0.323      0.69      0.85

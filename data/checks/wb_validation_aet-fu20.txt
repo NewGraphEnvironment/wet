@@ -14,7 +14,7 @@ Metrics: error = 100 (mod - obs) / obs on annual runoff; NSE on the 12-month cli
 and on the shares. Chapman et al. (2018) report, for their adjusted model on 45 NE BC gauges:
 MAE 16.1 %, 77.8 % within +/- 20 %, median monthly NSE 0.92.
 
-GATE (adjusted beats raw P - AET on headwater stations, blocked CV): PASS - adjustment kept (MAE 37.8 % vs 42.8 %)
+GATE (adjusted beats raw P - AET on headwater stations, blocked CV): PASS - adjustment kept (MAE 37.85 % vs 42.75 %)
 Under the pre-set specification (pooled zones share one fitted 'other' level) the gate FAILS: 42.7 % vs 42.8 %. Which to ship is an open decision for the maintainer.
 
 ### Raw P - AET (no fitting)

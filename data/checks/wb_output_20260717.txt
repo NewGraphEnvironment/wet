@@ -1,6 +1,6 @@
 # Open water balance: province output (#11)
 
-province run: 962a9cc2c4; annual AET: cfu; adjustment not applied (gate failed)
+province run: 962a9cc2c4; annual AET: cfu; adjustment applied
 watersheds: 3245453 in 24 top-level basins; rows: 42190889 (annual + 12 months)
 annual NA: 22041; coverage < 0.9: 39288; bc_fraction < 0.95: 76431
 
@@ -34,12 +34,12 @@ annual NA: 22041; coverage < 0.9: 39288; bc_fraction < 0.95: 76431
 Regulated gauges keep their mean annual flow except where water is diverted out of the basin:
 the Nechako (Kemano) diversion takes Fraser water to the coast above 08MF005.
 station  name                                  area_km2   obs_m3s   mod_m3s  ratio  in_bc
-07FD002  PEACE RIVER NEAR TAYLOR                 100760    1461.5    1126.1   0.77   1.00
-08CE001  STIKINE RIVER AT TELEGRAPH CREEK         28932     414.7     361.3   0.87   1.00
-08DB001  NASS RIVER ABOVE SHUMAL CREEK            18295     769.4     489.7   0.64   1.00
-08EF001  SKEENA RIVER AT USK                      42260     901.2     612.7   0.68   1.00
-08LF051  THOMPSON RIVER NEAR SPENCES BRIDGE       55439     763.7     746.7   0.98   1.00
-08MF005  FRASER RIVER AT HOPE                    216660    2656.4    2461.8   0.93   1.00
-08NE049  COLUMBIA RIVER AT BIRCHBANK              87443    1998.1    1776.8   0.89   0.86
+07FD002  PEACE RIVER NEAR TAYLOR                 100760    1461.5    1354.8   0.93   1.00
+08CE001  STIKINE RIVER AT TELEGRAPH CREEK         28932     414.7     412.0   0.99   1.00
+08DB001  NASS RIVER ABOVE SHUMAL CREEK            18295     769.4     624.0   0.81   1.00
+08EF001  SKEENA RIVER AT USK                      42260     901.2     730.7   0.81   1.00
+08LF051  THOMPSON RIVER NEAR SPENCES BRIDGE       55439     763.7     860.0   1.13   1.00
+08MF005  FRASER RIVER AT HOPE                    216660    2656.4    2701.7   1.02   1.00
+08NE049  COLUMBIA RIVER AT BIRCHBANK              87443    1998.1    2074.3   1.04   0.86
 
 PCIC VIC-GL through wet at 08MF005, area-weighted (data/basin/100_report.txt): 2477 m3/s

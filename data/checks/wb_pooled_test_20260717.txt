@@ -1,0 +1,25 @@
+# Pooled-zone adjustment settled on gauges no fit uses (#43)
+
+fit: province run 962a9cc2c4, HYDAT release 2026-07-17 08:08:08.000, annual AET cfu
+pooled zones (all calibration gauges): 16 12 17 09 04 02 05 06 11
+
+test gauges at each filter:
+  short_record      137
+  snapped           117
+  with_predictors   117
+  in_bc_on_grid     115
+  not_channel       110
+  obs_ge_10mm       110
+each predicted from fits leaving out the calibration gauges in its sub-sub-drainage (55 of them)
+decision gauges (dominant zone pooled in the fit that predicts them): 39
+
+MAE (%) on annual runoff:
+  other  decision   80.2   all test gauges   55.3
+  none   decision   46.5   all test gauges   43.5
+  raw                       all test gauges   41.6
+other - none on the decision gauges: +33.67 points; paired bootstrap 95 % interval +9.06 to +62.27 (context)
+
+rule: fewer than 10 decision gauges is uninformative; within 1.0 point fixes the nested choice over all calibration gauges (none); otherwise the lower
+OUTCOME: fixed 'none'
+  (the lower MAE on 39 decision gauges)
+test-gauge MAE of the fixed variant, decision gauges: 46.5 %
