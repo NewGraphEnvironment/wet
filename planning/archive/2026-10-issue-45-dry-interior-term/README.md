@@ -58,6 +58,6 @@ Also on this branch: README and DESCRIPTION brought up to what wet does (the wat
 - Per-basin data: `data/wb_term/diagnose_20260717.rds` on m1.
 - Reviews: `review-round{1,2,3}.md` in this directory.
 
-Open at archive: filing the plateau-precipitation follow-up issue, which waits for the user's OK on the draft.
+Follow-up filed after archive: #50 (plateau-elevation precipitation). #45 closed.
 
 Closed by: PR (this branch); #45 stays open until the follow-up is filed (`Relates to #45`).

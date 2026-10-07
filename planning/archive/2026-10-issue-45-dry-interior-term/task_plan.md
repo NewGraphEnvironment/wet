@@ -51,7 +51,7 @@ What exploration settled:
   - **Gauge side or unresolved:** no lever; name the evidence that would decide it
 - [x] Pre-register the scoring rule in the style of #15 (a)–(d), against the #43 baseline (fit_20260717, 27.5 % / 30.7 % headwater), plus a dry-zone criterion. Recorded in `findings.md` and the research subsection
 - [x] Edit the #45 body to the outcome (done 2026-10-07)
-- [ ] File the follow-up issue (plateau-elevation precipitation): drafted, shown to the user, awaiting OK; #45 body then gets its number
+- [x] File the follow-up issue (plateau-elevation precipitation): filed as #50; #45 body points to it, #45 closed
 
 ## Phase 3: README accuracy (requested 2026-10-07)
 - [x] README states what wet now covers (discharge, station flow departure, water temperature, open water balance), each checked against the exports and vignettes, not restated from memory
