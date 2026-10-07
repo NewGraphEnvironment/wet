@@ -30,8 +30,8 @@ if (length(missing_cv)) stop("run scripts/wb_validate.R first for: ", paste(miss
 # a winner is only ever the result of a complete comparison under this code
 # #15 is reproduced with the pooled variant chosen inside each fold, as it was
 # run: a fit whose variant is fixed (scripts/wb_pooled_test.R) cannot reproduce it
-if (file.exists(file.path(fit_dir, "pooled_variant.txt"))) {
-  stop("this fit's pooled variant is fixed: the #15 comparison runs without it")
+if (any(file.exists(file.path(fit_dir, c("pooled_variant.txt", "adjust_override.txt"))))) {
+  stop("this fit carries a fixed pooled variant or a gate override: the #15 comparison runs without either")
 }
 unlink(file.path(fit_dir, "aet_winner.txt"))
 eligible <- c("lc", "tc", "fu", "cfu")          # stage 1 (#15)

@@ -70,7 +70,9 @@ pooled_test <- if (file.exists(f_test)) readLines(f_test) else NULL
 if (!is.na(fixed_variant) && !fixed_variant %in% variants) stop("bad ", f_pooled)
 aet_v <- commandArgs(trailingOnly = TRUE)[1]
 if (is.na(aet_v)) aet_v <- ship_aet
-if (is.na(aet_v)) stop("no current AET winner for fit_", release, ": name the AET to score, or carry one (WET_AET_CARRY)")
+if (is.na(aet_v)) {
+  stop("no current AET winner for fit_", release, ": name the AET to score, or carry one (WET_AET_CARRY)")
+}
 cal$raw <- wet:::wet_wb_raw(cal, aet_v)
 raw_v <- wet_flow_validate(long(cal, pmax(cal$raw, 0), matrix(NA_real_, nrow(cal), 12)), groups)
 ship_variant <- if (is.na(fixed_variant)) choose_variant(cal) else fixed_variant
@@ -102,26 +104,41 @@ stamp("validation done")
 
 # gate: the adjustment must beat raw P - AET on headwater stations under blocked CV
 hw <- function(v) v$summary$mae_pct[v$summary$group == "nesting" & v$summary$value == "headwater"]
-keep_adjust <- hw(cv_v) < hw(raw_v)
+gate_pass <- hw(cv_v) < hw(raw_v)
+# A recorded override (<fit>/adjust_override.txt: a tolerance in points, then
+# who and why) keeps the adjustment when the gate fails by no more than that
+# tolerance: a tie the headwater-only gate cannot break, decided by the user
+# for #43's refit because the adjustment corrects the main stems the gate does
+# not score. A larger failure still drops the adjustment.
+f_override <- file.path(fit_dir, "adjust_override.txt")
+override <- if (file.exists(f_override)) readLines(f_override) else NULL
+tie_tol <- if (is.null(override)) NA_real_ else as.numeric(override[1])
+if (!is.null(override) && (is.na(tie_tol) || tie_tol < 0 || tie_tol > 0.5 || length(override) < 2)) {
+  stop(f_override, " needs a tolerance (0 to 0.5 point) on line 1 and who decided, and why, after it")
+}
+keep_adjust <- gate_pass || (!is.null(override) && hw(cv_v) - hw(raw_v) <= tie_tol)
 # a pooled variant fixed on the test gauges that drops the adjustment, so that
 # raw P - AET would ship, is not shipped on its own authority (#43): cfu was
 # chosen with the variant picked inside each fold
 if (!is.na(fixed_variant) && !keep_adjust && aet_v %in% ship_aet) {
-  stop("the fixed pooled variant '", fixed_variant, "' fails the headwater gate (", round(hw(cv_v), 1), " % vs raw ",
-       round(hw(raw_v), 1), " %): nothing ships until the user decides (#43)")
+  stop(sprintf("the fixed pooled variant '%s' fails the headwater gate (%.2f %% vs raw %.2f %%%s): %s",
+               fixed_variant, hw(cv_v), hw(raw_v),
+               if (is.null(override)) "" else sprintf(", beyond the override's %.2f point", tie_tol),
+               "nothing ships until the user decides (#43)"))
 }
 if (aet_v %in% ship_aet) {
   # outputs of any earlier fit go with it, so scripts/wb_map.R cannot draw them
   # beside this fit's stations; scripts/wb_output.R rebuilds them
   unlink(c(file.path(fit_dir, "runoff_annual.tif"), file.path(fit_dir, "output")), recursive = TRUE)
-  saveRDS(list(wb = ins_fit, share = ins_share, keep_adjust = keep_adjust, min_frac = min_frac,
+  saveRDS(list(wb = ins_fit, share = ins_share, keep_adjust = keep_adjust, gate_pass = gate_pass, min_frac = min_frac,
                calibration = cal$station_number, aet = aet_v, pooled_variant = ship_variant,
                pooled_fixed = !is.na(fixed_variant), release = release, code_md5 = score_code_md5,
                aet_md5 = aet_code_md5),
           file.path(fit_dir, "fits.rds"))
 }
 # per-station held-out predictions and summaries, for scripts/wb_aet_compare.R
-saveRDS(list(aet = aet_v, keep_adjust = keep_adjust, raw_v = raw_v, cv_v = cv_v, lo_v = lo_v, plain = plain,
+saveRDS(list(aet = aet_v, keep_adjust = keep_adjust, gate_pass = gate_pass, raw_v = raw_v, cv_v = cv_v, lo_v = lo_v,
+             plain = plain,
              ship_variant = ship_variant, station_number = cal$station_number, raw = cal$raw,
              cv_ann = cv$ann, cv_variant = cv_variant, nesting = cal$nesting, obs = cal$obs,
              release = release, code_md5 = score_code_md5),
@@ -172,8 +189,11 @@ writeLines(c(
   "and on the shares. Chapman et al. (2018) report, for their adjusted model on 45 NE BC gauges:",
   "MAE 16.1 %, 77.8 % within +/- 20 %, median monthly NSE 0.92.",
   "",
-  sprintf("GATE (adjusted beats raw P - AET on headwater stations, blocked CV): %s (MAE %.1f %% vs %.1f %%)",
-          if (keep_adjust) "PASS - adjustment kept" else "FAIL - adjustment dropped", hw(cv_v), hw(raw_v)),
+  sprintf("GATE (adjusted beats raw P - AET on headwater stations, blocked CV): %s (MAE %.2f %% vs %.2f %%)",
+          if (gate_pass) "PASS - adjustment kept" else if (keep_adjust) {
+            sprintf("FAIL within the recorded tie tolerance of %.2f point - adjustment kept by override", tie_tol)
+          } else "FAIL - adjustment dropped", hw(cv_v), hw(raw_v)),
+  if (!is.null(override)) sprintf("override (%s): %s", basename(f_override), paste(override[-1], collapse = " ")),
   if (is.na(fixed_variant)) {
     sprintf(paste("Under the pre-set specification (pooled zones share one fitted 'other' level) the gate",
                   "FAILS: %.1f %% vs %.1f %%. Which to ship is an open decision for the maintainer."),
@@ -213,4 +233,5 @@ writeLines(c(
 ), con)
 close(con)
 if (aet_v %in% ship_aet) invisible(file.copy(report, wb_report("wb_validation", release), overwrite = TRUE))
-stamp("report written (", aet_v, "); gate ", if (keep_adjust) "PASS" else "FAIL")
+stamp("report written (", aet_v, "); gate ", if (gate_pass) "PASS" else "FAIL",
+      "; adjustment ", if (keep_adjust) "kept" else "dropped")

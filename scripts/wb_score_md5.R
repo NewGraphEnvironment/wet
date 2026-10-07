@@ -22,15 +22,17 @@ score_files_for <- function(rel) {
 # checks the fit it carries from is current, not only self-consistent)
 aet_md5_for <- function(rel) wet_md5_text(unname(tools::md5sum(score_files_for(rel))))
 score_files <- score_files_for(release)
-# The AET choice (aet_winner.txt) is made, or carried, before any pooled-zone
-# variant is fixed, so it is checked against the md5 without one
-# (aet_code_md5). A variant fixed for this fit (scripts/wb_pooled_test.R, #43)
-# changes its scores and fits, so a fit made before it is stale after it:
-# score_code_md5 covers it.
+# The AET choice (aet_winner.txt) is made, or carried, before any per-fit
+# decision file, so it is checked against the md5 without them
+# (aet_code_md5). A pooled-zone variant fixed for this fit
+# (scripts/wb_pooled_test.R) or a recorded override of the headwater gate
+# (adjust_override.txt) changes its fits, so a fit made before either is stale
+# after it: score_code_md5 covers them (#43).
 aet_code_md5 <- aet_md5_for(release)
-f_pooled_md5 <- file.path(wb_fit_dir(wb_key_dir(), release), "pooled_variant.txt")
-score_code_md5 <- if (file.exists(f_pooled_md5)) {
-  wet_md5_text(unname(tools::md5sum(c(score_files, f_pooled_md5))))
+fit_decisions <- file.path(wb_fit_dir(wb_key_dir(), release), c("pooled_variant.txt", "adjust_override.txt"))
+fit_decisions <- fit_decisions[file.exists(fit_decisions)]
+score_code_md5 <- if (length(fit_decisions)) {
+  wet_md5_text(unname(tools::md5sum(c(score_files, fit_decisions))))
 } else {
   aet_code_md5
 }

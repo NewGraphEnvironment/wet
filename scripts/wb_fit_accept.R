@@ -39,7 +39,8 @@ scores <- lapply(args, function(r) {
   e <- x$cv_v$stations
   data.frame(station_number = x$station_number, nesting = x$nesting,
              err = e$err_pct[match(x$station_number, e$station_number)], aet = fits$aet,
-             gate = fits$keep_adjust)
+             # the gate itself, not an override of it
+             gate = if (is.null(fits$gate_pass)) fits$keep_adjust else fits$gate_pass)
 })
 old <- scores[[1]]
 new <- scores[[2]]
