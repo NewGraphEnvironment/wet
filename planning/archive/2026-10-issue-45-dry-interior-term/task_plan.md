@@ -32,7 +32,7 @@ What exploration settled:
 - [x] Independent P check: climr against ECCC 1981–2010 normals at **all** ECCC stations in the four dry zones, not only 'A'. Reuse the `wb_inputs.R` ECCC code path; report station elevation against basin elevation
 - [x] Write `data/checks/wb_term_diagnose_20260717.txt` (named by `wb_report()`) (tracked) with the per-zone attribution: ours (P or AET), theirs, gauge side or unresolved
 - [x] `research/water_balance_method.md` §0: new subsection "Which term is off in the dry interior (#45)" with header provenance. Update the Follow-ups and the zone 24 "Still unresolved" candidate list
-- [ ] Refresh #5's body: the #39 PCIC line moves to the fit_20260717 numbers and points at #45's diagnosis
+- [x] Refresh #5's body: the #39 PCIC line moves to the fit_20260717 numbers and points at #45's diagnosis
 
 **Pre-registered attribution rule:** superseded by `findings.md` ("Pre-registered attribution rule" and "Amendment 1"). The text below is the plan-gate proposal, kept for the record. For each zone, using medians over its in-domain gauges:
 - PCIC is a usable reference in a zone only if its median absolute log error against obs is ≤ 0.25 and its closure residual is ≤ 10 % of P.
@@ -50,14 +50,15 @@ What exploration settled:
   - **AET side:** ERA5-Land total evaporation through cd. File the cd issue for `total_evaporation` in the catalogue (draft shown first);
   - **Gauge side or unresolved:** no lever; name the evidence that would decide it
 - [x] Pre-register the scoring rule in the style of #15 (a)–(d), against the #43 baseline (fit_20260717, 27.5 % / 30.7 % headwater), plus a dry-zone criterion. Recorded in `findings.md` and the research subsection
-- [ ] File the follow-up issue to build and score the lever (draft shown in the conversation first); edit the #45 body so phases 2–3 point to it
+- [x] Edit the #45 body to the outcome (done 2026-10-07)
+- [ ] File the follow-up issue (plateau-elevation precipitation): drafted, shown to the user, awaiting OK; #45 body then gets its number
 
 ## Phase 3: README accuracy (requested 2026-10-07)
 - [x] README states what wet now covers (discharge, station flow departure, water temperature, open water balance), each checked against the exports and vignettes, not restated from memory
 
 ## Validation
 
-- [ ] Tests pass
-- [ ] `/code-check` clean on each commit
-- [ ] PWF checkboxes match landed work
+- [x] Tests pass (746, 0 fail; no package code changed)
+- [x] `/code-check` on the script commit: 3 rounds plus enumeration. The docs, research and report commits were self-reviewed against the report and the rds
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
