@@ -176,9 +176,10 @@ Our P exceeds PCIC's by more than twice our runoff gap, and our AET exceeds EVAP
 - **The three P products order the same way on the plateaus:** climr > TerraClimate > PNWNAmet. In zone 24, TerraClimate is 0.75 of climr.
 - **Corroboration (i′), implied ω > 5 under both PETs, holds in zone 24** at 4 of 8 basins: Beak, Whipsaw, Camp and Greata (ω 20.6 and 13.6). It fails elsewhere.
 - **The Fu counterfactual** on zone 24's 8 Fu-dominated basins puts the P term at 1,477 mm against a model term of 721 mm.
-- **ECCC cannot test plateau P.** Every ECCC station in the dry zones sits 200–1,300 m below the gauge basins (median basin elevation 1,345–1,553 m), so (ii′) is "unavailable" in all four zones.
+- **ECCC barely tests plateau P.** Most ECCC stations in the dry zones sit well below the gauge basins (median basin elevation 1,345–1,553 m).
+  - (ii′) is available in zone 15 only, where 6 stations give a median ratio of 1.05, which fails. It is "unavailable" in 17 (1 station), 23 and 24 (none).
   - At the valley stations climr runs high in places: Princeton 1.37, Spences Bridge 1.26, Beaverdell North 1.18, Hedley 1.17.
-  - The pooled-stratum median over 5 stations is 1.10.
+  - The pooled stratum's 5 stations give a median of 1.10.
 
 **Reading.** The weight of evidence leans to precipitation: climr's plateau P is high relative to two other gridded products, and the dry zones differ from the rest in P, not in AET. The registered rule does not reach a P verdict, because our AET model offsets more than half of the P difference. A P lever is therefore plausible, but **not established**.
 

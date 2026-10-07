@@ -31,7 +31,7 @@ What exploration settled:
   - implied AET / PET (Hargreaves `pet_yr`): a value above 1 means P is too high, or the gauge loses water
 - [x] Independent P check: climr against ECCC 1981–2010 normals at **all** ECCC stations in the four dry zones, not only 'A'. Reuse the `wb_inputs.R` ECCC code path; report station elevation against basin elevation
 - [x] Write `data/checks/wb_term_diagnose_20260717.txt` (named by `wb_report()`) (tracked) with the per-zone attribution: ours (P or AET), theirs, gauge side or unresolved
-- [ ] `research/water_balance_method.md` §0: new subsection "Which term is off in the dry interior (#45)" with header provenance. Update the Follow-ups and the zone 24 "Still unresolved" candidate list
+- [x] `research/water_balance_method.md` §0: new subsection "Which term is off in the dry interior (#45)" with header provenance. Update the Follow-ups and the zone 24 "Still unresolved" candidate list
 - [ ] Refresh #5's body: the #39 PCIC line moves to the fit_20260717 numbers and points at #45's diagnosis
 
 **Pre-registered attribution rule:** superseded by `findings.md` ("Pre-registered attribution rule" and "Amendment 1"). The text below is the plan-gate proposal, kept for the record. For each zone, using medians over its in-domain gauges:
