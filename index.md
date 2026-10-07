@@ -86,13 +86,15 @@ site](https://www.newgraphenvironment.com/wet/).
 |----|----|
 | **wet** | Stream flow per segment and per station, and station water temperature (this package) |
 | [fresh](https://github.com/NewGraphEnvironment/fresh) | Stream network modelling engine; its habitat rules can read mean annual discharge (`mad_m3s`) per segment |
+| [link](https://github.com/NewGraphEnvironment/link) | Habitat interpretation layer that runs fresh’s pipeline; reads mean annual discharge per segment through `lnk_discharge()` |
 | [cd](https://github.com/NewGraphEnvironment/cd) | Departure statistics (baseline, anomaly, trend) over wet’s per-year values, and ERA5-Land climate |
 | [gq](https://github.com/NewGraphEnvironment/gq) | Map symbology for the vignettes |
 | [water-temp-bc](https://github.com/NewGraphEnvironment/water-temp-bc) | Monthly archive of ECCC provisional hydrometric data (discharge and water temperature) that bridges HYDAT and real-time |
 
 **Pipelines:**
 
-- Fish habitat: wet (discharge) → fresh (segment attribute, `mad` rules)
+- Fish habitat: wet (discharge) → link (`lnk_discharge()`, pipeline) →
+  fresh (segment attribute, `mad` rules)
 - Flow departure: wet (per-year window values) → cd (baseline, anomaly,
   trend), against 1981–2010
 - Water-temperature departure: wet (per-year window values, °C) → cd,

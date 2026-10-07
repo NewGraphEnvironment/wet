@@ -136,6 +136,11 @@ The PCIC fetchers take PCIC’s climate-scenario runs through <code>run =</code>
 <td>Stream network modelling engine; its habitat rules can read mean annual discharge (<code>mad_m3s</code>) per segment</td>
 </tr>
 <tr>
+<td><a href="https://github.com/NewGraphEnvironment/link" class="external-link">link</a></td>
+<td>Habitat interpretation layer that runs fresh’s pipeline; reads mean annual discharge per segment through <code>lnk_discharge()</code>
+</td>
+</tr>
+<tr>
 <td><a href="https://github.com/NewGraphEnvironment/cd" class="external-link">cd</a></td>
 <td>Departure statistics (baseline, anomaly, trend) over wet’s per-year values, and ERA5-Land climate</td>
 </tr>
@@ -151,7 +156,7 @@ The PCIC fetchers take PCIC’s climate-scenario runs through <code>run =</code>
 </table>
 <p><strong>Pipelines:</strong></p>
 <ul>
-<li>Fish habitat: wet (discharge) → fresh (segment attribute, <code>mad</code> rules)</li>
+<li>Fish habitat: wet (discharge) → link (<code>lnk_discharge()</code>, pipeline) → fresh (segment attribute, <code>mad</code> rules)</li>
 <li>Flow departure: wet (per-year window values) → cd (baseline, anomaly, trend), against 1981–2010</li>
 <li>Water-temperature departure: wet (per-year window values, °C) → cd, against 2016–2025</li>
 </ul>
