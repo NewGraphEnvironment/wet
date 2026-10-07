@@ -1,44 +1,48 @@
 # Province output of the open water balance (#11, Phase 7).
 #
-#   Rscript scripts/wb_output.R
+#   WET_HYDAT=<Hydat.sqlite3 of the release> Rscript scripts/wb_output.R
 #
-# Applies the fits from scripts/wb_validate.R to the upstream means from
-# scripts/wb_province.R and writes, per top-level basin (gitignored):
-#   data/wb/<key>/output/<CODE>.parquet
+# Applies the fits from scripts/wb_validate.R, for one fit (the shipped
+# release unless WET_HYDAT_RELEASE says otherwise; scripts/wb_fit_lib.R), to
+# the upstream means from scripts/wb_province.R and writes, per top-level
+# basin (gitignored):
+#   <fit>/output/<CODE>.parquet
 #     watershed_feature_id, month (0 annual, 1-12), runoff_mm, discharge_m3s,
 #     coverage, bc_fraction
-# plus the tracked report data/checks/wb_output.txt and the annual runoff
-# grid data/wb/<key>/runoff_annual.tif (for the map).
+# plus the tracked report wb_report("wb_output", release) and the annual
+# runoff grid <fit>/runoff_annual.tif (for the map). WET_HYDAT must hold the
+# fit's release: the major-river check reads it.
 
 devtools::load_all(quiet = TRUE)
+source("scripts/wb_fit_lib.R")
 stamp <- function(...) message(format(Sys.time(), "%H:%M:%S"), " ", ...)
-keys <- list.dirs("data/wb", recursive = FALSE, full.names = TRUE)
-keys <- keys[file.exists(file.path(keys, "upstream", "_complete"))]
-if (length(keys) != 1) stop("expected one complete province run under data/wb, found ", length(keys))
-if (!file.exists(file.path(keys, "fits.rds"))) stop("run scripts/wb_validate.R first: no fits in ", keys)
-key_dir <- keys
-fits <- readRDS(file.path(key_dir, "fits.rds"))
-aet <- if (is.null(fits$aet)) "cgiar" else fits$aet  # fits from before #15 carry no aet: cgiar
-# Ship only a fit made under the current scoring code, and only the variant
-# the comparison chose under that code (scripts/wb_aet_compare.R, #15);
-# without a comparison, cgiar. The old outputs go first, so a refused fit never
+key_dir <- wb_key_dir()
+release <- wb_release()
+hydat <- wb_hydat(release)
+fit_dir <- wb_fit_dir(key_dir, release)
+if (!file.exists(file.path(fit_dir, "fits.rds"))) stop("run scripts/wb_validate.R first: no fits in ", fit_dir)
+fits <- readRDS(file.path(fit_dir, "fits.rds"))
+aet <- fits$aet
+# Ship only a fit made under the current scoring code, and only the AET chosen
+# (scripts/wb_aet_compare.R, #15) or carried (#43) under that code; without a
+# winner nothing ships. The old outputs go first, so a refused fit never
 # leaves the parquet or the map (scripts/wb_map.R) of an earlier one.
-unlink(c(file.path(key_dir, "runoff_annual.tif"), file.path(key_dir, "output")), recursive = TRUE)
+unlink(c(file.path(fit_dir, "runoff_annual.tif"), file.path(fit_dir, "output")), recursive = TRUE)
 source("scripts/wb_score_md5.R")  # score_code_md5
 if (!identical(fits$code_md5, score_code_md5)) {
   stop("fits.rds was made under other scoring code: rerun scripts/wb_validate.R (and the comparison)")
 }
-f_winner <- file.path(key_dir, "aet_winner.txt")
+f_winner <- file.path(fit_dir, "aet_winner.txt")
 if (file.exists(f_winner)) {
   w <- readLines(f_winner)
-  if (!identical(w[2], score_code_md5)) stop(f_winner, " was chosen under other code: rerun scripts/wb_aet_compare.R")
+  if (!identical(w[2], aet_code_md5)) stop(f_winner, " was chosen under other code: rerun the comparison or the carry")
   if (!identical(aet, w[1])) {
     stop("fits.rds ships ", aet, " but the comparison chose ", w[1], ": run scripts/wb_validate.R ", w[1])
   }
-} else if (aet != "cgiar") {
-  stop("fits.rds ships ", aet, " but no comparison chose it (no ", f_winner, ")")
+} else {
+  stop("fits.rds ships ", aet, " but no comparison or carry chose it (no ", f_winner, ")")
 }
-dir.create(file.path(key_dir, "output"), showWarnings = FALSE)
+dir.create(file.path(fit_dir, "output"), showWarnings = FALSE)
 days <- c(365.25, wet_month_days())
 
 # ---- per-watershed annual and monthly runoff -----------------------------------------------
@@ -63,9 +67,9 @@ for (f in list.files(file.path(key_dir, "upstream"), "\\.rds$", full.names = TRU
     coverage = rep(up$coverage, 13),
     bc_fraction = rep(up$bc_fraction, 13)
   )
-  tmp <- tempfile(fileext = ".parquet", tmpdir = file.path(key_dir, "output"))
+  tmp <- tempfile(fileext = ".parquet", tmpdir = file.path(fit_dir, "output"))
   arrow::write_parquet(out, tmp)
-  file.rename(tmp, file.path(key_dir, "output", paste0(code, ".parquet")))
+  file.rename(tmp, file.path(fit_dir, "output", paste0(code, ".parquet")))
   tally[[code]] <- data.frame(code = code, n = nrow(up), na_annual = sum(is.na(ann)),
                               low_cov = sum(up$coverage < 0.9, na.rm = TRUE),
                               out_bc = sum(up$bc_fraction < 0.95, na.rm = TRUE),
@@ -76,7 +80,6 @@ tally <- do.call(rbind, tally)
 
 # ---- mouths of major rivers against HYDAT ------------------------------------------------------
 mouths <- c("08MF005", "08LF051", "08EF001", "08DB001", "08CE001", "07FD002", "08NE049")
-hydat <- wet:::wet_hydat_path()
 con <- wet:::wet_hydat_connect(hydat)
 g <- DBI::dbGetQuery(con, sprintf("
   SELECT STATION_NUMBER station_number, STATION_NAME station_name, LONGITUDE lon, LATITUDE lat,
@@ -101,7 +104,7 @@ read_annual <- function(f) {
   x <- as.data.frame(arrow::read_parquet(f))
   x[x$month == 0 & x$watershed_feature_id %in% g$watershed_feature_id, ]
 }
-mod <- do.call(rbind, lapply(list.files(file.path(key_dir, "output"), "\\.parquet$", full.names = TRUE),
+mod <- do.call(rbind, lapply(list.files(file.path(fit_dir, "output"), "\\.parquet$", full.names = TRUE),
                              read_annual))
 g$mod_m3s <- mod$discharge_m3s[match(g$watershed_feature_id, mod$watershed_feature_id)]
 g$bc_fraction <- mod$bc_fraction[match(g$watershed_feature_id, mod$watershed_feature_id)]
@@ -122,10 +125,10 @@ if (fits$keep_adjust) {
 }
 ro <- terra::clamp(ro, lower = 0, values = TRUE)
 names(ro) <- "runoff_mm"
-terra::writeRaster(ro, file.path(key_dir, "runoff_annual.tif"), overwrite = TRUE)
+terra::writeRaster(ro, file.path(fit_dir, "runoff_annual.tif"), overwrite = TRUE)
 
 # ---- report -----------------------------------------------------------------------------------------
-con <- file("data/checks/wb_output.txt", "w")
+con <- file(wb_report("wb_output", release), "w")
 writeLines(c(
   "# Open water balance: province output (#11)", "",
   sprintf("province run: %s; annual AET: %s; adjustment %s", basename(key_dir), aet,

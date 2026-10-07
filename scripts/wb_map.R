@@ -2,15 +2,17 @@
 #
 #   Rscript scripts/wb_map.R
 #
-# Reads data/wb/<key>/runoff_annual.tif (scripts/wb_output.R) and the
-# calibration stations recorded in fits.rds, and writes the map as a PNG
-# under research/ (wb_runoff_annual).
+# Reads <fit>/runoff_annual.tif (scripts/wb_output.R) and the calibration
+# stations recorded in fits.rds, for the shipped fit (scripts/wb_fit_lib.R),
+# and writes the map as a PNG under research/ (wb_runoff_annual).
 
 devtools::load_all(quiet = TRUE)
+source("scripts/wb_fit_lib.R")
 sf::sf_use_s2(FALSE)
-keys <- list.dirs("data/wb", recursive = FALSE, full.names = TRUE)
-keys <- keys[file.exists(file.path(keys, "upstream", "_complete"))]
-if (length(keys) != 1) stop("expected one complete province run under data/wb, found ", length(keys))
+release <- wb_release()
+# the published map is the shipped fit's; drawing another fit would replace it
+if (release != wb_shipped_release) stop("the map is drawn for the shipped fit (", wb_shipped_release, ") only")
+keys <- wb_fit_dir(wb_key_dir(), release)
 if (!file.exists(file.path(keys, "runoff_annual.tif"))) stop("run scripts/wb_output.R first")
 cal_ids <- readRDS(file.path(keys, "fits.rds"))$calibration
 reg <- gq::gq_reg_main()
@@ -19,7 +21,7 @@ ro <- terra::rast(file.path(keys, "runoff_annual.tif"))
 ro <- terra::aggregate(ro, 4, mean, na.rm = TRUE)  # ~3 km for a page-width map
 ro <- terra::project(ro, "EPSG:3005", method = "bilinear")
 
-s <- readRDS("data/wb/stations.rds")$stations
+s <- readRDS(wb_stations_path(release))$stations
 s <- s[s$station_number %in% cal_ids, ]  # the calibration stations only
 pts <- sf::st_as_sf(s, coords = c("lon", "lat"), crs = 4326) |> sf::st_transform(3005)
 

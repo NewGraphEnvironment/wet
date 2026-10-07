@@ -30,11 +30,10 @@
 #   - provenance: the runs and reports these came from, and the numbers the
 #     vignette quotes about them
 #
-# The water-balance inputs are the province run under data/wb/ (scripts
-# wb_province.R, wb_validate.R, wb_aet_compare.R and wb_output.R), which is
-# keyed on HYDAT 2025-10-14 and cannot be rebuilt against a newer release
-# without changing the fit (CLAUDE.md, Data Sources). The script refuses a run
-# whose fit or comparison was made under other scoring code.
+# The water-balance inputs are the shipped fit (scripts/wb_fit_lib.R: the
+# province run under data/wb/ and one HYDAT release; scripts wb_province.R,
+# wb_stations.R, wb_validate.R and wb_output.R). The script refuses a fit
+# whose scores or AET choice were made under other scoring code.
 # fwapg from the WET_PG* variables.
 
 # The vignette cites the commit these were built at, so that commit must hold
@@ -69,11 +68,12 @@ out <- file.path("inst", "vignette-data", "segment_values.rds")
 budget_kb <- 500
 
 # ---- the shipped fit, and only that ---------------------------------------------------------
-fits <- readRDS(file.path(key_dir, "fits.rds"))
-winner <- readLines(file.path(key_dir, "aet_winner.txt"))
-cv <- readRDS(file.path(key_dir, sprintf("cv_aet-%s.rds", fits$aet)))
-stopifnot(identical(fits$code_md5, score_code_md5),
-          identical(winner, c(fits$aet, score_code_md5)),
+fits <- readRDS(file.path(fit_dir, "fits.rds"))
+winner <- readLines(file.path(fit_dir, "aet_winner.txt"))
+cv <- readRDS(file.path(fit_dir, sprintf("cv_aet-%s.rds", fits$aet)))
+stopifnot(identical(release, wb_shipped_release),   # the vignette shows the shipped fit
+          identical(fits$code_md5, score_code_md5),
+          identical(winner[1:2], c(fits$aet, aet_code_md5)),
           identical(cv$code_md5, score_code_md5),
           identical(cv$station_number, cal$station_number),
           identical(fits$calibration, cal$station_number))
@@ -87,7 +87,7 @@ sk <- merge(sk, cal[c("station_number", "station_name", "lon", "lat", "linear_fe
 sk$linear_feature_id <- as.integer(sk$linear_feature_id)
 stopifnot(!anyNA(sk$linear_feature_id))
 # the tracked report is the published record: the summary must be its blocked-CV rows
-rep_lines <- readLines("data/checks/wb_validation.txt")
+rep_lines <- readLines(wb_report("wb_validation", release))
 blk <- rep_lines[(grep("^### Adjusted, blocked CV", rep_lines) + 2):length(rep_lines)]
 rep_mae <- function(g, v) {
   x <- strsplit(trimws(grep(sprintf("^%s +%s ", g, v), blk, value = TRUE)[1]), " +")[[1]]
@@ -227,7 +227,7 @@ stopifnot(nrow(sampling) == nrow(cen), !anyNA(sampling))
 # SALR lies in the Fraser (100), BULK in the Skeena (400)
 basin_of <- c(SALR = "100", BULK = "400")
 wb <- do.call(rbind, lapply(basin_of, function(b) {
-  x <- as.data.frame(arrow::read_parquet(file.path(key_dir, "output", paste0(b, ".parquet"))))
+  x <- as.data.frame(arrow::read_parquet(file.path(fit_dir, "output", paste0(b, ".parquet"))))
   x <- x[x$month == 0 & x$watershed_feature_id %in% seg$watershed_feature_id, ]
   x[c("watershed_feature_id", "discharge_m3s", "coverage", "bc_fraction")]
 }))
@@ -253,7 +253,7 @@ ua_line <- grep("^polygons:", ua, value = TRUE)
 ua_mis <- as.integer(sub(".*mismatches > 1e-9: ([0-9]+).*", "\\1", grep("^max relative", ua, value = TRUE)))
 ua_poly <- as.integer(sub("^polygons: ([0-9]+).*", "\\1", ua_line))
 stopifnot(!is.na(ua_mis), !is.na(ua_poly))
-hydat_release <- sub("^HYDAT release: ", "", grep("^HYDAT release:", readLines("data/checks/stations_wb.txt"),
+hydat_release <- sub("^HYDAT release: ", "", grep("^HYDAT release:", readLines(wb_report("stations_wb", release)),
                                                    value = TRUE))
 stopifnot(length(hydat_release) == 1)
 

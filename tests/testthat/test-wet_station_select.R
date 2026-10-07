@@ -22,3 +22,18 @@ test_that("a missing database is an error, not an empty file", {
   expect_error(wet_station_select(p), "HYDAT not found")
   expect_false(file.exists(p))
 })
+
+test_that("wet_hydat_release reads the release date as YYYYMMDD", {
+  version_db <- function(dates) {
+    p <- withr::local_tempfile(fileext = ".sqlite3", .local_envir = parent.frame())
+    con <- DBI::dbConnect(RSQLite::SQLite(), p)
+    if (length(dates)) DBI::dbWriteTable(con, "VERSION", data.frame(Version = "1.0", Date = dates))
+    DBI::dbDisconnect(con)
+    p
+  }
+  expect_equal(wet:::wet_hydat_release(version_db("2026-07-17 08:08:08")), "20260717")
+  expect_equal(wet:::wet_hydat_release(version_db("2025-10-14 15:09:54.000")), "20251014")
+  # two releases in one file, or none, cannot name a fit
+  expect_error(wet:::wet_hydat_release(version_db(c("2025-10-14", "2026-07-17"))), "one release date")
+  expect_error(wet:::wet_hydat_release(version_db(character())), "no VERSION table")
+})

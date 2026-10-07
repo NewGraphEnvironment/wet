@@ -35,30 +35,37 @@
 
 ## Phase 2: Fits keyed by HYDAT release
 
-- [ ] Pin HYDAT: `WET_HYDAT` (path to `Hydat.sqlite3`) in `wb_stations.R` and `wb_output.R`. The release date from its `VERSION` table names the fit, and there is no silent default.
-- [ ] **Layout:** `data/wb/stations_<YYYYMMDD>.rds`, and `data/wb/<key>/fit_<YYYYMMDD>/` holding `fits.rds`, `cv_aet-*.rds`, `aet_winner.txt`, `output/` and `runoff_annual.tif`. A committed default release in `wb_cv_lib.R` (`WET_HYDAT_RELEASE`) picks the shipped fit.
-- [ ] **Readers updated:** `wb_score_md5.R`, `wb_cv_lib.R`, `wb_validate.R`, `wb_aet_compare.R`, `wb_output.R`, `wb_map.R`, `data-raw/segment_vignette_{data,map}.R`.
-- [ ] **AET carry:** `wb_validate.R` takes the winner from a named reference fit when the fit has no `aet_winner.txt` of its own, and records the source.
-- [ ] **Test set:** `wb_stations.R` also snaps and saves the 1–9-year natural stations (`$test`), with their annual observed runoff, and reports them.
-- [ ] **New script `scripts/wb_pooled_test.R`:** applies the Phase 1 rule and writes `data/checks/wb_pooled_test.txt`.
-- [ ] Tests for any new package-level helper; `/code-check`; commit.
+- [x] Pin HYDAT: `WET_HYDAT` (path to `Hydat.sqlite3`) in `wb_stations.R` and `wb_output.R`. The release date from its `VERSION` table names the fit, and there is no silent default.
+- [x] **Layout:** `data/wb/stations_<YYYYMMDD>.rds`, and `data/wb/<key>/fit_<YYYYMMDD>/` holding `fits.rds`, `cv_aet-*.rds`, `aet_winner.txt`, `output/` and `runoff_annual.tif`. A committed default release in `wb_cv_lib.R` (`WET_HYDAT_RELEASE`) picks the shipped fit.
+- [x] **Readers updated:** `wb_score_md5.R`, `wb_cv_lib.R`, `wb_validate.R`, `wb_aet_compare.R`, `wb_output.R`, `wb_map.R`, `data-raw/segment_vignette_{data,map}.R`.
+- [x] **AET carry:** `wb_validate.R` takes the winner from a named reference fit when the fit has no `aet_winner.txt` of its own, and records the source.
+- [x] **Test set:** `wb_stations.R` also snaps and saves the 1–9-year natural stations (`$test`), with their annual observed runoff, and reports them.
+- [x] **New script `scripts/wb_pooled_test.R`:** applies the Phase 1 rule and writes `data/checks/wb_pooled_test.txt`.
+- [x] Tests for any new package-level helper; `/code-check`; commit.
+- [x] Plan-review fixes: rule amendments (findings, dated, before any scoring), a fixed variant hashed into the score md5, gate stop, map guard, #15 reproduction refused for a fixed-variant fit, `wb_fit_accept.R`.
 
 ## Phase 3: The 2025-10-14 fit under the new layout (regression proof, on m4)
 
-- [ ] **m4:** check out the branch, install, confirm fwapg is up. Copy (not move) the existing fit files into `fit_20251014/` and keep the originals until verified.
-- [ ] Re-run `wb_stations.R` (2025-10-14), `wb_validate.R` for every AET variant, then `wb_aet_compare.R`. It must reproduce #15 exactly, and `fits.rds` and the held-out errors must match the original byte for byte, or the restructure changed something.
+- [ ] **m4:** check out the branch, confirm fwapg is up. Copy (not move) the existing `fits.rds`, `cv_aet-*.rds`, `aet_winner.txt`, `output/` and `runoff_annual.tif` into `fit_20251014/`. Keep the originals until verified, then move them to `_pre43/`.
+- [ ] **Code-only proof:**
+  - Build `stations_20251014.rds` from the old `stations.rds` (its `stations` and `monthly`).
+  - Run `wb_validate.R` for every AET variant, then `wb_aet_compare.R` (must reproduce #15), then `wb_validate.R cfu` to write `fits.rds`.
+  - Annual objects `identical()`; monthly-share metrics within 1e-12 (findings, "Phase 3 proof").
+- [ ] **Rebuild proof:** `wb_stations.R` on HYDAT 2025-10-14 gives `identical()` `stations` and `monthly`, plus the test set. If fwapg has moved, report it. Then rerun the chain on the rebuilt file.
+- [ ] `wb_output.R` for fit_20251014 (WET_HYDAT on the 2025-10-14 file): the shipped fit needs its output whichever way Phase 4 goes.
 - [ ] Commit the tracked checks.
 
 ## Phase 4: The 2026-07-17 fit (on m4)
 
 - [ ] `wb_stations.R` on `data/hydat/20260717/`: report gauges added, dropped and changed.
-- [ ] `wb_validate.R cfu` with AET carried. Apply the acceptance rule; record the outcome in `findings.md`.
-- [ ] `wb_pooled_test.R`: apply the pooled-zone rule; record the outcome.
-- [ ] If accepted: `wb_output.R`, `wb_map.R`, and switch the default release to 20260717. If not: keep the 2025-10-14 default and report why.
+- [ ] `wb_validate.R cfu` with `WET_AET_CARRY=20251014`.
+- [ ] `wb_fit_accept.R 20251014 20260717`: apply the acceptance rule and record the outcome. If it passes but the gate fails, stop for the user.
+- [ ] `WET_HYDAT_RELEASE=20260717 wb_pooled_test.R`, only if the refit is accepted (the test refuses fit_20251014, #15's): apply the pooled-zone rule and record the outcome. Rerun `wb_validate.R cfu` either way; a gate failure stops for the user. If the refit is not accepted, the pooled-zone question goes back to the user.
+- [ ] If the refit is accepted: switch `wb_shipped_release` to 20260717, then run `wb_output.R` and `wb_map.R`. If not: keep 20251014 and report why.
 
 ## Phase 5: Ship and record
 
-- [ ] Copy the reduced bundle for the shipped fit to m1, as for #28.
+- [ ] Copy the reduced bundle for the shipped fit to m1, as for #28, in the new layout: `upstream/` with `_complete`, `stations_<rel>.rds`, and `fit_<rel>/` (`fits.rds`, `aet_winner.txt`, `cv_aet-cfu.rds`, `pooled_variant.txt` and `pooled_test.txt` if present, `output/100,400.parquet`).
 - [ ] Rebuild `data-raw/segment_vignette_data.R` on m1, after PR #42 merges.
 - [ ] Re-render the vignette and check its guards hold.
 - [ ] Update `research/water_balance_method.md` §0 (both fits, test-gauge result, caveat status) and CLAUDE.md's HYDAT paragraph (fits by release, `WET_HYDAT`).

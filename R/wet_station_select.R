@@ -62,6 +62,18 @@ wet_hydat_path <- function() {
   file.path(tidyhydat::hy_dir(), "Hydat.sqlite3")
 }
 
+# The release a HYDAT file holds, as YYYYMMDD from its VERSION table: what names
+# a water-balance fit (#43), so two releases never share one set of outputs.
+wet_hydat_release <- function(hydat) {
+  con <- wet_hydat_connect(hydat)
+  on.exit(DBI::dbDisconnect(con), add = TRUE)
+  if (!DBI::dbExistsTable(con, "VERSION")) stop("no VERSION table in ", hydat, call. = FALSE)
+  d <- DBI::dbGetQuery(con, "SELECT Date FROM VERSION")$Date
+  rel <- format(as.Date(substr(as.character(d), 1, 10)), "%Y%m%d")
+  if (length(rel) != 1 || is.na(rel)) stop("expected one release date in ", hydat, "'s VERSION table", call. = FALSE)
+  rel
+}
+
 # Read-only: connecting to a missing sqlite path would create an empty database.
 wet_hydat_connect <- function(hydat) {
   if (!file.exists(hydat)) stop("HYDAT not found at ", hydat, call. = FALSE)

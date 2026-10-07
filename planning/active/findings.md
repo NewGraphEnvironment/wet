@@ -2,6 +2,8 @@
 
 ## Issue context
 
+*As filed. Superseded where it says the fit gains new years, the run key carries the release, a new key, `wb_province.R` reruns, or a "third variant": see the pre-registered rules and amendments below.*
+
 **If we do it:** the shipped water balance is fit on a HYDAT release anyone can download today. It gains the years and gauges added since 2025-10-14. Its pooled-zone adjustment is settled by a rule written before scoring, so the "mildly optimistic" caveat on every skill figure goes. It becomes the baseline the tuning experiments score against. **If we never do:** the fit stays pinned to a release ECCC no longer lists, so nobody can rebuild it from public data. The pooled-zone choice stays a decision made after seeing a result.
 
 ## Problem
@@ -53,6 +55,30 @@ Decided at the plan gate with the user. Written before Phase 3 runs anything.
   - The fixed variant is written to the fit directory (`pooled_variant.txt`). From then on, every fold of the headline blocked CV and the shipped fit use that variant, with no further nested selection.
 - **Caveat:** the "mildly optimistic" caveat is retired whichever way the rule falls. The variant is then chosen on gauges outside the calibration set, so the blocked CV on calibration gauges no longer contains a choice made after seeing them. The test-gauge MAE of the fixed variant is reported beside it.
 - **Recorded either way:** both MAEs, the n of test gauges, the fixed variant, and the raw P − AET MAE on the test gauges for context.
+
+## Rule amendments (2026-10-06, after the plan review, before any scoring)
+
+The plan review (`review-plan.md`) found the rules above underspecified in ways that would decide the outcome. Nothing has been scored. These amendments supersede the matching parts above.
+
+**Pooled-zone test.**
+1. **Independence.** Each test gauge is predicted from a fit that leaves out the calibration gauges in its WSC sub-sub-drainage, the same blocks as the headline CV. A fit on all calibration gauges would let co-located twins (08GE001/08GE002, 08MF003/08MF068 and others) vouch for test gauges. That leak favours "other", since "none" fits nothing in the pooled zones.
+2. **Screen.** Test gauges whose HYDAT name contains CHANNEL, OVERFLOW or DIVERSION are excluded. These gauge part of a flow over the whole basin's area. Observed runoff must be at least 10 mm, the `min_obs` of `wet_flow_validate()`, the same floor as the headline.
+3. **Decision gauges.** The decision is made on test gauges whose dominant zone (largest share) is pooled in the fit that predicts them, since that is the only place the variants differ beyond a slight shift in own-zone coefficients. MAE on all test gauges is reported as context.
+4. **Power.** With fewer than 10 decision gauges the test is uninformative: the nested choice stays and the caveat stays, softened to name the test. Otherwise the 1.0-point tie band applies to the decision gauges. A paired bootstrap 95 % interval of the MAE difference (2,000 resamples, seed 43) is reported as context, not as part of the rule.
+5. **Caveat.** It is retired only when the test is informative (≥ 10 decision gauges).
+6. **A failed gate goes back to the user.** If the fixed variant turns the headwater gate to FAIL on the shipped fit (`keep_adjust` FALSE, so raw P − AET would ship), nothing ships until the user decides. #15 chose cfu with the pooled variant chosen inside each fold, so a gate flip also reopens the AET carry.
+7. **#15 reproduction.** `wb_aet_compare.R` runs only for a fit without `pooled_variant.txt`, and refuses otherwise.
+
+10. **Zones without calibration gauges in the fold** (added after code-check round 1, before any scoring). A zone whose calibration gauges all sit in the held-out sub-sub-drainage is treated the way the headline CV treats it: it counts as pooled in that fit, so "other" gives it the pooled level and "none" gives it nothing. Only zones no calibration gauge touches at all get no adjustment. This keeps the test consistent with `predict_cv()`.
+
+**Acceptance.**
+8. MAE is the mean |`err_pct`| from `cv_v$stations`, NAs dropped (observed < 10 mm). Each fit is scored against its own release's observed runoff, so a revised flow moves both target and training. The report says so.
+9. The report also gives each fit's headwater gate (adjusted against raw). If the 2026-07-17 fit passes the 1.0-point rule but its gate flips to FAIL, nothing ships until the user decides.
+
+**Phase 3 proof, restated.** `code_md5` changes by design, because the scoring scripts and the stations file changed. The proof therefore has two parts:
+- **Code-only:** the new pipeline on the old `stations` and `monthly` gives `identical()` annual objects: `fits.rds` (`wb`, `keep_adjust`, `calibration`, `aet`) and each `cv_aet-*.rds` (`cv_ann`, `raw`, `ship_variant`). The monthly-share metrics (`share`, the `nse_*` columns of `cv_v` and `plain`) match within `all.equal(tolerance = 1e-12)`. Fields added for #43 and `code_md5` are ignored. The #15 reproduction also passes.
+  - Measured locally before the m4 run (smoke test, cfu): `cv_ann`, `raw`, stations, `keep_adjust` and `ship_variant` identical. `cv_v` differs only in `nse_month`/`nse_share`, by at most 6e-14: floating-point reassociation in the monthly share path, not a change of method. The report text is identical apart from the added HYDAT line.
+- **Rebuild:** `wb_stations.R` on 2025-10-14 gives `identical()` `stations` and `monthly`. If it does not, fwapg on m4 has moved since 2026-09-26, and that is reported, not hidden.
 
 ## Errors Encountered
 
