@@ -384,6 +384,11 @@ The tip moves seconds after a release push, which is exactly when a waiter is st
 
 *1 line of evidence for this rule is in `conventions/ci-monitoring.md`, which `/code-check` reads in full.*
 
+## A pending run cancelled by a `concurrency` group runs no steps, so its failure alarm never fires
+With `cancel-in-progress: false`, GitHub keeps one running and one pending run per group, and a newer run cancels the pending one before its job starts. An `if: failure() || cancelled()` alarm step is part of that job, so it never runs and the displaced run disappears silently. Count on the next scheduled run to pick the work up, or dispatch it by hand. Do not write that the alarm covers it.
+
+*1 line of evidence for this rule is in `conventions/ci-monitoring.md`, which `/code-check` reads in full.*
+
 # Code Check — R
 Traps in R: the language and base/utils behaviour, package internals (`R CMD build`, `.Rbuildignore`, roxygen, lintr, `data-raw/`, testthat, pak), and the DBI/duckdb/arrow data layer.
 
@@ -662,6 +667,12 @@ Run `LOAD icu` on the connection before any query that needs it (`epoch()`, `yea
 ### `fs::path()` collapses the `//` after a URL scheme, so it cannot build URLs
 Join a URL with `paste(base, key, sep = "/")` or `file.path()`, never `fs::path()`: `fs::path("https://x.ca/b", "k.tif")` is `"https:/x.ca/b/k.tif"`, because fs normalises the doubled separator, and the result is not a valid URL.
 
+### R's default curl user-agent fails on canada.ca, and the error names HTTP/2, not the agent
+Set a user-agent on every R fetch of a `canada.ca` page, because R's default fails there with an HTTP/2 error that never mentions the agent.
+
+### `climr::downscale()` returns its reference-period row even with `return_refperiod = FALSE`
+Keep only the observed series (`DATASET == "<obs_ts_dataset>"`, four-digit `PERIOD`) before averaging climr output over years.
+
 # Code Check — Shell
 Tool-level traps in bash, sed, git and `gh`, and in the host toolchain those commands depend on.
 
@@ -690,6 +701,9 @@ Use three-dot `git diff a...b` for what a branch changed; two-dot compares the t
 
 ### Heredoc precedence in pipelines
 - `cmd1 | cmd2 <<EOF` — the heredoc binds to `cmd2` (the rightmost simple command).
+
+### A heredoc whose body contains its own delimiter ends early, and the rest runs as shell
+Give an outer heredoc a delimiter its body cannot contain, or run the script from a file.
 
 ### Paths
 - Hardcoded absolute paths (`/Users/airvine/...`) break for other users
@@ -807,6 +821,12 @@ Supply a default ssh command only when `GIT_SSH_COMMAND`, `core.sshCommand` and 
 
 ### `conda run` captures its child's output, so a pipe gets nothing
 `conda run -n env cmd` buffers the child's stdout and re-emits it, and that re-emission does not reach a pipe.
+
+### `exit` inside a loop condition ends the shell, not the test
+Count instead: `while :; do left=0; for i in $ids; do done_yet "$i" || left=$((left+1)); done; [ "$left" -eq 0 ] && break; sleep 90; done`.
+
+### A failed `cd` lets every later command run in the directory you were already in
+Write `cd "$D" || exit 1` (or `cd "$D" && …`), never `cd "$D"; …`: without the guard, a missing directory prints one error and the rest of the line runs wherever the shell stood, including its file writes.
 
 # Code Check — Spatial
 terra, sf, bcdata, GDAL/OGR CLIs.
@@ -1010,6 +1030,18 @@ To tell a throttle from any other bcdata failure, record the status off the requ
 
 ### sf and terra can link different GDALs, so a probe through one says nothing about the other
 Check `sf::sf_extSoftVersion()[["GDAL"]]` and `terra::gdal()` before concluding that "GDAL" cannot read something: one R session can hold two GDALs (a CRAN binary of sf bundles its own, terra built against Homebrew links another), and a driver or codec missing from one may be present in the …
+
+### `atan2(0, 0)` is 0, so two points at one place have a bearing of due north
+Treat a zero-length step as having no heading: test the step length before taking its azimuth, and return `NA` rather than a bearing when it is 0, because `atan2(0, 0)` returns 0 with no warning, and that reads as north.
+
+### gdalwarp writes INTO an existing destination and keeps its grid
+Delete the output before re-warping to the same path (`unlink(out)` before `sf::gdal_utils("warp", ...)`, or pass `-overwrite`).
+
+### GDAL caches a failed `/vsicurl/` open, so an in-process retry sends no request
+Before retrying a `/vsicurl/` read in the same process, set `CPL_VSIL_CURL_NON_CACHED` to the URL's prefix.
+
+### THREDDS NCSS returns one time step unless the request says `temporal=all`
+Add `&temporal=all` (or an explicit `time_start`/`time_end`) to every NetCDF Subset Service grid request: without it NCSS answers with a single time step (the one nearest "now"), a valid NetCDF that passes a signature check, so assert the layer count after reading.
 
 # Code Check Conventions
 Structured checklist for reviewing diffs before commit.
