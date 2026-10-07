@@ -13,3 +13,5 @@
 - Phases 3-4 on m4 (e7e2b68): regression proof passed in full; refit passes acceptance (-0.28) but its headwater gate fails (adjusted 30.72 vs raw 30.69): stopped for the user (amendment 9)
 - Decision 2 (keep adjustment, override 0.1): scripts change reviewed (review-override.md: stale-chain prerequisite, gate_pass persisted, compare refuses override, reason required); gate issue #47 filed
 - Phase 4 complete (da9d20b): override recorded, pooled test fixed none (informative, 39 decision gauges), output and map for the shipped fit; tone PR #42 merged into this branch
+- Phase 5: bundle installed on m1 (new layout); vignette map and values rebuilt (460 KB); article updated (caveat retired, adjustment limit, Salmon River paragraph to the new numbers); research §0, CLAUDE.md, NEWS
+- Phase 5 review (review-phase5.md): research, README, CLAUDE.md and the test title updated to the shipped fit; gate_pass added to vignette provenance so the limits bullet is guarded

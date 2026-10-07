@@ -67,11 +67,11 @@
 
 ## Phase 5: Ship and record
 
-- [ ] Copy the reduced bundle for the shipped fit to m1, as for #28, in the new layout: `upstream/` with `_complete`, `stations_<rel>.rds`, and `fit_<rel>/` (`fits.rds`, `aet_winner.txt`, `cv_aet-cfu.rds`, `pooled_variant.txt` and `pooled_test.txt` if present, `output/100,400.parquet`).
-- [ ] Rebuild `data-raw/segment_vignette_data.R` on m1, after PR #42 merges.
-- [ ] Re-render the vignette and check its guards hold.
-- [ ] Update `research/water_balance_method.md` §0 (both fits, test-gauge result, caveat status) and CLAUDE.md's HYDAT paragraph (fits by release, `WET_HYDAT`).
-- [ ] NEWS line.
+- [x] Copy the reduced bundle for the shipped fit to m1, as for #28, in the new layout: `upstream/` with `_complete`, `stations_<rel>.rds`, and `fit_<rel>/` (`fits.rds`, `aet_winner.txt`, `cv_aet-cfu.rds`, `pooled_variant.txt` and `pooled_test.txt` if present, `output/100,400.parquet`).
+- [x] Rebuild `data-raw/segment_vignette_data.R` on m1, with PR #42's branch merged into this one (#42 is still open).
+- [x] Re-render the vignette and check its guards hold.
+- [x] Update `research/water_balance_method.md` §0 (both fits, test-gauge result, caveat status) and CLAUDE.md's HYDAT paragraph (fits by release, `WET_HYDAT`).
+- [x] NEWS line.
 
 ## Validation
 

@@ -248,9 +248,8 @@ different ways. They suit different jobs.
 ```{r models}
 knitr::kable(models, align = "lll", row.names = FALSE,
              caption = paste(
-               "The two estimates. The balance is scored at gauges held out of its fit, and that score",
-               "is mildly optimistic (see Limits); the gauges PCIC calibrated to are not listed with its",
-               "output. The two fits are not strictly like for like."
+               "The two estimates. The balance is scored at gauges held out of its fit; the gauges PCIC",
+               "calibrated to are not listed with its output. The two fits are not strictly like for like."
              ))
 ```
 
@@ -492,12 +491,17 @@ ga$wb_share <- log(ga$wb_mm / ga$obs_mm) / log(ga$wb_mm / ga$fwapg_mm)
 ga$close <- abs(ga$fw_err) <= 5   # a column, so it follows the reorder below
 close <- ga$close
 # the prose: the balance reads high at every gauge; at the small basins fwapg is
-# within 5% and the gap is nearly all the balance's; at the large ones, the
-# outlet among them, fwapg is low and the two share it
+# within 5% and the gap is nearly all the balance's; at the large ones fwapg is
+# low
 stopifnot(ratio_salr > 1, all(ga$wb_err > 0), nrow(outlet) == 1,
           any(close), any(!close), max(ga$area_km2[close]) < min(ga$area_km2[!close]),
           all(ga$wb_share[close] > 0.9), all(ga$fw_err[!close] < -5),
-          all(ga$wb_share[!close] > 0.25 & ga$wb_share[!close] < 0.75), !close[ga$holds_salr])
+          !close[ga$holds_salr])
+# the larger basins off the group: the balance within 5%, so the gap there is
+# nearly all fwapg's; at the outlet the two bracket the observation and share it
+ga$far <- !ga$close & !ga$holds_salr   # a column, so it follows the reorder below
+stopifnot(sum(ga$far) >= 1, all(abs(ga$wb_err[ga$far]) <= 5), all(ga$wb_share[ga$far] < 0.25),
+          outlet$wb_err > 0, outlet$fw_err < 0, ga$wb_share[ga$holds_salr] > 0.25, ga$wb_share[ga$holds_salr] < 0.75)
 ga <- ga[order(!ga$holds_salr, ga$area_km2), ]
 close <- ga$close
 named <- c(named, ga$station_number)
@@ -557,9 +561,10 @@ The balance runs high at all of them, by `r signed(min(ga$wb_err))` to
 `r signed(max(ga$wb_err))`. At the `r sum(close)` smallest basins, fwapg is
 within 5%, so the gap there is the balance's. At the `r sum(!close)` larger
 ones, fwapg runs `r signed(max(ga$fw_err[!close]))` to
-`r signed(min(ga$fw_err[!close]))`, and the two share the gap. At
-`r outlet$station_number`, the gauge that drains the whole group, they
-bracket the observation: `r signed(outlet$wb_err)` against
+`r signed(min(ga$fw_err[!close]))`. At the `r sum(ga$far)` of those off the
+group, the balance is within `r pct(max(abs(ga$wb_err[ga$far])))`, so the gap
+there is fwapg's. At `r outlet$station_number`, the gauge that drains the
+whole group, they bracket the observation: `r signed(outlet$wb_err)` against
 `r signed(outlet$fw_err)`.
 
 ```{r gauges-salr}
@@ -705,6 +710,9 @@ stale <- prov$upstream_area_100
 # the bullet: stale polygons exist in the Fraser, and none moves a SALR segment
 stopifnot(stale[["stale"]] > 0, prov$salr_stale_segments == 0)
 small_share <- mean(v$sampling$upstream_area_km2 < small_km2)
+# the bullet: the adjustment ships although the headwater gate does not pass
+# (a recorded override, #43), and pooled zones get none
+stopifnot(isTRUE(prov$keep_adjust), isFALSE(prov$gate_pass), identical(prov$pooled_variant, "none"))
 ```
 
 In order of how much they affect a user:
@@ -713,10 +721,13 @@ In order of how much they affect a user:
   balance is the only estimate.
 - **Dry zones.** In zone `r worst` and the other semi-arid interior zones,
   runoff is a small remainder of precipitation, so a small error in
-  evapotranspiration is a large one in runoff. The zone adjustment
-  passes its gate only under a variant offered after the pre-set one failed,
-  so all the skill figures here are mildly optimistic
-  (`research/water_balance_method.md`).
+  evapotranspiration is a large one in runoff.
+- **The zone adjustment is a close call on headwater basins.** On headwater
+  gauges it does not beat raw precipitation less evapotranspiration, and it is
+  kept by a recorded decision for what it does on larger rivers
+  (`research/water_balance_method.md`, "Refit on HYDAT 2026-07-17"). Zones
+  with too few gauges for their own adjustment get none, a choice tested on
+  short-record gauges no fit uses.
 - **Small streams.** Gauged basins under `r small_km2` km² average
   `r pct(mae_small)` error, and `r pct(100 * small_share)` of the
   `r group_name[["SALR"]]`'s watersheds with a stream are that small.

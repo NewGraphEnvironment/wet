@@ -1,6 +1,6 @@
 # Chapman, Kerr & Wilford (2018): the BC Water Tools method, and what a reimplementation must decide
 
-**Verified:** 2026-10-06 · **Issues:** #5 (found), #11 (built and validated), #15 (ET experiment), #18 (MOD16 challenger), #39 (scored against fwapg across PCIC's coverage) · **Produced by:** desk research (sections 1–7), the #11 build and the #15 and #18 experiments (section 0): `scripts/wb_inputs.R`, `wb_stations.R`, `wb_province.R`, `wb_validate.R`, `wb_aet_compare.R`, `wb_output.R`. Reports: `data/checks/wb_*.txt`, `stations_wb.txt` and `climr_eccc.txt`. **Status:** built. The shipped model uses CGIAR AET constrained from below by a Fu–Budyko AET. A rule fixed before scoring chose it (#15). Blocked-CV MAE on annual runoff is 27.7 % (31.2 % headwater), against 33.1 % (38.1 %) with CGIAR alone (section 0). MOD16 was scored against it under a second pre-set rule (#18) and does not replace it.
+**Verified:** 2026-10-06 · **Issues:** #5 (found), #11 (built and validated), #15 (ET experiment), #18 (MOD16 challenger), #39 (scored against fwapg across PCIC's coverage), #43 (refit on HYDAT 2026-07-17; pooled zones settled) · **Produced by:** desk research (sections 1–7), the #11 build and the #15 and #18 experiments (section 0): `scripts/wb_inputs.R`, `wb_stations.R`, `wb_province.R`, `wb_validate.R`, `wb_aet_compare.R`, `wb_output.R`. Reports: `data/checks/wb_*.txt`, `stations_wb.txt` and `climr_eccc.txt`. **Status:** built. The shipped model uses CGIAR AET constrained from below by a Fu–Budyko AET. A rule fixed before scoring chose it (#15). Blocked-CV MAE on annual runoff was 27.7 % (31.2 % headwater) on the 2025-10-14 fit, against 33.1 % (38.1 %) with CGIAR alone (section 0). Since #43 the shipped fit is on HYDAT 2026-07-17: 27.5 % (30.7 % headwater) at 315 gauges, pooled zones settled on gauges no fit uses, and the zone adjustment kept by a recorded decision ("Refit on HYDAT 2026-07-17"). MOD16 was scored against it under a second pre-set rule (#18) and does not replace it.
 
 Legend: **[S]** stated in the source cited · **[I]** inferred · **[U]** unknown or not published. Sources are listed at the end; all are online.
 
@@ -52,10 +52,11 @@ Annual runoff; percentages are mean absolute error. This table is the #11 model.
 | Adjusted, in-sample | 22.6 % | 25.5 % | 13.8 % | 58 % | 0.88 |
 | (transparency) every fold forced to one fitted "other" level for pooled zones | 39.1 % | 46.4 % | 16.9 % | 52 % | 0.87 |
 
-**Pooled zones, and an open decision.** Zones with fewer than 8 dominant gauges are pooled.
+**Pooled zones (decided in #43).** Zones with fewer than 8 dominant gauges are pooled.
 - **The pre-set specification** gave them one fitted "other" level. Under it the gate **fails**: headwater blocked CV 46.4 % against raw 39.8 %. The level's ~+170 mm intercept lands on dry pooled zones (17, 06, 04).
 - **The "none" variant** (no adjustment for pooled zones) was added **after** seeing that result. An inner blocked CV on each fold's training stations then chose between the two, and all 93 folds (and the all-station fit) chose "none". The gate passes: 38.1 % against 39.8 %.
-- **This is mildly optimistic.** Nesting guards the choice between the candidates, not the decision to offer "none". Which result decides what ships is left to the maintainer; flipping to raw P − AET is one line (`keep_adjust`).
+- **This was mildly optimistic.** Nesting guards the choice between the candidates, not the decision to offer "none". Which result decides what ships was left to the maintainer; flipping to raw P − AET is one line (`keep_adjust`).
+- **Settled in #43 on gauges no fit uses** (see "Refit on HYDAT 2026-07-17" below): "none" is fixed by a pre-registered test on short-record gauges, so the caveat is retired.
 
 **What the numbers say:**
 - **The adjustment helps only a little out of sample, and only where a zone has its own coefficients.** Headwater stations under blocked CV (`data/checks/wb_validation.txt`):
@@ -65,14 +66,23 @@ Annual runoff; percentages are mean absolute error. This table is the #11 model.
   Most of the in-sample gain (22.6 %) does not transfer to ungauged basins.
 - **Chapman's published figures:** MAE 16.1 %, 77.8 % within ±20 %, monthly NSE 0.92. They come from 45 gauges in two plains zones, and are likely in-sample or near it. Our in-sample 22.6 %, over 20 fitted zone levels, is the comparable number.
 - **The error is concentrated.** Basins under 100 km² run at about 59 % MAE raw. The semi-arid interior plateaus (zones 15, 17, 23, 24) run +56 % to +234 % raw: CGIAR AET, capped by its own WorldClim P, is far too low next to climr's P there. Example: Greata Creek has P 746 mm and AET 281 mm, against 50 mm observed. The #15 experiment below addresses this.
-- **Against PCIC near Prince George, the balance runs high everywhere, and PCIC low in the large basins** (#28; `data-raw/segment_vignette_data.R`, `vignettes/segment-discharge.Rmd`).
+- **Against PCIC near Prince George, the balance runs high everywhere, and PCIC low in the large basins** (#28, on the 2025-10-14 fit; `data-raw/segment_vignette_data.R`, `vignettes/segment-discharge.Rmd`).
+  - *On the shipped 2026-07-17 fit (#43):* median ratio 1.37. The balance runs +2 % to +26 %. At the two large basins off the group (Nation, Stuart) it is within 3 % and the gap is fwapg's: the balance's share is 0.13. At 08KC001 they bracket the observation, +26 % against −25 % (share 0.44). The detail below is the 2025-10-14 fit's.
   - On SALR the balance gives a median 1.47 times PCIC through wet per order ≥ 3 segment.
   - Five calibration gauges are used: those within 30 km of SALR plus its outlet gauge 08KC001.
   - Held-out balance error at those gauges: +6 % to +38 %.
   - fwapg (PCIC) error: −1 % and −2 % at the two small basins (297 and 439 km²), −14 % to −25 % at the three large ones (4,227–14,235 km²).
   - Splitting the gap in log terms, log(wb/fwapg) = log(wb/obs) + log(obs/fwapg): at the two small basins it is 94–98 % the balance's. At the three large ones the two share it, with the balance's share 28–52 %. At 08KC001 they bracket the observation, +38 % against −25 %, and split it about evenly.
   - No gauge measures the SALR median itself: 08KC001's basin is 4,227 km², of which SALR is 1,794.
-- **Across PCIC's coverage, fwapg is closer at the gauges both products score** (#39; `data-raw/segment_vignette_data.R`, `vignettes/segment-discharge.Rmd`; verified 2026-10-06).
+- **Across PCIC's coverage, fwapg is closer at the gauges both products score** (#39, on the 2025-10-14 fit; `data-raw/segment_vignette_data.R`, `vignettes/segment-discharge.Rmd`; verified 2026-10-06).
+  - *On the shipped 2026-07-17 fit (#43):*
+    - Coverage: 201 calibration gauges lie in it, and fwapg has a value at 183.
+    - MAE 30.3 % for the balance against 25.3 % for fwapg. Within ±20 %: 49 % and 59 %.
+    - By basin: Peace (23) 20.6 against 20.7, a tie. Fraser (81) 29.7 against 26.9. Columbia (79) 33.7 against 25.0.
+    - The 18 large-river gauges fwapg skips score 14.0 %.
+    - The balance's error no longer carries the "mildly optimistic" caveat (pooled zones settled in #43).
+    - The article (#42) no longer recommends one product: it compares the two in a table.
+  - The rest of this bullet is the 2025-10-14 fit's.
   - Coverage: the 112 watershed groups where at least half of fwapg's discharge rows hold a value. 27 more groups carry only null rows, and 11 Liard groups at the edge of PCIC's grid hold values on 0.02–23 % of rows.
   - Of the 290 calibration gauges, 186 lie in coverage. fwapg has a value at 168. The other 18 (median 11,859 km²) sit on rivers fwapg skips: of 13,883 segments of order 8 and up in coverage, 38 hold a value. The balance scores 13.3 % there.
   - At the 168, mean absolute error is 30.5 % for the balance (held out) and 25.5 % for fwapg; within ±20 %, 48 % and 60 %; median absolute error 22.2 % and 16.7 %. By basin: Peace (21) 19.6 % against 14.2 %, Fraser (73) 29.4 % against 28.8 %, Columbia (74) 34.7 % against 25.4 %.
@@ -84,6 +94,24 @@ Annual runoff; percentages are mean absolute error. This table is the #11 model.
   - Stikine 1.05, Peace 0.94, Skeena 0.86, Nass 0.86.
 - **Zone steps.** The annual map ([wb_runoff_annual.png](wb_runoff_annual.png)) shows straight-edged steps where hydrologic zones meet. The method applies each zone's coefficients up to a hard boundary (§7 item 9). Blending across boundaries is a candidate refinement.
 - **No output.** 22,041 watersheds (0.7 %), on small coastal islands that the 30″ inputs do not cover.
+
+### Refit on HYDAT 2026-07-17 (#43)
+
+**Verified:** 2026-10-06 · **Produced by:** `scripts/wb_stations.R`, `wb_validate.R`, `wb_fit_accept.R`, `wb_pooled_test.R`, `wb_output.R` on m4 (logs `data/logs/43/` there) · **Reports:** `data/checks/*_20260717.txt`; rules pre-registered in `planning/archive/2026-10-issue-43-refit/findings.md`.
+
+Since #43 the pipeline holds one fit per HYDAT release (`data/wb/stations_<release>.rds`, `data/wb/<key>/fit_<release>/`, `scripts/wb_fit_lib.R`). `WET_HYDAT` names the file and is checked against its release, and the shipped fit is `wb_shipped_release`.
+
+- **The 2025-10-14 fit is reproduced exactly under the new layout.** Rebuilt from HYDAT and fwapg, `stations` and `monthly` are identical, and held-out predictions are identical for all ten AETs. #15 reproduces (cfu), and 24 of 24 output basins match. That fit stays as `fit_20251014`.
+- **HYDAT 2026-07-17 adds no years.** The window is fixed at 1981–2010. It revises gross drainage areas: 336 stations snap within ±10 % against 309, giving 315 calibration gauges (29 new, 4 dropped). AET cfu is carried, not re-picked.
+- **Acceptance** (pre-registered: not more than 1.0 point worse): headwater blocked-CV MAE on the 209 headwater gauges common to both fits, 30.90 against 31.18. Passes.
+- **The headwater gate fails by 0.03 point.** Adjusted scores 30.72 against raw 30.69.
+  - On the same 209 gauges the old fit's raw (30.67) already beat its adjusted (31.18). The old gate passed on its full headwater set of 218. Nine of those fall outside the common 209: either dropped by this release (4 gauges are dropped in all) or now nested under its new upstream gauges.
+  - Without the adjustment the main stems read low: Peace 0.77, Skeena 0.68, Nass 0.64, Fraser at Hope 0.93 of observed.
+  - The user kept the adjustment through a recorded per-fit override with a 0.1-point tie tolerance (`adjust_override.txt`). A gate that scores main stems is #47.
+- **Pooled zones, settled on short-record gauges** (natural, 1–9 complete years, never in a fit). There were 110 after the screens, each predicted with its sub-sub-drainage's calibration gauges held out.
+  - On the 39 whose dominant zone is pooled, "none" scores 46.5 % against "other" 80.2 % (paired bootstrap of the difference +9 to +62 points). "none" is fixed; the variant now sits outside the calibration set, and the caveat is retired.
+  - On all 110 test gauges: none 43.5 %, raw 41.6 %, other 55.3 %. On short records the adjustment is no better than raw, the same message as the gate.
+- **Shipped (HYDAT 2026-07-17, cfu, adjustment kept, pooled zones "none"):** blocked-CV MAE 27.5 % on 315 gauges (headwater 30.7 %, nested 17.6 %). Major rivers 0.81–1.13 of observed: Peace 0.93, Stikine 0.99, Nass 0.81, Skeena 0.81, Thompson 1.13, Fraser at Hope 1.02, Columbia at Birchbank 1.04.
 
 ### The ET experiment (#15): which annual AET to subtract
 

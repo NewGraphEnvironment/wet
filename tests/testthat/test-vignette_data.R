@@ -52,7 +52,7 @@ test_that("the map layers are sf in BC Albers, with both stations and their catc
   expect_equal(sum(m$streams$main), 2L)
 })
 
-test_that("the segment values carry plain ids, the 290 gauges and their provenance", {
+test_that("the segment values carry plain ids, the calibration gauges and their provenance", {
   v <- readRDS(vignette_data("segment_values.rds"))
   expect_named(v, c("parity", "sampling", "segments", "skill", "gauges_salr", "provenance"))
   # fwapg's bigint ids would arrive as integer64, which a session without bit64
@@ -64,7 +64,7 @@ test_that("the segment values carry plain ids, the 290 gauges and their provenan
   # the parity summary: every SALR segment fwapg has a value for, all matched
   expect_equal(v$parity$n_segments, v$provenance$fwapg_discharge_rows[["SALR"]])
   expect_equal(v$parity$n_match5, v$parity$n_segments)
-  expect_equal(nrow(v$skill), 290L)
+  expect_equal(nrow(v$skill), 315L)   # the shipped fit's calibration gauges (HYDAT 2026-07-17, #43)
   expect_type(v$skill$linear_feature_id, "integer")
   # fwapg has a value at most gauges in its coverage, and at few outside it
   expect_gt(sum(v$skill$in_pcic & !is.na(v$skill$fwapg_mm)), 0.75 * sum(v$skill$in_pcic))
