@@ -1,4 +1,4 @@
-# wet (development version)
+# wet 0.2.1
 
 * The segment discharge article is reordered for readers: what mean annual discharge is, which estimate to use and why, how close the open water balance comes at 290 gauges, the Salmon River and Bulkley River as maps that hold every gauge they name, and limits in order of what affects a user. fwapg (PCIC) is now scored at the 168 gauges it covers: it is closer there (25.5 % against 30.5 % mean absolute error), and the article recommends the balance everywhere on the strength of its coverage and open code, stating that gap (#39).
 
