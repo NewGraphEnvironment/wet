@@ -20,3 +20,7 @@ gauge_error,point,,class,e1,More than 20% under,#e66101,1,,,,,,,,,,,,,,,,ColorBr
 gauge_error,point,,class,e2,0-20% under,#fdb863,1,,,,,,,,,,,,,,,,ColorBrewer PuOr 4-class
 gauge_error,point,,class,e3,0-20% over,#b2abd2,1,,,,,,,,,,,,,,,,ColorBrewer PuOr 4-class
 gauge_error,point,,class,e4,More than 20% over,#5e3c99,1,,,,,,,,,,,,,,,,ColorBrewer PuOr 4-class: over-prediction in the purple arm
+province,polygon,,part,coverage,PCIC coverage (fwapg),#4d4d4d,1,,,,,,,,,,,,,,,,ColorBrewer Greys dark: the coverage outline on the province map
+province,polygon,,part,zone,Weakest hydrologic zone,#d9d9d9,1,,,,,,,,,,,,,,,,"ColorBrewer Greys light: a ground under the gauges, clear of the PuOr error fills"
+province,polygon,,part,group,This article's groups,#000000,1,,,,,,,,,,,,,,,,Black: the two watershed groups the maps below draw
+context,line,,part,river,River outside the group,#969696,1,,,,,,,,,,,,,,,,ColorBrewer Greys mid: rivers beyond the group the map is about
