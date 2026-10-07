@@ -1,7 +1,7 @@
 Package: wet
 Title: Monthly, Seasonal and Scenario Stream Discharge for the BC Freshwater Atlas
-Version: 0.2.1
-Date: 2026-10-06
+Version: 0.2.2
+Date: 2026-10-07
 Authors@R: c(
     person("Allan", "Irvine", , "al@newgraphenvironment.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-3495-2128")),

@@ -1,4 +1,4 @@
-# wet (development version)
+# wet 0.2.2
 
 * The open water balance is refit on HYDAT 2026-07-17 (#43). The pipeline now keeps one fit per HYDAT release (`WET_HYDAT` names the file), and the 2025-10-14 fit is reproduced exactly beside it. The new fit has 315 calibration gauges and a held-out mean absolute error of 27.5 % (headwater 30.7 %, nested 17.6 %). Pooled zones get no adjustment, settled on short-record gauges no fit uses, which retires the "mildly optimistic" caveat. The zone adjustment ties raw P − AET on headwater gauges and is kept by a recorded decision because it corrects the major rivers (#47 revisits the gate).
 
