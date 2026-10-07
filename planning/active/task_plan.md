@@ -27,11 +27,11 @@
 
 ## Phase 1: Pre-register and correct the issue
 
-- [ ] `findings.md`, committed before any run:
+- [x] `findings.md`, committed before any run:
   - **Acceptance rule:** headwater blocked-CV MAE of the 2026-07-17 fit against the 2025-10-14 fit on common calibration gauges; ship unless worse by more than 1.0 point.
   - **Pooled-zone rule:** fit "other", "none" and the nested choice on all calibration gauges and predict the 1–9-year test gauges. The variant with the lower test-gauge MAE ships. A tie within 1.0 point keeps the shipped nested choice. The test-gauge MAE is reported as the out-of-sample figure, and the caveat goes if the shipped variant wins or ties.
   - **AET:** cfu is carried from the 2025-10-14 fit; AET is not re-picked.
-- [ ] Edit #43's body: no new years (window fixed), the caveat settled by fresh gauges, both rules.
+- [x] Edit #43's body: no new years (window fixed), the caveat settled by fresh gauges, both rules.
 
 ## Phase 2: Fits keyed by HYDAT release
 
