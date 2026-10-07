@@ -387,6 +387,13 @@ Before planning to re-run a workflow on a feature branch, check how it is trigge
 
 *1 line of evidence for this rule is in `conventions/ci-monitoring.md`, which `/code-check` reads in full.*
 
+## A commit pushed by the Actions token starts no workflow, so wait on the SHA you pushed
+Key a CI waiter on the SHA you pushed, never on the default branch's tip: a bot commit made with `GITHUB_TOKEN` (an `update-citation-cff` auto-commit, a docs regen) lands on top of yours and, by GitHub's design, triggers no workflow run, so a loop waiting for runs on the tip waits forever.
+
+The tip moves seconds after a release push, which is exactly when a waiter is started. The bot commit also needs no check of its own when it only touches a file the site does not publish; confirm the deploy provenance instead (the `gh-pages` subject names the SHA that was built).
+
+*1 line of evidence for this rule is in `conventions/ci-monitoring.md`, which `/code-check` reads in full.*
+
 # Code Check — R
 Traps in R: the language and base/utils behaviour, package internals (`R CMD build`, `.Rbuildignore`, roxygen, lintr, `data-raw/`, testthat, pak), and the DBI/duckdb/arrow data layer.
 
@@ -661,6 +668,9 @@ Read a TSV you wrote unquoted with `quote = "", na.strings = character(), commen
 
 ### duckdb in R: the query that autoloads `icu` binds unreliably, so `LOAD icu` before it
 Run `LOAD icu` on the connection before any query that needs it (`epoch()`, `year()`, a cast to `DATE` on a `TIMESTAMPTZ`), or use a function that needs no extension (`epoch_ms()`).
+
+### `fs::path()` collapses the `//` after a URL scheme, so it cannot build URLs
+Join a URL with `paste(base, key, sep = "/")` or `file.path()`, never `fs::path()`: `fs::path("https://x.ca/b", "k.tif")` is `"https:/x.ca/b/k.tif"`, because fs normalises the doubled separator, and the result is not a valid URL.
 
 # Code Check — Shell
 Tool-level traps in bash, sed, git and `gh`, and in the host toolchain those commands depend on.
@@ -1007,6 +1017,9 @@ Hold any raw WFS read to the server's own count.
 
 ### bcdata's error text does not carry a WFS failure's cause, so read it from the response
 To tell a throttle from any other bcdata failure, record the status off the request itself (wrap `crul:::crul_fetch`), not from the message.
+
+### sf and terra can link different GDALs, so a probe through one says nothing about the other
+Check `sf::sf_extSoftVersion()[["GDAL"]]` and `terra::gdal()` before concluding that "GDAL" cannot read something: one R session can hold two GDALs (a CRAN binary of sf bundles its own, terra built against Homebrew links another), and a driver or codec missing from one may be present in the …
 
 # Code Check Conventions
 Structured checklist for reviewing diffs before commit.
@@ -1683,7 +1696,7 @@ would, X is not evidence.
 When the user pushes back on an inference, re-derive rather than defend. The
 conclusion often survives; the reasoning that reaches it is usually different.
 
-*5 lines of evidence for this rule are in `conventions/karpathy.md`, which `/code-check` reads in full.*
+*9 lines of evidence for this rule are in `conventions/karpathy.md`, which `/code-check` reads in full.*
 
 ### Documents that share an ancestor corroborate nothing
 
