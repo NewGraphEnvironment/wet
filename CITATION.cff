@@ -8,7 +8,7 @@ message: 'To cite package "wet" in publications use:'
 type: software
 license: MIT
 title: 'wet: Stream Flow and Water Temperature for the BC Freshwater Atlas'
-version: 0.2.3
+version: 0.2.4
 abstract: Per-segment stream discharge for the British Columbia Freshwater Atlas (FWA),
   and flow and water-temperature departures at hydrometric stations. Gridded runoff,
   from Pacific Climate Impacts Consortium (PCIC) VIC-GL or from an open water balance
