@@ -333,6 +333,14 @@ The cheaper of the two is the gauge side: flag the regulated and diverted calibr
 
 Also found here: #51. Two older scripts average climr's 1961–1990 reference row into their 1981–2010 means.
 
+**Facts about the River Forecast Centre files** (measured 2026-10-07, snapshot md5s in the report):
+- The ASWS daily archive (`catalogue.data.gov.bc.ca/…/download/daily.csv`; the older `daily_asp_archive.csv` link is 404) runs to WY 2011.
+  - Its `P` is max(0, ΔAccumP): it matches the floored change on 79 % of days, and its yearly sum is 0.97 × the floored increments and 1.08 × the net change.
+  - It still holds 419 negative values, the lowest −872 mm, which are reset artefacts.
+- The hourly `PC_Archive.csv`, `PC.csv`, `SW_Archive.csv` and `SW.csv` are wide, one column per station, with a time column labelled `DATE(UTC)`. The current files repeat no archive hours, and the two carry different station sets.
+- 1,011 daily-archive rows at 4A29P (1984–1990) are dated year-day-month. Where the day is ≤ 12 they parse silently to the wrong date.
+- Pillow peak SWE rarely exceeds the gauge's accumulation to the peak: the catch factor is 1.00 at the median, so no undercatch shows in situ.
+
 ### What this says about the BC Water Tools
 
 Their accuracy figures are in-sample, and after the undocumented "final adjustment to measured flows" they are near 0 % at the gauges. They are not a measure of skill at ungauged sites. The open reimplementation suggests that out-of-sample skill of this method family, province-wide, is about 33 % MAE on annual runoff (38 % for headwater basins) with the CGIAR AET Chapman used, and about 28 % (31 %; 32 % under a fully nested selection) with that AET floored by a Fu–Budyko demand (#15). Our release comparison (#5) should score their values at stations held out of *their* fit where possible.
