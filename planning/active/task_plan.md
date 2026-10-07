@@ -18,7 +18,7 @@ What exploration settled:
 
 ## Phase 1: Diagnose (m1)
 
-- [ ] Pre-register the attribution rule in `findings.md` and commit it **before** any PCIC number is computed (rule below)
+- [x] Pre-register the attribution rule in `findings.md` and commit it **before** any PCIC number is computed (rule below)
 - [ ] `scripts/wb_term_diagnose.R`: PCIC `PREC`, `EVAP`, `RUNOFF` and `BASEFLOW`, 1981–2010 (the fwapg MAD period), mean annual over the Peace/Fraser/Columbia bbox via `wet_pcic_annual()`. Cached under `data/pcic/`, long fetch run in the background with a teed log
 - [ ] Same script: area-weighted sample per fundamental watershed (`wet_ws_sample`) and upstream means per basin (`wet_upstream_means`) for FWA basins 100/200/300. Keep the calibration gauges' watersheds, joined to our `p_yr`, `aet_cfu`, `pet_yr`, zone, nesting, obs and held-out prediction
 - [ ] Checks that PCIC is internally sound before it is used as a reference:
