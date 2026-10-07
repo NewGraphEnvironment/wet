@@ -105,13 +105,13 @@ No package code changes, so no fit goes stale and everything runs on m1.
 ## Phase 4: Write-up
 
 - [x] `research/water_balance_method.md` §0: new subsection "Plateau precipitation (#50)" with provenance header. Update the #45 subsection's "What would decide it", the Follow-ups list and the zone 24 line.
-- [ ] Edit #50's body to the outcome.
-- [ ] If climr is high: draft the correction issue (candidate layer, independence from the scored gauges, scored under #45's rule (a)–(e)), show it, and file on OK. Otherwise name what is next.
+- [x] Edit #50's body to the outcome.
+- [x] If climr is high: draft the correction issue (candidate layer, independence from the scored gauges, scored under #45's rule (a)–(e)), show it, and file on OK. Otherwise name what is next. (Not high: no correction issue; the gauge side is named as next, drafted for the user)
 
 ## Validation
 
-- [ ] Tests pass (`devtools::test()`; no package code expected to change)
-- [ ] `/code-check` clean on each commit (the script gets the full rounds, ending with an enumeration of its caches)
+- [x] Tests pass (746, 0 fail, 1 skip; no package code changed)
+- [x] `/code-check` on the script commit: 3 rounds, ended by round 3's enumeration of all 25 ratios and comparisons; its one remaining bug row fixed and measured (Deviation 1c). Research and body edits self-checked against the report and caches
 - [x] The report reproduces byte-identical on a second run from cache
-- [ ] PWF checkboxes match landed work
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
