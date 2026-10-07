@@ -1,0 +1,135 @@
+# Plateau precipitation (#50): climr, PNWNAmet and TerraClimate against plateau-elevation observations
+
+rule: pre-registered in the #50 findings before any product value was computed at a site, as replaced by Amendment 2
+deviation 1: gauge days floored at 0 in both eras, as the daily archive defines P (as registered, check (a) stopped the run at 1.156)
+correction 1: the catch factor counts only years covered from October to the peak
+deviation 1c: the daily era's Jun-Sep flag reads the archive's AccumP increments, as the hourly era's reads PC
+observations: BC River Forecast Centre ASWS (daily archive to WY 2011, hourly PC after) and snow courses; snapshot 2026-10-07
+  courses         md5 e901de1096aa72953d80a673750f7a8b
+  courses_current md5 f2bb4d870bd64ccd6635d8aa1dc44f66
+  daily           md5 5fc965fd25b8c2ffe535c9e5136d1289
+  pc_archive      md5 1775ccaf7c6ec8c796bd84b1120a8902
+  pc              md5 eeac99dc4e24c1b356eb5d9f85209042
+  sw_archive      md5 a142094839ccfdd312341e2eb23aed0b
+  sw              md5 3561fe7f30de17cdc835254be07b31ba
+  course_locs     md5 02492f46b6af968c4668999d956ea943
+  gauge_locs      md5 03177bb6208e9114e60c3a7b6bfa1c31
+  prism_list      md5 0cbff4e13527c406ab4ef92121082a73
+products: climr 0.2.2 (refmap_climr, mswx.blend), PNWNAmet as PCIC TPS_gridded_obs_init PREC, TerraClimate ppt (NCSS)
+sites in band 900-2100 m and PCIC's domain; dry zones 15 17 23 24; primary contrast zones 02 03 04 05 06 07 08 09 12 13 14 16 18 19 20 21 22
+check (a): daily archive / hourly PC, 285 gauge-years at 50 sites: median 1.01
+flag on those gauge-years: from the daily archive's AccumP 195, from hourly PC 196, both 189
+catch factor c, median by group: dry 1.00, contrast 1.00; primary D on raw gauge P
+flagged site-years (Jun-Sep negative increments > 25 mm): 610 of 1290
+daily-archive station-years dropped for year-day-month dates: 4A29P 1989, 4A29P 1990, 4A29P 1984, 4A29P 1985 (1011 rows)
+
+## Verdict: not decided (T1: unstable (flagged years); unstable (PRISM-input gauges))
+attribution of #45's climr-PNWNAmet gap: unresolved
+
+## B3 precondition: climr / PNWNAmet at the gauge sites (WY <= 2012), dry over contrast
+R = 1.18 (dry 7, contrast 29 gauges; contrast median climr/PNWNAmet 1.21); met: TRUE
+  zone 03: median climr/PNWNAmet 1.09
+  zone 07: median climr/PNWNAmet 0.96
+  zone 08: median climr/PNWNAmet 1.31
+  zone 09: median climr/PNWNAmet 1.64
+  zone 10: median climr/PNWNAmet 1.44
+  zone 12: median climr/PNWNAmet 1.20
+  zone 13: median climr/PNWNAmet 1.22
+  zone 14: median climr/PNWNAmet 1.32
+  zone 15: median climr/PNWNAmet 1.51
+  zone 16: median climr/PNWNAmet 1.18
+  zone 18: median climr/PNWNAmet 1.09
+  zone 20: median climr/PNWNAmet 1.55
+  zone 21: median climr/PNWNAmet 1.01
+  zone 22: median climr/PNWNAmet 1.13
+  zone 23: median climr/PNWNAmet 1.20
+  zone 24: median climr/PNWNAmet 1.63
+  zone 25: median climr/PNWNAmet 1.15
+  zone 26: median climr/PNWNAmet 1.74
+
+## T1: D = median(product / gauge) over dry gauges, over the same for contrast gauges
+climr:        D 1.09 (dry 13, contrast 46; dry zones 3) -> inconclusive; status: unstable (flagged years); unstable (PRISM-input gauges)
+  leave-one-out 1.07-1.14; flagged years removed 1.20; era <=2011 1.01 (dry 7, contrast 29), >=2012 1.12 (dry 13, contrast 45)
+  |dz| <= 200 m: 1.15 (dry 10, contrast 33) holds; unflagged by PRISM input: 1.19 (dry 11, contrast 36) fails
+PNWNAmet:     D 0.91 (dry 7, contrast 29) -> not low; status: unstable (leave-one-out); unstable (PRISM-input gauges); leave-one-out 0.88-0.99
+TerraClimate: D 1.07 (dry 13, contrast 46); leave-one-out 1.05-1.07
+reported: climr D bootstrap 90 % interval 0.98-1.28; Oct-Apr 1.09, May-Sep 1.09 (raw gauge P)
+reported: full contrast 1.08 (dry 13, contrast 58); elevation-matched contrast 1.12 (dry 13, contrast 18)
+dry gauges by zone: 15 7, 17 0, 23 3, 24 3
+
+## T2 veto: climr / catch-adjusted gauge P at dry gauges with a catch factor
+gauges 13; share below 1.00: 0.23; veto: FALSE
+
+## T3: product winter P (1 Sep to the survey) / snow-course SWE, WY 1982-2010
+climr        dry courses 42; share below 1: 0.02 -> not low; median dry 2.03; dry/contrast factor 1.61
+pnwnamet     dry courses 42; share below 1: 0.29 -> not low; median dry 1.32; dry/contrast factor 1.16; cell no more than 100 m below: 28 courses, fails
+terraclimate dry courses 42; share below 1: 0.21 -> not low; median dry 1.52; dry/contrast factor 1.51
+  climr        share below 1 by dry zone: 15 0.06, 17 0.00, 23 0.00, 24 0.00
+  pnwnamet     share below 1 by dry zone: 15 0.22, 17 0.33, 23 0.30, 24 0.36
+  terraclimate share below 1 by dry zone: 15 0.33, 17 0.00, 23 0.10, 24 0.18
+courses dropped for a zero SWE sum: 0
+
+## Dry gauges: product / gauge (ratio of sums over complete years) and cell minus site elevation (m)
+id     zone group     elev  name                       prism climr  PNWN    TC  years            dz_cl dz_pn dz_tc
+1C05P  15   dry       1718  McGillivray Pass           FALSE  1.24     -  0.82  2019-2024 (6)     251    80    24
+1C12P  15   dry       1780  Green Mountain             FALSE  0.93  0.51  0.57  1999-2024 (24)   -231  -438  -499
+1C14P  15   dry       1382  Bralorne                   FALSE  1.65     -  1.31  2019-2024 (6)      32   220   267
+1C18P  15   dry       1850  Mission Ridge              FALSE  0.91  0.60  0.80  1999-2024 (22)   -533  -593  -456
+1C40P  15   dry       1969  North Tyaughton            FALSE  1.42     -  1.01  2020-2024 (5)    -143  -188  -147
+2B06P  23   dry       1620  Barnes Creek               TRUE   1.14  0.94  1.07  1999-2024 (23)     78   -14    26
+2E07P  23   dry       1870  Grano Creek                FALSE  1.06  0.88  0.82  1999-2024 (24)     32   -19  -112
+2F01AP 24   dry       1420  Trout Creek West           FALSE  1.25     -  0.83  2020-2024 (5)     -52  -107   -85
+2F05P  23   dry       1780  Mission Creek              FALSE  1.02  0.69  0.87  1971-2024 (37)    -29  -135   -12
+2F08P  24   dry       1550  Greyback Reservoir         FALSE  1.09     -  0.83  2017-2024 (8)      65   121    49
+2F18P  24   dry       1460  Brenda Mine                FALSE  1.34  0.76  0.89  1999-2024 (19)    -12   -85   -53
+2F19P  15   dry       1360  Oyama Lake                 FALSE  1.53     -  1.30  2021-2024 (4)      64    23    56
+3A24P  15   dry       1650  Mosley Creek Upper         TRUE   0.99  0.92  0.86  1996-2024 (28)    -69   -62    48
+
+## Primary-contrast gauges
+id     zone group     elev  name                       prism climr  PNWN    TC  years            dz_cl dz_pn dz_tc
+1A01P  13   contrast  1860  Yellowhead Lake            TRUE   1.13  0.65  0.79  1997-2024 (25)    -83  -178   -58
+1A02P  13   contrast  1610  McBride Upper              FALSE  1.07  0.78  0.91  2007-2024 (16)   -136    25  -295
+1A03P  14   contrast  1470  Barkerville                TRUE   1.08  1.01  0.96  1975-2024 (30)    -24    65   -71
+1A05P  12   contrast  1740  Longworth Upper            FALSE  0.98     -  0.66  2018-2024 (6)    -267  -451  -591
+1A14P  12   contrast  1130  Hedrick Lake               FALSE  0.93  0.85  0.54  2001-2024 (19)    280   451   399
+1A15P  12   contrast  1580  Knudsen Lake               FALSE  1.02     -  0.61  2017-2024 (6)     -12    26    23
+1A17P  13   contrast  1680  Revolution Creek           TRUE   0.87  0.70  0.59  1986-2023 (34)      9     3   -11
+1A19P  12   contrast  1774  Dome Mountain              FALSE  1.00  0.73  0.78  2006-2024 (19)   -501  -213  -218
+1B01P  08   contrast  1490  Mount Wells                FALSE  1.03  0.71  0.93  2001-2024 (23)     13    60   126
+1B08P  09   contrast  1400  Mt. Pondosy                FALSE  1.36  0.67  1.40  2002-2024 (20)   -251  -156  -128
+1C20P  16   contrast  1460  Boss Mountain Mine         FALSE  1.03  0.83  0.91  1994-2024 (27)     77    20    73
+1C41P  14   contrast  1670  Yanks Peak                 TRUE   0.87  0.72  0.68  1999-2024 (23)    -32  -163  -262
+1E02P  14   contrast  1570  Mount Cook                 FALSE  1.11  0.61  0.65  2001-2024 (17)    106  -121    46
+1E08P  14   contrast  1640  Azure River                TRUE   1.11  0.84  0.71  1999-2024 (20)    128   231   221
+1E10P  14   contrast  1770  Kostal Lake                FALSE  1.17  0.84  0.81  1986-2023 (25)    -57  -102  -239
+1E11P  14   contrast  1780  Mt St Anne                 TRUE   0.76  0.50  0.50  1974-1979 (3)    -332  -533  -455
+1E14P  14   contrast  1280  Cook Creek                 FALSE  1.04  0.59  0.77  2000-2024 (18)   -346  -307   336
+1F03P  14   contrast  1890  Park Mountain              TRUE   1.04  0.71  0.81  1986-2024 (31)    -88  -165  -365
+1F04P  14   contrast  1950  Enderby                    FALSE  1.67     -  1.05  2017-2024 (7)    -127  -274  -146
+1F06P  14   contrast  1500  Celista                    FALSE  1.03  0.60  0.78  2005-2024 (19)     65  -126  -106
+2A06P  22   contrast  1850  Mount Revelstoke           FALSE  1.07  0.94  0.94  1996-2024 (18)   -269  -631  -624
+2A18P  22   contrast  1840  Keystone Creek             FALSE  1.08     -  1.10  2016-2024 (9)    -121  -145  -203
+2A21P  18   contrast  1935  Molson Creek               FALSE  1.05  0.89  0.74  2002-2024 (22)   -275  -318  -122
+2A34P  18   contrast  1182  Glacier NP Rogers Pass Low FALSE  1.24     -  1.29  2022-2024 (3)     422   514   435
+2B08P  22   contrast  1800  St. Leon Creek             TRUE   1.02  0.97  0.86  2002-2024 (23)    -52  -116   -17
+2C09Q  20   contrast  1860  Morrissey Ridge            FALSE  0.98  0.85  0.65  2002-2024 (19)    -59  -157   -60
+2C10P  20   contrast  1835  Moyie Mountain             TRUE   1.17  0.65  0.87  1999-2024 (25)    -12  -240  -114
+2C14P  18   contrast  2090  Floe Lake                  FALSE  1.01  0.95  0.70  2002-2024 (23)    168    61   162
+2C21P  20   contrast   988  Fernie                     FALSE  0.82     -  0.85  2019-2024 (6)      56   272   111
+2D08P  21   contrast  2030  East Creek                 FALSE  0.95  1.12  0.74  2002-2024 (21)    186  -346  -221
+2D10P  21   contrast  1930  Gray Creek Upper           FALSE  1.11     -  0.82  2021-2024 (3)      30    58    87
+2D14P  21   contrast  2100  Redfish Creek              FALSE  1.05  0.79  0.76  2002-2024 (21)   -169  -131  -200
+2F10P  14   contrast  1840  Silver Star Mountain       FALSE  1.22     -  0.98  2017-2024 (8)    -160  -505  -325
+4A02P  07   contrast  1400  Pine Pass                  FALSE  0.85  0.89  0.55  2002-2024 (22)    -99  -191  -178
+4A03P  03   contrast  1565  Ware Upper                 FALSE  1.19     -  0.92  2017-2024 (7)    -501  -376  -342
+4A09P  03   contrast  1311  Pulpit Lake                TRUE   1.10  0.92  0.73  1999-2024 (19)    339   434   326
+4A13P  08   contrast  1028  Philip Lake                FALSE  1.23     -  0.98  2020-2024 (5)      12     2    -4
+4A18P  12   contrast  1490  Mount Sheba                FALSE  0.99     -  0.63  2019-2024 (6)      -9  -104  -143
+4A20P  07   contrast  1570  Monkman Creek              FALSE  0.98     -  0.68  2019-2024 (6)    -314  -286  -295
+4A27P  03   contrast  1554  Kwadacha North             FALSE  0.99  0.83  0.80  1999-2024 (23)    -93  -346  -400
+4A30P  03   contrast  1050  Aiken Lake                 FALSE  1.00  0.93  0.89  2002-2024 (22)    -25   129    39
+4A31P  03   contrast  1358  Crying Girl Prairie        FALSE  0.93     -  0.90  2016-2024 (9)     -96   -71  -115
+4A33P  03   contrast  1196  Muskwa-Kechika             FALSE  1.18     -  1.08  2016-2024 (9)     108   181   117
+4A34P  07   contrast  1456  Dowling Creek              FALSE  1.82     -  1.14  2017-2024 (8)     -79  -194  -124
+4A37P  03   contrast  1200  McQue Terrace              FALSE  1.09     -  1.12  2020-2024 (5)     115   229   168
+4C01P  03   contrast  1387  Sikanni Lake               FALSE  1.23     -  1.03  2017-2024 (7)     251   325   306
