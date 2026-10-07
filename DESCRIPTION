@@ -1,6 +1,6 @@
 Package: wet
 Title: Stream Flow and Water Temperature for the BC Freshwater Atlas
-Version: 0.2.2
+Version: 0.2.3
 Date: 2026-10-07
 Authors@R: c(
     person("Allan", "Irvine", , "al@newgraphenvironment.com", role = c("aut", "cre"),

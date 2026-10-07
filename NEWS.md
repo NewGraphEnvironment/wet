@@ -1,3 +1,9 @@
+# wet 0.2.3
+
+* The open water balance's overshoot in the dry interior (hydrologic zones 15, 17, 23 and 24) is diagnosed against PCIC VIC-GL's split of precipitation and evapotranspiration, under a rule fixed before any PCIC value was computed (#45). Neither term is named: our precipitation runs 1.4–1.6 times PCIC's there, and our AET offsets most of the difference. The dry zones differ from the rest in precipitation, not AET, so the next check is precipitation observed at plateau elevation. The shipped estimate does not change.
+
+* The README and package description now cover the water-temperature path, and no longer claim seasonal or climate-scenario output, which no script builds.
+
 # wet 0.2.2
 
 * The open water balance is refit on HYDAT 2026-07-17 (#43). The pipeline now keeps one fit per HYDAT release (`WET_HYDAT` names the file), and the 2025-10-14 fit is reproduced exactly beside it. The new fit has 315 calibration gauges and a held-out mean absolute error of 27.5 % (headwater 30.7 %, nested 17.6 %). Pooled zones get no adjustment, settled on short-record gauges no fit uses, which retires the "mildly optimistic" caveat. The zone adjustment ties raw P − AET on headwater gauges and is kept by a recorded decision because it corrects the major rivers (#47 revisits the gate).
