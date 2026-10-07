@@ -119,6 +119,12 @@ The rule above stands except where amended here. Where they conflict, this secti
 - the verdict on basins ≥ 100 km² only (PCIC cells are about 31 km²);
 - the count of gauges with < 20 years of record.
 
+**Implementation readings (2026-10-07, still before any PCIC value; from code-check round 1):**
+- **Leave-one-out stability** applies the 4-basin minimum to the zone only, not to each leave-one-out subset. Otherwise every 4-basin zone would always read "unstable".
+- **"Under both PETs" is read per basin.** A basin counts only when its test holds under Hargreaves and under PCIC PET_NATVEG. This is the stricter of the two readings, and it applies to the P-side test (i′) and to the AET-side ω check alike. From code-check round 2.
+- **An unstable pooled verdict does not veto.** "Unstable" casts no vote, and the veto fires only when the pooled verdict is the other term, so an unstable pooled verdict is not a term. From code-check round 3.
+- **A basin with P_o − Q ≤ 0** (implied ω undefined) fails both ω tests and stays in both denominators.
+
 **Known limits, recorded as assumptions, not tested here:**
 - Whether PNWNAmet and climr's reference map share a PRISM lineage. That is the reason (iii) exists.
 - Whether VIC-GL was calibrated at these gauges. Its calibration gauges are not published; if it was, R_c ≈ Q is in-sample for PCIC.
@@ -126,7 +132,13 @@ The rule above stands except where amended here. Where they conflict, this secti
 - The step-1 and step-3 thresholds were set knowing our raw errors and fwapg's zone errors.
 - In zones 17, 23 and 24, held-out equals raw: they are pooled to "none" in every fold, though the shipped all-station fit adjusts 23 and 24.
 
+## Zone names
+
+The zones shapefile (`HYDZN_NAME`): 15 Fraser Plateau, 17 Northern Thompson Plateau, 23 Okanagan Highland, 24 Southern Thompson Plateau. `research/water_balance_method.md` §0 calls zone 24 "Okanagan Highland" in two places (the #15 "Still unresolved" list and Follow-ups). It is fixed with this issue's research update.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
+| `Rscript -e` with `"\\.shp$"` inside single quotes: unrecognized escape | Probe from a script file with `"[.]shp$"` |
+| First run: `$TMPDIR` unset in the Bash tool, so `> $TMPDIR/msg.txt` wrote to `/` | Use the session scratchpad path |
