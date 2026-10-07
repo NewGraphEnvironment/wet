@@ -13,13 +13,13 @@ Source:
 [`DESCRIPTION`](https://github.com/NewGraphEnvironment/wet/blob/main/DESCRIPTION)
 
 Irvine A (2026). *wet: Stream Flow and Water Temperature for the BC
-Freshwater Atlas*. R package version 0.2.3,
+Freshwater Atlas*. R package version 0.2.4,
 <https://github.com/NewGraphEnvironment/wet>.
 
     @Manual{,
       title = {wet: Stream Flow and Water Temperature for the BC Freshwater Atlas},
       author = {Allan Irvine},
       year = {2026},
-      note = {R package version 0.2.3},
+      note = {R package version 0.2.4},
       url = {https://github.com/NewGraphEnvironment/wet},
     }

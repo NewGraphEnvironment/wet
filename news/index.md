@@ -1,5 +1,20 @@
 # Changelog
 
+## wet 0.2.4
+
+- Climr precipitation is scored against the River Forecast Centre’s
+  plateau-elevation precipitation gauges and snow courses, under a rule
+  fixed before any product value was computed
+  ([\#50](https://github.com/NewGraphEnvironment/wet/issues/50)). climr
+  is at most modestly high on the dry plateaus relative to the rest of
+  the interior (dry over contrast 1.09, not decided), and part of
+  [\#45](https://github.com/NewGraphEnvironment/wet/issues/45)’s gap
+  between climr and PNWNAmet is PNWNAmet’s. Precipitation alone does not
+  explain zone 24’s overshoot; the next check is gauges with water taken
+  out upstream
+  ([\#53](https://github.com/NewGraphEnvironment/wet/issues/53)). The
+  shipped estimate does not change.
+
 ## wet 0.2.3
 
 - The open water balance’s overshoot in the dry interior (hydrologic
