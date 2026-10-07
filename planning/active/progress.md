@@ -20,3 +20,4 @@
     - `eccc_climr_<key>.rds` (years, zones zip, this script);
     - `data/hydz/src_*` (unzipped every run);
     - `diagnose_<release>.rds` and the report (`wb_report()`, keyed on the release).
+- Diagnosis run on m4 (m1 lacked climr), then reproduced byte-identical on m1 after climr was installed (user OK). Verdicts: 15 and 24 compensating, 17 PCIC not usable, 23 no material gap; lever none. Phase 2 written: next step is plateau-elevation P (ASWS), with the scoring rule for any P correction fixed in findings

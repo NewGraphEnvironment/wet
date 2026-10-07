@@ -132,6 +132,86 @@ The rule above stands except where amended here. Where they conflict, this secti
 - The step-1 and step-3 thresholds were set knowing our raw errors and fwapg's zone errors.
 - In zones 17, 23 and 24, held-out equals raw: they are pooled to "none" in every fold, though the shipped all-station fit adjusts 23 and 24.
 
+## Result (2026-10-07; `data/checks/wb_term_diagnose_20260717.txt`)
+
+**Run.** 3fecb5e, with the rule as amended.
+- It ran on m4, because m1 lacked climr then.
+- With climr installed, m1 then reproduced the report byte-identical, and the ECCC table was `all.equal`.
+- Logs: `data/logs/45/20261007_0{3,4}_*` (gitignored on m1).
+
+**PCIC is sound as a reference:**
+- Its RO+BF against fwapg's stored MAD has a median of 1.00 (p10–p90 0.99–1.01) at 174 basins.
+- Closure is −0.01.
+- The diagnosis covers 193 calibration gauges in 192 distinct basins.
+
+**Registered verdicts:**
+
+| zone | n | verdict |
+|---|---|---|
+| 15 | 17 | compensating: ΣΔP/G = 2.74 |
+| 17 | 4 | PCIC not usable: PCIC runs −31 % there |
+| 23 | 8 | no material gap: ours +4 % raw |
+| 24 | 8 | compensating: ΣΔP/G = 2.97 |
+| pooled dry | 37 | compensating |
+
+**Lever: none.** P has 0 votes and AET 0.
+
+**What "compensating" means here** (medians per basin, mm/yr, from `diagnose_20260717.rds`):
+
+| group | climr P / PCIC P | TerraClimate P / PCIC P | our AET / EVAP | ΔP | ΔA | gap G | R_o − Q |
+|---|---|---|---|---|---|---|---|
+| 15 | 1.43 | 1.20 | 1.48 | 152 | 138 | 52 | 56 |
+| 17 | 1.46 | 1.68 | 1.44 | 147 | 116 | 28 | 26 |
+| 23 | 1.36 | 1.15 | 1.63 | 216 | 201 | 14 | 8 |
+| 24 | 1.61 | 1.15 | 1.65 | 302 | 199 | 131 | 122 |
+| other zones (155) | 1.15 | 0.93 | 1.63 | 135 | 203 | −25 | −94 |
+
+Our P exceeds PCIC's by more than twice our runoff gap, and our AET exceeds EVAP by most of the same amount. The two models reach similar runoff with very different splits, so the rule's decomposition cannot name one term.
+
+**Post hoc. Not registered, does not decide anything:**
+- **What sets the dry zones apart is the P ratio, not the AET ratio.**
+  - Our AET / EVAP is 1.44–1.65 in the dry zones and 1.63 elsewhere.
+  - climr P / PCIC P is 1.36–1.61 in the dry zones against 1.15 elsewhere.
+  - Across the 37 dry basins, our log runoff error correlates with ΔP / P_o at r = 0.32, and with ΔA / P_o at r = −0.04.
+- **The three P products order the same way on the plateaus:** climr > TerraClimate > PNWNAmet. In zone 24, TerraClimate is 0.75 of climr.
+- **Corroboration (i′), implied ω > 5 under both PETs, holds in zone 24** at 4 of 8 basins: Beak, Whipsaw, Camp and Greata (ω 20.6 and 13.6). It fails elsewhere.
+- **The Fu counterfactual** on zone 24's 8 Fu-dominated basins puts the P term at 1,477 mm against a model term of 721 mm.
+- **ECCC cannot test plateau P.** Every ECCC station in the dry zones sits 200–1,300 m below the gauge basins (median basin elevation 1,345–1,553 m), so (ii′) is "unavailable" in all four zones.
+  - At the valley stations climr runs high in places: Princeton 1.37, Spences Bridge 1.26, Beaverdell North 1.18, Hedley 1.17.
+  - The pooled-stratum median over 5 stations is 1.10.
+
+**Reading.** The weight of evidence leans to precipitation: climr's plateau P is high relative to two other gridded products, and the dry zones differ from the rest in P, not in AET. The registered rule does not reach a P verdict, because our AET model offsets more than half of the P difference. A P lever is therefore plausible, but **not established**.
+
+What would decide it: precipitation observed **at plateau elevation**, which neither ECCC normals nor the gauges supply. That means the BC River Forecast Centre's automated snow weather stations (ASWS) and snow courses on the Thompson, Okanagan and Fraser plateaus, scored against climr, PNWNAmet and TerraClimate.
+
+**Attribution of the disagreement with PCIC** (CLAUDE.md, ours/theirs):
+- **Ours:** zones 15 and 24.
+- **Theirs:** zones 17 and 23, where PCIC is further from the gauges.
+
+**Held-out baseline for the follow-up** (fit_20260717, as shipped):
+- dry zones, 40 gauges: MAE 42.8 %, mean signed +31.7 %;
+- by zone: 15 23.3 %, 17 47.5 %, 23 30.7 %, 24 92.8 %;
+- all gauges 27.5 %, headwater 30.7 %, nested 17.6 %.
+
+The issue's 102 % for zone 24 was the 2025-10-14 fit's.
+
+## Phase 2: the lever, and the rule a lever would be scored under (pre-registered 2026-10-07)
+
+**Mapping.** No lever. The majority verdict is no term, because 0 zones vote. Per the plan, no ERA5-Land cd issue is filed, since the AET branch was not taken.
+
+**Next step.** Score climr, PNWNAmet (PCIC PREC) and TerraClimate against plateau-elevation precipitation: ASWS precipitation gauges and snow-course SWE as a lower bound on winter P, in zones 15, 17, 23 and 24. Only if climr is high there does a P correction get built.
+
+**Scoring rule for any P correction built after that, fixed now and in the style of #15** (the baseline is fit_20260717 as shipped, scored under the same blocked CV):
+
+*Independence.* The correction must come from precipitation observations or another P product. If it is fitted to gauge runoff, the fitting must sit inside the blocked CV. It must not be fitted to the gauges it is scored on.
+
+*The candidate ships only if all five hold:*
+- **(a)** Dry-zone (15/17/23/24) MAE at least 10 points below 42.8 %, on the same gauges.
+- **(b)** All-station MAE no higher than 27.5 %.
+- **(c)** Headwater MAE at most 0.5 point above 30.7 %. Nested MAE at most 1.0 point above 17.6 %, and nested within ±20 % at most 3 points lower.
+- **(d)** At each of the seven major-river mouths in `wb_output`, the modelled/observed ratio moves toward 1, or away from it by no more than 0.03.
+- **(e)** A fully nested selection beats the baseline's dry-zone MAE. In it, each outer fold chooses between the candidate and the baseline by (a)–(c) on an inner CV.
+
 ## Zone names
 
 The zones shapefile (`HYDZN_NAME`): 15 Fraser Plateau, 17 Northern Thompson Plateau, 23 Okanagan Highland, 24 Southern Thompson Plateau. `research/water_balance_method.md` §0 calls zone 24 "Okanagan Highland" in two places (the #15 "Still unresolved" list and Follow-ups). It is fixed with this issue's research update.
