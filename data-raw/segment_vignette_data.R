@@ -268,6 +268,9 @@ provenance <- list(
   aet = fits$aet,
   keep_adjust = fits$keep_adjust,
   pooled_variant = fits$pooled_variant,
+  # whether #11's headwater gate itself passed, as against keep_adjust, which
+  # an override can hold (#43): the vignette's limits say which
+  gate_pass = fits$gate_pass,
   hydat_release = hydat_release,
   min_order = min_order,
   near_km = near_km,
