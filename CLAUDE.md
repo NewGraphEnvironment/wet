@@ -29,6 +29,7 @@ The open water balance (#11), a second pipeline run in this order. Each script's
 - `scripts/wb_fit_accept.R <old> <new>` and `scripts/wb_pooled_test.R` (#43): whether a fit on a newer release ships, and the pooled-zone variant settled on the test set.
 - `scripts/wb_output.R`: per-basin parquet under `data/wb/<key>/fit_<release>/output/`.
 - `scripts/wb_map.R`: the runoff map.
+- `scripts/wb_term_diagnose.R` (#45): our P and AET against PCIC's PREC and EVAP at the calibration gauges, under a rule pre-registered in the #45 archive. Report: `data/checks/wb_term_diagnose_<release>.txt`. Runs on m1 from the reduced bundle; it needs climr.
 
 Station flow departure (#25): `wet_station_daily()` (HYDAT, then water-temp-bc provisional, then real-time, each continuing the one before per station) → `wet_window_stats()` (per-year statistics over month-day windows, in cd's long format) → cd's `cd_baseline()`/`cd_anomaly()`/`cd_trend()`, one station per call. `scripts/station_departure.R` runs it for real-time stations; limits (ice, provisional winters, seasonal-gauge baselines) are in `research/station_flow_departure.md`. The vignette `vignettes/station-flow.Rmd` (#27) shows the same path on 08EE013 and 08EE003 in the three open-water Chinook windows, last five years against 1981–2010, from data that `data-raw/station_vignette_data.R` (daily series) and `data-raw/station_vignette_map.R` (map layers) bundle in `inst/vignette-data/`; colours come from the gq registry `inst/cartography/wet_station.csv`.
 
