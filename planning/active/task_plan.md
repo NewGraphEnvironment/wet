@@ -53,7 +53,7 @@ What exploration settled:
 - [ ] File the follow-up issue to build and score the lever (draft shown in the conversation first); edit the #45 body so phases 2–3 point to it
 
 ## Phase 3: README accuracy (requested 2026-10-07)
-- [ ] README states what wet now covers (discharge, station flow departure, water temperature, open water balance), each checked against the exports and vignettes, not restated from memory
+- [x] README states what wet now covers (discharge, station flow departure, water temperature, open water balance), each checked against the exports and vignettes, not restated from memory
 
 ## Validation
 

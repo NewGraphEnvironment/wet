@@ -6,3 +6,4 @@
 - Created branch `45-dry-interior-runoff-find-which-term-is-o` off main
 - Scaffolded PWF baseline from issue #45 with approved phases
 - Next: pre-register the attribution rule, then start the PCIC fetch
+- README and DESCRIPTION brought up to date (requested mid-run): water temperature path, two segment sources, scenario runs reachable but not built; DESCRIPTION Title/Description had claimed seasonal and climate-scenario output that no script produces
