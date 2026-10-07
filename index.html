@@ -5,14 +5,14 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Monthly, Seasonal and Scenario Stream Discharge for the BC Freshwater Atlas • wet</title>
+<title>Stream Flow and Water Temperature for the BC Freshwater Atlas • wet</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Monthly, Seasonal and Scenario Stream Discharge for the BC Freshwater Atlas">
-<meta name="description" content="Per-segment stream discharge for the British Columbia Freshwater Atlas (FWA). Aggregates Pacific Climate Impacts Consortium (PCIC) VIC-GL gridded runoff and baseflow to FWA fundamental watersheds, accumulates them upstream by area weighting, and reports mean annual and monthly discharge per stream segment for historical and climate-scenario runs.">
-<meta property="og:description" content="Per-segment stream discharge for the British Columbia Freshwater Atlas (FWA). Aggregates Pacific Climate Impacts Consortium (PCIC) VIC-GL gridded runoff and baseflow to FWA fundamental watersheds, accumulates them upstream by area weighting, and reports mean annual and monthly discharge per stream segment for historical and climate-scenario runs.">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Stream Flow and Water Temperature for the BC Freshwater Atlas">
+<meta name="description" content="Per-segment stream discharge for the British Columbia Freshwater Atlas (FWA), and flow and water-temperature departures at hydrometric stations. Gridded runoff, from Pacific Climate Impacts Consortium (PCIC) VIC-GL or from an open water balance fitted at Water Survey of Canada (HYDAT) gauges, is sampled to FWA fundamental watersheds and accumulated upstream by area weighting, giving mean annual and monthly discharge per stream segment. Station daily flow and water temperature are summarised per year over month-day windows for departure statistics.">
+<meta property="og:description" content="Per-segment stream discharge for the British Columbia Freshwater Atlas (FWA), and flow and water-temperature departures at hydrometric stations. Gridded runoff, from Pacific Climate Impacts Consortium (PCIC) VIC-GL or from an open water balance fitted at Water Survey of Canada (HYDAT) gauges, is sampled to FWA fundamental watersheds and accumulated upstream by area weighting, giving mean annual and monthly discharge per stream segment. Station daily flow and water temperature are summarised per year over month-day windows for departure statistics.">
 <meta property="og:image" content="https://newgraphenvironment.github.io/wet/logo.png">
 </head>
 <body>
@@ -60,15 +60,22 @@
 </h1>
 </div>
 <blockquote>
-<p>Stream discharge for BC’s Freshwater Atlas</p>
+<p>Stream flow and water temperature for BC’s Freshwater Atlas</p>
 </blockquote>
-<p>Monthly, seasonal and mean annual flow per stream segment, historical and climate-scenario, from modelled runoff and hydrometric stations. wet builds its own open estimate and scores other groups’ products (PCIC, fwapg, the BC Water Tools) against it and against HYDAT.</p>
-<p>Two paths:</p>
+<p>Mean annual and monthly flow per stream segment, and flow and water-temperature departures at hydrometric stations. wet builds its own open estimate and scores other groups’ products (PCIC, fwapg, the BC Water Tools) against it and against HYDAT.</p>
+<p>Three paths:</p>
 <ul>
 <li>
-<strong>Segments.</strong> Gridded runoff (PCIC VIC-GL, or an open water balance fitted at 315 HYDAT gauges) is sampled to FWA fundamental watersheds, accumulated upstream by area weighting, and converted to m³/s.</li>
+<strong>Segments.</strong> Gridded runoff is sampled to FWA fundamental watersheds, accumulated upstream by area weighting, and converted to m³/s. Two sources:
+<ul>
+<li>PCIC VIC-GL, historical, over the Peace, Fraser and Columbia;</li>
+<li>an open water balance (climr precipitation less a Budyko-floored AET), province-wide, fitted at 315 HYDAT gauges and giving mean annual and monthly flow.</li>
+</ul>
+The PCIC fetchers take PCIC’s climate-scenario runs through <code>run =</code>, but no scenario output is built yet.</li>
 <li>
-<strong>Stations.</strong> Daily flow from HYDAT, continued by ECCC provisional and real-time data, summarised per year over month-day windows for <a href="https://github.com/NewGraphEnvironment/cd" class="external-link">cd</a>’s departure statistics.</li>
+<strong>Station flow.</strong> Daily flow from HYDAT, continued by ECCC provisional and real-time data, summarised per year over month-day windows for <a href="https://github.com/NewGraphEnvironment/cd" class="external-link">cd</a>’s departure statistics.</li>
+<li>
+<strong>Station water temperature.</strong> Daily water temperature from the ECCC readings that water-temp-bc archives (about 300 stations, from 2002), through the same windows to cd. The baseline is 2016–2025, because few loggers reach back to 1981–2010.</li>
 </ul>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -79,7 +86,7 @@
 <div class="section level2">
 <h2 id="prerequisites">Prerequisites<a class="anchor" aria-label="anchor" href="#prerequisites"></a>
 </h2>
-<p>The segment path needs PostgreSQL with <a href="https://github.com/smnorris/fwapg" class="external-link">fwapg</a> loaded; <a href="https://github.com/NewGraphEnvironment/fresh" class="external-link">fresh</a>’s <code>docker/</code> has a local setup. Connection is through the standard libpq env vars (<code>PGHOST</code>, <code>PGPORT</code>, <code>PGDATABASE</code>, <code>PGUSER</code>, <code>PGPASSWORD</code>). The station path needs a HYDAT database (<code><a href="https://docs.ropensci.org/tidyhydat/reference/download_hydat.html" class="external-link">tidyhydat::download_hydat()</a></code>).</p>
+<p>The segment path needs PostgreSQL with <a href="https://github.com/smnorris/fwapg" class="external-link">fwapg</a> loaded; <a href="https://github.com/NewGraphEnvironment/fresh" class="external-link">fresh</a>’s <code>docker/</code> has a local setup. Connection is through the standard libpq env vars (<code>PGHOST</code>, <code>PGPORT</code>, <code>PGDATABASE</code>, <code>PGUSER</code>, <code>PGPASSWORD</code>). The station flow path needs a HYDAT database (<code><a href="https://docs.ropensci.org/tidyhydat/reference/download_hydat.html" class="external-link">tidyhydat::download_hydat()</a></code>). The water-temperature path needs <code>duckdb</code>; it reads water-temp-bc’s public archive, so no credentials are needed.</p>
 </div>
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
@@ -122,7 +129,7 @@
 <tbody>
 <tr>
 <td><strong>wet</strong></td>
-<td>Stream discharge per segment and per station (this package)</td>
+<td>Stream flow per segment and per station, and station water temperature (this package)</td>
 </tr>
 <tr>
 <td><a href="https://github.com/NewGraphEnvironment/fresh" class="external-link">fresh</a></td>
@@ -138,14 +145,15 @@
 </tr>
 <tr>
 <td><a href="https://github.com/NewGraphEnvironment/water-temp-bc" class="external-link">water-temp-bc</a></td>
-<td>Monthly archive of ECCC provisional hydrometric data that bridges HYDAT and real-time</td>
+<td>Monthly archive of ECCC provisional hydrometric data (discharge and water temperature) that bridges HYDAT and real-time</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Pipelines:</strong></p>
 <ul>
 <li>Fish habitat: wet (discharge) → fresh (segment attribute, <code>mad</code> rules)</li>
-<li>Flow departure: wet (per-year window values) → cd (baseline, anomaly, trend)</li>
+<li>Flow departure: wet (per-year window values) → cd (baseline, anomaly, trend), against 1981–2010</li>
+<li>Water-temperature departure: wet (per-year window values, °C) → cd, against 2016–2025</li>
 </ul>
 </div>
 <div class="section level2">
