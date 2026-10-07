@@ -52,8 +52,8 @@ No package code changes, so no fit goes stale and everything runs on m1.
 
 ## Phase 1: Pre-register the rule (before any product value at any site)
 
-- [ ] Write the rule in `findings.md` and commit it before `scripts/wb_plateau_p.R` computes any product value. The skeleton is below; thresholds are fixed there.
-- [ ] Plan-agent review of the rule, run blind (no values). Amend, commit the amendment, and record any disclosure of what was already known (as #45's Amendment 1).
+- [x] Write the rule in `findings.md` and commit it before `scripts/wb_plateau_p.R` computes any product value. The skeleton is below; thresholds are fixed there.
+- [x] Plan-agent review of the rule, run blind (no values). Amend, commit the amendment, and record any disclosure of what was already known (as #45's Amendment 1).
 
 **Rule skeleton** (thresholds to be fixed in findings):
 
