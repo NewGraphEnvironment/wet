@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,6 +36,11 @@
       <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.3" id="wet-023">wet 0.2.3<a class="anchor" aria-label="anchor" href="#wet-023"></a></h2>
+<ul><li><p>The open water balance’s overshoot in the dry interior (hydrologic zones 15, 17, 23 and 24) is diagnosed against PCIC VIC-GL’s split of precipitation and evapotranspiration, under a rule fixed before any PCIC value was computed (<a href="https://github.com/NewGraphEnvironment/wet/issues/45" class="external-link">#45</a>). Neither term is named: our precipitation runs 1.4–1.6 times PCIC’s there, and our AET offsets most of the difference. The dry zones differ from the rest in precipitation, not AET, so the next check is precipitation observed at plateau elevation. The shipped estimate does not change.</p></li>
+<li><p>The README and package description now cover the water-temperature path, and no longer claim seasonal or climate-scenario output, which no script builds.</p></li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.2" id="wet-022">wet 0.2.2<a class="anchor" aria-label="anchor" href="#wet-022"></a></h2>
 <ul><li><p>The open water balance is refit on HYDAT 2026-07-17 (<a href="https://github.com/NewGraphEnvironment/wet/issues/43" class="external-link">#43</a>). The pipeline now keeps one fit per HYDAT release (<code>WET_HYDAT</code> names the file), and the 2025-10-14 fit is reproduced exactly beside it. The new fit has 315 calibration gauges and a held-out mean absolute error of 27.5 % (headwater 30.7 %, nested 17.6 %). Pooled zones get no adjustment, settled on short-record gauges no fit uses, which retires the “mildly optimistic” caveat. The zone adjustment ties raw P − AET on headwater gauges and is kept by a recorded decision because it corrects the major rivers (<a href="https://github.com/NewGraphEnvironment/wet/issues/47" class="external-link">#47</a> revisits the gate).</p></li>

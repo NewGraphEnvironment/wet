@@ -1,5 +1,22 @@
 # Changelog
 
+## wet 0.2.3
+
+- The open water balance’s overshoot in the dry interior (hydrologic
+  zones 15, 17, 23 and 24) is diagnosed against PCIC VIC-GL’s split of
+  precipitation and evapotranspiration, under a rule fixed before any
+  PCIC value was computed
+  ([\#45](https://github.com/NewGraphEnvironment/wet/issues/45)).
+  Neither term is named: our precipitation runs 1.4–1.6 times PCIC’s
+  there, and our AET offsets most of the difference. The dry zones
+  differ from the rest in precipitation, not AET, so the next check is
+  precipitation observed at plateau elevation. The shipped estimate does
+  not change.
+
+- The README and package description now cover the water-temperature
+  path, and no longer claim seasonal or climate-scenario output, which
+  no script builds.
+
 ## wet 0.2.2
 
 - The open water balance is refit on HYDAT 2026-07-17
