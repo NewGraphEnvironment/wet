@@ -104,6 +104,13 @@ The plan review (`review-plan.md`) found the rules above underspecified in ways 
 - **Where the adjustment helps:** nested and larger rivers (all gauges, about 0.9 points). On the 29 new gauges: adjusted 29.8, raw 30.5.
 - **Next:** the pooled-zone test waits. Under raw P − AET there are no pooled zones to settle. Decision to the user.
 
+**Decision (user, 2026-10-06): ship the 2026-07-17 fit as raw P − AET (cfu), the zone adjustment dropped by #11's headwater gate as written.**
+- Headwater error: 30.7 % (30.69 on the common gauges, against the old shipped 31.18).
+- All gauges: 28.4 %, about 0.9 points worse than adjusted, on nested and larger rivers.
+- With no adjustment there are no pooled zones, so the pooled-zone test is not run: moot, not skipped. The "mildly optimistic" caveat goes with the adjustment.
+- #44 (zone-boundary blending) loses its premise while the adjustment is off.
+- The vignette's skill now reads `raw_v` when `keep_adjust` is FALSE (`data-raw/segment_vignette_data.R`).
+
 ## Errors Encountered
 
 | Error | Resolution |

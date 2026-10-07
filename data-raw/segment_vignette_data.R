@@ -79,7 +79,10 @@ stopifnot(identical(release, wb_shipped_release),   # the vignette shows the shi
           identical(fits$calibration, cal$station_number))
 
 # ---- held-out skill at the calibration stations ---------------------------------------------
-sk <- cv$cv_v$stations[c("station_number", "obs", "mod", "err_pct")]
+# the skill of what ships: the blocked-CV adjusted fit, or raw P - AET when the
+# headwater gate dropped the adjustment (fits$keep_adjust; #43's refit)
+ship_v <- if (fits$keep_adjust) cv$cv_v else cv$raw_v
+sk <- ship_v$stations[c("station_number", "obs", "mod", "err_pct")]
 stopifnot(nrow(sk) == nrow(cal), setequal(sk$station_number, cal$station_number), !anyNA(sk$err_pct))
 sk <- merge(sk, cal[c("station_number", "station_name", "lon", "lat", "linear_feature_id", "watershed_feature_id",
                       "zone", "nesting", "area_km2")], by = "station_number")
@@ -88,7 +91,8 @@ sk$linear_feature_id <- as.integer(sk$linear_feature_id)
 stopifnot(!anyNA(sk$linear_feature_id))
 # the tracked report is the published record: the summary must be its blocked-CV rows
 rep_lines <- readLines(wb_report("wb_validation", release))
-blk <- rep_lines[(grep("^### Adjusted, blocked CV", rep_lines) + 2):length(rep_lines)]
+blk <- rep_lines[(grep(if (fits$keep_adjust) "^### Adjusted, blocked CV" else "^### Raw P - AET",
+                       rep_lines) + 2):length(rep_lines)]
 rep_mae <- function(g, v) {
   x <- strsplit(trimws(grep(sprintf("^%s +%s ", g, v), blk, value = TRUE)[1]), " +")[[1]]
   as.numeric(x[7])
@@ -263,6 +267,7 @@ provenance <- list(
   province_run = basename(key_dir),
   aet = fits$aet,
   keep_adjust = fits$keep_adjust,
+  pooled_variant = fits$pooled_variant,
   hydat_release = hydat_release,
   min_order = min_order,
   near_km = near_km,

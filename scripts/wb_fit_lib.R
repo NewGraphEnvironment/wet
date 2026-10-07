@@ -11,8 +11,10 @@
 # fit is and which one ships, not how a fit is scored, so switching the shipped
 # release does not stale every fit's scores.
 
-# the fit the province output, the map and the vignette use
-wb_shipped_release <- "20251014"
+# the fit the province output, the map and the vignette use: HYDAT 2026-07-17
+# since #43 (data/checks/wb_fit_accept_20260717.txt; the gate dropped the zone
+# adjustment, and the user chose to ship it raw, 2026-10-06)
+wb_shipped_release <- "20260717"
 
 # the release a script works on: WET_HYDAT_RELEASE, or the shipped one
 wb_release <- function() {
