@@ -13,13 +13,13 @@ Source:
 [`DESCRIPTION`](https://github.com/NewGraphEnvironment/wet/blob/main/DESCRIPTION)
 
 Irvine A (2026). *wet: Monthly, Seasonal and Scenario Stream Discharge
-for the BC Freshwater Atlas*. R package version 0.2.1,
+for the BC Freshwater Atlas*. R package version 0.2.2,
 <https://github.com/NewGraphEnvironment/wet>.
 
     @Manual{,
       title = {wet: Monthly, Seasonal and Scenario Stream Discharge for the BC Freshwater Atlas},
       author = {Allan Irvine},
       year = {2026},
-      note = {R package version 0.2.1},
+      note = {R package version 0.2.2},
       url = {https://github.com/NewGraphEnvironment/wet},
     }

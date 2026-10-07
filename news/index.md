@@ -1,6 +1,6 @@
 # Changelog
 
-## wet (development version)
+## wet 0.2.2
 
 - The open water balance is refit on HYDAT 2026-07-17
   ([\#43](https://github.com/NewGraphEnvironment/wet/issues/43)). The
