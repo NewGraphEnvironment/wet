@@ -63,3 +63,6 @@ accepted lake outlets (lake >= 100 ha within 3 km, upstream on the network, drai
 10BE001   104000.0  area ratio 0.88 outside 1 +/- 0.10
 10BE005   119000.0  area ratio 0.89 outside 1 +/- 0.10
 10BE006    61600.0  area ratio 0.79 outside 1 +/- 0.10
+
+## Short-record stations for the pooled-zone test (#43; never in a fit)
+natural, 1 to 9 complete years: 137; snapped within +/- 10 %: 84

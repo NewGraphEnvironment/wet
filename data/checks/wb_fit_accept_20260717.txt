@@ -1,0 +1,14 @@
+# Does the fit on HYDAT 20260717 ship in place of 20251014? (#43)
+
+calibration gauges: 20251014 290, 20260717 315; in both 286; headwater in both 209
+only in 20251014: 08GA065 08HA068 08KD001 08LF080
+only in 20260717: 07FB005 07FD004 08DB013 08EG017 08FF006 08GF005 08HA069 08HB032 08HC006 08HE007 08HE009 08HE010 08HF006 08HF012 08JA028 08JB002 08JC017 08KE032 08LA027 08LB012 08LE108 08MB007 08MH154 08MH166 08ND018 08NH016 08NH138 08NJ162 08NM241
+AET: 20251014 cfu, 20260717 cfu
+headwater gate (adjusted beats raw P - AET): 20251014 PASS, 20260717 FAIL
+each fit is scored against its own release's observed runoff: a revised flow moves target and training together
+
+blocked-CV MAE (%), pooled variant chosen inside each fold, headwater gauges in both:
+  20251014 31.18
+  20260717 30.90
+rule: ships unless worse by more than 1.0 point
+VERDICT: SHIPS (-0.28 points); its gate FAILS, so the decision goes to the user
