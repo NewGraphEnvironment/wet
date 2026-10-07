@@ -66,7 +66,7 @@
 <p>Two paths:</p>
 <ul>
 <li>
-<strong>Segments.</strong> Gridded runoff (PCIC VIC-GL, or an open water balance fitted at 290 HYDAT gauges) is sampled to FWA fundamental watersheds, accumulated upstream by area weighting, and converted to m³/s.</li>
+<strong>Segments.</strong> Gridded runoff (PCIC VIC-GL, or an open water balance fitted at 315 HYDAT gauges) is sampled to FWA fundamental watersheds, accumulated upstream by area weighting, and converted to m³/s.</li>
 <li>
 <strong>Stations.</strong> Daily flow from HYDAT, continued by ECCC provisional and real-time data, summarised per year over month-day windows for <a href="https://github.com/NewGraphEnvironment/cd" class="external-link">cd</a>’s departure statistics.</li>
 </ul>
@@ -94,7 +94,7 @@
 <span><span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/wet_window_stats.html">wet_window_stats</a></span><span class="op">(</span><span class="va">q</span>, <span class="va">w</span>, stats <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mean"</span>, <span class="st">"min7"</span><span class="op">)</span><span class="op">)</span>  <span class="co"># one value per year, window, statistic</span></span>
 <span><span class="va">s</span><span class="op">$</span><span class="va">station_number</span> <span class="op">&lt;-</span> <span class="cn">NULL</span>                                 <span class="co"># cd takes one station per call</span></span>
 <span></span>
-<span><span class="fu">cd</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/cd/man/cd_anomaly.html" class="external-link">cd_anomaly</a></span><span class="op">(</span><span class="va">s</span>, <span class="fu">cd</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/cd/man/cd_baseline.html" class="external-link">cd_baseline</a></span><span class="op">(</span><span class="va">s</span>, <span class="fl">1981</span><span class="op">:</span><span class="fl">2010</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">cd</span><span class="fu">::</span><span class="fu"><a href="https://newgraphenvironment.github.io/cd/reference/cd_anomaly.html" class="external-link">cd_anomaly</a></span><span class="op">(</span><span class="va">s</span>, <span class="fu">cd</span><span class="fu">::</span><span class="fu"><a href="https://newgraphenvironment.github.io/cd/reference/cd_baseline.html" class="external-link">cd_baseline</a></span><span class="op">(</span><span class="va">s</span>, <span class="fl">1981</span><span class="op">:</span><span class="fl">2010</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="vignettes">Vignettes<a class="anchor" aria-label="anchor" href="#vignettes"></a>
@@ -103,7 +103,7 @@
 <li>
 <a href="https://www.newgraphenvironment.com/wet/articles/station-flow.html" class="external-link">Chinook flow at two stations</a>: the station path on 08EE013 and 08EE003, from map to departure and trend.</li>
 <li>
-<a href="https://www.newgraphenvironment.com/wet/articles/segment-discharge.html" class="external-link">Mean annual discharge per segment</a>: parity with fwapg on the Salmon River, the open water balance on the Bulkley, and its out-of-sample skill at 290 gauges.</li>
+<a href="https://www.newgraphenvironment.com/wet/articles/segment-discharge.html" class="external-link">Mean annual discharge per segment</a>: parity with fwapg on the Salmon River, the open water balance on the Bulkley, the two estimates side by side, and the balance’s out-of-sample skill at 315 gauges.</li>
 </ul>
 <p>Function reference and both vignettes are on the <a href="https://www.newgraphenvironment.com/wet/" class="external-link">pkgdown site</a>.</p>
 </div>

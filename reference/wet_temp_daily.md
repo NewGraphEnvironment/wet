@@ -9,9 +9,10 @@ so it feeds
 [`wet_window_stats()`](https://newgraphenvironment.github.io/wet/reference/wet_window_stats.md)
 with `value = "t_mean_c"` (or `t_min_c`, `t_max_c`),
 `level_anomaly = "absolute"` and `unit = "degC"`, and from there
-[`cd::cd_baseline()`](https://rdrr.io/pkg/cd/man/cd_baseline.html),
-[`cd::cd_anomaly()`](https://rdrr.io/pkg/cd/man/cd_anomaly.html) and
-[`cd::cd_trend()`](https://rdrr.io/pkg/cd/man/cd_trend.html).
+[`cd::cd_baseline()`](https://newgraphenvironment.github.io/cd/reference/cd_baseline.html),
+[`cd::cd_anomaly()`](https://newgraphenvironment.github.io/cd/reference/cd_anomaly.html)
+and
+[`cd::cd_trend()`](https://newgraphenvironment.github.io/cd/reference/cd_trend.html).
 
 ## Usage
 

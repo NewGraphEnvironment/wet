@@ -37,6 +37,11 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="development version" id="wet-development-version">wet (development version)<a class="anchor" aria-label="anchor" href="#wet-development-version"></a></h2>
+<ul><li><p>The open water balance is refit on HYDAT 2026-07-17 (<a href="https://github.com/NewGraphEnvironment/wet/issues/43" class="external-link">#43</a>). The pipeline now keeps one fit per HYDAT release (<code>WET_HYDAT</code> names the file), and the 2025-10-14 fit is reproduced exactly beside it. The new fit has 315 calibration gauges and a held-out mean absolute error of 27.5 % (headwater 30.7 %, nested 17.6 %). Pooled zones get no adjustment, settled on short-record gauges no fit uses, which retires the “mildly optimistic” caveat. The zone adjustment ties raw P − AET on headwater gauges and is kept by a recorded decision because it corrects the major rivers (<a href="https://github.com/NewGraphEnvironment/wet/issues/47" class="external-link">#47</a> revisits the gate).</p></li>
+<li><p>The segment discharge article compares the two estimates in a table of each one’s strengths and limits, with guidance on which suits which job, in place of a single recommendation. PCIC’s model fits gauges more closely where fwapg has a value; the open water balance covers all of BC and ships its code.</p></li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.1" id="wet-021">wet 0.2.1<a class="anchor" aria-label="anchor" href="#wet-021"></a></h2>
 <ul><li>The segment discharge article is reordered for readers: what mean annual discharge is, which estimate to use and why, how close the open water balance comes at 290 gauges, the Salmon River and Bulkley River as maps that hold every gauge they name, and limits in order of what affects a user. fwapg (PCIC) is now scored at the 168 gauges it covers: it is closer there (25.5 % against 30.5 % mean absolute error), and the article recommends the balance everywhere on the strength of its coverage and open code, stating that gap (<a href="https://github.com/NewGraphEnvironment/wet/issues/39" class="external-link">#39</a>).</li>
 </ul></div>

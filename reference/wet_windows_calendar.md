@@ -20,10 +20,10 @@ wet_windows_calendar()
 
 The seasons are named `djf`, `mam`, `jja` and `son` rather than winter,
 spring and so on. That is deliberate:
-[`cd::cd_seasons()`](https://rdrr.io/pkg/cd/man/cd_seasons.html) builds
-winter from December, January and February of one calendar year, while
-here `djf` is the contiguous December to February and takes the year of
-its December, so the two would disagree under the same name.
+[`cd::cd_seasons()`](https://newgraphenvironment.github.io/cd/reference/cd_seasons.html)
+builds winter from December, January and February of one calendar year,
+while here `djf` is the contiguous December to February and takes the
+year of its December, so the two would disagree under the same name.
 
 ## Examples
 

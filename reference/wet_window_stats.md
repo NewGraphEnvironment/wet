@@ -5,11 +5,12 @@ Summarises any daily series (flow from
 water temperature, ...) over named month-day windows, once per year per
 window. The result is in the long format `cd`'s consumer functions take
 (`variable`, `period`, `year`, `value`, `anomaly_type`, `unit`), so
-[`cd::cd_baseline()`](https://rdrr.io/pkg/cd/man/cd_baseline.html),
-[`cd::cd_anomaly()`](https://rdrr.io/pkg/cd/man/cd_anomaly.html) and
-[`cd::cd_trend()`](https://rdrr.io/pkg/cd/man/cd_trend.html) give the
-departure and the trend. cd takes one series per call, so split by id
-first.
+[`cd::cd_baseline()`](https://newgraphenvironment.github.io/cd/reference/cd_baseline.html),
+[`cd::cd_anomaly()`](https://newgraphenvironment.github.io/cd/reference/cd_anomaly.html)
+and
+[`cd::cd_trend()`](https://newgraphenvironment.github.io/cd/reference/cd_trend.html)
+give the departure and the trend. cd takes one series per call, so split
+by id first.
 
 ## Usage
 

@@ -67,9 +67,9 @@
     
 <p>wet gives every stream segment of British Columbia’s Freshwater Atlas
 a mean annual discharge: the average flow, in cubic metres per second,
-over 1981–2010. This article explains what that number is, which of
-wet’s two estimates to use, how close it comes to measured flow, and
-where it is weakest.</p>
+over 1981–2010. This article explains what that number is, the two
+estimates behind it and what each suits, how close they come to measured
+flow, and where they are weakest.</p>
 <div class="section level2">
 <h2 id="what-mean-annual-discharge-is">What mean annual discharge is<a class="anchor" aria-label="anchor" href="#what-mean-annual-discharge-is"></a>
 </h2>
@@ -99,7 +99,7 @@ streams of the same order meet. The maps here draw order 3 and up.</li>
 <li>
 <strong><a href="https://www.canada.ca/en/environment-climate-change/services/water-overview/quantity/monitoring/survey/data-products-services/national-archive-hydat.html" class="external-link">HYDAT</a></strong>:
 the Water Survey of Canada’s archive of flow measured at gauges. A
-<em>calibration gauge</em> is one of the 290 HYDAT gauges the water
+<em>calibration gauge</em> is one of the 315 HYDAT gauges the water
 balance is fitted and scored on.</li>
 <li>
 <strong><a href="https://services.pacificclimate.org/portal/hydro_model_out/map/" class="external-link">PCIC
@@ -116,7 +116,7 @@ estimate.</li>
 et al. (2018)</a>, the method behind the province’s <a href="https://www2.gov.bc.ca/gov/content/environment/air-land-water/water/water-science-data/water-data-tools" class="external-link">water
 tools</a>. Precipitation less evapotranspiration per grid cell is
 averaged upstream, then adjusted by hydrologic zone against HYDAT
-gauges. Its code and inputs ship with wet.</li>
+gauges. Its code ships with wet, and its inputs are public.</li>
 <li>
 <strong><a href="https://catalogue.data.gov.bc.ca/dataset/bc-hydrologic-zones" class="external-link">Hydrologic
 zone</a></strong>: one of BC’s 29 regions of similar runoff. The balance
@@ -138,133 +138,109 @@ percentage of observed. One scale runs through every figure: more than
 </ul>
 </div>
 <div class="section level2">
-<h2 id="which-estimate-to-use">Which estimate to use<a class="anchor" aria-label="anchor" href="#which-estimate-to-use"></a>
+<h2 id="two-estimates">Two estimates<a class="anchor" aria-label="anchor" href="#two-estimates"></a>
 </h2>
-<p><strong>Use wet’s open water balance everywhere, and read fwapg
-beside it where fwapg has a value.</strong> Two reasons favour the
-balance, and one favours fwapg.</p>
-<p>The balance covers the province. fwapg covers 112 watershed groups in
-the Peace, Fraser and Columbia. Even there it skips the largest rivers:
-of the 13,883 segments of order 8 and up, the Fraser and Thompson among
-them, it gives a value on 38.</p>
-<p>The balance’s code and inputs ship with wet, so a wrong value can be
-traced to its cause and fixed in the open. fwapg republishes PCIC’s
-model output, which wet can reproduce but not re-run.</p>
-<p>fwapg is the closer of the two where both can be scored. At the 168
-calibration gauges with a fwapg value, its mean absolute error is 25.5%
-against the balance’s 30.5%. The two numbers are not quite like for
-like. The balance’s is out of sample, and slightly optimistic, because
-its final variant was chosen after its first failed. Some of fwapg’s may
-be in sample: PCIC calibrated VIC-GL over 1985–2005, and which gauges it
-was calibrated on is not published with fwapg’s values. The comparison
-also leaves out the 18 gauges in PCIC’s groups where fwapg has no value,
-mostly large rivers, where the balance does best. So where fwapg has a
-value and the two disagree, check the nearest gauge before trusting
-either. A rule set before this comparison was run would reopen the
-recommendation if the balance were more than 5 points worse. It is 5.03
-points worse, just past that line, and the recommendation stands on the
-first two reasons.</p>
+<p>Two estimates of mean annual discharge are available per segment,
+built different ways. They suit different jobs.</p>
+<table class="table">
+<caption>The two estimates. The balance is scored at gauges held out of
+its fit; the gauges PCIC calibrated to are not listed with its output.
+The two fits are not strictly like for like.</caption>
+<colgroup>
+<col width="13%">
+<col width="43%">
+<col width="42%">
+</colgroup>
+<thead><tr class="header">
+<th align="left"></th>
+<th align="left">PCIC VIC-GL, through fwapg</th>
+<th align="left">wet’s open water balance</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">What it is</td>
+<td align="left">A physically based model of snow, glaciers, soil and
+runoff, calibrated over 1985–2005</td>
+<td align="left">Precipitation less evapotranspiration per grid cell,
+adjusted by hydrologic zone against HYDAT gauges</td>
+</tr>
+<tr class="even">
+<td align="left">Where it has values</td>
+<td align="left">Peace, Fraser and Columbia (112 watershed groups);
+fwapg’s table leaves out rivers of order 8 and up</td>
+<td align="left">All of BC: every segment with a watershed</td>
+</tr>
+<tr class="odd">
+<td align="left">Fit at the 183 gauges both cover</td>
+<td align="left">25.3% mean absolute error; 59% within ±20%</td>
+<td align="left">30.3% mean absolute error (held out); 49% within
+±20%</td>
+</tr>
+<tr class="even">
+<td align="left">Largest rivers</td>
+<td align="left">Not in fwapg’s table; wet can rebuild them from PCIC’s
+output (<code>scripts/mad_basin.R</code>, run for the Fraser)</td>
+<td align="left">14.0% mean absolute error at the 18 gauges in PCIC’s
+area where fwapg has no value, mostly on these</td>
+</tr>
+<tr class="odd">
+<td align="left">Grid</td>
+<td align="left">0.0625°, about 7 × 4 km</td>
+<td align="left">30″, about 0.9 × 0.5 km</td>
+</tr>
+<tr class="even">
+<td align="left">Time</td>
+<td align="left">Daily, 1945–2012; twelve climate projections to
+2099</td>
+<td align="left">1981–2010 normals, annual and monthly</td>
+</tr>
+<tr class="odd">
+<td align="left">Open to rebuild</td>
+<td align="left">Output is public; the model runs are PCIC’s</td>
+<td align="left">Code ships with wet; its inputs are public and fetched
+by its scripts</td>
+</tr>
+</tbody>
+</table>
+<p>Which to use depends on the job:</p>
+<ul>
+<li>Inside the Peace, Fraser and Columbia, where fwapg has a value:
+PCIC’s model, which fits gauges more closely there.</li>
+<li>Outside those basins, on the rivers fwapg leaves out, or for one
+consistent layer across BC: the open water balance.</li>
+<li>Where both exist and the number matters: both, checked against the
+nearest gauge, as the Salmon River section below does.</li>
+</ul>
 <div class="figure">
-<img src="segment-discharge_files/figure-html/compare-1.png" class="r-plt" alt="Held-out error of the water balance against fwapg's error, at the 168 calibration gauges where fwapg has a value. The shaded square holds the gauges both products put within ±20%. Between the dashed diagonals, the left and right wedges hold gauges where the balance is closer, the top and bottom wedges those where fwapg is. 2 gauges beyond +200% are drawn at the edge." width="80%"><p class="caption">
-Held-out error of the water balance against fwapg’s error, at the 168
-calibration gauges where fwapg has a value. The shaded square holds the
-gauges both products put within ±20%. Between the dashed diagonals, the
+<img src="segment-discharge_files/figure-html/compare-1.png" class="r-plt" alt="Error at each of the 183 calibration gauges both estimates cover: fwapg's across, the water balance's (held out) up. The shaded square holds the gauges both put within ±20%. Between the dashed diagonals, the left and right wedges hold gauges where the balance is closer, the top and bottom wedges those where fwapg is. 2 gauges beyond +200% are drawn at the edge." width="80%"><p class="caption">
+Error at each of the 183 calibration gauges both estimates cover:
+fwapg’s across, the water balance’s (held out) up. The shaded square
+holds the gauges both put within ±20%. Between the dashed diagonals, the
 left and right wedges hold gauges where the balance is closer, the top
 and bottom wedges those where fwapg is. 2 gauges beyond +200% are drawn
 at the edge.
 </p>
 </div>
-<table class="table">
-<caption>Mean absolute error and share of gauges within ±20% for each
-product, at the 168 calibration gauges where both have a value, by gauge
-type and by basin.</caption>
-<colgroup>
-<col width="12%">
-<col width="4%">
-<col width="18%">
-<col width="15%">
-<col width="25%">
-<col width="23%">
-</colgroup>
-<thead><tr class="header">
-<th align="left">Gauges</th>
-<th align="right">n</th>
-<th align="right">Error, balance</th>
-<th align="right">Error, fwapg</th>
-<th align="right">Within ±20%, balance</th>
-<th align="right">Within ±20%, fwapg</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td align="left">All</td>
-<td align="right">168</td>
-<td align="right">30.5%</td>
-<td align="right">25.5%</td>
-<td align="right">48%</td>
-<td align="right">60%</td>
-</tr>
-<tr class="even">
-<td align="left">Headwater</td>
-<td align="right">134</td>
-<td align="right">33.4%</td>
-<td align="right">28.7%</td>
-<td align="right">44%</td>
-<td align="right">55%</td>
-</tr>
-<tr class="odd">
-<td align="left">Nested</td>
-<td align="right">34</td>
-<td align="right">19.0%</td>
-<td align="right">12.6%</td>
-<td align="right">62%</td>
-<td align="right">76%</td>
-</tr>
-<tr class="even">
-<td align="left">Peace</td>
-<td align="right">21</td>
-<td align="right">19.6%</td>
-<td align="right">14.2%</td>
-<td align="right">62%</td>
-<td align="right">90%</td>
-</tr>
-<tr class="odd">
-<td align="left">Fraser</td>
-<td align="right">73</td>
-<td align="right">29.4%</td>
-<td align="right">28.8%</td>
-<td align="right">41%</td>
-<td align="right">45%</td>
-</tr>
-<tr class="even">
-<td align="left">Columbia</td>
-<td align="right">74</td>
-<td align="right">34.7%</td>
-<td align="right">25.4%</td>
-<td align="right">50%</td>
-<td align="right">65%</td>
-</tr>
-</tbody>
-</table>
 </div>
 <div class="section level2">
 <h2 id="how-close-it-is-province-wide">How close it is, province-wide<a class="anchor" aria-label="anchor" href="#how-close-it-is-province-wide"></a>
 </h2>
 <p>Out of sample, the balance’s annual runoff at a gauge is off by 28%
-on average, and 51% of gauges fall within ±20%. It does better on larger
-rivers. Nested gauges average 17% against 31% for headwater ones, and
-basins over 1,000 km² average 21% against 43% for those under 100 km².
+on average, and 53% of gauges fall within ±20%. It does better on larger
+rivers. Nested gauges average 18% against 31% for headwater ones, and
+basins over 1,000 km² average 20% against 40% for those under 100 km².
 One zone stands out: zone 24, the Southern Thompson Plateau, a semi-arid
-interior plateau, where the 8 gauges average 102%.</p>
+interior plateau, where the 9 gauges average 93%.</p>
 <div class="figure">
-<img src="segment-discharge_files/figure-html/map-province-1.png" class="r-plt" alt="The 290 calibration gauges, filled by the water balance's held-out error at each. PCIC's coverage, where fwapg also has values, is outlined; zone 24, the weakest, is shaded; the two groups mapped below are in black." width="100%"><p class="caption">
-The 290 calibration gauges, filled by the water balance’s held-out error
+<img src="segment-discharge_files/figure-html/map-province-1.png" class="r-plt" alt="The 315 calibration gauges, filled by the water balance's held-out error at each. PCIC's coverage, where fwapg also has values, is outlined; zone 24, the weakest, is shaded; the two groups mapped below are in black." width="100%"><p class="caption">
+The 315 calibration gauges, filled by the water balance’s held-out error
 at each. PCIC’s coverage, where fwapg also has values, is outlined; zone
 24, the weakest, is shaded; the two groups mapped below are in black.
 </p>
 </div>
 <div class="figure">
-<img src="segment-discharge_files/figure-html/hist-1.png" class="r-plt" alt="Held-out error at the 290 calibration gauges, in classes of 10%, coloured by the error scale. Gauges beyond +200% are counted in the last bar." width="100%"><p class="caption">
-Held-out error at the 290 calibration gauges, in classes of 10%,
+<img src="segment-discharge_files/figure-html/hist-1.png" class="r-plt" alt="Held-out error at the 315 calibration gauges, in classes of 10%, coloured by the error scale. Gauges beyond +200% are counted in the last bar." width="100%"><p class="caption">
+Held-out error at the 315 calibration gauges, in classes of 10%,
 coloured by the error scale. Gauges beyond +200% are counted in the last
 bar.
 </p>
@@ -274,14 +250,15 @@ bar.
 <h2 id="salmon-river-two-estimates-side-by-side">Salmon River: two estimates side by side<a class="anchor" aria-label="anchor" href="#salmon-river-two-estimates-side-by-side"></a>
 </h2>
 <p>Both products cover the Salmon River, a headwater group of the Fraser
-(1,794 km²), and they disagree there. The open water balance gives a
-median 1.47 times fwapg’s value per segment. The 5 gauges in and around
-the group show where each misses.</p>
-<p>The balance runs high at all of them, by +6% to +38%. At the 2
+(1,794 km²), and they differ there. The open water balance gives a
+median 1.37 times fwapg’s value per segment. The 5 gauges in and around
+the group show which is closer where.</p>
+<p>The balance runs high at all of them, by +2% to +26%. At the 2
 smallest basins, fwapg is within 5%, so the gap there is the balance’s.
-At the 3 larger ones, fwapg runs −14% to −25%, and the two share the
-gap. At 08KC001, the gauge that drains the whole group, they bracket the
-observation: +38% against −25%.</p>
+At the 3 larger ones, fwapg runs −14% to −25%. At the 2 of those off the
+group, the balance is within 3%, so the gap there is fwapg’s. At
+08KC001, the gauge that drains the whole group, they bracket the
+observation: +26% against −25%.</p>
 <table style="width:100%;" class="table">
 <caption>Calibration gauges within 30 km of the Salmon River group, and
 its outlet gauge (first row): mean annual runoff observed in 1981–2010,
@@ -305,35 +282,35 @@ and each product’s error against it.</caption>
 <td align="left">08KC001 Salmon River near Prince George</td>
 <td align="right">4,227</td>
 <td align="right">205</td>
-<td align="right">+38%</td>
+<td align="right">+26%</td>
 <td align="right">−25%</td>
 </tr>
 <tr class="even">
 <td align="left">08KC003 Muskeg River north of Joanne Lake</td>
 <td align="right">297</td>
 <td align="right">224</td>
-<td align="right">+35%</td>
+<td align="right">+24%</td>
 <td align="right">−2%</td>
 </tr>
 <tr class="odd">
 <td align="left">08JE004 Tsilcoh River near the Mouth</td>
 <td align="right">439</td>
 <td align="right">180</td>
-<td align="right">+34%</td>
+<td align="right">+18%</td>
 <td align="right">−1%</td>
 </tr>
 <tr class="even">
 <td align="left">07ED001 Nation River near Fort St. James</td>
 <td align="right">4,356</td>
 <td align="right">401</td>
-<td align="right">+6%</td>
+<td align="right">+2%</td>
 <td align="right">−14%</td>
 </tr>
 <tr class="odd">
 <td align="left">08JE001 Stuart River near Fort St. James</td>
 <td align="right">14,235</td>
 <td align="right">285</td>
-<td align="right">+11%</td>
+<td align="right">+3%</td>
 <td align="right">−17%</td>
 </tr>
 </tbody>
@@ -352,15 +329,15 @@ outside the group are grey.
 </h2>
 <p>fwapg has no values in the Bulkley River, in the Skeena (7,762 km²),
 which lies outside PCIC’s coverage. The open water balance is the only
-estimate there. Its 7 gauges average 37% held-out error, from −38% to
-+95%, in zones 08 and 09.</p>
+estimate there. Its 7 gauges average 37% held-out error, from −40% to
++85%, in zones 08 and 09.</p>
 <p>The map’s segment values come from the fit that includes every gauge,
 while the gauges are filled by the held-out error, so a gauge can look
 worse than the segment it sits on. Take 08EE004, Bulkley River at Quick
 (7,341 km²). It measured 561 mm a year, or 130.7 m³/s over its basin.
-Predicted with its sub-sub-drainage held out, the balance gives 509 mm,
-or 118.5 m³/s (−9%). The segment it sits on reads 120.8 m³/s on the map
-(−8%), closer, because that fit saw this gauge.</p>
+Predicted with its sub-sub-drainage held out, the balance gives 500 mm,
+or 116.4 m³/s (−11%). The segment it sits on reads 118.4 m³/s on the map
+(−9%), closer, because that fit saw this gauge.</p>
 <div class="figure">
 <img src="segment-discharge_files/figure-html/map-bulk-1.png" class="r-plt" alt="Mean annual discharge on 7,748 of the 7,755 Bulkley River segments of order 3 or more, from the open water balance, and the 7 calibration gauges in the group, filled by the balance's held-out error. The keymap marks the group in BC." width="100%"><p class="caption">
 Mean annual discharge on 7,748 of the 7,755 Bulkley River segments of
@@ -392,15 +369,15 @@ prediction, and its error.</caption>
 <td align="left">08EE004 Bulkley River at Quick</td>
 <td align="right">7,341</td>
 <td align="right">561</td>
-<td align="right">509</td>
-<td align="right">−9%</td>
+<td align="right">500</td>
+<td align="right">−11%</td>
 </tr>
 <tr class="even">
 <td align="left">08EE013 Buck Creek at the Mouth</td>
 <td align="right">567</td>
 <td align="right">238</td>
-<td align="right">212</td>
-<td align="right">−11%</td>
+<td align="right">193</td>
+<td align="right">−19%</td>
 </tr>
 <tr class="odd">
 <td align="left">08EE020 Telkwa River below Tsai Creek</td>
@@ -413,29 +390,29 @@ prediction, and its error.</caption>
 <td align="left">08EE008 Goathorn Creek near Telkwa</td>
 <td align="right">122</td>
 <td align="right">449</td>
-<td align="right">665</td>
-<td align="right">+48%</td>
+<td align="right">650</td>
+<td align="right">+45%</td>
 </tr>
 <tr class="odd">
 <td align="left">08EE025 Two Mile Creek in District Lot 4834</td>
 <td align="right">22</td>
 <td align="right">180</td>
-<td align="right">352</td>
-<td align="right">+95%</td>
+<td align="right">334</td>
+<td align="right">+85%</td>
 </tr>
 <tr class="even">
 <td align="left">08EE012 Simpson Creek at the Mouth</td>
 <td align="right">13</td>
 <td align="right">631</td>
-<td align="right">771</td>
-<td align="right">+22%</td>
+<td align="right">757</td>
+<td align="right">+20%</td>
 </tr>
 <tr class="odd">
 <td align="left">08EE028 Station Creek above Diversions</td>
 <td align="right">10</td>
 <td align="right">894</td>
-<td align="right">555</td>
-<td align="right">−38%</td>
+<td align="right">539</td>
+<td align="right">−40%</td>
 </tr>
 </tbody>
 </table>
@@ -447,19 +424,22 @@ prediction, and its error.</caption>
 <ul>
 <li>
 <strong>Coverage.</strong> Outside the Peace, Fraser and Columbia,
-and on the segments fwapg leaves empty inside them, the open water
-balance is the only estimate. A model that classifies habitat on fwapg’s
-discharge gets nothing there.</li>
+the open water balance is the only estimate.</li>
 <li>
 <strong>Dry zones.</strong> In zone 24 and the other semi-arid
 interior zones, runoff is a small remainder of precipitation, so a small
-error in evapotranspiration is a large one in runoff. The zone
-adjustment passes its gate only under a variant offered after the
-pre-set one failed, so all the skill figures here are mildly optimistic
-(<code>research/water_balance_method.md</code>).</li>
+error in evapotranspiration is a large one in runoff.</li>
+<li>
+<strong>The zone adjustment is a close call on headwater
+basins.</strong> On headwater gauges it does not beat raw precipitation
+less evapotranspiration, and it is kept by a recorded decision for what
+it does on larger rivers (<code>research/water_balance_method.md</code>,
+“Refit on HYDAT 2026-07-17”). Zones with too few gauges for their own
+adjustment get none, a choice tested on short-record gauges no fit
+uses.</li>
 <li>
 <strong>Small streams.</strong> Gauged basins under 100 km² average
-43% error, and 93% of the Salmon River’s watersheds with a stream are
+40% error, and 93% of the Salmon River’s watersheds with a stream are
 that small.</li>
 <li>
 <strong>Segments without a watershed.</strong> In the two groups
@@ -487,11 +467,12 @@ centroid sampling, for the 4,248 Salmon River watersheds that carry a
 stream. Upstream area is on a logarithmic axis.
 </p>
 </div>
-<p>fwapg’s stored upstream area is a stale snapshot. In the Fraser,
-1,731 of 644,710 polygons carry a stored area that differs from the area
-accumulated from the Freshwater Atlas today. None of them changes a
-Salmon River segment, so the match above does not test it. wet uses the
-accumulated area except when it reproduces fwapg.</p>
+<p>fwapg stores each watershed’s upstream area from an earlier build of
+the Freshwater Atlas. In the Fraser, 1,731 of 644,710 polygons carry a
+stored area that differs from the area accumulated from the Atlas today.
+None of them changes a Salmon River segment, so the match above does not
+test it. wet uses the accumulated area except when it reproduces
+fwapg.</p>
 <p>The PCIC path for one headwater group, as
 <code>scripts/mad_parity.R</code> runs it, needs fwapg and the PCIC
 server. The open water balance is a pipeline of scripts
@@ -516,8 +497,8 @@ see the package’s <code>CLAUDE.md</code>).</p>
 <p><strong>Cached inputs.</strong> This article runs on saved outputs:
 PCIC VIC-GL through <code>scripts/mad_parity.R</code>; the open water
 balance from province run 962a9cc2c4 (annual AET cfu, HYDAT release
-2025-10-14); fwapg’s values at the gauges; built 6 October 2026 at
-commit 42adbb1. Regenerated by
+2026-07-17); fwapg’s values at the gauges; built 6 October 2026 at
+commit c1d0945. Regenerated by
 <code>data-raw/segment_vignette_data.R</code>. Map layers from the
 Freshwater Atlas (fwapg), BC Geographic Names and the BC Hydrologic
 Zones, by <code>data-raw/segment_vignette_map.R</code>.</p>
