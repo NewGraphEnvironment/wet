@@ -104,7 +104,7 @@ No package code changes, so no fit goes stale and everything runs on m1.
 
 ## Phase 4: Write-up
 
-- [ ] `research/water_balance_method.md` §0: new subsection "Plateau precipitation (#50)" with provenance header. Update the #45 subsection's "What would decide it", the Follow-ups list and the zone 24 line.
+- [x] `research/water_balance_method.md` §0: new subsection "Plateau precipitation (#50)" with provenance header. Update the #45 subsection's "What would decide it", the Follow-ups list and the zone 24 line.
 - [ ] Edit #50's body to the outcome.
 - [ ] If climr is high: draft the correction issue (candidate layer, independence from the scored gauges, scored under #45's rule (a)–(e)), show it, and file on OK. Otherwise name what is next.
 

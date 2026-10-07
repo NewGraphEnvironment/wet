@@ -286,13 +286,52 @@ At Greata Creek the upstream AET is 281 mm with CGIAR, 419 mm with MOD16 and 499
   - Within 500 m of the basins: zone 15 has 6 stations (median climr/ECCC 1.05) and zone 17 has 1; zones 23 and 24 have none.
   - In the valleys climr runs high at Princeton (1.37), Spences Bridge (1.26), Beaverdell North (1.18) and Hedley (1.17).
 
-**What would decide it.** Precipitation observed at plateau elevation: the River Forecast Centre's automated snow weather stations and snow courses, scored against climr, PNWNAmet and TerraClimate. A precipitation correction is built only if climr is high there.
+**What would decide it.** Precipitation observed at plateau elevation: the River Forecast Centre's automated snow weather stations and snow courses, scored against climr, PNWNAmet and TerraClimate. A precipitation correction is built only if climr is high there. Done in #50 ("Plateau precipitation" below): not decided. climr is at most modestly high at the plateau gauges, and part of the gap is PNWNAmet's.
 
 The rule it would then be scored under is fixed in #45's findings:
 - dry-zone MAE at least 10 points below the shipped 42.8 % (zones 15/17/23/24, 40 gauges; 24 alone 92.8 %);
 - no loss overall (27.5 %), headwater (30.7 %, +0.5 point allowed) or nested;
 - no major river moved more than 0.03 away from its observation;
 - a fully nested selection.
+
+### Plateau precipitation (#50)
+
+**Verified:** 2026-10-07 · **Issues:** #50 (from #45) · **Produced by:** `scripts/wb_plateau_p.R` → `data/checks/wb_plateau_p.txt`. The rule was pre-registered, then amended after a blind review, before any product value was computed at a site. Three deviations and one correction are recorded in `planning/archive/…issue-50…/findings.md`. The report reproduces byte-identical from cache.
+
+**The question.** Is climr's precipitation too high on the dry plateaus, where #45 found climr P 1.43–1.61 × PNWNAmet against 1.15 elsewhere? The observations are the River Forecast Centre's own:
+- **ASWS precipitation gauges:** the daily archive to WY 2011, hourly PC after.
+- **Snow courses:** the survey nearest April 1, a lower bound on winter P.
+
+All three products are taken at each site, over 900–2,100 m in PCIC's domain. The dry zones (15/17/23/24) are compared with the interior zones east of the Coast Mountains.
+
+**Registered verdict: not decided.** No correction issue follows.
+- **The gauge sites do show #45's gap.** climr ÷ PNWNAmet at the dry gauge sites, over the contrast sites, is R = 1.18 (zone 15: 1.51; zone 24: 1.63).
+- **The relative test is inconclusive.** D(climr), the dry median of climr ÷ gauge over the contrast median, is **1.09**, from 13 dry and 46 contrast gauges.
+  - Leave-one-out range 1.07–1.14; bootstrap 90 % interval 0.98–1.28.
+  - The registered bands were ≥ 1.15 "high" and ≤ 1.05 "not high".
+  - Two conditions push it toward "high" (unstable): without the PRISM-input gauges, 1.19; without the evaporation-flagged site-years, 1.20.
+- **No lower-bound violation for climr.** climr's winter P is below the April 1 SWE at 1 of 42 dry snow courses (2 %); PNWNAmet's at 29 % and TerraClimate's at 21 %. No product reaches the registered "low" (≥ half).
+- **No in-situ undercatch signal.** The pillow catch factor is 1.00 at the median in both groups: peak SWE rarely exceeds the gauge's accumulation to the peak.
+
+**What it says.** This bullet is post hoc, outside the registered rule. **[I]**
+- **On the long-record gauges the dry-zone excess is PNWNAmet's deficit, not climr's surplus.**
+  - On the same gauge-years (WY ≤ 2011–2012; 7 dry, 29 contrast), D(climr) is 1.01 and D(PNWNAmet) 0.91.
+  - The newer gauges (WY ≥ 2012) give D(climr) 1.12. They add zone 24 (Trout Creek West, Greyback) and Coast Mountains lee-side sites that fall in zone 15 by the polygons (McGillivray Pass, Bralorne, North Tyaughton).
+- **The products' P/SWE ratios rise from contrast to dry courses: climr ×1.61, TerraClimate ×1.51, PNWNAmet ×1.16.** Melt and sublimation confound this ratio. Still, the most independent product sides with climr, which points again at PNWNAmet running low on the dry plateaus.
+- **So #45's lean to "climr's plateau P" is weakened.**
+  - At the points where P is observed, climr runs about 9 % (up to about 20 %) higher relative to the contrast zones.
+  - That is far short of the 25–40 % #45's basin ratios implied if PNWNAmet were right.
+  - Part of #45's climr–PNWNAmet gap is PNWNAmet's.
+- **Attribution of the climr–PNWNAmet gap:** unresolved by the rule; post hoc, both, leaning theirs.
+- **Zone 24 itself is thin:** 3 gauges (climr ÷ gauge 1.09–1.34, median 1.25) and 11 snow courses. A P error of the size needed to explain its +93 % held-out runoff error is not ruled out there. It is not supported by the gauges that cover the rest of the dry interior.
+
+**What would decide it.** Two candidates remain for zone 24's overshoot:
+- P between the ridge-top gauges and the basins they drain (the dry gauges sit at 1,360–1,970 m);
+- the gauge side: withdrawals, storage and diversions on the Okanagan and Thompson plateau creeks, which #45 left unresolved.
+
+The cheaper of the two is the gauge side: flag the regulated and diverted calibration basins in zones 23/24 and rescore without them.
+
+Also found here: #51. Two older scripts average climr's 1961–1990 reference row into their 1981–2010 means.
 
 ### What this says about the BC Water Tools
 
@@ -304,7 +343,7 @@ Their accuracy figures are in-sample, and after the undocumented "final adjustme
 - #15: the ET experiment. Done; see "The ET experiment" above.
 - #18: MOD16 as a challenger. Done; `cfu` stays. See "MOD16 as a challenger (#18)" above.
 - The Budyko floor is annual only. The monthly shares still regress on CGIAR's monthly AET (see #16 for the monthly predictors).
-- Zone 24 (Southern Thompson Plateau) runs at +93 % held out on the shipped 2026-07-17 fit (+102 % on 2025-10-14). The candidates are listed in "The ET experiment" above. MOD16, which is independent of P, left +166 % there (#18). Against PCIC (#45), the weight of evidence leans to climr's plateau P, without a registered verdict. The next step is plateau-elevation precipitation (above).
+- Zone 24 (Southern Thompson Plateau) runs at +93 % held out on the shipped 2026-07-17 fit (+102 % on 2025-10-14). The candidates are listed in "The ET experiment" above. MOD16, which is independent of P, left +166 % there (#18). Against PCIC (#45), the evidence leaned to climr's plateau P without a registered verdict. Against plateau-elevation observations (#50), climr is at most modestly high relative to the interior (D 1.09, not decided), and part of #45's gap is PNWNAmet's. The next candidate is the gauge side: regulated and diverted basins in zones 23/24 ("Plateau precipitation", above).
 - The pre-#15 input caches (CGIAR, climr, DEM, zones raster) are keyed on content and parameters but not on their builder code, as #15's two new builders now are (#19).
 - #16: snow predictors for the monthly shares.
 - An upstream note to climr on the ClimateNA coastal gap: drafted, not posted.
