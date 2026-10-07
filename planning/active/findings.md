@@ -56,6 +56,76 @@ Committed before `scripts/wb_term_diagnose.R` existed. Nothing below may change 
 - If the majority is gauge side, unresolved or mixed without a majority term, there is no lever. Phase 2 then names the evidence that would decide it.
 - Zone 15 (the balance is already near PCIC there) and the wet zones are contrast only.
 
+## Amendment 1 to the rule (2026-10-07, before any PCIC value was seen)
+
+**Why.** A plan review found three holes in the rule:
+- a P bias shared with PCIC could never come out as "P side";
+- test (i) almost never passes in these zones, while the AET-side check almost always does;
+- the gauge-side test ran before the usability test.
+
+**Firewall.** A first run had started, using a frozen copy of the draft script. It cached the Fraser PCIC layers and was stopped during the Peace fetch, before it wrote any report or printed any value. Its per-basin caches were deleted unread. The per-year downloads in `data/pcic/` are kept: they are raw daily files, and no annual value was looked at.
+
+**Disclosure.** Before this amendment the reviewer computed, from local non-PCIC files, these per-zone medians for zones 15, 17, 23 and 24 (raw log error +0.48 / +0.39 / +0.04 / +0.31):
+- `ppt_tc / p_yr`: 0.80 / 1.14 / 0.91 / 0.76;
+- `aet_mod16 / aet_cfu`: 0.87 / 0.95 / 0.82 / 0.80;
+- `P_o − Q > PET`: at 26 / 0 / 12 / 22 % of each zone's gauges.
+
+Two of the corroborations added below therefore had values known when they were registered.
+
+The rule above stands except where amended here. Where they conflict, this section wins.
+
+**Units.**
+- One row per distinct basin: gauges that share a `watershed_feature_id` are averaged (08NM240 and 08NM241).
+- A zone needs ≥ 4 distinct basins with PCIC over ≥ 95 % of the basin; otherwise "too few".
+- A pooled dry-interior stratum (zones 15, 17, 23 and 24 together) gets the same verdict as a secondary result.
+
+**Order of tests, replacing steps 1–4:**
+
+1. **Material gap:** our median log(R_o / Q) ≥ 0.10. Otherwise "no material gap".
+2. **PCIC usable:**
+   - median |log(R_c / Q)| ≤ 0.25;
+   - median |P_c − E_c − R_c| / R_c ≤ 0.25 (closure scaled to runoff, not P).
+
+   Otherwise "unresolved: PCIC not a usable reference".
+3. **Shared overshoot.** PCIC's median log(R_c / Q) ≥ 0.10 and ≥ ⅔ of ours.
+   - If the independent P (TerraClimate `ppt_tc`, WorldClim lineage) has a zone median `ppt_tc / p_yr` ≤ 0.90 **and** `ppt_tc / P_c` ≤ 0.90, the verdict is "**P side, shared (ours and theirs)**".
+   - Otherwise it is "gauge side (unresolved: withdrawals or groundwater)".
+
+   Either way, the remainder is still decomposed (step 4) and reported.
+4. **Decompose** G = ΣΔP − ΣΔA over distinct basins, as before.
+   - G ≤ 0: "decomposition undefined (our P − AET is not above PCIC's)".
+   - **P side (ours)** if ⅔ ≤ ΣΔP / G ≤ 1.5, and at least one P corroboration holds:
+     - (i′) implied Fu ω under our P (P_o, P_o − Q) is > 5, or there is no solution (P_o − Q ≥ min(P_o, PET)), at ≥ half the basins **under both** Hargreaves `pet_yr` and PCIC `PET_NATVEG`;
+     - (ii′) ECCC 1981–2010 MAP normals (any code) at stations in the zone no more than 500 m below the zone's median gauge-basin elevation: median climr / ECCC ≥ 1.10, from at least 3 stations; with fewer, the test is "unavailable", not failed;
+     - (iii) independent P: median `ppt_tc / p_yr` ≤ 0.90.
+   - **AET side (ours)** if ⅔ ≤ −ΣΔA / G ≤ 1.5, and **both** of these hold:
+     - implied ω under our P is ≤ 5 at > half the basins under both PETs;
+     - the P-independent ET agrees: median `aet_mod16 / aet_cfu` ≥ 1.00.
+   - A share above 1.5: "compensating (the other term offsets more than half)".
+   - Both shares below ⅔: "mixed".
+   - A share test that passes without its corroboration: "unresolved: <term> by decomposition, not corroborated".
+5. **Disagreement with PCIC:** as before.
+6. **Stability:** the zone verdict is recomputed leaving out each basin in turn. If any leave-one-out verdict differs, the zone's verdict is reported as "unstable (<verdict>)".
+
+**Lever (replaces the mapping above):**
+- Voting zones: **15, 17, 23 and 24.** Zone 15 has the largest raw gap.
+- Only "P side (ours)", "P side, shared" and "AET side (ours)" are terms. Every other verdict casts no vote, including "unstable".
+- The lever is the term with more votes, if it has at least 2 votes **and** the pooled stratum's verdict is not the other term. Otherwise there is no lever.
+
+**Reported, not deciding:**
+- PCIC RO+BF against fwapg's stored MAD at each gauge's own `linear_feature_id` (a plumbing check; area-weighted against centroid sampling differs by up to about 20 % on small basins);
+- R_o − Q, our total overshoot;
+- a Fu counterfactual on Fu-dominated basins (cfu = Fu): P term = [P_o − Fu(P_o)] − [P_c − Fu(P_c)] with our PET, and model term = Fu(P_c) − E_c;
+- the verdict on basins ≥ 100 km² only (PCIC cells are about 31 km²);
+- the count of gauges with < 20 years of record.
+
+**Known limits, recorded as assumptions, not tested here:**
+- Whether PNWNAmet and climr's reference map share a PRISM lineage. That is the reason (iii) exists.
+- Whether VIC-GL was calibrated at these gauges. Its calibration gauges are not published; if it was, R_c ≈ Q is in-sample for PCIC.
+- Whether `GLAC_OUTFLOW` is inside RUNOFF. This matters only for glaciated contrast zones.
+- The step-1 and step-3 thresholds were set knowing our raw errors and fwapg's zone errors.
+- In zones 17, 23 and 24, held-out equals raw: they are pooled to "none" in every fold, though the shipped all-station fit adjusts 23 and 24.
+
 ## Errors Encountered
 
 | Error | Resolution |

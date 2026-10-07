@@ -34,7 +34,7 @@ What exploration settled:
 - [ ] `research/water_balance_method.md` §0: new subsection "Which term is off in the dry interior (#45)" with header provenance. Update the Follow-ups and the zone 24 "Still unresolved" candidate list
 - [ ] Refresh #5's body: the #39 PCIC line moves to the fit_20260717 numbers and points at #45's diagnosis
 
-**Pre-registered attribution rule** (proposed; fixed in findings before scoring). For each zone, using medians over its in-domain gauges:
+**Pre-registered attribution rule:** superseded by `findings.md` ("Pre-registered attribution rule" and "Amendment 1"). The text below is the plan-gate proposal, kept for the record. For each zone, using medians over its in-domain gauges:
 - PCIC is a usable reference in a zone only if its median absolute log error against obs is ≤ 0.25 and its closure residual is ≤ 10 % of P.
 - Decompose our runoff gap against PCIC: (P_o − A_o) − (P_c − E_c) = ΔP − ΔA.
 - **P side (ours)** if ΔP ≥ ⅔ of the gap, and at least one independent test agrees: implied AET > PET at ≥ half the zone's gauges, or the median ECCC ratio in the zone is ≥ 1.10.
@@ -51,6 +51,9 @@ What exploration settled:
   - **Gauge side or unresolved:** no lever; name the evidence that would decide it
 - [ ] Pre-register the scoring rule in the style of #15 (a)–(d), against the #43 baseline (fit_20260717, 27.5 % / 30.7 % headwater), plus a dry-zone criterion. Recorded in `findings.md` and the research subsection
 - [ ] File the follow-up issue to build and score the lever (draft shown in the conversation first); edit the #45 body so phases 2–3 point to it
+
+## Phase 3: README accuracy (requested 2026-10-07)
+- [ ] README states what wet now covers (discharge, station flow departure, water temperature, open water balance), each checked against the exports and vignettes, not restated from memory
 
 ## Validation
 
