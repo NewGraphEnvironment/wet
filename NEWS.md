@@ -1,3 +1,7 @@
+# wet 0.2.4
+
+* Climr precipitation is scored against the River Forecast Centre's plateau-elevation precipitation gauges and snow courses, under a rule fixed before any product value was computed (#50). climr is at most modestly high on the dry plateaus relative to the rest of the interior (dry over contrast 1.09, not decided), and part of #45's gap between climr and PNWNAmet is PNWNAmet's. Precipitation alone does not explain zone 24's overshoot; the next check is gauges with water taken out upstream (#53). The shipped estimate does not change.
+
 # wet 0.2.3
 
 * The open water balance's overshoot in the dry interior (hydrologic zones 15, 17, 23 and 24) is diagnosed against PCIC VIC-GL's split of precipitation and evapotranspiration, under a rule fixed before any PCIC value was computed (#45). Neither term is named: our precipitation runs 1.4–1.6 times PCIC's there, and our AET offsets most of the difference. The dry zones differ from the rest in precipitation, not AET, so the next check is precipitation observed at plateau elevation. The shipped estimate does not change.
