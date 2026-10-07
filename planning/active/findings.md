@@ -80,6 +80,30 @@ The plan review (`review-plan.md`) found the rules above underspecified in ways 
   - Measured locally before the m4 run (smoke test, cfu): `cv_ann`, `raw`, stations, `keep_adjust` and `ship_variant` identical. `cv_v` differs only in `nse_month`/`nse_share`, by at most 6e-14: floating-point reassociation in the monthly share path, not a change of method. The report text is identical apart from the added HYDAT line.
 - **Rebuild:** `wb_stations.R` on 2025-10-14 gives `identical()` `stations` and `monthly`. If it does not, fwapg on m4 has moved since 2026-09-26, and that is reported, not hidden.
 
+## Phase 3 outcome (m4, 2026-10-06; `data/logs/43/` on m4)
+
+- **Rebuild proof:** `wb_stations.R` on HYDAT 2025-10-14 gives `identical()` `stations`, `monthly` and `years`, so fwapg has not moved for these snaps.
+- **Code-only proof:**
+  - `fits.rds` `wb`, `keep_adjust`, `calibration` and `aet` are identical, and `share` matches within 1e-12.
+  - For all ten AETs, `cv_ann`, `raw` and `ship_variant` are identical, and `cv_v` and `plain` match within 1e-12.
+  - #15 reproduced (cfu); `wb_aet_compare.txt` and `wb_output.txt` are byte-identical; 24 of 24 output parquets are equal.
+  - Tracked reports change only by the added HYDAT release line, plus the test-set section in `stations_wb.txt`.
+
+## Phase 4 outcome: the pre-registered stop fired (amendment 9)
+
+- **HYDAT 2026-07-17 snaps 336 stations, against 309.** Revised gross drainage areas (rejected 43 → 16) give 315 calibration gauges: 29 new and 4 dropped (08GA065 08HA068 08KD001 08LF080).
+- **Acceptance passes.** Headwater blocked-CV MAE on the 209 headwater gauges common to both: 30.90 against 31.18 (−0.28).
+- **The headwater gate FAILS.** Adjusted 30.716 against raw 30.688, so `keep_adjust` is FALSE and raw P − AET would ship.
+
+| | headwater adj | headwater raw | all adj | all raw | n |
+|---|---|---|---|---|---|
+| 2025-10-14 | 31.16 | 31.59 | 27.74 | 28.58 | 290 |
+| 2026-07-17 | 30.72 | 30.69 | 27.51 | 28.45 | 315 |
+
+- **The adjustment was marginal on headwater gauges in the old fit too.** On the 209 common headwater gauges, the old fit's raw (30.67) already beat its adjusted (31.18). The old gate passed through the headwater gauges this release drops.
+- **Where the adjustment helps:** nested and larger rivers (all gauges, about 0.9 points). On the 29 new gauges: adjusted 29.8, raw 30.5.
+- **Next:** the pooled-zone test waits. Under raw P − AET there are no pooled zones to settle. Decision to the user.
+
 ## Errors Encountered
 
 | Error | Resolution |

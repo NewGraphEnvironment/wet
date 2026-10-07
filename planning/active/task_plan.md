@@ -46,19 +46,19 @@
 
 ## Phase 3: The 2025-10-14 fit under the new layout (regression proof, on m4)
 
-- [ ] **m4:** check out the branch, confirm fwapg is up. Copy (not move) the existing `fits.rds`, `cv_aet-*.rds`, `aet_winner.txt`, `output/` and `runoff_annual.tif` into `fit_20251014/`. Keep the originals until verified, then move them to `_pre43/`.
-- [ ] **Code-only proof:**
+- [x] **m4:** check out the branch, confirm fwapg is up. Copy (not move) the existing `fits.rds`, `cv_aet-*.rds`, `aet_winner.txt`, `output/` and `runoff_annual.tif` into `fit_20251014/`. Keep the originals until verified, then move them to `_pre43/`.
+- [x] **Code-only proof:**
   - Build `stations_20251014.rds` from the old `stations.rds` (its `stations` and `monthly`).
   - Run `wb_validate.R` for every AET variant, then `wb_aet_compare.R` (must reproduce #15), then `wb_validate.R cfu` to write `fits.rds`.
   - Annual objects `identical()`; monthly-share metrics within 1e-12 (findings, "Phase 3 proof").
-- [ ] **Rebuild proof:** `wb_stations.R` on HYDAT 2025-10-14 gives `identical()` `stations` and `monthly`, plus the test set. If fwapg has moved, report it. Then rerun the chain on the rebuilt file.
-- [ ] `wb_output.R` for fit_20251014 (WET_HYDAT on the 2025-10-14 file): the shipped fit needs its output whichever way Phase 4 goes.
-- [ ] Commit the tracked checks.
+- [x] **Rebuild proof:** `wb_stations.R` on HYDAT 2025-10-14 gives `identical()` `stations` and `monthly`, plus the test set. If fwapg has moved, report it. Then rerun the chain on the rebuilt file.
+- [x] `wb_output.R` for fit_20251014 (WET_HYDAT on the 2025-10-14 file): the shipped fit needs its output whichever way Phase 4 goes.
+- [x] Commit the tracked checks.
 
 ## Phase 4: The 2026-07-17 fit (on m4)
 
-- [ ] `wb_stations.R` on `data/hydat/20260717/`: report gauges added, dropped and changed.
-- [ ] `wb_validate.R cfu` with `WET_AET_CARRY=20251014`.
+- [x] `wb_stations.R` on `data/hydat/20260717/`: report gauges added, dropped and changed.
+- [x] `wb_validate.R cfu` with `WET_AET_CARRY=20251014`.
 - [ ] `wb_fit_accept.R 20251014 20260717`: apply the acceptance rule and record the outcome. If it passes but the gate fails, stop for the user.
 - [ ] `WET_HYDAT_RELEASE=20260717 wb_pooled_test.R`, only if the refit is accepted (the test refuses fit_20251014, #15's): apply the pooled-zone rule and record the outcome. Rerun `wb_validate.R cfu` either way; a gate failure stops for the user. If the refit is not accepted, the pooled-zone question goes back to the user.
 - [ ] If the refit is accepted: switch `wb_shipped_release` to 20260717, then run `wb_output.R` and `wb_map.R`. If not: keep 20251014 and report why.
