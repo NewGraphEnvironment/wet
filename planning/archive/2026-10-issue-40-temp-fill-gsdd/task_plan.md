@@ -73,15 +73,15 @@ Decisions taken at the gate (user): **Kalman smoother** as the gap engine, and t
 ## Phase 6: Documentation and close-out
 - [x] `research/station_temperature_fill.md` (method, validation and parity numbers, limits), with a row in `research/README.md`. Update the "Not yet done" list in `station_water_temperature.md`
 - [x] CLAUDE.md architecture: a line on the fill → GSDD path; NEWS.md entry (NEWS is written by `/gh-pr-merge` at release, as for every release since v0.2.2)
-- [ ] Edit the #40 body: cd#116 is done, season holdout replaces `wet_cv_folds()`, Kalman smoother engine, outcomes
-- [ ] `pkgdown::check_pkgdown()`, `devtools::check()`
+- [x] Edit the #40 body: cd#116 is done, season holdout replaces `wet_cv_folds()`, Kalman smoother engine, outcomes
+- [x] `pkgdown::check_pkgdown()`, `devtools::check()`
 
 ## Validation
 
-- [ ] Tests pass
-- [ ] `/code-check` clean on each commit
-- [ ] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] Tests pass
+- [x] `/code-check` clean on each commit
+- [x] PWF checkboxes match landed work
+- [x] `/planning-archive` on completion
 
 ## Verification
 
