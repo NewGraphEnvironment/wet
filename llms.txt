@@ -186,6 +186,12 @@ MIT
 - [`wet_temp_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_temp_daily.md)
   : Daily water temperature at hydrometric stations
 
+- [`wet_temp_fill()`](https://newgraphenvironment.github.io/wet/reference/wet_temp_fill.md)
+  : Daily water temperature with gaps filled from air temperature
+
+- [`wet_temp_gsdd()`](https://newgraphenvironment.github.io/wet/reference/wet_temp_gsdd.md)
+  : Growing season degree days per station-year
+
 - [`wet_terraclimate_aet()`](https://newgraphenvironment.github.io/wet/reference/wet_terraclimate_aet.md)
   : Annual AET and precipitation from the TerraClimate 1981-2010
   climatology

@@ -1,10 +1,13 @@
-# wet: Monthly, Seasonal and Scenario Stream Discharge for the BC Freshwater Atlas
+# wet: Stream Flow and Water Temperature for the BC Freshwater Atlas
 
 Per-segment stream discharge for the British Columbia Freshwater Atlas
-(FWA). Aggregates Pacific Climate Impacts Consortium (PCIC) VIC-GL
-gridded runoff and baseflow to FWA fundamental watersheds, accumulates
-them upstream by area weighting, and reports mean annual and monthly
-discharge per stream segment for historical and climate-scenario runs.
+(FWA), and flow and water-temperature departures at hydrometric
+stations. Gridded runoff, from Pacific Climate Impacts Consortium (PCIC)
+VIC-GL or from an open water balance fitted at Water Survey of Canada
+(HYDAT) gauges, is sampled to FWA fundamental watersheds and accumulated
+upstream by area weighting, giving mean annual and monthly discharge per
+stream segment. Station daily flow and water temperature are summarised
+per year over month-day windows for departure statistics.
 
 ## See also
 
