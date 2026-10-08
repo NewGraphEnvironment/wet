@@ -43,7 +43,7 @@
 ## Phase 1: Pre-register the flag and decision rule (before any licence or dam value is joined to a gauge)
 
 - [x] Write the rule in `findings.md` and commit it before `scripts/wb_gauge_diversion.R` joins any licence or dam to a gauge. Thresholds are fixed there. The skeleton is below.
-- [ ] Plan-agent review of the rule, run blind (no values). Amend, commit the amendment, and record the disclosure above.
+- [x] Plan-agent review of the rule, run blind (no values). Amend, commit the amendment, and record the disclosure above.
 
 **Rule skeleton:**
 
@@ -78,14 +78,14 @@
 
 ## Phase 2: Flags (no scores)
 
-- [ ] `scripts/wb_gauge_diversion.R` stage 1: fetch and cache the licence and dam snapshots under `data/gauge_div/raw/` (md5 and row count held to the WFS count). The cache is keyed on the snapshot md5 and the script.
-- [ ] Place PODs and dams in FWA fundamental watersheds; upstream of each calibration gauge via `fwa_upstream()`, with own-polygon cases resolved by `fwa_indexpoint()` measure. Counts are reported for each placement path.
-- [ ] Per gauge: L (mm/yr), storage ratio, flags; flag inventory section of the report (per zone: n, flagged, by reason; the licences behind each dry-zone flag).
+- [x] `scripts/wb_gauge_diversion.R` stage 1: fetch and cache the licence and dam snapshots under `data/gauge_div/raw/` (md5 and row count held to the WFS count). The cache is keyed on the snapshot md5 and the script.
+- [x] Place PODs and dams in FWA fundamental watersheds; upstream of each calibration gauge via `fwa_upstream()`, with own-polygon cases resolved by `fwa_indexpoint()` measure. Counts are reported for each placement path.
+- [x] Per gauge: L (mm/yr), storage ratio, flags; flag inventory section of the report (per zone: n, flagged, by reason; the licences behind each dry-zone flag).
 
 ## Phase 3: Rescore and decide
 
-- [ ] Join the flags to `cv_aet-cfu.rds` (asserting `aet`, `release` and `code_md5` as `wb_term_diagnose.R` does). Compute the decision, the random-removal null, capacity and the reported-only lines.
-- [ ] Write `data/checks/wb_gauge_diversion_20260717.txt` via `wb_report()` (tracked) and the per-gauge rds under `data/gauge_div/`. Confirm a second run from cache is byte-identical.
+- [x] Join the flags to `cv_aet-cfu.rds` (asserting `aet`, `release` and `code_md5` as `wb_term_diagnose.R` does). Compute the decision, the random-removal null, capacity and the reported-only lines.
+- [x] Write `data/checks/wb_gauge_diversion_20260717.txt` via `wb_report()` (tracked) and the per-gauge rds under `data/gauge_div/`. Confirm a second run from cache is byte-identical.
 
 ## Phase 4: Write-up
 
@@ -96,7 +96,7 @@
 ## Validation
 
 - [ ] Tests pass (no package code changes)
-- [ ] `/code-check` clean on each commit
+- [x] `/code-check` on the script commit: 3 rounds, ended by round 3's enumeration of 42 derived quantities (2 report-only fixes); Deviation 1 recorded
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 

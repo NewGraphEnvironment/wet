@@ -189,3 +189,35 @@ The rule above stands except as changed here.
 **Not adopted:**
 - The 500 m point counts (review A3), since placement-sensitivity covers the consequence.
 - Per-fold pooling status (G5), since the CV object does not store it; the raw-error scoring of zone 15 covers it.
+
+## Deviation 1 (2026-10-07, code-check round 1, after the flags were seen)
+
+Round 1 found two accounting defects in the as-amended code. Both raise L, so both push toward "gauge side".
+- **Repeated rows.** The licence view repeats a row for each licensee: 17,378 of the 78,830 T rows repeat an earlier row's licence, purpose and POD. Apart from `OBJECTID`, those rows differ only in quantity (8 groups) and location (11 groups). Amendment 1 removed repeats only in shared (M, no-flag) groups, so T, D and P repeats were each counted at full quantity.
+  - Now one row per licence-purpose and POD is kept, the first by id, at the largest quantity its repeats carry. That is the same "maximum" M groups use.
+  - 24,059 rows are left out in all.
+  - A D/P group counts as repeating one quantity only across distinct PODs.
+- **Mixed groups.** In 845 licence-purposes with both a T row and no-flag rows, every no-flag row has quantity 0. The group maximum still spread the T quantity over the no-flag PODs. The shared quantity now comes from the shared rows only.
+- **Also fixed**, with no effect on any flag or test:
+  - the full-quantity straddle variant picked a group's first row without the mask;
+  - the "threshold-dependent" label needed only one of the two thresholds to fail, where the rule needs both;
+  - the "no volume" count conflated units without a volume (1,749) with empty quantities (9,403);
+  - dams upstream are now listed by function and regulation class, as the registered rule asked.
+- **Verdict as amended** (run `data/logs/53/20261007_1716*`): **not gauge side**.
+  - Zone 24 naturalized fall: 0.3 points at f 0.5, 0.6 at f 1.
+  - Dry D-flagged: 1; at threshold 0.05: 4.
+- **After Deviation 1: not gauge side.**
+  - Zone 24: 0.3 and 0.5.
+  - Dry D-flagged: 1; at threshold 0.05: 3.
+- **Round 2 (inside round 1's fix).** The dedupe took a POD's quantity as the maximum over repeats of any flag, but its flag and units from the kept row: an attribute moved across rows, which is round 1's defect one axis over.
+  - The key is now licence, purpose, POD, quantity flag and units, so all three come from rows that agree.
+  - Unlocated rows are deduplicated too, and a located row is kept ahead of an unlocated repeat.
+  - The report's row and placement counts are now over the kept rows: 24,128 repeats are left out, 93,817 kept, and 135 current surface rows are unlocated.
+  - The as-amended verdict line names the snapshot it was computed on.
+  - No flag, test or verdict changed.
+- **Round 3** named the mechanism: two populations of the same thing, snapshot rows (licensee × licence-purpose × POD) and kept PODs. Each earlier defect computed a value over one and used or labelled it as the other.
+  - It enumerated 42 derived quantities, counts and lookups (`review-round3.md`). Two were wrong:
+    - the replaced test matched NA keys (`paste()` writes NA as "NA"), so 7 rows with no POD were marked replaced through unrelated Current rows. The count is now 1,175;
+    - the groundwater line counted in-force depth under an "upstream" label. Both are now printed: 11 upstream (Likely 9), 10 in force (8).
+  - Neither touches a located row, a flag or a test.
+  - The agreement between `g_npod` and the straddle pairs, which held only because of the data, is now asserted.
