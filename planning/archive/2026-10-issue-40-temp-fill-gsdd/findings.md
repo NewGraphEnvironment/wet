@@ -46,7 +46,7 @@ Relates to #36
 
 ## Real-data spike, 08E (Skeena), 2026-10-07
 
-Data: `wet_temp_daily()` for the 25 08E stations in `canonical/Parameter=5/`, 2011–2025 (3 s), and `cd_extract_daily()` tmean at the `tidyhydat::allstations` coordinates (36 s). The 18 stations with ≥ 1000 days were used. Holdouts: the most recent 30-day July gap and the most recent Mar–Nov season that was ≥ 98 % observed, one station at a time, with its peers left in. Cached as `data/temp_fill/spike_08E_{water,air}.rds`; scripts in the session scratchpad (method below is enough to redo it).
+Data: `wet_temp_daily()` for the 25 08E stations in `canonical/Parameter=5/`, 2011–2025 (3 s), and `cd_extract_daily()` tmean at the `tidyhydat::allstations` coordinates (36 s). The 18 stations with ≥ 1000 days were used. Holdouts: the most recent 30-day July gap and the most recent Mar–Nov season that was ≥ 98 % observed, one station at a time, with its peers left in. Cached as `data/temp_fill/spike_08E_{water,air}.rds`; scripts in `spike/`.
 
 **Form 1, as planned:** one Kalman state on the air2stream recursion, fitted by its one-step likelihood.
 
