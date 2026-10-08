@@ -1,3 +1,7 @@
+# wet 0.2.5
+
+* The dry-interior gauges are scored against licensed water use above them, under a rule fixed before any licence was matched to a gauge (#53). BC water rights licences, placed upstream of each calibration gauge on the FWA network, account for 0–2 mm/yr above the zone-24 gauges against overshoots of 26–245 mm; returning all of it moves zone 24's held-out error by half a point. Diversions above the gauges do not explain the overshoot. The shipped estimate does not change.
+
 # wet 0.2.4
 
 * Climr precipitation is scored against the River Forecast Centre's plateau-elevation precipitation gauges and snow courses, under a rule fixed before any product value was computed (#50). climr is at most modestly high on the dry plateaus relative to the rest of the interior (dry over contrast 1.09, not decided), and part of #45's gap between climr and PNWNAmet is PNWNAmet's. Precipitation alone does not explain zone 24's overshoot; the next check is gauges with water taken out upstream (#53). The shipped estimate does not change.
