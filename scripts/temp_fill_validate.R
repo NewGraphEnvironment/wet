@@ -34,8 +34,8 @@ options(width = 160)
 stopifnot(utils::packageVersion("cd") >= "0.6.1", requireNamespace("gsdd", quietly = TRUE))
 dir <- "data/temp_fill"
 fs::dir_create(dir)
-# The daily cube covers BC (48-60 N, 114-140 W); cd names the points it
-# cannot place, and a station at 59.99 N is among them, so drop what it names.
+# The daily cube stops at 59.95 N (cd#123), and one point outside it aborts the
+# call; cd names the points it cannot place, so drop what it names and retry.
 wet_air_inside <- function(p) {
   repeat {
     e <- tryCatch({

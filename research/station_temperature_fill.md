@@ -20,7 +20,7 @@
 **Guards found on real data:**
 - A station reading a constant 4.0 °C (08LG048, 2024–2025, likely a stuck sensor) fitted σ ≈ 10⁻²¹⁶, and the smoother divided 0 by 0. Now ρ ≤ 0.999 and σ ≥ 0.01 °C.
 - An air series with a hole longer than 3 days that overlaps a station's calendar leaves the station unfilled, with a warning.
-- cd's daily cube does not reach the 60 °N its message names: 10DA001, at 59.989 °N, is "outside". The scripts drop the stations cd names.
+- cd's daily cube stops at 59.95 °N, not the 60 °N its message names: the build drops the 60.0 °N row. So 10DA001 (Petitot River, 59.989 °N) is "outside", and one such point aborts the whole call. The scripts drop the stations cd names and retry (NewGraphEnvironment/cd#123).
 
 ## Held-out skill at the stations
 
