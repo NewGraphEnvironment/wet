@@ -1,3 +1,7 @@
+# wet 0.3.0
+
+* `wet_temp_fill()` fills gaps in daily water temperature at stations, loggers included (#40). Air2stream is run open-loop on daily air temperature from `cd::cd_extract_daily()`, and a Kalman smoother carries each station's departure from it across a gap, from both ends, adding the error its peers in the same `pool` saw that day. Held out at 999 station-years, it beats air2stream alone on every gap: 0.48 against 1.31 °C on 7 days, 0.76 against 1.43 °C on 30 days, 0.84 against 1.14 °C on a seasonal logger's spring and autumn. Over a whole missing season its GSDD is no better than air2stream alone (130 against 129 °C-days), the one criterion of a rule fixed beforehand that it fails. `wet_temp_gsdd()` gives growing season degree days per station-year in `wet_window_stats()`'s long format, with the share of each season that was filled. At the 17 Skeena stations, every site's GSDD lies inside the network model's 95 % interval (`hill_etal2025Spatialstream`).
+
 # wet 0.2.5
 
 * The dry-interior gauges are scored against licensed water use above them, under a rule fixed before any licence was matched to a gauge (#53). BC water rights licences, placed upstream of each calibration gauge on the FWA network, account for 0–2 mm/yr above the zone-24 gauges against overshoots of 26–245 mm; returning all of it moves zone 24's held-out error by half a point. Diversions above the gauges do not explain the overshoot. The shipped estimate does not change.
