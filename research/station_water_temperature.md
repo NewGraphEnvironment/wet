@@ -40,6 +40,7 @@ The departure itself is cd's, in degrees C: `wet_window_stats(value = "t_mean_c"
 
 ## Not yet done
 
+- Gaps are filled at stations by `wet_temp_fill()` and GSDD computed by `wet_temp_gsdd()` (#40, `station_temperature_fill.md`); not a per-segment estimate.
 - No modelled yardstick. PCIC's VIC-GL-dynWat (coast only, per reach) is the next `wet_temp_*` member, then our own per-segment estimate, each in its own issue.
 - No 7-day maximum metric (MWAT-style). `wet_window_stats()` takes one value column, so a window's highest daily maximum is a second call on `t_max_c`.
 
