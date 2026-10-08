@@ -25,8 +25,8 @@ Decisions taken at the gate (user): **Kalman smoother** as the gap engine, and t
 - `air`: `cd_extract_daily()`'s output as is, using the `tmean` rows, with `id` matched to `station_number`.
 
 ## Phase 1: Dependencies and fixture
-- [ ] `gsdd` in Suggests, `poissonconsulting/gsdd` in `Remotes:`. Install cd 0.6.1 and gsdd locally
-- [ ] Test helper `helper-temp-fill.R`: synthetic stations, with seasonal air plus a shared daily weather anomaly, water simulated from known air2stream parameters, and a peer that does not track (b = 0)
+- [x] `gsdd` in Suggests, `poissonconsulting/gsdd` in `Remotes:`. Install cd 0.6.1 and gsdd locally
+- [x] Test helper `helper-temp-fill.R`: synthetic stations, with seasonal air plus a shared daily weather anomaly, water simulated from known air2stream parameters, and a peer that does not track (b = 0)
 
 ## Phase 2: `wet_temp_fill()` (tests first)
 - [ ] `tests/testthat/test-wet_temp_fill.R`:
