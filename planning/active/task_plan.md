@@ -42,7 +42,7 @@
 
 ## Phase 1: Pre-register the flag and decision rule (before any licence or dam value is joined to a gauge)
 
-- [ ] Write the rule in `findings.md` and commit it before `scripts/wb_gauge_diversion.R` joins any licence or dam to a gauge. Thresholds are fixed there. The skeleton is below.
+- [x] Write the rule in `findings.md` and commit it before `scripts/wb_gauge_diversion.R` joins any licence or dam to a gauge. Thresholds are fixed there. The skeleton is below.
 - [ ] Plan-agent review of the rule, run blind (no values). Amend, commit the amendment, and record the disclosure above.
 
 **Rule skeleton:**

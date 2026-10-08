@@ -7,3 +7,5 @@
 - Created branch `53-dry-interior-runoff-rescore-zones-23-24` off main
 - Scaffolded PWF baseline from issue #53 with approved phases
 - Next: Phase 1, pre-register the rule
+- Stage 1 of `scripts/wb_gauge_diversion.R` written and run: licence (117,945) and dam (2,490) snapshots held to the WFS count. First run's guard fired on 10,000 duplicated ids: `paste0()` wrote startIndex 100000 as `1e+05`, which the server answers with page 1; fixed with `sprintf("%d")`, sequence check kept. Refetched once more to add `LICENCE_STATUS_DATE`.
+- Rule pre-registered in `findings.md` from the vocabularies only (no gauge join)
