@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,6 +36,11 @@
       <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.0" id="wet-030">wet 0.3.0<a class="anchor" aria-label="anchor" href="#wet-030"></a></h2>
+<ul><li>
+<code><a href="../reference/wet_temp_fill.html">wet_temp_fill()</a></code> fills gaps in daily water temperature at stations, loggers included (<a href="https://github.com/NewGraphEnvironment/wet/issues/40" class="external-link">#40</a>). Air2stream is run open-loop on daily air temperature from <code><a href="https://newgraphenvironment.github.io/cd/reference/cd_extract_daily.html" class="external-link">cd::cd_extract_daily()</a></code>, and a Kalman smoother carries each station’s departure from it across a gap, from both ends, adding the error its peers in the same <code>pool</code> saw that day. Held out at 999 station-years, it beats air2stream alone on every gap: 0.48 against 1.31 °C on 7 days, 0.76 against 1.43 °C on 30 days, 0.84 against 1.14 °C on a seasonal logger’s spring and autumn. Over a whole missing season its GSDD is no better than air2stream alone (130 against 129 °C-days), the one criterion of a rule fixed beforehand that it fails. <code><a href="../reference/wet_temp_gsdd.html">wet_temp_gsdd()</a></code> gives growing season degree days per station-year in <code><a href="../reference/wet_window_stats.html">wet_window_stats()</a></code>’s long format, with the share of each season that was filled. At the 17 Skeena stations, every site’s GSDD lies inside the network model’s 95 % interval (<code>hill_etal2025Spatialstream</code>).</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.5" id="wet-025">wet 0.2.5<a class="anchor" aria-label="anchor" href="#wet-025"></a></h2>
 <ul><li>The dry-interior gauges are scored against licensed water use above them, under a rule fixed before any licence was matched to a gauge (<a href="https://github.com/NewGraphEnvironment/wet/issues/53" class="external-link">#53</a>). BC water rights licences, placed upstream of each calibration gauge on the FWA network, account for 0–2 mm/yr above the zone-24 gauges against overshoots of 26–245 mm; returning all of it moves zone 24’s held-out error by half a point. Diversions above the gauges do not explain the overshoot. The shipped estimate does not change.</li>

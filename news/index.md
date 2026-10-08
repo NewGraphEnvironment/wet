@@ -1,5 +1,27 @@
 # Changelog
 
+## wet 0.3.0
+
+- [`wet_temp_fill()`](https://newgraphenvironment.github.io/wet/reference/wet_temp_fill.md)
+  fills gaps in daily water temperature at stations, loggers included
+  ([\#40](https://github.com/NewGraphEnvironment/wet/issues/40)).
+  Air2stream is run open-loop on daily air temperature from
+  [`cd::cd_extract_daily()`](https://newgraphenvironment.github.io/cd/reference/cd_extract_daily.html),
+  and a Kalman smoother carries each station’s departure from it across
+  a gap, from both ends, adding the error its peers in the same `pool`
+  saw that day. Held out at 999 station-years, it beats air2stream alone
+  on every gap: 0.48 against 1.31 °C on 7 days, 0.76 against 1.43 °C on
+  30 days, 0.84 against 1.14 °C on a seasonal logger’s spring and
+  autumn. Over a whole missing season its GSDD is no better than
+  air2stream alone (130 against 129 °C-days), the one criterion of a
+  rule fixed beforehand that it fails.
+  [`wet_temp_gsdd()`](https://newgraphenvironment.github.io/wet/reference/wet_temp_gsdd.md)
+  gives growing season degree days per station-year in
+  [`wet_window_stats()`](https://newgraphenvironment.github.io/wet/reference/wet_window_stats.md)’s
+  long format, with the share of each season that was filled. At the 17
+  Skeena stations, every site’s GSDD lies inside the network model’s 95
+  % interval (`hill_etal2025Spatialstream`).
+
 ## wet 0.2.5
 
 - The dry-interior gauges are scored against licensed water use above
