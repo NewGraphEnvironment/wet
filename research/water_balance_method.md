@@ -178,7 +178,7 @@ The Budyko floor raises AET a little in the wet north too, which moves the alrea
 - **TerraClimate helps (`tc`) but stays P-capped.** Its AET comes from its own bucket on its own P. At the Greata mouth cell that P is 428 mm, against climr's 614 mm.
 - **ω = 3.5 wins on headwater raw and loses the nested basins** (23.5 % MAE, 39 % within ±20 %). A per-cell Budyko at high ω over-evaporates large, snow-fed basins, where P and demand are out of phase. The pre-set rule would have refused it, and it was never eligible.
 - **Still unresolved.** Zone 24 (Southern Thompson Plateau) remains at +102 %. #45 tested the second and third candidates against PCIC; see "Which term is off in the dry interior (#45)". The candidates are:
-  - licensed withdrawals and groundwater losses at "natural" gauges in the Okanagan;
+  - licensed withdrawals and groundwater losses at "natural" gauges in the Okanagan (licensed surface water ruled out by #53);
   - climr P possibly high on the interior plateaus (the ECCC check is province-wide, median ratio 1.03);
   - the per-cell Budyko at ω = 2.6 still under-evaporating there.
 
@@ -329,7 +329,7 @@ All three products are taken at each site, over 900–2,100 m in PCIC's domain. 
 - P between the ridge-top gauges and the basins they drain (the dry gauges sit at 1,360–1,970 m);
 - the gauge side: withdrawals, storage and diversions on the Okanagan and Thompson plateau creeks, which #45 left unresolved.
 
-The cheaper of the two is the gauge side: flag the regulated and diverted calibration basins in zones 23/24 and rescore without them (#53).
+The cheaper of the two is the gauge side: flag the regulated and diverted calibration basins in zones 23/24 and rescore without them (#53). Done in #53 ("Gauge side in the dry interior" below): not gauge side.
 
 Also found here: #51. Two older scripts average climr's 1961–1990 reference row into their 1981–2010 means.
 
@@ -341,6 +341,50 @@ Also found here: #51. Two older scripts average climr's 1961–1990 reference ro
 - 1,011 daily-archive rows at 4A29P (1984–1990) are dated year-day-month. Where the day is ≤ 12 they parse silently to the wrong date.
 - Pillow peak SWE rarely exceeds the gauge's accumulation to the peak: the catch factor is 1.00 at the median, so no undercatch shows in situ.
 
+### Gauge side in the dry interior (#53)
+
+**Verified:** 2026-10-07 · **Issues:** #53 (from #45, #50) · **Produced by:** `scripts/wb_gauge_diversion.R` → `data/checks/wb_gauge_diversion_20260717.txt`. The rule was pre-registered, then amended after a blind review, before any licence or dam was joined to a gauge. One deviation (code-check rounds 1–3: licensee repeat rows) is recorded in `planning/archive/…issue-53…/findings.md`. The report reproduces byte-identical from cache.
+
+**The question.** Do the dry-zone gauges read low because water is taken out above them? A depleted gauge would make the balance look like it overpredicts. Zone 24 (Southern Thompson Plateau) is at +92.8 % held out and the dry zones at 42.8 % on the shipped fit.
+
+**HYDAT cannot answer it.** `wet_station_select()` keeps only `REGULATED = 0`, so every calibration gauge is already "natural" to HYDAT, and its station remarks for these gauges are operational (ice, missing record). The test therefore uses BC's water rights:
+- licensed surface-water points of diversion: a 117,945-row WFS snapshot, paged and held to the server's count, licensee fields not requested;
+- BC dams, which carry no reservoir volume, so they are reported only.
+
+**How the test works.**
+- **Accounting.** Each licence-purpose's annual quantity is counted at its PODs upstream of a gauge, weighted by the share of that gauge's own complete years in which it was in force. Upstream means FWA codes, with points in the gauge's own reach tested by stream position.
+  - Storage and instream purposes are counted separately.
+  - Licences cancelled and reissued under the same POD, purpose and priority are counted once, and so are rows the view repeats per licensee.
+- **L** is the licensed consumptive depth in mm/yr over the gauge's FWA area. A gauge is flagged when L ≥ 10 % of its observed runoff.
+- **The blind review's main point.** A flag with obs in its denominator selects low-flow gauges, which carry the largest percentage errors, so dropping flagged gauges can lower MAE with no diversion effect at all. So the deciding test is a **naturalized rescore**: no gauge is dropped, each one is scored against obs + f·L, and L is permuted within zones as the null. It is backed by a drop test with an obs-matched null, and leave-one-out stability.
+
+**Registered verdict: not gauge side.** It is stable under every leave-one-out run and every sensitivity:
+- D thresholds 0.05 and 0.20;
+- core consumptive purposes only;
+- without m3/sec licences;
+- Current licences only, and without replacement removal;
+- storage counted as a flag;
+- zone 15 scored on raw error.
+
+| | gauges | MAE | flagged (D) | MAE fall if every licensed m³ were returned (f = 1) |
+|---|---|---|---|---|
+| zone 24 | 9 | 92.8 % | 0 | 0.5 points |
+| dry zones | 40 | 42.8 % | 1 (Ambusten Creek, zone 17) | 1.2 points |
+
+- **Licensed use above the zone-24 gauges is 0–2 mm/yr. The overshoot is 26–245 mm.** Even the full entitlement, used all year with no return flow, is two orders of magnitude short.
+- **Greata Creek** (+386 % held out) has one domestic licence, plus a storage licence at 14 % of its annual runoff volume. Storage moves water in time; it removes only what evaporates from the reservoir.
+- **No calibration gauge outside the dry zones is flagged.** Three are flagged for storage only (Greata, and two in zone 28).
+
+**What it says.** This bullet is post hoc, outside the registered rule. **[I]**
+- The "natural" gauges WSC kept are largely the ones without much licensed use above them, and some names say so (Anderson Creek above Diversions, Coldstream Creek above Municipal Intake). Where in the zone the licensed volume sits instead was not measured.
+- **Attribution of the zone-24 overshoot: not the gauge side, as far as licensed water shows.** Unlicensed use and groundwater lost before the gauge remain unseen. Groundwater licences sit upstream of 11 dry gauges (9 marked hydraulically connected; 10 and 8 in force over the gauges' years). The largest, at Hedley Creek, comes to 8.5 mm/yr, still far below its 49 mm overshoot.
+- **What is left for zone 24.** After #45, #50 and #53:
+  - the ET side is least likely (three AET products and PCIC);
+  - P is modestly high at the plateau gauges but not by enough (#50);
+  - licensed diversions are ruled out (#53).
+  
+  The remaining candidates are P between ridge-top gauges and the basins they drain, which no observation tests, and how the model partitions P in small, steep, low-runoff basins. Zone 24's error is concentrated in a few basins with very low observed runoff (Greata 50 mm, Camp 128 mm), where any absolute error is a large percentage.
+
 ### What this says about the BC Water Tools
 
 Their accuracy figures are in-sample, and after the undocumented "final adjustment to measured flows" they are near 0 % at the gauges. They are not a measure of skill at ungauged sites. The open reimplementation suggests that out-of-sample skill of this method family, province-wide, is about 33 % MAE on annual runoff (38 % for headwater basins) with the CGIAR AET Chapman used, and about 28 % (31 %; 32 % under a fully nested selection) with that AET floored by a Fu–Budyko demand (#15). Our release comparison (#5) should score their values at stations held out of *their* fit where possible.
@@ -351,7 +395,7 @@ Their accuracy figures are in-sample, and after the undocumented "final adjustme
 - #15: the ET experiment. Done; see "The ET experiment" above.
 - #18: MOD16 as a challenger. Done; `cfu` stays. See "MOD16 as a challenger (#18)" above.
 - The Budyko floor is annual only. The monthly shares still regress on CGIAR's monthly AET (see #16 for the monthly predictors).
-- Zone 24 (Southern Thompson Plateau) runs at +93 % held out on the shipped 2026-07-17 fit (+102 % on 2025-10-14). The candidates are listed in "The ET experiment" above. MOD16, which is independent of P, left +166 % there (#18). Against PCIC (#45), the evidence leaned to climr's plateau P without a registered verdict. Against plateau-elevation observations (#50), climr is at most modestly high relative to the interior (D 1.09, not decided), and part of #45's gap is PNWNAmet's. The next candidate is the gauge side: regulated and diverted basins in zones 23/24 (#53).
+- Zone 24 (Southern Thompson Plateau) runs at +93 % held out on the shipped 2026-07-17 fit (+102 % on 2025-10-14). The candidates are listed in "The ET experiment" above. MOD16, which is independent of P, left +166 % there (#18). Against PCIC (#45), the evidence leaned to climr's plateau P without a registered verdict. Against plateau-elevation observations (#50), climr is at most modestly high relative to the interior (D 1.09, not decided), and part of #45's gap is PNWNAmet's. Licensed diversions above the gauges are ruled out (#53): 0–2 mm/yr against overshoots of 26–245 mm. What remains is P between the ridge-top gauges and the basins they drain, and how the model partitions P in small basins with very low observed runoff.
 - The pre-#15 input caches (CGIAR, climr, DEM, zones raster) are keyed on content and parameters but not on their builder code, as #15's two new builders now are (#19).
 - #16: snow predictors for the monthly shares.
 - An upstream note to climr on the ClimateNA coastal gap: drafted, not posted.

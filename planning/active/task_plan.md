@@ -89,13 +89,13 @@
 
 ## Phase 4: Write-up
 
-- [ ] `research/water_balance_method.md` §0: new subsection "Gauge side in the dry interior (#53)" with a provenance header. Update #50's "What would decide it", the Follow-ups list and the zone 24 line.
+- [x] `research/water_balance_method.md` §0: new subsection "Gauge side in the dry interior (#53)" with a provenance header. Update #50's "What would decide it", the Follow-ups list and the zone 24 line.
 - [ ] Edit #53's body to the outcome.
 - [ ] If the verdict is "gauge side": draft the station-selection follow-up issue (a licence-based exclusion in `wb_stations.R`, a refit on m4 under #43's acceptance), show it, and file it on OK. Otherwise, name what is next.
 
 ## Validation
 
-- [ ] Tests pass (no package code changes)
+- [x] Tests pass (746, 0 fail, 1 skip; no package code changes)
 - [x] `/code-check` on the script commit: 3 rounds, ended by round 3's enumeration of 42 derived quantities (2 report-only fixes); Deviation 1 recorded
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion

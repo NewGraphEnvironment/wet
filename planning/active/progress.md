@@ -15,3 +15,4 @@
 - Placement checked independently on 6 gauges against `fwa_watershedatmeasure()` polygons: the same surface PODs (Hedley differs by 2 non-candidate rows)
 - Report fix after the run (display only): purpose shares printed `NaN%` where no licence was in force. Reproduces byte-identical from cache
 - `/code-check`: 3 rounds. R1 found repeated licence rows and a T quantity spread over zero-quantity PODs (Deviation 1); R2 found a defect inside that fix (quantity taken across flags) plus report counts over the wrong population; R3 named the mechanism (two row populations) and enumerated all 42 derived quantities, 2 wrong, both report-only. Verdict unchanged throughout: not gauge side. Final report reproduces byte-identical from cache
+- Write-up: research §0 "Gauge side in the dry interior (#53)", cross-references in #50's subsection, the ET experiment's candidate list, Follow-ups, research/README.md and the CLAUDE.md script list; checked against the final report
