@@ -467,6 +467,9 @@ A package built from a `git worktree` ships `.git` (a file holding the developer
 ### A database driver's value is not a base R type — and it fails twice
 A column fetched through DBI does not arrive as the base type its SQL type suggests.
 
+### A value compared as `::text` in SQL has PostgreSQL's spelling, not R's
+Write native types from R and cast once in SQL.
+
 ### arrow dplyr backend: no grouped slice — bridge to duckdb
 - arrow's dplyr backend errors on grouped `slice_max`/`slice_min` (`arrow_not_supported("Slicing grouped data")`).
 
@@ -674,6 +677,15 @@ Set a user-agent on every R fetch of a `canada.ca` page, because R's default fai
 ### `climr::downscale()` returns its reference-period row even with `return_refperiod = FALSE`
 Keep only the observed series (`DATASET == "<obs_ts_dataset>"`, four-digit `PERIOD`) before averaging climr output over years.
 
+### A `function(...)` mock hides arguments the real callee no longer accepts
+Stubbing a callee with `function(...) invisible("mock")` accepts any argument name, so a wrapper still passing a parameter the callee dropped stays green while every real call errors with `unused argument`.
+
+### `expect_message(regexp = "...$")` never matches, because `message()` appends `"\n"`
+The condition message carries the trailing newline, so an end anchor fails and the test reports "did not throw a message" even though the message printed.
+
+### `load_all()` refuses an installed dependency below the `Imports:` floor, so measure old-against-new from a frozen worktree
+Run the old-dependency side of a before/after comparison from a `git worktree` of the pre-bump commit, and install the new version only after those runs finish.
+
 # Code Check — Shell
 Tool-level traps in bash, sed, git and `gh`, and in the host toolchain those commands depend on.
 
@@ -829,6 +841,12 @@ Count instead: `while :; do left=0; for i in $ids; do done_yet "$i" || left=$((l
 ### A failed `cd` lets every later command run in the directory you were already in
 Write `cd "$D" || exit 1` (or `cd "$D" && …`), never `cd "$D"; …`: without the guard, a missing directory prints one error and the rest of the line runs wherever the shell stood, including its file writes.
 
+### macOS `/bin/bash` 3.2 quote-matches a heredoc inside `$( )`, so an apostrophe in the body is a syntax error
+Pass multi-line text through a file (`--body-file`, `-F`) rather than `"$(cat <<'EOF' … EOF)"`: bash 3.2 scans the command substitution for balanced quotes before it sees the heredoc, so `it's` in a quoted heredoc body fails with ``unexpected EOF while looking for matching `''``, while …`
+
+### A skill's bash blocks run as separate calls, so each block must check the state the last one left
+Open every block after the first with guards on what it inherits: re-set its variables, confirm the path is the expected tree, and refuse edits or commits the previous block did not check.
+
 # Code Check — Spatial
 terra, sf, bcdata, GDAL/OGR CLIs.
 
@@ -979,7 +997,7 @@ Do the hex swap in **one** helper and omit `<Icon><href>` entirely.
 It reports the verdict in text and returns success either way, so the exit status carries no information at all:
 
 ### `terra::rast()` on a SpatRaster returns an empty template, not a copy
-Pass a SpatRaster through as is (`if (inherits(x, "SpatRaster")) x else terra::rast(x)`): `rast(x)` on one builds a new raster with the same geometry and **no values**, so a function that normalises its input with `terra::rast()` silently receives an all-empty grid when handed an object rather …
+Pass a SpatRaster through as is (`if (inherits(x, "SpatRaster")) x else terra::rast(x)`): `rast(x)` on one returns a template with the same geometry and **no values**.
 
 ### `terra::rasterize(filename = , datatype = <integer>)` writes the background as 0, not NA
 Rasterise in memory and then `writeRaster(datatype = …)`: written directly through `filename` with an integer `datatype` (INT1U, INT2S), cells no polygon covers come out as 0, while the file's NoData is 255, so they read back as data (terra 1.9.46 and 1.9.50; rspatial/terra#2195).
@@ -1009,7 +1027,7 @@ Read with `promote_to_multi = FALSE` whenever a layer will be written back.
 Run it on the invalid rows only (`!st_is_valid(x)`), or keep the original geometry and use the made-valid copy just for the computation.
 
 ### terra: `unique()` and `freq()` on a factor return its labels, not its codes
-Read a factor raster's codes from a copy with its levels stripped (`levels(y) <- NULL`, or `set.cats(y, layer = 1, value = NULL)` on a copy you own), never from `terra::unique(x)[, 1]` or `terra::freq(x)$value`: on a factor both return the active category's labels, so matching …
+Read a factor raster's codes from a copy with its levels stripped (`levels(y) <- NULL`), never from `terra::unique(x)[, 1]` or `terra::freq(x)$value`, which on a factor return the active category's labels.
 
 ### A GDAL failure partway through `sf::st_read()` returns the rows read so far, with only a warning
 Treat any warning during a read whose completeness matters as a failed read: wrap it in `withCallingHandlers(st_read(...), warning = function(w) stop(...))`, retry, then stop.
@@ -1030,7 +1048,7 @@ Hold any raw WFS read to the server's own count.
 To tell a throttle from any other bcdata failure, record the status off the request itself (wrap `crul:::crul_fetch`), not from the message.
 
 ### sf and terra can link different GDALs, so a probe through one says nothing about the other
-Check `sf::sf_extSoftVersion()[["GDAL"]]` and `terra::gdal()` before concluding that "GDAL" cannot read something: one R session can hold two GDALs (a CRAN binary of sf bundles its own, terra built against Homebrew links another), and a driver or codec missing from one may be present in the …
+Check `sf::sf_extSoftVersion()[["GDAL"]]` and `terra::gdal()` before concluding that "GDAL" cannot read something: one R session can hold two GDALs, and a driver or codec missing from one may be present in the other.
 
 ### `atan2(0, 0)` is 0, so two points at one place have a bearing of due north
 Treat a zero-length step as having no heading: test the step length before taking its azimuth, and return `NA` rather than a bearing when it is 0, because `atan2(0, 0)` returns 0 with no warning, and that reads as north.
@@ -1043,6 +1061,9 @@ Before retrying a `/vsicurl/` read in the same process, set `CPL_VSIL_CURL_NON_C
 
 ### THREDDS NCSS returns one time step unless the request says `temporal=all`
 Add `&temporal=all` (or an explicit `time_start`/`time_end`) to every NetCDF Subset Service grid request: without it NCSS answers with a single time step (the one nearest "now"), a valid NetCDF that passes a signature check, so assert the layer count after reading.
+
+### BC's water rights licence view repeats a row per licensee, so deduplicate before summing quantities
+Keep one row per licence, purpose, point of diversion, `QUANTITY_FLAG` and units before summing `QUANTITY` from `WHSE_WATER_MANAGEMENT.WLS_WATER_RIGHTS_LICENCES_SV`: the view carries a row per licensee, identical but for `OBJECTID` and `WLS_WRL_SYSID`.
 
 # Code Check Conventions
 Structured checklist for reviewing diffs before commit.
