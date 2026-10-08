@@ -39,3 +39,42 @@ Relates to #36
 
 | Error | Resolution |
 |-------|------------|
+
+## Real-data spike, 08E (Skeena), 2026-10-07
+
+Data: `wet_temp_daily()` for the 25 08E stations in `canonical/Parameter=5/`, 2011–2025 (3 s), and `cd_extract_daily()` tmean at the `tidyhydat::allstations` coordinates (36 s). The 18 stations with ≥ 1000 days were used. Holdouts: the most recent 30-day July gap and the most recent Mar–Nov season that was ≥ 98 % observed, one station at a time, with its peers left in. Cached as `data/temp_fill/spike_08E_{water,air}.rds`; scripts in the session scratchpad (method below is enough to redo it).
+
+**Form 1, as planned:** one Kalman state on the air2stream recursion, fitted by its one-step likelihood.
+
+| holdout | full | smoother, b = 0 | open-loop | 95 % coverage |
+|---|---|---|---|---|
+| 30-day July | 0.80 | 1.04 | 1.45 | 0.88 |
+| Mar–Nov season | 1.28 | 1.69 | 1.27 | 0.84 |
+
+(Mean daily RMSE over 18 stations, °C.) The one-step likelihood picks a3 = 0.02–0.13, so its own recursion drifts over a season: the full form only ties open-loop there, and without peers it loses to it. This is the plan review's G1, confirmed.
+
+**Form 2, adopted:** `W = S + u`. `S` is open-loop air2stream fitted by least squares (as air2stream is calibrated); `u` is an AR(1) departure with the peer term, in the Kalman smoother.
+
+| holdout | full | smoother, b = 0 | forward only, b = 0 | open-loop | 95 % coverage |
+|---|---|---|---|---|---|
+| 30-day July | 0.77 | 0.95 | 1.33 | 1.46 | 0.88 |
+| Mar–Nov season | 0.99 | 1.25 | 1.26 | 1.28 | 0.93 |
+
+The full fill is 23 % below open-loop on whole seasons and 47 % below on 30-day gaps. Each ingredient adds: the bridge (smoother over forward-only) on short gaps, the peers on both. ρ fits 0.84–0.99; b 0.13–1.64, lowest at the lake-outlet and coastal stations (08EG016, 08EG019, 08ED00x). Coverage is under nominal on the 30-day gaps (0.88): the interval is plug-in.
+
+## Pre-registered validation rule (written before `scripts/temp_fill_validate.R` was first run)
+
+Truth set, counted 2026-10-07 from `wet_temp_daily()` 2002–2025: **1006 station-years at 259 stations** whose 1 Mar – 30 Nov is observed with no gap over 2 days. Largest pools: 08N 177, 08H 153, 08L 123, 08M 84, 08E 77 station-years. These are year-round ECCC gauges, mostly rivers, not seasonal creek loggers; the report says so.
+
+Holdouts per truth station-year, one at a time, peers (same WSC sub-drainage) left in: `season` (Mar 1–Nov 30), `shoulders` (Mar 1–May 15 and Oct 1–Nov 30), `gap30` (Jul 1–30), `gap7` (Jul 10–16). Methods: `open`, `forward` (b = 0), `smooth` (b = 0), `full`, and `linear` on the two July gaps. Daily RMSE on observed hidden days only; truth GSDD with 1–2 day gaps interpolated.
+
+**Primary rule (season holdout, full vs open, paired by station-year):** `wet_temp_fill()` ships as the gap fill if
+1. the median paired difference in daily RMSE (full − open) is below 0, and
+2. full has the lower RMSE in at least 60 % of station-years, and
+3. full's GSDD mean absolute error is below open's.
+
+**On a fail:** it still ships, because the short-gap result is the main use; but the documentation and research file state that for a whole missing season the fill is no better than open-loop air2stream, and nothing is tuned after the result is seen.
+
+**Reported, not ruled on:** the other three holdouts and the ladder; 95 % coverage of `full` by holdout (nominal 0.95; plug-in); monthly bias (seasonal hysteresis, G2); results split by whether a peer shares the sub-sub-drainage (a proxy for one on the same stem, V1); per-pool numbers.
+
+Reviewed by: the plan review's O2 asked for this rule; no separate blind review was run (spend held to the code-check rounds).

@@ -16,6 +16,8 @@ Decisions taken at the gate (user): **Kalman smoother** as the gap engine, and t
 
 ## Method (what `wet_temp_fill()` does)
 
+> **Revised 2026-10-07 after the 08E spike (findings.md):** the single Kalman state on the air2stream recursion tied open-loop on whole seasons. Shipped form is `W = S + u`: open-loop air2stream `S` fitted by least squares, plus an AR(1) departure `u` (ρ, b, σ) in the Kalman smoother. The bullets below describe the original form; peers, pool, smoother, interval and floor carry over.
+
 - State-space form of the 3-parameter air2stream: `W_t = W_{t-1} + a1 + a2·A_t − a3·W_{t-1} + b·ē_t + ε_t`, where `ε ~ N(0, σ²)`. A day with an observation sets the state to that value, with a small observation noise. `ē_t` is the leave-self-out mean one-step innovation of the other stations observed on days t−1 and t. `b` is fitted per station (0 means it does not track its peers).
 - Fit per station with base `optim()` on the Kalman likelihood (a1, a2, a3, b, log σ). Then a forward filter and an RTS backward smoother over the fill range. The smoother uses both edges of a gap, so there is no jump where the gap ends. The interval is `t_mean_c ± 1.96·sd` from the smoothed variance.
 - Prediction is floored at 0 °C (ice), in the predict step and on the output.
@@ -29,7 +31,7 @@ Decisions taken at the gate (user): **Kalman smoother** as the gap engine, and t
 - [x] Test helper `helper-temp-fill.R`: synthetic stations, with seasonal air plus a shared daily weather anomaly, water simulated from known air2stream parameters, and a peer that does not track (b = 0)
 
 ## Phase 2: `wet_temp_fill()` (tests first)
-- [ ] `tests/testthat/test-wet_temp_fill.R`:
+- [x] `tests/testthat/test-wet_temp_fill.R`:
   - observed days unchanged
   - known parameters recovered on synthetic data
   - no jump at a gap's far edge
@@ -42,12 +44,12 @@ Decisions taken at the gate (user): **Kalman smoother** as the gap engine, and t
   - input validation
   - takes `cd_extract_daily()`-shaped `air` directly
   - a single station (no peers) still fills
-- [ ] `R/wet_temp_fill.R` with roxygen: method, day-boundary note (UTC−8 air vs per-station water) and a runnable example on a small simulated series
-- [ ] `devtools::document()`, `lintr`, tests green; `/code-check`; commit
+- [x] `R/wet_temp_fill.R` with roxygen: method, day-boundary note (UTC−8 air vs per-station water) and a runnable example on a small simulated series
+- [x] `devtools::document()`, `lintr`, tests green; `/code-check`; commit
 
 ## Phase 3: `wet_temp_gsdd()`
-- [ ] Tests: wraps `gsdd::gsdd()` per station-year into cd's long format (`station_number, variable = "gsdd", period = "growing_season", year, value, anomaly_type = "absolute", unit = "degC"`, matching `wet_window_stats()`). A station-year whose season is cut by a gap gives NA, not a low value. Extra arguments pass through to `gsdd::gsdd()`
-- [ ] `R/wet_temp_gsdd.R` with a runnable example. Tests green; `/code-check`; commit
+- [x] Tests: wraps `gsdd::gsdd()` per station-year into cd's long format (`station_number, variable = "gsdd", period = "growing_season", year, value, anomaly_type = "absolute", unit = "degC"`, matching `wet_window_stats()`). A station-year whose season is cut by a gap gives NA, not a low value. Extra arguments pass through to `gsdd::gsdd()`
+- [x] `R/wet_temp_gsdd.R` with a runnable example. Tests green; `/code-check`; commit
 
 ## Phase 4: Validation, `scripts/temp_fill_validate.R`
 - [ ] Truth set: station-years whose Mar 1 – Nov 30 is fully observed, with gaps of ≤ 2 days interpolated for the truth GSDD only
