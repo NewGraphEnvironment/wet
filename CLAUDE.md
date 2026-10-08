@@ -251,7 +251,7 @@ directly when it matters — the deploy commit, not the run status:
 
 ```bash
 git fetch -q origin gh-pages && git log -1 --format='%s' FETCH_HEAD
-# "Deploying to gh-pages from @ owner/repo@<sha> 🚀"  <- is <sha> your HEAD?
+# "Deploying to gh-pages from @ owner/repo@<sha> 🚀"  <- the last NON-BOT commit? A bot commit never deploys
 ```
 
 GitHub can create a workflow run minutes after the push that triggered it, and
@@ -276,6 +276,8 @@ exists. The remedy is detection: check the deploy provenance, and re-dispatch
 commit changed nothing the site publishes — confirm via `.Rbuildignore` / `_pkgdown.yml`
 rather than assuming.
 
+*2 lines of evidence for this rule are in `conventions/ci-monitoring.md`, which `/code-check` reads in full.*
+
 ## Don't push to the default branch between a merge and its CI settling
 
 The r-lib templates set `concurrency` with `cancel-in-progress: true`, so a second push
@@ -296,7 +298,7 @@ green on their own SHA. Holding it cost about three minutes.
 
 Where a push has already gone out and cancelled something, `/gh-pr-merge` step 10 has the
 reading: `cancelled`/`skipped` is `⊘ superseded`, not `✗ failed`, and the thing to confirm
-is that the **newer** SHA's run passed. Do not re-dispatch the cancelled one.
+is that the newest **non-bot** SHA's run passed. Do not re-dispatch the cancelled one.
 
 ## Don't use `gh run watch` to wait
 
@@ -332,6 +334,16 @@ gh run view <id> --log-failed | grep -iE 'error|fatal' | head
 If it died in dependency setup, rerun once. If it dies the same way again it is the
 upstream CDN, and the honest move is to say so and stop — not to keep spending runs on
 something no change in the repo can fix.
+
+## A citation run failing "fetch first" beside a green twin lost a push race
+Before reading a red `Update CITATION.cff` as a broken release, find a green run of it on the same or a later SHA (not earlier), then confirm `git show origin/main:CITATION.cff` carries the released version and date.
+
+*5 lines of evidence for this rule are in `conventions/ci-monitoring.md`, which `/code-check` reads in full.*
+
+## A hung setup step holds the concurrency group for six hours
+A run `in_progress` long past its usual duration, with a newer run of it `pending` behind, is a hang: confirm no step moved (`gh run view <id> --json jobs`), then `gh run cancel <id>`; the lasting fix is `timeout-minutes:`.
+
+*4 lines of evidence for this rule are in `conventions/ci-monitoring.md`, which `/code-check` reads in full.*
 
 ## A job-level `concurrency` group must vary with the matrix, or the jobs cancel each other
 
@@ -688,6 +700,12 @@ The condition message carries the trailing newline, so an end anchor fails and t
 ### `load_all()` refuses an installed dependency below the `Imports:` floor, so measure old-against-new from a frozen worktree
 Run the old-dependency side of a before/after comparison from a `git worktree` of the pre-bump commit, and install the new version only after those runs finish.
 
+### `tryCatch()` nests its handlers, so a `stop()` in one is caught by a later one
+Record the condition in the handler (`hit <<- TRUE`) and raise after `tryCatch()` returns.
+
+### `fs::file_move()` onto an existing directory nests the source inside it
+Move a directory into place with `base::file.rename()` and check its return value, which is FALSE where the target is a non-empty directory, a symlink or a file.
+
 # Code Check — Shell
 Tool-level traps in bash, sed, git and `gh`, and in the host toolchain those commands depend on.
 
@@ -848,6 +866,9 @@ Pass multi-line text through a file (`--body-file`, `-F`) rather than `"$(cat <<
 
 ### A skill's bash blocks run as separate calls, so each block must check the state the last one left
 Open every block after the first with guards on what it inherits: re-set its variables, confirm the path is the expected tree, and refuse edits or commits the previous block did not check.
+
+### An apostrophe in a `${VAR:?message}` inside double quotes is an unterminated quote
+Keep apostrophes out of the message of a `"${VAR:?…}"` guard (`the REL: line of step 5`, not `step 5's REL: line`): bash 3.2 and 5 both read the `'` as opening a quote, and the whole script fails to parse before the guard can run.
 
 # Code Check — Spatial
 terra, sf, bcdata, GDAL/OGR CLIs.
@@ -1689,6 +1710,17 @@ It breaks **Always Away** directly: an unattended run that stops for approval on
   predicted, and the one that blocks is the one you did not.
 - Diagnostic: if a run keeps stopping for approval, look at whether the loop sits
   inside or outside the process boundary before adding allowlist entries.
+
+### A subagent that must not know the answer must be a Plan or Explore type
+
+A `general-purpose` subagent carries the project's `CLAUDE.md`, and `Plan` and `Explore` do not, so a
+blind reader, a blind reviewer or any control that must not see prior results is spawned as `Plan` or
+`Explore`. Check it rather than trusting the brief: a canary of each type, given no tools and asked only
+whether its context mentions the term in question, settles it in seconds. Neither type can write, so take
+its output from the transcript by script, not by retyping, and audit the transcript's tool calls for reads
+outside what it was given.
+
+*4 lines of evidence for this rule are in `conventions/karpathy.md`, which `/code-check` reads in full.*
 
 ---
 
