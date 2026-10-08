@@ -1,0 +1,191 @@
+# Gauge side in the dry interior (#53): the shipped fit's calibration gauges and licensed surface-water diversions
+
+fit: 20260717, province run 962a9cc2c4, scoring code 94d05b195898abea5bd87cc0bd65018d; held-out predictions cv_aet-cfu (no refit)
+rule: pre-registered in the #53 findings before any licence or dam was joined to a gauge, as changed by Amendment 1
+deviation 1 (code-check rounds 1-2, after flags were seen): repeat rows of one licence-purpose, POD, flag and units kept once; a shared quantity taken from the shared rows only. The as-amended run on snapshot 9adbffe764: not gauge side (this snapshot)
+snapshot (BC WFS, licensee fields not requested): 117945 licence points, 2490 dams; md5 over its 13 pages 9adbffe764
+HYDAT regulated among the 315 calibration gauges: 0 (wet_station_select() keeps REGULATED = 0 only)
+
+## Licence rows
+  rows in the snapshot                            117945
+  repeat rows (left out; counts below exclude them)   24128
+  points of diversion, one per licence-purpose     93817
+  surface (POD)                                    83812
+  no location, surface, current (not placed)         135
+  no location, surface, not current (not placed)   10222
+  no volume: unit Total Flow, Hectares, Select or none    1460
+  no volume: empty quantity                         9403
+  no priority date, or not current with no status date      13
+  replaced (a Current row carries POD, purpose, priority)    1175
+  rediversion (left out)                               0
+  D/P groups repeating one quantity (as M)            88
+  surface consumptive candidates                   63881
+    of them m3/sec                                   635
+  surface storage candidates                        5201
+  surface instream (not counted)                    2773
+Current rows, status year - priority year: < 0 6, 0 3141, 1-10 19934, > 10 48672, missing 6
+purpose classes, fixed before placement:
+  storage 08A 12A 11A; instream 07A 07B 07C 11B 11C 02E 02I38 02I26 08B; core consumptive 01A 01A01 WSA01 03A 03B 00A 00B 00C 02I35 02I31 WSA08; consumptive: every other code
+
+## Placement
+placed in a fundamental watershed: 85935 of 85948 points (located kept licence rows and dams)
+point-gauge pairs upstream on codes: 53770; in the gauge's own reach: 684, of which below the gauge by stream position 454, not indexed within 100 m (kept) 126
+
+## Flags by zone (D: licensed consumptive depth L >= 10 % of obs, deciding; S: licensed storage >= 10 % of annual runoff volume, reported)
+Held-out (cv), then raw P - AET: MAE all, kept; median |%| all, kept; mean log(pred/obs) all, kept.
+zone     n    D    S kept |  MAE all  kept  med all  kept  log all  kept |  raw: MAE all  kept  med all  kept  log all  kept
+15      19    0    0   19 |   23.3%   23.3%   11.6%   11.6% -0.004 -0.004 |   64.4%   64.4%   62.1%   62.1%  0.442  0.442
+17       4    1    0    3 |   47.5%   41.8%   47.6%   39.4%  0.384  0.346 |   47.5%   41.8%   47.6%   39.4%  0.384  0.346
+23       8    0    0    8 |   30.7%   30.7%   20.4%   20.4%  0.131  0.131 |   29.0%   29.0%   12.6%   12.6%  0.154  0.154
+24       9    0    1    9 |   92.8%   92.8%   36.4%   36.4%  0.530  0.530 |   93.1%   93.1%   36.4%   36.4%  0.535  0.535
+dry     40    1    1   39 |   42.8%   42.3%   27.4%   26.5%  0.182  0.174 |   62.1%   62.0%   47.1%   39.4%  0.400  0.397
+01      12    0    0   12 |   32.4%   32.4%   21.6%   21.6%  0.018  0.018 |   25.5%   25.5%   22.4%   22.4% -0.160 -0.160
+02       5    0    0    5 |   25.4%   25.4%   27.6%   27.6% -0.187 -0.187 |   23.9%   23.9%   22.2%   22.2% -0.200 -0.200
+03      21    0    0   21 |   18.0%   18.0%   15.2%   15.2%  0.057  0.057 |   28.9%   28.9%   26.1%   26.1% -0.222 -0.222
+04       5    0    0    5 |   28.2%   28.2%   32.9%   32.9% -0.316 -0.316 |   29.4%   29.4%   35.8%   35.8% -0.333 -0.333
+05       7    0    0    7 |   14.6%   14.6%   13.3%   13.3% -0.124 -0.124 |   20.9%   20.9%   19.4%   19.4% -0.251 -0.251
+06       3    0    0    3 |   25.4%   25.4%   28.0%   28.0%  0.154  0.154 |   25.3%   25.3%   28.0%   28.0%  0.153  0.153
+07       9    0    0    9 |   23.3%   23.3%   17.7%   17.7%  0.068  0.068 |   19.9%   19.9%   17.7%   17.7%  0.046  0.046
+08      23    0    0   23 |   30.1%   30.1%   24.3%   24.3%  0.094  0.094 |   22.8%   22.8%   16.0%   16.0% -0.062 -0.062
+09       7    0    0    7 |   20.8%   20.8%   25.2%   25.2% -0.244 -0.244 |   21.4%   21.4%   26.0%   26.0% -0.253 -0.253
+10       9    0    0    9 |   18.7%   18.7%   12.5%   12.5% -0.105 -0.105 |   19.0%   19.0%   22.1%   22.1% -0.139 -0.139
+11       2    0    0    2 |   17.7%   17.7%   17.7%   17.7%  0.042  0.042 |   17.7%   17.7%   17.7%   17.7%  0.042  0.042
+12       3    0    0    3 |   30.5%   30.5%   29.0%   29.0% -0.365 -0.365 |   31.0%   31.0%   29.5%   29.5% -0.372 -0.372
+13      10    0    0   10 |   15.5%   15.5%   14.5%   14.5% -0.172 -0.172 |   17.7%   17.7%   18.5%   18.5% -0.198 -0.198
+14      22    0    0   22 |   27.3%   27.3%   18.7%   18.7%  0.044  0.044 |   22.2%   22.2%   22.5%   22.5% -0.164 -0.164
+16       6    0    0    6 |   17.8%   17.8%   16.3%   16.3% -0.082 -0.082 |   20.6%   20.6%   18.5%   18.5% -0.106 -0.106
+18      12    0    0   12 |   16.1%   16.1%   15.1%   15.1% -0.073 -0.073 |   16.7%   16.7%   15.1%   15.1% -0.169 -0.169
+19      11    0    0   11 |   19.2%   19.2%   20.5%   20.5% -0.141 -0.141 |   24.4%   24.4%   24.9%   24.9% -0.285 -0.285
+20      10    0    0   10 |   33.9%   33.9%   34.3%   34.3%  0.040  0.040 |   30.7%   30.7%   31.0%   31.0% -0.252 -0.252
+21      13    0    0   13 |   36.6%   36.6%   10.8%   10.8%  0.183  0.183 |   37.4%   37.4%   15.7%   15.7%  0.160  0.160
+22      15    0    0   15 |   20.9%   20.9%   14.1%   14.1%  0.026  0.026 |   23.3%   23.3%   18.4%   18.4% -0.115 -0.115
+25      16    0    0   16 |   49.7%   49.7%   47.0%   47.0%  0.107  0.107 |   31.6%   31.6%   23.0%   23.0% -0.158 -0.158
+26      13    0    0   13 |   21.3%   21.3%   15.8%   15.8%  0.029  0.029 |   19.7%   19.7%   20.2%   20.2% -0.199 -0.199
+27      12    0    0   12 |   16.4%   16.4%   13.0%   13.0% -0.043 -0.043 |   17.0%   17.0%   17.6%   17.6% -0.094 -0.094
+28      16    0    2   16 |   26.7%   26.7%   20.5%   20.5%  0.070  0.070 |   16.5%   16.5%   12.8%   12.8% -0.004 -0.004
+29      13    0    0   13 |   23.8%   23.8%   14.3%   14.3%  0.049  0.049 |   22.8%   22.8%   21.8%   21.8% -0.092 -0.092
+other  275    0    2  275 |   25.3%   25.3%   18.0%   18.0%  0.002  0.002 |   23.6%   23.6%   20.8%   20.8% -0.133 -0.133
+all    315    1    3  314 |   27.5%   27.4%   18.5%   18.3%  0.024  0.023 |   28.4%   28.3%   22.0%   21.9% -0.066 -0.067
+
+## Decision (dry zones 15/17/23/24)
+registered: dry D-flagged 1, zone 24 D-flagged 0 of 9, kept 9
+  step 1 drop: dry MAE 42.8%, fall 0.6 points (p 0.500, min attainable 0.500); zone 24 MAE 92.8%, fall 0.0 (p 1.000, min 1.000): no
+  step 2 naturalized (f 0.5): dry fall 0.7 (p 0.167), zone 24 fall 0.3 (p 0.441); at f 1: dry 1.2, zone 24 0.5: cannot
+  verdict: not gauge side
+stability: every leave-one-out run gives the same verdict
+  unflag 08LF081: not gauge side
+  without 08LG016: not gauge side
+  without 08LG064: not gauge side
+  without 08NL036: not gauge side
+  without 08NL050: not gauge side
+  without 08NM134: not gauge side
+  without 08NM171: not gauge side
+  without 08NM173: not gauge side
+  without 08NM240: not gauge side
+  without 08NM241: not gauge side
+VERDICT: not gauge side
+
+## Reported, not deciding
+as-registered zone-only random removal: p95 of the dry fall 0.6; share of draws >= observed 0.242
+D threshold 0.05: dry D-flagged 3, zone 24 D-flagged 0 of 9, kept 9
+  step 1 drop: dry MAE 42.8%, fall -1.2 points (p 0.485, min attainable 0.011); zone 24 MAE 92.8%, fall 0.0 (p 1.000, min 1.000): no
+  step 2 naturalized (f 0.5): dry fall 0.7 (p 0.167), zone 24 fall 0.3 (p 0.441); at f 1: dry 1.2, zone 24 0.5: cannot
+  verdict: not gauge side
+D threshold 0.20: dry D-flagged 1, zone 24 D-flagged 0 of 9, kept 9
+  step 1 drop: dry MAE 42.8%, fall 0.6 points (p 0.500, min attainable 0.500); zone 24 MAE 92.8%, fall 0.0 (p 1.000, min 1.000): no
+  step 2 naturalized (f 0.5): dry fall 0.7 (p 0.167), zone 24 fall 0.3 (p 0.441); at f 1: dry 1.2, zone 24 0.5: cannot
+  verdict: not gauge side
+D or S: dry D-flagged 2, zone 24 D-flagged 1 of 9, kept 8
+  step 1 drop: dry MAE 42.8%, fall 9.7 points (p 0.095, min attainable 0.100); zone 24 MAE 92.8%, fall 37.3 (p 0.195, min 0.200): inconclusive
+  step 2 naturalized (f 0.5): dry fall 0.7 (p 0.167), zone 24 fall 0.3 (p 0.441); at f 1: dry 1.2, zone 24 0.5: cannot
+  verdict: not gauge side
+core consumptive: dry D-flagged 1, zone 24 D-flagged 0 of 9, kept 9
+  step 1 drop: dry MAE 42.8%, fall 0.6 points (p 0.500, min attainable 0.500); zone 24 MAE 92.8%, fall 0.0 (p 1.000, min 1.000): no
+  step 2 naturalized (f 0.5): dry fall 0.7 (p 0.138), zone 24 fall 0.2 (p 0.407); at f 1: dry 1.2, zone 24 0.5: cannot
+  verdict: not gauge side
+without m3/sec: dry D-flagged 1, zone 24 D-flagged 0 of 9, kept 9
+  step 1 drop: dry MAE 42.8%, fall 0.6 points (p 0.500, min attainable 0.500); zone 24 MAE 92.8%, fall 0.0 (p 1.000, min 1.000): no
+  step 2 naturalized (f 0.5): dry fall 0.7 (p 0.167), zone 24 fall 0.3 (p 0.441); at f 1: dry 1.2, zone 24 0.5: cannot
+  verdict: not gauge side
+Current licences only: dry D-flagged 1, zone 24 D-flagged 0 of 9, kept 9
+  step 1 drop: dry MAE 42.8%, fall 0.6 points (p 0.500, min attainable 0.500); zone 24 MAE 92.8%, fall 0.0 (p 1.000, min 1.000): no
+  step 2 naturalized (f 0.5): dry fall 0.7 (p 0.130), zone 24 fall 0.2 (p 0.295); at f 1: dry 1.2, zone 24 0.4: cannot
+  verdict: not gauge side
+no replacement removal: dry D-flagged 1, zone 24 D-flagged 0 of 9, kept 9
+  step 1 drop: dry MAE 42.8%, fall 0.6 points (p 0.500, min attainable 0.500); zone 24 MAE 92.8%, fall 0.0 (p 1.000, min 1.000): no
+  step 2 naturalized (f 0.5): dry fall 0.7 (p 0.168), zone 24 fall 0.3 (p 0.441); at f 1: dry 1.2, zone 24 0.5: cannot
+  verdict: not gauge side
+zone 15 on raw error: dry D-flagged 1, zone 24 D-flagged 0 of 9, kept 9
+  step 1 drop: dry MAE 62.3%, fall 0.1 points (p 0.500, min attainable 0.500); zone 24 MAE 92.8%, fall 0.0 (p 1.000, min 1.000): no
+  step 2 naturalized (f 0.5): dry fall 1.1 (p 0.079), zone 24 fall 0.3 (p 0.441); at f 1: dry 2.1, zone 24 0.5: cannot
+  verdict: not gauge side
+capacity (flagged zone-24 gauges with cv > obs):
+  (no flagged zone-24 gauge with cv > obs)
+S only (regulated pattern; annual volume not depleted by the licence data): 08NM173
+Spearman over 40 dry gauges: L (mm) against cv - obs (mm) -0.130; as registered, L/obs against log(cv/obs) -0.031 (shares 1/obs on both sides, so not used)
+semi-blind replication, non-dry zones: 0 D-flagged of 275; median log(cv/obs) flagged minus obs-matched unflagged -
+dams upstream of dry gauges, by function and regulation class:
+  08FC003  Conversion (Regulated) 5; Main (Regulated) 4
+  08GD008  Conversion (Regulated) 8; Main (Non-Regulated - Including Minor Dam) 1; Main (Regulated) 6; Saddle (Regulated) 1
+  08KE016  Conversion (Regulated) 3
+  08KF001  Conversion (Regulated) 4; Main (Regulated) 1
+  08KG001  Conversion (Regulated) 4; Main (Regulated) 1
+  08LA027  Conversion (Non-Regulated - Including Minor Dam) 1; Conversion (Regulated) 1; Main (Regulated) 1
+  08LB012  Main (Regulated) 1
+  08MB005  Conversion (Regulated) 33; Main (Non-Regulated - Including Minor Dam) 1; Main (Regulated) 24; Outlet (Non-Regulated - Including Minor Dam) 1; Saddle (Regulated) 2
+  08MC045  Conversion (Regulated) 1
+  08NN015  Main (Regulated) 1
+  08NN019  Main (Regulated) 1
+  08NN022  Main (Non-Regulated - Including Minor Dam) 3; Main (Regulated) 3; Saddle (Regulated - Part 3 Exempt) 1; Saddle (Regulated) 1
+  08LG016  Main (Regulated) 1
+  08NL036  Main (Regulated) 1
+  08NL050  Main (Regulated) 1
+  08NM134  Main (Regulated) 1
+  08NM173  Main (Regulated) 1
+dry gauges with groundwater consumptive licences upstream: 11 (hydraulically connected, Likely: 9); in force over the gauge's years: 10 (8)
+dry gauges whose D flag differs on the 30-year weight (W): 0; placement-sensitive (P): 0; split-sensitive (X): 0
+limits: imports from another basin, off-stream storage, unlicensed use and reservoir evaporation are not seen; licensed quantities are entitlements, not use
+
+## Dry-zone gauges (mm/yr over the FWA upstream area; L consumptive, S storage / annual runoff volume, L_gw groundwater)
+marks: P placement-sensitive, X split-sensitive, W window-sensitive
+station  zone nesting       km2   obs    cv   raw      L L/obs     S cons stor dams   L_gw flag mark top consumptive purposes name
+08FC003  15   headwater    3742   130   126   201    1.4  0.01  0.00   87    8    9    0.0 -    -    03B 99%, 02I12 1%      DEAN RIVER BELOW TANSWANKET 
+08GD008  15   headwater     496   110   119   179   10.0  0.09  0.02  112   17   16    0.0 -    -    03B 99%, 01A 0%        HOMATHKO RIVER AT INLET TO T
+08JA014  15   headwater     145   185   119   169    0.0  0.00  0.00    0    0    0    0.0 -    -    -                      VAN TINE CREEK NEAR THE MOUT
+08KE016  15   headwater    1563    97    65   107    1.4  0.01  0.00   57    3    3    0.0 -    -    00A 61%, 03B 37%       BAKER CREEK AT QUESNEL
+08KF001  15   headwater    3163    44    85    83    0.5  0.01  0.02   26    9    5    0.0 -    -    03B 99%, 02I08 0%      NAZKO RIVER ABOVE MICHELLE C
+08KG001  15   nested      12391    84    87   112    0.3  0.00  0.00  155   10    5    0.0 -    -    03B 95%, 02I08 3%      WEST ROAD RIVER NEAR CINEMA
+08KG003  15   headwater    1017    64    91   108    0.0  0.00  0.00    1    0    0    0.0 -    -    02I08 (none in force)  BAEZAEKO RIVER AT LOT 10262
+08LA027  15   headwater     386    91    86   147    3.8  0.04  0.02  131   11    3    0.1 -    -    03B 62%, 04A 33%       BRIDGE CREEK BELOW DEKA CREE
+08LB012  15   headwater      71    78    72   144    2.2  0.03  0.00   23    1    1    0.0 -    -    03B 87%, 02I31 6%      PAUL CREEK AT THE OUTLET OF 
+08LB024  15   headwater     138   181   103   168    0.0  0.00  0.00    1    0    0    0.0 -    -    02I39 100%             FISHTRAP CREEK NEAR MCLURE
+08LE075  15   headwater     141   174   160   353    0.0  0.00  0.00    0    0    0    0.0 -    -    -                      SALMON RIVER ABOVE SALMON LA
+08MA001  15   nested       6727   412   403   421    0.4  0.00  0.00   51    1    0    0.0 -    -    03B 98%, 02I31 1%      CHILKO RIVER NEAR REDSTONE
+08MA006  15   headwater      98   254   167   318    0.0  0.00  0.00    0    0    0    0.0 -    -    -                      LINGFIELD CREEK NEAR THE MOU
+08MB005  15   nested      19276   169   212   232    2.3  0.01  0.01  499   83   61    0.0 -    -    03B 99%, 01A 1%        CHILCOTIN RIVER BELOW BIG CR
+08MB006  15   nested       1019   187   309   559    0.1  0.00  0.00    1    0    0    0.0 -    -    03B 100%               BIG CREEK ABOVE GROUNDHOG CR
+08MB007  15   headwater     195   452   461   804    0.0  0.00  0.00    0    0    0    0.0 -    -    -                      BIG CREEK BELOW GRAVEYARD CR
+08MC045  15   headwater      94    66    74   118    5.3  0.08  0.02   22    8    1    0.0 -    -    03B 98%, 02I31 1%      SHERIDAN CREEK ABOVE MCLEESE
+08ME025  15   headwater     579   236   264   492    0.0  0.00  0.00    3    0    0    0.0 -    -    01A 100%, WSA10 0%     YALAKOM RIVER ABOVE ORE CREE
+08NM174  15   headwater     108   181   167   382    0.0  0.00  0.00    0    0    0    0.0 -    -    -                      WHITEMAN CREEK ABOVE BOULEAU
+08LF081  17   headwater      33    20    33    33    4.8  0.24  0.00    8    0    0    0.0 D    -    03B 97%, 01A01 3%      AMBUSTEN CREEK NEAR THE MOUT
+08LF084  17   headwater      31    88   123   123    0.0  0.00  0.00    0    0    0    0.0 -    -    -                      ANDERSON CREEK ABOVE DIVERSI
+08LG056  17   headwater      76    55    72    72    0.0  0.00  0.00    0    0    0    0.0 -    -    -                      GUICHON CREEK ABOVE TUNKWA L
+08LG066  17   headwater      30    62    97    97    0.0  0.00  0.00    1    0    0    0.0 -    -    02D 100%               CHATAWAY CREEK NEAR THE MOUT
+08NE077  23   headwater     199   602   611   592    0.0  0.00  0.00    4    0    0    0.0 -    -    01A, 05D (none in force) BARNES CREEK NEAR NEEDLES
+08NE110  23   headwater     291   406   534   535    0.0  0.00  0.00    2    0    0    0.0 -    -    01A 100%, WSA07 0%     INONOAKLIN CREEK ABOVE VALLE
+08NM142  23   headwater      63   130   250   248    0.0  0.00  0.00    0    0    0    0.0 -    -    -                      COLDSTREAM CREEK ABOVE MUNIC
+08NN002  23   nested       2061   464   333   406    2.0  0.00  0.00  115    3    0    0.7 -    -    03B 67%, 00A 16%       GRANBY RIVER AT GRAND FORKS
+08NN015  23   headwater     230   474   461   461    0.6  0.00  0.00    5    1    1    0.0 -    -    00B 97%, 02D 3%        WEST KETTLE RIVER NEAR MCCUL
+08NN019  23   headwater     148   304   266   266    2.0  0.01  0.01    5    2    1    0.0 -    -    00A 99%, 02I30 0%      TRAPPING CREEK NEAR THE MOUT
+08NN022  23   nested       1185   262   281   289    5.2  0.02  0.02   52   23    8    0.0 -    -    03A 88%, 00A 11%       WEST KETTLE RIVER BELOW CARM
+08NN028  23   headwater      31   186   316   316    0.0  0.00  0.00    0    0    0    0.0 -    -    -                      LOST HORSE CREEK NEAR CHRIST
+08LG016  24   headwater      85   263   359   359    0.3  0.00  0.02    1    3    1    0.0 -    -    03B 100%               PENNASK CREEK NEAR QUILCHENA
+08LG064  24   headwater      90   166   294   338    0.0  0.00  0.00    0    0    0    0.0 -    -    -                      BEAK CREEK AT THE MOUTH
+08NL036  24   headwater     186   169   414   374    1.7  0.01  0.00   20    2    1    0.0 -    -    03B 95%, 02I31 3%      WHIPSAW CREEK BELOW LAMONT C
+08NL050  24   headwater     395   186   235   235    2.1  0.01  0.06   49   15    1    8.5 -    -    03B 55%, 00A 23%       HEDLEY CREEK NEAR THE MOUTH
+08NM134  24   headwater      36   128   275   275    0.1  0.00  0.03    1    2    1    0.0 -    -    02G 100%               CAMP CREEK AT MOUTH NEAR THI
+08NM171  24   headwater     118   239   293   293    0.0  0.00  0.00    9    0    0    0.0 -    -    WSA07 (none in force)  VASEUX CREEK ABOVE SOLCO CRE
+08NM173  24   headwater      45    50   243   243    0.1  0.00  0.14    2    1    1    0.0 S    -    01A 100%               GREATA CREEK NEAR THE MOUTH
+08NM240  24   nested          5   349   375   375    0.0  0.00  0.00    1    0    0    0.0 -    -    WSA07 (none in force)  TWO FORTY CREEK NEAR PENTICT
+08NM241  24   nested          5   329   375   375    0.0  0.00  0.00    0    0    0    0.0 -    -    -                      TWO FORTY-ONE CREEK NEAR PEN
