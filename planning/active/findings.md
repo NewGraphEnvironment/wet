@@ -97,3 +97,95 @@ Points outside every polygon are counted and dropped.
 - gauges kept per zone;
 - groundwater licences upstream;
 - limits: imports into a basin from another one cannot be seen from PODs; licensed quantities are entitlements, not use.
+
+## Amendment 1 to the rule (2026-10-07, after the blind review in `review-rule.md`, before any licence or dam was joined to a gauge)
+
+**Disclosure (review O2).** The author has no local knowledge of storage or diversions on any named dry-zone creek. What was known is the issue's general claim, that many Okanagan and Thompson plateau creeks carry diversions, plus the per-gauge errors disclosed above. The reviewer saw only the disclosed zone figures and Greata Creek's obs of about 50 mm.
+
+The rule above stands except as changed here.
+
+**Licence accounting** (review B2, G6, G8, S1):
+1. **Replaced licences.** A non-current row is dropped as replaced when a Current row shares its `POD_NUMBER`, `PURPOSE_USE_CODE` and `PRIORITY_DATE`. Replaced rows are counted.
+   - Bounds, reported: Current only (lower), and no replacement removal (upper).
+   - A verdict that differs under either bound is labelled "sensitive to licence history".
+2. **Rediversion.** Rows with `REDIVERSION_IND = Y` are left out (counted).
+3. **M and no-flag groups** are split over the group's distinct located `POD_NUMBER`s, not its rows.
+   - A D or P group whose rows all carry one quantity is treated as M (a repeated total).
+   - **Split-sensitive:** where a group has PODs both upstream and not upstream of a gauge, L is also computed with the group at 0 and at its full quantity. A gauge whose flag differs between the two is listed.
+4. **In-force weight per gauge.** w is computed over the gauge's own complete years in 1981–2010 (`wet_station_select()`'s `years` attribute, the years `obs` is built from): the share of those years with start ≤ year ≤ end.
+   - The 30-year weight is reported for gauges whose flag differs between the two.
+5. **Core consumptive** sensitivity, reported: domestic, irrigation, waterworks and stockwatering purposes only (codes 01A, 01A01, WSA01, 03A, 03B, 00A, 00B, 00C, 02I35, 02I31, WSA08).
+6. **Groundwater.** L_gw is reported also for rows with `HYDRAULIC_CONNECTIVITY` = Likely.
+7. **Status date.** On Current rows, the distribution of status year − priority year is reported (counts only).
+
+**Placement** (review B3):
+8. **Own reach.** A point is in a gauge's own reach when its fundamental watershed has the gauge's exact wscode and localcode, on either bank and in any polygon.
+   - Own-reach points are indexed (`fwa_indexpoint`, 100 m). They are upstream only if `whse_basemapping.fwa_upstream(gauge blue_line_key, gauge measure, gauge wscode, gauge localcode, point blue_line_key, point measure, point wscode, point localcode)` is true, the form `wet_station_snap()` uses.
+   - Own-reach points not indexed within 100 m are kept, and counted.
+   - Points elsewhere are upstream by `fwa_upstream()` on codes, as registered.
+   - **Placement-sensitive:** a gauge whose flag changes when all own-reach points are dropped is listed.
+9. **Dams** are placed at the midpoint of the longest part of the crest line.
+
+**Flags** (review G1):
+10. **The deciding flag is D** (L ≥ 0.10 × obs). S (storage ≥ 10 % of annual runoff volume) is a regulation flag.
+   - The verdict with D-or-S is reported.
+   - Gauges flagged S only are listed as "regulated pattern; annual volume not depleted by the licence data".
+11. **D measures "affected", not "explains"** (review A4). A depletion d is an error of d / (1 − d), so zone 24's 92.8 % needs about 48 % depletion. Only the naturalized test measures "explains".
+
+**Tests and verdict** (review B1, B4, G2, G3, G4, G5, G7). Thresholds are relative to the baseline of the data in hand, so leave-one-out runs use their own baselines. The 10-point Δdry and ΔNdry thresholds stay absolute.
+12. **Drop test (step 1)**, held-out MAE on the D-unflagged gauges:
+   - Δdry = base_dry − MAE(kept dry), and Δ24 likewise.
+   - **Null, obs-matched:** strata are zone × obs half (below or at, or above, the zone's median obs). The same number of gauges is removed per stratum as were flagged in it. 10,000 draws, seed 53.
+     - p_dry and p24 are the shares of draws with Δ ≥ observed, ties included.
+     - The minimum attainable p is 1 / Π C(n_s, k_s) over strata. Where it exceeds 0.05, that p is "uninformative".
+     - The as-registered zone-only null is reported.
+   - **select** = Δdry ≥ 10, Δ24 ≥ 0.5 × base24, p_dry ≤ 0.05 and p24 ≤ 0.05.
+   - **no** = Δdry < 5 and Δ24 < 0.25 × base24.
+   - **too few** = fewer than 3 zone-24 gauges kept (checked first).
+   - **uninformative** = a minimum attainable p above 0.05 where select would otherwise hold.
+   - **inconclusive** = otherwise.
+13. **Naturalized test (step 2):**
+   - No gauge is removed. Each dry gauge is rescored against obs_n = obs + f·L.
+   - ΔN24 = base24 − MAE(obs_n, cv) over every zone-24 gauge. ΔNdry is the same over every dry gauge.
+   - **Null:** L (mm) is permuted among the gauges of each zone, 10,000 draws, seed 53. pN24 and pNdry are the shares with ΔN ≥ observed.
+   - **accounts** = at f = 0.5, ΔN24 ≥ 0.5 × base24, ΔNdry ≥ 10, pN24 ≤ 0.05 and pNdry ≤ 0.05.
+   - **cannot** = ΔN24 < 0.25 × base24 even at f = 1.
+   - **neither** = otherwise.
+14. **Verdict:**
+   - **not gauge side** = step 2 "cannot", whatever step 1 says;
+   - **gauge side** = step 1 "select" or "too few", and step 2 "accounts";
+   - **flags select the bad gauges, but licensed water cannot account for the overshoot: unresolved** = step 1 "select" and step 2 not "accounts";
+   - **inconclusive** = otherwise.
+15. **Stability.** The verdict is recomputed:
+   - with each D-flagged dry gauge unflagged in turn;
+   - with each zone-24 gauge removed from the data in turn.
+
+   If any of these differs, the verdict is "unstable (<verdict>)".
+16. **Capacity (reported, no longer deciding).** Over the flagged zone-24 gauges with cv > obs only: does 0.5 × L without m3/sec licences reach 0.5 × (cv − obs)? Each such gauge is listed. "Cannot account even at full entitlement" is reported where L < 0.5 × (cv − obs).
+
+**Reported, not deciding** (replacing the registered list where they differ):
+17. Verdicts under:
+   - D thresholds of 0.05 and 0.20 (with the 0.10 primary). "Threshold-dependent" if gauge side holds only at 0.10;
+   - D-or-S flags;
+   - core consumptive;
+   - without m3/sec;
+   - the two licence-history bounds;
+   - zone 15 scored on raw error, labelled "depends on the zone-15 fit (not refit)" if it differs.
+18. **Per-zone lines** for every zone and for all 315 gauges:
+   - n, D, S, kept;
+   - held-out and raw MAE, all and kept;
+   - median |%|;
+   - mean signed log error, all and kept.
+19. **Spearman.** L (mm) against cv − obs (mm) over the dry gauges. The registered L/obs against log(cv/obs) is printed with the note that it shares 1/obs on both sides. The proposed partial Spearman is not adopted, because the naturalized test covers it.
+20. **Semi-blind replication** in the 275 non-dry gauges:
+   - the median signed log(cv/obs) of the D-flagged gauges, minus that of their obs-matched unflagged partners (nearest log obs, same zone where one exists, without replacement);
+   - "not replicated outside the dry zones" if ≥ 10 are flagged and the difference is ≤ 0.
+
+**Ordering (review O1).**
+- The script runs once after this amendment is committed.
+- Any later change to accounting, placement, purpose classes or tests is a deviation. Each is reported with the as-amended verdict beside it.
+- No licence is reclassified because of what the per-gauge listing shows.
+
+**Not adopted:**
+- The 500 m point counts (review A3), since placement-sensitivity covers the consequence.
+- Per-fold pooling status (G5), since the CV object does not store it; the raw-error scoring of zone 15 covers it.
