@@ -39,6 +39,10 @@ Relates to #36
 
 | Error | Resolution |
 |-------|------------|
+| Validation stopped at the 2 h background limit with no output | Each held-out job re-filtered and de-duplicated the 2.6M-row air table (17 s of an 18 s prepare). Air is split per station in `wet_fill_prepare()` and each job gets its own station's rows: 1.3 s; the run takes 12 min |
+| `cd_extract_daily()`: "Outside the daily cube's extent (BC, 48-60 N, …)" for 10DA001 at 59.989 N | The cube stops short of the 60 N its message names; the scripts drop the stations cd names and retry |
+| Smoother NaN at 08LG048 | A constant 4.0 °C record fits σ ≈ 1e-216; ρ capped at 0.999 and σ floored at 0.01 °C, in the fit as reported and in the run |
+| Truth GSDD NA at 403 of 897 station-years in the first run | The script called `gsdd_vctr()` with its default `complete = FALSE`; `gsdd::gsdd()` (and so `wet_temp_gsdd()`) passes `complete = TRUE`. The script now computes GSDD with `wet_temp_gsdd()` itself (code-check round 5) |
 
 ## Real-data spike, 08E (Skeena), 2026-10-07
 

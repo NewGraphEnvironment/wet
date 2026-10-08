@@ -45,6 +45,14 @@
 #' work: fitted as one recursion by its one-step likelihood, air2stream takes
 #' too much persistence and drifts over a season (`research/station_temperature_fill.md`).
 #'
+#' @section Skill:
+#' Held out at 999 station-years of ECCC gauges (`research/station_temperature_fill.md`),
+#' mean daily error was 0.48 °C on 7-day gaps, 0.76 °C on 30-day gaps and 0.84 °C
+#' on a seasonal logger's missing spring and autumn, against 1.31, 1.43 and 1.14 °C
+#' for open-loop air2stream. Over a whole missing season the daily error was
+#' 1.12 against 1.29 °C, but GSDD was no better (mean absolute error 130 against
+#' 129 °C-days). The interval covered 89-94 % of held-out days at a nominal 95 %.
+#'
 #' @section Air temperature and days:
 #' `air` is the output of `cd::cd_extract_daily()`, which samples ERA5-Land on
 #' local days at a fixed UTC−8. [wet_temp_daily()] uses each station's own
@@ -160,7 +168,6 @@ wet_temp_fill <- function(temp, air, pool = NULL, from = NULL, to = NULL, min_da
 
   out <- list()
   fits <- list()
-  z_level <- stats::qnorm(1 - (1 - level) / 2)
   for (s in prep$stations) {
     obs <- wet_fill_observed(temp[temp$station_number == s, ])
     if (!s %in% prep$fit_st) {
@@ -170,13 +177,12 @@ wet_temp_fill <- function(temp, air, pool = NULL, from = NULL, to = NULL, min_da
     st <- wet_fill_station(prep, s, r2)
     fits[[s]] <- st$fit
     gap <- is.na(st$y) & st$fill
-    est <- st$s_open[gap] + st$mean[gap]
-    half <- z_level * sqrt(st$var[gap])
+    v <- wet_fill_values(st, level)
     filled <- data.frame(station_number = rep(s, sum(gap)), date = st$date[gap],
-                         t_mean_c = pmax(est, 0))
+                         t_mean_c = v$t_mean_c[gap])
     fl <- wet_fill_rows(obs[0, ], filled)
-    fl$t_lo_c <- pmax(est - half, 0)
-    fl$t_hi_c <- pmax(est + half, 0)
+    fl$t_lo_c <- v$t_lo_c[gap]
+    fl$t_hi_c <- v$t_hi_c[gap]
     o <- rbind(obs, fl)
     out[[s]] <- o[order(o$date), ]
   }
@@ -224,19 +230,20 @@ wet_fill_clean <- function(temp) {
 # open-loop fit, its departure, the first (b = 0) fit and its one-step errors.
 # `temp` is clean (wet_fill_clean()); `pool` is NULL or covers its stations.
 wet_fill_prepare <- function(temp, air, pool, from, to, min_days, r2) {
-  air <- air[air$variable %in% "tmean" & !is.na(air$value) & !is.na(air$date) & !is.na(air$id), ]
+  stations <- unique(temp$station_number)
+  air <- air[air$id %in% stations & air$variable %in% "tmean" & !is.na(air$value) & !is.na(air$date), ]
   air$id <- as.character(air$id)
-  if (anyDuplicated(air[c("id", "date")])) {
+  air <- split(air[c("date", "value")], factor(air$id, levels = stations))
+  if (any(vapply(air, function(a) anyDuplicated(a$date) > 0, logical(1)))) {
     stop("`air` has more than one tmean row for a station-day", call. = FALSE)
   }
-  stations <- unique(temp$station_number)
   group <- if (is.null(pool)) stats::setNames(rep("all", length(stations)), stations) else pool[stations]
   air_gap <- character()
   # Each station on a full calendar over its record and its fill range,
   # clipped to the air. `fill` marks the days the caller asked to fill.
   series <- lapply(stations, function(s) {
     ts <- temp[temp$station_number == s, ]
-    as_ <- air[air$id == s, ]
+    as_ <- air[[s]]
     if (nrow(as_) < 2) return(NULL)
     f_lo <- if (is.null(from)) min(ts$date) else from
     f_hi <- if (is.null(to)) max(ts$date) else to
@@ -307,6 +314,15 @@ wet_fill_station <- function(prep, s, r2, peers = TRUE) {
        fmean = sm$fmean, par = f$par, fit = fit)
 }
 
+# The fill and its interval on every day of a fitted station's calendar:
+# open-loop plus smoothed departure, floored at 0 for ice.
+wet_fill_values <- function(st, level) {
+  est <- st$s_open + st$mean
+  half <- stats::qnorm(1 - (1 - level) / 2) * sqrt(st$var)
+  data.frame(date = st$date, t_mean_c = pmax(est, 0), t_lo_c = pmax(est - half, 0),
+             t_hi_c = pmax(est + half, 0))
+}
+
 # A prepared pool with station s's entries taken from `one`, a preparation of
 # s alone (for held-out scoring: peers' entries depend only on their own data).
 wet_fill_swap <- function(prep, one, s) {
@@ -346,7 +362,12 @@ wet_a2s_run <- function(a1, a2, a3, a) {
   s <- numeric(n)
   s[1] <- max((a1 + a2 * a[1]) / a3, 0)
   if (n > 1) {
-    for (t in 2:n) s[t] <- max((1 - a3) * s[t - 1] + a1 + a2 * a[t], 0)
+    phi <- 1 - a3
+    u <- a1 + a2 * a
+    for (t in 2:n) {
+      v <- phi * s[t - 1] + u[t]
+      s[t] <- if (v > 0) v else 0
+    }
   }
   s
 }
@@ -374,10 +395,13 @@ wet_a2s_fit <- function(y, a) {
 wet_kf_fit <- function(r, ebar, r2, start = NULL) {
   has_b <- !is.null(ebar)
   if (is.null(start)) start <- c(rho = 0.8, b = 0, sigma = 0.3)
-  th <- c(stats::qlogis(start[["rho"]]), log(start[["sigma"]]))
+  # start inside the region the run allows, whatever an earlier fit reached
+  th <- c(stats::qlogis(min(max(start[["rho"]], 0.01), 0.99)), log(max(start[["sigma"]], 0.01)))
   if (has_b) th <- c(th, start[["b"]])
+  # the caps wet_kf_run() applies, so the reported fit is the one used
   par_of <- function(th) {
-    c(rho = stats::plogis(th[1]), b = if (has_b) th[3] else 0, sigma = exp(th[2]))
+    c(rho = min(stats::plogis(th[1]), 0.999), b = if (has_b) th[3] else 0,
+      sigma = max(exp(th[2]), 0.01))
   }
   nll <- function(th) {
     if (!all(is.finite(th))) return(1e10)
@@ -391,8 +415,10 @@ wet_kf_fit <- function(r, ebar, r2, start = NULL) {
 # Kalman filter (and RTS smoother) for one station's AR(1) departure.
 wet_kf_run <- function(par, r, ebar, r2, smooth = FALSE) {
   n <- length(r)
-  rho <- par[["rho"]]
-  q <- par[["sigma"]]^2
+  # a stuck sensor fits sigma to 0 and rho can round to 1; either makes the
+  # smoother divide 0 by 0 (wet_kf_fit() reports the same caps)
+  rho <- min(par[["rho"]], 0.999)
+  q <- max(par[["sigma"]], 0.01)^2
   u <- if (is.null(ebar)) rep(0, n) else par[["b"]] * ebar
   # start from the stationary distribution
   m <- 0

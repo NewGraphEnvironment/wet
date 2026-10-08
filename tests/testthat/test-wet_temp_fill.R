@@ -115,15 +115,15 @@ test_that("a long hole in the air leaves the station unfilled, wherever it lies"
     s$air[!(s$air$id == "08AA001" & s$air$date >= as.Date(lo) & s$air$date <= as.Date(hi)), ]
   }
   one <- s$temp$station_number == "08AA001"
-  cases <- list(
-    inside = list(s$temp[!gap, ], cut_air("2019-05-15", "2019-09-15")),
-    # the record starts, or ends, inside the hole
-    start = list(s$temp[!gap & (!one | s$temp$date >= as.Date("2018-05-01")), ],
-                 cut_air("2018-03-01", "2018-05-31")),
-    end = list(s$temp[!gap & (!one | s$temp$date <= as.Date("2020-08-01")), ],
-               cut_air("2020-07-01", "2020-09-30")),
-    # the whole record inside the hole
-    around = list(s$temp[!one | format(s$temp$date, "%Y") == "2019", ], cut_air("2019-01-01", "2019-12-31")))
+  start <- s$temp[!gap & (!one | s$temp$date >= as.Date("2018-05-01")), ]
+  end <- s$temp[!gap & (!one | s$temp$date <= as.Date("2020-08-01")), ]
+  around <- s$temp[!one | format(s$temp$date, "%Y") == "2019", ]
+  cases <- list(inside = list(s$temp[!gap, ], cut_air("2019-05-15", "2019-09-15")),
+                # the record starts, or ends, inside the hole
+                start = list(start, cut_air("2018-03-01", "2018-05-31")),
+                end = list(end, cut_air("2020-07-01", "2020-09-30")),
+                # the whole record inside the hole
+                around = list(around, cut_air("2019-01-01", "2019-12-31")))
   for (k in names(cases)) {
     expect_warning(f <- wet_temp_fill(cases[[k]][[1]], cases[[k]][[2]], min_days = 100),
                    "gap of more than 3 days.*08AA001", info = k)
@@ -134,6 +134,18 @@ test_that("a long hole in the air leaves the station unfilled, wherever it lies"
   later <- s$temp[!one | s$temp$date >= as.Date("2019-01-01"), ]
   expect_no_warning(f <- wet_temp_fill(later, cut_air("2018-03-01", "2018-05-31")))
   expect_true("08AA001" %in% attr(f, "fit")$station_number)
+})
+
+test_that("a station that reads a constant value fills without NaN", {
+  s <- sim_temp_fill(sim_pars(b = c(1, 1)))
+  one <- s$temp$station_number == "08AA001"
+  s$temp$t_mean_c[one] <- 4
+  gap <- hide(s$temp, "08AA001", "2019-07-10", "2019-07-16")
+  f <- wet_temp_fill(s$temp[!gap, ], s$air)
+  fl <- f[f$filled, ]
+  expect_equal(nrow(fl), 7)
+  expect_false(anyNA(c(fl$t_mean_c, fl$t_lo_c, fl$t_hi_c)))
+  expect_equal(fl$t_mean_c, rep(4, 7), tolerance = 0.01)
 })
 
 test_that("the fill is floored at 0 degC", {

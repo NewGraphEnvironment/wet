@@ -105,6 +105,16 @@ work: fitted as one recursion by its one-step likelihood, air2stream takes
 too much persistence and drifts over a season (\code{research/station_temperature_fill.md}).
 }
 
+\section{Skill}{
+
+Held out at 999 station-years of ECCC gauges (\code{research/station_temperature_fill.md}),
+mean daily error was 0.48 °C on 7-day gaps, 0.76 °C on 30-day gaps and 0.84 °C
+on a seasonal logger's missing spring and autumn, against 1.31, 1.43 and 1.14 °C
+for open-loop air2stream. Over a whole missing season the daily error was
+1.12 against 1.29 °C, but GSDD was no better (mean absolute error 130 against
+129 °C-days). The interval covered 89-94 \% of held-out days at a nominal 95 \%.
+}
+
 \section{Air temperature and days}{
 
 \code{air} is the output of \code{cd::cd_extract_daily()}, which samples ERA5-Land on

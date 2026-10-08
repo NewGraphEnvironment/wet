@@ -1,0 +1,94 @@
+wet_temp_fill() held-out validation (#40), 2026-10-07
+wet 0.2.5, gsdd 0.3.0.9007, cd 0.6.1
+water 2002-04-30 .. 2025-12-31, 301 stations; truth station-years 999 at 257 stations
+jobs 3996, scored 3763, errors 0, 16.0 min
+
+## By shape and method (daily RMSE and bias in degC, GSDD in degC-days)
+     shape  method   n rmse_mean rmse_median     bias gsdd_mae gsdd_bias gsdd_na cover
+    season    open 897     1.290       1.225 -0.05796   128.74   -12.037       0    NA
+    season forward 897     1.298       1.226 -0.02406   135.88    -4.337       0    NA
+    season  smooth 897     1.287       1.220 -0.01912   137.54    -4.785       0    NA
+    season    full 897     1.122       1.019 -0.00672   130.43    -3.392       0 0.930
+ shoulders    open 912     1.136       1.059  0.07788    82.49    15.045       0    NA
+ shoulders forward 912     1.110       1.047  0.08286    80.29    13.224       0    NA
+ shoulders  smooth 912     0.995       0.925  0.05090    68.95     2.542       0    NA
+ shoulders    full 912     0.837       0.762  0.02889    63.80    -0.820       0 0.944
+     gap30    open 977     1.430       1.273 -0.63204    32.77   -18.987       0    NA
+     gap30 forward 977     1.085       0.972 -0.31957    20.61    -9.609       0    NA
+     gap30  smooth 977     0.900       0.831 -0.04290    15.04    -1.299       0    NA
+     gap30    full 977     0.761       0.676 -0.00814    12.76    -0.248       0 0.911
+     gap30  linear 977     1.185       1.070  0.14064    20.89     4.313       0    NA
+      gap7    open 977     1.308       1.099 -0.57187     8.18    -4.003       0    NA
+      gap7 forward 977     0.716       0.587 -0.09625     3.59    -0.674       0    NA
+      gap7  smooth 977     0.546       0.456  0.01858     2.39     0.130       0    NA
+      gap7    full 977     0.484       0.401  0.00836     2.18     0.059       0 0.890
+      gap7  linear 977     0.644       0.557  0.06549     2.87     0.458       0    NA
+
+## Paired full vs open, by station-year
+     shape   n median_diff share_full_better n_gsdd gsdd_mae_full gsdd_mae_open gsdd_share_full_better
+    season 897      -0.165             0.828    897        130.43        128.74                  0.537
+ shoulders 912      -0.254             0.887    912         63.80         82.49                  0.603
+     gap30 977      -0.525             0.874    977         12.77         32.77                  0.805
+      gap7 977      -0.638             0.878    977          2.18          8.18                  0.851
+
+Rule (season: median paired RMSE difference < 0, full better in >= 60 %, GSDD MAE lower): FAIL
+
+## By whether a peer shares the sub-sub-drainage (a proxy for one on the same stem)
+     shape method sub_sub_peer   n rmse_mean
+     gap30   full        FALSE 224     0.791
+     gap30   open        FALSE 224     1.347
+     gap30   full         TRUE 753     0.752
+     gap30   open         TRUE 753     1.455
+      gap7   full        FALSE 224     0.515
+      gap7   open        FALSE 224     1.175
+      gap7   full         TRUE 753     0.475
+      gap7   open         TRUE 753     1.347
+    season   full        FALSE 221     1.166
+    season   open        FALSE 221     1.275
+    season   full         TRUE 676     1.108
+    season   open         TRUE 676     1.295
+ shoulders   full        FALSE 222     0.884
+ shoulders   open        FALSE 222     1.147
+ shoulders   full         TRUE 690     0.822
+ shoulders   open         TRUE 690     1.133
+
+## Mean bias by month, season holdout (degC)
+        03   04   05    06    07    08   09   10    11
+open -0.03 0.01 0.21 -0.12 -0.59 -0.34 0.08 0.29 -0.02
+full  0.06 0.05 0.04 -0.07 -0.20 -0.09 0.03 0.11  0.03
+
+## Season holdout by WSC sub-drainage
+ pool method   n rmse_mean gsdd_mae b_median
+  07E   full  61     1.231    159.1    0.908
+  07E   open  61     1.405    116.8    0.908
+  07F   full  33     1.296    203.5    0.442
+  07F   open  33     1.313    147.5    0.442
+  08C   full  13     1.024     96.8    0.347
+  08C   open  13     1.223    136.1    0.347
+  08D   full  12     0.838     98.1    0.216
+  08D   open  12     1.015    111.8    0.216
+  08E   full  73     1.030    112.3    0.579
+  08E   open  73     1.284    121.0    0.579
+  08F   full  58     1.175    158.0    0.797
+  08F   open  58     1.195    131.6    0.797
+  08G   full  55     1.284    204.1    0.599
+  08G   open  55     1.230    163.0    0.599
+  08H   full 138     0.858     93.7    0.879
+  08H   open 138     1.061    112.3    0.879
+  08J   full  60     1.059     96.5    0.635
+  08J   open  60     1.323    106.0    0.635
+  08K   full  42     1.148    115.8    0.446
+  08K   open  42     1.368    151.1    0.446
+  08L   full 108     1.227    158.7    0.819
+  08L   open 108     1.484    148.4    0.819
+  08M   full  73     1.147    110.8    0.670
+  08M   open  73     1.278    117.8    0.670
+  08N   full 136     1.226    125.9    0.646
+  08N   open 136     1.415    134.0    0.646
+  08O   full  19     1.073    122.9    0.311
+  08O   open  19     1.168    139.7    0.311
+  09A   full   9     1.172     86.3    0.000
+  09A   open   9     1.160     82.4    0.000
+  10A   full   7     1.030     72.4    0.000
+  10A   open   7     1.031     72.4    0.000
+

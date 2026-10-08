@@ -52,27 +52,27 @@ Decisions taken at the gate (user): **Kalman smoother** as the gap engine, and t
 - [x] `R/wet_temp_gsdd.R` with a runnable example. Tests green; `/code-check`; commit
 
 ## Phase 4: Validation, `scripts/temp_fill_validate.R`
-- [ ] Truth set: station-years whose Mar 1 – Nov 30 is fully observed, with gaps of ≤ 2 days interpolated for the truth GSDD only
-- [ ] Holdouts, each with the station refitted without the held days and its peers left in (pool = WSC sub-drainage, the first 3 characters of the station number):
+- [x] Truth set: station-years whose Mar 1 – Nov 30 is fully observed, with gaps of ≤ 2 days interpolated for the truth GSDD only
+- [x] Holdouts, each with the station refitted without the held days and its peers left in (pool = WSC sub-drainage, the first 3 characters of the station number):
   - (a) the whole Mar–Nov season
   - (b) a 30-day mid-summer gap, Jul 1–30
-- [ ] Methods scored: the full fill; the smoother with b = 0; and open-loop air2stream (parameters fitted by open-loop RMSE, run on air alone), the issue's baseline
-- [ ] Report `data/checks/temp_fill_validate.txt`: daily RMSE (°C) and GSDD error (median, MAE, bias) per method and holdout, and station counts. Parallel on socket workers (`parLapply`, not `mclapply`). Commit the script and report
+- [x] Methods scored: the full fill; the smoother with b = 0; and open-loop air2stream (parameters fitted by open-loop RMSE, run on air alone), the issue's baseline
+- [x] Report `data/checks/temp_fill_validate.txt`: daily RMSE (°C) and GSDD error (median, MAE, bias) per method and holdout, and station counts. Parallel on socket workers (`parLapply`, not `mclapply`). Commit the script and report
 
 ## Phase 5: Skeena parity, `scripts/temp_fill_parity.R`
-- [ ] The 17 memo stations, 2015–2024. Water from `wet_temp_daily()`, air from `cd_extract_daily()` at the `tidyhydat::allstations` coordinates
-- [ ] Memo Tables 7 and 8 transcribed into the script, with URL and access date
-- [ ] Attribution in steps:
+- [x] The 17 memo stations, 2015–2024. Water from `wet_temp_daily()`, air from `cd_extract_daily()` at the `tidyhydat::allstations` coordinates
+- [x] Memo Tables 7 and 8 transcribed into the script, with URL and access date
+- [x] Attribution in steps:
   - our daily GSDD
   - our fill, held at its weekly mean, through `gsdd_vctr(complete = TRUE)`: their GSDD rule applied to our fill
   - theirs
 
   The difference between the first two is the daily-vs-weekly step. The difference between the last two is the model: a per-station fit that uses observations, against a weekly Stan network with an open-loop fill. Each is attributed ours / theirs / unresolved.
-- [ ] Report `data/checks/temp_fill_skeena_parity.txt`; commit
+- [x] Report `data/checks/temp_fill_skeena_parity.txt`; commit
 
 ## Phase 6: Documentation and close-out
-- [ ] `research/station_temperature_fill.md` (method, validation and parity numbers, limits), with a row in `research/README.md`. Update the "Not yet done" list in `station_water_temperature.md`
-- [ ] CLAUDE.md architecture: a line on the fill → GSDD path; NEWS.md entry
+- [x] `research/station_temperature_fill.md` (method, validation and parity numbers, limits), with a row in `research/README.md`. Update the "Not yet done" list in `station_water_temperature.md`
+- [x] CLAUDE.md architecture: a line on the fill → GSDD path; NEWS.md entry (NEWS is written by `/gh-pr-merge` at release, as for every release since v0.2.2)
 - [ ] Edit the #40 body: cd#116 is done, season holdout replaces `wet_cv_folds()`, Kalman smoother engine, outcomes
 - [ ] `pkgdown::check_pkgdown()`, `devtools::check()`
 
