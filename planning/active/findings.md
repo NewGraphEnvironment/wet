@@ -37,6 +37,23 @@ Blocked by NewGraphEnvironment/fwapg#6. Relates to #57, #5, #42.
 - `tests/testthat/test-vignette_data.R` pins the shape of `segment_values.rds` and `segment_map.rds`, including `fwapg_*` provenance and the coverage outline's `cov_share`.
 - Gate decisions: rebuild the routed table at a pinned sha from a clean worktree; routed replaces fwapg in every comparison in the vignette, while "How it is built" keeps the annual-table parity.
 
+## Phase 1: the script against #57 (2026-10-09)
+
+`WET_FWAPG_COMMIT=4929c8c Rscript scripts/pcic_routed_compare.R` (4929c8c is a guess at the pre-rebuild table's build; report not committed), at wet 4c32936, table 40,524,612 rows / 3,377,051 segments / total 178,169,881.212 m3/s:
+
+| at the 290 gauges | #57 routed | script routed | #57 balance | script balance |
+|---|---|---|---|---|
+| MAE | 24.4 | 24.1 | 27.6 | 27.6 |
+| median AE | 13.2 | 13.0 | 18.0 | 18.0 |
+| within ±20 % | 62 | 62 | 54 | 54 |
+| bias | −0.1 | +0.2 | +9.0 | +9.0 |
+| headwater / nested | 28.8 / 11.3 | 28.3 / 11.3 | 31.0 / 17.2 | 31.0 / 17.2 |
+| routed closer | 58 % | 59 % | | |
+
+- The balance side reproduces exactly, and so do coverage (290 of 315) and the uncovered sub-drainages (10A–10C, 08M, 08N, 09A).
+- The routed side is within 0.3 points. Weighting the months by their length does not explain the gap: weighted MAE is 24.08 and bias +0.5. #57 does not record which build of the table it read, and the table was rebuilt several times on 2026-10-08 (build13 11:40, build14 11:47 PDT). Attribution: unresolved. Most likely an earlier build, not the definitions.
+- The report is named `pcic_routed_compare_<release>.txt` through `wb_report()`, as every report scored against a fit since #43 is, not the issue's `pcic_routed_compare.txt`.
+
 ## Errors Encountered
 
 | Error | Resolution |

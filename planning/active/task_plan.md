@@ -19,18 +19,18 @@ Decided at the gate:
 - **Routed replaces fwapg in every comparison** in the vignette. "How it is built" keeps wet's rebuild of fwapg's annual table, because that section is about wet's own code.
 
 ## Phase 1: Comparison script, checked against #57
-- [ ] `scripts/pcic_routed_lib.R`, sourced by both the script and data-raw:
+- [x] `scripts/pcic_routed_lib.R`, sourced by both the script and data-raw:
   - routed mean annual flow at given `linear_feature_id`s, as the mean of the 12 monthly means;
   - flow → mm over wet's accumulated upstream area;
   - a table fingerprint: rows, segments, sum of `q_m3s`.
-- [ ] `scripts/pcic_routed_compare.R`:
+- [x] `scripts/pcic_routed_compare.R`:
   - Sources `scripts/wb_cv_lib.R`. Takes held-out balance error from the shipped fit, with the same guards as data-raw: shipped release, `score_code_md5`, and `keep_adjust` → `cv_v`, else `raw_v`.
   - Requires `WET_FWAPG_COMMIT`. Refuses uncommitted `R/` and `scripts/`.
   - Header: date, wet commit, fwapg commit, table fingerprint, fit release, HYDAT release.
   - At covered gauges, routed against the balance: mean, median, within ±20 %, bias, headwater / nested, share where routed is closer, and by basin.
   - Uncovered gauges listed by sub-drainage (first 3 characters).
   - Caveats: PCIC is partly in-sample; 1951–2012 against 1981–2010; an unweighted mean of monthly means.
-- [ ] Run it against the current table, without committing the report. It should reproduce #57's numbers, which validates the definitions. Record the result in findings.md.
+- [x] Run it against the current table, without committing the report. It should reproduce #57's numbers, which validates the definitions. Record the result in findings.md.
 
 ## Phase 2: Routed table at a pinned sha, and the report
 - [ ] Before writing to fresh-db, check `pg_stat_activity` and the fwapg session's state. Nothing else may be writing `fwapg.pcic_*`, `blk_paths` or the routed table.
