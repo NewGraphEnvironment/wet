@@ -54,6 +54,13 @@ Blocked by NewGraphEnvironment/fwapg#6. Relates to #57, #5, #42.
 - The routed side is within 0.3 points. Weighting the months by their length does not explain the gap: weighted MAE is 24.08 and bias +0.5. #57 does not record which build of the table it read, and the table was rebuilt several times on 2026-10-08 (build13 11:40, build14 11:47 PDT). Attribution: unresolved. Most likely an earlier build, not the definitions.
 - The report is named `pcic_routed_compare_<release>.txt` through `wb_report()`, as every report scored against a fit since #43 is, not the issue's `pcic_routed_compare.txt`.
 
+## Coordinating the rebuild with the fwapg#2 session (2026-10-09)
+
+- fwapg-56 (the fwapg#2 session) asked me to wait until its PCIC rerun finishes and it has compared the result against its snapshot (`fwapg.snap_crosswalk`, `fwapg.snap_monthly`). After that the rebuild can go ahead without waiting for the merge.
+- Tables that are its and must not be touched: `fwapg.blk_parents`, `fwapg.blk_paths`, `fwapg.mainflow_tree_*`, `whse_basemapping.fwa_stream_networks_mainflow_tree`, `fwapg.snap_*`. A run at 218a47f uses `fwapg.pcic_blk_parents` and `fwapg.pcic_blk_paths` and the other `pcic_*` staging tables, and drops them. Those do not collide.
+- It reports that its branch's parents and paths are identical to 218a47f's (1,570,499 lines, 0 differences).
+- Timing: the 01_paths step at 218a47f took about 35 minutes on m1.
+
 ## Errors Encountered
 
 | Error | Resolution |
