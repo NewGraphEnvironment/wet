@@ -72,7 +72,7 @@ Decided at the gate:
 - [ ] Render the vignette. Self-review the maps and figures at their published width (CLAUDE.md cartography checks 1–12).
 
 ## Phase 6: Docs and issues
-- [ ] CLAUDE.md Architecture: add `scripts/pcic_routed_compare.R` and its report. Update the vignette paragraph, which still says it compares "the open water balance and fwapg (PCIC)".
+- [x] CLAUDE.md Architecture: add `scripts/pcic_routed_compare.R` and its report. Update the vignette paragraph, which still says it compares "the open water balance and fwapg (PCIC)".
 - [ ] Edit #57's body: point it at the research section in place of its numbers table.
 - [ ] Remove the fwapg worktree.
 
