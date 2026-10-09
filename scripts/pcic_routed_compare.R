@@ -48,12 +48,18 @@ conn <- DBI::dbConnect(RPostgres::Postgres(),
                        password = Sys.getenv("WET_PGPASSWORD", "postgres"))
 fp <- routed_fingerprint(conn)
 ra <- routed_annual(conn, g$linear_feature_id)
+edge <- DBI::dbGetQuery(conn, sprintf("
+  SELECT linear_feature_id::int AS linear_feature_id, edge_type FROM whse_basemapping.fwa_stream_networks_sp
+  WHERE linear_feature_id IN (%s)", paste(g$linear_feature_id, collapse = ", ")))
 DBI::dbDisconnect(conn)
 g$routed_m3s <- ra$q_m3s[match(g$linear_feature_id, ra$linear_feature_id)]
 g$routed_mm <- routed_mm(g$routed_m3s, g$upstream_area_m2)
 g$routed_err <- 100 * (g$routed_mm / g$obs - 1)
 g$basin <- routed_basin(g$station_number)
+g$edge_type <- edge$edge_type[match(g$linear_feature_id, edge$linear_feature_id)]
 cov <- g[!is.na(g$routed_mm), ]
+low <- cov[cov$routed_mm < routed_far_low * cov$obs, ]
+low <- low[order(low$routed_err), ]
 unc <- g[is.na(g$routed_mm), ]
 stopifnot(nrow(cov) > 0, all(cov$routed_mm >= 0))
 
@@ -74,7 +80,7 @@ lines <- c(
           wet_commit, release, hydat_release, basename(key_dir), score_code_md5,
           if (ho$fits$keep_adjust) "adjusted" else "raw P - AET"),
   sprintf("routed: %s, built by NewGraphEnvironment/fwapg at %s", routed_table, fwapg_commit),
-  sprintf("table: %s", fmt_fingerprint(fp)),
+  sprintf("table: %s", fp),
   "routed per gauge: the mean of the 12 monthly means (1951-2012, unweighted by month length) on the segment",
   "the gauge snapped to, in mm over wet's accumulated upstream area; observed runoff over the same area",
   "",
@@ -92,6 +98,19 @@ lines <- c(
   score_line("1,000-10,000 km2", cov$area_km2 >= 1000 & cov$area_km2 < 10000),
   score_line(">= 10,000 km2", cov$area_km2 >= 10000),
   vapply(basins, function(b) score_line(b, cov$basin == b), ""),
+  "",
+  sprintf("## The %d gauges whose segment carries less than %.0f %% of observed flow", nrow(low), 100 * routed_far_low),
+  "A side channel carries only its own water, a reservoir lake its regulated outflow; neither is PCIC's model error.",
+  "station   edge_type      km2    obs  routed  r_err  name",
+  if (nrow(low)) sprintf("%-9s %9d %8.0f %6.0f %7.0f %+6.1f  %s", low$station_number, low$edge_type, low$area_km2,
+                         low$obs, low$routed_mm, low$routed_err, substr(low$station_name, 1, 34)) else "  none",
+  {
+    k <- !cov$station_number %in% low$station_number
+    r <- routed_scores(cov$routed_err[k], err_cut)
+    w <- routed_scores(cov$err_pct[k], err_cut)
+    sprintf("without them (%d gauges): mean absolute error %.1f %% routed, %.1f %% balance; bias %+.1f %% and %+.1f %%",
+            sum(k), r[["mae"]], w[["mae"]], r[["bias"]], w[["bias"]])
+  },
   "",
   sprintf("## The %d gauges without routed flow, by sub-drainage", nrow(unc)),
   vapply(names(unc_by), function(p) sprintf("%s %2d  %s", p, length(unc_by[[p]]), paste(unc_by[[p]], collapse = " ")),

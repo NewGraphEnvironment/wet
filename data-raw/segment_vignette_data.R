@@ -54,6 +54,26 @@ if (length(dirty)) stop("commit these first, so the recorded commit can rebuild 
 wet_commit <- git("rev-parse", "--short", "HEAD")
 stopifnot(length(wet_commit) == 1, nzchar(wet_commit))
 
+# the routed table must be the one the tracked report scored, built at the
+# commit it names: checked before the minutes-long parity run below
+source("scripts/wb_fit_lib.R")
+source("scripts/pcic_routed_lib.R")
+fwapg_commit <- routed_commit()
+f_routed <- wb_report("pcic_routed_compare", wb_release())
+rr <- readLines(f_routed)
+conn <- DBI::dbConnect(RPostgres::Postgres(),
+                       host = Sys.getenv("WET_PGHOST", "localhost"),
+                       port = as.integer(Sys.getenv("WET_PGPORT", "5432")),
+                       dbname = Sys.getenv("WET_PGDATABASE", "fwapg"),
+                       user = Sys.getenv("WET_PGUSER", "postgres"),
+                       password = Sys.getenv("WET_PGPASSWORD", "postgres"))
+routed_fp <- routed_fingerprint(conn)
+DBI::dbDisconnect(conn)
+if (!any(rr == sprintf("routed: %s, built by NewGraphEnvironment/fwapg at %s", routed_table, fwapg_commit)) ||
+    !any(rr == sprintf("table: %s", routed_fp))) {
+  stop(f_routed, " was not made from this routed table at fwapg ", fwapg_commit, ": rerun scripts/pcic_routed_compare.R")
+}
+
 # PCIC through wet on SALR, from this commit's code: the old outputs go first,
 # so a failed run cannot leave an earlier one to be read
 f_par <- file.path("data", "parity", "SALR_parity.csv")
@@ -64,8 +84,6 @@ rc <- system2("Rscript", c("scripts/mad_parity.R", "SALR"), stdout = f_log, stde
 if (rc != 0 || !all(file.exists(c(f_par, f_area)))) stop("scripts/mad_parity.R SALR failed: see ", f_log)
 
 source("scripts/wb_cv_lib.R")  # load_all(), key_dir, cal, groups, score_code_md5
-source("scripts/pcic_routed_lib.R")
-fwapg_commit <- routed_commit()
 
 min_order <- 3
 wsg <- c("SALR", "BULK")
@@ -129,7 +147,8 @@ routed_large <- DBI::dbGetQuery(conn, sprintf("
   LEFT JOIN (SELECT linear_feature_id FROM %s WHERE month = 1) r USING (linear_feature_id)
   WHERE s.watershed_group_code IN (%s) AND s.stream_order >= 8", routed_table, in_groups))
 stopifnot(routed_large$segments > 0)
-routed_fp <- routed_fingerprint(conn)
+# the table must not have changed since the check above
+stopifnot(identical(routed_fingerprint(conn), routed_fp))
 # fwapg's annual table on the two groups: the parity rebuild's segments
 n_fwapg <- DBI::dbGetQuery(conn, sprintf("
   SELECT s.watershed_group_code, count(d.linear_feature_id)::int AS n
@@ -189,10 +208,7 @@ n_fwapg <- stats::setNames(n_fwapg$n, n_fwapg$watershed_group_code)
 
 # ---- the tracked report is the published record ------------------------------------------------
 # the gauges' routed scores must be its rows, from the same table and commit
-f_routed <- wb_report("pcic_routed_compare", release)
-rr <- readLines(f_routed)
-stopifnot(any(rr == sprintf("routed: %s, built by NewGraphEnvironment/fwapg at %s", routed_table, fwapg_commit)),
-          any(rr == sprintf("table: %s", fmt_fingerprint(routed_fp))))
+stopifnot(identical(f_routed, wb_report("pcic_routed_compare", release)))
 rr_all <- strsplit(trimws(grep("^all +", rr, value = TRUE)[1]), " +")[[1]]
 both <- sk[!is.na(sk$routed_mm), ]
 r_sc <- routed_scores(100 * (both$routed_mm / both$obs - 1))
@@ -272,7 +288,7 @@ provenance <- list(
   fwapg_discharge_rows = n_fwapg,
   # routed flow (fwapg#6): the commit that built the table and its fingerprint
   routed_commit = fwapg_commit,
-  routed_fingerprint = fmt_fingerprint(routed_fp),
+  routed_fingerprint = routed_fp,
   routed_report = f_routed,
   routed_groups = length(routed_groups),
   routed_cov_share = cov_share,

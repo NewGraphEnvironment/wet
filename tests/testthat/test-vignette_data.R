@@ -103,6 +103,7 @@ test_that("the segment map layers are sf in BC Albers and join the values", {
   withr::defer(suppressMessages(sf::sf_use_s2(s2)))
   suppressMessages(sf::sf_use_s2(FALSE))
   expect_equal(m$coverage$cov_share, v$provenance$routed_cov_share)
+  expect_identical(m$coverage$routed_fingerprint, v$provenance$routed_fingerprint)
   pts <- sf::st_transform(sf::st_as_sf(v$skill, coords = c("lon", "lat"), crs = 4326), 3005)
   inside <- lengths(sf::st_intersects(pts, m$coverage)) > 0
   expect_identical(inside, v$skill$in_routed)

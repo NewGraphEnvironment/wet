@@ -127,9 +127,13 @@ coverage <- sf::st_read(conn, quiet = TRUE, query = sprintf("
     LEFT JOIN (SELECT linear_feature_id FROM whse_basemapping.fwa_stream_networks_discharge_monthly
                WHERE month = 1) r USING (linear_feature_id)
     GROUP BY 1 HAVING count(r.linear_feature_id) >= %f * count(*))", province_simplify_m, cov_share))
+source("scripts/pcic_routed_lib.R")
+routed_fp <- routed_fingerprint(conn)
 DBI::dbDisconnect(conn)
 stopifnot(nrow(coverage) == 1, !sf::st_is_empty(coverage))
 coverage$cov_share <- cov_share   # the tests hold it to the data script's
+# and the routed table the outline came from to the one the values came from
+coverage$routed_fingerprint <- routed_fp
 
 # the zones the balance adjusts by, from the zip scripts/wb_inputs.R caches
 hz_url <- paste0("https://catalogue.data.gov.bc.ca/dataset/f1f86c41-ae83-49d5-92e1-526897b99fa2/",

@@ -21,16 +21,16 @@ routed_commit <- function() {
 }
 
 # rows, segments, null flows and total flow: a rebuild that moves any value
-# moves the total
+# moves the total. Summed as numeric over values rounded to 1e-6 m3/s, so the
+# total is exact whatever order a parallel aggregate adds in, and returned as
+# text, which compares as the report prints it
 routed_fingerprint <- function(conn) {
-  DBI::dbGetQuery(conn, sprintf("
-    SELECT count(*)::bigint::float8 AS rows, count(DISTINCT linear_feature_id)::float8 AS segments,
-           count(*) FILTER (WHERE q_m3s IS NULL)::float8 AS null_q, sum(q_m3s) AS sum_q
+  fp <- DBI::dbGetQuery(conn, sprintf("
+    SELECT count(*)::text AS rows, count(DISTINCT linear_feature_id)::text AS segments,
+           count(*) FILTER (WHERE q_m3s IS NULL)::text AS null_q,
+           sum(round(q_m3s::numeric, 6))::text AS sum_q
     FROM %s", routed_table))
-}
-fmt_fingerprint <- function(fp) {
-  sprintf("%s rows, %s segments, %s null flows, total %.3f m3/s", format(fp$rows, big.mark = ","),
-          format(fp$segments, big.mark = ","), format(fp$null_q, big.mark = ","), fp$sum_q)
+  sprintf("%s rows, %s segments, %s null flows, total %s m3/s", fp$rows, fp$segments, fp$null_q, fp$sum_q)
 }
 
 # Mean annual routed flow (m3/s) per segment: the mean of its 12 monthly
@@ -69,6 +69,11 @@ shipped_heldout <- function() {
   stopifnot(nrow(sk) == nrow(cal), setequal(sk$station_number, cal$station_number), !anyNA(sk$err_pct))
   list(fits = fits, stations = sk)
 }
+
+# A gauge whose segment carries less than this share of its observed flow is
+# listed: a side channel, which carries only its own water (fwapg's README), a
+# reservoir lake, or a misplaced outlet, rather than PCIC's model error
+routed_far_low <- 0.2
 
 # the major basins, by Water Survey sub-drainage
 routed_basin <- function(st) {

@@ -36,13 +36,13 @@ Decided at the gate:
 - [ ] Before writing to fresh-db, check `pg_stat_activity` and the fwapg session's state. Nothing else may be writing `fwapg.pcic_*`, `blk_paths` or the routed table.
 - [ ] `git worktree add` fwapg at the current `origin/newgraph` sha, in the scratchpad. Copy (not symlink) the cached `extras/pcic_crosswalk/data/{rivers,lakes,series,monthly}`.
 - [ ] Run `./pcic_crosswalk.sh` there against fresh-db (127.0.0.1), backgrounded with a log. Confirm `qa.sql` passes and the staging tables are dropped. Record the sha, fingerprint and QA summary in findings.md.
-- [ ] `WET_FWAPG_COMMIT=<sha> Rscript scripts/pcic_routed_compare.R` → commit `data/checks/pcic_routed_compare.txt`. Note in findings.md how the numbers moved from #57's.
+- [ ] `WET_FWAPG_COMMIT=<sha> Rscript scripts/pcic_routed_compare.R` → commit `data/checks/pcic_routed_compare_20260717.txt` (through `wb_report()`, so it carries the release). Note in findings.md how the numbers moved from #57's.
 
 ## Phase 3: research §0
 - [ ] Revise `research/water_balance_method.md` §0 in place:
   - Replace the "Across PCIC's coverage, fwapg is closer…" bullet with the routed result, its caveats and the coverage edge (10A–10C, no Liard; 08N/08M/09A).
   - Keep the #39 fwapg history only as one sentence of provenance.
-  - Update the Prince George (SALR) bullet with routed numbers from Phase 5's data.
+  - Update the Prince George (SALR) bullet with routed numbers, after the Phase 4 rebuild (review item 13).
   - Update the Verified / Issues / Produced-by header.
 
 ## Phase 4: Tests first, then the vignette data
@@ -76,7 +76,15 @@ Decided at the gate:
 - [ ] Edit #57's body: point it at the research section in place of its numbers table.
 - [ ] Remove the fwapg worktree.
 
+## Review (planning/active/review-plan.md) folded in
+- [x] Exact fingerprint (numeric sum of values rounded to 1e-6), checked before the parity run in data-raw, and recorded with the map outline
+- [x] Report lists gauges whose segment carries < 20 % of observed flow (side channels, reservoir lakes), with a line scored without them
+- [x] CLAUDE.md Data Sources: the historical routed run's coverage and table
+- [ ] Keep the job's `fwa_stream_networks_discharge_monthly.csv.gz` and its sha256 from the pinned run; set `WET_FWAPG_COMMIT` from the worktree's `git rev-parse`
+- [ ] Do not commit the 4929c8c report (it named a guess); it is overwritten by the pinned run
+
 ## Validation
+- [ ] Vignette body prose under its 1,600-word cap
 - [ ] Tests pass; `lintr::lint_package()` clean; vignette renders
 - [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
 - [ ] PWF checkboxes match landed work
