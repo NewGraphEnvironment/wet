@@ -61,6 +61,12 @@ Blocked by NewGraphEnvironment/fwapg#6. Relates to #57, #5, #42.
 - It reports that its branch's parents and paths are identical to 218a47f's (1,570,499 lines, 0 differences).
 - Timing: the 01_paths step at 218a47f took about 35 minutes on m1.
 
+## m1 reboots during the rebuild (2026-10-09)
+
+- m1 reset three times: about 09:07, about 09:50 and 13:05 PDT. `/Library/Logs/DiagnosticReports/forceReset-full-2026-10-09-130516` shows a forced reset. The pinned crosswalk run died each time: twice in the paths step and once at the outlets step. The routed table was never reached; its fingerprint was unchanged after each reset (40,524,612 rows, sum 178169881.209890).
+- Cause, as diagnosed and relayed by the user: memory pressure from the fwapg#2 session's SSNbler R batch (`xargs -P 3`, each worker 20–50 GB) on top of colima reserving its full 32 GiB VM. Attribution: not this job. The fixes (`-P 1`, stopping or shrinking colima during the batch, or running it on m4/cypher) belong to the fwapg session.
+- Decision (user, 2026-10-09): hold #58 until the fwapg work finishes, and possibly move the rebuild to m4.
+
 ## Errors Encountered
 
 | Error | Resolution |

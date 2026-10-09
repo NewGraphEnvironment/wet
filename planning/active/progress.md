@@ -15,3 +15,4 @@
 - Vignette "Two estimates" section rewritten for routed PCIC (committed WIP; SALR/BULK still read the old fields until the data rebuild).
 - ~09:50 PDT: m1 rebooted a second time, killing the restarted run at its outlets step; the routed table still matched the before-fingerprint at 12:55.
 - 12:57 PDT: worktree moved to `data/pcic_routed/fwapg-218a47f` (gitignored and build-ignored; the scratchpad does not survive a reboot) and the job started detached with nohup (PID in `data/pcic_routed/build.pid`), so it no longer depends on the Claude session.
+- 13:05 PDT: third forced reset of m1 (memory pressure from the fwapg#2 SSNbler batch next to colima's 32 GiB VM; findings.md). The run died in the paths step again; the routed table is unchanged. Held on the user's instruction until fwapg finishes; the rebuild may move to m4. Resume: Phase 2, from the `data/pcic_routed/fwapg-218a47f` worktree (or the same commit on m4).
