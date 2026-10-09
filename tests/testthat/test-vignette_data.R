@@ -66,17 +66,22 @@ test_that("the segment values carry plain ids, the calibration gauges and their 
   expect_equal(v$parity$n_match5, v$parity$n_segments)
   expect_equal(nrow(v$skill), 315L)   # the shipped fit's calibration gauges (HYDAT 2026-07-17, #43)
   expect_type(v$skill$linear_feature_id, "integer")
-  # fwapg has a value at most gauges in its coverage, and at few outside it
-  expect_gt(sum(v$skill$in_pcic & !is.na(v$skill$fwapg_mm)), 0.75 * sum(v$skill$in_pcic))
-  expect_lt(sum(!v$skill$in_pcic & !is.na(v$skill$fwapg_mm)), 5)
-  expect_true(all(v$skill$fwapg_mm > 0, na.rm = TRUE))
-  expect_false(anyNA(v$gauges_salr[c("lon", "lat", "fwapg_mm")]))
+  # routed PCIC flow (fwapg#6, #58) at most gauges in its coverage, and at few outside it
+  expect_type(v$skill$in_routed, "logical")
+  expect_gt(sum(v$skill$in_routed & !is.na(v$skill$routed_mm)), 0.9 * sum(v$skill$in_routed))
+  expect_lt(sum(!v$skill$in_routed & !is.na(v$skill$routed_mm)), 5)
+  expect_true(all(v$skill$routed_mm > 0, na.rm = TRUE))
+  expect_false(anyNA(v$gauges_salr[c("lon", "lat", "routed_mm")]))
   expect_setequal(unique(v$segments$watershed_group_code), c("SALR", "BULK"))
-  expect_true(all(is.na(v$segments$mad_pcic_m3s[v$segments$watershed_group_code == "BULK"])))
+  # routed flow covers both groups: all but a few segments that have a watershed
+  for (g in c("SALR", "BULK")) {
+    i <- v$segments$watershed_group_code == g & !is.na(v$segments$mad_wb_m3s)
+    expect_gt(mean(!is.na(v$segments$mad_routed_m3s[i])), 0.99, label = g)
+  }
   expect_equal(sum(v$gauges_salr$holds_salr), 1L)
   expect_true(all(c("wet_commit", "province_run", "aet", "hydat_release", "near_km",
-                    "salr_stale_segments", "upstream_area_100", "fwapg_groups", "fwapg_cov_rows",
-                    "fwapg_max_order", "fwapg_order8") %in% names(v$provenance)))
+                    "salr_stale_segments", "upstream_area_100", "fwapg_discharge_rows", "routed_commit",
+                    "routed_fingerprint", "routed_groups", "routed_cov_rows", "routed_order8") %in% names(v$provenance)))
 })
 
 test_that("the segment map layers are sf in BC Albers and join the values", {
@@ -93,17 +98,16 @@ test_that("the segment map layers are sf in BC Albers and join the values", {
   v <- readRDS(vignette_data("segment_values.rds"))
   expect_setequal(m$segments$linear_feature_id, v$segments$linear_feature_id)
   # the coverage outline and the scored gauges come from two queries: every
-  # gauge fwapg scores lies inside the outline
+  # gauge in routed coverage lies inside the outline
   s2 <- suppressMessages(sf::sf_use_s2())
   withr::defer(suppressMessages(sf::sf_use_s2(s2)))
   suppressMessages(sf::sf_use_s2(FALSE))
-  expect_equal(m$coverage$cov_share, v$provenance$fwapg_cov_share)
+  expect_equal(m$coverage$cov_share, v$provenance$routed_cov_share)
   pts <- sf::st_transform(sf::st_as_sf(v$skill, coords = c("lon", "lat"), crs = 4326), 3005)
   inside <- lengths(sf::st_intersects(pts, m$coverage)) > 0
-  expect_identical(inside, v$skill$in_pcic)
-  # PCIC's grid reaches into the Liard (10x gauges) only at its edge, which the
-  # coverage rule leaves out
-  expect_false(any(startsWith(v$skill$station_number[v$skill$in_pcic], "10")))
+  expect_identical(inside, v$skill$in_routed)
+  # PCIC's routed domains leave out the Liard (10x gauges)
+  expect_false(any(startsWith(v$skill$station_number[v$skill$in_routed], "10")))
   # each calibration gauge's zone is drawn, and SALR's context holds its gauges
   expect_true(all(v$skill$zone %in% m$zones$zone))
   near <- sf::st_transform(sf::st_as_sf(v$gauges_salr, coords = c("lon", "lat"), crs = 4326), 3005)

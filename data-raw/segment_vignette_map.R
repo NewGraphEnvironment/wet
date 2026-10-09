@@ -21,8 +21,8 @@
 #     flow lines through lakes, wetlands and double-line reaches, and lakes
 #     (>= 1,000 ha) in that box outside SALR, so a gauge off the group sits on its
 #     river
-#   - coverage: the outline of the watershed groups fwapg gives a discharge in
-#     (PCIC's coverage), simplified for a province map
+#   - coverage: the outline of the watershed groups PCIC's routed flow covers
+#     (NewGraphEnvironment/fwapg#6, #58), simplified for a province map
 #   - zones: the Extended BC Hydrologic Zones the water balance adjusts by
 #     (scripts/wb_inputs.R), simplified for a province map, keyed by the zone
 #     code the calibration stations carry, with the zone's name
@@ -113,18 +113,20 @@ context_streams <- context_streams[!sf::st_is_empty(context_streams), ]
 stopifnot(nrow(context_streams) > 0, nrow(context_lakes) > 0)
 
 # ---- province layers ----------------------------------------------------------------
-# PCIC's coverage: the groups where at least half of fwapg's rows hold a
-# value (some carry only null rows, and Liard groups at the grid's edge a few
-# percent), the rule data-raw/segment_vignette_data.R scores by, as one
-# outline; area before the simplify
+# routed flow's coverage: the groups where at least half the segments carry
+# routed flow (the table holds no null rows), the rule
+# data-raw/segment_vignette_data.R scores by, as one outline; area before the
+# simplify
 coverage <- sf::st_read(conn, quiet = TRUE, query = sprintf("
   SELECT sum(ST_Area(geom)) / 1e6 AS area_km2,
          ST_Multi(ST_CollectionExtract(ST_MakeValid(
            ST_SnapToGrid(ST_SimplifyPreserveTopology(ST_Union(geom), %d), 100)), 3)) AS geom
   FROM whse_basemapping.fwa_watershed_groups_poly
   WHERE watershed_group_code IN (
-    SELECT watershed_group_code FROM whse_basemapping.fwa_stream_networks_discharge
-    GROUP BY 1 HAVING count(mad_mm) >= %f * count(*))", province_simplify_m, cov_share))
+    SELECT s.watershed_group_code FROM whse_basemapping.fwa_stream_networks_sp s
+    LEFT JOIN (SELECT linear_feature_id FROM whse_basemapping.fwa_stream_networks_discharge_monthly
+               WHERE month = 1) r USING (linear_feature_id)
+    GROUP BY 1 HAVING count(r.linear_feature_id) >= %f * count(*))", province_simplify_m, cov_share))
 DBI::dbDisconnect(conn)
 stopifnot(nrow(coverage) == 1, !sf::st_is_empty(coverage))
 coverage$cov_share <- cov_share   # the tests hold it to the data script's

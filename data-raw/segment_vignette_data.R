@@ -15,17 +15,17 @@
 #   - sampling: per SALR watershed with a stream, wet's mean annual runoff (mm)
 #     with centroid and with area-weighted sampling, and its upstream area
 #   - segments: per order >= 3 segment of SALR and BULK (segment_map.rds), mean
-#     annual discharge from the open water balance (#11), and for SALR also
-#     from PCIC through wet
-#   - skill: the 290 calibration stations, with their held-out (blocked-CV)
-#     error on annual runoff under the shipped fit, the segment and watershed
-#     each snapped to, zone, nesting and area, whether it lies in a group fwapg
-#     covers (in_pcic), and fwapg's (PCIC) mean annual runoff at the gauge's
-#     watershed where fwapg has one (NA outside PCIC's coverage, and where fwapg
-#     leaves it null or has no row), so both products are scored on one set
+#     annual discharge from the open water balance (#11) and from PCIC's routed
+#     flow (NewGraphEnvironment/fwapg#6, #58)
+#   - skill: the shipped fit's calibration stations, with their held-out
+#     (blocked-CV) error on annual runoff, the segment and watershed each
+#     snapped to, zone, nesting and area, whether it lies in a group routed flow
+#     covers (in_routed), and routed mean annual runoff on the gauge's segment
+#     (routed_mm; NA where the segment has none), so both estimates are scored
+#     on one set, as scripts/pcic_routed_compare.R scores them
 #   - gauges_salr: the calibration gauges within 30 km of SALR and its outlet
-#     gauge, with their location and observed, held-out water-balance and fwapg
-#     (PCIC) mean annual runoff, to say which product the gap between them on
+#     gauge, with their location and observed, held-out water-balance and
+#     routed mean annual runoff, to say which estimate the gap between them on
 #     SALR belongs to
 #   - provenance: the runs and reports these came from, and the numbers the
 #     vignette quotes about them
@@ -34,6 +34,9 @@
 # province run under data/wb/ and one HYDAT release; scripts wb_province.R,
 # wb_stations.R, wb_validate.R and wb_output.R). The script refuses a fit
 # whose scores or AET choice were made under other scoring code.
+# Routed flow is scripts/pcic_routed_lib.R's, from the table WET_FWAPG_COMMIT
+# names; the script refuses a table or a commit other than the ones the tracked
+# report (data/checks/pcic_routed_compare_<release>.txt) was made from.
 # fwapg from the WET_PG* variables.
 
 # The vignette cites the commit these were built at, so that commit must hold
@@ -61,31 +64,21 @@ rc <- system2("Rscript", c("scripts/mad_parity.R", "SALR"), stdout = f_log, stde
 if (rc != 0 || !all(file.exists(c(f_par, f_area)))) stop("scripts/mad_parity.R SALR failed: see ", f_log)
 
 source("scripts/wb_cv_lib.R")  # load_all(), key_dir, cal, groups, score_code_md5
+source("scripts/pcic_routed_lib.R")
+fwapg_commit <- routed_commit()
 
 min_order <- 3
 wsg <- c("SALR", "BULK")
 out <- file.path("inst", "vignette-data", "segment_values.rds")
 budget_kb <- 500
 
-# ---- the shipped fit, and only that ---------------------------------------------------------
-fits <- readRDS(file.path(fit_dir, "fits.rds"))
-winner <- readLines(file.path(fit_dir, "aet_winner.txt"))
-cv <- readRDS(file.path(fit_dir, sprintf("cv_aet-%s.rds", fits$aet)))
-stopifnot(identical(release, wb_shipped_release),   # the vignette shows the shipped fit
-          identical(fits$code_md5, score_code_md5),
-          identical(winner[1:2], c(fits$aet, aet_code_md5)),
-          identical(cv$code_md5, score_code_md5),
-          identical(cv$station_number, cal$station_number),
-          identical(fits$calibration, cal$station_number))
-
 # ---- held-out skill at the calibration stations ---------------------------------------------
-# the skill of what ships: the blocked-CV adjusted fit, or raw P - AET when the
-# headwater gate dropped the adjustment (fits$keep_adjust; #43's refit)
-ship_v <- if (fits$keep_adjust) cv$cv_v else cv$raw_v
-sk <- ship_v$stations[c("station_number", "obs", "mod", "err_pct")]
-stopifnot(nrow(sk) == nrow(cal), setequal(sk$station_number, cal$station_number), !anyNA(sk$err_pct))
+# the shipped fit's, and only that (shipped_heldout(): scored under this code)
+ho <- shipped_heldout()
+fits <- ho$fits
+sk <- ho$stations
 sk <- merge(sk, cal[c("station_number", "station_name", "lon", "lat", "linear_feature_id", "watershed_feature_id",
-                      "zone", "nesting", "area_km2")], by = "station_number")
+                      "zone", "nesting", "area_km2", "upstream_area_m2")], by = "station_number")
 # the segment each gauge snapped to, so a gauge can be traced to its segment's value
 sk$linear_feature_id <- as.integer(sk$linear_feature_id)
 stopifnot(!anyNA(sk$linear_feature_id))
@@ -116,35 +109,28 @@ seg <- DBI::dbGetQuery(conn, sprintf("
   LEFT JOIN whse_basemapping.fwa_streams_watersheds_lut l USING (linear_feature_id)
   WHERE s.watershed_group_code IN (%s) AND s.stream_order >= %d",
   paste0("'", wsg, "'", collapse = ", "), min_order))
-# the watershed groups fwapg gives a discharge in, PCIC's coverage. Some groups
-# carry only null rows, and Liard groups clipped by the edge of PCIC's grid hold
-# values on a few percent of their segments, so a group counts when at least
-# half its rows hold a value (data-raw/segment_vignette_map.R draws the same
-# rule). Inside them fwapg still leaves segments null, and the largest rivers
-# have no row at all
+# the watershed groups routed flow covers: a group counts when at least half
+# its segments carry routed flow (data-raw/segment_vignette_map.R draws the
+# same rule). The table holds only routed segments, no null rows
 cov_share <- 0.5
-fwapg_cov <- DBI::dbGetQuery(conn, "
-  SELECT watershed_group_code, count(*)::int AS n_rows, count(mad_mm)::int AS n_values
-  FROM whse_basemapping.fwa_stream_networks_discharge GROUP BY 1")
-fwapg_groups <- fwapg_cov$watershed_group_code[fwapg_cov$n_values >= cov_share * fwapg_cov$n_rows]
-print(fwapg_cov[fwapg_cov$n_values > 0 & !fwapg_cov$watershed_group_code %in% fwapg_groups, ])
-in_groups <- paste0("'", fwapg_groups, "'", collapse = ", ")
-fwapg_max_order <- DBI::dbGetQuery(conn, sprintf("
-  SELECT max(s.stream_order)::int FROM whse_basemapping.fwa_stream_networks_discharge d
-  JOIN whse_basemapping.fwa_stream_networks_sp s USING (linear_feature_id)
-  WHERE d.mad_mm IS NOT NULL AND d.watershed_group_code IN (%s)", in_groups))[[1]]
-fwapg_max_order_all <- DBI::dbGetQuery(conn, sprintf("
-  SELECT max(stream_order)::int FROM whse_basemapping.fwa_stream_networks_sp WHERE watershed_group_code IN (%s)",
-  in_groups))[[1]]
-stopifnot(fwapg_max_order < fwapg_max_order_all)
-# fwapg skips the largest rivers: its rows and values on segments of order 8
-# and up in the groups it covers, which the vignette quotes
-fwapg_large <- DBI::dbGetQuery(conn, sprintf("
-  SELECT count(*)::int AS segments, count(d.mad_mm)::int AS valued
+routed_cov <- DBI::dbGetQuery(conn, sprintf("
+  SELECT s.watershed_group_code, count(*)::int AS n_rows, count(r.linear_feature_id)::int AS n_values
   FROM whse_basemapping.fwa_stream_networks_sp s
-  LEFT JOIN whse_basemapping.fwa_stream_networks_discharge d USING (linear_feature_id)
-  WHERE s.watershed_group_code IN (%s) AND s.stream_order >= 8", in_groups))
-stopifnot(fwapg_large$segments > 0, fwapg_large$valued < 0.01 * fwapg_large$segments)
+  LEFT JOIN (SELECT linear_feature_id FROM %s WHERE month = 1) r USING (linear_feature_id)
+  GROUP BY 1", routed_table))
+routed_groups <- routed_cov$watershed_group_code[routed_cov$n_values >= cov_share * routed_cov$n_rows]
+print(routed_cov[routed_cov$n_values > 0 & !routed_cov$watershed_group_code %in% routed_groups, ])
+in_groups <- paste0("'", routed_groups, "'", collapse = ", ")
+# routed flow reaches the largest rivers: its values on segments of order 8 and
+# up in the groups it covers, which the vignette quotes
+routed_large <- DBI::dbGetQuery(conn, sprintf("
+  SELECT count(*)::int AS segments, count(r.linear_feature_id)::int AS valued
+  FROM whse_basemapping.fwa_stream_networks_sp s
+  LEFT JOIN (SELECT linear_feature_id FROM %s WHERE month = 1) r USING (linear_feature_id)
+  WHERE s.watershed_group_code IN (%s) AND s.stream_order >= 8", routed_table, in_groups))
+stopifnot(routed_large$segments > 0)
+routed_fp <- routed_fingerprint(conn)
+# fwapg's annual table on the two groups: the parity rebuild's segments
 n_fwapg <- DBI::dbGetQuery(conn, sprintf("
   SELECT s.watershed_group_code, count(d.linear_feature_id)::int AS n
   FROM whse_basemapping.fwa_stream_networks_sp s
@@ -154,16 +140,10 @@ n_fwapg <- DBI::dbGetQuery(conn, sprintf("
 st_wsg <- DBI::dbGetQuery(conn, sprintf("
   SELECT watershed_feature_id, watershed_group_code FROM whse_basemapping.fwa_watersheds_poly
   WHERE watershed_feature_id IN (%s)", paste(sk$watershed_feature_id, collapse = ", ")))
-# fwapg's mean annual runoff (PCIC) at each calibration gauge's watershed,
-# which every segment in a watershed shares: one value per watershed, and none
-# outside the groups fwapg covers
-fw_sk <- DBI::dbGetQuery(conn, sprintf("
-  SELECT DISTINCT l.watershed_feature_id::int AS watershed_feature_id, d.mad_mm
-  FROM whse_basemapping.fwa_streams_watersheds_lut l
-  JOIN whse_basemapping.fwa_stream_networks_discharge d USING (linear_feature_id)
-  WHERE l.watershed_feature_id IN (%s) AND d.mad_mm IS NOT NULL", paste(sk$watershed_feature_id, collapse = ", ")))
-stopifnot(!anyDuplicated(fw_sk$watershed_feature_id))
-sk$fwapg_mm <- fw_sk$mad_mm[match(sk$watershed_feature_id, fw_sk$watershed_feature_id)]
+# routed mean annual runoff on each calibration gauge's segment, in mm over
+# wet's accumulated upstream area, as scripts/pcic_routed_compare.R takes it
+ra <- routed_annual(conn, sk$linear_feature_id)
+sk$routed_mm <- routed_mm(ra$q_m3s[match(sk$linear_feature_id, ra$linear_feature_id)], sk$upstream_area_m2)
 # the calibration gauges near SALR, to arbitrate between the two products there:
 # those within 30 km, and the smallest whose basin holds the whole group (its
 # outlet gauge)
@@ -188,25 +168,37 @@ holds <- sk[sk$watershed_feature_id %in% holds$watershed_feature_id[holds$n >= 0
 outlet <- holds$station_number[which.min(holds$area_km2)]
 stopifnot(length(outlet) == 1)
 near <- sk[sk$salr_km <= near_km | sk$station_number %in% outlet, ]
+seg_routed <- routed_annual(conn, seg$linear_feature_id)
 DBI::dbDisconnect(conn)
-stopifnot(nrow(near) > 0, !anyNA(near$fwapg_mm))
+stopifnot(nrow(near) > 0, !anyNA(near$routed_mm))
 gauges_salr <- data.frame(station_number = near$station_number, station_name = near$station_name,
                           holds_salr = near$station_number %in% outlet,
                           lon = near$lon, lat = near$lat,
                           area_km2 = near$area_km2, km_from_salr = near$salr_km,
-                          obs_mm = near$obs, wb_mm = near$mod, fwapg_mm = near$fwapg_mm)
+                          obs_mm = near$obs, wb_mm = near$mod, routed_mm = near$routed_mm)
 print(gauges_salr)
 sk$salr_km <- NULL
 sk$watershed_group_code <- st_wsg$watershed_group_code[match(sk$watershed_feature_id, st_wsg$watershed_feature_id)]
 stopifnot(!anyNA(sk$watershed_group_code), !anyDuplicated(seg$linear_feature_id))
-# fwapg is scored at the gauges in its coverage that it has a value for. Not
-# every covered gauge has one (a null row, or a large river with no row), and a
-# gauge in a group at the grid's edge can have one: it keeps its value, and
-# in_pcic says it is not scored
-sk$in_pcic <- sk$watershed_group_code %in% fwapg_groups
-print(table(in_pcic = sk$in_pcic, fwapg = !is.na(sk$fwapg_mm)))
-stopifnot(all(sk$watershed_group_code[!is.na(sk$fwapg_mm)] %in% fwapg_cov$watershed_group_code))
+# routed flow is scored at every gauge whose segment carries it, as the
+# report scores it; in_routed says whether the gauge's group is in the
+# coverage the province map outlines
+sk$in_routed <- sk$watershed_group_code %in% routed_groups
+print(table(in_routed = sk$in_routed, routed = !is.na(sk$routed_mm)))
 n_fwapg <- stats::setNames(n_fwapg$n, n_fwapg$watershed_group_code)
+
+# ---- the tracked report is the published record ------------------------------------------------
+# the gauges' routed scores must be its rows, from the same table and commit
+f_routed <- wb_report("pcic_routed_compare", release)
+rr <- readLines(f_routed)
+stopifnot(any(rr == sprintf("routed: %s, built by NewGraphEnvironment/fwapg at %s", routed_table, fwapg_commit)),
+          any(rr == sprintf("table: %s", fmt_fingerprint(routed_fp))))
+rr_all <- strsplit(trimws(grep("^all +", rr, value = TRUE)[1]), " +")[[1]]
+both <- sk[!is.na(sk$routed_mm), ]
+r_sc <- routed_scores(100 * (both$routed_mm / both$obs - 1))
+w_sc <- routed_scores(both$err_pct)
+stopifnot(as.integer(rr_all[2]) == nrow(both),
+          as.numeric(rr_all[3]) == round(r_sc[["mae"]], 1), as.numeric(rr_all[4]) == round(w_sc[["mae"]], 1))
 
 # ---- PCIC through wet on SALR (scripts/mad_parity.R, run above) -----------------------------------
 par <- utils::read.csv(f_par)
@@ -239,15 +231,14 @@ segments <- data.frame(
   linear_feature_id = seg$linear_feature_id,
   watershed_group_code = seg$watershed_group_code,
   mad_wb_m3s = wb$discharge_m3s[match(seg$watershed_feature_id, wb$watershed_feature_id)],
-  mad_pcic_m3s = par$mad_m3s_wet[match(seg$linear_feature_id, par$linear_feature_id)]
+  mad_routed_m3s = seg_routed$q_m3s[match(seg$linear_feature_id, seg_routed$linear_feature_id)]
 )
 cov <- wb$coverage[match(seg$watershed_feature_id, wb$watershed_feature_id)]
 print(table(segments$watershed_group_code, is.na(segments$mad_wb_m3s), dnn = c("group", "wb NA")))
 # a segment with no watershed in the lut has no value in either product
+print(table(segments$watershed_group_code, is.na(segments$mad_routed_m3s), dnn = c("group", "routed NA")))
 stopifnot(all(is.na(segments$mad_wb_m3s) == is.na(seg$watershed_feature_id)),
-          all(cov[!is.na(cov)] >= 0.99),
-          all(!is.na(segments$mad_pcic_m3s[segments$watershed_group_code == "SALR" &
-                                              !is.na(seg$watershed_feature_id)])))
+          all(cov[!is.na(cov)] >= 0.99))
 
 # ---- provenance -------------------------------------------------------------------------------------
 # fwapg's stored upstream area against the live accumulation, Fraser-wide
@@ -277,15 +268,18 @@ provenance <- list(
   # SALR segments whose MAD moves between fwapg's stored upstream area and the
   # live accumulation (the vignette's stale-snapshot bullet)
   salr_stale_segments = sum(abs(par$mad_m3s_live - par$mad_m3s_wet) > 1e-9 * par$mad_m3s_wet),
+  # fwapg's annual table on the two groups: the parity rebuild's segments
   fwapg_discharge_rows = n_fwapg,
-  fwapg_groups = length(fwapg_groups),
-  fwapg_cov_share = cov_share,
-  # in the groups fwapg covers: its rows, those holding a value, and the
-  # highest stream order with a value against the highest there
-  fwapg_cov_rows = c(rows = sum(fwapg_cov$n_rows[fwapg_cov$watershed_group_code %in% fwapg_groups]),
-                     values = sum(fwapg_cov$n_values[fwapg_cov$watershed_group_code %in% fwapg_groups])),
-  fwapg_max_order = c(valued = fwapg_max_order, streams = fwapg_max_order_all),
-  fwapg_order8 = c(segments = fwapg_large$segments, valued = fwapg_large$valued),
+  # routed flow (fwapg#6): the commit that built the table and its fingerprint
+  routed_commit = fwapg_commit,
+  routed_fingerprint = fmt_fingerprint(routed_fp),
+  routed_report = f_routed,
+  routed_groups = length(routed_groups),
+  routed_cov_share = cov_share,
+  # in the groups routed flow covers: their segments, and those it reaches
+  routed_cov_rows = c(rows = sum(routed_cov$n_rows[routed_cov$watershed_group_code %in% routed_groups]),
+                      values = sum(routed_cov$n_values[routed_cov$watershed_group_code %in% routed_groups])),
+  routed_order8 = c(segments = routed_large$segments, valued = routed_large$valued),
   upstream_area_100 = c(polygons = ua_poly, stale = ua_mis)
 )
 
