@@ -390,7 +390,7 @@ seg <- merge(map$segments, v$segments, by = c("linear_feature_id", "watershed_gr
 stopifnot(nrow(seg) == nrow(map$segments))
 n_no_value <- sum(is.na(seg$mad_wb_m3s))
 # the limits bullet says neither product has these
-stopifnot(all(is.na(seg$mad_pcic_m3s[is.na(seg$mad_wb_m3s)])))
+stopifnot(all(is.na(seg$mad_routed_m3s[is.na(seg$mad_wb_m3s)])))
 order_no_value <- range(seg$stream_order[is.na(seg$mad_wb_m3s)])
 n_total <- table(seg$watershed_group_code)
 seg <- seg[!is.na(seg$mad_wb_m3s), ]
@@ -485,10 +485,10 @@ map_theme <- theme_void() +
 
 # SALR: both products, and the gauges that arbitrate between them
 ss <- v$segments[v$segments$watershed_group_code == "SALR" & !is.na(v$segments$mad_wb_m3s), ]
-ratio_salr <- stats::median(ss$mad_wb_m3s / ss$mad_pcic_m3s)
+ratio_salr <- stats::median(ss$mad_wb_m3s / ss$mad_routed_m3s, na.rm = TRUE)
 ga <- v$gauges_salr
 ga$wb_err <- 100 * (ga$wb_mm / ga$obs_mm - 1)
-ga$fw_err <- 100 * (ga$fwapg_mm / ga$obs_mm - 1)
+ga$rt_err <- 100 * (ga$routed_mm / ga$obs_mm - 1)
 outlet <- ga[ga$holds_salr, ]
 # the balance's share of the gap at each gauge, in log terms like the ratio:
 # log(wb / fwapg) = log(wb / obs) + log(obs / fwapg)
@@ -515,7 +515,7 @@ gauge_tab <- data.frame(
   `Area (km²)` = num(ga$area_km2),
   `Observed (mm)` = num(ga$obs_mm),
   `Water balance (held out)` = signed(ga$wb_err),
-  fwapg = signed(ga$fw_err),
+  `Routed PCIC` = signed(ga$rt_err),
   check.names = FALSE
 )
 
@@ -537,19 +537,19 @@ stopifnot(bb_salr[["xmin"]] >= ctx[["xmin"]], bb_salr[["xmax"]] <= ctx[["xmax"]]
           bb_salr[["ymin"]] >= ctx[["ymin"]], bb_salr[["ymax"]] <= ctx[["ymax"]])
 drawn <- c(drawn, in_frame(ga_pts, bb_salr))
 
-products <- c(fwapg = "fwapg (PCIC)", wb = "Open water balance")
+products <- c(routed = "Routed PCIC", wb = "Open water balance")
 s2 <- seg[seg$watershed_group_code == "SALR", ]
-s2 <- rbind(transform(s2, product = products[["fwapg"]], class = mad_class(s2$mad_pcic_m3s)),
+s2 <- rbind(transform(s2, product = products[["routed"]], class = mad_class(s2$mad_routed_m3s)),
             transform(s2, product = products[["wb"]], class = mad_class(s2$mad_wb_m3s)))
 s2$product <- factor(s2$product, products)
 s2 <- s2[order(s2$class), ]   # large rivers drawn last, on top
-g2 <- rbind(transform(ga_pts, product = products[["fwapg"]], class = err_class(ga_pts$fw_err)),
+g2 <- rbind(transform(ga_pts, product = products[["routed"]], class = err_class(ga_pts$rt_err)),
             transform(ga_pts, product = products[["wb"]], class = err_class(ga_pts$wb_err)))
 g2$product <- factor(g2$product, products)
 lakes_salr <- rbind(map$lakes[map$lakes$watershed_group_code == "SALR", c("gnis_name", "area_ha")],
                     map$context_lakes[c("gnis_name", "area_ha")])
 cap_salr <- sprintf(paste(
-  "Mean annual discharge on %s of the %s %s segments of order %d or more, from fwapg (left) and the",
+  "Mean annual discharge on %s of the %s %s segments of order %d or more, from routed PCIC (left) and the",
   "open water balance (right), with the gauges of the table filled by each product's error. Rivers",
   "outside the group are grey."
 ), num(nrow(seg[seg$watershed_group_code == "SALR", ])), num(n_total[["SALR"]]), group_name[["SALR"]],

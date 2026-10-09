@@ -13,3 +13,5 @@
 - 09:07 PDT: m1 rebooted (uptime), killing the run partway through the paths step, before the routed table was dropped (same fingerprint afterwards). The scratchpad worktree was lost too.
 - 09:42 PDT: worktree recreated at 218a47f and the run restarted. Log: `data/pcic_routed/build_218a47f.log` (gitignored, survives a reboot).
 - Vignette "Two estimates" section rewritten for routed PCIC (committed WIP; SALR/BULK still read the old fields until the data rebuild).
+- ~09:50 PDT: m1 rebooted a second time, killing the restarted run at its outlets step; the routed table still matched the before-fingerprint at 12:55.
+- 12:57 PDT: worktree moved to `data/pcic_routed/fwapg-218a47f` (gitignored and build-ignored; the scratchpad does not survive a reboot) and the job started detached with nohup (PID in `data/pcic_routed/build.pid`), so it no longer depends on the Claude session.
