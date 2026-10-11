@@ -171,17 +171,20 @@ for (code in codes) {
       pick = sr$source[j] == "pcic_routed"
     )
   }
-  if (is.null(rows_b) && is.null(rows_r)) stop("basin ", code, " has no value from either source")
-  out <- rbind(rows_b, rows_r)[cols_out]
-  out <- out[order(out$linear_feature_id, out$source, out$month), ]
-  # exactly one picked source per segment and month, and only one row per source
-  key <- paste(out$linear_feature_id, out$month)
-  stopifnot(!anyDuplicated(paste(key, out$source)), !anyNA(out$pick),
-            all(tabulate(match(key[out$pick], unique(key)), nbins = length(unique(key))) == 1),
-            sum(out$pick) == 13 * sum(!is.na(s$source)))
-  tmp <- tempfile(fileext = ".parquet", tmpdir = file.path(fit_dir, "segment"))
-  arrow::write_parquet(out, tmp)
-  if (!file.rename(tmp, file.path(fit_dir, "segment", paste0(code, ".parquet")))) stop("could not move ", tmp)
+  # a basin whose watersheds hold no segment (999: 60 watersheds, none in
+  # the lut) writes no table; the report still counts it
+  out <- if (is.null(rows_b) && is.null(rows_r)) NULL else rbind(rows_b, rows_r)[cols_out]
+  if (!is.null(out)) {
+    out <- out[order(out$linear_feature_id, out$source, out$month), ]
+    # exactly one picked source per segment and month, and only one row per source
+    key <- paste(out$linear_feature_id, out$month)
+    stopifnot(!anyDuplicated(paste(key, out$source)), !anyNA(out$pick),
+              all(tabulate(match(key[out$pick], unique(key)), nbins = length(unique(key))) == 1),
+              sum(out$pick) == 13 * sum(!is.na(s$source)))
+    tmp <- tempfile(fileext = ".parquet", tmpdir = file.path(fit_dir, "segment"))
+    arrow::write_parquet(out, tmp)
+    if (!file.rename(tmp, file.path(fit_dir, "segment", paste0(code, ".parquet")))) stop("could not move ", tmp)
+  }
 
   tally[[code]] <- data.frame(
     code = code, segments = nrow(s), both = sum(!is.na(s$q_routed) & !is.na(s$q_balance)),

@@ -77,3 +77,5 @@ Filed as fwapg#25: model, scenario and period parameters for the crosswalk build
 | Error | Resolution |
 |-------|------------|
 | `segment_output.R` stopped at basin 800: `aggregate()` "no rows to aggregate" (a basin with no routed segment, the Yukon headwaters) | Guarded: an empty routed set gives no routed rows; `data.frame()` with scalar columns is built only when rows exist |
+| `gh issue view 57` run from the scratchpad (no repo) failed, the redirect left an empty file, and the edit on the next line blanked #57's body | Restored from the copy saved at session start, with the revisions applied; the edit is now chained on `test -s` |
+| `segment_output.R` stopped at basin 999: "no value from either source" (60 watersheds, none of them in the lut, so no segments) | Such a basin writes no table and is counted in the report. The report section was tested on mock objects before the third run |
