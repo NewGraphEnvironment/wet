@@ -32,8 +32,8 @@ fwapg_commit <- routed_commit()
 err_cut <- 20
 
 ho <- shipped_heldout()
-g <- merge(ho$stations, cal[c("station_number", "station_name", "linear_feature_id", "upstream_area_m2",
-                              "nesting", "zone", "area_km2")], by = "station_number")
+g <- merge(ho$stations, cal[c("station_number", "station_name", "linear_feature_id", "watershed_feature_id",
+                              "upstream_area_m2", "nesting", "zone", "area_km2")], by = "station_number")
 g$linear_feature_id <- as.integer(g$linear_feature_id)
 stopifnot(nrow(g) == nrow(cal), !anyNA(g$linear_feature_id))
 hydat_release <- sub("^HYDAT release: ", "", grep("^HYDAT release:", readLines(wb_report("stations_wb", release)),
@@ -51,7 +51,17 @@ ra <- routed_annual(conn, g$linear_feature_id)
 edge <- DBI::dbGetQuery(conn, sprintf("
   SELECT linear_feature_id::int AS linear_feature_id, edge_type FROM whse_basemapping.fwa_stream_networks_sp
   WHERE linear_feature_id IN (%s)", paste(g$linear_feature_id, collapse = ", ")))
+# fwapg's older annual table (extras/discharge: gridded VIC-GL runoff and
+# baseflow accumulated on the FWA, no routing), which wet's vignette scored
+# before #58: one mean annual runoff per watershed, so read at the gauge's
+annual <- DBI::dbGetQuery(conn, sprintf("
+  SELECT DISTINCT l.watershed_feature_id::int AS watershed_feature_id, d.mad_mm
+  FROM whse_basemapping.fwa_streams_watersheds_lut l
+  JOIN whse_basemapping.fwa_stream_networks_discharge d USING (linear_feature_id)
+  WHERE l.watershed_feature_id IN (%s) AND d.mad_mm IS NOT NULL", paste(g$watershed_feature_id, collapse = ", ")))
+stopifnot(!anyDuplicated(annual$watershed_feature_id))
 DBI::dbDisconnect(conn)
+g$annual_mm <- annual$mad_mm[match(g$watershed_feature_id, annual$watershed_feature_id)]
 g$routed_m3s <- ra$q_m3s[match(g$linear_feature_id, ra$linear_feature_id)]
 g$routed_mm <- routed_mm(g$routed_m3s, g$upstream_area_m2)
 g$routed_err <- 100 * (g$routed_mm / g$obs - 1)
@@ -112,6 +122,30 @@ lines <- c(
             sum(k), r[["mae"]], w[["mae"]], r[["bias"]], w[["bias"]])
   },
   "",
+  {
+    b <- g[!is.na(g$routed_mm) & !is.na(g$annual_mm), ]
+    e_a <- 100 * (b$annual_mm / b$obs - 1)
+    e_r <- 100 * (b$routed_mm / b$obs - 1)
+    line <- function(lab, e) {
+      r <- routed_scores(e, err_cut)
+      sprintf("%-28s %5.1f %5.1f %4.0f %+6.1f   %5.1f / %5.1f", lab, r[["mae"]], r[["median_ae"]], r[["within"]],
+              r[["bias"]], mean(abs(e[b$nesting == "headwater"])), mean(abs(e[b$nesting == "nested"])))
+    }
+    rat <- b$routed_mm / b$annual_mm
+    c(sprintf("## Against fwapg's older annual table, at the %d gauges both PCIC products score", nrow(b)),
+      "The annual table (whse_basemapping.fwa_stream_networks_discharge, extras/discharge) accumulates gridded",
+      "VIC-GL runoff and baseflow on the FWA without routing, centroid-sampled over fwapg's stored upstream area.",
+      sprintf("%-28s %5s %5s %4s %6s   %s", "", "mean", "med", sprintf("+-%d", err_cut), "bias",
+              sprintf("headwater (%d) / nested (%d) mean", sum(b$nesting == "headwater"), sum(b$nesting == "nested"))),
+      line("annual table", e_a), line("routed", e_r), line("balance (held out)", b$err_pct),
+      sprintf("routed / annual: median %.3f, p10-p90 %.2f-%.2f; routed closer than the annual table at %.0f %%",
+              stats::median(rat), stats::quantile(rat, 0.1), stats::quantile(rat, 0.9), 100 * mean(abs(e_r) < abs(e_a))),
+      sprintf("gauges routed scores that the annual table does not: %d (balance %.1f %%, routed %.1f %% there)",
+              sum(!is.na(g$routed_mm) & is.na(g$annual_mm)),
+              mean(abs(g$err_pct[!is.na(g$routed_mm) & is.na(g$annual_mm)])),
+              mean(abs(g$routed_err[!is.na(g$routed_mm) & is.na(g$annual_mm)]))),
+      "")
+  },
   sprintf("## The %d gauges without routed flow, by sub-drainage", nrow(unc)),
   vapply(names(unc_by), function(p) sprintf("%s %2d  %s", p, length(unc_by[[p]]), paste(unc_by[[p]], collapse = " ")),
          ""),
@@ -123,11 +157,12 @@ lines <- c(
   "- Routed flow is 1951-2012; the balance is 1981-2010 normals; observed is each gauge's record.",
   "",
   "## Per gauge (mm/yr; errors %)",
-  "station   basin     nesting        km2    obs  routed balance  r_err  b_err  name",
+  "station   basin     nesting        km2    obs  routed  annual balance  r_err  b_err  name",
   {
     o <- g[order(g$basin, g$station_number), ]
-    sprintf("%-9s %-9s %-9s %9.0f %6.0f %7s %7.0f %6s %+6.1f  %s", o$station_number, o$basin, o$nesting, o$area_km2,
-            o$obs, ifelse(is.na(o$routed_mm), "-", sprintf("%.0f", o$routed_mm)), o$mod,
+    sprintf("%-9s %-9s %-9s %9.0f %6.0f %7s %7s %7.0f %6s %+6.1f  %s", o$station_number, o$basin, o$nesting, o$area_km2,
+            o$obs, ifelse(is.na(o$routed_mm), "-", sprintf("%.0f", o$routed_mm)),
+            ifelse(is.na(o$annual_mm), "-", sprintf("%.0f", o$annual_mm)), o$mod,
             ifelse(is.na(o$routed_err), "-", sprintf("%+.1f", o$routed_err)), o$err_pct, substr(o$station_name, 1, 34))
   }
 )
