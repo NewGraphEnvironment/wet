@@ -12,3 +12,11 @@
 - Phase 3: `pcic_routed_compare.R` scores the default pick, deciding against the held-out balance so the pick uses no observed flow. Pick 22.3 % mean abs at the 290 (routed 24.1, balance 27.6), and 22.6 % at all 315 (balance 27.5). 10 gauges fall to the balance, which is closer at 9. The rest of the report is unchanged byte for byte, apart from the commit line and the new per-gauge `pick` column.
 - Phase 3: Nechako attributed to fwapg#6 placement (487 PCIC outlets in the four groups, 4 placed; the rest `broken_chain`, anchored in CHES). Filed fwapg#24 (Nechako) and fwapg#25 (model/scenario/period parameters: 1981–2010 first, CMIP6 later).
 - Phase 4: CLAUDE.md now says PCIC's routed flow is published, cited and labelled, as the default where it beats the balance; the balance stays the independent yardstick; "model code does not ship" now reads "in place of our own" (plan review G10). Added `segment_output.R` to Architecture. Vignette guidance names the default pick and its exceptions, prose only; it rendered with its word-cap and named-on-map guards passing.
+- Phase 2 run on m4 (third attempt; basins 800 and 999 needed guards). Report `data/checks/segment_output_20260717.txt` at 3a204a7: 3,374,133 segments with both sources, 275,418 flips (22 % Nechako), Fraser 123,394 as measured in plan mode. Post-run checks on m4 (scratch `segment_check.R`):
+  - 43,901,481 routed rows = 13 × 3,377,037;
+  - one picked source per segment (4,532,843), constant over 13 months;
+  - balance months sum to the annual exactly; routed months 0.93–1.02 of the annual;
+  - routed annual = `routed_annual()` at the 351 gauge segments (max diff 1e-13).
+- GUIC (69 % flips) attributed to PCIC's runoff: outlets placed and carrying PCIC's own flow; fwapg's older unrouted table is far low at 08LG056 too.
+- Phase 4: research §0 entry for #57; #57 and #7 bodies edited. #57's body was blanked for about a minute by a failed `gh issue view` and restored (findings, Errors).
+- Tests: 36 files, 876 passed, 0 failed, 1 skipped.
