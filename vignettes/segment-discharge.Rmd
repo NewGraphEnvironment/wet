@@ -268,6 +268,12 @@ Which to use depends on the job:
 - Where both exist and the number matters: both, checked against the nearest
   gauge, as the Salmon River section below does.
 
+Where fwapg's older, unrouted annual table also had values, routed PCIC scores
+about the same as it once the few gauges sitting on a side channel or a
+reservoir are set aside
+([research](https://github.com/NewGraphEnvironment/wet/blob/main/research/water_balance_method.md)).
+Its lead is on the coast and on the largest rivers, which that table left out.
+
 ```{r compare, fig.width = 5.5, fig.height = 5.5, out.width = "80%", fig.cap = cap_cmp}
 sq <- data.frame(xmin = -err_cut, xmax = err_cut, ymin = -err_cut, ymax = err_cut)
 both_plot <- both
@@ -490,25 +496,14 @@ ga <- v$gauges_salr
 ga$wb_err <- 100 * (ga$wb_mm / ga$obs_mm - 1)
 ga$rt_err <- 100 * (ga$routed_mm / ga$obs_mm - 1)
 outlet <- ga[ga$holds_salr, ]
-# the balance's share of the gap at each gauge, in log terms like the ratio:
-# log(wb / fwapg) = log(wb / obs) + log(obs / fwapg)
-ga$wb_share <- log(ga$wb_mm / ga$obs_mm) / log(ga$wb_mm / ga$fwapg_mm)
-ga$close <- abs(ga$fw_err) <= 5   # a column, so it follows the reorder below
-close <- ga$close
-# the prose: the balance reads high at every gauge; at the small basins fwapg is
-# within 5% and the gap is nearly all the balance's; at the large ones fwapg is
-# low
+ga$rt_closer <- abs(ga$rt_err) < abs(ga$wb_err)   # a column, so it follows the reorder below
+# the prose: the balance reads high at every gauge; routed PCIC is closer at
+# most of them, the outlet among them, and the balance at the rest, where
+# routed PCIC is off by more than it is
 stopifnot(ratio_salr > 1, all(ga$wb_err > 0), nrow(outlet) == 1,
-          any(close), any(!close), max(ga$area_km2[close]) < min(ga$area_km2[!close]),
-          all(ga$wb_share[close] > 0.9), all(ga$fw_err[!close] < -5),
-          !close[ga$holds_salr])
-# the larger basins off the group: the balance within 5%, so the gap there is
-# nearly all fwapg's; at the outlet the two bracket the observation and share it
-ga$far <- !ga$close & !ga$holds_salr   # a column, so it follows the reorder below
-stopifnot(sum(ga$far) >= 1, all(abs(ga$wb_err[ga$far]) <= 5), all(ga$wb_share[ga$far] < 0.25),
-          outlet$wb_err > 0, outlet$fw_err < 0, ga$wb_share[ga$holds_salr] > 0.25, ga$wb_share[ga$holds_salr] < 0.75)
+          sum(ga$rt_closer) > nrow(ga) / 2, any(!ga$rt_closer), ga$rt_closer[ga$holds_salr],
+          all(abs(ga$rt_err[!ga$rt_closer]) > 10))
 ga <- ga[order(!ga$holds_salr, ga$area_km2), ]
-close <- ga$close
 named <- c(named, ga$station_number)
 gauge_tab <- data.frame(
   Gauge = sprintf("%s %s", ga$station_number, to_title(ga$station_name)),
@@ -559,18 +554,15 @@ prov$min_order)
 Both products cover the `r group_name[["SALR"]]`, a headwater group of the
 Fraser (`r num(group_km2[["SALR"]])` km²), and they differ there. The open
 water balance gives a median `r format(round(ratio_salr, 2), nsmall = 2)`
-times fwapg's value per segment. The `r nrow(ga)` gauges in and around the
-group show which is closer where.
+times routed PCIC's value per segment. The `r nrow(ga)` gauges in and around
+the group show which is closer where.
 
 The balance runs high at all of them, by `r signed(min(ga$wb_err))` to
-`r signed(max(ga$wb_err))`. At the `r sum(close)` smallest basins, fwapg is
-within 5%, so the gap there is the balance's. At the `r sum(!close)` larger
-ones, fwapg runs `r signed(max(ga$fw_err[!close]))` to
-`r signed(min(ga$fw_err[!close]))`. At the `r sum(ga$far)` of those off the
-group, the balance is within `r pct(max(abs(ga$wb_err[ga$far])))`, so the gap
-there is fwapg's. At `r outlet$station_number`, the gauge that drains the
-whole group, they bracket the observation: `r signed(outlet$wb_err)` against
-`r signed(outlet$fw_err)`.
+`r signed(max(ga$wb_err))`. Routed PCIC is closer at `r sum(ga$rt_closer)`,
+including `r outlet$station_number`, the gauge that drains the whole group:
+`r signed(outlet$rt_err)` against the balance's `r signed(outlet$wb_err)`. The
+balance is closer at the other `r sum(!ga$rt_closer)`, where routed PCIC is off
+by `r and_text(signed(ga$rt_err[!ga$rt_closer]))`.
 
 ```{r gauges-salr}
 knitr::kable(gauge_tab, align = "lrrrr", row.names = FALSE,
@@ -604,7 +596,7 @@ ggplot() +
         legend.text = element_text(size = 8), legend.title = element_text(size = 8.5))
 ```
 
-## Bulkley River: the water balance alone
+## Bulkley River: tracing one gauge
 
 ```{r bulk-data}
 gb <- sk[sk$watershed_group_code == "BULK", ]
@@ -614,7 +606,13 @@ gb_pts$class <- err_class(gb_pts$err_pct)
 nb <- nrow(gb)
 bulk_mae <- mean(abs(gb$err_pct))
 bulk_zones <- sort(unique(gb$zone))
-stopifnot(nb > 0, prov$fwapg_discharge_rows[["BULK"]] == 0)
+gb$rt_err <- 100 * (gb$routed_mm / gb$obs - 1)
+bulk_mae_rt <- mean(abs(gb$rt_err))
+# the prose: routed PCIC covers every BULK gauge, and scores worse than the
+# balance here because of the smallest basins, where it is off the most
+rt_worst <- gb[order(-abs(gb$rt_err)), ][1:2, ]
+stopifnot(nb > 0, !anyNA(gb$rt_err), bulk_mae_rt > bulk_mae,
+          all(rt_worst$area_km2 < 25), all(abs(rt_worst$rt_err) > 80))
 named <- c(named, gb$station_number)
 bulk_tab <- data.frame(
   Gauge = sprintf("%s %s", gb$station_number, to_title(gb$station_name)),
@@ -622,6 +620,7 @@ bulk_tab <- data.frame(
   `Observed (mm)` = num(gb$obs),
   `Water balance (mm, held out)` = num(gb$mod),
   Error = signed(gb$err_pct),
+  `Routed PCIC error` = signed(gb$rt_err),
   check.names = FALSE
 )
 
@@ -659,11 +658,14 @@ cap_bulk <- sprintf(paste(
 ), num(nrow(sb_bulk)), num(n_total[["BULK"]]), group_name[["BULK"]], prov$min_order, nb)
 ```
 
-fwapg has no values in the `r group_name[["BULK"]]`, in the Skeena
-(`r num(group_km2[["BULK"]])` km²), which lies outside PCIC's coverage. The
-open water balance is the only estimate there. Its `r nb` gauges average
-`r pct(bulk_mae)` held-out error, from `r signed(min(gb$err_pct))` to
-`r signed(max(gb$err_pct))`, in zones `r and_text(bulk_zones)`.
+The `r group_name[["BULK"]]`, in the Skeena (`r num(group_km2[["BULK"]])`
+km²), lies outside PCIC's gridded output but inside its routed flow. Its
+`r nb` gauges average `r pct(bulk_mae)` held-out error for the balance, from
+`r signed(min(gb$err_pct))` to `r signed(max(gb$err_pct))`, in zones
+`r and_text(bulk_zones)`. Routed PCIC averages `r pct(bulk_mae_rt)` here,
+mostly because of the two smallest basins, where it is off by
+`r and_text(signed(rt_worst$rt_err))`. The map shows the balance alone, to
+trace one gauge from its segment's value.
 
 The map's segment values come from the fit that includes every gauge, while
 the gauges are filled by the held-out error, so a gauge can look worse than
@@ -701,10 +703,10 @@ ggplot() +
 ```
 
 ```{r bulk-table}
-knitr::kable(bulk_tab, align = "lrrrr", row.names = FALSE,
+knitr::kable(bulk_tab, align = "lrrrrr", row.names = FALSE,
              caption = sprintf(paste(
                "The %d calibration gauges in the %s group: mean annual runoff observed in 1981–2010,",
-               "the water balance's held-out prediction, and its error."
+               "the water balance's held-out prediction and its error, and routed PCIC's error."
              ), nb, group_name[["BULK"]]))
 ```
 
@@ -748,9 +750,10 @@ p <- v$parity
 stopifnot(p$n_segments == prov$fwapg_discharge_rows[["SALR"]], p$n_match5 == p$n_segments)
 ```
 
-wet rebuilds fwapg's numbers from PCIC's output with its own code, and on
+Before routed flow, fwapg published an annual table built from PCIC's gridded
+output, with no routing. wet rebuilds that table with its own code, and on
 every one of the `r num(p$n_segments)` `r group_name[["SALR"]]` segments
-fwapg gives a value, it matches fwapg to the five decimals fwapg stores.
+it gives a value, it matches it to the five decimals fwapg stores.
 
 ```{r sampling-data}
 sm <- v$sampling
@@ -769,7 +772,7 @@ cap_samp <- sprintf(paste(
 ), num(nrow(sm)), group_name[["SALR"]])
 ```
 
-fwapg gives each watershed the value of the PCIC cell under its centroid. A
+That table gives each watershed the value of the PCIC cell under its centroid. A
 cell is 0.0625°, about `r round(cell_ns)` by `r round(cell_ew)` km here, so a
 small watershed gets one cell's value. wet can instead weight every cell by
 the area it covers. Under `r area_cut[2]` km², `r pct(100 * moved[[1]])` of
@@ -819,7 +822,9 @@ up$mad_m3s <- wet_mm_to_m3s(up$value, up$upstream_area_m2)
 **Cached inputs.** This article runs on saved outputs: PCIC VIC-GL through
 `scripts/mad_parity.R`; the open water balance from province run
 `r prov$province_run` (annual AET `r prov$aet`, HYDAT release
-`r substr(prov$hydat_release, 1, 10)`); fwapg's values at the gauges; built
+`r substr(prov$hydat_release, 1, 10)`); routed PCIC from fwapg at commit
+`r prov$routed_commit` (`r prov$routed_fingerprint`), scored in
+`r prov$routed_report`; built
 `r paste(as.integer(format(prov$built, "%d")), format(prov$built, "%B %Y"))` at commit `r prov$wet_commit`. Regenerated by
 `data-raw/segment_vignette_data.R`. Map layers from the Freshwater Atlas
 (fwapg), BC Geographic Names and the BC Hydrologic Zones, by

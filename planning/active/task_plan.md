@@ -62,15 +62,15 @@ Decided at the gate:
 - [x] Rebuild `inst/vignette-data/*.rds` (budget 500 KB). Tests pass.
 
 ## Phase 5: Vignette
-- [ ] "Two estimates":
+- [x] "Two estimates":
   - The column becomes routed PCIC (fwapg#6), with values on segments.
   - The table rows are rewritten. "Largest rivers" is now covered, "Time" is monthly 1951–2012, and "Where it has values" is the routed domain (no Liard).
   - Scatter, captions, assertions and the "which to use" guidance are recomputed.
-- [ ] Province map: the coverage outline and caption.
-- [ ] SALR: a routed | balance map, and a gauge table with a routed column. The prose and every `stopifnot` are re-derived from the new numbers, not adapted.
-- [ ] BULK: drop "outside PCIC's coverage". It stays the balance's worked example, with a routed column in its gauge table.
-- [ ] Glossary: "fwapg" now names the routed table's source (fwapg#6). "How it is built" keeps the annual-table parity, labelled as such.
-- [ ] Render the vignette. Self-review the maps and figures at their published width (CLAUDE.md cartography checks 1–12).
+- [x] Province map: the coverage outline and caption.
+- [x] SALR: a routed | balance map, and a gauge table with a routed column. The prose and every `stopifnot` are re-derived from the new numbers, not adapted.
+- [x] BULK: drop "outside PCIC's coverage". It stays the balance's worked example, with a routed column in its gauge table.
+- [x] Glossary: "fwapg" now names the routed table's source (fwapg#6). "How it is built" keeps the annual-table parity, labelled as such.
+- [x] Render the vignette. Self-review the maps and figures at their published width (CLAUDE.md cartography checks 1–12).
 
 ## Phase 6: Docs and issues
 - [x] CLAUDE.md Architecture: add `scripts/pcic_routed_compare.R` and its report. Update the vignette paragraph, which still says it compares "the open water balance and fwapg (PCIC)".
@@ -87,7 +87,7 @@ Decided at the gate:
 - [x] Do not commit the 4929c8c report (it named a guess); it is overwritten by the pinned run
 
 ## Validation
-- [ ] Vignette body prose under its 1,600-word cap
+- [x] Vignette body prose under its 1,600-word cap
 - [ ] Tests pass; `lintr::lint_package()` clean; vignette renders
 - [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
 - [ ] PWF checkboxes match landed work
