@@ -1,6 +1,6 @@
 # PCIC routed flow against the open water balance at the calibration gauges (#58)
 
-wet commit fff7c18; fit 20260717 (HYDAT 2026-07-17 08:08:08.000), province run 962a9cc2c4, scoring code 94d05b195898abea5bd87cc0bd65018d; balance adjusted, held out (blocked CV)
+wet commit eec2a75; fit 20260717 (HYDAT 2026-07-17 08:08:08.000), province run 962a9cc2c4, scoring code 94d05b195898abea5bd87cc0bd65018d; balance adjusted, held out (blocked CV)
 routed: whse_basemapping.fwa_stream_networks_discharge_monthly, built by NewGraphEnvironment/fwapg at 341b078
 table: 40524444 rows, 3377037 segments, 0 null flows, total 178035348.248310 m3/s
 routed per gauge: the mean of the 12 monthly means (1951-2012, unweighted by month length) on the segment
@@ -23,23 +23,20 @@ Columbia                 78    23.7  32.7    13.1  15.1     68   54     +7.8  +1
 Coast                    94    18.9  25.1    10.8  15.9     66   59     -3.0   +6.4     60
 
 ## The default pick (#57): routed unless it carries under the cut of the balance, then the balance
-cut 0.20, against the held-out balance; error as % of observed
+cut 0.20, against the held-out balance; side channels keep routed; error as % of observed
                                 n   mean median  +-20    bias
-pick, the 290 with routed     290   22.3   12.9    63    +3.9
+pick, the 290 with routed     290   22.9   12.9    62    +2.9
 routed, the 290               290   24.1   13.0    62    +0.2
 balance, the 290              290   27.6   18.0    54    +9.0
-pick, every gauge (315)       315   22.6   14.0    61    +3.8
+pick, every gauge (315)       315   23.2   14.0    61    +2.9
 balance, every gauge (315)    315   27.5   18.5    53    +8.5
-gauges where the pick is the balance although routed has a value: 10; the balance closer at 9
+gauges where the pick is the balance although routed has a value: 7; the balance closer at 6
 station    basin       obs  routed balance  r_err  b_err  name
 08JA015    Fraser     2046       0    1520 -100.0  -25.7  LAVENTIE CREEK NEAR THE MOUTH
 08JA028    Fraser      786       0     516 -100.0  -34.4  EUTSUK RIVER AT OUTLET OF EUTSUK L
 08JA016    Fraser      468       0     486  -99.9   +3.9  MACIVOR CREEK NEAR THE MOUTH
-08KH006    Fraser      655       1     491  -99.9  -25.1  QUESNEL RIVER NEAR QUESNEL
 08JA014    Fraser      185       0     119  -99.8  -35.7  VAN TINE CREEK NEAR THE MOUTH
 08DB013    Coast      1435       2    2103  -99.8  +46.6  ANSEDAGAN CREEK NEAR NEW AIYANSH
-08KG003    Fraser       64       5      91  -92.4  +41.4  BAEZAEKO RIVER AT LOT 10262
-08MH141    Fraser     4277     631    3508  -85.2  -18.0  COQUITLAM RIVER ABOVE COQUITLAM LA
 08DB014    Coast      1029     178    2222  -82.7 +116.0  KSEDIN TRIBUTARY NO. 2 CREEK NEAR 
 08LG066    Fraser       62      19      97  -69.5  +55.8  CHATAWAY CREEK NEAR THE MOUTH
 
@@ -314,10 +311,10 @@ station   basin     nesting        km2    obs  routed  annual balance  r_err  b_
 08KE032   Fraser    headwater        67    210     283     274     385  +34.8  +83.4  rt    TABOR CREEK ABOVE SWEDE CREEK
 08KF001   Fraser    headwater      3163     44      55      55      85  +26.0  +93.4  rt    NAZKO RIVER ABOVE MICHELLE CREEK
 08KG001   Fraser    nested        12391     84      78       -      87   -7.0   +4.0  rt    WEST ROAD RIVER NEAR CINEMA
-08KG003   Fraser    headwater      1017     64       5      57      91  -92.4  +41.4  bal   BAEZAEKO RIVER AT LOT 10262
+08KG003   Fraser    headwater      1017     64       5      57      91  -92.4  +41.4  rt    BAEZAEKO RIVER AT LOT 10262
 08KH001   Fraser    nested         5963    686     667       -     530   -2.7  -22.8  rt    QUESNEL RIVER AT LIKELY
 08KH003   Fraser    headwater      3264    904     798     807     719  -11.8  -20.5  rt    CARIBOO RIVER BELOW KANGAROO CREEK
-08KH006   Fraser    nested        11571    655       1       -     491  -99.9  -25.1  bal   QUESNEL RIVER NEAR QUESNEL
+08KH006   Fraser    nested        11571    655       1       -     491  -99.9  -25.1  rt    QUESNEL RIVER NEAR QUESNEL
 08KH010   Fraser    headwater       782    783     603     620     749  -22.9   -4.4  rt    HORSEFLY RIVER ABOVE MCKINLEY CREE
 08KH019   Fraser    headwater       554    192     410     415     260 +113.6  +35.6  rt    MOFFAT CREEK NEAR HORSEFLY
 08KH030   Fraser    headwater       185   1063    1367    1384     955  +28.5  -10.2  rt    PENFOLD CREEK NEAR THE MOUTH
@@ -370,7 +367,7 @@ station   basin     nesting        km2    obs  routed  annual balance  r_err  b_
 08MG026   Fraser    headwater        94   1267    2455    1630    1808  +93.7  +42.7  rt    FITZSIMMONS CREEK BELOW BLACKCOMB 
 08MH006   Fraser    headwater        35   2501    1733    1787    1915  -30.7  -23.4  rt    NORTH ALOUETTE RIVER AT 232ND STRE
 08MH076   Fraser    headwater        48   1731    1308    1328    1706  -24.4   -1.5  rt    KANAKA CREEK NEAR WEBSTER CORNERS
-08MH141   Fraser    headwater        49   4277     631    3317    3508  -85.2  -18.0  bal   COQUITLAM RIVER ABOVE COQUITLAM LA
+08MH141   Fraser    headwater        49   4277     631    3317    3508  -85.2  -18.0  rt    COQUITLAM RIVER ABOVE COQUITLAM LA
 08MH147   Fraser    headwater       290   3708    4015    4066    3308   +8.3  -10.8  rt    STAVE RIVER ABOVE STAVE LAKE
 08MH154   Fraser    headwater        26   1000       -     864     833      -  -16.7  bal   MAHOOD CREEK AT 144 STREET, SURREY
 08MH155   Fraser    headwater        71    896       -     563     830      -   -7.4  bal   NICOMEKL RIVER AT 203 STREET, LANG
