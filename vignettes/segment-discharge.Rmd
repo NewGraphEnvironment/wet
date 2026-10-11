@@ -263,16 +263,16 @@ knitr::kable(models, align = "lll", row.names = FALSE,
 
 Which to use depends on the job:
 
-- Where routed PCIC has a value, which is most of BC outside the Liard:
-  routed PCIC, which fits gauges more closely, most of all on larger rivers.
-- In the Liard, for one consistent layer across BC from open code, or for
-  1981–2010 normals: the open water balance.
+- Where routed PCIC has a value, which is most of BC: routed PCIC, which fits
+  gauges more closely, most of all on larger rivers.
+- Where it has none (mainly the Liard), for one consistent layer across BC from
+  open code, or for 1981–2010 normals: the open water balance.
 - Where both exist and the number matters: both, checked against the nearest
   gauge, as the Salmon River section below does.
 
 Where fwapg's older, unrouted annual table also had values, routed PCIC scores
-about the same as it once the few gauges sitting on a side channel or a
-reservoir are set aside
+about the same as it once the few gauges where routed flow reads almost nothing
+are set aside
 ([research](https://github.com/NewGraphEnvironment/wet/blob/main/research/water_balance_method.md)).
 Its lead is on the coast and on the largest rivers, which that table left out.
 
@@ -611,10 +611,13 @@ bulk_zones <- sort(unique(gb$zone))
 gb$rt_err <- 100 * (gb$routed_mm / gb$obs - 1)
 bulk_mae_rt <- mean(abs(gb$rt_err))
 # the prose: routed PCIC covers every BULK gauge, and scores worse than the
-# balance here because of the smallest basins, where it is off the most
+# balance here mostly because of two small creeks (under 25 km2), where it is
+# off the most; without them it is no worse than the balance
 rt_worst <- gb[order(-abs(gb$rt_err)), ][1:2, ]
+rest <- !gb$station_number %in% rt_worst$station_number
 stopifnot(nb > 0, !anyNA(gb$rt_err), bulk_mae_rt > bulk_mae,
-          all(rt_worst$area_km2 < 25), all(abs(rt_worst$rt_err) > 80))
+          all(rt_worst$area_km2 < 25), all(abs(rt_worst$rt_err) > 80),
+          mean(abs(gb$rt_err[rest])) <= mean(abs(gb$err_pct[rest])))
 named <- c(named, gb$station_number)
 bulk_tab <- data.frame(
   Gauge = sprintf("%s %s", gb$station_number, to_title(gb$station_name)),
@@ -665,7 +668,7 @@ km²), lies outside PCIC's gridded output but inside its routed flow. Its
 `r nb` gauges average `r pct(bulk_mae)` held-out error for the balance, from
 `r signed(min(gb$err_pct))` to `r signed(max(gb$err_pct))`, in zones
 `r and_text(bulk_zones)`. Routed PCIC averages `r pct(bulk_mae_rt)` here,
-mostly because of the two smallest basins, where it is off by
+mostly because of two creeks under 25 km², where it is off by
 `r and_text(signed(rt_worst$rt_err))`. The map shows the balance alone, to
 trace one gauge from its segment's value.
 
@@ -726,7 +729,9 @@ stopifnot(isTRUE(prov$keep_adjust), isFALSE(prov$gate_pass), identical(prov$pool
 
 In order of how much they affect a user:
 
-- **Coverage.** In the Liard, the open water balance is the only estimate.
+- **Coverage.** In the Liard, and in a few northern and border basins (the
+  Yukon and Alsek headwaters, the Hay, the Skagit), the open water balance is
+  the only estimate.
 - **Dry zones.** In zone `r worst` and the other semi-arid interior zones,
   runoff is a small remainder of precipitation, so a small error in
   evapotranspiration is a large one in runoff.
