@@ -77,6 +77,11 @@ shipped_heldout <- function() {
 # default source (wet_source_pick(), #57)
 routed_far_low <- 0.2
 
+# FWA secondary-flow edge types (fwa_edge_type_codes: single line, construction
+# line and canal, secondary flow): side channels, which keep routed flow in
+# the default pick (wet_source_pick(), #57)
+routed_secondary_edges <- c(1100L, 1150L, 1300L, 1350L, 2300L)
+
 # the major basins, by Water Survey sub-drainage
 routed_basin <- function(st) {
   p <- substr(st, 1, 3)

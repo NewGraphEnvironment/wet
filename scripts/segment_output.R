@@ -23,7 +23,9 @@
 #   is NA: coverage is the share of a watershed's area the balance's inputs
 #   cover.
 # - pick: wet_source_pick() on annual flow at routed_far_low, the same source
-#   for all 13 months.
+#   for all 13 months. Side channels (routed_secondary_edges) keep routed: the
+#   lut gives most of them the main river's watershed, so the balance there is
+#   the whole river's flow.
 # - period: routed 1951-2012, the balance 1981-2010 (#57's decision, until
 #   fwapg builds routed flow over 1981-2010).
 #
@@ -120,7 +122,7 @@ for (code in codes) {
   i_seg <- which(seg$watershed_feature_id %in% ws)
   if (any(!is.na(seg$basin[i_seg]))) stop("segments of basin ", code, " already belong to another basin")
   seg$basin[i_seg] <- code
-  s <- seg[i_seg, c("linear_feature_id", "watershed_feature_id")]
+  s <- seg[i_seg, c("linear_feature_id", "watershed_feature_id", "edge_type")]
 
   # the balance: the watershed's value on each of its segments. wb_output.R
   # writes the watersheds in one order, month by month
@@ -143,7 +145,8 @@ for (code in codes) {
   # some basins (the Yukon and Liard headwaters) have no routed segment at all
   rt0 <- if (nrow(rt)) stats::aggregate(q_m3s ~ linear_feature_id, rt, mean) else rt[c("linear_feature_id", "q_m3s")]
   s$q_routed <- rt0$q_m3s[match(s$linear_feature_id, rt0$linear_feature_id)]
-  s$source <- wet_source_pick(s$q_routed, s$q_balance, routed_far_low)
+  s$source <- wet_source_pick(s$q_routed, s$q_balance, routed_far_low,
+                              secondary = s$edge_type %in% routed_secondary_edges)
 
   # balance rows: 13 per segment whose watershed has a value
   kb <- which(!is.na(s$q_balance))
@@ -246,8 +249,9 @@ writeLines(c(
   sprintf("wet commit %s; fit %s, province run %s, scoring code %s", wet_commit, release, basename(key_dir),
           score_code_md5),
   routed_line, sprintf("table: %s", routed_fp),
-  sprintf("pick: routed PCIC unless its annual flow is under %.2f x the balance's, then the balance (wet_source_pick)",
+  sprintf("pick: routed PCIC unless its annual flow is under %.2f x the balance's, then the balance (wet_source_pick);",
           routed_far_low),
+  sprintf("side channels (edge types %s) keep routed", paste(routed_secondary_edges, collapse = ", ")),
   sprintf("periods: routed %s, balance %s", period_routed, period_balance), "",
   "## Segments",
   sprintf("FWA segments: %d; with a watershed in the lut: %d; without (no value from either source): %d",

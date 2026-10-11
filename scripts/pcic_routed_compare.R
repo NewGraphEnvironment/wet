@@ -69,8 +69,9 @@ g$basin <- routed_basin(g$station_number)
 g$edge_type <- edge$edge_type[match(g$linear_feature_id, edge$linear_feature_id)]
 # The default pick (#57, scripts/segment_output.R) at each gauge, made against
 # the held-out balance so it uses no observed flow; mm over one area compare
-# as the flows do. Its error is the picked source's.
-g$pick <- wet_source_pick(g$routed_mm, g$mod, routed_far_low)
+# as the flows do. Its error is the picked source's. A gauge snapped to a side
+# channel keeps routed, as the segment does.
+g$pick <- wet_source_pick(g$routed_mm, g$mod, routed_far_low, secondary = g$edge_type %in% routed_secondary_edges)
 stopifnot(!anyNA(g$pick))
 g$pick_err <- ifelse(g$pick == "pcic_routed", g$routed_err, g$err_pct)
 cov <- g[!is.na(g$routed_mm), ]
@@ -118,7 +119,8 @@ lines <- c(
   vapply(basins, function(b) score_line(b, cov$basin == b), ""),
   "",
   "## The default pick (#57): routed unless it carries under the cut of the balance, then the balance",
-  sprintf("cut %.2f, against the held-out balance; error as %% of observed", routed_far_low),
+  sprintf("cut %.2f, against the held-out balance; side channels keep routed; error as %% of observed",
+          routed_far_low),
   sprintf("%-28s %4s %6s %6s %5s %7s", "", "n", "mean", "median", sprintf("+-%d", err_cut), "bias"),
   {
     line <- function(lab, e) {
