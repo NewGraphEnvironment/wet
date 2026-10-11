@@ -102,15 +102,18 @@ the Water Survey of Canada’s archive of flow measured at gauges. A
 <em>calibration gauge</em> is one of the 315 HYDAT gauges the water
 balance is fitted and scored on.</li>
 <li>
-<strong><a href="https://services.pacificclimate.org/portal/hydro_model_out/map/" class="external-link">PCIC
-hydrologic model output</a></strong>: runoff and baseflow from the
-Pacific Climate Impacts Consortium’s VIC-GL model, on a grid of 0.0625°
-cells. It covers the Peace, Fraser and Columbia.</li>
+<strong>PCIC’s models</strong>: the Pacific Climate Impacts
+Consortium runs the VIC-GL model of snow, glaciers, soil and runoff on a
+grid of 0.0625° cells, and routes its runoff down rivers with the Raven
+model (<a href="https://beehive.pacificclimate.org/chyp/" class="external-link">hydromosaic</a>). The
+gridded <a href="https://services.pacificclimate.org/portal/hydro_model_out/map/" class="external-link">output</a>
+covers the Peace, Fraser and Columbia; the routed flow also covers the
+coast.</li>
 <li>
 <strong><a href="https://github.com/smnorris/fwapg" class="external-link">fwapg</a></strong>: an open
-database toolkit for the Freshwater Atlas. It publishes a mean annual
-discharge per segment from PCIC’s output, and “fwapg” below means that
-estimate.</li>
+database toolkit for the Freshwater Atlas. New Graph’s <a href="https://github.com/NewGraphEnvironment/fwapg/pull/6" class="external-link">fork</a>
+places PCIC’s routed outlets on Freshwater Atlas segments and gives each
+segment a monthly flow. “Routed PCIC” below means that estimate.</li>
 <li>
 <strong>Open water balance</strong>: wet’s own estimate, after <a href="https://www2.gov.bc.ca/assets/gov/environment/air-land-water/water/northeast-water-strategy/chapman_et_al-2018-jawra.pdf" class="external-link">Chapman
 et al. (2018)</a>, the method behind the province’s <a href="https://www2.gov.bc.ca/gov/content/environment/air-land-water/water/water-science-data/water-data-tools" class="external-link">water
@@ -144,59 +147,64 @@ percentage of observed. One scale runs through every figure: more than
 built different ways. They suit different jobs.</p>
 <table class="table">
 <caption>The two estimates. The balance is scored at gauges held out of
-its fit; the gauges PCIC calibrated to are not listed with its output.
-The two fits are not strictly like for like.</caption>
+its fit; PCIC does not list the gauges it calibrated to, so its errors
+may be partly in sample. Routed flow covers 1951–2012 and the balance
+1981–2010. The two fits are not strictly like for like.</caption>
 <colgroup>
-<col width="13%">
-<col width="43%">
-<col width="42%">
+<col width="10%">
+<col width="56%">
+<col width="32%">
 </colgroup>
 <thead><tr class="header">
 <th align="left"></th>
-<th align="left">PCIC VIC-GL, through fwapg</th>
+<th align="left">Routed PCIC</th>
 <th align="left">wet’s open water balance</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="left">What it is</td>
-<td align="left">A physically based model of snow, glaciers, soil and
-runoff, calibrated over 1985–2005</td>
+<td align="left">VIC-GL, a physically based model of snow, glaciers,
+soil and runoff, routed down rivers by Raven</td>
 <td align="left">Precipitation less evapotranspiration per grid cell,
 adjusted by hydrologic zone against HYDAT gauges</td>
 </tr>
 <tr class="even">
 <td align="left">Where it has values</td>
-<td align="left">Peace, Fraser and Columbia (112 watershed groups);
-fwapg’s table leaves out rivers of order 8 and up</td>
+<td align="left">Peace, Fraser, Columbia and most of the coast (most
+segments in 186 watershed groups; only some on the outer islands); not
+the Liard, where 19 of the 25 gauges without it lie</td>
 <td align="left">All of BC: every segment with a watershed</td>
 </tr>
 <tr class="odd">
-<td align="left">Fit at the 183 gauges both cover</td>
-<td align="left">25.3% mean absolute error; 59% within ±20%</td>
-<td align="left">30.3% mean absolute error (held out); 49% within
-±20%</td>
+<td align="left">Fit at the 290 gauges both cover</td>
+<td align="left">24.1% mean absolute error; 62% within ±20%; bias
++0%</td>
+<td align="left">27.6% mean absolute error (held out); 54% within ±20%;
+bias +9%</td>
 </tr>
 <tr class="even">
 <td align="left">Largest rivers</td>
-<td align="left">Not in fwapg’s table; wet can rebuild them from PCIC’s
-output (<code>scripts/mad_basin.R</code>, run for the Fraser)</td>
-<td align="left">14.0% mean absolute error at the 18 gauges in PCIC’s
-area where fwapg has no value, mostly on these</td>
+<td align="left">Routed flow on 19,949 of 20,224 segments of order 8 and
+up in its area; 11.9% mean absolute error at the 103 gauges over 1,000
+km²</td>
+<td align="left">20.6% mean absolute error at the same 103 gauges</td>
 </tr>
 <tr class="odd">
 <td align="left">Grid</td>
-<td align="left">0.0625°, about 7 × 4 km</td>
+<td align="left">0.0625°, about 7 × 4 km; flow between outlets is spread
+by drainage area</td>
 <td align="left">30″, about 0.9 × 0.5 km</td>
 </tr>
 <tr class="even">
 <td align="left">Time</td>
-<td align="left">Daily, 1945–2012; twelve climate projections to
-2099</td>
+<td align="left">Monthly means, 1951–2012; no climate projections placed
+on the FWA yet</td>
 <td align="left">1981–2010 normals, annual and monthly</td>
 </tr>
 <tr class="odd">
 <td align="left">Open to rebuild</td>
-<td align="left">Output is public; the model runs are PCIC’s</td>
+<td align="left">Output is public; the model and routing set-ups are
+PCIC’s; the placement on the FWA is open (fwapg)</td>
 <td align="left">Code ships with wet; its inputs are public and fetched
 by its scripts</td>
 </tr>
@@ -204,21 +212,29 @@ by its scripts</td>
 </table>
 <p>Which to use depends on the job:</p>
 <ul>
-<li>Inside the Peace, Fraser and Columbia, where fwapg has a value:
-PCIC’s model, which fits gauges more closely there.</li>
-<li>Outside those basins, on the rivers fwapg leaves out, or for one
-consistent layer across BC: the open water balance.</li>
+<li>Where routed PCIC has a value, which is most of BC: routed PCIC,
+which fits gauges more closely overall, most of all on larger rivers. By
+mean error the balance is slightly closer in the Peace and the
+Fraser.</li>
+<li>Where it has none (mainly the Liard), for one consistent layer
+across BC from open code, or for 1981–2010 normals: the open water
+balance.</li>
 <li>Where both exist and the number matters: both, checked against the
 nearest gauge, as the Salmon River section below does.</li>
 </ul>
+<p>Where fwapg’s older, unrouted annual table also had values, routed
+PCIC scores about the same as it once the few gauges where routed flow
+reads almost nothing are set aside (<a href="https://github.com/NewGraphEnvironment/wet/blob/main/research/water_balance_method.md" class="external-link">research</a>).
+What it adds is coverage: the coast and the largest rivers, which that
+table left out.</p>
 <div class="figure">
-<img src="segment-discharge_files/figure-html/compare-1.png" class="r-plt" alt="Error at each of the 183 calibration gauges both estimates cover: fwapg's across, the water balance's (held out) up. The shaded square holds the gauges both put within ±20%. Between the dashed diagonals, the left and right wedges hold gauges where the balance is closer, the top and bottom wedges those where fwapg is. 2 gauges beyond +200% are drawn at the edge." width="80%"><p class="caption">
-Error at each of the 183 calibration gauges both estimates cover:
-fwapg’s across, the water balance’s (held out) up. The shaded square
+<img src="segment-discharge_files/figure-html/compare-1.png" class="r-plt" alt="Error at each of the 290 calibration gauges both estimates cover: routed PCIC's across, the water balance's (held out) up. The shaded square holds the gauges both put within ±20%. Between the dashed diagonals, the left and right wedges hold gauges where the balance is closer, the top and bottom wedges those where routed PCIC is. 1 gauge beyond +200% is drawn at the edge." width="80%"><p class="caption">
+Error at each of the 290 calibration gauges both estimates cover: routed
+PCIC’s across, the water balance’s (held out) up. The shaded square
 holds the gauges both put within ±20%. Between the dashed diagonals, the
 left and right wedges hold gauges where the balance is closer, the top
-and bottom wedges those where fwapg is. 2 gauges beyond +200% are drawn
-at the edge.
+and bottom wedges those where routed PCIC is. 1 gauge beyond +200% is
+drawn at the edge.
 </p>
 </div>
 </div>
@@ -232,10 +248,10 @@ basins over 1,000 km² average 20% against 40% for those under 100 km².
 One zone stands out: zone 24, the Southern Thompson Plateau, a semi-arid
 interior plateau, where the 9 gauges average 93%.</p>
 <div class="figure">
-<img src="segment-discharge_files/figure-html/map-province-1.png" class="r-plt" alt="The 315 calibration gauges, filled by the water balance's held-out error at each. PCIC's coverage, where fwapg also has values, is outlined; zone 24, the weakest, is shaded; the two groups mapped below are in black." width="100%"><p class="caption">
+<img src="segment-discharge_files/figure-html/map-province-1.png" class="r-plt" alt="The 315 calibration gauges, filled by the water balance's held-out error at each. Routed PCIC's coverage is outlined; zone 24, the weakest, is shaded; the two groups mapped below are in black." width="100%"><p class="caption">
 The 315 calibration gauges, filled by the water balance’s held-out error
-at each. PCIC’s coverage, where fwapg also has values, is outlined; zone
-24, the weakest, is shaded; the two groups mapped below are in black.
+at each. Routed PCIC’s coverage is outlined; zone 24, the weakest, is
+shaded; the two groups mapped below are in black.
 </p>
 </div>
 <div class="figure">
@@ -251,31 +267,29 @@ bar.
 </h2>
 <p>Both products cover the Salmon River, a headwater group of the Fraser
 (1,794 km²), and they differ there. The open water balance gives a
-median 1.37 times fwapg’s value per segment. The 5 gauges in and around
-the group show which is closer where.</p>
-<p>The balance runs high at all of them, by +2% to +26%. At the 2
-smallest basins, fwapg is within 5%, so the gap there is the balance’s.
-At the 3 larger ones, fwapg runs −14% to −25%. At the 2 of those off the
-group, the balance is within 3%, so the gap there is fwapg’s. At
-08KC001, the gauge that drains the whole group, they bracket the
-observation: +26% against −25%.</p>
-<table style="width:100%;" class="table">
+median 1.23 times routed PCIC’s value per segment. The 5 gauges in and
+around the group show which is closer where.</p>
+<p>The balance runs high at all of them, by +2% to +26%. Routed PCIC is
+closer at 3, including 08KC001, the gauge that drains the whole group:
+−7% against the balance’s +26%. The balance is closer at the other 2,
+where routed PCIC is off by +31% and −12%.</p>
+<table class="table">
 <caption>Calibration gauges within 30 km of the Salmon River group, and
 its outlet gauge (first row): mean annual runoff observed in 1981–2010,
 and each product’s error against it.</caption>
 <colgroup>
-<col width="42%">
+<col width="40%">
+<col width="10%">
+<col width="13%">
+<col width="24%">
 <col width="11%">
-<col width="14%">
-<col width="25%">
-<col width="6%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">Gauge</th>
 <th align="right">Area (km²)</th>
 <th align="right">Observed (mm)</th>
 <th align="right">Water balance (held out)</th>
-<th align="right">fwapg</th>
+<th align="right">Routed PCIC</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
@@ -283,54 +297,56 @@ and each product’s error against it.</caption>
 <td align="right">4,227</td>
 <td align="right">205</td>
 <td align="right">+26%</td>
-<td align="right">−25%</td>
+<td align="right">−7%</td>
 </tr>
 <tr class="even">
 <td align="left">08KC003 Muskeg River north of Joanne Lake</td>
 <td align="right">297</td>
 <td align="right">224</td>
 <td align="right">+24%</td>
-<td align="right">−2%</td>
+<td align="right">+31%</td>
 </tr>
 <tr class="odd">
 <td align="left">08JE004 Tsilcoh River near the Mouth</td>
 <td align="right">439</td>
 <td align="right">180</td>
 <td align="right">+18%</td>
-<td align="right">−1%</td>
+<td align="right">+4%</td>
 </tr>
 <tr class="even">
 <td align="left">07ED001 Nation River near Fort St. James</td>
 <td align="right">4,356</td>
 <td align="right">401</td>
 <td align="right">+2%</td>
-<td align="right">−14%</td>
+<td align="right">−12%</td>
 </tr>
 <tr class="odd">
 <td align="left">08JE001 Stuart River near Fort St. James</td>
 <td align="right">14,235</td>
 <td align="right">285</td>
 <td align="right">+3%</td>
-<td align="right">−17%</td>
+<td align="right">−0%</td>
 </tr>
 </tbody>
 </table>
 <div class="figure">
-<img src="segment-discharge_files/figure-html/map-salr-1.png" class="r-plt" alt="Mean annual discharge on 2,180 of the 2,181 Salmon River segments of order 3 or more, from fwapg (left) and the open water balance (right), with the gauges of the table filled by each product's error. Rivers outside the group are grey." width="100%"><p class="caption">
+<img src="segment-discharge_files/figure-html/map-salr-1.png" class="r-plt" alt="Mean annual discharge on 2,180 of the 2,181 Salmon River segments of order 3 or more, from routed PCIC (left) and the open water balance (right), with the gauges of the table filled by each product's error. Rivers outside the group are grey." width="100%"><p class="caption">
 Mean annual discharge on 2,180 of the 2,181 Salmon River segments of
-order 3 or more, from fwapg (left) and the open water balance (right),
-with the gauges of the table filled by each product’s error. Rivers
-outside the group are grey.
+order 3 or more, from routed PCIC (left) and the open water balance
+(right), with the gauges of the table filled by each product’s error.
+Rivers outside the group are grey.
 </p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="bulkley-river-the-water-balance-alone">Bulkley River: the water balance alone<a class="anchor" aria-label="anchor" href="#bulkley-river-the-water-balance-alone"></a>
+<h2 id="bulkley-river-tracing-one-gauge">Bulkley River: tracing one gauge<a class="anchor" aria-label="anchor" href="#bulkley-river-tracing-one-gauge"></a>
 </h2>
-<p>fwapg has no values in the Bulkley River, in the Skeena (7,762 km²),
-which lies outside PCIC’s coverage. The open water balance is the only
-estimate there. Its 7 gauges average 37% held-out error, from −40% to
-+85%, in zones 08 and 09.</p>
+<p>The Bulkley River, in the Skeena (7,762 km²), lies outside PCIC’s
+gridded output but inside its routed flow. Its 7 gauges average 37%
+held-out error for the balance, from −40% to +85%, in zones 08 and 09.
+Routed PCIC averages 57% here, mostly because of two creeks under 25
+km², where it is off by +196% and −86%. The map shows the balance alone,
+to trace one gauge from its segment’s value.</p>
 <p>The map’s segment values come from the fit that includes every gauge,
 while the gauges are filled by the held-out error, so a gauge can look
 worse than the segment it sits on. Take 08EE004, Bulkley River at Quick
@@ -349,13 +365,14 @@ marks the group in BC.
 <table class="table">
 <caption>The 7 calibration gauges in the Bulkley River group: mean
 annual runoff observed in 1981–2010, the water balance’s held-out
-prediction, and its error.</caption>
+prediction and its error, and routed PCIC’s error.</caption>
 <colgroup>
-<col width="42%">
-<col width="10%">
-<col width="13%">
-<col width="27%">
-<col width="5%">
+<col width="36%">
+<col width="9%">
+<col width="11%">
+<col width="23%">
+<col width="4%">
+<col width="14%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">Gauge</th>
@@ -363,6 +380,7 @@ prediction, and its error.</caption>
 <th align="right">Observed (mm)</th>
 <th align="right">Water balance (mm, held out)</th>
 <th align="right">Error</th>
+<th align="right">Routed PCIC error</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
@@ -371,6 +389,7 @@ prediction, and its error.</caption>
 <td align="right">561</td>
 <td align="right">500</td>
 <td align="right">−11%</td>
+<td align="right">−10%</td>
 </tr>
 <tr class="even">
 <td align="left">08EE013 Buck Creek at the Mouth</td>
@@ -378,6 +397,7 @@ prediction, and its error.</caption>
 <td align="right">238</td>
 <td align="right">193</td>
 <td align="right">−19%</td>
+<td align="right">+38%</td>
 </tr>
 <tr class="odd">
 <td align="left">08EE020 Telkwa River below Tsai Creek</td>
@@ -385,6 +405,7 @@ prediction, and its error.</caption>
 <td align="right">1,234</td>
 <td align="right">792</td>
 <td align="right">−36%</td>
+<td align="right">−12%</td>
 </tr>
 <tr class="even">
 <td align="left">08EE008 Goathorn Creek near Telkwa</td>
@@ -392,6 +413,7 @@ prediction, and its error.</caption>
 <td align="right">449</td>
 <td align="right">650</td>
 <td align="right">+45%</td>
+<td align="right">+24%</td>
 </tr>
 <tr class="odd">
 <td align="left">08EE025 Two Mile Creek in District Lot 4834</td>
@@ -399,6 +421,7 @@ prediction, and its error.</caption>
 <td align="right">180</td>
 <td align="right">334</td>
 <td align="right">+85%</td>
+<td align="right">+196%</td>
 </tr>
 <tr class="even">
 <td align="left">08EE012 Simpson Creek at the Mouth</td>
@@ -406,6 +429,7 @@ prediction, and its error.</caption>
 <td align="right">631</td>
 <td align="right">757</td>
 <td align="right">+20%</td>
+<td align="right">+35%</td>
 </tr>
 <tr class="odd">
 <td align="left">08EE028 Station Creek above Diversions</td>
@@ -413,6 +437,7 @@ prediction, and its error.</caption>
 <td align="right">894</td>
 <td align="right">539</td>
 <td align="right">−40%</td>
+<td align="right">−86%</td>
 </tr>
 </tbody>
 </table>
@@ -423,8 +448,11 @@ prediction, and its error.</caption>
 <p>In order of how much they affect a user:</p>
 <ul>
 <li>
-<strong>Coverage.</strong> Outside the Peace, Fraser and Columbia,
-the open water balance is the only estimate.</li>
+<strong>Coverage.</strong> In the Liard, and in a few northern and
+border basins (the Yukon and Alsek headwaters, the Hay, the Skagit),
+routed PCIC has no value or almost none, and on the outer coast’s
+islands it reaches only some segments. There the open water balance is
+the estimate to use.</li>
 <li>
 <strong>Dry zones.</strong> In zone 24 and the other semi-arid
 interior zones, runoff is a small remainder of precipitation, so a small
@@ -451,10 +479,11 @@ left off the maps, which leaves short gaps in some streams.</li>
 <div class="section level2">
 <h2 id="how-it-is-built">How it is built<a class="anchor" aria-label="anchor" href="#how-it-is-built"></a>
 </h2>
-<p>wet rebuilds fwapg’s numbers from PCIC’s output with its own code,
-and on every one of the 9,000 Salmon River segments fwapg gives a value,
-it matches fwapg to the five decimals fwapg stores.</p>
-<p>fwapg gives each watershed the value of the PCIC cell under its
+<p>Before routed flow, fwapg published an annual table built from PCIC’s
+gridded output, with no routing. wet rebuilds that table with its own
+code, and on every one of the 9,000 Salmon River segments it gives a
+value, it matches it to the five decimals fwapg stores.</p>
+<p>That table gives each watershed the value of the PCIC cell under its
 centroid. A cell is 0.0625°, about 7 by 4 km here, so a small watershed
 gets one cell’s value. wet can instead weight every cell by the area it
 covers. Under 10 km², 11% of watersheds move by more than 5%, by up to
@@ -497,8 +526,10 @@ see the package’s <code>CLAUDE.md</code>).</p>
 <p><strong>Cached inputs.</strong> This article runs on saved outputs:
 PCIC VIC-GL through <code>scripts/mad_parity.R</code>; the open water
 balance from province run 962a9cc2c4 (annual AET cfu, HYDAT release
-2026-07-17); fwapg’s values at the gauges; built 6 October 2026 at
-commit c1d0945. Regenerated by
+2026-07-17); routed PCIC from fwapg at commit 341b078 (40524444 rows,
+3377037 segments, 0 null flows, total 178035348.248310 m3/s), scored in
+data/checks/pcic_routed_compare_20260717.txt; built 11 October 2026 at
+commit 0039a01. Regenerated by
 <code>data-raw/segment_vignette_data.R</code>. Map layers from the
 Freshwater Atlas (fwapg), BC Geographic Names and the BC Hydrologic
 Zones, by <code>data-raw/segment_vignette_map.R</code>.</p>
