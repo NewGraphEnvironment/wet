@@ -74,8 +74,8 @@ Decided at the gate:
 
 ## Phase 6: Docs and issues
 - [x] CLAUDE.md Architecture: add `scripts/pcic_routed_compare.R` and its report. Update the vignette paragraph, which still says it compares "the open water balance and fwapg (PCIC)".
-- [ ] Edit #57's body: point it at the research section in place of its numbers table.
-- [ ] Remove the fwapg worktree.
+- [x] Edit #57's body: point it at the research section in place of its numbers table.
+- [x] Remove the fwapg worktree.
 
 ## Review (planning/active/review-plan.md) folded in
 - [x] Exact fingerprint (numeric sum of values rounded to 1e-6), checked before the parity run in data-raw, and recorded with the map outline
