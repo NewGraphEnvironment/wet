@@ -92,6 +92,8 @@ Blocked by NewGraphEnvironment/fwapg#6. Relates to #57, #5, #42.
   - fwapg#9 will publish #14's build. Still open there: the bucket's public read covers only `bcfishpass/*` (the user's call).
   - Decision: hold scoring until #14 merges, then score its build by merge sha and fingerprint.
 
+- fwapg#14 merged into newgraph as 341b078 (fwapg PR #21, 2026-10-11 18:12 UTC; PR head 0de0876). The PR body gives the build's fingerprint: 40,524,444 rows, 3,377,037 segments, sum(round(q_m3s::numeric,6)) = 178035348.248310; pcic_fwa_crosswalk 48,716. Its gauge QA is unchanged (494 of 538 within 10 %), and FWA flow changed at 2 of 604 gauges. This build is the one to score (`WET_FWAPG_COMMIT=341b078`). It is live only on the 128 GB machine (m4); m1 still holds #11. fwapg#9 is open, and the upload is not done. Per fwapg_m4, the user chose to make `fresh-bc/fwapg/*` public, but at 2026-10-11 the bucket policy still grants only `bcfishpass/*` and `bcgw/*`.
+
 ## Errors Encountered
 
 | Error | Resolution |

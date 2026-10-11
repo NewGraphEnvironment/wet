@@ -82,7 +82,7 @@ Decided at the gate:
 - [x] CLAUDE.md Data Sources: the historical routed run's coverage and table
 - [ ] Keep the job's `fwa_stream_networks_discharge_monthly.csv.gz` and its sha256 from the pinned run; set `WET_FWAPG_COMMIT` from the worktree's `git rev-parse`
 - [ ] Report: add the old annual table (fwapg `fwa_stream_networks_discharge`) against routed at the gauges both cover (user, 2026-10-11)
-- [ ] Score fwapg#14's build once it merges into newgraph (merge sha and fingerprint in its PR): on m4, or on m1 once fwapg#9 publishes it
+- [ ] Score fwapg#14's build: merged as 341b078, fingerprint 40,524,444 / 3,377,037 / 178035348.248310. On m4 (`WET_FWAPG_COMMIT=341b078`), or on m1 once fwapg#9 publishes it
 - [ ] Do not commit the 4929c8c report (it named a guess); it is overwritten by the pinned run
 
 ## Validation
