@@ -57,6 +57,21 @@ Relates to #7, #4, #5, #9, NewGraphEnvironment/fwapg#6.
 2. **Storage:** both sources' rows, plus a logical `pick` that is TRUE on exactly one source per segment.
 3. **Period:** a `period` column (routed `1951-2012`, balance `1981-2010`), and an fwapg issue for a 1981–2010 routed build.
 
+## Nechako Reservoir: why routed is about zero (2026-10-11)
+
+Attribution: **theirs, placement in fwapg#6's crosswalk** (filed as fwapg#24).
+- PCIC has 487 outlets in LEUT/UEUT/UNRS/LNRS (`fwapg.pcic_outlets` ∩ group polygons). 4 are placed (3 LNRS, 1 UNRS); the rest are `broken_chain` (UEUT also has `no_candidate`).
+- PCIC's tree takes the 386 outlets of LEUT/UEUT/UNRS to root 4009421 (Fraser mouth, LFRA), with `anchor_subid` in CHES. That fits PCIC routing the reservoir through the Skins Lake spillway and the Cheslatta, while the FWA drains it another way. Their runoff goes to the Cheslatta anchor, and the FWA reservoir segments get almost none.
+- fwapg's README already names the Cheslatta's regulated flow as tripping the drainage check.
+
+## Routed table may move schema
+
+fwapg#23 (open) proposes moving `fwa_stream_networks_discharge_monthly` and `pcic_fwa_crosswalk` out of `whse_basemapping`. `scripts/pcic_routed_lib.R`'s `routed_table` is the one place wet names it.
+
+## 1981–2010 and projections
+
+Filed as fwapg#25: model, scenario and period parameters for the crosswalk build. Hydromosaic serves daily PNWNAmet from 1950 to 2012, and 9 CMIP6 GCMs × ssp245/ssp585 from 1950 to 2100, on the same `subid`s.
+
 ## Errors Encountered
 
 | Error | Resolution |

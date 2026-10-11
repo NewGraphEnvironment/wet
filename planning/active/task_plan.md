@@ -20,8 +20,8 @@
 
 ## Phase 3: Score the pick, attribute the far-low
 - [x] `scripts/pcic_routed_compare.R`: add the default pick as a third column at all 315 gauges (routed where picked, the held-out balance elsewhere, including the 25 uncovered). Rerun it and commit the report.
-- [ ] Attribute the Nechako zero: PCIC outlets in LEUT/UEUT/UNRS/LNRS (`fwapg.pcic_outlets` placement status, the hydromosaic series at one outlet). Record ours, theirs or unresolved; file in fwapg if it is placement.
-- [ ] File the fwapg issue: build the routed table over 1981–2010 from hydromosaic's daily PNWNAmet series (with a model/scenario parameter, which also serves the CMIP6 runs)
+- [x] Attribute the Nechako zero: PCIC outlets in LEUT/UEUT/UNRS/LNRS (`fwapg.pcic_outlets` placement status, the hydromosaic series at one outlet). Record ours, theirs or unresolved; file in fwapg if it is placement.
+- [x] File the fwapg issue: build the routed table over 1981–2010 from hydromosaic's daily PNWNAmet series (with a model/scenario parameter, which also serves the CMIP6 runs)
 
 ## Phase 4: Docs and the rule change
 - [ ] CLAUDE.md "Own estimates first": the balance stays the independent estimate everything is scored against; routed PCIC is published as the default where picked, labelled by source. Add `scripts/segment_output.R` to the Architecture list.
