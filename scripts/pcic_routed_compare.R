@@ -140,6 +140,11 @@ lines <- c(
       line("annual table", e_a), line("routed", e_r), line("balance (held out)", b$err_pct),
       sprintf("routed / annual: median %.3f, p10-p90 %.2f-%.2f; routed closer than the annual table at %.0f %%",
               stats::median(rat), stats::quantile(rat, 0.1), stats::quantile(rat, 0.9), 100 * mean(abs(e_r) < abs(e_a))),
+      {
+        k <- !b$station_number %in% low$station_number
+        sprintf("without the gauges listed above as carrying < %.0f %% (%d left): annual %.1f %%, routed %.1f %%, balance %.1f %%",
+                100 * routed_far_low, sum(k), mean(abs(e_a[k])), mean(abs(e_r[k])), mean(abs(b$err_pct[k])))
+      },
       sprintf("gauges routed scores that the annual table does not: %d (balance %.1f %%, routed %.1f %% there)",
               sum(!is.na(g$routed_mm) & is.na(g$annual_mm)),
               mean(abs(g$err_pct[!is.na(g$routed_mm) & is.na(g$annual_mm)])),
