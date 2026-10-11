@@ -67,6 +67,23 @@ Blocked by NewGraphEnvironment/fwapg#6. Relates to #57, #5, #42.
 - Cause, as diagnosed and relayed by the user: memory pressure from the fwapg#2 session's SSNbler R batch (`xargs -P 3`, each worker 20–50 GB) on top of colima reserving its full 32 GiB VM. Attribution: not this job. The fixes (`-P 1`, stopping or shrinking colima during the batch, or running it on m4/cypher) belong to the fwapg session.
 - Decision (user, 2026-10-09): hold #58 until the fwapg work finishes, and possibly move the rebuild to m4.
 
+## State on 2026-10-11, and the old annual table against routed flow
+
+- fwapg#13 (merged into newgraph via #15, 2026-10-11) reran PCIC end to end on the 128 GB machine with a tie rule. About 1 % of outlets sit on a vertex two segments share, and the rule now picks the segment starting there. Result: 74 crosswalk rows differ from #11; monthly 40,524,600 rows, sum 178168114.938520 (−0.0010 %); 2,385 segments changed, max |dq| 2.83 m3/s. m1 still holds the #11 build (= 218a47f, sum 178169881.209890). `s3://fresh-bc/fwapg/` holds only `dumps/fwapg-20260421-203347.dump`; fwapg#9 (publish) is open. Asked fwapg_m4 for m4's fingerprint and commit.
+- The user asked whether to compare the old annual table (`fwa_stream_networks_discharge.mad_mm`, gridded VIC-GL accumulated on the FWA) with routed flow before rebuilding the vignette. Probe on m1's #11 build (scratchpad `old_vs_routed.R`, not committed), at the 178 calibration gauges where both have a value:
+
+| | old annual table | routed | balance (held out) |
+|---|---|---|---|
+| MAE | 25.3 % | 28.0 % | 30.3 % |
+| median AE | 16.7 % | 15.4 % | 20.3 % |
+| within ±20 % | 59 % | 57 % | 49 % |
+| bias | +1.0 % | +3.1 % | +11.4 % |
+| headwater (139) / nested (39) MAE | 28.8 / 12.7 | 32.6 / 11.4 | |
+
+  - routed / annual: median 1.008, p10–p90 0.92–1.26. Routed is closer than the old table at 46 % of these gauges.
+  - So on the gauges the old table covered, routed is not better on the mean. It is slightly worse on headwater gauges and better on nested ones and on the median. Its overall lead (24.1 % against the balance's 27.6 % at 290 gauges) comes from where the old table had no value: the coast and the order 8+ rivers.
+  - The vignette and research must say this. The report gets an old-table-against-routed section.
+
 ## Errors Encountered
 
 | Error | Resolution |

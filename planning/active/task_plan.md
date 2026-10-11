@@ -81,6 +81,8 @@ Decided at the gate:
 - [x] Report lists gauges whose segment carries < 20 % of observed flow (side channels, reservoir lakes), with a line scored without them
 - [x] CLAUDE.md Data Sources: the historical routed run's coverage and table
 - [ ] Keep the job's `fwa_stream_networks_discharge_monthly.csv.gz` and its sha256 from the pinned run; set `WET_FWAPG_COMMIT` from the worktree's `git rev-parse`
+- [ ] Report: add the old annual table (fwapg `fwa_stream_networks_discharge`) against routed at the gauges both cover (user, 2026-10-11)
+- [ ] Score the newgraph build with the tie rule (fwapg#13), not m1's #11 build: on m4, or on m1 once fwapg#9 publishes or m1 is rebuilt
 - [ ] Do not commit the 4929c8c report (it named a guess); it is overwritten by the pinned run
 
 ## Validation
