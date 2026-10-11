@@ -24,9 +24,9 @@
 - [x] File the fwapg issue: build the routed table over 1981–2010 from hydromosaic's daily PNWNAmet series (with a model/scenario parameter, which also serves the CMIP6 runs)
 
 ## Phase 4: Docs and the rule change
-- [ ] CLAUDE.md "Own estimates first": the balance stays the independent estimate everything is scored against; routed PCIC is published as the default where picked, labelled by source. Add `scripts/segment_output.R` to the Architecture list.
+- [x] CLAUDE.md "Own estimates first": the balance stays the independent estimate everything is scored against; routed PCIC is published as the default where picked, labelled by source. Add `scripts/segment_output.R` to the Architecture list.
 - [ ] `research/water_balance_method.md` §0: the pick, its score at the gauges, the Fraser flip counts and the Nechako attribution, the projection check (hydromosaic CMIP6 on the same `subid`), and the 369k segments with no value
-- [ ] Vignette guidance sentence (prose only): name the default pick and the Nechako exception, then render to check
+- [x] Vignette guidance sentence (prose only): name the default pick and the Nechako exception, then render to check
 - [ ] Edit the #57 body (projection check answered, pick rule, period decision) and #7's columns (`period`, `pick`)
 
 ## Validation
