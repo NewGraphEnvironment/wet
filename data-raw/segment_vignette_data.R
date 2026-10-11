@@ -69,9 +69,11 @@ conn <- DBI::dbConnect(RPostgres::Postgres(),
                        password = Sys.getenv("WET_PGPASSWORD", "postgres"))
 routed_fp <- routed_fingerprint(conn)
 DBI::dbDisconnect(conn)
-if (!any(rr == sprintf("routed: %s, built by NewGraphEnvironment/fwapg at %s", routed_table, fwapg_commit)) ||
-    !any(rr == sprintf("table: %s", routed_fp))) {
-  stop(f_routed, " was not made from this routed table at fwapg ", fwapg_commit, ": rerun scripts/pcic_routed_compare.R")
+routed_line <- sprintf("routed: %s, built by NewGraphEnvironment/fwapg at %s", routed_table, fwapg_commit)
+report_matches <- any(rr == routed_line) && any(rr == sprintf("table: %s", routed_fp))
+if (!report_matches) {
+  stop(f_routed, " was not made from this routed table at fwapg ", fwapg_commit,
+       ": rerun scripts/pcic_routed_compare.R")
 }
 
 # PCIC through wet on SALR, from this commit's code: the old outputs go first,

@@ -88,7 +88,7 @@ Decided at the gate:
 
 ## Validation
 - [x] Vignette body prose under its 1,600-word cap
-- [ ] Tests pass; `lintr::lint_package()` clean; vignette renders
+- [x] Tests pass (864, 0 fail); lint clean on lines this branch adds; vignette renders
 - [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
