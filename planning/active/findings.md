@@ -84,6 +84,8 @@ Blocked by NewGraphEnvironment/fwapg#6. Relates to #57, #5, #42.
   - So on the gauges the old table covered, routed is not better on the mean. It is slightly worse on headwater gauges and better on nested ones and on the median. Its overall lead (24.1 % against the balance's 27.6 % at 290 gauges) comes from where the old table had no value: the coast and the order 8+ rivers.
   - The vignette and research must say this. The report gets an old-table-against-routed section.
 
+- Every current routed build is provisional (fwapg-5f, verified 2026-10-11): fwapg#9 (publish to `s3://fresh-bc/fwapg/` and load in `load.sh`) is blocked by fwapg#14 (flow and placement at a tributary junction's vertex, open), whose rerun changes the outputs. Neither the #11 build on m1 nor the #13 build is final. The citable table is the one #9 publishes, loaded with its md5. Nobody plans to rebuild m1's fresh-db; that is the user's call.
+
 ## Errors Encountered
 
 | Error | Resolution |
