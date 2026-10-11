@@ -274,7 +274,8 @@ Where fwapg's older, unrouted annual table also had values, routed PCIC scores
 about the same as it once the few gauges where routed flow reads almost nothing
 are set aside
 ([research](https://github.com/NewGraphEnvironment/wet/blob/main/research/water_balance_method.md)).
-Its lead is on the coast and on the largest rivers, which that table left out.
+What it adds is coverage: the coast and the largest rivers, which that table
+left out.
 
 ```{r compare, fig.width = 5.5, fig.height = 5.5, out.width = "80%", fig.cap = cap_cmp}
 sq <- data.frame(xmin = -err_cut, xmax = err_cut, ymin = -err_cut, ymax = err_cut)
@@ -730,8 +731,8 @@ stopifnot(isTRUE(prov$keep_adjust), isFALSE(prov$gate_pass), identical(prov$pool
 In order of how much they affect a user:
 
 - **Coverage.** In the Liard, and in a few northern and border basins (the
-  Yukon and Alsek headwaters, the Hay, the Skagit), the open water balance is
-  the only estimate.
+  Yukon and Alsek headwaters, the Hay, the Skagit), routed PCIC has no value or
+  almost none, and the open water balance is the estimate to use.
 - **Dry zones.** In zone `r worst` and the other semi-arid interior zones,
   runoff is a small remainder of precipitation, so a small error in
   evapotranspiration is a large one in runoff.
