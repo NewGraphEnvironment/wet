@@ -40,7 +40,7 @@ Decided at the gate:
 - [x] `WET_FWAPG_COMMIT=<sha> Rscript scripts/pcic_routed_compare.R` → commit `data/checks/pcic_routed_compare_20260717.txt` (through `wb_report()`, so it carries the release). Note in findings.md how the numbers moved from #57's.
 
 ## Phase 3: research §0
-- [ ] Revise `research/water_balance_method.md` §0 in place:
+- [x] Revise `research/water_balance_method.md` §0 in place:
   - Replace the "Across PCIC's coverage, fwapg is closer…" bullet with the routed result, its caveats and the coverage edge (10A–10C, no Liard; 08N/08M/09A).
   - Keep the #39 fwapg history only as one sentence of provenance.
   - Update the Prince George (SALR) bullet with routed numbers, after the Phase 4 rebuild (review item 13).
