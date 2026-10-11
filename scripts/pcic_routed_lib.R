@@ -72,7 +72,9 @@ shipped_heldout <- function() {
 
 # A gauge whose segment carries less than this share of its observed flow is
 # listed: a side channel, which carries only its own water (fwapg's README), a
-# reservoir lake, or a misplaced outlet, rather than PCIC's model error
+# reservoir lake, or a misplaced outlet, rather than PCIC's model error. The
+# same cut, against the balance rather than observed flow, picks a segment's
+# default source (wet_source_pick(), #57)
 routed_far_low <- 0.2
 
 # the major basins, by Water Survey sub-drainage

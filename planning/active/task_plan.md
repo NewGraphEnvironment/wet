@@ -3,9 +3,9 @@
 **If we do it:** each segment carries the best estimate available there (PCIC's routed flow where an outlet is placed, our open water balance elsewhere), labelled with its source, and a report can switch sources or take PCIC's projections without a new pipeline. **If we never do:** the per-segment product publishes only the balance, which is the less accurate estimate on the 69 % of segments PCIC's routed flow already covers, or each report picks a source ad hoc.
 
 ## Phase 1: Pick rule, tests first
-- [ ] `tests/testthat/test-wet_source_pick.R`: NA routed → balance; NA balance → routed; both NA → NA; ratio < cut → balance; ratio = cut → routed; balance 0 → routed; vectorised, length-checked
-- [ ] `R/wet_source_pick.R`: internal (`@noRd`) `wet_source_pick(q_routed, q_balance, far_low = 0.2)` returning `"pcic_routed"`/`"wet_balance"`/NA per segment
-- [ ] `scripts/pcic_routed_lib.R`: `routed_far_low` stays the one definition of the cut; the scripts pass it in
+- [x] `tests/testthat/test-wet_source_pick.R`: NA routed → balance; NA balance → routed; both NA → NA; ratio < cut → balance; ratio = cut → routed; balance 0 → routed; vectorised, length-checked
+- [x] `R/wet_source_pick.R`: internal (`@noRd`) `wet_source_pick(q_routed, q_balance, far_low = 0.2)` returning `"pcic_routed"`/`"wet_balance"`/NA per segment
+- [x] `scripts/pcic_routed_lib.R`: `routed_far_low` stays the one definition of the cut; the scripts pass it in
 
 ## Phase 2: Per-segment table
 - [ ] `scripts/segment_output.R`. It reads the shipped fit's balance output (refusing a fit under other scoring code, as `wb_output.R` does), the routed table (refusing a fingerprint/`WET_FWAPG_COMMIT` other than the tracked routed report's, as `segment_vignette_data.R` does) and the lut. Per basin it writes `data/wb/<key>/fit_<rel>/segment/<CODE>.parquet` with columns:

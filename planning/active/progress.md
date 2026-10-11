@@ -6,3 +6,6 @@
 - Created branch `57-per-segment-flow-from-either-source-rout` off main
 - Scaffolded PWF baseline from issue #57 with approved phases
 - Next: start Phase 1
+
+- Phase 1: `wet_source_pick()` (internal) with tests written first; they errored before the function existed and pass after (4 blocks, 12 expectations). `far_low` has no default, so `routed_far_low` stays the one definition.
+- Mechanism change for Phase 2: m4 holds the same fit (`fits.rds` md5 a780320…) and the same routed table (fingerprint 40,524,444 rows, 3,377,037 segments, total 178035348.248310, as #58's report), plus the full `upstream/` with wet's accumulated areas. The build runs on m4 and only the tracked report comes back, instead of copying 786 MB of output to m1.
