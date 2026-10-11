@@ -33,10 +33,11 @@ Decided at the gate:
 - [x] Run it against the current table, without committing the report. It should reproduce #57's numbers, which validates the definitions. Record the result in findings.md.
 
 ## Phase 2: Routed table at a pinned sha, and the report
-- [ ] Before writing to fresh-db, check `pg_stat_activity` and the fwapg session's state. Nothing else may be writing `fwapg.pcic_*`, `blk_paths` or the routed table.
-- [ ] `git worktree add` fwapg at the current `origin/newgraph` sha, in the scratchpad. Copy (not symlink) the cached `extras/pcic_crosswalk/data/{rivers,lakes,series,monthly}`.
-- [ ] Run `./pcic_crosswalk.sh` there against fresh-db (127.0.0.1), backgrounded with a log. Confirm `qa.sql` passes and the staging tables are dropped. Record the sha, fingerprint and QA summary in findings.md.
-- [ ] `WET_FWAPG_COMMIT=<sha> Rscript scripts/pcic_routed_compare.R` → commit `data/checks/pcic_routed_compare_20260717.txt` (through `wb_report()`, so it carries the release). Note in findings.md how the numbers moved from #57's.
+(Superseded in practice: the rebuild became loading fwapg#9's published #14 build, sha256 in findings.md, so the worktree and run steps are closed by that.)
+- [x] Before writing to fresh-db, check `pg_stat_activity` and the fwapg session's state. Nothing else may be writing `fwapg.pcic_*`, `blk_paths` or the routed table.
+- [x] `git worktree add` fwapg at the current `origin/newgraph` sha, in the scratchpad. Copy (not symlink) the cached `extras/pcic_crosswalk/data/{rivers,lakes,series,monthly}`.
+- [x] Run `./pcic_crosswalk.sh` there against fresh-db (127.0.0.1), backgrounded with a log. Confirm `qa.sql` passes and the staging tables are dropped. Record the sha, fingerprint and QA summary in findings.md.
+- [x] `WET_FWAPG_COMMIT=<sha> Rscript scripts/pcic_routed_compare.R` → commit `data/checks/pcic_routed_compare_20260717.txt` (through `wb_report()`, so it carries the release). Note in findings.md how the numbers moved from #57's.
 
 ## Phase 3: research §0
 - [ ] Revise `research/water_balance_method.md` §0 in place:
@@ -80,10 +81,10 @@ Decided at the gate:
 - [x] Exact fingerprint (numeric sum of values rounded to 1e-6), checked before the parity run in data-raw, and recorded with the map outline
 - [x] Report lists gauges whose segment carries < 20 % of observed flow (side channels, reservoir lakes), with a line scored without them
 - [x] CLAUDE.md Data Sources: the historical routed run's coverage and table
-- [ ] Keep the job's `fwa_stream_networks_discharge_monthly.csv.gz` and its sha256 from the pinned run; set `WET_FWAPG_COMMIT` from the worktree's `git rev-parse`
-- [ ] Report: add the old annual table (fwapg `fwa_stream_networks_discharge`) against routed at the gauges both cover (user, 2026-10-11)
-- [ ] Score fwapg#14's build: merged as 341b078, fingerprint 40,524,444 / 3,377,037 / 178035348.248310. On m4 (`WET_FWAPG_COMMIT=341b078`), or on m1 once fwapg#9 publishes it
-- [ ] Do not commit the 4929c8c report (it named a guess); it is overwritten by the pinned run
+- [x] Keep the job's `fwa_stream_networks_discharge_monthly.csv.gz` and its sha256 from the pinned run; set `WET_FWAPG_COMMIT` from the worktree's `git rev-parse`
+- [x] Report: add the old annual table (fwapg `fwa_stream_networks_discharge`) against routed at the gauges both cover (user, 2026-10-11)
+- [x] Score fwapg#14's build: merged as 341b078, fingerprint 40,524,444 / 3,377,037 / 178035348.248310. On m4 (`WET_FWAPG_COMMIT=341b078`), or on m1 once fwapg#9 publishes it
+- [x] Do not commit the 4929c8c report (it named a guess); it is overwritten by the pinned run
 
 ## Validation
 - [ ] Vignette body prose under its 1,600-word cap

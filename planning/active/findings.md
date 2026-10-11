@@ -100,6 +100,12 @@ Blocked by NewGraphEnvironment/fwapg#6. Relates to #57, #5, #42.
   - Auto mode refused the swap's DROP/TRUNCATE in `whse_basemapping`, so the user ran it in default mode.
   - Filed fwapg#23: give the crosswalk outputs their own schema. wet's `routed_table` follows any move.
 
+## The report on #14's build (2026-10-11, `data/checks/pcic_routed_compare_20260717.txt`, wet 3bb19b2)
+
+- The gauge scores are identical to the #11 build's (290 gauges; routed 24.1 % against the balance's 27.6 % mean absolute error). #14 changed flow at 2 of 604 gauges (its PR), and none of them is a calibration gauge.
+- 11 gauges carry less than 20 % of observed flow on their segment: side channels (08KH006 Quesnel, 08KG003, 08MH141), Nechako reservoir lakes (08JA014/15/16/28) and Ansedagan (08DB013, fwapg#8). Without them, routed scores 21.3 % against the balance's 27.2 %.
+- Against fwapg's older annual table at the 178 gauges both PCIC products score: annual 25.3 %, routed 28.0 %, balance 30.3 %. Without the far-low gauges (171 left): annual 25.0 %, routed 25.3 %, balance 30.5 %, a tie between the two PCIC products. So the older table's mean edge is placement at a handful of gauges, not the model. Attribution there: unresolved between wet's snap (a gauge put on a side channel) and fwapg's placement. Routed's whole lead over the older table is the 112 gauges the older table never scored: routed 17.8 %, balance 23.3 %.
+
 ## Errors Encountered
 
 | Error | Resolution |
