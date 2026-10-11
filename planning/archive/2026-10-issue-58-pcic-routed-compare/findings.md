@@ -1,0 +1,112 @@
+# Findings — Score PCIC routed flow at the gauges; replace the vignette's fwapg comparison (#58)
+
+## Issue context
+
+**If we do it:** the comparison behind #57's default pick is reproducible: a committed script, a tracked report, `research/water_balance_method.md` §0 and the segment vignette all score PCIC's routed flow instead of fwapg's old annual table. **If we never do:** the numbers live only in #57's body, and the vignette keeps comparing the balance against a product that fwapg#6 supersedes.
+
+## Problem
+
+On 2026-10-08, routed PCIC monthly flow (`whse_basemapping.fwa_stream_networks_discharge_monthly`, from NewGraphEnvironment/fwapg#6) was scored once, by an ad hoc query, at the shipped fit's 315 calibration gauges. At the 290 it covers:
+- mean absolute error 24.4 % against the balance's 27.6 %;
+- bias −0.1 % against +9.0 %;
+- closer at 58 % of gauges.
+
+The full table is in #57. No script or report produced it. The vignette's "Two estimates" table and `research/water_balance_method.md` §0 still score fwapg's annual table: 183 gauges, no rivers of order 8 and up.
+
+## Proposed
+
+Wait until fwapg#6 merges; its placement SQL is still being revised. Then:
+- `scripts/pcic_routed_compare.R` → `data/checks/pcic_routed_compare.txt`:
+  - each gauge's annual mean as the mean of the 12 monthly means at its `linear_feature_id`, in mm over wet's upstream area, against observed;
+  - mean, median, within ±20 %, bias, and headwater / nested;
+  - the uncovered gauges listed by sub-drainage;
+  - the fwapg commit and the table's row count in the header.
+- Revise `research/water_balance_method.md` §0 in place with the result, its caveats (PCIC partly in-sample; 1951–2012 against 1981–2010) and the coverage edge.
+- Replace the vignette's fwapg comparison with the routed one: `data-raw/segment_vignette_data.R` reads the routed table, and the strengths-and-limits table is updated, including "Largest rivers", which routed flow now covers.
+- Point #57 at the research section rather than carrying the numbers.
+
+Blocked by NewGraphEnvironment/fwapg#6. Relates to #57, #5, #42.
+
+
+## Plan-gate exploration (2026-10-09)
+
+- fwapg#6 merged 2026-10-08 22:56 UTC into fwapg's `newgraph` branch (merge b41eb0b); #7's drainage check merged after it (d7191b1); newgraph tip 218a47f at exploration.
+- The local routed table `whse_basemapping.fwa_stream_networks_discharge_monthly`: 40,524,612 rows, 3,377,051 segments; columns `linear_feature_id`, `watershed_group_code`, `month`, `q_m3s`. No build commit is recorded anywhere. Last analysed 2026-10-08 18:47 UTC (11:47 PDT), between 4929c8c (10:37 PDT) and 5e3cd07 (side-channel vote, 12:24 PDT), so it probably predates the merged placement. `fwapg.pcic_*` staging tables are still present (`rebuild_7.log`, 21:42 PDT, a #7 rerun).
+- A parallel session has the fwapg checkout on branch `2-main-flow-tree-…` with an uncommitted rename (`pcic_crosswalk01_paths.sql` → `extras/blue_line_paths/`). Do not touch that checkout.
+- Routed coverage at order >= 3: SALR 2,180 of 2,181 segments, BULK 7,748 of 7,755. BULK's vignette claim "outside PCIC's coverage" is false for routed flow.
+- `tests/testthat/test-vignette_data.R` pins the shape of `segment_values.rds` and `segment_map.rds`, including `fwapg_*` provenance and the coverage outline's `cov_share`.
+- Gate decisions: rebuild the routed table at a pinned sha from a clean worktree; routed replaces fwapg in every comparison in the vignette, while "How it is built" keeps the annual-table parity.
+
+## Phase 1: the script against #57 (2026-10-09)
+
+`WET_FWAPG_COMMIT=4929c8c Rscript scripts/pcic_routed_compare.R` (4929c8c is a guess at the pre-rebuild table's build; report not committed), at wet 4c32936, table 40,524,612 rows / 3,377,051 segments / total 178,169,881.212 m3/s:
+
+| at the 290 gauges | #57 routed | script routed | #57 balance | script balance |
+|---|---|---|---|---|
+| MAE | 24.4 | 24.1 | 27.6 | 27.6 |
+| median AE | 13.2 | 13.0 | 18.0 | 18.0 |
+| within ±20 % | 62 | 62 | 54 | 54 |
+| bias | −0.1 | +0.2 | +9.0 | +9.0 |
+| headwater / nested | 28.8 / 11.3 | 28.3 / 11.3 | 31.0 / 17.2 | 31.0 / 17.2 |
+| routed closer | 58 % | 59 % | | |
+
+- The balance side reproduces exactly, and so do coverage (290 of 315) and the uncovered sub-drainages (10A–10C, 08M, 08N, 09A).
+- The routed side is within 0.3 points. Weighting the months by their length does not explain the gap: weighted MAE is 24.08 and bias +0.5. #57 does not record which build of the table it read, and the table was rebuilt several times on 2026-10-08 (build13 11:40, build14 11:47 PDT). Attribution: unresolved. Most likely an earlier build, not the definitions.
+- The report is named `pcic_routed_compare_<release>.txt` through `wb_report()`, as every report scored against a fit since #43 is, not the issue's `pcic_routed_compare.txt`.
+
+## Coordinating the rebuild with the fwapg#2 session (2026-10-09)
+
+- fwapg-56 (the fwapg#2 session) asked me to wait until its PCIC rerun finishes and it has compared the result against its snapshot (`fwapg.snap_crosswalk`, `fwapg.snap_monthly`). After that the rebuild can go ahead without waiting for the merge.
+- Tables that are its and must not be touched: `fwapg.blk_parents`, `fwapg.blk_paths`, `fwapg.mainflow_tree_*`, `whse_basemapping.fwa_stream_networks_mainflow_tree`, `fwapg.snap_*`. A run at 218a47f uses `fwapg.pcic_blk_parents` and `fwapg.pcic_blk_paths` and the other `pcic_*` staging tables, and drops them. Those do not collide.
+- It reports that its branch's parents and paths are identical to 218a47f's (1,570,499 lines, 0 differences).
+- Timing: the 01_paths step at 218a47f took about 35 minutes on m1.
+
+## m1 reboots during the rebuild (2026-10-09)
+
+- m1 reset three times: about 09:07, about 09:50 and 13:05 PDT. `/Library/Logs/DiagnosticReports/forceReset-full-2026-10-09-130516` shows a forced reset. The pinned crosswalk run died each time: twice in the paths step and once at the outlets step. The routed table was never reached; its fingerprint was unchanged after each reset (40,524,612 rows, sum 178169881.209890).
+- Cause, as diagnosed and relayed by the user: memory pressure from the fwapg#2 session's SSNbler R batch (`xargs -P 3`, each worker 20–50 GB) on top of colima reserving its full 32 GiB VM. Attribution: not this job. The fixes (`-P 1`, stopping or shrinking colima during the batch, or running it on m4/cypher) belong to the fwapg session.
+- Decision (user, 2026-10-09): hold #58 until the fwapg work finishes, and possibly move the rebuild to m4.
+
+## State on 2026-10-11, and the old annual table against routed flow
+
+- fwapg#13 (merged into newgraph via #15, 2026-10-11) reran PCIC end to end on the 128 GB machine with a tie rule. About 1 % of outlets sit on a vertex two segments share, and the rule now picks the segment starting there. Result: 74 crosswalk rows differ from #11; monthly 40,524,600 rows, sum 178168114.938520 (−0.0010 %); 2,385 segments changed, max |dq| 2.83 m3/s. m1 still holds the #11 build (= 218a47f, sum 178169881.209890). `s3://fresh-bc/fwapg/` holds only `dumps/fwapg-20260421-203347.dump`; fwapg#9 (publish) is open. Asked fwapg_m4 for m4's fingerprint and commit.
+- The user asked whether to compare the old annual table (`fwa_stream_networks_discharge.mad_mm`, gridded VIC-GL accumulated on the FWA) with routed flow before rebuilding the vignette. Probe on m1's #11 build (scratchpad `old_vs_routed.R`, not committed), at the 178 calibration gauges where both have a value:
+
+| | old annual table | routed | balance (held out) |
+|---|---|---|---|
+| MAE | 25.3 % | 28.0 % | 30.3 % |
+| median AE | 16.7 % | 15.4 % | 20.3 % |
+| within ±20 % | 59 % | 57 % | 49 % |
+| bias | +1.0 % | +3.1 % | +11.4 % |
+| headwater (139) / nested (39) MAE | 28.8 / 12.7 | 32.6 / 11.4 | |
+
+  - routed / annual: median 1.008, p10–p90 0.92–1.26. Routed is closer than the old table at 46 % of these gauges.
+  - So on the gauges the old table covered, routed is not better on the mean. It is slightly worse on headwater gauges and better on nested ones and on the median. Its overall lead (24.1 % against the balance's 27.6 % at 290 gauges) comes from where the old table had no value: the coast and the order 8+ rivers.
+  - The vignette and research must say this. The report gets an old-table-against-routed section.
+
+- Every current routed build is provisional (fwapg-5f, verified 2026-10-11): fwapg#9 (publish to `s3://fresh-bc/fwapg/` and load in `load.sh`) is blocked by fwapg#14 (flow and placement at a tributary junction's vertex, open), whose rerun changes the outputs. Neither the #11 build on m1 nor the #13 build is final. The citable table is the one #9 publishes, loaded with its md5. Nobody plans to rebuild m1's fresh-db; that is the user's call.
+
+- fwapg_m4, 2026-10-11:
+  - The #13 build was built at 8173112. f9718cb builds the same table, because no crosswalk or path SQL or shell changed between them. On m4 it is now only a snapshot, `fwapg.pcic14_before_monthly`: 40,524,600 rows, 3,377,050 segments, sum 178168114.938520.
+  - fwapg#14 is rebuilding the live table on m4 today (final run from 17:23 UTC, about 30 min). An intermediate run moved about 4,600 segments by more than 0.001 m3/s: junction steps moved below the junction (about 2,300 by more than 1 m3/s), 6 outlets moved, 3 skipped tributaries gained flow, and 13 coastal secondary-flow segments lost it. Flow at the root outlets is unchanged.
+  - fwapg#9 will publish #14's build. Still open there: the bucket's public read covers only `bcfishpass/*` (the user's call).
+  - Decision: hold scoring until #14 merges, then score its build by merge sha and fingerprint.
+
+- fwapg#14 merged into newgraph as 341b078 (fwapg PR #21, 2026-10-11 18:12 UTC; PR head 0de0876). The PR body gives the build's fingerprint: 40,524,444 rows, 3,377,037 segments, sum(round(q_m3s::numeric,6)) = 178035348.248310; pcic_fwa_crosswalk 48,716. Its gauge QA is unchanged (494 of 538 within 10 %), and FWA flow changed at 2 of 604 gauges. This build is the one to score (`WET_FWAPG_COMMIT=341b078`). It is live only on the 128 GB machine (m4); m1 still holds #11. fwapg#9 is open, and the upload is not done. Per fwapg_m4, the user chose to make `fresh-bc/fwapg/*` public, but at 2026-10-11 the bucket policy still grants only `bcfishpass/*` and `bcgw/*`.
+
+- 2026-10-11: loaded fwapg#9's published files into m1's fresh-db; the user approved the swap.
+  - Files: `s3://fresh-bc/fwapg/extras/fwa_stream_networks_discharge_monthly.csv.gz` (sha256 b45c5230da1b622e17276592ef17647e1af333c99da22899e659eb02789026b7) and `pcic_fwa_crosswalk.csv.gz` (sha256 689a7001c3f0739ada49e987fbfc1b2717dc15ce90deba6c36d23cb10fc46d6b). Uploaded 11:27 PDT; local copies and sha256s are in `data/pcic_routed/`.
+  - Loaded into staging tables, fingerprinted, then swapped in one transaction. The live table now matches #14's build (341b078): 40,524,444 rows, 3,377,037 segments, 178035348.248310; crosswalk 48,716.
+  - Auto mode refused the swap's DROP/TRUNCATE in `whse_basemapping`, so the user ran it in default mode.
+  - Filed fwapg#23: give the crosswalk outputs their own schema. wet's `routed_table` follows any move.
+
+## The report on #14's build (2026-10-11, `data/checks/pcic_routed_compare_20260717.txt`, wet 3bb19b2)
+
+- The gauge scores are identical to the #11 build's (290 gauges; routed 24.1 % against the balance's 27.6 % mean absolute error). #14 changed flow at 2 of 604 gauges (its PR), and none of them is a calibration gauge.
+- 11 gauges carry less than 20 % of observed flow on their segment: side channels (08KH006 Quesnel, 08KG003, 08MH141), Nechako reservoir lakes (08JA014/15/16/28) and Ansedagan (08DB013, fwapg#8). Without them, routed scores 21.3 % against the balance's 27.2 %.
+- Against fwapg's older annual table at the 178 gauges both PCIC products score: annual 25.3 %, routed 28.0 %, balance 30.3 %. Without the far-low gauges (171 left): annual 25.0 %, routed 25.3 %, balance 30.5 %, a tie between the two PCIC products. So the older table's mean edge is placement at a handful of gauges, not the model. Attribution there: unresolved between wet's snap (a gauge put on a side channel) and fwapg's placement. Routed's whole lead over the older table is the 112 gauges the older table never scored: routed 17.8 %, balance 23.3 %.
+
+## Errors Encountered
+
+| Error | Resolution |
+|-------|------------|

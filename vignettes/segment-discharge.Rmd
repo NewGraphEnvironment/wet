@@ -102,14 +102,6 @@ in_frame <- function(pts, bb) {
 as_pts <- function(x) sf::st_transform(sf::st_as_sf(x, coords = c("lon", "lat"), crs = 4326, remove = FALSE), 3005)
 
 sk <- v$skill
-# the major basins PCIC covers, by Water Survey drainage: 07E-07F the Peace,
-# 08J-08M the Fraser, 08N the Columbia
-basin_of <- function(st) {
-  ifelse(substr(st, 1, 3) %in% c("07E", "07F"), "Peace",
-         ifelse(substr(st, 1, 3) %in% paste0("08", c("J", "K", "L", "M")), "Fraser",
-                ifelse(substr(st, 1, 3) == "08N", "Columbia", NA)))
-}
-sk$basin <- basin_of(sk$station_number)
 ```
 
 wet gives every stream segment of British Columbia's Freshwater Atlas a mean
@@ -152,12 +144,18 @@ The terms used below:
   the Water Survey of Canada's archive of flow measured at gauges. A
   *calibration gauge* is one of the `r nrow(sk)` HYDAT gauges the water balance
   is fitted and scored on.
-- **[PCIC hydrologic model output](https://services.pacificclimate.org/portal/hydro_model_out/map/)**:
-  runoff and baseflow from the Pacific Climate Impacts Consortium's VIC-GL
-  model, on a grid of 0.0625° cells. It covers the Peace, Fraser and Columbia.
+- **PCIC's models**: the Pacific Climate Impacts Consortium runs the VIC-GL
+  model of snow, glaciers, soil and runoff on a grid of 0.0625° cells, and
+  routes its runoff down rivers with the Raven model
+  ([hydromosaic](https://beehive.pacificclimate.org/chyp/)). The gridded
+  [output](https://services.pacificclimate.org/portal/hydro_model_out/map/)
+  covers the Peace, Fraser and Columbia; the routed flow also covers the
+  coast.
 - **[fwapg](https://github.com/smnorris/fwapg)**: an open database toolkit
-  for the Freshwater Atlas. It publishes a mean annual discharge per segment
-  from PCIC's output, and "fwapg" below means that estimate.
+  for the Freshwater Atlas. New Graph's
+  [fork](https://github.com/NewGraphEnvironment/fwapg/pull/6) places PCIC's
+  routed outlets on Freshwater Atlas segments and gives each segment a monthly
+  flow. "Routed PCIC" below means that estimate.
 - **Open water balance**: wet's own estimate, after
   [Chapman et al. (2018)](https://www2.gov.bc.ca/assets/gov/environment/air-land-water/water/northeast-water-strategy/chapman_et_al-2018-jawra.pdf),
   the method behind the province's
@@ -182,23 +180,35 @@ The terms used below:
 ## Two estimates
 
 ```{r compare-data}
-both <- sk[sk$in_pcic & !is.na(sk$fwapg_mm), ]
-both$fw_err <- 100 * (both$fwapg_mm / both$obs - 1)
+both <- sk[!is.na(sk$routed_mm), ]
+both$rt_err <- 100 * (both$routed_mm / both$obs - 1)
 n_both <- nrow(both)
-stopifnot(all(!is.na(both$basin)))   # every scored gauge is in the Peace, Fraser or Columbia
 mae_wb <- mean(abs(both$err_pct))
-mae_fw <- mean(abs(both$fw_err))
+mae_rt <- mean(abs(both$rt_err))
 in20_wb <- mean(abs(both$err_pct) <= err_cut)
-in20_fw <- mean(abs(both$fw_err) <= err_cut)
-# the guidance: PCIC fits the gauges both cover more closely
-stopifnot(mae_fw < mae_wb, in20_fw > in20_wb)
-# the large-river row: gauges in PCIC's area on rivers fwapg leaves out, where
-# the balance scores better than its average
-dropped <- sk[sk$in_pcic & is.na(sk$fwapg_mm), ]
-stopifnot(stats::median(dropped$area_km2) > stats::median(both$area_km2),
-          mean(abs(dropped$err_pct)) < mae_wb)
-o8 <- prov$fwapg_order8
-stopifnot(o8[["valued"]] < 0.01 * o8[["segments"]])   # "rivers of order 8 and up are left out"
+in20_rt <- mean(abs(both$rt_err) <= err_cut)
+bias_wb <- mean(both$err_pct)
+bias_rt <- mean(both$rt_err)
+# the guidance: routed PCIC fits the gauges both cover more closely, and the
+# balance runs high on average where routed PCIC does not
+stopifnot(mae_rt < mae_wb, in20_rt > in20_wb, bias_wb > abs(bias_rt))
+# the large-river row: basins over 1,000 km², where routed PCIC does best
+large <- both$area_km2 >= 1000
+mae_large_rt <- mean(abs(both$rt_err[large]))
+mae_large_wb <- mean(abs(both$err_pct[large]))
+stopifnot(mae_large_rt < mae_large_wb, mae_large_rt < mae_rt)
+o8 <- prov$routed_order8
+stopifnot(o8[["valued"]] > 0.9 * o8[["segments"]])   # "it reaches the rivers of order 8 and up"
+# the guidance: by mean error the balance edges routed PCIC in the Peace
+# (07E-07F) and the Fraser (08J-08M), and nowhere else among the major basins
+basin_mae <- function(p, e) mean(abs(e[substr(both$station_number, 1, 3) %in% p]))
+fraser <- paste0("08", c("J", "K", "L", "M"))
+stopifnot(basin_mae(c("07E", "07F"), both$err_pct) < basin_mae(c("07E", "07F"), both$rt_err),
+          basin_mae(fraser, both$err_pct) < basin_mae(fraser, both$rt_err),
+          basin_mae("08N", both$err_pct) > basin_mae("08N", both$rt_err))
+# the coverage row: the gauges without routed flow are mostly in the Liard (10x)
+none <- sk[is.na(sk$routed_mm), ]
+stopifnot(nrow(none) > 0, mean(startsWith(none$station_number, "10")) > 0.5)
 # grid cells in km at the Salmon River's latitude
 lat_salr <- sf::st_coordinates(sf::st_transform(sf::st_centroid(sf::st_geometry(
   map$groups[map$groups$watershed_group_code == "SALR", ])), 4326))[[1, 2]]   # unnamed: c(ew = x) keeps x's name
@@ -210,33 +220,37 @@ fmt_cell <- function(k, d) sprintf("about %s × %s km", format(round(k[["ns"]], 
 models <- data.frame(
   ` ` = c("What it is", "Where it has values", sprintf("Fit at the %d gauges both cover", n_both),
           "Largest rivers", "Grid", "Time", "Open to rebuild"),
-  `PCIC VIC-GL, through fwapg` = c(
-    "A physically based model of snow, glaciers, soil and runoff, calibrated over 1985–2005",
-    sprintf("Peace, Fraser and Columbia (%d watershed groups); fwapg's table leaves out rivers of order 8 and up",
-            prov$fwapg_groups),
-    sprintf("%s mean absolute error; %s within ±%d%%", pct1(mae_fw), pct(100 * in20_fw), err_cut),
-    "Not in fwapg's table; wet can rebuild them from PCIC's output (`scripts/mad_basin.R`, run for the Fraser)",
-    sprintf("0.0625°, %s", fmt_cell(km_pcic, 0)),
-    "Daily, 1945–2012; twelve climate projections to 2099",
-    "Output is public; the model runs are PCIC's"),
+  `Routed PCIC` = c(
+    "VIC-GL, a physically based model of snow, glaciers, soil and runoff, routed down rivers by Raven",
+    sprintf(paste("Peace, Fraser, Columbia and most of the coast (most segments in %d watershed groups; only",
+                  "some on the outer islands); not the Liard, where %d of the %d gauges without it lie"),
+            prov$routed_groups, sum(startsWith(none$station_number, "10")), nrow(none)),
+    sprintf("%s mean absolute error; %s within ±%d%%; bias %s", pct1(mae_rt), pct(100 * in20_rt), err_cut,
+            signed(bias_rt)),
+    sprintf(paste("Routed flow on %s of %s segments of order 8 and up in its area;",
+                  "%s mean absolute error at the %d gauges over 1,000 km²"),
+            num(o8[["valued"]]), num(o8[["segments"]]), pct1(mae_large_rt), sum(large)),
+    sprintf("0.0625°, %s; flow between outlets is spread by drainage area", fmt_cell(km_pcic, 0)),
+    "Monthly means, 1951–2012; no climate projections placed on the FWA yet",
+    "Output is public; the model and routing set-ups are PCIC's; the placement on the FWA is open (fwapg)"),
   `wet's open water balance` = c(
     "Precipitation less evapotranspiration per grid cell, adjusted by hydrologic zone against HYDAT gauges",
     "All of BC: every segment with a watershed",
-    sprintf("%s mean absolute error (held out); %s within ±%d%%", pct1(mae_wb), pct(100 * in20_wb), err_cut),
-    sprintf("%s mean absolute error at the %d gauges in PCIC's area where fwapg has no value, mostly on these",
-            pct1(mean(abs(dropped$err_pct))), nrow(dropped)),
+    sprintf("%s mean absolute error (held out); %s within ±%d%%; bias %s", pct1(mae_wb), pct(100 * in20_wb),
+            err_cut, signed(bias_wb)),
+    sprintf("%s mean absolute error at the same %d gauges", pct1(mae_large_wb), sum(large)),
     sprintf("30″, %s", fmt_cell(km_wb, 1)),
     "1981–2010 normals, annual and monthly",
     "Code ships with wet; its inputs are public and fetched by its scripts"),
   check.names = FALSE
 )
 err_lim <- c(-100, 200)
-n_off <- sum(both$err_pct > err_lim[2] | both$fw_err > err_lim[2])
+n_off <- sum(both$err_pct > err_lim[2] | both$rt_err > err_lim[2])
 cap_cmp <- sprintf(paste(
-  "Error at each of the %d calibration gauges both estimates cover: fwapg's across, the water balance's",
-  "(held out) up. The shaded square holds the gauges both put within ±%d%%. Between the dashed diagonals,",
-  "the left and right wedges hold gauges where the balance is closer, the top and bottom wedges those",
-  "where fwapg is.%s"
+  "Error at each of the %d calibration gauges both estimates cover: routed PCIC's across, the water",
+  "balance's (held out) up. The shaded square holds the gauges both put within ±%d%%. Between the dashed",
+  "diagonals, the left and right wedges hold gauges where the balance is closer, the top and bottom wedges",
+  "those where routed PCIC is.%s"
 ), n_both, err_cut,
 if (n_off) sprintf(" %d gauge%s beyond +%d%% %s drawn at the edge.", n_off, if (n_off > 1) "s" else "",
                    err_lim[2], if (n_off > 1) "are" else "is") else "")
@@ -248,26 +262,35 @@ different ways. They suit different jobs.
 ```{r models}
 knitr::kable(models, align = "lll", row.names = FALSE,
              caption = paste(
-               "The two estimates. The balance is scored at gauges held out of its fit; the gauges PCIC",
-               "calibrated to are not listed with its output. The two fits are not strictly like for like."
+               "The two estimates. The balance is scored at gauges held out of its fit; PCIC does not list",
+               "the gauges it calibrated to, so its errors may be partly in sample. Routed flow covers",
+               "1951–2012 and the balance 1981–2010. The two fits are not strictly like for like."
              ))
 ```
 
 Which to use depends on the job:
 
-- Inside the Peace, Fraser and Columbia, where fwapg has a value: PCIC's
-  model, which fits gauges more closely there.
-- Outside those basins, on the rivers fwapg leaves out, or for one consistent
-  layer across BC: the open water balance.
+- Where routed PCIC has a value, which is most of BC: routed PCIC, which fits
+  gauges more closely overall, most of all on larger rivers. By mean error the
+  balance is slightly closer in the Peace and the Fraser.
+- Where it has none (mainly the Liard), for one consistent layer across BC from
+  open code, or for 1981–2010 normals: the open water balance.
 - Where both exist and the number matters: both, checked against the nearest
   gauge, as the Salmon River section below does.
+
+Where fwapg's older, unrouted annual table also had values, routed PCIC scores
+about the same as it once the few gauges where routed flow reads almost nothing
+are set aside
+([research](https://github.com/NewGraphEnvironment/wet/blob/main/research/water_balance_method.md)).
+What it adds is coverage: the coast and the largest rivers, which that table
+left out.
 
 ```{r compare, fig.width = 5.5, fig.height = 5.5, out.width = "80%", fig.cap = cap_cmp}
 sq <- data.frame(xmin = -err_cut, xmax = err_cut, ymin = -err_cut, ymax = err_cut)
 both_plot <- both
-both_plot$fw_err <- pmin(both_plot$fw_err, err_lim[2])
+both_plot$rt_err <- pmin(both_plot$rt_err, err_lim[2])
 both_plot$err_pct <- pmin(both_plot$err_pct, err_lim[2])
-ggplot(both_plot, aes(fw_err, err_pct)) +
+ggplot(both_plot, aes(rt_err, err_pct)) +
   geom_rect(data = sq, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), inherit.aes = FALSE,
             fill = pal_prov$values[["zone"]], alpha = 0.6) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = pal_par$values[["one_to_one"]],
@@ -281,10 +304,10 @@ ggplot(both_plot, aes(fw_err, err_pct)) +
   scale_y_continuous(limits = err_lim, labels = function(x) sub("^\\+0%$", "0%", signed(x))) +
   annotate("text", x = 0.75 * err_lim[2], y = 0.1 * err_lim[2], label = "balance closer", size = 3,
            colour = pal_par$values[["one_to_one"]]) +
-  annotate("text", x = 0.1 * err_lim[2], y = 0.9 * err_lim[2], label = "fwapg closer", size = 3,
+  annotate("text", x = 0.1 * err_lim[2], y = 0.9 * err_lim[2], label = "routed closer", size = 3,
            colour = pal_par$values[["one_to_one"]]) +
   coord_equal() +
-  labs(x = "fwapg error", y = "Water balance error (held out)")
+  labs(x = "Routed PCIC error", y = "Water balance error (held out)")
 ```
 
 ## How close it is, province-wide
@@ -310,9 +333,8 @@ stopifnot(mae_nest < mae_head, mae_small > mae_large, sum(zone_mae > 2 * mae_all
           worst %in% c("15", "17", "23", "24"), length(worst_name) == 1)
 sk$class <- err_class(sk$err_pct)
 cap_prov <- sprintf(paste(
-  "The %d calibration gauges, filled by the water balance's held-out error at each. PCIC's coverage,",
-  "where fwapg also has values, is outlined; zone %s, the weakest, is shaded; the two groups mapped",
-  "below are in black."
+  "The %d calibration gauges, filled by the water balance's held-out error at each. Routed PCIC's",
+  "coverage is outlined; zone %s, the weakest, is shaded; the two groups mapped below are in black."
 ), nrow(sk), worst)
 cap_hist <- sprintf(paste(
   "Held-out error at the %d calibration gauges, in classes of %d%%, coloured by the error scale.",
@@ -385,7 +407,7 @@ seg <- merge(map$segments, v$segments, by = c("linear_feature_id", "watershed_gr
 stopifnot(nrow(seg) == nrow(map$segments))
 n_no_value <- sum(is.na(seg$mad_wb_m3s))
 # the limits bullet says neither product has these
-stopifnot(all(is.na(seg$mad_pcic_m3s[is.na(seg$mad_wb_m3s)])))
+stopifnot(all(is.na(seg$mad_routed_m3s[is.na(seg$mad_wb_m3s)])))
 order_no_value <- range(seg$stream_order[is.na(seg$mad_wb_m3s)])
 n_total <- table(seg$watershed_group_code)
 seg <- seg[!is.na(seg$mad_wb_m3s), ]
@@ -480,37 +502,26 @@ map_theme <- theme_void() +
 
 # SALR: both products, and the gauges that arbitrate between them
 ss <- v$segments[v$segments$watershed_group_code == "SALR" & !is.na(v$segments$mad_wb_m3s), ]
-ratio_salr <- stats::median(ss$mad_wb_m3s / ss$mad_pcic_m3s)
+ratio_salr <- stats::median(ss$mad_wb_m3s / ss$mad_routed_m3s, na.rm = TRUE)
 ga <- v$gauges_salr
 ga$wb_err <- 100 * (ga$wb_mm / ga$obs_mm - 1)
-ga$fw_err <- 100 * (ga$fwapg_mm / ga$obs_mm - 1)
+ga$rt_err <- 100 * (ga$routed_mm / ga$obs_mm - 1)
 outlet <- ga[ga$holds_salr, ]
-# the balance's share of the gap at each gauge, in log terms like the ratio:
-# log(wb / fwapg) = log(wb / obs) + log(obs / fwapg)
-ga$wb_share <- log(ga$wb_mm / ga$obs_mm) / log(ga$wb_mm / ga$fwapg_mm)
-ga$close <- abs(ga$fw_err) <= 5   # a column, so it follows the reorder below
-close <- ga$close
-# the prose: the balance reads high at every gauge; at the small basins fwapg is
-# within 5% and the gap is nearly all the balance's; at the large ones fwapg is
-# low
+ga$rt_closer <- abs(ga$rt_err) < abs(ga$wb_err)   # a column, so it follows the reorder below
+# the prose: the balance reads high at every gauge; routed PCIC is closer at
+# most of them, the outlet among them, and the balance at the rest, where
+# routed PCIC is off by more than it is
 stopifnot(ratio_salr > 1, all(ga$wb_err > 0), nrow(outlet) == 1,
-          any(close), any(!close), max(ga$area_km2[close]) < min(ga$area_km2[!close]),
-          all(ga$wb_share[close] > 0.9), all(ga$fw_err[!close] < -5),
-          !close[ga$holds_salr])
-# the larger basins off the group: the balance within 5%, so the gap there is
-# nearly all fwapg's; at the outlet the two bracket the observation and share it
-ga$far <- !ga$close & !ga$holds_salr   # a column, so it follows the reorder below
-stopifnot(sum(ga$far) >= 1, all(abs(ga$wb_err[ga$far]) <= 5), all(ga$wb_share[ga$far] < 0.25),
-          outlet$wb_err > 0, outlet$fw_err < 0, ga$wb_share[ga$holds_salr] > 0.25, ga$wb_share[ga$holds_salr] < 0.75)
+          sum(ga$rt_closer) > nrow(ga) / 2, any(!ga$rt_closer), ga$rt_closer[ga$holds_salr],
+          all(abs(ga$rt_err[!ga$rt_closer]) > 10))
 ga <- ga[order(!ga$holds_salr, ga$area_km2), ]
-close <- ga$close
 named <- c(named, ga$station_number)
 gauge_tab <- data.frame(
   Gauge = sprintf("%s %s", ga$station_number, to_title(ga$station_name)),
   `Area (km²)` = num(ga$area_km2),
   `Observed (mm)` = num(ga$obs_mm),
   `Water balance (held out)` = signed(ga$wb_err),
-  fwapg = signed(ga$fw_err),
+  `Routed PCIC` = signed(ga$rt_err),
   check.names = FALSE
 )
 
@@ -532,19 +543,19 @@ stopifnot(bb_salr[["xmin"]] >= ctx[["xmin"]], bb_salr[["xmax"]] <= ctx[["xmax"]]
           bb_salr[["ymin"]] >= ctx[["ymin"]], bb_salr[["ymax"]] <= ctx[["ymax"]])
 drawn <- c(drawn, in_frame(ga_pts, bb_salr))
 
-products <- c(fwapg = "fwapg (PCIC)", wb = "Open water balance")
+products <- c(routed = "Routed PCIC", wb = "Open water balance")
 s2 <- seg[seg$watershed_group_code == "SALR", ]
-s2 <- rbind(transform(s2, product = products[["fwapg"]], class = mad_class(s2$mad_pcic_m3s)),
+s2 <- rbind(transform(s2, product = products[["routed"]], class = mad_class(s2$mad_routed_m3s)),
             transform(s2, product = products[["wb"]], class = mad_class(s2$mad_wb_m3s)))
 s2$product <- factor(s2$product, products)
 s2 <- s2[order(s2$class), ]   # large rivers drawn last, on top
-g2 <- rbind(transform(ga_pts, product = products[["fwapg"]], class = err_class(ga_pts$fw_err)),
+g2 <- rbind(transform(ga_pts, product = products[["routed"]], class = err_class(ga_pts$rt_err)),
             transform(ga_pts, product = products[["wb"]], class = err_class(ga_pts$wb_err)))
 g2$product <- factor(g2$product, products)
 lakes_salr <- rbind(map$lakes[map$lakes$watershed_group_code == "SALR", c("gnis_name", "area_ha")],
                     map$context_lakes[c("gnis_name", "area_ha")])
 cap_salr <- sprintf(paste(
-  "Mean annual discharge on %s of the %s %s segments of order %d or more, from fwapg (left) and the",
+  "Mean annual discharge on %s of the %s %s segments of order %d or more, from routed PCIC (left) and the",
   "open water balance (right), with the gauges of the table filled by each product's error. Rivers",
   "outside the group are grey."
 ), num(nrow(seg[seg$watershed_group_code == "SALR", ])), num(n_total[["SALR"]]), group_name[["SALR"]],
@@ -554,18 +565,15 @@ prov$min_order)
 Both products cover the `r group_name[["SALR"]]`, a headwater group of the
 Fraser (`r num(group_km2[["SALR"]])` km²), and they differ there. The open
 water balance gives a median `r format(round(ratio_salr, 2), nsmall = 2)`
-times fwapg's value per segment. The `r nrow(ga)` gauges in and around the
-group show which is closer where.
+times routed PCIC's value per segment. The `r nrow(ga)` gauges in and around
+the group show which is closer where.
 
 The balance runs high at all of them, by `r signed(min(ga$wb_err))` to
-`r signed(max(ga$wb_err))`. At the `r sum(close)` smallest basins, fwapg is
-within 5%, so the gap there is the balance's. At the `r sum(!close)` larger
-ones, fwapg runs `r signed(max(ga$fw_err[!close]))` to
-`r signed(min(ga$fw_err[!close]))`. At the `r sum(ga$far)` of those off the
-group, the balance is within `r pct(max(abs(ga$wb_err[ga$far])))`, so the gap
-there is fwapg's. At `r outlet$station_number`, the gauge that drains the
-whole group, they bracket the observation: `r signed(outlet$wb_err)` against
-`r signed(outlet$fw_err)`.
+`r signed(max(ga$wb_err))`. Routed PCIC is closer at `r sum(ga$rt_closer)`,
+including `r outlet$station_number`, the gauge that drains the whole group:
+`r signed(outlet$rt_err)` against the balance's `r signed(outlet$wb_err)`. The
+balance is closer at the other `r sum(!ga$rt_closer)`, where routed PCIC is off
+by `r and_text(signed(ga$rt_err[!ga$rt_closer]))`.
 
 ```{r gauges-salr}
 knitr::kable(gauge_tab, align = "lrrrr", row.names = FALSE,
@@ -599,7 +607,7 @@ ggplot() +
         legend.text = element_text(size = 8), legend.title = element_text(size = 8.5))
 ```
 
-## Bulkley River: the water balance alone
+## Bulkley River: tracing one gauge
 
 ```{r bulk-data}
 gb <- sk[sk$watershed_group_code == "BULK", ]
@@ -609,7 +617,16 @@ gb_pts$class <- err_class(gb_pts$err_pct)
 nb <- nrow(gb)
 bulk_mae <- mean(abs(gb$err_pct))
 bulk_zones <- sort(unique(gb$zone))
-stopifnot(nb > 0, prov$fwapg_discharge_rows[["BULK"]] == 0)
+gb$rt_err <- 100 * (gb$routed_mm / gb$obs - 1)
+bulk_mae_rt <- mean(abs(gb$rt_err))
+# the prose: routed PCIC covers every BULK gauge, and scores worse than the
+# balance here mostly because of two small creeks (under 25 km2), where it is
+# off the most; without them it is no worse than the balance
+rt_worst <- gb[order(-abs(gb$rt_err)), ][1:2, ]
+rest <- !gb$station_number %in% rt_worst$station_number
+stopifnot(nb > 0, !anyNA(gb$rt_err), bulk_mae_rt > bulk_mae,
+          all(rt_worst$area_km2 < 25), all(abs(rt_worst$rt_err) > 80),
+          mean(abs(gb$rt_err[rest])) <= mean(abs(gb$err_pct[rest])))
 named <- c(named, gb$station_number)
 bulk_tab <- data.frame(
   Gauge = sprintf("%s %s", gb$station_number, to_title(gb$station_name)),
@@ -617,6 +634,7 @@ bulk_tab <- data.frame(
   `Observed (mm)` = num(gb$obs),
   `Water balance (mm, held out)` = num(gb$mod),
   Error = signed(gb$err_pct),
+  `Routed PCIC error` = signed(gb$rt_err),
   check.names = FALSE
 )
 
@@ -654,11 +672,14 @@ cap_bulk <- sprintf(paste(
 ), num(nrow(sb_bulk)), num(n_total[["BULK"]]), group_name[["BULK"]], prov$min_order, nb)
 ```
 
-fwapg has no values in the `r group_name[["BULK"]]`, in the Skeena
-(`r num(group_km2[["BULK"]])` km²), which lies outside PCIC's coverage. The
-open water balance is the only estimate there. Its `r nb` gauges average
-`r pct(bulk_mae)` held-out error, from `r signed(min(gb$err_pct))` to
-`r signed(max(gb$err_pct))`, in zones `r and_text(bulk_zones)`.
+The `r group_name[["BULK"]]`, in the Skeena (`r num(group_km2[["BULK"]])`
+km²), lies outside PCIC's gridded output but inside its routed flow. Its
+`r nb` gauges average `r pct(bulk_mae)` held-out error for the balance, from
+`r signed(min(gb$err_pct))` to `r signed(max(gb$err_pct))`, in zones
+`r and_text(bulk_zones)`. Routed PCIC averages `r pct(bulk_mae_rt)` here,
+mostly because of two creeks under 25 km², where it is off by
+`r and_text(signed(rt_worst$rt_err))`. The map shows the balance alone, to
+trace one gauge from its segment's value.
 
 The map's segment values come from the fit that includes every gauge, while
 the gauges are filled by the held-out error, so a gauge can look worse than
@@ -696,10 +717,10 @@ ggplot() +
 ```
 
 ```{r bulk-table}
-knitr::kable(bulk_tab, align = "lrrrr", row.names = FALSE,
+knitr::kable(bulk_tab, align = "lrrrrr", row.names = FALSE,
              caption = sprintf(paste(
                "The %d calibration gauges in the %s group: mean annual runoff observed in 1981–2010,",
-               "the water balance's held-out prediction, and its error."
+               "the water balance's held-out prediction and its error, and routed PCIC's error."
              ), nb, group_name[["BULK"]]))
 ```
 
@@ -717,8 +738,10 @@ stopifnot(isTRUE(prov$keep_adjust), isFALSE(prov$gate_pass), identical(prov$pool
 
 In order of how much they affect a user:
 
-- **Coverage.** Outside the Peace, Fraser and Columbia, the open water
-  balance is the only estimate.
+- **Coverage.** In the Liard, and in a few northern and border basins (the
+  Yukon and Alsek headwaters, the Hay, the Skagit), routed PCIC has no value or
+  almost none, and on the outer coast's islands it reaches only some segments.
+  There the open water balance is the estimate to use.
 - **Dry zones.** In zone `r worst` and the other semi-arid interior zones,
   runoff is a small remainder of precipitation, so a small error in
   evapotranspiration is a large one in runoff.
@@ -744,9 +767,10 @@ p <- v$parity
 stopifnot(p$n_segments == prov$fwapg_discharge_rows[["SALR"]], p$n_match5 == p$n_segments)
 ```
 
-wet rebuilds fwapg's numbers from PCIC's output with its own code, and on
+Before routed flow, fwapg published an annual table built from PCIC's gridded
+output, with no routing. wet rebuilds that table with its own code, and on
 every one of the `r num(p$n_segments)` `r group_name[["SALR"]]` segments
-fwapg gives a value, it matches fwapg to the five decimals fwapg stores.
+it gives a value, it matches it to the five decimals fwapg stores.
 
 ```{r sampling-data}
 sm <- v$sampling
@@ -765,7 +789,7 @@ cap_samp <- sprintf(paste(
 ), num(nrow(sm)), group_name[["SALR"]])
 ```
 
-fwapg gives each watershed the value of the PCIC cell under its centroid. A
+That table gives each watershed the value of the PCIC cell under its centroid. A
 cell is 0.0625°, about `r round(cell_ns)` by `r round(cell_ew)` km here, so a
 small watershed gets one cell's value. wet can instead weight every cell by
 the area it covers. Under `r area_cut[2]` km², `r pct(100 * moved[[1]])` of
@@ -815,7 +839,9 @@ up$mad_m3s <- wet_mm_to_m3s(up$value, up$upstream_area_m2)
 **Cached inputs.** This article runs on saved outputs: PCIC VIC-GL through
 `scripts/mad_parity.R`; the open water balance from province run
 `r prov$province_run` (annual AET `r prov$aet`, HYDAT release
-`r substr(prov$hydat_release, 1, 10)`); fwapg's values at the gauges; built
+`r substr(prov$hydat_release, 1, 10)`); routed PCIC from fwapg at commit
+`r prov$routed_commit` (`r prov$routed_fingerprint`), scored in
+`r prov$routed_report`; built
 `r paste(as.integer(format(prov$built, "%d")), format(prov$built, "%B %Y"))` at commit `r prov$wet_commit`. Regenerated by
 `data-raw/segment_vignette_data.R`. Map layers from the Freshwater Atlas
 (fwapg), BC Geographic Names and the BC Hydrologic Zones, by

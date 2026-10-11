@@ -21,8 +21,8 @@
 #     flow lines through lakes, wetlands and double-line reaches, and lakes
 #     (>= 1,000 ha) in that box outside SALR, so a gauge off the group sits on its
 #     river
-#   - coverage: the outline of the watershed groups fwapg gives a discharge in
-#     (PCIC's coverage), simplified for a province map
+#   - coverage: the outline of the watershed groups PCIC's routed flow covers
+#     (NewGraphEnvironment/fwapg#6, #58), simplified for a province map
 #   - zones: the Extended BC Hydrologic Zones the water balance adjusts by
 #     (scripts/wb_inputs.R), simplified for a province map, keyed by the zone
 #     code the calibration stations carry, with the zone's name
@@ -113,21 +113,38 @@ context_streams <- context_streams[!sf::st_is_empty(context_streams), ]
 stopifnot(nrow(context_streams) > 0, nrow(context_lakes) > 0)
 
 # ---- province layers ----------------------------------------------------------------
-# PCIC's coverage: the groups where at least half of fwapg's rows hold a
-# value (some carry only null rows, and Liard groups at the grid's edge a few
-# percent), the rule data-raw/segment_vignette_data.R scores by, as one
-# outline; area before the simplify
+# routed flow's coverage: the groups where at least half the segments carry
+# routed flow (the table holds no null rows), the rule
+# data-raw/segment_vignette_data.R scores by, as one outline; area before the
+# simplify. The coast's groups bring thousands of islets, which a province map
+# cannot show and which would add half a megabyte, so parts under
+# min_part_km2 are dropped and vertices snap to 1 km (the tests check every
+# covered gauge still falls inside)
+min_part_km2 <- 200
+# simplifying at province_simplify_m cuts fjord heads, which left two covered
+# coast gauges (08FB009, 08FF006) up to 1 km outside: the outline is pushed out
+cov_buffer_m <- 2000
 coverage <- sf::st_read(conn, quiet = TRUE, query = sprintf("
-  SELECT sum(ST_Area(geom)) / 1e6 AS area_km2,
-         ST_Multi(ST_CollectionExtract(ST_MakeValid(
-           ST_SnapToGrid(ST_SimplifyPreserveTopology(ST_Union(geom), %d), 100)), 3)) AS geom
-  FROM whse_basemapping.fwa_watershed_groups_poly
-  WHERE watershed_group_code IN (
-    SELECT watershed_group_code FROM whse_basemapping.fwa_stream_networks_discharge
-    GROUP BY 1 HAVING count(mad_mm) >= %f * count(*))", province_simplify_m, cov_share))
+  WITH cov AS (
+    SELECT sum(ST_Area(geom)) / 1e6 AS area_km2,
+           ST_CollectionExtract(ST_MakeValid(ST_SnapToGrid(ST_Buffer(
+             ST_SimplifyPreserveTopology(ST_Union(geom), %d), %d, 'quad_segs=2'), 1000)), 3) AS geom
+    FROM whse_basemapping.fwa_watershed_groups_poly
+    WHERE watershed_group_code IN (
+      SELECT s.watershed_group_code FROM whse_basemapping.fwa_stream_networks_sp s
+      LEFT JOIN (SELECT linear_feature_id FROM whse_basemapping.fwa_stream_networks_discharge_monthly
+                 WHERE month = 1) r USING (linear_feature_id)
+      GROUP BY 1 HAVING count(r.linear_feature_id) >= %f * count(*)))
+  SELECT min(c.area_km2) AS area_km2, ST_Multi(ST_Collect(d.geom)) AS geom
+  FROM cov c, ST_Dump(c.geom) d
+  WHERE ST_Area(d.geom) >= %f * 1e6", province_simplify_m, cov_buffer_m, cov_share, min_part_km2))
+source("scripts/pcic_routed_lib.R")
+routed_fp <- routed_fingerprint(conn)
 DBI::dbDisconnect(conn)
 stopifnot(nrow(coverage) == 1, !sf::st_is_empty(coverage))
 coverage$cov_share <- cov_share   # the tests hold it to the data script's
+# and the routed table the outline came from to the one the values came from
+coverage$routed_fingerprint <- routed_fp
 
 # the zones the balance adjusts by, from the zip scripts/wb_inputs.R caches
 hz_url <- paste0("https://catalogue.data.gov.bc.ca/dataset/f1f86c41-ae83-49d5-92e1-526897b99fa2/",
