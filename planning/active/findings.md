@@ -94,6 +94,12 @@ Blocked by NewGraphEnvironment/fwapg#6. Relates to #57, #5, #42.
 
 - fwapg#14 merged into newgraph as 341b078 (fwapg PR #21, 2026-10-11 18:12 UTC; PR head 0de0876). The PR body gives the build's fingerprint: 40,524,444 rows, 3,377,037 segments, sum(round(q_m3s::numeric,6)) = 178035348.248310; pcic_fwa_crosswalk 48,716. Its gauge QA is unchanged (494 of 538 within 10 %), and FWA flow changed at 2 of 604 gauges. This build is the one to score (`WET_FWAPG_COMMIT=341b078`). It is live only on the 128 GB machine (m4); m1 still holds #11. fwapg#9 is open, and the upload is not done. Per fwapg_m4, the user chose to make `fresh-bc/fwapg/*` public, but at 2026-10-11 the bucket policy still grants only `bcfishpass/*` and `bcgw/*`.
 
+- 2026-10-11: loaded fwapg#9's published files into m1's fresh-db; the user approved the swap.
+  - Files: `s3://fresh-bc/fwapg/extras/fwa_stream_networks_discharge_monthly.csv.gz` (sha256 b45c5230da1b622e17276592ef17647e1af333c99da22899e659eb02789026b7) and `pcic_fwa_crosswalk.csv.gz` (sha256 689a7001c3f0739ada49e987fbfc1b2717dc15ce90deba6c36d23cb10fc46d6b). Uploaded 11:27 PDT; local copies and sha256s are in `data/pcic_routed/`.
+  - Loaded into staging tables, fingerprinted, then swapped in one transaction. The live table now matches #14's build (341b078): 40,524,444 rows, 3,377,037 segments, 178035348.248310; crosswalk 48,716.
+  - Auto mode refused the swap's DROP/TRUNCATE in `whse_basemapping`, so the user ran it in default mode.
+  - Filed fwapg#23: give the crosswalk outputs their own schema. wet's `routed_table` follows any move.
+
 ## Errors Encountered
 
 | Error | Resolution |
