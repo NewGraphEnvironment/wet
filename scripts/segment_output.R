@@ -140,7 +140,8 @@ for (code in codes) {
   stopifnot(all(rt$month %in% 1:12))
   n12 <- tabulate(match(rt$linear_feature_id[!is.na(rt$q_m3s)], s$linear_feature_id), nbins = nrow(s))
   rt <- rt[rt$linear_feature_id %in% s$linear_feature_id[n12 == 12], ]
-  rt0 <- stats::aggregate(q_m3s ~ linear_feature_id, rt, mean)
+  # some basins (the Yukon and Liard headwaters) have no routed segment at all
+  rt0 <- if (nrow(rt)) stats::aggregate(q_m3s ~ linear_feature_id, rt, mean) else rt[c("linear_feature_id", "q_m3s")]
   s$q_routed <- rt0$q_m3s[match(s$linear_feature_id, rt0$linear_feature_id)]
   s$source <- wet_source_pick(s$q_routed, s$q_balance, routed_far_low)
 
@@ -148,7 +149,7 @@ for (code in codes) {
   kb <- which(!is.na(s$q_balance))
   sb <- s[kb, ]
   bm <- bal[rep(iw[kb], 13) + rep(0:12 * nws, each = length(kb)), ]
-  rows_b <- data.frame(
+  rows_b <- if (length(kb)) data.frame(
     linear_feature_id = rep(sb$linear_feature_id, 13), month = rep(0:12, each = nrow(sb)),
     runoff_mm = bm$runoff_mm, q_m3s = bm$discharge_m3s, coverage = bm$coverage,
     source = "wet_balance", period = period_balance,
@@ -157,16 +158,20 @@ for (code in codes) {
 
   # routed rows: the annual mean plus its twelve months
   sr <- s[!is.na(s$q_routed), ]
-  rq <- rbind(data.frame(linear_feature_id = sr$linear_feature_id, month = 0L, q_m3s = sr$q_routed),
-              rt[rt$linear_feature_id %in% sr$linear_feature_id, c("linear_feature_id", "month", "q_m3s")])
-  j <- match(rq$linear_feature_id, sr$linear_feature_id)
-  rows_r <- data.frame(
-    linear_feature_id = rq$linear_feature_id, month = as.integer(rq$month),
-    runoff_mm = rq$q_m3s * days[rq$month + 1] * 86400 / sr$area_m2[j] * 1000,
-    q_m3s = rq$q_m3s, coverage = NA_real_,
-    source = "pcic_routed", period = period_routed,
-    pick = sr$source[j] == "pcic_routed"
-  )
+  rows_r <- NULL
+  if (nrow(sr)) {
+    rq <- rbind(data.frame(linear_feature_id = sr$linear_feature_id, month = 0L, q_m3s = sr$q_routed),
+                rt[rt$linear_feature_id %in% sr$linear_feature_id, c("linear_feature_id", "month", "q_m3s")])
+    j <- match(rq$linear_feature_id, sr$linear_feature_id)
+    rows_r <- data.frame(
+      linear_feature_id = rq$linear_feature_id, month = as.integer(rq$month),
+      runoff_mm = rq$q_m3s * days[rq$month + 1] * 86400 / sr$area_m2[j] * 1000,
+      q_m3s = rq$q_m3s, coverage = NA_real_,
+      source = "pcic_routed", period = period_routed,
+      pick = sr$source[j] == "pcic_routed"
+    )
+  }
+  if (is.null(rows_b) && is.null(rows_r)) stop("basin ", code, " has no value from either source")
   out <- rbind(rows_b, rows_r)[cols_out]
   out <- out[order(out$linear_feature_id, out$source, out$month), ]
   # exactly one picked source per segment and month, and only one row per source
@@ -189,7 +194,7 @@ for (code in codes) {
   )
   seg_q[[code]] <- s[c("linear_feature_id", "q_routed", "q_balance", "source")]
   stamp(code, ": ", nrow(s), " segments, ", nrow(out), " rows")
-  rm(bal, up, rt, rt0, rows_b, rows_r, out, bm, rq)
+  rm(bal, up, rt, rt0, rows_b, rows_r, out, bm)
   gc(verbose = FALSE)
 }
 stopifnot(identical(routed_fingerprint(conn), routed_fp))

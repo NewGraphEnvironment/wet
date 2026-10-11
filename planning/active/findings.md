@@ -76,3 +76,4 @@ Filed as fwapg#25: model, scenario and period parameters for the crosswalk build
 
 | Error | Resolution |
 |-------|------------|
+| `segment_output.R` stopped at basin 800: `aggregate()` "no rows to aggregate" (a basin with no routed segment, the Yukon headwaters) | Guarded: an empty routed set gives no routed rows; `data.frame()` with scalar columns is built only when rows exist |
