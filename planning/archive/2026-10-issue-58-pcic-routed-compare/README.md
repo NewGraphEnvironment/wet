@@ -19,7 +19,7 @@ The routed table moved three times while this issue was open (#11 → #13 tie ru
 - **Build sensitivity:** the #11 and #14 builds give identical gauge scores (#14 moved flow at 2 of 604 WSC gauges, none of them calibration gauges).
 - **#57's ad hoc query:** this script reproduced its balance side exactly, and its routed side to within 0.3 points. The gap is attributed to an unrecorded earlier build of the table the same day; weighting months by their length does not explain it.
 - **Table loaded on m1:** fwapg#9's published `fwa_stream_networks_discharge_monthly.csv.gz`, sha256 b45c5230da1b622e17276592ef17647e1af333c99da22899e659eb02789026b7. Fingerprint 40,524,444 rows, 3,377,037 segments, sum(round(q,6)) 178035348.248310; it matches fwapg PR #21.
-- **Vignette bundle:** 469 KB of the 500 KB budget. The routed coverage outline was 544 KB raw because of the coast's islets, and 22 KB after dropping parts under 200 km², snapping to 1 km and buffering 2 km.
+- **Vignette bundle:** 458 KB of the 500 KB budget. The routed coverage outline was 544 KB raw because of the coast's islets, and 22 KB after dropping parts under 200 km², snapping to 1 km and buffering 2 km.
 - **Wrong turns kept:**
   - The first rebuild plan assumed m1's table predated the merged placement. fwapg#2's rerun showed it reproduced exactly.
   - Three rebuild attempts on m1 died in forced resets. A guessed-commit report (4929c8c) was never committed.
