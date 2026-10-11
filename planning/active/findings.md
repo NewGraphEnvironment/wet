@@ -86,6 +86,12 @@ Blocked by NewGraphEnvironment/fwapg#6. Relates to #57, #5, #42.
 
 - Every current routed build is provisional (fwapg-5f, verified 2026-10-11): fwapg#9 (publish to `s3://fresh-bc/fwapg/` and load in `load.sh`) is blocked by fwapg#14 (flow and placement at a tributary junction's vertex, open), whose rerun changes the outputs. Neither the #11 build on m1 nor the #13 build is final. The citable table is the one #9 publishes, loaded with its md5. Nobody plans to rebuild m1's fresh-db; that is the user's call.
 
+- fwapg_m4, 2026-10-11:
+  - The #13 build was built at 8173112. f9718cb builds the same table, because no crosswalk or path SQL or shell changed between them. On m4 it is now only a snapshot, `fwapg.pcic14_before_monthly`: 40,524,600 rows, 3,377,050 segments, sum 178168114.938520.
+  - fwapg#14 is rebuilding the live table on m4 today (final run from 17:23 UTC, about 30 min). An intermediate run moved about 4,600 segments by more than 0.001 m3/s: junction steps moved below the junction (about 2,300 by more than 1 m3/s), 6 outlets moved, 3 skipped tributaries gained flow, and 13 coastal secondary-flow segments lost it. Flow at the root outlets is unchanged.
+  - fwapg#9 will publish #14's build. Still open there: the bucket's public read covers only `bcfishpass/*` (the user's call).
+  - Decision: hold scoring until #14 merges, then score its build by merge sha and fingerprint.
+
 ## Errors Encountered
 
 | Error | Resolution |
