@@ -8,7 +8,7 @@
 - [x] `scripts/pcic_routed_lib.R`: `routed_far_low` stays the one definition of the cut; the scripts pass it in
 
 ## Phase 2: Per-segment table
-- [ ] `scripts/segment_output.R`. It reads the shipped fit's balance output (refusing a fit under other scoring code, as `wb_output.R` does), the routed table (refusing a fingerprint/`WET_FWAPG_COMMIT` other than the tracked routed report's, as `segment_vignette_data.R` does) and the lut. Per basin it writes `data/wb/<key>/fit_<rel>/segment/<CODE>.parquet` with columns:
+- [x] `scripts/segment_output.R`. It reads the shipped fit's balance output (refusing a fit under other scoring code, as `wb_output.R` does), the routed table (refusing a fingerprint/`WET_FWAPG_COMMIT` other than the tracked routed report's, as `segment_vignette_data.R` does) and the lut. Per basin it writes `data/wb/<key>/fit_<rel>/segment/<CODE>.parquet` with columns:
   - `linear_feature_id, month (0-12), runoff_mm, q_m3s, coverage, source, period, pick`
   - routed annual is the mean of 12 monthly means (`routed_annual`'s definition), and routed `runoff_mm` is over wet's accumulated area (`routed_mm`); routed `coverage` is NA
 - [ ] Tracked report `data/checks/segment_output_<release>.txt`:

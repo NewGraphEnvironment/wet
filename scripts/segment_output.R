@@ -49,7 +49,12 @@ wet_commit <- git("rev-parse", "--short", "HEAD")
 
 key_dir <- wb_key_dir()
 release <- wb_release()
+if (!identical(release, wb_shipped_release)) {
+  stop("the segment table is built from the shipped fit, ", wb_shipped_release)
+}
 fit_dir <- wb_fit_dir(key_dir, release)
+# the old table goes first, so a refused run never leaves one to be read
+unlink(file.path(fit_dir, "segment"), recursive = TRUE)
 source("scripts/wb_score_md5.R")  # score_code_md5, aet_code_md5
 
 # the balance as it ships: the fit wb_output.R would accept, and output made
@@ -64,9 +69,12 @@ if (!length(out_files)) stop("no balance output in ", fit_dir, ": run scripts/wb
 if (any(file.mtime(out_files) < file.mtime(file.path(fit_dir, "fits.rds")))) {
   stop("the balance output predates fits.rds: rerun scripts/wb_output.R")
 }
-codes <- sub("\\.parquet$", "", basename(out_files))
-miss_up <- codes[!file.exists(file.path(key_dir, "upstream", paste0(codes, ".rds")))]
-if (length(miss_up)) stop("no upstream means for basins ", paste(miss_up, collapse = ", "))
+# every basin of the province run, with all 13 months: a reduced bundle (one
+# cut to the calibration watersheds, or month 0 only) is refused here and below
+codes <- sub("\\.rds$", "", list.files(file.path(key_dir, "upstream"), "\\.rds$"))
+if (!setequal(codes, sub("\\.parquet$", "", basename(out_files)))) {
+  stop("the balance output and the province run's upstream/ hold different basins: run where the full run is")
+}
 
 # the routed table must be the one the tracked report scored, at the commit it names
 fwapg_commit <- routed_commit()
@@ -87,7 +95,7 @@ if (!(any(rr == routed_line) && any(rr == sprintf("table: %s", routed_fp)))) {
 
 # every FWA segment, with its watershed where the lut has one
 seg <- DBI::dbGetQuery(conn, "
-  SELECT s.linear_feature_id, s.watershed_group_code, l.watershed_feature_id
+  SELECT s.linear_feature_id, s.watershed_group_code, s.edge_type, s.stream_order, l.watershed_feature_id
   FROM whse_basemapping.fwa_stream_networks_sp s
   LEFT JOIN whse_basemapping.fwa_streams_watersheds_lut l USING (linear_feature_id)")
 stopifnot(!anyDuplicated(seg$linear_feature_id), max(seg$linear_feature_id) < .Machine$integer.max)
@@ -96,7 +104,6 @@ seg$watershed_feature_id <- as.integer(seg$watershed_feature_id)
 seg$basin <- NA_character_
 stamp(nrow(seg), " segments, ", sum(!is.na(seg$watershed_feature_id)), " with a watershed")
 
-unlink(file.path(fit_dir, "segment"), recursive = TRUE)
 dir.create(file.path(fit_dir, "segment"))
 days <- c(365.25, wet_month_days())
 cols_out <- c("linear_feature_id", "month", "runoff_mm", "q_m3s", "coverage", "source", "period", "pick")
@@ -104,10 +111,9 @@ period_routed <- "1951-2012"
 period_balance <- "1981-2010"
 tally <- list()
 seg_q <- list()  # annual flow of each source and the pick, per segment, for the report
-DBI::dbExecute(conn, "CREATE TEMP TABLE seg_ids (linear_feature_id bigint PRIMARY KEY)")
+invisible(DBI::dbExecute(conn, "CREATE TEMP TABLE seg_ids (linear_feature_id bigint PRIMARY KEY)"))
 for (code in codes) {
   bal <- as.data.frame(arrow::read_parquet(file.path(fit_dir, "output", paste0(code, ".parquet"))))
-  stopifnot(setequal(unique(bal$month), 0:12))
   up <- readRDS(file.path(key_dir, "upstream", paste0(code, ".rds")))
   ws <- unique(bal$watershed_feature_id)
   stopifnot(setequal(ws, up$watershed_feature_id), !anyDuplicated(up$watershed_feature_id))
@@ -119,14 +125,14 @@ for (code in codes) {
   # the balance: the watershed's value on each of its segments. wb_output.R
   # writes the watersheds in one order, month by month
   nws <- length(ws)
-  stopifnot(identical(bal$month, rep(0:12, each = nws)),
+  stopifnot(identical(as.integer(bal$month), rep(0:12, each = nws)), nws == nrow(up),
             identical(bal$watershed_feature_id, rep(bal$watershed_feature_id[seq_len(nws)], 13)))
   iw <- match(s$watershed_feature_id, bal$watershed_feature_id[seq_len(nws)])
   s$q_balance <- bal$discharge_m3s[iw]
   s$area_m2 <- up$upstream_area_m2[match(s$watershed_feature_id, up$watershed_feature_id)]
 
   # routed: all twelve months on the segment
-  DBI::dbExecute(conn, "TRUNCATE seg_ids")
+  invisible(DBI::dbExecute(conn, "TRUNCATE seg_ids"))
   DBI::dbWriteTable(conn, "seg_ids", data.frame(linear_feature_id = s$linear_feature_id), append = TRUE)
   rt <- DBI::dbGetQuery(conn, sprintf("
     SELECT r.linear_feature_id::int AS linear_feature_id, r.month, r.q_m3s
@@ -209,6 +215,13 @@ grp$flip_pct <- ifelse(grp$both > 0, 100 * grp$flipped / grp$both, NA)
 grp <- grp[order(grp$group), ]
 nechako <- c("LEUT", "UEUT", "UNRS", "LNRS")
 hi <- grp[!is.na(grp$flip_pct) & grp$flip_pct > 50, ]
+# where the flips are outside the Nechako groups: by edge type and stream order
+by_class <- function(v) {
+  k <- seg$both & !seg$watershed_group_code %in% nechako
+  x <- data.frame(class = v[k], flipped = seg$flipped[k])
+  a <- stats::aggregate(flipped ~ class, x, function(f) c(n = length(f), flipped = sum(f)))
+  sprintf("%-10s %9d %9d %7.1f", a$class, a$flipped[, 1], a$flipped[, 2], 100 * a$flipped[, 2] / a$flipped[, 1])
+}
 fmt_grp <- function(x) {
   sprintf("%-5s %9d %9d %9d %8d %9d %9d %7.1f", x$group, x$segments, x$routed, x$balance, x$none, x$both,
           x$flipped, x$flip_pct)
@@ -247,6 +260,10 @@ writeLines(c(
   "", "## Nechako Reservoir groups (routed about zero on #58's reservoir-lake gauges)",
   hdr_grp, fmt_grp(grp[grp$group %in% nechako, ]),
   sprintf("their share of all flipped segments: %s", pct(sum(grp$flipped[grp$group %in% nechako]), sum(grp$flipped))),
+  "", "## Outside the Nechako groups, segments with both sources and how many flip, by edge type",
+  sprintf("%-10s %9s %9s %7s", "edge_type", "both", "flipped", "flip %"), by_class(seg$edge_type),
+  "", "## The same, by stream order",
+  sprintf("%-10s %9s %9s %7s", "order", "both", "flipped", "flip %"), by_class(seg$stream_order),
   "", sprintf("## Groups where more than half the segments with both sources flip (%d)", nrow(hi)),
   hdr_grp, fmt_grp(hi),
   "", "## By watershed group",
