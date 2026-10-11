@@ -121,11 +121,14 @@ stopifnot(nrow(context_streams) > 0, nrow(context_lakes) > 0)
 # min_part_km2 are dropped and vertices snap to 1 km (the tests check every
 # covered gauge still falls inside)
 min_part_km2 <- 200
+# simplifying at province_simplify_m cuts fjord heads, which left two covered
+# coast gauges (08FB009, 08FF006) up to 1 km outside: the outline is pushed out
+cov_buffer_m <- 2000
 coverage <- sf::st_read(conn, quiet = TRUE, query = sprintf("
   WITH cov AS (
     SELECT sum(ST_Area(geom)) / 1e6 AS area_km2,
-           ST_CollectionExtract(ST_MakeValid(
-             ST_SnapToGrid(ST_SimplifyPreserveTopology(ST_Union(geom), %d), 1000)), 3) AS geom
+           ST_CollectionExtract(ST_MakeValid(ST_SnapToGrid(ST_Buffer(
+             ST_SimplifyPreserveTopology(ST_Union(geom), %d), %d, 'quad_segs=2'), 1000)), 3) AS geom
     FROM whse_basemapping.fwa_watershed_groups_poly
     WHERE watershed_group_code IN (
       SELECT s.watershed_group_code FROM whse_basemapping.fwa_stream_networks_sp s
@@ -134,7 +137,7 @@ coverage <- sf::st_read(conn, quiet = TRUE, query = sprintf("
       GROUP BY 1 HAVING count(r.linear_feature_id) >= %f * count(*)))
   SELECT min(c.area_km2) AS area_km2, ST_Multi(ST_Collect(d.geom)) AS geom
   FROM cov c, ST_Dump(c.geom) d
-  WHERE ST_Area(d.geom) >= %f * 1e6", province_simplify_m, cov_share, min_part_km2))
+  WHERE ST_Area(d.geom) >= %f * 1e6", province_simplify_m, cov_buffer_m, cov_share, min_part_km2))
 source("scripts/pcic_routed_lib.R")
 routed_fp <- routed_fingerprint(conn)
 DBI::dbDisconnect(conn)

@@ -47,19 +47,19 @@ Decided at the gate:
   - Update the Verified / Issues / Produced-by header.
 
 ## Phase 4: Tests first, then the vignette data
-- [ ] `tests/testthat/test-vignette_data.R`: change the expectations to the new shape. They fail until the data is rebuilt.
+- [x] `tests/testthat/test-vignette_data.R`: change the expectations to the new shape. They fail until the data is rebuilt.
   - `skill$routed_mm` and `in_routed`.
   - `segments$mad_routed_m3s` for SALR and BULK.
   - `gauges_salr$routed_mm`.
   - Provenance: `fwapg_commit` and the routed fingerprint, with the routed coverage counts in place of `fwapg_*`.
   - The map coverage outline, using the same `cov_share` rule on the routed table.
-- [ ] `data-raw/segment_vignette_data.R`:
+- [x] `data-raw/segment_vignette_data.R`:
   - Reads the routed table through `pcic_routed_lib.R` and needs `WET_FWAPG_COMMIT`.
   - Asserts that its gauge summary equals the tracked report's lines, as it already does for `wb_validation`.
   - Keeps the parity/sampling path from `mad_parity.R`.
   - Fixes the stale "290 calibration stations" header.
-- [ ] `data-raw/segment_vignette_map.R`: the coverage outline becomes the groups where at least half the segments are routed.
-- [ ] Rebuild `inst/vignette-data/*.rds` (budget 500 KB). Tests pass.
+- [x] `data-raw/segment_vignette_map.R`: the coverage outline becomes the groups where at least half the segments are routed.
+- [x] Rebuild `inst/vignette-data/*.rds` (budget 500 KB). Tests pass.
 
 ## Phase 5: Vignette
 - [ ] "Two estimates":
