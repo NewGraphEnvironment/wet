@@ -1,5 +1,23 @@
 # Changelog
 
+## wet 0.3.1
+
+- The segment vignette compares the open water balance with PCIC’s
+  routed flow (NewGraphEnvironment/fwapg#6) instead of fwapg’s older
+  annual table
+  ([\#58](https://github.com/NewGraphEnvironment/wet/issues/58)): the
+  table of strengths and limits, the scatter, the province coverage
+  outline, the Salmon River pair and the Bulkley gauges. At the 290 of
+  315 calibration gauges routed flow covers, its mean absolute error is
+  24.1 % against the held-out balance’s 27.6 % (median 13.0 against
+  18.0); by mean error the balance is closer in the Peace and the
+  Fraser. Where the older annual table also had values, the two PCIC
+  products tie once 7 far-low gauges are set aside, so what routed flow
+  adds is coverage: the coast and the largest rivers. The scores come
+  from `scripts/pcic_routed_compare.R`, whose report records the fwapg
+  commit and the table’s fingerprint, and the vignette’s data script
+  refuses any other build.
+
 ## wet 0.3.0
 
 - [`wet_temp_fill()`](https://newgraphenvironment.github.io/wet/reference/wet_temp_fill.md)
