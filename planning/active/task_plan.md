@@ -19,7 +19,7 @@
 - [ ] Copy m4's full `fit_20260717/output/` to m1 (superset of the reduced bundle), then run on m1 and commit the report
 
 ## Phase 3: Score the pick, attribute the far-low
-- [ ] `scripts/pcic_routed_compare.R`: add the default pick as a third column at all 315 gauges (routed where picked, the held-out balance elsewhere, including the 25 uncovered). Rerun it and commit the report.
+- [x] `scripts/pcic_routed_compare.R`: add the default pick as a third column at all 315 gauges (routed where picked, the held-out balance elsewhere, including the 25 uncovered). Rerun it and commit the report.
 - [ ] Attribute the Nechako zero: PCIC outlets in LEUT/UEUT/UNRS/LNRS (`fwapg.pcic_outlets` placement status, the hydromosaic series at one outlet). Record ours, theirs or unresolved; file in fwapg if it is placement.
 - [ ] File the fwapg issue: build the routed table over 1981–2010 from hydromosaic's daily PNWNAmet series (with a model/scenario parameter, which also serves the CMIP6 runs)
 
