@@ -243,11 +243,13 @@ wb <- do.call(rbind, lapply(basin_of, function(b) {
   x <- x[x$month == 0 & x$watershed_feature_id %in% seg$watershed_feature_id, ]
   x[c("watershed_feature_id", "discharge_m3s", "coverage", "bc_fraction")]
 }))
+# four significant figures: the vignette classes these into six discharge
+# classes and prints one decimal, and full doubles cost the bundle its budget
 segments <- data.frame(
   linear_feature_id = seg$linear_feature_id,
   watershed_group_code = seg$watershed_group_code,
-  mad_wb_m3s = wb$discharge_m3s[match(seg$watershed_feature_id, wb$watershed_feature_id)],
-  mad_routed_m3s = seg_routed$q_m3s[match(seg$linear_feature_id, seg_routed$linear_feature_id)]
+  mad_wb_m3s = signif(wb$discharge_m3s[match(seg$watershed_feature_id, wb$watershed_feature_id)], 4),
+  mad_routed_m3s = signif(seg_routed$q_m3s[match(seg$linear_feature_id, seg_routed$linear_feature_id)], 4)
 )
 cov <- wb$coverage[match(seg$watershed_feature_id, wb$watershed_feature_id)]
 print(table(segments$watershed_group_code, is.na(segments$mad_wb_m3s), dnn = c("group", "wb NA")))

@@ -116,17 +116,25 @@ stopifnot(nrow(context_streams) > 0, nrow(context_lakes) > 0)
 # routed flow's coverage: the groups where at least half the segments carry
 # routed flow (the table holds no null rows), the rule
 # data-raw/segment_vignette_data.R scores by, as one outline; area before the
-# simplify
+# simplify. The coast's groups bring thousands of islets, which a province map
+# cannot show and which would add half a megabyte, so parts under
+# min_part_km2 are dropped and vertices snap to 1 km (the tests check every
+# covered gauge still falls inside)
+min_part_km2 <- 200
 coverage <- sf::st_read(conn, quiet = TRUE, query = sprintf("
-  SELECT sum(ST_Area(geom)) / 1e6 AS area_km2,
-         ST_Multi(ST_CollectionExtract(ST_MakeValid(
-           ST_SnapToGrid(ST_SimplifyPreserveTopology(ST_Union(geom), %d), 100)), 3)) AS geom
-  FROM whse_basemapping.fwa_watershed_groups_poly
-  WHERE watershed_group_code IN (
-    SELECT s.watershed_group_code FROM whse_basemapping.fwa_stream_networks_sp s
-    LEFT JOIN (SELECT linear_feature_id FROM whse_basemapping.fwa_stream_networks_discharge_monthly
-               WHERE month = 1) r USING (linear_feature_id)
-    GROUP BY 1 HAVING count(r.linear_feature_id) >= %f * count(*))", province_simplify_m, cov_share))
+  WITH cov AS (
+    SELECT sum(ST_Area(geom)) / 1e6 AS area_km2,
+           ST_CollectionExtract(ST_MakeValid(
+             ST_SnapToGrid(ST_SimplifyPreserveTopology(ST_Union(geom), %d), 1000)), 3) AS geom
+    FROM whse_basemapping.fwa_watershed_groups_poly
+    WHERE watershed_group_code IN (
+      SELECT s.watershed_group_code FROM whse_basemapping.fwa_stream_networks_sp s
+      LEFT JOIN (SELECT linear_feature_id FROM whse_basemapping.fwa_stream_networks_discharge_monthly
+                 WHERE month = 1) r USING (linear_feature_id)
+      GROUP BY 1 HAVING count(r.linear_feature_id) >= %f * count(*)))
+  SELECT min(c.area_km2) AS area_km2, ST_Multi(ST_Collect(d.geom)) AS geom
+  FROM cov c, ST_Dump(c.geom) d
+  WHERE ST_Area(d.geom) >= %f * 1e6", province_simplify_m, cov_share, min_part_km2))
 source("scripts/pcic_routed_lib.R")
 routed_fp <- routed_fingerprint(conn)
 DBI::dbDisconnect(conn)
