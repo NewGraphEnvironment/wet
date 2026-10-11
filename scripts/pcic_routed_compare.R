@@ -67,11 +67,19 @@ g$routed_mm <- routed_mm(g$routed_m3s, g$upstream_area_m2)
 g$routed_err <- 100 * (g$routed_mm / g$obs - 1)
 g$basin <- routed_basin(g$station_number)
 g$edge_type <- edge$edge_type[match(g$linear_feature_id, edge$linear_feature_id)]
+# The default pick (#57, scripts/segment_output.R) at each gauge, made against
+# the held-out balance so it uses no observed flow; mm over one area compare
+# as the flows do. Its error is the picked source's.
+g$pick <- wet_source_pick(g$routed_mm, g$mod, routed_far_low)
+stopifnot(!anyNA(g$pick))
+g$pick_err <- ifelse(g$pick == "pcic_routed", g$routed_err, g$err_pct)
 cov <- g[!is.na(g$routed_mm), ]
 low <- cov[cov$routed_mm < routed_far_low * cov$obs, ]
 low <- low[order(low$routed_err), ]
 unc <- g[is.na(g$routed_mm), ]
 stopifnot(nrow(cov) > 0, all(cov$routed_mm >= 0))
+flip <- cov[cov$pick == "wet_balance", ]
+flip <- flip[order(flip$routed_err), ]
 
 # ---- report -------------------------------------------------------------------------------
 score_line <- function(lab, i) {
@@ -108,6 +116,28 @@ lines <- c(
   score_line("1,000-10,000 km2", cov$area_km2 >= 1000 & cov$area_km2 < 10000),
   score_line(">= 10,000 km2", cov$area_km2 >= 10000),
   vapply(basins, function(b) score_line(b, cov$basin == b), ""),
+  "",
+  "## The default pick (#57): routed unless it carries under the cut of the balance, then the balance",
+  sprintf("cut %.2f, against the held-out balance; error as %% of observed", routed_far_low),
+  sprintf("%-28s %4s %6s %6s %5s %7s", "", "n", "mean", "median", sprintf("+-%d", err_cut), "bias"),
+  {
+    line <- function(lab, e) {
+      r <- routed_scores(e, err_cut)
+      sprintf("%-28s %4d %6.1f %6.1f %5.0f %+7.1f", lab, r[["n"]], r[["mae"]], r[["median_ae"]], r[["within"]],
+              r[["bias"]])
+    }
+    c(line(sprintf("pick, the %d with routed", nrow(cov)), cov$pick_err),
+      line(sprintf("routed, the %d", nrow(cov)), cov$routed_err),
+      line(sprintf("balance, the %d", nrow(cov)), cov$err_pct),
+      line(sprintf("pick, every gauge (%d)", nrow(g)), g$pick_err),
+      line(sprintf("balance, every gauge (%d)", nrow(g)), g$err_pct))
+  },
+  sprintf("gauges where the pick is the balance although routed has a value: %d; the balance closer at %d",
+          nrow(flip), sum(abs(flip$err_pct) < abs(flip$routed_err))),
+  "station    basin       obs  routed balance  r_err  b_err  name",
+  if (nrow(flip)) sprintf("%-10s %-8s %6.0f %7.0f %7.0f %+6.1f %+6.1f  %s", flip$station_number, flip$basin, flip$obs,
+                          flip$routed_mm, flip$mod, flip$routed_err, flip$err_pct,
+                          substr(flip$station_name, 1, 34)) else "  none",
   "",
   sprintf("## The %d gauges whose segment carries less than %.0f %% of observed flow", nrow(low), 100 * routed_far_low),
   "Attributed by fwapg's older annual table, which has no routing and no placement: where it is far low too,",
@@ -169,13 +199,14 @@ lines <- c(
   "  within 1981-2010 (at least 10; scripts/wb_stations.R).",
   "",
   "## Per gauge (mm/yr; errors %)",
-  "station   basin     nesting        km2    obs  routed  annual balance  r_err  b_err  name",
+  "station   basin     nesting        km2    obs  routed  annual balance  r_err  b_err  pick  name",
   {
     o <- g[order(g$basin, g$station_number), ]
-    sprintf("%-9s %-9s %-9s %9.0f %6.0f %7s %7s %7.0f %6s %+6.1f  %s", o$station_number, o$basin, o$nesting, o$area_km2,
-            o$obs, ifelse(is.na(o$routed_mm), "-", sprintf("%.0f", o$routed_mm)),
+    sprintf("%-9s %-9s %-9s %9.0f %6.0f %7s %7s %7.0f %6s %+6.1f  %-4s  %s", o$station_number, o$basin, o$nesting,
+            o$area_km2, o$obs, ifelse(is.na(o$routed_mm), "-", sprintf("%.0f", o$routed_mm)),
             ifelse(is.na(o$annual_mm), "-", sprintf("%.0f", o$annual_mm)), o$mod,
-            ifelse(is.na(o$routed_err), "-", sprintf("%+.1f", o$routed_err)), o$err_pct, substr(o$station_name, 1, 34))
+            ifelse(is.na(o$routed_err), "-", sprintf("%+.1f", o$routed_err)), o$err_pct,
+            ifelse(o$pick == "pcic_routed", "rt", "bal"), substr(o$station_name, 1, 34))
   }
 )
 f_report <- wb_report("pcic_routed_compare", release)
