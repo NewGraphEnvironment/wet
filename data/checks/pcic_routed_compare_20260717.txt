@@ -1,6 +1,6 @@
 # PCIC routed flow against the open water balance at the calibration gauges (#58)
 
-wet commit 3bb19b2; fit 20260717 (HYDAT 2026-07-17 08:08:08.000), province run 962a9cc2c4, scoring code 94d05b195898abea5bd87cc0bd65018d; balance adjusted, held out (blocked CV)
+wet commit d6579e3; fit 20260717 (HYDAT 2026-07-17 08:08:08.000), province run 962a9cc2c4, scoring code 94d05b195898abea5bd87cc0bd65018d; balance adjusted, held out (blocked CV)
 routed: whse_basemapping.fwa_stream_networks_discharge_monthly, built by NewGraphEnvironment/fwapg at 341b078
 table: 40524444 rows, 3377037 segments, 0 null flows, total 178035348.248310 m3/s
 routed per gauge: the mean of the 12 monthly means (1951-2012, unweighted by month length) on the segment
@@ -23,19 +23,21 @@ Columbia                 78    23.7  32.7    13.1  15.1     68   54     +7.8  +1
 Coast                    94    18.9  25.1    10.8  15.9     66   59     -3.0   +6.4     60
 
 ## The 11 gauges whose segment carries less than 20 % of observed flow
-A side channel carries only its own water, a reservoir lake its regulated outflow; neither is PCIC's model error.
-station   edge_type      km2    obs  routed  r_err  name
-08JA015        1000       81   2046       0 -100.0  LAVENTIE CREEK NEAR THE MOUTH
-08JA028        1250     2554    786       0 -100.0  EUTSUK RIVER AT OUTLET OF EUTSUK L
-08JA016        1000       58    468       0  -99.9  MACIVOR CREEK NEAR THE MOUTH
-08KH006        1100    11571    655       1  -99.9  QUESNEL RIVER NEAR QUESNEL
-08JA014        1000      145    185       0  -99.8  VAN TINE CREEK NEAR THE MOUTH
-08DB013        1000       22   1435       2  -99.8  ANSEDAGAN CREEK NEAR NEW AIYANSH
-08KG003        1100     1017     64       5  -92.4  BAEZAEKO RIVER AT LOT 10262
-08EE028        1000       10    894     127  -85.9  STATION CREEK ABOVE DIVERSIONS
-08MH141        1100       49   4277     631  -85.2  COQUITLAM RIVER ABOVE COQUITLAM LA
-08DB014        1000       18   1029     178  -82.7  KSEDIN TRIBUTARY NO. 2 CREEK NEAR 
-08NE039        1000      348    490      85  -82.6  BIG SHEEP CREEK NEAR ROSSLAND
+Attributed by fwapg's older annual table, which has no routing and no placement: where it is far low too,
+the shortfall is PCIC's runoff; where it is not, it is placement or the gauge's snap (a side channel carries
+only its own water, a reservoir lake its regulated outflow); with no annual value, it is unresolved.
+station   edge_type      km2    obs  routed  annual  r_err  attribution            name
+08JA015        1000       81   2046       0    1212 -100.0  placement or snap      LAVENTIE CREEK NEAR THE MOUTH
+08JA028        1250     2554    786       0     431 -100.0  placement or snap      EUTSUK RIVER AT OUTLET OF EUTSUK L
+08JA016        1000       58    468       0     375  -99.9  placement or snap      MACIVOR CREEK NEAR THE MOUTH
+08KH006        1100    11571    655       1       -  -99.9  unresolved             QUESNEL RIVER NEAR QUESNEL
+08JA014        1000      145    185       0     168  -99.8  placement or snap      VAN TINE CREEK NEAR THE MOUTH
+08DB013        1000       22   1435       2       -  -99.8  unresolved             ANSEDAGAN CREEK NEAR NEW AIYANSH
+08KG003        1100     1017     64       5      57  -92.4  placement or snap      BAEZAEKO RIVER AT LOT 10262
+08EE028        1000       10    894     127       -  -85.9  unresolved             STATION CREEK ABOVE DIVERSIONS
+08MH141        1100       49   4277     631    3317  -85.2  placement or snap      COQUITLAM RIVER ABOVE COQUITLAM LA
+08DB014        1000       18   1029     178       -  -82.7  unresolved             KSEDIN TRIBUTARY NO. 2 CREEK NEAR 
+08NE039        1000      348    490      85      97  -82.6  PCIC runoff            BIG SHEEP CREEK NEAR ROSSLAND
 without them (279 gauges): mean absolute error 21.3 % routed, 27.2 % balance; bias +3.9 % and +9.3 %
 
 ## Against fwapg's older annual table, at the 178 gauges both PCIC products score
@@ -61,7 +63,8 @@ balance at these, held out: mean absolute error 27.0 %
 ## Not like for like
 - PCIC calibrated its model at gauges it does not publish, so routed errors may be partly in sample;
   the balance's are out of sample.
-- Routed flow is 1951-2012; the balance is 1981-2010 normals; observed is each gauge's record.
+- Routed flow is 1951-2012; the balance is 1981-2010 normals; observed is each gauge's complete years
+  within 1981-2010 (at least 10; scripts/wb_stations.R).
 
 ## Per gauge (mm/yr; errors %)
 station   basin     nesting        km2    obs  routed  annual balance  r_err  b_err  name
