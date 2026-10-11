@@ -199,6 +199,13 @@ mae_large_wb <- mean(abs(both$err_pct[large]))
 stopifnot(mae_large_rt < mae_large_wb, mae_large_rt < mae_rt)
 o8 <- prov$routed_order8
 stopifnot(o8[["valued"]] > 0.9 * o8[["segments"]])   # "it reaches the rivers of order 8 and up"
+# the guidance: by mean error the balance edges routed PCIC in the Peace
+# (07E-07F) and the Fraser (08J-08M), and nowhere else among the major basins
+basin_mae <- function(p, e) mean(abs(e[substr(both$station_number, 1, 3) %in% p]))
+fraser <- paste0("08", c("J", "K", "L", "M"))
+stopifnot(basin_mae(c("07E", "07F"), both$err_pct) < basin_mae(c("07E", "07F"), both$rt_err),
+          basin_mae(fraser, both$err_pct) < basin_mae(fraser, both$rt_err),
+          basin_mae("08N", both$err_pct) > basin_mae("08N", both$rt_err))
 # the coverage row: the gauges without routed flow are mostly in the Liard (10x)
 none <- sk[is.na(sk$routed_mm), ]
 stopifnot(nrow(none) > 0, mean(startsWith(none$station_number, "10")) > 0.5)
@@ -215,8 +222,8 @@ models <- data.frame(
           "Largest rivers", "Grid", "Time", "Open to rebuild"),
   `Routed PCIC` = c(
     "VIC-GL, a physically based model of snow, glaciers, soil and runoff, routed down rivers by Raven",
-    sprintf(paste("Peace, Fraser, Columbia and the coast (%d watershed groups); not the Liard,",
-                  "where %d of the %d gauges without it lie"),
+    sprintf(paste("Peace, Fraser, Columbia and most of the coast (most segments in %d watershed groups; only",
+                  "some on the outer islands); not the Liard, where %d of the %d gauges without it lie"),
             prov$routed_groups, sum(startsWith(none$station_number, "10")), nrow(none)),
     sprintf("%s mean absolute error; %s within ±%d%%; bias %s", pct1(mae_rt), pct(100 * in20_rt), err_cut,
             signed(bias_rt)),
@@ -224,7 +231,7 @@ models <- data.frame(
                   "%s mean absolute error at the %d gauges over 1,000 km²"),
             num(o8[["valued"]]), num(o8[["segments"]]), pct1(mae_large_rt), sum(large)),
     sprintf("0.0625°, %s; flow between outlets is spread by drainage area", fmt_cell(km_pcic, 0)),
-    "Monthly means, 1951–2012; PCIC serves climate projections the same way, not yet placed",
+    "Monthly means, 1951–2012; no climate projections placed on the FWA yet",
     "Output is public; the model and routing set-ups are PCIC's; the placement on the FWA is open (fwapg)"),
   `wet's open water balance` = c(
     "Precipitation less evapotranspiration per grid cell, adjusted by hydrologic zone against HYDAT gauges",
@@ -264,7 +271,8 @@ knitr::kable(models, align = "lll", row.names = FALSE,
 Which to use depends on the job:
 
 - Where routed PCIC has a value, which is most of BC: routed PCIC, which fits
-  gauges more closely, most of all on larger rivers.
+  gauges more closely overall, most of all on larger rivers. By mean error the
+  balance is slightly closer in the Peace and the Fraser.
 - Where it has none (mainly the Liard), for one consistent layer across BC from
   open code, or for 1981–2010 normals: the open water balance.
 - Where both exist and the number matters: both, checked against the nearest
@@ -732,7 +740,8 @@ In order of how much they affect a user:
 
 - **Coverage.** In the Liard, and in a few northern and border basins (the
   Yukon and Alsek headwaters, the Hay, the Skagit), routed PCIC has no value or
-  almost none, and the open water balance is the estimate to use.
+  almost none, and on the outer coast's islands it reaches only some segments.
+  There the open water balance is the estimate to use.
 - **Dry zones.** In zone `r worst` and the other semi-arid interior zones,
   runoff is a small remainder of precipitation, so a small error in
   evapotranspiration is a large one in runoff.

@@ -89,7 +89,7 @@ Decided at the gate:
 ## Validation
 - [x] Vignette body prose under its 1,600-word cap
 - [x] Tests pass (864, 0 fail); lint clean on lines this branch adds; vignette renders
-- [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
+- [x] `/code-check branch`: 3 rounds (4, 2, 4 findings, all fixed); ended by round 3's enumeration of every count, list, comparison and attribution claim
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
