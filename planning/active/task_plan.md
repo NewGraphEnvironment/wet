@@ -130,8 +130,8 @@ later:
   - Afterwards `wet_catalog_verify()` reads every key anonymously.
 
 ### Phase 6: Run it where the full province run is
-- [ ] Check the routed table's fingerprint against the tracked report first (A1). Then run `scripts/discharge_publish.R` (no upload) and commit its report.
-- [ ] Measure pruning: for one watershed group, the row groups read against the total.
+- [x] Check the routed table's fingerprint against the tracked report first (A1). Then run `scripts/discharge_publish.R` (no upload) and commit its report.
+- [x] Measure pruning: for one watershed group, the row groups read against the total. BULK opens 2 of 507 row groups in 43 segment parts.
 - [ ] `wet_db_load()` into that fwapg. Count fresh's subquery against the segment report's picked totals.
 
 ### Phase 7: Docs

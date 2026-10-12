@@ -13,3 +13,7 @@
 - Plan review returned (`review-plan.md`, 29 findings). Triage: B1 was already handled (tests rewrite the dataset ID into a throwaway schema); B2, G1–G4, G6–G8, G11, G12, G14 and G15 were taken into Phases 4b and 5; G16 dropped the pkgdown task; O3 moved `watershed_group_code` into the publish step so the segment table needs no rebuild; A3 (partitioned Postgres) was not taken: the load size and time are measured in Phase 6 instead
 - Phase 4b: only a manifest ships (`inst/extdata/discharge_manifest.json`) and tests build the tree from `helper-discharge.R`; per-source provenance and crate schema refs in the manifest; `wet_catalog_verify()`; `wet_db_load()` refuses two picks per feature and month. Tests: catalog 34, db_load all pass
 - Phase 5: `scripts/discharge_publish.R` (BUILD by default, PUBLISH with `WET_PUBLISH=1`) and `scripts/discharge_publish_lib.R`; drainage labels checked against local fwapg (Fraser, Columbia, Skeena, …; coastal codes by their largest groups)
+- Phase 6: on the full-run machine, a worktree of this branch at 7e738e1 with `data/wb` linked to the main checkout's, and crate#31 in a private `R_LIBS`. BUILD took about 5 min (14:35–14:40 UTC) and wrote 67 parts, 1.80 GB.
+  - Every cross-check passes: routed 43,901,481 rows, balance 58,889,207, fresh's subquery 3,152,838 + 1,380,005 = 4,532,843.
+  - Pruning: a read for BULK opens 2 of 507 row groups.
+  - Report committed: `data/checks/discharge_publish_20260717.txt`.
