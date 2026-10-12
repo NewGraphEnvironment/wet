@@ -26,3 +26,12 @@
   - Fixes: the manifest is written as `manifest.pending.json` and renamed only after every check passes; PUBLISH refuses a manifest with no build commit; BUILD compares the released crate schema's md5 with the installed one.
   - The hand-kept list of segment-code dependencies became a diff of all of `R/` and `scripts/` since the segment build, minus the publish code's own files. `DESCRIPTION` is left out, since its version moves at every release. The fit's scoring md5 is checked as `segment_output.R` checks it.
   - Enumeration (parse data over `scripts/discharge_publish.R`): 20 BUILD refusal sites, all before the rename at line 316 of 319. PUBLISH refuses before any upload except at 3 sites, which come after the upload (the stale-key prefix assertion and the final verification).
+- /code-check round 3 (`review-round3.md`) named the mechanism: guards were placed by which *run* they stop, not by which *file* they keep out of a publish, while the manifest and tree outlive runs.
+  - A BUILD refused before its `unlink(root)` left the previous tree publishable.
+  - Nothing checked the watershed parts' basin coverage.
+  - My round-2 enumeration had the right count but missed that 10 of the 20 sites run before the unlink, and it skipped the sites in sourced libs.
+  - Fixes:
+    - BUILD deletes `manifest.json` (and asserts it is gone, since `unlink()` fails silently) before loading or sourcing anything.
+    - PUBLISH also requires that the segment report is the one the tree was built from, and that the build report committed at HEAD names the build and has no FAIL line.
+    - BUILD requires the watershed basins to equal `upstream/`'s, with 13 × the balance report's watersheds per basin (42,190,889 rows in all).
+  - Terminal enumeration: one site creates `manifest.json`, the rename at line 351. Every check precedes it and nothing after it refuses; `wet_manifest_write()` writes only the pending name in BUILD.

@@ -26,12 +26,22 @@
 # schemas), the fwapg connection from WET_PG*, and for PUBLISH the aws CLI
 # with write access to the bucket.
 
+publish <- identical(Sys.getenv("WET_PUBLISH"), "1")
+message(if (publish) "PUBLISH run" else "BUILD run (no upload)")
+# A BUILD that goes on to refuse must not leave the last tree publishable, so
+# its manifest goes first, before anything that can refuse (loading and
+# sourcing included), as segment_output.R's old table does
+root <- file.path("data", "publish", "discharge", "fwa", "v1")
+if (!publish) {
+  unlink(file.path(root, c("manifest.json", "manifest.pending.json")))
+  # unlink() reports a failure by its return value, not an error
+  stopifnot(!file.exists(file.path(root, c("manifest.json", "manifest.pending.json"))))
+}
 devtools::load_all(quiet = TRUE)
 source("scripts/wb_fit_lib.R")
 source("scripts/discharge_publish_lib.R")
+stopifnot(identical(root, file.path("data", "publish", publish_id)))
 stamp <- function(...) message(format(Sys.time(), "%H:%M:%S"), " ", ...)
-publish <- identical(Sys.getenv("WET_PUBLISH"), "1")
-message(if (publish) "PUBLISH run" else "BUILD run (no upload)")
 
 git <- function(...) {
   x <- suppressWarnings(system2("git", c(...), stdout = TRUE, stderr = TRUE))
@@ -42,7 +52,6 @@ dirty <- git("status", "--porcelain", "--", "R", "scripts", "data/checks", "DESC
 if (length(dirty)) stop("commit these first, so the manifest's commit can rebuild the tree:\n",
                         paste(dirty, collapse = "\n"))
 wet_commit <- git("rev-parse", "--short", "HEAD")
-root <- file.path("data", "publish", publish_id)
 release <- wb_release()
 if (!identical(release, wb_shipped_release)) stop("publish the shipped fit, ", wb_shipped_release)
 
@@ -58,6 +67,18 @@ if (publish) {
   if (length(changed)) {
     stop("the code changed since the tree was built at ", built_at, " (", paste(changed, collapse = ", "),
          "): rerun the build")
+  }
+  # the inputs too: the segment table the tree was built from is the one the
+  # current segment report describes, and the build's own report is committed,
+  # names this build and failed no check
+  sr <- readLines(wb_report("segment_output", release))
+  if (!any(grepl(paste0("^wet commit ", attr(cat_local, "provenance")$segment_commit, ";"), sr))) {
+    stop("the segment report has moved on since the tree was built: rerun the build")
+  }
+  f_report <- wb_report("discharge_publish", release)
+  rep_head <- tryCatch(git("show", paste0("HEAD:", f_report)), error = function(e) character())
+  if (!any(grepl(paste0("^wet commit ", built_at, " "), rep_head)) || any(grepl("FAIL", rep_head))) {
+    stop("commit the build's report ", f_report, " first; it must name build ", built_at, " and fail no check")
   }
   v <- wet_catalog_verify(cat_local)
   if (!all(v$ok)) stop("the local tree no longer matches its manifest: ", paste(v$key[!v$ok], collapse = ", "))
@@ -125,6 +146,19 @@ seg_files <- list.files(file.path(fit_dir, "segment"), "\\.parquet$", full.names
 ws_files <- list.files(file.path(fit_dir, "output"), "\\.parquet$", full.names = TRUE)
 if (!length(seg_files)) stop("no segment table in ", fit_dir, ": run scripts/segment_output.R")
 if (!length(ws_files)) stop("no balance output in ", fit_dir, ": run scripts/wb_output.R")
+# every basin of the province run, and only those: a partial copy is refused
+codes_up <- sub("\\.rds$", "", list.files(file.path(key_dir, "upstream"), "\\.rds$"))
+codes_ws <- sub("\\.parquet$", "", basename(ws_files))
+codes_seg <- sub("\\.parquet$", "", basename(seg_files))
+if (!setequal(codes_ws, codes_up) || !all(codes_seg %in% codes_up)) {
+  stop("the balance output, the segment table and the province run's upstream/ hold different basins")
+}
+# and each basin whole: 13 rows per watershed the balance report counts
+wr <- readLines(wb_report("wb_output", release))
+by_basin <- grep("^[0-9]{3} +[0-9]+ ", wr, value = TRUE)
+ws_expected <- stats::setNames(13 * as.numeric(sub("^[0-9]{3} +([0-9]+) .*", "\\1", by_basin)),
+                               sub(" .*", "", by_basin))
+if (!setequal(names(ws_expected), codes_up)) stop("the balance report does not list every basin")
 
 # the segment table must be the one its tracked report describes, built by
 # the segment code as it stands now
@@ -217,6 +251,7 @@ for (f in ws_files) {
   }
   names(x)[names(x) == "discharge_m3s"] <- "q_m3s"
   if (!setequal(x$month, 0:12)) stop(f, " does not hold all 13 months: a reduced bundle")
+  if (nrow(x) != ws_expected[[code]]) stop(f, " has ", nrow(x), " rows; the balance report says ", ws_expected[[code]])
   n_na <- sum(is.na(x$q_m3s))
   # a watershed with no balance value has no row, as in the segment table
   x <- x[!is.na(x$q_m3s), ]
