@@ -27,7 +27,10 @@ aet <- fits$aet
 # (scripts/wb_aet_compare.R, #15) or carried (#43) under that code; without a
 # winner nothing ships. The old outputs go first, so a refused fit never
 # leaves the parquet or the map (scripts/wb_map.R) of an earlier one.
-unlink(c(file.path(fit_dir, "runoff_annual.tif"), file.path(fit_dir, "output")), recursive = TRUE)
+# The per-segment table (scripts/segment_output.R, #57) is made from this
+# output, so it goes too.
+unlink(c(file.path(fit_dir, "runoff_annual.tif"), file.path(fit_dir, "output"), file.path(fit_dir, "segment")),
+       recursive = TRUE)
 source("scripts/wb_score_md5.R")  # score_code_md5
 if (!identical(fits$code_md5, score_code_md5)) {
   stop("fits.rds was made under other scoring code: rerun scripts/wb_validate.R (and the comparison)")

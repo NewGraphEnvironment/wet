@@ -1,6 +1,6 @@
 # PCIC routed flow against the open water balance at the calibration gauges (#58)
 
-wet commit d6579e3; fit 20260717 (HYDAT 2026-07-17 08:08:08.000), province run 962a9cc2c4, scoring code 94d05b195898abea5bd87cc0bd65018d; balance adjusted, held out (blocked CV)
+wet commit fefe367; fit 20260717 (HYDAT 2026-07-17 08:08:08.000), province run 962a9cc2c4, scoring code 94d05b195898abea5bd87cc0bd65018d; balance adjusted, held out (blocked CV)
 routed: whse_basemapping.fwa_stream_networks_discharge_monthly, built by NewGraphEnvironment/fwapg at 341b078
 table: 40524444 rows, 3377037 segments, 0 null flows, total 178035348.248310 m3/s
 routed per gauge: the mean of the 12 monthly means (1951-2012, unweighted by month length) on the segment
@@ -21,6 +21,25 @@ Peace                    28    20.5  19.2    11.2  16.6     68   64     +9.4   +
 Fraser                   90    30.8  28.4    18.2  23.8     51   46     -5.7   +6.8     56
 Columbia                 78    23.7  32.7    13.1  15.1     68   54     +7.8  +17.0     60
 Coast                    94    18.9  25.1    10.8  15.9     66   59     -3.0   +6.4     60
+
+## The default pick (#57): routed unless it carries under the cut of the balance, then the balance
+cut 0.20, against the held-out balance; segments off their own line keep routed; error as %
+of observed
+                                n   mean median  +-20    bias
+pick, the 290 with routed     290   22.9   12.9    62    +2.9
+routed, the 290               290   24.1   13.0    62    +0.2
+balance, the 290              290   27.6   18.0    54    +9.0
+pick, every gauge (315)       315   23.2   14.0    61    +2.9
+balance, every gauge (315)    315   27.5   18.5    53    +8.5
+gauges where the pick is the balance although routed has a value: 7; the balance closer at 6
+station    basin       obs  routed balance  r_err  b_err  name
+08JA015    Fraser     2046       0    1520 -100.0  -25.7  LAVENTIE CREEK NEAR THE MOUTH
+08JA028    Fraser      786       0     516 -100.0  -34.4  EUTSUK RIVER AT OUTLET OF EUTSUK L
+08JA016    Fraser      468       0     486  -99.9   +3.9  MACIVOR CREEK NEAR THE MOUTH
+08JA014    Fraser      185       0     119  -99.8  -35.7  VAN TINE CREEK NEAR THE MOUTH
+08DB013    Coast      1435       2    2103  -99.8  +46.6  ANSEDAGAN CREEK NEAR NEW AIYANSH
+08DB014    Coast      1029     178    2222  -82.7 +116.0  KSEDIN TRIBUTARY NO. 2 CREEK NEAR 
+08LG066    Fraser       62      19      97  -69.5  +55.8  CHATAWAY CREEK NEAR THE MOUTH
 
 ## The 11 gauges whose segment carries less than 20 % of observed flow
 Attributed by fwapg's older annual table, which has no routing and no placement: where it is far low too,
@@ -67,319 +86,319 @@ balance at these, held out: mean absolute error 27.0 %
   within 1981-2010 (at least 10; scripts/wb_stations.R).
 
 ## Per gauge (mm/yr; errors %)
-station   basin     nesting        km2    obs  routed  annual balance  r_err  b_err  name
-10AC002   Arctic    nested         6950    467       -       -     328      -  -29.8  DEASE RIVER AT MCDAME
-10AC004   Arctic    headwater      1663    347       -       -     388      -  +11.9  BLUE RIVER NEAR THE MOUTH
-10AC005   Arctic    headwater       873    662       -       -     413      -  -37.6  COTTONWOOD RIVER ABOVE BASS CREEK
-10AC006   Arctic    nested        14553    388       -       -     303      -  -21.9  DEASE RIVER NEAR THE MOUTH
-10BA001   Arctic    headwater      6629    424       -       -     488      -  +15.1  TURNAGAIN RIVER ABOVE SANDPILE CRE
-10BB002   Arctic    headwater     11272    410       -       -     508      -  +24.0  KECHIKA RIVER ABOVE BOYA CREEK
-10BE004   Arctic    headwater      2541    536       -       -     690      -  +28.9  TOAD RIVER ABOVE NONDA CREEK
-10BE007   Arctic    headwater      1191    437       -       -     469      -   +7.3  TROUT RIVER AT KILOMETRE 783.7 ALA
-10BE008   Arctic    headwater        77     77       -       -     122      -  +57.4  GEDDES CREEK AT THE MOUTH
-10BE009   Arctic    headwater       210    175       -       -     278      -  +58.7  TEETER CREEK NEAR THE MOUTH
-10BE010   Arctic    nested         6889    490       -       -     564      -  +15.2  TOAD RIVER NEAR THE MOUTH
-10BE011   Arctic    headwater      1759    297       -       -     326      -   +9.7  GRAYLING RIVER NEAR THE MOUTH
-10BE012   Arctic    headwater      3720    340       -       -     360      -   +5.7  RABBIT RIVER NEAR THE MOUTH
-10CB001   Arctic    headwater      2181    382       -     133     301      -  -21.2  SIKANNI CHIEF RIVER NEAR FORT NELS
-10CC002   Arctic    nested        22560    197       -       -     132      -  -32.9  FORT NELSON RIVER ABOVE MUSKWA RIV
-10CD001   Arctic    nested        20253    333       -       -     272      -  -18.5  MUSKWA RIVER NEAR FORT NELSON
-10CD003   Arctic    headwater       274    139       -       -     150      -   +7.8  RASPBERRY CREEK NEAR THE MOUTH
-10CD004   Arctic    headwater       335    247       -       -     140      -  -43.1  BOUGIE CREEK AT KILOMETRE 368 ALAS
-10CD005   Arctic    headwater       112    238       -       -     146      -  -38.7  ADSETT CREEK AT KILOMETRE 386.0 AL
-08CA001   Coast     headwater      3466    548     539       -     475   -1.6  -13.3  SPATSIZI RIVER NEAR THE MOUTH
-08CA002   Coast     nested         7582    548     551       -     562   +0.5   +2.6  STIKINE RIVER BELOW SPATSIZI RIVER
-08CA003   Coast     headwater      2683    540     463       -     607  -14.3  +12.4  PITMAN RIVER NEAR THE MOUTH
-08CB001   Coast     nested        18520    533     491       -     494   -7.9   -7.3  STIKINE RIVER ABOVE GRAND CANYON
-08CC001   Coast     headwater      3547    654     618       -     480   -5.5  -26.6  KLAPPAN RIVER NEAR TELEGRAPH CREEK
-08CD001   Coast     headwater      3552    324     294       -     292   -9.0   -9.9  TUYA RIVER NEAR TELEGRAPH CREEK
-08CE001   Coast     nested        28932    454     392       -     449  -13.6   -1.0  STIKINE RIVER AT TELEGRAPH CREEK
-08CF001   Coast     nested        35873    587     523       -     665  -10.9  +13.3  STIKINE RIVER ABOVE BUTTERFLY CREE
-08CG001   Coast     nested         9465   1551    1604       -    1352   +3.4  -12.9  ISKUT RIVER BELOW JOHNSON RIVER
-08CG004   Coast     nested         7369   1279    1249       -    1102   -2.3  -13.9  ISKUT RIVER ABOVE SNIPPAKER CREEK
-08CG005   Coast     headwater       885   1786    1893       -    1502   +6.0  -15.9  MORE CREEK NEAR THE MOUTH
-08CG006   Coast     headwater       324   2917    3094       -    1902   +6.1  -34.8  FORREST KERR CREEK ABOVE 460 M CON
-08DA005   Coast     headwater       221   2280    1964       -    1554  -13.9  -31.8  SURPRISE CREEK NEAR THE MOUTH
-08DB001   Coast     nested        18295   1332    1242       -    1108   -6.7  -16.8  NASS RIVER ABOVE SHUMAL CREEK
-08DB010   Coast     headwater        40   1428    2215       -    2041  +55.2  +43.0  LIME CREEK NEAR THE MOUTH
-08DB011   Coast     headwater       241   2971    2693       -    1869   -9.3  -37.1  KITSAULT RIVER ABOVE KLAYDUC CREEK
-08DB013   Coast     headwater        22   1435       2       -    2103  -99.8  +46.6  ANSEDAGAN CREEK NEAR NEW AIYANSH
-08DB014   Coast     headwater        18   1029     178       -    2222  -82.7 +116.0  KSEDIN TRIBUTARY NO. 2 CREEK NEAR 
-08DC006   Coast     headwater       318   2574    2839       -    2134  +10.3  -17.1  BEAR RIVER ABOVE BITTER CREEK
-08DD001   Coast     headwater      1498   2257    2148       -    2460   -4.8   +9.0  UNUK RIVER NEAR STEWART
-08EB004   Coast     headwater      1858    753     697       -    1111   -7.4  +47.4  KISPIOX RIVER NEAR HAZELTON
-08EB005   Coast     headwater     12587    894     872       -     553   -2.5  -38.1  SKEENA RIVER ABOVE BABINE RIVER
-08EC013   Coast     headwater      6727    230     227       -     258   -1.7  +12.0  BABINE RIVER AT OUTLET OF NILKITKW
-08ED001   Coast     headwater       719   1266    1129       -    1178  -10.8   -7.0  NANIKA RIVER AT OUTLET OF KIDPRICE
-08ED002   Coast     nested         1889   1235    1100       -    1153  -10.9   -6.7  MORICE RIVER NEAR HOUSTON
-08EE004   Coast     nested         7341    561     505       -     500  -10.0  -10.9  BULKLEY RIVER AT QUICK
-08EE008   Coast     headwater       122    449     557       -     650  +24.1  +44.8  GOATHORN CREEK NEAR TELKWA
-08EE012   Coast     headwater        13    631     849       -     757  +34.6  +20.0  SIMPSON CREEK AT THE MOUTH
-08EE013   Coast     headwater       567    238     327       -     193  +37.5  -18.9  BUCK CREEK AT THE MOUTH
-08EE020   Coast     headwater       364   1234    1089       -     792  -11.8  -35.9  TELKWA RIVER BELOW TSAI CREEK
-08EE025   Coast     headwater        22    180     533       -     334 +195.9  +85.3  TWO MILE CREEK IN DISTRICT LOT 483
-08EE028   Coast     headwater        10    894     127       -     539  -85.9  -39.7  STATION CREEK ABOVE DIVERSIONS
-08EF001   Coast     nested        42260    675     665       -     544   -1.5  -19.5  SKEENA RIVER AT USK
-08EF005   Coast     headwater      2918   1128    1128       -     843   +0.0  -25.2  ZYMOETZ RIVER ABOVE O.K. CREEK
-08EG011   Coast     headwater       371   2020    1985       -    1926   -1.7   -4.7  ZYMAGOTITZ RIVER NEAR TERRACE
-08EG012   Coast     headwater       370   3699    4230       -    2841  +14.4  -23.2  EXCHAMSIKS RIVER NEAR TERRACE
-08EG017   Coast     headwater        14   1258    1610       -    1588  +27.9  +26.2  DEEP CREEK ABOVE RESERVOIR
-08FA002   Coast     headwater      3913   2520    2473       -    3684   -1.9  +46.2  WANNOCK RIVER AT OUTLET OF OWIKENO
-08FB004   Coast     headwater       156   1734    1193       -    1334  -31.2  -23.1  SALLOOMT RIVER NEAR HAGENSBORG
-08FB005   Coast     headwater       275   1772    1336       -    1510  -24.6  -14.8  NUSATSUM RIVER NEAR HAGENSBORG
-08FB006   Coast     headwater      2531    330     362       -     989   +9.8 +199.9  ATNARKO RIVER NEAR THE MOUTH
-08FB007   Coast     nested         3638    766     691       -    1232   -9.8  +60.8  BELLA COOLA RIVER ABOVE BURNT BRID
-08FB009   Coast     headwater        93   2100    2325       -    2659  +10.7  +26.6  CLAYTON FALLS CREEK NEAR THE MOUTH
-08FC003   Coast     headwater      3742    130      74       -     126  -43.3   -2.8  DEAN RIVER BELOW TANSWANKET CREEK
-08FE003   Coast     headwater       556   2599    3077       -    2275  +18.4  -12.5  KEMANO RIVER ABOVE POWERHOUSE TAIL
-08FF001   Coast     nested         1998   2051    1961       -    1823   -4.4  -11.1  KITIMAT RIVER BELOW HIRSCH CREEK
-08FF002   Coast     headwater       353   1941    1501       -    2061  -22.7   +6.2  HIRSCH CREEK NEAR THE MOUTH
-08FF003   Coast     headwater       179   3075    2762       -    2397  -10.2  -22.1  LITTLE WEDEENE RIVER BELOW BOWBYES
-08FF006   Coast     headwater         6   2189    2710       -    2007  +23.8   -8.4  RENEGADE CREEK NEAR KITIMAT
-08GA047   Coast     headwater        29   1087    1367       -    1794  +25.8  +65.0  ROBERTS CREEK AT ROBERTS CREEK
-08GA071   Coast     headwater      1221   2689    2017       -    2671  -25.0   -0.7  ELAHO RIVER NEAR THE MOUTH
-08GA072   Coast     headwater       295   2074    1968       -    2158   -5.1   +4.0  CHEAKAMUS RIVER ABOVE MILLAR CREEK
-08GA075   Coast     headwater       275   2827    2731       -    3274   -3.4  +15.8  MAMQUAM RIVER ABOVE RING CREEK
-08GA077   Coast     headwater        60   3527    2596       -    3033  -26.4  -14.0  SEYMOUR RIVER BELOW ORCHID CREEK
-08GA079   Coast     nested           82   3427    2590       -    3039  -24.4  -11.3  SEYMOUR RIVER ABOVE LAKEHEAD
-08GB013   Coast     headwater       146   3447    2477       -    2908  -28.1  -15.6  CLOWHOM RIVER NEAR CLOWHOM LAKE
-08GD004   Coast     nested         5682   1503    1544       -    1477   +2.8   -1.7  HOMATHKO RIVER AT THE MOUTH
-08GD007   Coast     headwater      1533   1007     860       -    1067  -14.6   +6.0  MOSLEY CREEK NEAR DUMBELL LAKE
-08GD008   Coast     headwater       496    110     113       -     119   +2.0   +7.7  HOMATHKO RIVER AT INLET TO TATLAYO
-08GE002   Coast     nested         5847   1618    1393       -    1808  -13.9  +11.8  KLINAKLINI RIVER EAST CHANNEL (MAI
-08GE003   Coast     headwater        23   3952    1921       -    2764  -51.4  -30.1  ICY CREEK NEAR THE MOUTH
-08GF005   Coast     headwater        18   3848    3605       -    3384   -6.3  -12.1  KIPPAN CREEK NEAR THE MOUTH
-08GF006   Coast     headwater        37   3143    3824       -    3347  +21.7   +6.5  MCALISTER CREEK AT THOMPSON SOUND
-08HA001   Coast     headwater       341   1680    1625       -    1725   -3.3   +2.7  CHEMAINUS RIVER NEAR WESTHOLME
-08HA003   Coast     headwater       230   1328    1428       -    1574   +7.5  +18.5  KOKSILAH RIVER AT COWICHAN STATION
-08HA010   Coast     nested          577   2622    3024       -    2338  +15.3  -10.8  SAN JUAN RIVER NEAR PORT RENFREW
-08HA069   Coast     headwater        11   4714    3458       -    2978  -26.6  -36.8  RENFREW CREEK NEAR PORT RENFREW
-08HA070   Coast     headwater        28   3527    3311       -    2731   -6.1  -22.6  HARRIS CREEK NEAR LAKE COWICHAN
-08HA072   Coast     headwater        13   1743    1820       -    2579   +4.4  +47.9  COTTONWOOD CREEK HEADWATERS
-08HB014   Coast     headwater       162   3839    3211       -    3560  -16.4   -7.3  SARITA RIVER NEAR BAMFIELD
-08HB024   Coast     headwater       107   2280    1780       -    2000  -21.9  -12.3  TSABLE RIVER NEAR FANNY BAY
-08HB025   Coast     headwater        86   1989    1855       -    1816   -6.7   -8.7  BROWNS RIVER NEAR COURTENAY
-08HB032   Coast     headwater       100    796     970       -    1037  +21.9  +30.2  MILLSTONE RIVER AT NANAIMO
-08HB048   Coast     headwater        10   2528    2756       -    2891   +9.0  +14.4  CARNATION CREEK AT THE MOUTH
-08HB074   Coast     headwater       212   2689    2209       -    2164  -17.9  -19.5  CRUICKSHANK RIVER NEAR THE MOUTH
-08HB075   Coast     headwater        42   1469    1281       -    1333  -12.8   -9.2  DOVE CREEK NEAR THE MOUTH
-08HB086   Coast     headwater        39   5523    4296       -    4810  -22.2  -12.9  TOFINO CREEK NEAR THE MOUTH
-08HB089   Coast     headwater        90   1445    1362       -    1356   -5.7   -6.1  TSOLUM RIVER BELOW MUREX CREEK
-08HC002   Coast     headwater       189   2955    2893       -    2318   -2.1  -21.6  UCONA RIVER AT THE MOUTH
-08HC006   Coast     headwater        17   3406    1827       -    1970  -46.4  -42.2  CREST LAKE NEAR HIGHWAY 28
-08HD007   Coast     nested          419   1038    1350       -    1691  +30.1  +62.9  SALMON RIVER ABOVE MEMEKAY RIVER
-08HD011   Coast     headwater       296   1471    1525       -    1832   +3.7  +24.5  OYSTER RIVER BELOW WOODHUS CREEK
-08HD015   Coast     headwater       261   1635    1526       -    1895   -6.6  +15.9  SALMON RIVER ABOVE CAMPBELL LAKE D
-08HE007   Coast     headwater         6   6127    4295       -    5843  -29.9   -4.6  CLANNINICK CREEK AT HEADWATERS
-08HE008   Coast     headwater        13   2994    4366       -    5738  +45.8  +91.7  ZEBALLOS RIVER AT MOOK PEAK
-08HE009   Coast     headwater        37   6210    4859       -    7099  -21.8  +14.3  KLASKISH RIVER NEAR KLASKINO INLET
-08HE010   Coast     headwater        22   4454    4442       -    4848   -0.3   +8.8  MCKELVIE CREEK ABOVE INTAKE
-08HF004   Coast     headwater       370   1954    1935       -    3447   -0.9  +76.4  TSITIKA RIVER BELOW CATHERINE CREE
-08HF005   Coast     headwater       773   2476    2340       -    3015   -5.5  +21.8  NIMPKISH RIVER ABOVE WOSS RIVER
-08HF006   Coast     headwater        72   3400    3248       -    3763   -4.5  +10.7  SAN JOSEF RIVER BELOW SHARP CREEK
-08HF012   Coast     headwater        25   2649    3360       -    4092  +26.8  +54.5  PUGH CREEK NEAR NAHWITTI LAKE
-08HF013   Coast     headwater        17   2530    3352       -    3195  +32.5  +26.3  SIMPSON CREEK NEAR KOPRINO HARBOUR
-08OA002   Coast     headwater       482   1955    2007       -    1723   +2.7  -11.9  YAKOUN RIVER NEAR PORT CLEMENTS
-08OB002   Coast     headwater        81   3170    3752       -    3913  +18.4  +23.4  PALLANT CREEK NEAR DAAJING GIIDS
-08NA002   Columbia  nested         6655    492     478       -     596   -3.0  +21.1  COLUMBIA RIVER AT NICHOLSON
-08NA006   Columbia  headwater      1839    687     728     663     605   +5.9  -11.9  KICKING HORSE RIVER AT GOLDEN
-08NA045   Columbia  headwater       886    342     347     344     442   +1.4  +29.1  COLUMBIA RIVER NEAR FAIRMONT HOT S
-08NB005   Columbia  nested         9680    537     539       -     530   +0.4   -1.3  COLUMBIA RIVER AT DONALD
-08NB012   Columbia  nested          589    890     714     658     645  -19.7  -27.5  BLAEBERRY RIVER ABOVE WILLOWBANK C
-08NB013   Columbia  headwater       134   1643    1705    1812    1399   +3.8  -14.8  GOLD RIVER ABOVE BACHELOR CREEK
-08NB014   Columbia  nested          429   1340    1546    1631    1270  +15.4   -5.2  GOLD RIVER ABOVE PALMER CREEK
-08NB015   Columbia  headwater       234   1021     863     728     816  -15.5  -20.0  BLAEBERRY RIVER BELOW ENSIGN CREEK
-08NB016   Columbia  headwater        79    653     705     690     553   +7.9  -15.3  SPLIT CREEK AT THE MOUTH
-08NB019   Columbia  headwater      1156   1126    1238    1224    1122   +9.9   -0.4  BEAVER RIVER NEAR THE MOUTH
-08NC004   Columbia  headwater       305   1522    1342    1450    1361  -11.8  -10.6  CANOE RIVER BELOW KIMMEL CREEK
-08ND012   Columbia  nested          932   1287    1341    1338    1445   +4.2  +12.3  GOLDSTREAM RIVER BELOW OLD CAMP CR
-08ND013   Columbia  headwater      1149   1432    1413    1403    1540   -1.3   +7.5  ILLECILLEWAET RIVER AT GREELEY
-08ND018   Columbia  headwater       115   1848    1761    1744    1681   -4.7   -9.0  STITT CREEK AT THE MOUTH
-08ND019   Columbia  headwater       116   1691    1408    1348    1516  -16.8  -10.4  KIRBYVILLE CREEK NEAR THE MOUTH
-08NE001   Columbia  headwater       999   1732    1399    1394    1332  -19.3  -23.1  INCOMAPPLEUX RIVER NEAR BEATON
-08NE006   Columbia  nested          319   1336    1181    1190    1283  -11.6   -4.0  KUSKANAX CREEK NEAR NAKUSP
-08NE008   Columbia  headwater        95    858    1103    1098    1078  +28.5  +25.6  BEATON CREEK NEAR BEATON
-08NE039   Columbia  headwater       348    490      85      97     421  -82.6  -14.1  BIG SHEEP CREEK NEAR ROSSLAND
-08NE077   Columbia  headwater       199    602     567     553     611   -5.9   +1.5  BARNES CREEK NEAR NEEDLES
-08NE087   Columbia  headwater        74    379     621     663     649  +63.7  +71.0  DEER CREEK AT DEER PARK
-08NE110   Columbia  headwater       291    406     530     562     534  +30.6  +31.6  INONOAKLIN CREEK ABOVE VALLEY CREE
-08NE114   Columbia  headwater        57    885     754     776    1258  -14.8  +42.2  HIDDEN CREEK NEAR THE MOUTH
-08NE117   Columbia  headwater       111   1498    1287    1286    1397  -14.1   -6.8  KUSKANAX CREEK AT 1040 M CONTOUR
-08NF001   Columbia  headwater       420    354     494     494     506  +39.8  +43.0  KOOTENAY RIVER AT KOOTENAY CROSSIN
-08NF002   Columbia  nested         5430    510     567     537     390  +11.2  -23.4  KOOTENAY RIVER AT CANAL FLATS
-08NF005   Columbia  headwater        69    725     710     659     809   -2.1  +11.6  ALBERT RIVER AT 1310 M CONTOUR
-08NF006   Columbia  nested          669    703     616     595     604  -12.4  -14.0  PALLISER RIVER IN LOT SL49
-08NG012   Columbia  nested         2396    645     451     454     590  -30.1   -8.5  ST. MARY RIVER AT WYCLIFFE
-08NG046   Columbia  nested         1476    818     537     540     731  -34.4  -10.7  ST. MARY RIVER NEAR MARYSVILLE
-08NG053   Columbia  nested         7206    478     526     503     421  +10.1  -11.8  KOOTENAY RIVER NEAR SKOOKUMCHUCK
-08NG065   Columbia  nested        11421    460     461     447     420   +0.1   -8.7  KOOTENAY RIVER AT FORT STEELE
-08NG076   Columbia  headwater       138    285     325     328     544  +14.3  +91.0  MATHER CREEK BELOW HOULE CREEK
-08NG077   Columbia  headwater       211   1056     608     609     688  -42.5  -34.9  ST. MARY RIVER BELOW MORRIS CREEK
-08NG078   Columbia  headwater       316    221     273     264     295  +23.6  +33.6  CAVEN CREEK BELOW BLOOM CREEK
-08NH005   Columbia  nested          441    914     879     890     860   -3.8   -5.9  KASLO RIVER BELOW KEMP CREEK
-08NH007   Columbia  nested         1635   1083    1166    1173    1085   +7.6   +0.2  LARDEAU RIVER AT MARBLEHEAD
-08NH016   Columbia  headwater        49    566     631     646     668  +11.4  +18.0  DUCK CREEK NEAR WYNNDEL
-08NH084   Columbia  headwater        79    664     593     609     600  -10.8   -9.7  ARROW CREEK NEAR ERICKSON
-08NH115   Columbia  headwater         7    280     572     608     426 +103.9  +52.1  SULLIVAN CREEK NEAR CANYON
-08NH119   Columbia  headwater      1315   1480    1644    1632     984  +11.1  -33.5  DUNCAN RIVER BELOW B.B. CREEK
-08NH120   Columbia  headwater       238    587       -     292     363      -  -38.1  MOYIE RIVER ABOVE NEGRO CREEK
-08NH130   Columbia  nested          584   1016     886     890     908  -12.8  -10.6  FRY CREEK BELOW CARNEY CREEK
-08NH131   Columbia  headwater       118   1219     940     944    1088  -22.9  -10.8  CARNEY CREEK BELOW PAMBRUN CREEK
-08NH132   Columbia  headwater        94   1108    1028    1041    1014   -7.2   -8.5  KEEN CREEK BELOW KYAWATS CREEK
-08NH138   Columbia  headwater         8   1254    1246    1196    1232   -0.7   -1.8  HUMPHRIES CREEK NEAR TROUT LAKE
-08NJ013   Columbia  nested         3329    863     774     805     875  -10.3   +1.4  SLOCAN RIVER NEAR CRESCENT VALLEY
-08NJ026   Columbia  headwater        57    806     776     820     820   -3.7   +1.9  DUHAMEL CREEK ABOVE DIVERSIONS
-08NJ061   Columbia  headwater        27    973     814     873     892  -16.3   -8.3  REDFISH CREEK NEAR HARROP
-08NJ129   Columbia  headwater         5    412    1025     957    1013 +148.6 +145.9  FELL CREEK NEAR NELSON
-08NJ130   Columbia  headwater         8    413    1000    1141     961 +142.2 +132.8  ANDERSON CREEK NEAR NELSON
-08NJ160   Columbia  headwater       181    803     866     894     945   +7.9  +17.7  LEMON CREEK ABOVE SOUTH LEMON CREE
-08NJ162   Columbia  headwater         5    309     523     479     437  +69.2  +41.3  SMOKY CREEK ABOVE DIVERSIONS
-08NJ168   Columbia  headwater        46    795    1103    1128    1224  +38.7  +54.0  FIVE MILE CREEK ABOVE CITY INTAKE
-08NK002   Columbia  nested         3104    460     489     419     357   +6.3  -22.3  ELK RIVER AT FERNIE
-08NK016   Columbia  nested         1848    416     539     466     331  +29.4  -20.5  ELK RIVER NEAR NATAL
-08NK018   Columbia  nested          621    390     515     416     340  +32.0  -12.9  FORDING RIVER AT THE MOUTH
-08NK019   Columbia  headwater        81    404     326     314     295  -19.2  -26.9  GRAVE CREEK AT THE MOUTH
-08NK020   Columbia  headwater       642    497     460     325     440   -7.4  -11.6  MICHEL CREEK BELOW NATAL
-08NK022   Columbia  headwater       138    462     522     384     360  +12.9  -22.1  LINE CREEK AT THE MOUTH
-08NK026   Columbia  headwater         7    553     409     416     496  -26.0  -10.2  HOSMER CREEK ABOVE DIVERSIONS
-08NK027   Columbia  headwater       333    632     783     582     436  +23.9  -31.0  ELK RIVER BELOW WEARY CREEK
-08NL024   Columbia  nested         1778    355     376     370     709   +6.1  +99.8  TULAMEEN RIVER AT PRINCETON
-08NL036   Columbia  headwater       186    169     289     287     414  +70.7 +144.9  WHIPSAW CREEK BELOW LAMONT CREEK
-08NL050   Columbia  headwater       395    186     108      70     235  -42.0  +26.5  HEDLEY CREEK NEAR THE MOUTH
-08NL071   Columbia  headwater       252    808     701     653    1287  -13.3  +59.3  TULAMEEN RIVER BELOW VUICH CREEK
-08NM134   Columbia  headwater        36    128     136     152     275   +6.6 +115.2  CAMP CREEK AT MOUTH NEAR THIRSK
-08NM142   Columbia  headwater        63    130     102     112     250  -21.4  +91.7  COLDSTREAM CREEK ABOVE MUNICIPAL I
-08NM171   Columbia  headwater       118    239     284     291     293  +18.8  +22.3  VASEUX CREEK ABOVE SOLCO CREEK
-08NM173   Columbia  headwater        45     50     102     107     243 +106.6 +391.4  GREATA CREEK NEAR THE MOUTH
-08NM174   Columbia  headwater       108    181     166     180     167   -8.2   -7.7  WHITEMAN CREEK ABOVE BOULEAU CREEK
-08NM240   Columbia  nested            5    349     375     385     375   +7.5   +7.5  TWO FORTY CREEK NEAR PENTICTON
-08NM241   Columbia  nested            5    329     375     385     375  +14.0  +14.0  TWO FORTY-ONE CREEK NEAR PENTICTON
-08NN002   Columbia  nested         2061    464     437     456     333   -5.8  -28.2  GRANBY RIVER AT GRAND FORKS
-08NN015   Columbia  headwater       230    474     403     419     461  -15.0   -2.8  WEST KETTLE RIVER NEAR MCCULLOCH
-08NN019   Columbia  headwater       148    304     243     253     266  -20.2  -12.6  TRAPPING CREEK NEAR THE MOUTH
-08NN022   Columbia  nested         1185    262     268     277     281   +2.4   +7.5  WEST KETTLE RIVER BELOW CARMI CREE
-08NN023   Columbia  headwater       222    604     529     550     434  -12.4  -28.2  BURRELL CREEK ABOVE GLOUCESTER CRE
-08NN028   Columbia  headwater        31    186     335     331     316  +79.8  +69.4  LOST HORSE CREEK NEAR CHRISTIAN VA
-08NP003   Columbia  headwater       141    622       -     689    1014      -  +63.1  HOWELL CREEK ABOVE CABIN CREEK
-08NP004   Columbia  headwater        96    628       -     704     861      -  +37.2  CABIN CREEK NEAR THE MOUTH
-08JA014   Fraser    headwater       145    185       0     168     119  -99.8  -35.7  VAN TINE CREEK NEAR THE MOUTH
-08JA015   Fraser    headwater        81   2046       0    1212    1520 -100.0  -25.7  LAVENTIE CREEK NEAR THE MOUTH
-08JA016   Fraser    headwater        58    468       0     375     486  -99.9   +3.9  MACIVOR CREEK NEAR THE MOUTH
-08JA028   Fraser    headwater      2554    786       0     431     516 -100.0  -34.4  EUTSUK RIVER AT OUTLET OF EUTSUK L
-08JB002   Fraser    headwater      4001    145     161     134     206  +11.1  +42.3  STELLAKO RIVER AT GLENANNAN
-08JB003   Fraser    nested         6572    133     140     111     190   +5.0  +42.9  NAUTLEY RIVER NEAR FORT FRASER
-08JC017   Fraser    headwater       132    135     137     132     216   +1.6  +60.4  CORKSCREW CREEK NEAR THE MOUTH
-08JD006   Fraser    headwater       364    731     663     363     457   -9.3  -37.5  DRIFTWOOD RIVER ABOVE KASTBERG CRE
-08JE001   Fraser    nested        14235    285     285     238     293   -0.1   +2.7  STUART RIVER NEAR FORT ST. JAMES
-08JE004   Fraser    headwater       439    180     186     179     212   +3.7  +18.0  TSILCOH RIVER NEAR THE MOUTH
-08KA001   Fraser    headwater       409   1059     866     904     861  -18.1  -18.6  DORE RIVER NEAR MCBRIDE
-08KA004   Fraser    nested        17972    771     756       -     681   -2.0  -11.7  FRASER RIVER AT HANSARD
-08KA005   Fraser    nested         6881    884    1018     898     733  +15.1  -17.2  FRASER RIVER AT MCBRIDE
-08KA007   Fraser    nested         1700    820     777     525     660   -5.2  -19.5  FRASER RIVER AT RED PASS
-08KA008   Fraser    headwater       454    922     844     614     673   -8.5  -27.1  MOOSE RIVER NEAR RED PASS
-08KA009   Fraser    headwater       254   1026     738     743     772  -28.1  -24.7  MCKALE RIVER NEAR 940 M CONTOUR
-08KA012   Fraser    headwater       136    756    1124     804     729  +48.6   -3.6  SWIFT CREEK NEAR THE MOUTH
-08KA013   Fraser    headwater      1263    933     925     790     833   -0.9  -10.7  MORKILL RIVER BELOW HELLROARING CR
-08KB001   Fraser    nested        32436    771     685       -     679  -11.1  -11.8  FRASER RIVER AT SHELLEY
-08KB003   Fraser    nested         4760   1330    1221    1023     964   -8.2  -27.5  MCGREGOR RIVER AT LOWER CANYON
-08KB006   Fraser    headwater       103   1435     992     980     934  -30.9  -35.0  MULLER CREEK NEAR THE MOUTH
-08KC001   Fraser    nested         4227    205     191     153     257   -6.5  +25.8  SALMON RIVER NEAR PRINCE GEORGE
-08KC003   Fraser    headwater       297    224     294     220     279  +31.3  +24.3  MUSKEG RIVER NORTH OF JOANNE LAKE
-08KD006   Fraser    headwater      2864    403     402     393     476   -0.3  +18.1  WILLOW RIVER ABOVE HAY CREEK
-08KD007   Fraser    headwater      3369    606     546     542     598  -10.0   -1.4  BOWRON RIVER BELOW BOX CANYON
-08KE009   Fraser    nested         1899    398     365     358     265   -8.2  -33.4  COTTONWOOD RIVER NEAR CINEMA
-08KE016   Fraser    headwater      1563     97     103      99      65   +5.7  -32.9  BAKER CREEK AT QUESNEL
-08KE024   Fraser    headwater       131    663     621     623     552   -6.4  -16.8  LITTLE SWIFT RIVER AT THE MOUTH
-08KE032   Fraser    headwater        67    210     283     274     385  +34.8  +83.4  TABOR CREEK ABOVE SWEDE CREEK
-08KF001   Fraser    headwater      3163     44      55      55      85  +26.0  +93.4  NAZKO RIVER ABOVE MICHELLE CREEK
-08KG001   Fraser    nested        12391     84      78       -      87   -7.0   +4.0  WEST ROAD RIVER NEAR CINEMA
-08KG003   Fraser    headwater      1017     64       5      57      91  -92.4  +41.4  BAEZAEKO RIVER AT LOT 10262
-08KH001   Fraser    nested         5963    686     667       -     530   -2.7  -22.8  QUESNEL RIVER AT LIKELY
-08KH003   Fraser    headwater      3264    904     798     807     719  -11.8  -20.5  CARIBOO RIVER BELOW KANGAROO CREEK
-08KH006   Fraser    nested        11571    655       1       -     491  -99.9  -25.1  QUESNEL RIVER NEAR QUESNEL
-08KH010   Fraser    headwater       782    783     603     620     749  -22.9   -4.4  HORSEFLY RIVER ABOVE MCKINLEY CREE
-08KH019   Fraser    headwater       554    192     410     415     260 +113.6  +35.6  MOFFAT CREEK NEAR HORSEFLY
-08KH030   Fraser    headwater       185   1063    1367    1384     955  +28.5  -10.2  PENFOLD CREEK NEAR THE MOUTH
-08LA001   Fraser    nested        10305    683     608       -     639  -11.0   -6.5  CLEARWATER RIVER NEAR CLEARWATER S
-08LA007   Fraser    headwater      2948   1384    1201       -    1118  -13.2  -19.2  CLEARWATER RIVER AT OUTLET OF CLEA
-08LA027   Fraser    headwater       386     91     125     138      86  +36.9   -5.9  BRIDGE CREEK BELOW DEKA CREEK
-08LA028   Fraser    headwater        80    286     227     237     238  -20.7  -16.9  WINDY CREEK ABOVE JIM CREEK
-08LB012   Fraser    headwater        71     78      71      77      72   -9.5   -7.4  PAUL CREEK AT THE OUTLET OF PINANT
-08LB020   Fraser    nested         1162    400     365     387     378   -8.8   -5.5  BARRIERE RIVER AT THE MOUTH
-08LB024   Fraser    headwater       138    181     129     136     103  -29.0  -43.0  FISHTRAP CREEK NEAR MCLURE
-08LB038   Fraser    headwater       273   1251     940     977    1680  -24.9  +34.3  BLUE RIVER NEAR BLUE RIVER
-08LB047   Fraser    nested         4488   1061     962     897    1436   -9.4  +35.3  NORTH THOMPSON RIVER AT BIRCH ISLA
-08LB064   Fraser    nested        19592    681     616       -     782   -9.5  +14.9  NORTH THOMPSON RIVER AT MCLURE
-08LB069   Fraser    nested          628    577     476     501     486  -17.6  -15.8  BARRIERE RIVER BELOW SPRAGUE CREEK
-08LB076   Fraser    headwater       168    747     556     590     533  -25.6  -28.7  HARPER CREEK NEAR THE MOUTH
-08LC040   Fraser    headwater        68    226     175     154     339  -22.5  +50.1  VANCE CREEK BELOW DEAFIES CREEK
-08LD001   Fraser    headwater      3201    700     725     692     862   +3.6  +23.1  ADAMS RIVER NEAR SQUILAX
-08LE024   Fraser    headwater       935   1266    1197     985    1142   -5.5   -9.8  EAGLE RIVER NEAR MALAKWA
-08LE027   Fraser    headwater       806   1429    1135     929    1281  -20.6  -10.4  SEYMOUR RIVER NEAR SEYMOUR ARM
-08LE031   Fraser    nested        15861    608     547       -     690  -10.0  +13.4  SOUTH THOMPSON RIVER AT CHASE
-08LE075   Fraser    headwater       141    174     338     256     160  +94.4   -7.9  SALMON RIVER ABOVE SALMON LAKE
-08LE077   Fraser    headwater        28    413     239     262     536  -42.2  +29.7  CORNING CREEK NEAR SQUILAX
-08LE108   Fraser    headwater        18    181     129     144     512  -28.4 +183.2  EAST CANOE CREEK ABOVE DAM
-08LF051   Fraser    nested        55439    436     400       -     491   -8.2  +12.5  THOMPSON RIVER NEAR SPENCES BRIDGE
-08LF081   Fraser    headwater        33     20      51      49      33 +157.4  +64.6  AMBUSTEN CREEK NEAR THE MOUTH
-08LF084   Fraser    headwater        31     88     120     121     123  +36.2  +39.4  ANDERSON CREEK ABOVE DIVERSIONS
-08LG008   Fraser    headwater       768    402     212     218     594  -47.1  +47.8  SPIUS CREEK NEAR CANFORD
-08LG016   Fraser    headwater        85    263     303     208     359  +15.2  +36.4  PENNASK CREEK NEAR QUILCHENA
-08LG048   Fraser    headwater       314    665     530     485    1158  -20.4  +74.1  COLDWATER RIVER NEAR BROOKMERE
-08LG056   Fraser    headwater        76     55      21      19      72  -62.3  +30.2  GUICHON CREEK ABOVE TUNKWA LAKE DI
-08LG064   Fraser    headwater        90    166     237     207     294  +42.4  +76.6  BEAK CREEK AT THE MOUTH
-08LG066   Fraser    headwater        30     62      19      19      97  -69.5  +55.8  CHATAWAY CREEK NEAR THE MOUTH
-08MA001   Fraser    nested         6727    412     394     511     403   -4.5   -2.2  CHILKO RIVER NEAR REDSTONE
-08MA002   Fraser    headwater      2140    641     550     527     575  -14.3  -10.3  CHILKO RIVER AT OUTLET OF CHILKO L
-08MA006   Fraser    headwater        98    254     294     160     167  +15.6  -34.1  LINGFIELD CREEK NEAR THE MOUTH
-08MB005   Fraser    nested        19276    169     181       -     212   +7.2  +25.3  CHILCOTIN RIVER BELOW BIG CREEK
-08MB006   Fraser    nested         1019    187     205     224     309   +9.4  +65.1  BIG CREEK ABOVE GROUNDHOG CREEK
-08MB007   Fraser    headwater       195    452     282     299     461  -37.6   +1.8  BIG CREEK BELOW GRAVEYARD CREEK
-08MC045   Fraser    headwater        94     66      78      77      74  +18.2  +12.6  SHERIDAN CREEK ABOVE MCLEESE LAKE
-08ME023   Fraser    headwater       148   2724    2067    2313     975  -24.1  -64.2  BRIDGE RIVER (SOUTH BRANCH) BELOW 
-08ME025   Fraser    headwater       579    236     659     743     264 +178.5  +11.6  YALAKOM RIVER ABOVE ORE CREEK
-08ME027   Fraser    headwater       312   1364     666     684     897  -51.2  -34.3  HURLEY RIVER BELOW LONE GOAT CREEK
-08ME028   Fraser    nested          704   1632    1501    1695     877   -8.0  -46.3  BRIDGE RIVER ABOVE DOWNTON LAKE
-08MF062   Fraser    headwater        90   1195    1898    1106    1767  +58.8  +47.8  COQUIHALLA RIVER BELOW NEEDLE CREE
-08MF065   Fraser    headwater       713   1571    1190    1231    1591  -24.3   +1.3  NAHATLATCH RIVER BELOW TACHEWANA C
-08MF068   Fraser    nested          719   1323    1698    1314    1866  +28.3  +41.0  COQUIHALLA RIVER ABOVE ALEXANDER C
-08MG001   Fraser    headwater       383   3119    2403    2476    2910  -22.9   -6.7  CHEHALIS RIVER NEAR HARRISON MILLS
-08MG005   Fraser    headwater      2076   1856    1765    1512    1314   -4.9  -29.2  LILLOOET RIVER NEAR PEMBERTON
-08MG013   Fraser    nested         7874   1756    1606    1568    1658   -8.5   -5.6  HARRISON RIVER NEAR HARRISON HOT S
-08MG026   Fraser    headwater        94   1267    2455    1630    1808  +93.7  +42.7  FITZSIMMONS CREEK BELOW BLACKCOMB 
-08MH006   Fraser    headwater        35   2501    1733    1787    1915  -30.7  -23.4  NORTH ALOUETTE RIVER AT 232ND STRE
-08MH076   Fraser    headwater        48   1731    1308    1328    1706  -24.4   -1.5  KANAKA CREEK NEAR WEBSTER CORNERS
-08MH141   Fraser    headwater        49   4277     631    3317    3508  -85.2  -18.0  COQUITLAM RIVER ABOVE COQUITLAM LA
-08MH147   Fraser    headwater       290   3708    4015    4066    3308   +8.3  -10.8  STAVE RIVER ABOVE STAVE LAKE
-08MH154   Fraser    headwater        26   1000       -     864     833      -  -16.7  MAHOOD CREEK AT 144 STREET, SURREY
-08MH155   Fraser    headwater        71    896       -     563     830      -   -7.4  NICOMEKL RIVER AT 203 STREET, LANG
-08MH166   Fraser    headwater        27   3265    3263    3297    3730   -0.1  +14.2  CEDAR CREEK ABOVE THE MOUTH
-07EA002   Peace     headwater      2407    687     544     558     522  -20.8  -24.0  KWADACHA RIVER NEAR WARE
-07EA004   Peace     headwater      4141    451     566     429     528  +25.3  +17.0  INGENIKA RIVER ABOVE SWANNELL RIVE
-07EA005   Peace     nested        15651    530     467       -     555  -12.0   +4.7  FINLAY RIVER ABOVE AKIE RIVER
-07EA007   Peace     headwater      1683    584     549     532     491   -5.9  -15.8  AKIE RIVER NEAR THE 760 M CONTOUR
-07EB002   Peace     headwater      2091    612     576     550     518   -5.8  -15.4  OSPIKA RIVER ABOVE ALEY CREEK
-07EC002   Peace     headwater      5394    533     464     442     428  -12.9  -19.6  OMINECA RIVER ABOVE OSILINKA RIVER
-07EC003   Peace     headwater      2948    482     465     430     480   -3.5   -0.4  MESILINKA RIVER ABOVE GOPHERHOLE C
-07EC004   Peace     headwater      1946    581     593     574     367   +2.1  -36.7  OSILINKA RIVER NEAR END LAKE
-07ED001   Peace     headwater      4356    401     352     346     410  -12.3   +2.3  NATION RIVER NEAR FORT ST. JAMES
-07ED003   Peace     nested         6780    388     330     321     414  -15.0   +6.7  NATION RIVER NEAR THE MOUTH
-07EE007   Peace     headwater      4911    938     942     894     666   +0.3  -29.0  PARSNIP RIVER ABOVE MISINCHINKA RI
-07EE009   Peace     headwater       318    496     506     479     639   +2.1  +28.9  CHUCHINKA CREEK NEAR THE MOUTH
-07EE010   Peace     nested         3705    364     326       -     423  -10.5  +16.1  PACK RIVER AT OUTLET OF MCLEOD LAK
-07EF004   Peace     headwater       737    525     991     938     893  +88.9  +70.2  CARBON CREEK NEAR THE MOUTH
-07FA003   Peace     headwater      3762    308     332     315     254   +7.8  -17.4  HALFWAY RIVER ABOVE GRAHAM RIVER
-07FA005   Peace     headwater      2140    355     422     399     374  +19.1   +5.5  GRAHAM RIVER ABOVE COLT CREEK
-07FA006   Peace     nested         9290    245     248       -     218   +1.1  -11.0  HALFWAY RIVER NEAR FARRELL CREEK
-07FB001   Peace     nested        12147    475     475       -     450   +0.1   -5.2  PINE RIVER AT EAST PINE
-07FB002   Peace     nested         5544    472     478     445     442   +1.1   -6.4  MURRAY RIVER NEAR THE MOUTH
-07FB003   Peace     headwater      2593    670     621       -     503   -7.4  -25.0  SUKUNKA RIVER NEAR THE MOUTH
-07FB004   Peace     headwater        87    210     337     317     247  +60.7  +17.7  DICKEBUSCH CREEK NEAR THE MOUTH
-07FB005   Peace     headwater        26    233     116      99     214  -50.1   -8.2  QUALITY CREEK NEAR THE MOUTH
-07FB006   Peace     headwater      2383    755     781     728     653   +3.3  -13.5  MURRAY RIVER ABOVE WOLVERINE RIVER
-07FB008   Peace     headwater      1521    235     294     273     315  +24.8  +33.7  MOBERLY RIVER NEAR FORT ST. JOHN
-07FB009   Peace     headwater       479    270     283     262     350   +4.8  +29.8  FLATBED CREEK AT KILOMETRE 110 HER
-07FC003   Peace     headwater      1774     90     122      94      81  +35.5  -10.2  BLUEBERRY RIVER BELOW AITKEN CREEK
-07FD001   Peace     headwater      3597     86     105      94     118  +21.8  +37.9  KISKATINAW RIVER NEAR FARMINGTON
-07FD004   Peace     headwater       339     53     116     117      68 +119.3  +28.0  ALCES RIVER AT 22ND BASE LINE
-09AA013   Yukon     headwater       997    505       -       -     645      -  +27.6  TUTSHI RIVER AT OUTLET OF TUTSHI L
+station   basin     nesting        km2    obs  routed  annual balance  r_err  b_err  pick  name
+10AC002   Arctic    nested         6950    467       -       -     328      -  -29.8  bal   DEASE RIVER AT MCDAME
+10AC004   Arctic    headwater      1663    347       -       -     388      -  +11.9  bal   BLUE RIVER NEAR THE MOUTH
+10AC005   Arctic    headwater       873    662       -       -     413      -  -37.6  bal   COTTONWOOD RIVER ABOVE BASS CREEK
+10AC006   Arctic    nested        14553    388       -       -     303      -  -21.9  bal   DEASE RIVER NEAR THE MOUTH
+10BA001   Arctic    headwater      6629    424       -       -     488      -  +15.1  bal   TURNAGAIN RIVER ABOVE SANDPILE CRE
+10BB002   Arctic    headwater     11272    410       -       -     508      -  +24.0  bal   KECHIKA RIVER ABOVE BOYA CREEK
+10BE004   Arctic    headwater      2541    536       -       -     690      -  +28.9  bal   TOAD RIVER ABOVE NONDA CREEK
+10BE007   Arctic    headwater      1191    437       -       -     469      -   +7.3  bal   TROUT RIVER AT KILOMETRE 783.7 ALA
+10BE008   Arctic    headwater        77     77       -       -     122      -  +57.4  bal   GEDDES CREEK AT THE MOUTH
+10BE009   Arctic    headwater       210    175       -       -     278      -  +58.7  bal   TEETER CREEK NEAR THE MOUTH
+10BE010   Arctic    nested         6889    490       -       -     564      -  +15.2  bal   TOAD RIVER NEAR THE MOUTH
+10BE011   Arctic    headwater      1759    297       -       -     326      -   +9.7  bal   GRAYLING RIVER NEAR THE MOUTH
+10BE012   Arctic    headwater      3720    340       -       -     360      -   +5.7  bal   RABBIT RIVER NEAR THE MOUTH
+10CB001   Arctic    headwater      2181    382       -     133     301      -  -21.2  bal   SIKANNI CHIEF RIVER NEAR FORT NELS
+10CC002   Arctic    nested        22560    197       -       -     132      -  -32.9  bal   FORT NELSON RIVER ABOVE MUSKWA RIV
+10CD001   Arctic    nested        20253    333       -       -     272      -  -18.5  bal   MUSKWA RIVER NEAR FORT NELSON
+10CD003   Arctic    headwater       274    139       -       -     150      -   +7.8  bal   RASPBERRY CREEK NEAR THE MOUTH
+10CD004   Arctic    headwater       335    247       -       -     140      -  -43.1  bal   BOUGIE CREEK AT KILOMETRE 368 ALAS
+10CD005   Arctic    headwater       112    238       -       -     146      -  -38.7  bal   ADSETT CREEK AT KILOMETRE 386.0 AL
+08CA001   Coast     headwater      3466    548     539       -     475   -1.6  -13.3  rt    SPATSIZI RIVER NEAR THE MOUTH
+08CA002   Coast     nested         7582    548     551       -     562   +0.5   +2.6  rt    STIKINE RIVER BELOW SPATSIZI RIVER
+08CA003   Coast     headwater      2683    540     463       -     607  -14.3  +12.4  rt    PITMAN RIVER NEAR THE MOUTH
+08CB001   Coast     nested        18520    533     491       -     494   -7.9   -7.3  rt    STIKINE RIVER ABOVE GRAND CANYON
+08CC001   Coast     headwater      3547    654     618       -     480   -5.5  -26.6  rt    KLAPPAN RIVER NEAR TELEGRAPH CREEK
+08CD001   Coast     headwater      3552    324     294       -     292   -9.0   -9.9  rt    TUYA RIVER NEAR TELEGRAPH CREEK
+08CE001   Coast     nested        28932    454     392       -     449  -13.6   -1.0  rt    STIKINE RIVER AT TELEGRAPH CREEK
+08CF001   Coast     nested        35873    587     523       -     665  -10.9  +13.3  rt    STIKINE RIVER ABOVE BUTTERFLY CREE
+08CG001   Coast     nested         9465   1551    1604       -    1352   +3.4  -12.9  rt    ISKUT RIVER BELOW JOHNSON RIVER
+08CG004   Coast     nested         7369   1279    1249       -    1102   -2.3  -13.9  rt    ISKUT RIVER ABOVE SNIPPAKER CREEK
+08CG005   Coast     headwater       885   1786    1893       -    1502   +6.0  -15.9  rt    MORE CREEK NEAR THE MOUTH
+08CG006   Coast     headwater       324   2917    3094       -    1902   +6.1  -34.8  rt    FORREST KERR CREEK ABOVE 460 M CON
+08DA005   Coast     headwater       221   2280    1964       -    1554  -13.9  -31.8  rt    SURPRISE CREEK NEAR THE MOUTH
+08DB001   Coast     nested        18295   1332    1242       -    1108   -6.7  -16.8  rt    NASS RIVER ABOVE SHUMAL CREEK
+08DB010   Coast     headwater        40   1428    2215       -    2041  +55.2  +43.0  rt    LIME CREEK NEAR THE MOUTH
+08DB011   Coast     headwater       241   2971    2693       -    1869   -9.3  -37.1  rt    KITSAULT RIVER ABOVE KLAYDUC CREEK
+08DB013   Coast     headwater        22   1435       2       -    2103  -99.8  +46.6  bal   ANSEDAGAN CREEK NEAR NEW AIYANSH
+08DB014   Coast     headwater        18   1029     178       -    2222  -82.7 +116.0  bal   KSEDIN TRIBUTARY NO. 2 CREEK NEAR 
+08DC006   Coast     headwater       318   2574    2839       -    2134  +10.3  -17.1  rt    BEAR RIVER ABOVE BITTER CREEK
+08DD001   Coast     headwater      1498   2257    2148       -    2460   -4.8   +9.0  rt    UNUK RIVER NEAR STEWART
+08EB004   Coast     headwater      1858    753     697       -    1111   -7.4  +47.4  rt    KISPIOX RIVER NEAR HAZELTON
+08EB005   Coast     headwater     12587    894     872       -     553   -2.5  -38.1  rt    SKEENA RIVER ABOVE BABINE RIVER
+08EC013   Coast     headwater      6727    230     227       -     258   -1.7  +12.0  rt    BABINE RIVER AT OUTLET OF NILKITKW
+08ED001   Coast     headwater       719   1266    1129       -    1178  -10.8   -7.0  rt    NANIKA RIVER AT OUTLET OF KIDPRICE
+08ED002   Coast     nested         1889   1235    1100       -    1153  -10.9   -6.7  rt    MORICE RIVER NEAR HOUSTON
+08EE004   Coast     nested         7341    561     505       -     500  -10.0  -10.9  rt    BULKLEY RIVER AT QUICK
+08EE008   Coast     headwater       122    449     557       -     650  +24.1  +44.8  rt    GOATHORN CREEK NEAR TELKWA
+08EE012   Coast     headwater        13    631     849       -     757  +34.6  +20.0  rt    SIMPSON CREEK AT THE MOUTH
+08EE013   Coast     headwater       567    238     327       -     193  +37.5  -18.9  rt    BUCK CREEK AT THE MOUTH
+08EE020   Coast     headwater       364   1234    1089       -     792  -11.8  -35.9  rt    TELKWA RIVER BELOW TSAI CREEK
+08EE025   Coast     headwater        22    180     533       -     334 +195.9  +85.3  rt    TWO MILE CREEK IN DISTRICT LOT 483
+08EE028   Coast     headwater        10    894     127       -     539  -85.9  -39.7  rt    STATION CREEK ABOVE DIVERSIONS
+08EF001   Coast     nested        42260    675     665       -     544   -1.5  -19.5  rt    SKEENA RIVER AT USK
+08EF005   Coast     headwater      2918   1128    1128       -     843   +0.0  -25.2  rt    ZYMOETZ RIVER ABOVE O.K. CREEK
+08EG011   Coast     headwater       371   2020    1985       -    1926   -1.7   -4.7  rt    ZYMAGOTITZ RIVER NEAR TERRACE
+08EG012   Coast     headwater       370   3699    4230       -    2841  +14.4  -23.2  rt    EXCHAMSIKS RIVER NEAR TERRACE
+08EG017   Coast     headwater        14   1258    1610       -    1588  +27.9  +26.2  rt    DEEP CREEK ABOVE RESERVOIR
+08FA002   Coast     headwater      3913   2520    2473       -    3684   -1.9  +46.2  rt    WANNOCK RIVER AT OUTLET OF OWIKENO
+08FB004   Coast     headwater       156   1734    1193       -    1334  -31.2  -23.1  rt    SALLOOMT RIVER NEAR HAGENSBORG
+08FB005   Coast     headwater       275   1772    1336       -    1510  -24.6  -14.8  rt    NUSATSUM RIVER NEAR HAGENSBORG
+08FB006   Coast     headwater      2531    330     362       -     989   +9.8 +199.9  rt    ATNARKO RIVER NEAR THE MOUTH
+08FB007   Coast     nested         3638    766     691       -    1232   -9.8  +60.8  rt    BELLA COOLA RIVER ABOVE BURNT BRID
+08FB009   Coast     headwater        93   2100    2325       -    2659  +10.7  +26.6  rt    CLAYTON FALLS CREEK NEAR THE MOUTH
+08FC003   Coast     headwater      3742    130      74       -     126  -43.3   -2.8  rt    DEAN RIVER BELOW TANSWANKET CREEK
+08FE003   Coast     headwater       556   2599    3077       -    2275  +18.4  -12.5  rt    KEMANO RIVER ABOVE POWERHOUSE TAIL
+08FF001   Coast     nested         1998   2051    1961       -    1823   -4.4  -11.1  rt    KITIMAT RIVER BELOW HIRSCH CREEK
+08FF002   Coast     headwater       353   1941    1501       -    2061  -22.7   +6.2  rt    HIRSCH CREEK NEAR THE MOUTH
+08FF003   Coast     headwater       179   3075    2762       -    2397  -10.2  -22.1  rt    LITTLE WEDEENE RIVER BELOW BOWBYES
+08FF006   Coast     headwater         6   2189    2710       -    2007  +23.8   -8.4  rt    RENEGADE CREEK NEAR KITIMAT
+08GA047   Coast     headwater        29   1087    1367       -    1794  +25.8  +65.0  rt    ROBERTS CREEK AT ROBERTS CREEK
+08GA071   Coast     headwater      1221   2689    2017       -    2671  -25.0   -0.7  rt    ELAHO RIVER NEAR THE MOUTH
+08GA072   Coast     headwater       295   2074    1968       -    2158   -5.1   +4.0  rt    CHEAKAMUS RIVER ABOVE MILLAR CREEK
+08GA075   Coast     headwater       275   2827    2731       -    3274   -3.4  +15.8  rt    MAMQUAM RIVER ABOVE RING CREEK
+08GA077   Coast     headwater        60   3527    2596       -    3033  -26.4  -14.0  rt    SEYMOUR RIVER BELOW ORCHID CREEK
+08GA079   Coast     nested           82   3427    2590       -    3039  -24.4  -11.3  rt    SEYMOUR RIVER ABOVE LAKEHEAD
+08GB013   Coast     headwater       146   3447    2477       -    2908  -28.1  -15.6  rt    CLOWHOM RIVER NEAR CLOWHOM LAKE
+08GD004   Coast     nested         5682   1503    1544       -    1477   +2.8   -1.7  rt    HOMATHKO RIVER AT THE MOUTH
+08GD007   Coast     headwater      1533   1007     860       -    1067  -14.6   +6.0  rt    MOSLEY CREEK NEAR DUMBELL LAKE
+08GD008   Coast     headwater       496    110     113       -     119   +2.0   +7.7  rt    HOMATHKO RIVER AT INLET TO TATLAYO
+08GE002   Coast     nested         5847   1618    1393       -    1808  -13.9  +11.8  rt    KLINAKLINI RIVER EAST CHANNEL (MAI
+08GE003   Coast     headwater        23   3952    1921       -    2764  -51.4  -30.1  rt    ICY CREEK NEAR THE MOUTH
+08GF005   Coast     headwater        18   3848    3605       -    3384   -6.3  -12.1  rt    KIPPAN CREEK NEAR THE MOUTH
+08GF006   Coast     headwater        37   3143    3824       -    3347  +21.7   +6.5  rt    MCALISTER CREEK AT THOMPSON SOUND
+08HA001   Coast     headwater       341   1680    1625       -    1725   -3.3   +2.7  rt    CHEMAINUS RIVER NEAR WESTHOLME
+08HA003   Coast     headwater       230   1328    1428       -    1574   +7.5  +18.5  rt    KOKSILAH RIVER AT COWICHAN STATION
+08HA010   Coast     nested          577   2622    3024       -    2338  +15.3  -10.8  rt    SAN JUAN RIVER NEAR PORT RENFREW
+08HA069   Coast     headwater        11   4714    3458       -    2978  -26.6  -36.8  rt    RENFREW CREEK NEAR PORT RENFREW
+08HA070   Coast     headwater        28   3527    3311       -    2731   -6.1  -22.6  rt    HARRIS CREEK NEAR LAKE COWICHAN
+08HA072   Coast     headwater        13   1743    1820       -    2579   +4.4  +47.9  rt    COTTONWOOD CREEK HEADWATERS
+08HB014   Coast     headwater       162   3839    3211       -    3560  -16.4   -7.3  rt    SARITA RIVER NEAR BAMFIELD
+08HB024   Coast     headwater       107   2280    1780       -    2000  -21.9  -12.3  rt    TSABLE RIVER NEAR FANNY BAY
+08HB025   Coast     headwater        86   1989    1855       -    1816   -6.7   -8.7  rt    BROWNS RIVER NEAR COURTENAY
+08HB032   Coast     headwater       100    796     970       -    1037  +21.9  +30.2  rt    MILLSTONE RIVER AT NANAIMO
+08HB048   Coast     headwater        10   2528    2756       -    2891   +9.0  +14.4  rt    CARNATION CREEK AT THE MOUTH
+08HB074   Coast     headwater       212   2689    2209       -    2164  -17.9  -19.5  rt    CRUICKSHANK RIVER NEAR THE MOUTH
+08HB075   Coast     headwater        42   1469    1281       -    1333  -12.8   -9.2  rt    DOVE CREEK NEAR THE MOUTH
+08HB086   Coast     headwater        39   5523    4296       -    4810  -22.2  -12.9  rt    TOFINO CREEK NEAR THE MOUTH
+08HB089   Coast     headwater        90   1445    1362       -    1356   -5.7   -6.1  rt    TSOLUM RIVER BELOW MUREX CREEK
+08HC002   Coast     headwater       189   2955    2893       -    2318   -2.1  -21.6  rt    UCONA RIVER AT THE MOUTH
+08HC006   Coast     headwater        17   3406    1827       -    1970  -46.4  -42.2  rt    CREST LAKE NEAR HIGHWAY 28
+08HD007   Coast     nested          419   1038    1350       -    1691  +30.1  +62.9  rt    SALMON RIVER ABOVE MEMEKAY RIVER
+08HD011   Coast     headwater       296   1471    1525       -    1832   +3.7  +24.5  rt    OYSTER RIVER BELOW WOODHUS CREEK
+08HD015   Coast     headwater       261   1635    1526       -    1895   -6.6  +15.9  rt    SALMON RIVER ABOVE CAMPBELL LAKE D
+08HE007   Coast     headwater         6   6127    4295       -    5843  -29.9   -4.6  rt    CLANNINICK CREEK AT HEADWATERS
+08HE008   Coast     headwater        13   2994    4366       -    5738  +45.8  +91.7  rt    ZEBALLOS RIVER AT MOOK PEAK
+08HE009   Coast     headwater        37   6210    4859       -    7099  -21.8  +14.3  rt    KLASKISH RIVER NEAR KLASKINO INLET
+08HE010   Coast     headwater        22   4454    4442       -    4848   -0.3   +8.8  rt    MCKELVIE CREEK ABOVE INTAKE
+08HF004   Coast     headwater       370   1954    1935       -    3447   -0.9  +76.4  rt    TSITIKA RIVER BELOW CATHERINE CREE
+08HF005   Coast     headwater       773   2476    2340       -    3015   -5.5  +21.8  rt    NIMPKISH RIVER ABOVE WOSS RIVER
+08HF006   Coast     headwater        72   3400    3248       -    3763   -4.5  +10.7  rt    SAN JOSEF RIVER BELOW SHARP CREEK
+08HF012   Coast     headwater        25   2649    3360       -    4092  +26.8  +54.5  rt    PUGH CREEK NEAR NAHWITTI LAKE
+08HF013   Coast     headwater        17   2530    3352       -    3195  +32.5  +26.3  rt    SIMPSON CREEK NEAR KOPRINO HARBOUR
+08OA002   Coast     headwater       482   1955    2007       -    1723   +2.7  -11.9  rt    YAKOUN RIVER NEAR PORT CLEMENTS
+08OB002   Coast     headwater        81   3170    3752       -    3913  +18.4  +23.4  rt    PALLANT CREEK NEAR DAAJING GIIDS
+08NA002   Columbia  nested         6655    492     478       -     596   -3.0  +21.1  rt    COLUMBIA RIVER AT NICHOLSON
+08NA006   Columbia  headwater      1839    687     728     663     605   +5.9  -11.9  rt    KICKING HORSE RIVER AT GOLDEN
+08NA045   Columbia  headwater       886    342     347     344     442   +1.4  +29.1  rt    COLUMBIA RIVER NEAR FAIRMONT HOT S
+08NB005   Columbia  nested         9680    537     539       -     530   +0.4   -1.3  rt    COLUMBIA RIVER AT DONALD
+08NB012   Columbia  nested          589    890     714     658     645  -19.7  -27.5  rt    BLAEBERRY RIVER ABOVE WILLOWBANK C
+08NB013   Columbia  headwater       134   1643    1705    1812    1399   +3.8  -14.8  rt    GOLD RIVER ABOVE BACHELOR CREEK
+08NB014   Columbia  nested          429   1340    1546    1631    1270  +15.4   -5.2  rt    GOLD RIVER ABOVE PALMER CREEK
+08NB015   Columbia  headwater       234   1021     863     728     816  -15.5  -20.0  rt    BLAEBERRY RIVER BELOW ENSIGN CREEK
+08NB016   Columbia  headwater        79    653     705     690     553   +7.9  -15.3  rt    SPLIT CREEK AT THE MOUTH
+08NB019   Columbia  headwater      1156   1126    1238    1224    1122   +9.9   -0.4  rt    BEAVER RIVER NEAR THE MOUTH
+08NC004   Columbia  headwater       305   1522    1342    1450    1361  -11.8  -10.6  rt    CANOE RIVER BELOW KIMMEL CREEK
+08ND012   Columbia  nested          932   1287    1341    1338    1445   +4.2  +12.3  rt    GOLDSTREAM RIVER BELOW OLD CAMP CR
+08ND013   Columbia  headwater      1149   1432    1413    1403    1540   -1.3   +7.5  rt    ILLECILLEWAET RIVER AT GREELEY
+08ND018   Columbia  headwater       115   1848    1761    1744    1681   -4.7   -9.0  rt    STITT CREEK AT THE MOUTH
+08ND019   Columbia  headwater       116   1691    1408    1348    1516  -16.8  -10.4  rt    KIRBYVILLE CREEK NEAR THE MOUTH
+08NE001   Columbia  headwater       999   1732    1399    1394    1332  -19.3  -23.1  rt    INCOMAPPLEUX RIVER NEAR BEATON
+08NE006   Columbia  nested          319   1336    1181    1190    1283  -11.6   -4.0  rt    KUSKANAX CREEK NEAR NAKUSP
+08NE008   Columbia  headwater        95    858    1103    1098    1078  +28.5  +25.6  rt    BEATON CREEK NEAR BEATON
+08NE039   Columbia  headwater       348    490      85      97     421  -82.6  -14.1  rt    BIG SHEEP CREEK NEAR ROSSLAND
+08NE077   Columbia  headwater       199    602     567     553     611   -5.9   +1.5  rt    BARNES CREEK NEAR NEEDLES
+08NE087   Columbia  headwater        74    379     621     663     649  +63.7  +71.0  rt    DEER CREEK AT DEER PARK
+08NE110   Columbia  headwater       291    406     530     562     534  +30.6  +31.6  rt    INONOAKLIN CREEK ABOVE VALLEY CREE
+08NE114   Columbia  headwater        57    885     754     776    1258  -14.8  +42.2  rt    HIDDEN CREEK NEAR THE MOUTH
+08NE117   Columbia  headwater       111   1498    1287    1286    1397  -14.1   -6.8  rt    KUSKANAX CREEK AT 1040 M CONTOUR
+08NF001   Columbia  headwater       420    354     494     494     506  +39.8  +43.0  rt    KOOTENAY RIVER AT KOOTENAY CROSSIN
+08NF002   Columbia  nested         5430    510     567     537     390  +11.2  -23.4  rt    KOOTENAY RIVER AT CANAL FLATS
+08NF005   Columbia  headwater        69    725     710     659     809   -2.1  +11.6  rt    ALBERT RIVER AT 1310 M CONTOUR
+08NF006   Columbia  nested          669    703     616     595     604  -12.4  -14.0  rt    PALLISER RIVER IN LOT SL49
+08NG012   Columbia  nested         2396    645     451     454     590  -30.1   -8.5  rt    ST. MARY RIVER AT WYCLIFFE
+08NG046   Columbia  nested         1476    818     537     540     731  -34.4  -10.7  rt    ST. MARY RIVER NEAR MARYSVILLE
+08NG053   Columbia  nested         7206    478     526     503     421  +10.1  -11.8  rt    KOOTENAY RIVER NEAR SKOOKUMCHUCK
+08NG065   Columbia  nested        11421    460     461     447     420   +0.1   -8.7  rt    KOOTENAY RIVER AT FORT STEELE
+08NG076   Columbia  headwater       138    285     325     328     544  +14.3  +91.0  rt    MATHER CREEK BELOW HOULE CREEK
+08NG077   Columbia  headwater       211   1056     608     609     688  -42.5  -34.9  rt    ST. MARY RIVER BELOW MORRIS CREEK
+08NG078   Columbia  headwater       316    221     273     264     295  +23.6  +33.6  rt    CAVEN CREEK BELOW BLOOM CREEK
+08NH005   Columbia  nested          441    914     879     890     860   -3.8   -5.9  rt    KASLO RIVER BELOW KEMP CREEK
+08NH007   Columbia  nested         1635   1083    1166    1173    1085   +7.6   +0.2  rt    LARDEAU RIVER AT MARBLEHEAD
+08NH016   Columbia  headwater        49    566     631     646     668  +11.4  +18.0  rt    DUCK CREEK NEAR WYNNDEL
+08NH084   Columbia  headwater        79    664     593     609     600  -10.8   -9.7  rt    ARROW CREEK NEAR ERICKSON
+08NH115   Columbia  headwater         7    280     572     608     426 +103.9  +52.1  rt    SULLIVAN CREEK NEAR CANYON
+08NH119   Columbia  headwater      1315   1480    1644    1632     984  +11.1  -33.5  rt    DUNCAN RIVER BELOW B.B. CREEK
+08NH120   Columbia  headwater       238    587       -     292     363      -  -38.1  bal   MOYIE RIVER ABOVE NEGRO CREEK
+08NH130   Columbia  nested          584   1016     886     890     908  -12.8  -10.6  rt    FRY CREEK BELOW CARNEY CREEK
+08NH131   Columbia  headwater       118   1219     940     944    1088  -22.9  -10.8  rt    CARNEY CREEK BELOW PAMBRUN CREEK
+08NH132   Columbia  headwater        94   1108    1028    1041    1014   -7.2   -8.5  rt    KEEN CREEK BELOW KYAWATS CREEK
+08NH138   Columbia  headwater         8   1254    1246    1196    1232   -0.7   -1.8  rt    HUMPHRIES CREEK NEAR TROUT LAKE
+08NJ013   Columbia  nested         3329    863     774     805     875  -10.3   +1.4  rt    SLOCAN RIVER NEAR CRESCENT VALLEY
+08NJ026   Columbia  headwater        57    806     776     820     820   -3.7   +1.9  rt    DUHAMEL CREEK ABOVE DIVERSIONS
+08NJ061   Columbia  headwater        27    973     814     873     892  -16.3   -8.3  rt    REDFISH CREEK NEAR HARROP
+08NJ129   Columbia  headwater         5    412    1025     957    1013 +148.6 +145.9  rt    FELL CREEK NEAR NELSON
+08NJ130   Columbia  headwater         8    413    1000    1141     961 +142.2 +132.8  rt    ANDERSON CREEK NEAR NELSON
+08NJ160   Columbia  headwater       181    803     866     894     945   +7.9  +17.7  rt    LEMON CREEK ABOVE SOUTH LEMON CREE
+08NJ162   Columbia  headwater         5    309     523     479     437  +69.2  +41.3  rt    SMOKY CREEK ABOVE DIVERSIONS
+08NJ168   Columbia  headwater        46    795    1103    1128    1224  +38.7  +54.0  rt    FIVE MILE CREEK ABOVE CITY INTAKE
+08NK002   Columbia  nested         3104    460     489     419     357   +6.3  -22.3  rt    ELK RIVER AT FERNIE
+08NK016   Columbia  nested         1848    416     539     466     331  +29.4  -20.5  rt    ELK RIVER NEAR NATAL
+08NK018   Columbia  nested          621    390     515     416     340  +32.0  -12.9  rt    FORDING RIVER AT THE MOUTH
+08NK019   Columbia  headwater        81    404     326     314     295  -19.2  -26.9  rt    GRAVE CREEK AT THE MOUTH
+08NK020   Columbia  headwater       642    497     460     325     440   -7.4  -11.6  rt    MICHEL CREEK BELOW NATAL
+08NK022   Columbia  headwater       138    462     522     384     360  +12.9  -22.1  rt    LINE CREEK AT THE MOUTH
+08NK026   Columbia  headwater         7    553     409     416     496  -26.0  -10.2  rt    HOSMER CREEK ABOVE DIVERSIONS
+08NK027   Columbia  headwater       333    632     783     582     436  +23.9  -31.0  rt    ELK RIVER BELOW WEARY CREEK
+08NL024   Columbia  nested         1778    355     376     370     709   +6.1  +99.8  rt    TULAMEEN RIVER AT PRINCETON
+08NL036   Columbia  headwater       186    169     289     287     414  +70.7 +144.9  rt    WHIPSAW CREEK BELOW LAMONT CREEK
+08NL050   Columbia  headwater       395    186     108      70     235  -42.0  +26.5  rt    HEDLEY CREEK NEAR THE MOUTH
+08NL071   Columbia  headwater       252    808     701     653    1287  -13.3  +59.3  rt    TULAMEEN RIVER BELOW VUICH CREEK
+08NM134   Columbia  headwater        36    128     136     152     275   +6.6 +115.2  rt    CAMP CREEK AT MOUTH NEAR THIRSK
+08NM142   Columbia  headwater        63    130     102     112     250  -21.4  +91.7  rt    COLDSTREAM CREEK ABOVE MUNICIPAL I
+08NM171   Columbia  headwater       118    239     284     291     293  +18.8  +22.3  rt    VASEUX CREEK ABOVE SOLCO CREEK
+08NM173   Columbia  headwater        45     50     102     107     243 +106.6 +391.4  rt    GREATA CREEK NEAR THE MOUTH
+08NM174   Columbia  headwater       108    181     166     180     167   -8.2   -7.7  rt    WHITEMAN CREEK ABOVE BOULEAU CREEK
+08NM240   Columbia  nested            5    349     375     385     375   +7.5   +7.5  rt    TWO FORTY CREEK NEAR PENTICTON
+08NM241   Columbia  nested            5    329     375     385     375  +14.0  +14.0  rt    TWO FORTY-ONE CREEK NEAR PENTICTON
+08NN002   Columbia  nested         2061    464     437     456     333   -5.8  -28.2  rt    GRANBY RIVER AT GRAND FORKS
+08NN015   Columbia  headwater       230    474     403     419     461  -15.0   -2.8  rt    WEST KETTLE RIVER NEAR MCCULLOCH
+08NN019   Columbia  headwater       148    304     243     253     266  -20.2  -12.6  rt    TRAPPING CREEK NEAR THE MOUTH
+08NN022   Columbia  nested         1185    262     268     277     281   +2.4   +7.5  rt    WEST KETTLE RIVER BELOW CARMI CREE
+08NN023   Columbia  headwater       222    604     529     550     434  -12.4  -28.2  rt    BURRELL CREEK ABOVE GLOUCESTER CRE
+08NN028   Columbia  headwater        31    186     335     331     316  +79.8  +69.4  rt    LOST HORSE CREEK NEAR CHRISTIAN VA
+08NP003   Columbia  headwater       141    622       -     689    1014      -  +63.1  bal   HOWELL CREEK ABOVE CABIN CREEK
+08NP004   Columbia  headwater        96    628       -     704     861      -  +37.2  bal   CABIN CREEK NEAR THE MOUTH
+08JA014   Fraser    headwater       145    185       0     168     119  -99.8  -35.7  bal   VAN TINE CREEK NEAR THE MOUTH
+08JA015   Fraser    headwater        81   2046       0    1212    1520 -100.0  -25.7  bal   LAVENTIE CREEK NEAR THE MOUTH
+08JA016   Fraser    headwater        58    468       0     375     486  -99.9   +3.9  bal   MACIVOR CREEK NEAR THE MOUTH
+08JA028   Fraser    headwater      2554    786       0     431     516 -100.0  -34.4  bal   EUTSUK RIVER AT OUTLET OF EUTSUK L
+08JB002   Fraser    headwater      4001    145     161     134     206  +11.1  +42.3  rt    STELLAKO RIVER AT GLENANNAN
+08JB003   Fraser    nested         6572    133     140     111     190   +5.0  +42.9  rt    NAUTLEY RIVER NEAR FORT FRASER
+08JC017   Fraser    headwater       132    135     137     132     216   +1.6  +60.4  rt    CORKSCREW CREEK NEAR THE MOUTH
+08JD006   Fraser    headwater       364    731     663     363     457   -9.3  -37.5  rt    DRIFTWOOD RIVER ABOVE KASTBERG CRE
+08JE001   Fraser    nested        14235    285     285     238     293   -0.1   +2.7  rt    STUART RIVER NEAR FORT ST. JAMES
+08JE004   Fraser    headwater       439    180     186     179     212   +3.7  +18.0  rt    TSILCOH RIVER NEAR THE MOUTH
+08KA001   Fraser    headwater       409   1059     866     904     861  -18.1  -18.6  rt    DORE RIVER NEAR MCBRIDE
+08KA004   Fraser    nested        17972    771     756       -     681   -2.0  -11.7  rt    FRASER RIVER AT HANSARD
+08KA005   Fraser    nested         6881    884    1018     898     733  +15.1  -17.2  rt    FRASER RIVER AT MCBRIDE
+08KA007   Fraser    nested         1700    820     777     525     660   -5.2  -19.5  rt    FRASER RIVER AT RED PASS
+08KA008   Fraser    headwater       454    922     844     614     673   -8.5  -27.1  rt    MOOSE RIVER NEAR RED PASS
+08KA009   Fraser    headwater       254   1026     738     743     772  -28.1  -24.7  rt    MCKALE RIVER NEAR 940 M CONTOUR
+08KA012   Fraser    headwater       136    756    1124     804     729  +48.6   -3.6  rt    SWIFT CREEK NEAR THE MOUTH
+08KA013   Fraser    headwater      1263    933     925     790     833   -0.9  -10.7  rt    MORKILL RIVER BELOW HELLROARING CR
+08KB001   Fraser    nested        32436    771     685       -     679  -11.1  -11.8  rt    FRASER RIVER AT SHELLEY
+08KB003   Fraser    nested         4760   1330    1221    1023     964   -8.2  -27.5  rt    MCGREGOR RIVER AT LOWER CANYON
+08KB006   Fraser    headwater       103   1435     992     980     934  -30.9  -35.0  rt    MULLER CREEK NEAR THE MOUTH
+08KC001   Fraser    nested         4227    205     191     153     257   -6.5  +25.8  rt    SALMON RIVER NEAR PRINCE GEORGE
+08KC003   Fraser    headwater       297    224     294     220     279  +31.3  +24.3  rt    MUSKEG RIVER NORTH OF JOANNE LAKE
+08KD006   Fraser    headwater      2864    403     402     393     476   -0.3  +18.1  rt    WILLOW RIVER ABOVE HAY CREEK
+08KD007   Fraser    headwater      3369    606     546     542     598  -10.0   -1.4  rt    BOWRON RIVER BELOW BOX CANYON
+08KE009   Fraser    nested         1899    398     365     358     265   -8.2  -33.4  rt    COTTONWOOD RIVER NEAR CINEMA
+08KE016   Fraser    headwater      1563     97     103      99      65   +5.7  -32.9  rt    BAKER CREEK AT QUESNEL
+08KE024   Fraser    headwater       131    663     621     623     552   -6.4  -16.8  rt    LITTLE SWIFT RIVER AT THE MOUTH
+08KE032   Fraser    headwater        67    210     283     274     385  +34.8  +83.4  rt    TABOR CREEK ABOVE SWEDE CREEK
+08KF001   Fraser    headwater      3163     44      55      55      85  +26.0  +93.4  rt    NAZKO RIVER ABOVE MICHELLE CREEK
+08KG001   Fraser    nested        12391     84      78       -      87   -7.0   +4.0  rt    WEST ROAD RIVER NEAR CINEMA
+08KG003   Fraser    headwater      1017     64       5      57      91  -92.4  +41.4  rt    BAEZAEKO RIVER AT LOT 10262
+08KH001   Fraser    nested         5963    686     667       -     530   -2.7  -22.8  rt    QUESNEL RIVER AT LIKELY
+08KH003   Fraser    headwater      3264    904     798     807     719  -11.8  -20.5  rt    CARIBOO RIVER BELOW KANGAROO CREEK
+08KH006   Fraser    nested        11571    655       1       -     491  -99.9  -25.1  rt    QUESNEL RIVER NEAR QUESNEL
+08KH010   Fraser    headwater       782    783     603     620     749  -22.9   -4.4  rt    HORSEFLY RIVER ABOVE MCKINLEY CREE
+08KH019   Fraser    headwater       554    192     410     415     260 +113.6  +35.6  rt    MOFFAT CREEK NEAR HORSEFLY
+08KH030   Fraser    headwater       185   1063    1367    1384     955  +28.5  -10.2  rt    PENFOLD CREEK NEAR THE MOUTH
+08LA001   Fraser    nested        10305    683     608       -     639  -11.0   -6.5  rt    CLEARWATER RIVER NEAR CLEARWATER S
+08LA007   Fraser    headwater      2948   1384    1201       -    1118  -13.2  -19.2  rt    CLEARWATER RIVER AT OUTLET OF CLEA
+08LA027   Fraser    headwater       386     91     125     138      86  +36.9   -5.9  rt    BRIDGE CREEK BELOW DEKA CREEK
+08LA028   Fraser    headwater        80    286     227     237     238  -20.7  -16.9  rt    WINDY CREEK ABOVE JIM CREEK
+08LB012   Fraser    headwater        71     78      71      77      72   -9.5   -7.4  rt    PAUL CREEK AT THE OUTLET OF PINANT
+08LB020   Fraser    nested         1162    400     365     387     378   -8.8   -5.5  rt    BARRIERE RIVER AT THE MOUTH
+08LB024   Fraser    headwater       138    181     129     136     103  -29.0  -43.0  rt    FISHTRAP CREEK NEAR MCLURE
+08LB038   Fraser    headwater       273   1251     940     977    1680  -24.9  +34.3  rt    BLUE RIVER NEAR BLUE RIVER
+08LB047   Fraser    nested         4488   1061     962     897    1436   -9.4  +35.3  rt    NORTH THOMPSON RIVER AT BIRCH ISLA
+08LB064   Fraser    nested        19592    681     616       -     782   -9.5  +14.9  rt    NORTH THOMPSON RIVER AT MCLURE
+08LB069   Fraser    nested          628    577     476     501     486  -17.6  -15.8  rt    BARRIERE RIVER BELOW SPRAGUE CREEK
+08LB076   Fraser    headwater       168    747     556     590     533  -25.6  -28.7  rt    HARPER CREEK NEAR THE MOUTH
+08LC040   Fraser    headwater        68    226     175     154     339  -22.5  +50.1  rt    VANCE CREEK BELOW DEAFIES CREEK
+08LD001   Fraser    headwater      3201    700     725     692     862   +3.6  +23.1  rt    ADAMS RIVER NEAR SQUILAX
+08LE024   Fraser    headwater       935   1266    1197     985    1142   -5.5   -9.8  rt    EAGLE RIVER NEAR MALAKWA
+08LE027   Fraser    headwater       806   1429    1135     929    1281  -20.6  -10.4  rt    SEYMOUR RIVER NEAR SEYMOUR ARM
+08LE031   Fraser    nested        15861    608     547       -     690  -10.0  +13.4  rt    SOUTH THOMPSON RIVER AT CHASE
+08LE075   Fraser    headwater       141    174     338     256     160  +94.4   -7.9  rt    SALMON RIVER ABOVE SALMON LAKE
+08LE077   Fraser    headwater        28    413     239     262     536  -42.2  +29.7  rt    CORNING CREEK NEAR SQUILAX
+08LE108   Fraser    headwater        18    181     129     144     512  -28.4 +183.2  rt    EAST CANOE CREEK ABOVE DAM
+08LF051   Fraser    nested        55439    436     400       -     491   -8.2  +12.5  rt    THOMPSON RIVER NEAR SPENCES BRIDGE
+08LF081   Fraser    headwater        33     20      51      49      33 +157.4  +64.6  rt    AMBUSTEN CREEK NEAR THE MOUTH
+08LF084   Fraser    headwater        31     88     120     121     123  +36.2  +39.4  rt    ANDERSON CREEK ABOVE DIVERSIONS
+08LG008   Fraser    headwater       768    402     212     218     594  -47.1  +47.8  rt    SPIUS CREEK NEAR CANFORD
+08LG016   Fraser    headwater        85    263     303     208     359  +15.2  +36.4  rt    PENNASK CREEK NEAR QUILCHENA
+08LG048   Fraser    headwater       314    665     530     485    1158  -20.4  +74.1  rt    COLDWATER RIVER NEAR BROOKMERE
+08LG056   Fraser    headwater        76     55      21      19      72  -62.3  +30.2  rt    GUICHON CREEK ABOVE TUNKWA LAKE DI
+08LG064   Fraser    headwater        90    166     237     207     294  +42.4  +76.6  rt    BEAK CREEK AT THE MOUTH
+08LG066   Fraser    headwater        30     62      19      19      97  -69.5  +55.8  bal   CHATAWAY CREEK NEAR THE MOUTH
+08MA001   Fraser    nested         6727    412     394     511     403   -4.5   -2.2  rt    CHILKO RIVER NEAR REDSTONE
+08MA002   Fraser    headwater      2140    641     550     527     575  -14.3  -10.3  rt    CHILKO RIVER AT OUTLET OF CHILKO L
+08MA006   Fraser    headwater        98    254     294     160     167  +15.6  -34.1  rt    LINGFIELD CREEK NEAR THE MOUTH
+08MB005   Fraser    nested        19276    169     181       -     212   +7.2  +25.3  rt    CHILCOTIN RIVER BELOW BIG CREEK
+08MB006   Fraser    nested         1019    187     205     224     309   +9.4  +65.1  rt    BIG CREEK ABOVE GROUNDHOG CREEK
+08MB007   Fraser    headwater       195    452     282     299     461  -37.6   +1.8  rt    BIG CREEK BELOW GRAVEYARD CREEK
+08MC045   Fraser    headwater        94     66      78      77      74  +18.2  +12.6  rt    SHERIDAN CREEK ABOVE MCLEESE LAKE
+08ME023   Fraser    headwater       148   2724    2067    2313     975  -24.1  -64.2  rt    BRIDGE RIVER (SOUTH BRANCH) BELOW 
+08ME025   Fraser    headwater       579    236     659     743     264 +178.5  +11.6  rt    YALAKOM RIVER ABOVE ORE CREEK
+08ME027   Fraser    headwater       312   1364     666     684     897  -51.2  -34.3  rt    HURLEY RIVER BELOW LONE GOAT CREEK
+08ME028   Fraser    nested          704   1632    1501    1695     877   -8.0  -46.3  rt    BRIDGE RIVER ABOVE DOWNTON LAKE
+08MF062   Fraser    headwater        90   1195    1898    1106    1767  +58.8  +47.8  rt    COQUIHALLA RIVER BELOW NEEDLE CREE
+08MF065   Fraser    headwater       713   1571    1190    1231    1591  -24.3   +1.3  rt    NAHATLATCH RIVER BELOW TACHEWANA C
+08MF068   Fraser    nested          719   1323    1698    1314    1866  +28.3  +41.0  rt    COQUIHALLA RIVER ABOVE ALEXANDER C
+08MG001   Fraser    headwater       383   3119    2403    2476    2910  -22.9   -6.7  rt    CHEHALIS RIVER NEAR HARRISON MILLS
+08MG005   Fraser    headwater      2076   1856    1765    1512    1314   -4.9  -29.2  rt    LILLOOET RIVER NEAR PEMBERTON
+08MG013   Fraser    nested         7874   1756    1606    1568    1658   -8.5   -5.6  rt    HARRISON RIVER NEAR HARRISON HOT S
+08MG026   Fraser    headwater        94   1267    2455    1630    1808  +93.7  +42.7  rt    FITZSIMMONS CREEK BELOW BLACKCOMB 
+08MH006   Fraser    headwater        35   2501    1733    1787    1915  -30.7  -23.4  rt    NORTH ALOUETTE RIVER AT 232ND STRE
+08MH076   Fraser    headwater        48   1731    1308    1328    1706  -24.4   -1.5  rt    KANAKA CREEK NEAR WEBSTER CORNERS
+08MH141   Fraser    headwater        49   4277     631    3317    3508  -85.2  -18.0  rt    COQUITLAM RIVER ABOVE COQUITLAM LA
+08MH147   Fraser    headwater       290   3708    4015    4066    3308   +8.3  -10.8  rt    STAVE RIVER ABOVE STAVE LAKE
+08MH154   Fraser    headwater        26   1000       -     864     833      -  -16.7  bal   MAHOOD CREEK AT 144 STREET, SURREY
+08MH155   Fraser    headwater        71    896       -     563     830      -   -7.4  bal   NICOMEKL RIVER AT 203 STREET, LANG
+08MH166   Fraser    headwater        27   3265    3263    3297    3730   -0.1  +14.2  rt    CEDAR CREEK ABOVE THE MOUTH
+07EA002   Peace     headwater      2407    687     544     558     522  -20.8  -24.0  rt    KWADACHA RIVER NEAR WARE
+07EA004   Peace     headwater      4141    451     566     429     528  +25.3  +17.0  rt    INGENIKA RIVER ABOVE SWANNELL RIVE
+07EA005   Peace     nested        15651    530     467       -     555  -12.0   +4.7  rt    FINLAY RIVER ABOVE AKIE RIVER
+07EA007   Peace     headwater      1683    584     549     532     491   -5.9  -15.8  rt    AKIE RIVER NEAR THE 760 M CONTOUR
+07EB002   Peace     headwater      2091    612     576     550     518   -5.8  -15.4  rt    OSPIKA RIVER ABOVE ALEY CREEK
+07EC002   Peace     headwater      5394    533     464     442     428  -12.9  -19.6  rt    OMINECA RIVER ABOVE OSILINKA RIVER
+07EC003   Peace     headwater      2948    482     465     430     480   -3.5   -0.4  rt    MESILINKA RIVER ABOVE GOPHERHOLE C
+07EC004   Peace     headwater      1946    581     593     574     367   +2.1  -36.7  rt    OSILINKA RIVER NEAR END LAKE
+07ED001   Peace     headwater      4356    401     352     346     410  -12.3   +2.3  rt    NATION RIVER NEAR FORT ST. JAMES
+07ED003   Peace     nested         6780    388     330     321     414  -15.0   +6.7  rt    NATION RIVER NEAR THE MOUTH
+07EE007   Peace     headwater      4911    938     942     894     666   +0.3  -29.0  rt    PARSNIP RIVER ABOVE MISINCHINKA RI
+07EE009   Peace     headwater       318    496     506     479     639   +2.1  +28.9  rt    CHUCHINKA CREEK NEAR THE MOUTH
+07EE010   Peace     nested         3705    364     326       -     423  -10.5  +16.1  rt    PACK RIVER AT OUTLET OF MCLEOD LAK
+07EF004   Peace     headwater       737    525     991     938     893  +88.9  +70.2  rt    CARBON CREEK NEAR THE MOUTH
+07FA003   Peace     headwater      3762    308     332     315     254   +7.8  -17.4  rt    HALFWAY RIVER ABOVE GRAHAM RIVER
+07FA005   Peace     headwater      2140    355     422     399     374  +19.1   +5.5  rt    GRAHAM RIVER ABOVE COLT CREEK
+07FA006   Peace     nested         9290    245     248       -     218   +1.1  -11.0  rt    HALFWAY RIVER NEAR FARRELL CREEK
+07FB001   Peace     nested        12147    475     475       -     450   +0.1   -5.2  rt    PINE RIVER AT EAST PINE
+07FB002   Peace     nested         5544    472     478     445     442   +1.1   -6.4  rt    MURRAY RIVER NEAR THE MOUTH
+07FB003   Peace     headwater      2593    670     621       -     503   -7.4  -25.0  rt    SUKUNKA RIVER NEAR THE MOUTH
+07FB004   Peace     headwater        87    210     337     317     247  +60.7  +17.7  rt    DICKEBUSCH CREEK NEAR THE MOUTH
+07FB005   Peace     headwater        26    233     116      99     214  -50.1   -8.2  rt    QUALITY CREEK NEAR THE MOUTH
+07FB006   Peace     headwater      2383    755     781     728     653   +3.3  -13.5  rt    MURRAY RIVER ABOVE WOLVERINE RIVER
+07FB008   Peace     headwater      1521    235     294     273     315  +24.8  +33.7  rt    MOBERLY RIVER NEAR FORT ST. JOHN
+07FB009   Peace     headwater       479    270     283     262     350   +4.8  +29.8  rt    FLATBED CREEK AT KILOMETRE 110 HER
+07FC003   Peace     headwater      1774     90     122      94      81  +35.5  -10.2  rt    BLUEBERRY RIVER BELOW AITKEN CREEK
+07FD001   Peace     headwater      3597     86     105      94     118  +21.8  +37.9  rt    KISKATINAW RIVER NEAR FARMINGTON
+07FD004   Peace     headwater       339     53     116     117      68 +119.3  +28.0  rt    ALCES RIVER AT 22ND BASE LINE
+09AA013   Yukon     headwater       997    505       -       -     645      -  +27.6  bal   TUTSHI RIVER AT OUTLET OF TUTSHI L

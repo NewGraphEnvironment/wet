@@ -72,8 +72,19 @@ shipped_heldout <- function() {
 
 # A gauge whose segment carries less than this share of its observed flow is
 # listed: a side channel, which carries only its own water (fwapg's README), a
-# reservoir lake, or a misplaced outlet, rather than PCIC's model error
+# reservoir lake, or a misplaced outlet, rather than PCIC's model error. The
+# same cut, against the balance rather than observed flow, picks a segment's
+# default source (wet_source_pick(), #57)
 routed_far_low <- 0.2
+
+# Whether a segment (alias s, fwa_stream_networks_sp) lies on its lut
+# watershed's own line (alias w, fwa_watersheds_poly): its blue line is its
+# watershed code's main line, and that code is the watershed's. Only there is
+# the balance the segment's own flow, so only there can the default pick fall
+# to it (wet_source_pick(own_line =), #57). Off it are side channels (blue line
+# not the main line), network connectors that sit in another stream's
+# watershed (another code), and waterbody connections off the main line.
+routed_own_line_sql <- "(s.blue_line_key = s.watershed_key AND s.wscode_ltree = w.wscode_ltree)"
 
 # the major basins, by Water Survey sub-drainage
 routed_basin <- function(st) {
