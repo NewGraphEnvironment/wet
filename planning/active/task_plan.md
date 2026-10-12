@@ -153,6 +153,6 @@ later:
   - `sum(pick)` 58,926,959
   - fresh's subquery returns 4,532,843 rows (3,152,838 routed, 1,380,005 balance)
   - the watershed dataset holds 42,190,889 rows less the NA-flow rows
-- [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
+- [x] `/code-check` clean (once over the branch and crate#32: 4 rounds, ending on an enumeration; `review-round1..4.md`)
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion

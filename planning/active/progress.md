@@ -37,3 +37,4 @@
   - Terminal enumeration: one site creates `manifest.json`, the rename at line 351. Every check precedes it and nothing after it refuses; `wet_manifest_write()` writes only the pending name in BUILD.
 - Phase 6 load: both datasets loaded on the full-run machine; counts match. fresh's subquery took 197 s unindexed; the partial index added to `wet_db_load()` brings it to 6.7 s (0.7 s for one group).
 - Validation: full test suite 0 of 246 failed (1 live HYDAT skip); `devtools::check()` 0 errors, 0 warnings, and 2 NOTEs, both about `CITATION.cff`, which is already on main. The fixture's long-path NOTE is gone.
+- /code-check round 4 (`review-round4.md`): Clean on the round-3 fixes and the index. It confirmed the enumeration and the patterns against the tracked reports, and a mutation (removing `AND pick`) fails the new index test. Loop ended on the enumeration after 4 rounds; with the plan review, 5 reviewer agents in all.
