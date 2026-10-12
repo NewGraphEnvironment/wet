@@ -275,8 +275,8 @@ Which to use depends on the job:
   balance is slightly closer in the Peace and the Fraser. The exception is a
   main-flow segment where routed flow is under a fifth of the balance's, such
   as the Nechako Reservoir, where PCIC's outlets are not placed on the FWA.
-  There, use the balance. A side channel or a connector line keeps routed
-  flow, which is its own water. wet's per-segment table carries both estimates and
+  There, use the balance. A side channel keeps routed flow, which is its own
+  water. wet's per-segment table carries both estimates and
   picks this way by default.
 - Where it has none (mainly the Liard), for one consistent layer across BC from
   open code, or for 1981–2010 normals: the open water balance.

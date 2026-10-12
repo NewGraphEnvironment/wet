@@ -27,8 +27,9 @@
 #   which is another line's flow: they are never the pick there.
 # - pick: wet_source_pick() on annual flow at routed_far_low, the same source
 #   for all 13 months. A segment off its watershed's own line
-#   (routed_own_line_sql: side channels, connectors and waterbody connections)
-#   keeps routed, because the balance there is another line's flow.
+#   (routed_own_line_sql: side channels, and connectors sitting in another
+#   stream's watershed or off the main line) keeps routed, because the
+#   balance there is another line's flow.
 # - period: routed 1951-2012, the balance 1981-2010 (#57's decision, until
 #   fwapg builds routed flow over 1981-2010).
 #
@@ -202,7 +203,8 @@ for (code in codes) {
     neither = sum(is.na(s$source)), pick_routed = sum(s$source %in% "pcic_routed"),
     pick_balance = sum(s$source %in% "wet_balance"),
     flipped = sum(!is.na(s$q_routed) & s$source %in% "wet_balance"),
-    routed_no_area = sum(!is.na(s$q_routed) & is.na(s$area_m2))
+    routed_no_area = sum(!is.na(s$q_routed) & is.na(s$area_m2)),
+    routed_off_line = sum(!is.na(s$q_routed) & !s$own_line)
   )
   seg_q[[code]] <- s[c("linear_feature_id", "q_routed", "q_balance", "source")]
   stamp(code, ": ", nrow(s), " segments, ", nrow(out), " rows")
@@ -257,7 +259,8 @@ writeLines(c(
   routed_line, sprintf("table: %s", routed_fp),
   sprintf("pick: routed PCIC unless its annual flow is under %.2f x the balance's, then the balance (wet_source_pick);",
           routed_far_low),
-  "a segment off its watershed's own line keeps routed (routed_own_line_sql: side channels, connectors)",
+  "a segment off its watershed's own line keeps routed (routed_own_line_sql: side channels, and connectors in",
+  "another stream's watershed or off the main line)",
   sprintf("periods: routed %s, balance %s", period_routed, period_balance), "",
   "## Segments",
   sprintf("FWA segments: %d; with a watershed in the lut: %d; without (no value from either source): %d",
@@ -269,7 +272,8 @@ writeLines(c(
   sprintf("picked routed: %d (%s of segments with a value); picked balance: %d, %d of them under the cut",
           sum(tally$pick_routed), pct(sum(tally$pick_routed), sum(tally$pick_routed) + sum(tally$pick_balance)),
           sum(tally$pick_balance), sum(tally$flipped)),
-  sprintf("routed segments with no accumulated area (runoff_mm NA): %d", sum(tally$routed_no_area)),
+  sprintf("routed segments with runoff_mm NA: %d off their own line (another line's area), %d with no accumulated area",
+          sum(tally$routed_off_line), sum(tally$routed_no_area)),
   "", "## By basin",
   sprintf("%-4s %9s %9s %9s %9s %8s %9s %9s %9s", "code", "segments", "both", "rt_only", "bal_only", "neither",
           "pick_rt", "pick_bal", "flipped"),
