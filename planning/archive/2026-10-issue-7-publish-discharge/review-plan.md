@@ -172,7 +172,7 @@ Housekeeping: `research/discharge_publish.md` and its README row are already com
 ## Ordering
 
 **O1. Open the crate PR first, and branch from crate's `main`.**
-- The local crate checkout is on `11-nothing-runs-the-test-suite-add-r-cmd-ch`, with PR #30 open. Branch from `main`.
+- The local crate checkout is on `11-nothing-runs-the-test-suite-add-r-cmd-ch`, with crate#30 open. Branch from `main`.
 - Merge and release it, as 0.7.0 or whatever crate's flow assigns, before any Phase 5 code calls it.
 - Phases 3–4 don't depend on crate and can proceed in parallel.
 
