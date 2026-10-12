@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,9 +33,13 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/v0.3.2/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.2" id="wet-032">wet 0.3.2<a class="anchor" aria-label="anchor" href="#wet-032"></a></h2>
+<ul><li>FWA segments now carry both estimates where each exists, PCIC’s routed flow (NewGraphEnvironment/fwapg#6) and the open water balance, labelled by <code>source</code> and <code>period</code>, with a logical <code>pick</code> marking the default (<a href="https://github.com/NewGraphEnvironment/wet/issues/57" class="external-link">#57</a>). <code>scripts/segment_output.R</code> writes them per basin as <code>linear_feature_id, month, runoff_mm, q_m3s, coverage, source, period, pick</code>. The default is routed unless its mean annual flow is under 0.2 of the balance’s, and only a segment on its watershed’s own line can fall to the balance, because the balance reaches a segment through <code>fwa_streams_watersheds_lut</code> and off that line it is another line’s flow. 224,199 of 3,374,133 segments with both sources fall to the balance, 26.7 % of them in the Nechako Reservoir groups, where PCIC’s outlets are almost all unplaced (NewGraphEnvironment/fwapg#24). At the 290 calibration gauges routed flow covers, the pick’s mean absolute error is 22.9 % against routed’s 24.1 % and the balance’s 27.6 %. The 369,217 segments with no lut row get neither. The balance stays the independent estimate both are scored against.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.1" id="wet-031">wet 0.3.1<a class="anchor" aria-label="anchor" href="#wet-031"></a></h2>
 <ul><li>The segment vignette compares the open water balance with PCIC’s routed flow (NewGraphEnvironment/fwapg#6) instead of fwapg’s older annual table (<a href="https://github.com/NewGraphEnvironment/wet/issues/58" class="external-link">#58</a>): the table of strengths and limits, the scatter, the province coverage outline, the Salmon River pair and the Bulkley gauges. At the 290 of 315 calibration gauges routed flow covers, its mean absolute error is 24.1 % against the held-out balance’s 27.6 % (median 13.0 against 18.0); by mean error the balance is closer in the Peace and the Fraser. Where the older annual table also had values, the two PCIC products tie once 7 far-low gauges are set aside, so what routed flow adds is coverage: the coast and the largest rivers. The scores come from <code>scripts/pcic_routed_compare.R</code>, whose report records the fwapg commit and the table’s fingerprint, and the vignette’s data script refuses any other build.</li>

@@ -1,5 +1,26 @@
 # Changelog
 
+## wet 0.3.2
+
+- FWA segments now carry both estimates where each exists, PCIC’s routed
+  flow (NewGraphEnvironment/fwapg#6) and the open water balance,
+  labelled by `source` and `period`, with a logical `pick` marking the
+  default
+  ([\#57](https://github.com/NewGraphEnvironment/wet/issues/57)).
+  `scripts/segment_output.R` writes them per basin as
+  `linear_feature_id, month, runoff_mm, q_m3s, coverage, source, period, pick`.
+  The default is routed unless its mean annual flow is under 0.2 of the
+  balance’s, and only a segment on its watershed’s own line can fall to
+  the balance, because the balance reaches a segment through
+  `fwa_streams_watersheds_lut` and off that line it is another line’s
+  flow. 224,199 of 3,374,133 segments with both sources fall to the
+  balance, 26.7 % of them in the Nechako Reservoir groups, where PCIC’s
+  outlets are almost all unplaced (NewGraphEnvironment/fwapg#24). At the
+  290 calibration gauges routed flow covers, the pick’s mean absolute
+  error is 22.9 % against routed’s 24.1 % and the balance’s 27.6 %. The
+  369,217 segments with no lut row get neither. The balance stays the
+  independent estimate both are scored against.
+
 ## wet 0.3.1
 
 - The segment vignette compares the open water balance with PCIC’s
