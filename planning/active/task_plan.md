@@ -90,27 +90,47 @@ later:
   - a malformed manifest is refused
 
 ### Phase 4: `wet_db_load()` (tests first)
-- [ ] `R/wet_db_load.R`:
+- [x] `R/wet_db_load.R`:
   - `wet_db_load(conn, catalog = wet_catalog(), dataset = "discharge/fwa/v1/segment_monthly", scenario = "historical", months = 0:12, pick_only = FALSE)`
   - Downloads each part with curl to a cache, checks size and md5 against the manifest, and reads it with duckdb (Suggests).
   - Writes to the table the rule derives from the ID (`discharge.fwa_v1_segment_monthly`), replacing that scenario's rows in one transaction. It creates the schema, table and key the first time, and the table comment records the manifest URL and wet commit.
-- [ ] `tests/testthat/test-wet_db_load.R` (`local_fwapg()`, so skipped on CI):
+- [x] `tests/testthat/test-wet_db_load.R` (`local_fwapg()`, so skipped on CI):
   - a load
   - a reload doesn't duplicate rows
   - a md5 mismatch is refused, and nothing is written
   - fresh's subquery returns one row per segment
 
+### Phase 4b: Plan-review fixes to landed code (`review-plan.md`)
+- [ ] G14: ship only a manifest (`inst/extdata/discharge_manifest.json`) for the example; tests build the Hive tree in a tempdir with duckdb and the writer (no parquet in git, no >100-byte paths)
+- [ ] G4: per-source provenance in the manifest's `sources` entries; crate version and schema URL in `datasets`; the rule that each publish rewrites the whole manifest from a local tree holding every scenario
+- [ ] G7: internal `wet_catalog_verify()`: an anonymous HEAD per href, Content-Length == bytes and ETag == md5 (single-part uploads), tested with mocked curl
+- [ ] G3: `wet_db_load()` asserts one `pick` per (feature, month) in the scenario after a load of a dataset that has `pick`
+- [ ] G6: `?wet_catalog` documents reading the tree with duckdb `hive_partitioning = true`
+
 ### Phase 5: Build the release tree
-- [ ] `scripts/segment_output.R`: add `watershed_group_code`, and sort by group.
+- [ ] ~~`scripts/segment_output.R`: add `watershed_group_code`, and sort by group.~~ The publish script adds `watershed_group_code` from fwapg and sorts (review O3), so the segment table needs no rebuild
 - [ ] `scripts/discharge_publish.R`:
   - Reads the shipped fit's `segment/` and `output/`, and takes watershed groups and drainage labels from fwapg.
   - Conforms each part to the crate schema and splits it by source into the Hive tree under `data/publish/discharge/fwa/v1/`, with sized row groups.
   - Writes `manifest.json` and the report `data/checks/discharge_publish_<release>.txt`.
   - Refuses an uncommitted tree, and a segment table older than the fit.
-- [ ] Upload only with `WET_PUBLISH=1`; the default is a dry run that lists the plan. Order: parts, then the manifest, then stale parts removed. Afterwards the manifest is read back and every key is checked for size.
+  - It also refuses when the segment code has changed since the commit the segment report names (review G11).
+  - Asserts (G1, G2, G3):
+    - column names and order equal the crate YAML's, with `source` dropped after checking that it holds one value
+    - classes and NA counts are unchanged by conform
+    - `month` is in 0–12, keys have no NA, `period` matches `YYYY-YYYY`, and `q_m3s` is ≥ 0
+    - rows are unique on (feature, month)
+    - exactly one `pick` per (segment, month) across a scenario's files
+  - Writes one parquet row group per watershed group with arrow's `ParquetFileWriter` (B2).
+  - Drops NA-flow watershed rows, as the segment table does (G12).
+  - Labels each drainage with the GNIS name of the stream whose watershed code is `<code>-000000…`, or else its three largest groups (G15).
+  - `period_routed` and `period_balance` move to the shared libs (G12).
+- [ ] Upload only with `WET_PUBLISH=1`; the default is a dry run that lists the plan, and the first output line says which.
+  - Each part goes up with `aws s3api put-object --content-md5`, then the manifest, then stale keys under the prefix are removed (G7, G8).
+  - Afterwards `wet_catalog_verify()` reads every key anonymously.
 
 ### Phase 6: Run it where the full province run is
-- [ ] Rerun `scripts/segment_output.R`, then `scripts/discharge_publish.R` (no upload). Commit the report.
+- [ ] Check the routed table's fingerprint against the tracked report first (A1). Then run `scripts/discharge_publish.R` (no upload) and commit its report.
 - [ ] Measure pruning: for one watershed group, the row groups read against the total.
 - [ ] `wet_db_load()` into that fwapg. Count fresh's subquery against the segment report's picked totals.
 
@@ -118,7 +138,7 @@ later:
 - [ ] CLAUDE.md:
   - an architecture line for the publish path
   - the Data Sources note on what is published where
-- [ ] `_pkgdown.yml` reference entries.
+- [ ] ~~`_pkgdown.yml` reference entries~~: the site has no reference index, so `check_pkgdown()` has nothing to check (review G16)
 - [ ] `devtools::document()`, `lintr::lint_package()` and `pkgdown::check_pkgdown()`.
 
 ### After the PR (user-gated, not in the mandate)
@@ -127,7 +147,12 @@ later:
 
 ## Validation
 
-- [ ] Tests pass
+- [ ] Tests pass, plus `devtools::check()` with no new NOTE
+- [ ] Acceptance on real data (review, from `segment_output_20260717.txt` and `wb_output_20260717.txt`):
+  - segment total 102,790,688 rows: routed 43,901,481 and balance 58,889,207
+  - `sum(pick)` 58,926,959
+  - fresh's subquery returns 4,532,843 rows (3,152,838 routed, 1,380,005 balance)
+  - the watershed dataset holds 42,190,889 rows less the NA-flow rows
 - [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
