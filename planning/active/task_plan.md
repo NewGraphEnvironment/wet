@@ -54,20 +54,20 @@ later:
   ```
 - **Column schemas:** registered in crate as `("nge", "discharge/fwa/v1/segment_monthly")` and `("nge", "discharge/fwa/v1/watershed_monthly")` (`schema_only`). The publish step runs `crt_schema_conform()`, and the manifest names the schema rather than restating it.
 - **Public access:**
-  - fresh-bc gets `discharge/*` as a public GetObject prefix (an rtj change; the user runs the apply).
+  - fresh-bc gets `discharge/*` as a public GetObject prefix (a change in the bucket's infrastructure repo; the user runs the apply).
   - With no ListBucket, readers go through `manifest.json`.
   - Bucket versioning is off, so overwrites are final. That's acceptable because everything is rebuildable.
 
 ### Phase 1: Record the decisions
-- [ ] Edit #7's body:
+- [x] Edit #7's body (and title: STAC → manifest):
   - drop STAC
   - record the layout, naming rules and overwrite policy
   - name `discharge.fwa_v1_segment_monthly` as fresh's join
-- [ ] `research/discharge_publish.md`:
+- [x] `research/discharge_publish.md`:
   - the layout and the reasons for it (network-keyed, variable-first, sources as a Hive key, `pick` across sources, why no STAC, why fresh-bc)
   - the naming rule (dataset ID → S3, crate, Postgres), and the `scenario` / `forcing` / `source` conventions with hydromosaic's variables, GCMs and SSPs as the worked case
   - a row in `research/README.md`
-- [ ] File the rtj issue:
+- [x] File the issue in the bucket's infrastructure repo:
   - add `discharge` to fresh-bc's `public_read_prefixes`
   - add the `discharge/` row to `docs/fresh-bc-bucket.md`
   - amend its "scope a prefix by source" rule for published variables
@@ -121,7 +121,7 @@ later:
 - [ ] `devtools::document()`, `lintr::lint_package()` and `pkgdown::check_pkgdown()`.
 
 ### After the PR (user-gated, not in the mandate)
-- The rtj apply opens `discharge/*`.
+- The infrastructure apply opens `discharge/*`.
 - Then `WET_PUBLISH=1 Rscript scripts/discharge_publish.R` uploads.
 
 ## Validation

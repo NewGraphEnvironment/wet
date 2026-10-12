@@ -6,3 +6,4 @@
 - Created branch `7-publish-per-segment-discharge-parquet-st` off main
 - Scaffolded PWF baseline from issue #7 with approved phases
 - Next: start Phase 1
+- Phase 1: rewrote #7's body and title; wrote `research/discharge_publish.md` with its index row; filed the bucket-policy issue in the infrastructure repo (private, so not linked here)

@@ -21,7 +21,7 @@ Relates to #1, fresh#114.
 ## Plan-mode decisions (2026-10-12)
 
 - **STAC dropped.** It came from #1's D4, which was proposed and never approved. For one province-wide table its spatial and temporal search buys nothing; a manifest names every key (so no ListBucket is needed) and carries provenance.
-- **Bucket: `s3://fresh-bc/`**, which holds freshwater data for BC. rtj's `docs/fresh-bc-bucket.md` sends published datasets to `stac-*-bc` buckets, but that rule was about STAC catalogues. It also says prefixes are scoped by source, never by kind; `discharge/` is a deliberate exception to amend there (the rtj issue).
+- **Bucket: `s3://fresh-bc/`**, which holds freshwater data for BC. The bucket's documentation sends published datasets to `stac-*-bc` buckets, but that rule was about STAC catalogues. It also says prefixes are scoped by source, never by kind; `discharge/` is a deliberate exception to amend there.
 - **Live policy, read 2026-10-12:** anonymous `s3:GetObject` on `bcfishpass/*`, `bcgw/*` and `fwapg/extras/*` only. No ListBucket. Bucket versioning is off.
 - **Overwrites are fine.** One live copy per schema version; `v1` bumps only on a breaking column change.
 - **Variable-first, network-keyed:** `discharge/fwa/v1/<unit>_<timebase>`. CHN (NRCan's Canadian Hydrospatial Network) would be `discharge/chn/v1/…`.
