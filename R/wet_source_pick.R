@@ -6,26 +6,28 @@
 # flow on a main-flow segment is a reservoir or a misplaced outlet more often
 # than PCIC's runoff (#58; the Nechako Reservoir, fwapg#24).
 #
-# A secondary-flow segment (secondary = TRUE: a side channel) keeps routed
-# however low it is. Routed flow there is the channel's own water, while the
-# balance reaches the segment through fwa_streams_watersheds_lut, which
-# usually gives it the main river's watershed and so the whole river's flow.
+# The balance reaches a segment through fwa_streams_watersheds_lut, so it is
+# that segment's own flow only on its watershed's own line. A segment off it
+# (own_line = FALSE) keeps routed however low that is. Such segments are side
+# channels, tributary connections through a lake, and connections that sit in
+# the receiving river's watershed, and there the balance is the whole river's
+# flow. scripts/pcic_routed_lib.R's routed_own_line_sql is the test.
 #
 # A zero balance never displaces routed. far_low has no default:
 # scripts/pcic_routed_lib.R's routed_far_low is the one definition, shared
 # with the gauge report.
-wet_source_pick <- function(q_routed, q_balance, far_low, secondary = FALSE) {
+wet_source_pick <- function(q_routed, q_balance, far_low, own_line = TRUE) {
   if (missing(far_low) || length(far_low) != 1 || is.na(far_low) || far_low < 0 || far_low >= 1) {
     stop("far_low must be one number in [0, 1)", call. = FALSE)
   }
   if (length(q_routed) != length(q_balance)) stop("q_routed and q_balance must be the same length", call. = FALSE)
-  if (!is.logical(secondary) || anyNA(secondary) || !length(secondary) %in% c(1, length(q_routed))) {
-    stop("secondary must be TRUE or FALSE, once or per segment", call. = FALSE)
+  if (!is.logical(own_line) || anyNA(own_line) || !length(own_line) %in% c(1, length(q_routed))) {
+    stop("own_line must be TRUE or FALSE, once or per segment", call. = FALSE)
   }
   if (any(q_routed < 0, na.rm = TRUE) || any(q_balance < 0, na.rm = TRUE)) {
     stop("negative flow: the routed table and the balance are clamped at zero", call. = FALSE)
   }
-  low <- !is.na(q_routed) & !is.na(q_balance) & q_routed < far_low * q_balance & !secondary
+  low <- !is.na(q_routed) & !is.na(q_balance) & q_routed < far_low * q_balance & own_line
   out <- ifelse(is.na(q_routed), "wet_balance", "pcic_routed")
   out[low] <- "wet_balance"
   out[is.na(q_routed) & is.na(q_balance)] <- NA_character_

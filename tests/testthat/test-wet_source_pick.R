@@ -24,11 +24,11 @@ test_that("lengths, the cut and negative flow are checked", {
   expect_identical(wet:::wet_source_pick(numeric(), numeric(), far_low = 0.2), character())
 })
 
-test_that("a secondary-flow segment keeps routed, however far low", {
-  pick <- wet:::wet_source_pick(c(0, 0, NA), c(10, 10, 10), far_low = 0.2, secondary = c(TRUE, FALSE, TRUE))
+test_that("a segment off its watershed's own line keeps routed, however far low", {
+  pick <- wet:::wet_source_pick(c(0, 0, NA), c(10, 10, 10), far_low = 0.2, own_line = c(FALSE, TRUE, FALSE))
   expect_identical(pick, c("pcic_routed", "wet_balance", "wet_balance"))
-  expect_identical(wet:::wet_source_pick(c(0, 0), c(10, 10), far_low = 0.2, secondary = TRUE),
+  expect_identical(wet:::wet_source_pick(c(0, 0), c(10, 10), far_low = 0.2, own_line = FALSE),
                    c("pcic_routed", "pcic_routed"))
-  expect_error(wet:::wet_source_pick(1:3, 1:3, far_low = 0.2, secondary = c(TRUE, FALSE)), "secondary")
-  expect_error(wet:::wet_source_pick(1, 1, far_low = 0.2, secondary = NA), "secondary")
+  expect_error(wet:::wet_source_pick(1:3, 1:3, far_low = 0.2, own_line = c(TRUE, FALSE)), "own_line")
+  expect_error(wet:::wet_source_pick(1, 1, far_low = 0.2, own_line = NA), "own_line")
 })

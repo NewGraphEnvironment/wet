@@ -23,9 +23,9 @@
 #   is NA: coverage is the share of a watershed's area the balance's inputs
 #   cover.
 # - pick: wet_source_pick() on annual flow at routed_far_low, the same source
-#   for all 13 months. Side channels (routed_secondary_edges) keep routed: the
-#   lut gives most of them the main river's watershed, so the balance there is
-#   the whole river's flow.
+#   for all 13 months. A segment off its watershed's own line
+#   (routed_own_line_sql: side channels, connections through lakes) keeps
+#   routed, because the balance there is another line's flow.
 # - period: routed 1951-2012, the balance 1981-2010 (#57's decision, until
 #   fwapg builds routed flow over 1981-2010).
 #
@@ -96,10 +96,14 @@ if (!(any(rr == routed_line) && any(rr == sprintf("table: %s", routed_fp)))) {
 }
 
 # every FWA segment, with its watershed where the lut has one
-seg <- DBI::dbGetQuery(conn, "
-  SELECT s.linear_feature_id, s.watershed_group_code, s.edge_type, s.stream_order, l.watershed_feature_id
+sql_seg <- "
+  SELECT s.linear_feature_id, s.watershed_group_code, s.edge_type, s.stream_order, l.watershed_feature_id,
+         coalesce(%s, false) AS own_line
   FROM whse_basemapping.fwa_stream_networks_sp s
-  LEFT JOIN whse_basemapping.fwa_streams_watersheds_lut l USING (linear_feature_id)")
+  LEFT JOIN whse_basemapping.fwa_streams_watersheds_lut l USING (linear_feature_id)
+  LEFT JOIN whse_basemapping.fwa_watersheds_poly w ON w.watershed_feature_id = l.watershed_feature_id"
+seg <- DBI::dbGetQuery(conn, sprintf(sql_seg, routed_own_line_sql))
+stopifnot(is.logical(seg$own_line), !anyNA(seg$own_line))
 stopifnot(!anyDuplicated(seg$linear_feature_id), max(seg$linear_feature_id) < .Machine$integer.max)
 seg$linear_feature_id <- as.integer(seg$linear_feature_id)
 seg$watershed_feature_id <- as.integer(seg$watershed_feature_id)
@@ -122,7 +126,7 @@ for (code in codes) {
   i_seg <- which(seg$watershed_feature_id %in% ws)
   if (any(!is.na(seg$basin[i_seg]))) stop("segments of basin ", code, " already belong to another basin")
   seg$basin[i_seg] <- code
-  s <- seg[i_seg, c("linear_feature_id", "watershed_feature_id", "edge_type")]
+  s <- seg[i_seg, c("linear_feature_id", "watershed_feature_id", "own_line")]
 
   # the balance: the watershed's value on each of its segments. wb_output.R
   # writes the watersheds in one order, month by month
@@ -145,8 +149,7 @@ for (code in codes) {
   # some basins (the Yukon and Liard headwaters) have no routed segment at all
   rt0 <- if (nrow(rt)) stats::aggregate(q_m3s ~ linear_feature_id, rt, mean) else rt[c("linear_feature_id", "q_m3s")]
   s$q_routed <- rt0$q_m3s[match(s$linear_feature_id, rt0$linear_feature_id)]
-  s$source <- wet_source_pick(s$q_routed, s$q_balance, routed_far_low,
-                              secondary = s$edge_type %in% routed_secondary_edges)
+  s$source <- wet_source_pick(s$q_routed, s$q_balance, routed_far_low, own_line = s$own_line)
 
   # balance rows: 13 per segment whose watershed has a value
   kb <- which(!is.na(s$q_balance))
@@ -251,7 +254,7 @@ writeLines(c(
   routed_line, sprintf("table: %s", routed_fp),
   sprintf("pick: routed PCIC unless its annual flow is under %.2f x the balance's, then the balance (wet_source_pick);",
           routed_far_low),
-  sprintf("side channels (edge types %s) keep routed", paste(routed_secondary_edges, collapse = ", ")),
+  "a segment off its watershed's own line keeps routed (routed_own_line_sql: side channels, connections)",
   sprintf("periods: routed %s, balance %s", period_routed, period_balance), "",
   "## Segments",
   sprintf("FWA segments: %d; with a watershed in the lut: %d; without (no value from either source): %d",
@@ -272,6 +275,15 @@ writeLines(c(
   "", "## Nechako Reservoir groups (routed about zero on #58's reservoir-lake gauges)",
   hdr_grp, fmt_grp(grp[grp$group %in% nechako, ]),
   sprintf("their share of all flipped segments: %s", pct(sum(grp$flipped[grp$group %in% nechako]), sum(grp$flipped))),
+  "", "## Every segment with both sources, by whether it lies on its watershed's own line",
+  "Only on its own line is the balance the segment's own flow, so only there can it flip.",
+  sprintf("%-10s %9s %9s %7s", "own_line", "both", "flipped", "flip %"),
+  {
+    k <- seg$both
+    a <- table(seg$own_line[k])
+    f <- table(factor(seg$own_line[k & seg$flipped], levels = names(a)))
+    sprintf("%-10s %9d %9d %7.1f", names(a), as.integer(a), as.integer(f), 100 * as.integer(f) / as.integer(a))
+  },
   "", "## Outside the Nechako groups, segments with both sources and how many flip, by edge type",
   sprintf("%-10s %9s %9s %7s", "edge_type", "both", "flipped", "flip %"), by_class(seg$edge_type),
   "", "## The same, by stream order",

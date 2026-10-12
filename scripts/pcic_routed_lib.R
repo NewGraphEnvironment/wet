@@ -77,10 +77,14 @@ shipped_heldout <- function() {
 # default source (wet_source_pick(), #57)
 routed_far_low <- 0.2
 
-# FWA secondary-flow edge types (fwa_edge_type_codes: single line, construction
-# line and canal, secondary flow): side channels, which keep routed flow in
-# the default pick (wet_source_pick(), #57)
-routed_secondary_edges <- c(1100L, 1150L, 1300L, 1350L, 2300L)
+# Whether a segment (alias s, fwa_stream_networks_sp) lies on its lut
+# watershed's own line (alias w, fwa_watersheds_poly): its blue line is its
+# watershed code's main line, and that code is the watershed's. Only there is
+# the balance the segment's own flow, so only there can the default pick fall
+# to it (wet_source_pick(own_line =), #57). Off it are side channels (blue line
+# not the main line), tributary connections through a lake that sit in the
+# receiving river's watershed (another code), and other connections.
+routed_own_line_sql <- "(s.blue_line_key = s.watershed_key AND s.wscode_ltree = w.wscode_ltree)"
 
 # the major basins, by Water Survey sub-drainage
 routed_basin <- function(st) {

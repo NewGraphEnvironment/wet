@@ -49,8 +49,11 @@ conn <- DBI::dbConnect(RPostgres::Postgres(),
 fp <- routed_fingerprint(conn)
 ra <- routed_annual(conn, g$linear_feature_id)
 edge <- DBI::dbGetQuery(conn, sprintf("
-  SELECT linear_feature_id::int AS linear_feature_id, edge_type FROM whse_basemapping.fwa_stream_networks_sp
-  WHERE linear_feature_id IN (%s)", paste(g$linear_feature_id, collapse = ", ")))
+  SELECT s.linear_feature_id::int AS linear_feature_id, s.edge_type, coalesce(%s, false) AS own_line
+  FROM whse_basemapping.fwa_stream_networks_sp s
+  LEFT JOIN whse_basemapping.fwa_streams_watersheds_lut l USING (linear_feature_id)
+  LEFT JOIN whse_basemapping.fwa_watersheds_poly w ON w.watershed_feature_id = l.watershed_feature_id
+  WHERE s.linear_feature_id IN (%s)", routed_own_line_sql, paste(g$linear_feature_id, collapse = ", ")))
 # fwapg's older annual table (extras/discharge: gridded VIC-GL runoff and
 # baseflow accumulated on the FWA, no routing), which wet's vignette scored
 # before #58: one mean annual runoff per watershed, so read at the gauge's
@@ -67,11 +70,13 @@ g$routed_mm <- routed_mm(g$routed_m3s, g$upstream_area_m2)
 g$routed_err <- 100 * (g$routed_mm / g$obs - 1)
 g$basin <- routed_basin(g$station_number)
 g$edge_type <- edge$edge_type[match(g$linear_feature_id, edge$linear_feature_id)]
+g$own_line <- edge$own_line[match(g$linear_feature_id, edge$linear_feature_id)]
+stopifnot(!anyNA(g$own_line))
 # The default pick (#57, scripts/segment_output.R) at each gauge, made against
 # the held-out balance so it uses no observed flow; mm over one area compare
-# as the flows do. Its error is the picked source's. A gauge snapped to a side
-# channel keeps routed, as the segment does.
-g$pick <- wet_source_pick(g$routed_mm, g$mod, routed_far_low, secondary = g$edge_type %in% routed_secondary_edges)
+# as the flows do. Its error is the picked source's. A gauge snapped off its
+# watershed's own line (a side channel) keeps routed, as the segment does.
+g$pick <- wet_source_pick(g$routed_mm, g$mod, routed_far_low, own_line = g$own_line)
 stopifnot(!anyNA(g$pick))
 g$pick_err <- ifelse(g$pick == "pcic_routed", g$routed_err, g$err_pct)
 cov <- g[!is.na(g$routed_mm), ]
@@ -119,8 +124,9 @@ lines <- c(
   vapply(basins, function(b) score_line(b, cov$basin == b), ""),
   "",
   "## The default pick (#57): routed unless it carries under the cut of the balance, then the balance",
-  sprintf("cut %.2f, against the held-out balance; side channels keep routed; error as %% of observed",
+  sprintf("cut %.2f, against the held-out balance; segments off their own line keep routed; error as %%",
           routed_far_low),
+  "of observed",
   sprintf("%-28s %4s %6s %6s %5s %7s", "", "n", "mean", "median", sprintf("+-%d", err_cut), "bias"),
   {
     line <- function(lab, e) {
