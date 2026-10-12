@@ -109,7 +109,7 @@ later:
 
 ### Phase 5: Build the release tree
 - [ ] ~~`scripts/segment_output.R`: add `watershed_group_code`, and sort by group.~~ The publish script adds `watershed_group_code` from fwapg and sorts (review O3), so the segment table needs no rebuild
-- [ ] `scripts/discharge_publish.R`:
+- [x] `scripts/discharge_publish.R` (core in `scripts/discharge_publish_lib.R`, smoke-tested on synthetic frames and m1's partial output):
   - Reads the shipped fit's `segment/` and `output/`, and takes watershed groups and drainage labels from fwapg.
   - Conforms each part to the crate schema and splits it by source into the Hive tree under `data/publish/discharge/fwa/v1/`, with sized row groups.
   - Writes `manifest.json` and the report `data/checks/discharge_publish_<release>.txt`.
@@ -124,8 +124,8 @@ later:
   - Writes one parquet row group per watershed group with arrow's `ParquetFileWriter` (B2).
   - Drops NA-flow watershed rows, as the segment table does (G12).
   - Labels each drainage with the GNIS name of the stream whose watershed code is `<code>-000000…`, or else its three largest groups (G15).
-  - `period_routed` and `period_balance` move to the shared libs (G12).
-- [ ] Upload only with `WET_PUBLISH=1`; the default is a dry run that lists the plan, and the first output line says which.
+  - ~~`period_routed` and `period_balance` move to the shared libs (G12)~~: the periods are read from the segment table itself, so the segment code stays unchanged since its report's commit (the freshness guard compares it)
+- [x] Upload only with `WET_PUBLISH=1`; the default is a dry run that lists the plan, and the first output line says which.
   - Each part goes up with `aws s3api put-object --content-md5`, then the manifest, then stale keys under the prefix are removed (G7, G8).
   - Afterwards `wet_catalog_verify()` reads every key anonymously.
 

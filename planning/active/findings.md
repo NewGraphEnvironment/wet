@@ -59,7 +59,15 @@ The first field of `fwa_watershed_code`:
 
 These are the `part-<code>` chunks.
 
+## Publish build notes (2026-10-12)
+
+- arrow's `write_parquet()` writes one row group under 2.5e8 cells, so nothing would prune; `ParquetFileWriter` with one `WriteTable()` per watershed group gives one row group per group (review B2). Smoke test: 4 groups in, 4 row groups out, and a read for one group opens 1.
+- `count(*)` arrives from RPostgres as integer64, and `order(-n)` does not sort it: drainage labels came out alphabetical ("Annacis Channel" for 100) until cast to `::int`.
+- The segment code is unchanged between 653fc13 (which built the province run's segment table, on the full-run machine) and this branch, so the table publishes without a rebuild.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
+| duckdb `read_parquet()` added `scenario`/`forcing`/`source` from a Hive-shaped local path, so the load named them twice | `hive_partitioning = false`; the keys come from the catalog |
+| `modifyList()` merged a shorter `sources` list into the default in a test | replace arguments, do not merge |
