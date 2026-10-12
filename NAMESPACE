@@ -2,6 +2,7 @@
 
 export(wet_aet_budyko)
 export(wet_aet_landcover)
+export(wet_catalog)
 export(wet_cgiar_aet)
 export(wet_chapman_table3)
 export(wet_climr_normals)

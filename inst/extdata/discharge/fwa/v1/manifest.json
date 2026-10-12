@@ -1,0 +1,77 @@
+{
+  "manifest_version": 1,
+  "id": "discharge/fwa/v1",
+  "built": "2026-10-12T00:00:00Z",
+  "provenance": {
+    "wet_version": "fixture",
+    "wet_commit": "fixture"
+  },
+  "sources": [
+    {
+      "source": "pcic_routed",
+      "description": "Made-up routed values for the package fixture.",
+      "citation": "Fixture; not data."
+    },
+    {
+      "source": "wet_balance",
+      "description": "Made-up balance values for the package fixture.",
+      "citation": "Fixture; not data."
+    }
+  ],
+  "datasets": [
+    {
+      "dataset": "discharge/fwa/v1/segment_monthly",
+      "schema": {
+        "package": "crate",
+        "source": "nge",
+        "file_name": "discharge/fwa/v1/segment_monthly"
+      }
+    },
+    {
+      "dataset": "discharge/fwa/v1/watershed_monthly",
+      "schema": {
+        "package": "crate",
+        "source": "nge",
+        "file_name": "discharge/fwa/v1/watershed_monthly"
+      }
+    }
+  ],
+  "parts": [
+    {
+      "key": "segment_monthly/scenario=historical/forcing=climr/source=wet_balance/part-100.parquet",
+      "dataset": "discharge/fwa/v1/segment_monthly",
+      "scenario": "historical",
+      "forcing": "climr",
+      "source": "wet_balance",
+      "code": "100",
+      "drainage": "Fraser River",
+      "rows": 26,
+      "bytes": 1711,
+      "md5": "5ab7727f86d7dbe83c0c138e0cd4c5e5"
+    },
+    {
+      "key": "segment_monthly/scenario=historical/forcing=PNWNAmet/source=pcic_routed/part-100.parquet",
+      "dataset": "discharge/fwa/v1/segment_monthly",
+      "scenario": "historical",
+      "forcing": "PNWNAmet",
+      "source": "pcic_routed",
+      "code": "100",
+      "drainage": "Fraser River",
+      "rows": 26,
+      "bytes": 1595,
+      "md5": "e6e772f2f29f400d8e2dd27c13a95232"
+    },
+    {
+      "key": "watershed_monthly/scenario=historical/forcing=climr/source=wet_balance/part-100.parquet",
+      "dataset": "discharge/fwa/v1/watershed_monthly",
+      "scenario": "historical",
+      "forcing": "climr",
+      "source": "wet_balance",
+      "code": "100",
+      "drainage": "Fraser River",
+      "rows": 13,
+      "bytes": 1694,
+      "md5": "345d780a2c04a1b10274b0250a9ca229"
+    }
+  ]
+}

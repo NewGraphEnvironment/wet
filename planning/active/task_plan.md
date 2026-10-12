@@ -73,17 +73,18 @@ later:
   - amend its "scope a prefix by source" rule for published variables
 
 ### Phase 2: crate schemas (crate PR, merged before Phase 5 uses them)
-- [ ] `inst/extdata/schemas/nge/discharge/fwa/v1/segment_monthly.yaml` and `…/watershed_monthly.yaml`, keyed by the dataset ID: types, required flags, units, notes. Hive keys are documented but not columns.
-- [ ] A registry-integrity test that `schema_yaml` equals `schemas/<source>/<file_name>.yaml` for path-style names.
-- [ ] Registry rows, tests, and crate's own release flow.
+- [x] `inst/extdata/schemas/nge/discharge/fwa/v1/segment_monthly.yaml` and `…/watershed_monthly.yaml`, keyed by the dataset ID: types, required flags, units, notes. Hive keys are documented but not columns.
+- [x] A registry-integrity test that `schema_yaml` equals `schemas/<source>/<file_name>.yaml` for path-style names.
+- [x] Registry rows and tests (crate#31, branch `31-discharge-schemas`); a decision entry `decisions/nge/20261012_dataset_id_keys.md`
+- [ ] crate PR open; its merge and release are the user's call, and gate Phase 5's real run
 
 ### Phase 3: `wet_catalog()` (tests first)
-- [ ] `R/wet_catalog.R`: reads `manifest.json` from a path or URL. The default is `getOption("wet.catalog_url", "https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json")`.
+- [x] `R/wet_catalog.R`: reads `manifest.json` from a path or URL. The default is `getOption("wet.catalog_url", "https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json")`.
   - Returns one row per part: `dataset` (the full ID), `scenario, forcing, source, code, drainage, href, rows, bytes, md5`.
   - Build provenance comes back as attributes: wet commit, fit release, routed fingerprint, fwapg commit, build time.
-- [ ] An internal manifest writer in the same file, so the shape written is the shape read.
-- [ ] A small fixture tree plus manifest in `inst/extdata/discharge/fwa/v1/`, used by the runnable example and the tests.
-- [ ] `tests/testthat/test-wet_catalog.R`:
+- [x] An internal manifest writer in the same file, so the shape written is the shape read.
+- [x] A small fixture tree plus manifest in `inst/extdata/discharge/fwa/v1/`, used by the runnable example and the tests.
+- [x] `tests/testthat/test-wet_catalog.R`:
   - a write → read round trip
   - relative hrefs resolve against the manifest's location
   - a malformed manifest is refused
