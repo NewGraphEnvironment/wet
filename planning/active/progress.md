@@ -39,3 +39,15 @@
     3. the gauge pick's `own_line`: the same lut and the same SQL, verified for all 352 stations by round 3;
     4. basin assignment: top-level only.
   - Residual, accepted and documented: on its own line, a segment upstream within its watershed (localcode differs; 53,833 segments) gets the downstream-end value. Round 3 measured that 46 Fraser flips might owe to it.
+- `/code-check branch` round 4 (`review-round4.md`), scoped to round 3's fixes. It confirmed the enumeration: its grep of the diff for every lut-watershed use found the four listed and one report line. Two findings, both fixed:
+  - "connectors" overreached, since 91 % of 1410 are on their own line and can flip; the guidance now names side channels only;
+  - the report's runoff_mm-NA line now counts the 72,242 off-line rows.
+  Rerun on m4 at 653fc13: the report diff is exactly those lines. The vignette re-rendered. Loop ended by enumeration.
+- Tests: 36 files, 880 passed, 0 failed, 1 skipped.
+
+| Round | Findings | Fixed | Accepted | Inside previous fix? |
+|-------|----------|-------|----------|----------------------|
+| 1 | 3 (side channels flipped to main-river flow; 1100 mislabelled; outlet counts) | 3 | 0 | — |
+| 2 | 3 (edge-type list missed connectors in other watersheds; 2 prose) | 3 | 0 | yes |
+| 3 | 3 (routed runoff over another line's area; lake-connection prose; rate denominators) | 3 | 0 | yes (prose) |
+| 4 | 2 (connector wording; NA count line) | 2 | 0 | yes (wording) |

@@ -1,10 +1,11 @@
 # Per-segment flow from either source (#57)
 
-wet commit 1b6167e; fit 20260717, province run 962a9cc2c4, scoring code 94d05b195898abea5bd87cc0bd65018d
+wet commit 653fc13; fit 20260717, province run 962a9cc2c4, scoring code 94d05b195898abea5bd87cc0bd65018d
 routed: whse_basemapping.fwa_stream_networks_discharge_monthly, built by NewGraphEnvironment/fwapg at 341b078
 table: 40524444 rows, 3377037 segments, 0 null flows, total 178035348.248310 m3/s
 pick: routed PCIC unless its annual flow is under 0.20 x the balance's, then the balance (wet_source_pick);
-a segment off its watershed's own line keeps routed (routed_own_line_sql: side channels, connectors)
+a segment off its watershed's own line keeps routed (routed_own_line_sql: side channels, and connectors in
+another stream's watershed or off the main line)
 periods: routed 1951-2012, balance 1981-2010
 
 ## Segments
@@ -12,7 +13,7 @@ FWA segments: 4907441; with a watershed in the lut: 4538224; without (no value f
 with a watershed but in no basin's output: 0; routed segments left out that way: 0
 both sources: 3374133; routed only: 2904; balance only: 1155806; neither: 374598
 picked routed: 3152838 (69.6 % of segments with a value); picked balance: 1380005, 224199 of them under the cut
-routed segments with no accumulated area (runoff_mm NA): 0
+routed segments with runoff_mm NA: 72242 off their own line (another line's area), 0 with no accumulated area
 
 ## By basin
 code  segments      both   rt_only  bal_only  neither   pick_rt  pick_bal   flipped
