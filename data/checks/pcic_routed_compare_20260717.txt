@@ -1,6 +1,6 @@
 # PCIC routed flow against the open water balance at the calibration gauges (#58)
 
-wet commit eec2a75; fit 20260717 (HYDAT 2026-07-17 08:08:08.000), province run 962a9cc2c4, scoring code 94d05b195898abea5bd87cc0bd65018d; balance adjusted, held out (blocked CV)
+wet commit fefe367; fit 20260717 (HYDAT 2026-07-17 08:08:08.000), province run 962a9cc2c4, scoring code 94d05b195898abea5bd87cc0bd65018d; balance adjusted, held out (blocked CV)
 routed: whse_basemapping.fwa_stream_networks_discharge_monthly, built by NewGraphEnvironment/fwapg at 341b078
 table: 40524444 rows, 3377037 segments, 0 null flows, total 178035348.248310 m3/s
 routed per gauge: the mean of the 12 monthly means (1951-2012, unweighted by month length) on the segment
@@ -23,7 +23,8 @@ Columbia                 78    23.7  32.7    13.1  15.1     68   54     +7.8  +1
 Coast                    94    18.9  25.1    10.8  15.9     66   59     -3.0   +6.4     60
 
 ## The default pick (#57): routed unless it carries under the cut of the balance, then the balance
-cut 0.20, against the held-out balance; side channels keep routed; error as % of observed
+cut 0.20, against the held-out balance; segments off their own line keep routed; error as %
+of observed
                                 n   mean median  +-20    bias
 pick, the 290 with routed     290   22.9   12.9    62    +2.9
 routed, the 290               290   24.1   13.0    62    +0.2
