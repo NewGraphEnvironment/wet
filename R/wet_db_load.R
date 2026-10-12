@@ -14,8 +14,9 @@
 #' The table holds the files' columns plus `scenario`, `forcing` and
 #' `source`. Where the dataset has `pick`, the load is refused unless each
 #' feature and month has at most one picked row in the scenario. On the first load it is created with a primary key on
-#' `(scenario, forcing, source, <id>, month, period)` and an index on the
-#' feature ID. fresh then joins the default annual flow per segment with
+#' `(scenario, forcing, source, <id>, month, period)`, an index on the
+#' feature ID and, where the dataset has `pick`, a partial index on
+#' `(scenario, <id>)` for the annual default, which fresh's join reads. fresh then joins the default annual flow per segment with
 #' `frs_col_join(from = "(select linear_feature_id, q_m3s as mad_m3s from
 #' discharge.fwa_v1_segment_monthly where scenario = 'historical' and
 #' month = 0 and pick)")`.
@@ -120,7 +121,14 @@ wet_db_load <- function(conn, catalog, dataset = "discharge/fwa/v1/segment_month
       DBI::dbExecute(conn, sprintf("ALTER TABLE %s ADD PRIMARY KEY (%s)", qid,
                                    paste(DBI::dbQuoteIdentifier(conn, key_cols), collapse = ", ")))
       DBI::dbExecute(conn, sprintf("CREATE INDEX ON %s (%s)", qid, DBI::dbQuoteIdentifier(conn, id_col)))
+      # fresh's join reads the annual default per feature: without this it
+      # scans every row (measured 197 s against 6.7 s on the province table)
+      if ("pick" %in% names(cols)) {
+        DBI::dbExecute(conn, sprintf("CREATE INDEX ON %s (scenario, %s) WHERE month = 0 AND pick", qid,
+                                     DBI::dbQuoteIdentifier(conn, id_col)))
+      }
     }
+    DBI::dbExecute(conn, paste("ANALYZE", qid))
     DBI::dbExecute(conn, sprintf(
       "COMMENT ON TABLE %s IS %s", qid,
       DBI::dbQuoteLiteral(conn, sprintf(

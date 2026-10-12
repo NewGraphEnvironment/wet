@@ -132,14 +132,14 @@ later:
 ### Phase 6: Run it where the full province run is
 - [x] Check the routed table's fingerprint against the tracked report first (A1). Then run `scripts/discharge_publish.R` (no upload) and commit its report.
 - [x] Measure pruning: for one watershed group, the row groups read against the total. BULK opens 2 of 507 row groups in 43 segment parts.
-- [ ] `wet_db_load()` into that fwapg. Count fresh's subquery against the segment report's picked totals.
+- [x] `wet_db_load()` into that fwapg. Count fresh's subquery against the segment report's picked totals.
 
 ### Phase 7: Docs
-- [ ] CLAUDE.md:
+- [x] CLAUDE.md:
   - an architecture line for the publish path
   - the Data Sources note on what is published where
 - [ ] ~~`_pkgdown.yml` reference entries~~: the site has no reference index, so `check_pkgdown()` has nothing to check (review G16)
-- [ ] `devtools::document()`, `lintr::lint_package()` and `pkgdown::check_pkgdown()`.
+- [x] `devtools::document()`, `lintr::lint_package()` and `pkgdown::check_pkgdown()`.
 
 ### After the PR (user-gated, not in the mandate)
 - The infrastructure apply opens `discharge/*`.
@@ -147,8 +147,8 @@ later:
 
 ## Validation
 
-- [ ] Tests pass, plus `devtools::check()` with no new NOTE
-- [ ] Acceptance on real data (review, from `segment_output_20260717.txt` and `wb_output_20260717.txt`):
+- [x] Tests pass, plus `devtools::check()` with no new NOTE
+- [x] Acceptance on real data (review, from `segment_output_20260717.txt` and `wb_output_20260717.txt`):
   - segment total 102,790,688 rows: routed 43,901,481 and balance 58,889,207
   - `sum(pick)` 58,926,959
   - fresh's subquery returns 4,532,843 rows (3,152,838 routed, 1,380,005 balance)

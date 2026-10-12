@@ -35,3 +35,5 @@
     - PUBLISH also requires that the segment report is the one the tree was built from, and that the build report committed at HEAD names the build and has no FAIL line.
     - BUILD requires the watershed basins to equal `upstream/`'s, with 13 × the balance report's watersheds per basin (42,190,889 rows in all).
   - Terminal enumeration: one site creates `manifest.json`, the rename at line 351. Every check precedes it and nothing after it refuses; `wet_manifest_write()` writes only the pending name in BUILD.
+- Phase 6 load: both datasets loaded on the full-run machine; counts match. fresh's subquery took 197 s unindexed; the partial index added to `wet_db_load()` brings it to 6.7 s (0.7 s for one group).
+- Validation: full test suite 0 of 246 failed (1 live HYDAT skip); `devtools::check()` 0 errors, 0 warnings, and 2 NOTEs, both about `CITATION.cff`, which is already on main. The fixture's long-path NOTE is gone.

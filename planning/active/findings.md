@@ -65,6 +65,18 @@ These are the `part-<code>` chunks.
 - `count(*)` arrives from RPostgres as integer64, and `order(-n)` does not sort it: drainage labels came out alphabetical ("Annacis Channel" for 100) until cast to `::int`.
 - The segment code is unchanged between 653fc13 (which built the province run's segment table, on the full-run machine) and this branch, so the table publishes without a rebuild.
 
+## Postgres load on the full-run machine (2026-10-12, 14:41–15:17 UTC)
+
+`wet_db_load()` of the 7e738e1 build into the local fwapg:
+- **`segment_monthly`:** 102,790,688 rows in 23.7 min.
+- **`watershed_monthly`:** 41,904,356 rows in 11.3 min. That is 42,190,889 less 22,041 NA-flow watersheds × 13.
+- **Sizes:** segment table 19 GB (11 GB heap); watershed 8.5 GB.
+- **fresh's subquery:** 3,152,838 routed + 1,380,005 balance = 4,532,843 rows, one per segment.
+  - Without an index it took 197 s, a full scan.
+  - A partial index `(scenario, linear_feature_id) WHERE month = 0 AND pick` took 0.5 min to build. After it the subquery takes 6.7 s, and a one-group join like fresh's (BULK, 30,037 rows) 0.7 s.
+  - `wet_db_load()` now creates that index.
+- A separate long query (`fwapg.pcic_voters`) ran on the same database during the load, so the times are an upper bound.
+
 ## Errors Encountered
 
 | Error | Resolution |

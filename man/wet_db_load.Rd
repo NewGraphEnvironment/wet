@@ -50,8 +50,9 @@ table comment records it.
 The table holds the files' columns plus \code{scenario}, \code{forcing} and
 \code{source}. Where the dataset has \code{pick}, the load is refused unless each
 feature and month has at most one picked row in the scenario. On the first load it is created with a primary key on
-\verb{(scenario, forcing, source, <id>, month, period)} and an index on the
-feature ID. fresh then joins the default annual flow per segment with
+\verb{(scenario, forcing, source, <id>, month, period)}, an index on the
+feature ID and, where the dataset has \code{pick}, a partial index on
+\verb{(scenario, <id>)} for the annual default, which fresh's join reads. fresh then joins the default annual flow per segment with
 \code{frs_col_join(from = "(select linear_feature_id, q_m3s as mad_m3s from discharge.fwa_v1_segment_monthly where scenario = 'historical' and month = 0 and pick)")}.
 }
 \examples{

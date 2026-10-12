@@ -77,6 +77,8 @@ from discharge.fwa_v1_segment_monthly
 where scenario = 'historical' and month = 0 and pick
 ```
 
+Measured on the province table (102,790,688 rows, 19 GB with indexes): the load takes about 24 min. fresh's subquery takes 6.7 s for the whole province, and 0.7 s joined to one watershed group, through a partial index `(scenario, linear_feature_id) WHERE month = 0 AND pick` that `wet_db_load()` creates; without it the subquery takes 197 s.
+
 ## Evidence
 
 - **hydromosaic API** (`https://beehive.pacificclimate.org/hydromosaic/`, 2026-10-12):

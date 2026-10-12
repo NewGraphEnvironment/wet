@@ -33,6 +33,8 @@ test_that("a scenario loads, with the Hive keys as columns, and fresh's subquery
     WHERE i.indrelid = '%s'::regclass AND i.indisprimary"
   key <- DBI::dbGetQuery(conn, sprintf(sql_key, tbl))$attname
   expect_setequal(key, c("scenario", "forcing", "source", "linear_feature_id", "month", "period"))
+  idx <- DBI::dbGetQuery(conn, sprintf("SELECT indexdef FROM pg_indexes WHERE schemaname = '%s'", sub("/.*", "", ds)))$indexdef
+  expect_true(any(grepl("(scenario, linear_feature_id) WHERE ((month = 0) AND pick)", idx, fixed = TRUE)))
   expect_match(DBI::dbGetQuery(conn, sprintf("SELECT obj_description('%s'::regclass) AS d", tbl))$d,
                "scenario historical last loaded from")
 })
