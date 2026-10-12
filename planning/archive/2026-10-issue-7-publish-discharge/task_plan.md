@@ -76,7 +76,7 @@ later:
 - [x] `inst/extdata/schemas/nge/discharge/fwa/v1/segment_monthly.yaml` and `…/watershed_monthly.yaml`, keyed by the dataset ID: types, required flags, units, notes. Hive keys are documented but not columns.
 - [x] A registry-integrity test that `schema_yaml` equals `schemas/<source>/<file_name>.yaml` for path-style names.
 - [x] Registry rows and tests (crate#31, branch `31-discharge-schemas`); a decision entry `decisions/nge/20261012_dataset_id_keys.md`
-- [ ] crate PR open; its merge and release are the user's call, and gate Phase 5's real run
+- [x] crate PR open (NewGraphEnvironment/crate#32); its merge and release are the user's call, and gate the rebuild before upload
 
 ### Phase 3: `wet_catalog()` (tests first)
 - [x] `R/wet_catalog.R`: reads `manifest.json` from a path or URL. The default is `getOption("wet.catalog_url", "https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json")`.
@@ -154,5 +154,5 @@ later:
   - fresh's subquery returns 4,532,843 rows (3,152,838 routed, 1,380,005 balance)
   - the watershed dataset holds 42,190,889 rows less the NA-flow rows
 - [x] `/code-check` clean (once over the branch and crate#32: 4 rounds, ending on an enumeration; `review-round1..4.md`)
-- [ ] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] PWF checkboxes match landed work
+- [x] `/planning-archive` on completion
