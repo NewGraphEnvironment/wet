@@ -82,8 +82,8 @@ routed_far_low <- 0.2
 # watershed code's main line, and that code is the watershed's. Only there is
 # the balance the segment's own flow, so only there can the default pick fall
 # to it (wet_source_pick(own_line =), #57). Off it are side channels (blue line
-# not the main line), tributary connections through a lake that sit in the
-# receiving river's watershed (another code), and other connections.
+# not the main line), network connectors that sit in another stream's
+# watershed (another code), and waterbody connections off the main line.
 routed_own_line_sql <- "(s.blue_line_key = s.watershed_key AND s.wscode_ltree = w.wscode_ltree)"
 
 # the major basins, by Water Survey sub-drainage

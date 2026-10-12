@@ -19,13 +19,16 @@
 # - Routed annual flow is the mean of the 12 monthly means (routed_annual()'s
 #   definition, #58), and needs all twelve. Its runoff_mm is over wet's
 #   accumulated area of the segment's watershed, on 365.25 days a year and
-#   wet_month_days() a month, the days the balance converts with. Its coverage
-#   is NA: coverage is the share of a watershed's area the balance's inputs
+#   wet_month_days() a month, the days the balance converts with; NA off the
+#   watershed's own line, where that area is another line's. Its coverage is
+#   NA: coverage is the share of a watershed's area the balance's inputs
 #   cover.
+# - Off a watershed's own line, the balance rows carry the watershed's value,
+#   which is another line's flow: they are never the pick there.
 # - pick: wet_source_pick() on annual flow at routed_far_low, the same source
 #   for all 13 months. A segment off its watershed's own line
-#   (routed_own_line_sql: side channels, connections through lakes) keeps
-#   routed, because the balance there is another line's flow.
+#   (routed_own_line_sql: side channels, connectors and waterbody connections)
+#   keeps routed, because the balance there is another line's flow.
 # - period: routed 1951-2012, the balance 1981-2010 (#57's decision, until
 #   fwapg builds routed flow over 1981-2010).
 #
@@ -171,7 +174,7 @@ for (code in codes) {
     j <- match(rq$linear_feature_id, sr$linear_feature_id)
     rows_r <- data.frame(
       linear_feature_id = rq$linear_feature_id, month = as.integer(rq$month),
-      runoff_mm = rq$q_m3s * days[rq$month + 1] * 86400 / sr$area_m2[j] * 1000,
+      runoff_mm = rq$q_m3s * days[rq$month + 1] * 86400 / sr$area_m2[j] * 1000 * ifelse(sr$own_line[j], 1, NA),
       q_m3s = rq$q_m3s, coverage = NA_real_,
       source = "pcic_routed", period = period_routed,
       pick = sr$source[j] == "pcic_routed"
@@ -231,7 +234,7 @@ nechako <- c("LEUT", "UEUT", "UNRS", "LNRS")
 hi <- grp[!is.na(grp$flip_pct) & grp$flip_pct > 50, ]
 # where the flips are outside the Nechako groups: by edge type and stream order
 by_class <- function(v) {
-  k <- seg$both & !seg$watershed_group_code %in% nechako
+  k <- seg$both & seg$own_line & !seg$watershed_group_code %in% nechako
   x <- data.frame(class = v[k], flipped = seg$flipped[k])
   a <- stats::aggregate(flipped ~ class, x, function(f) c(n = length(f), flipped = sum(f)))
   sprintf("%-10s %9d %9d %7.1f", a$class, a$flipped[, 1], a$flipped[, 2], 100 * a$flipped[, 2] / a$flipped[, 1])
@@ -254,7 +257,7 @@ writeLines(c(
   routed_line, sprintf("table: %s", routed_fp),
   sprintf("pick: routed PCIC unless its annual flow is under %.2f x the balance's, then the balance (wet_source_pick);",
           routed_far_low),
-  "a segment off its watershed's own line keeps routed (routed_own_line_sql: side channels, connections)",
+  "a segment off its watershed's own line keeps routed (routed_own_line_sql: side channels, connectors)",
   sprintf("periods: routed %s, balance %s", period_routed, period_balance), "",
   "## Segments",
   sprintf("FWA segments: %d; with a watershed in the lut: %d; without (no value from either source): %d",
@@ -284,7 +287,7 @@ writeLines(c(
     f <- table(factor(seg$own_line[k & seg$flipped], levels = names(a)))
     sprintf("%-10s %9d %9d %7.1f", names(a), as.integer(a), as.integer(f), 100 * as.integer(f) / as.integer(a))
   },
-  "", "## Outside the Nechako groups, segments with both sources and how many flip, by edge type",
+  "", "## Outside the Nechako groups, on their own line, segments with both sources and how many flip, by edge type",
   sprintf("%-10s %9s %9s %7s", "edge_type", "both", "flipped", "flip %"), by_class(seg$edge_type),
   "", "## The same, by stream order",
   sprintf("%-10s %9s %9s %7s", "order", "both", "flipped", "flip %"), by_class(seg$stream_order),

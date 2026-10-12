@@ -9,9 +9,9 @@
 # The balance reaches a segment through fwa_streams_watersheds_lut, so it is
 # that segment's own flow only on its watershed's own line. A segment off it
 # (own_line = FALSE) keeps routed however low that is. Such segments are side
-# channels, tributary connections through a lake, and connections that sit in
-# the receiving river's watershed, and there the balance is the whole river's
-# flow. scripts/pcic_routed_lib.R's routed_own_line_sql is the test.
+# channels, network connectors that sit in another stream's watershed, and
+# waterbody connections off the main line, and there the balance is another
+# line's flow. scripts/pcic_routed_lib.R's routed_own_line_sql is the test.
 #
 # A zero balance never displaces routed. far_low has no default:
 # scripts/pcic_routed_lib.R's routed_far_low is the one definition, shared
