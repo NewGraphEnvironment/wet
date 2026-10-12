@@ -20,3 +20,8 @@
 - GUIC (69 % flips) attributed to PCIC's runoff: outlets placed and carrying PCIC's own flow; fwapg's older unrouted table is far low at 08LG056 too.
 - Phase 4: research §0 entry for #57; #57 and #7 bodies edited. #57's body was blanked for about a minute by a failed `gh issue view` and restored (findings, Errors).
 - Tests: 36 files, 876 passed, 0 failed, 1 skipped.
+- `/code-check branch` round 1 (`review-round1.md`): no code defects. Three prose and rule findings, all verified against fwapg before acting:
+  - edge type 1100 is secondary flow (side channels), not double-line river;
+  - side channels share the main river's lut watershed (301 of 455 sampled), so flipping them to the balance double-counts the main stem;
+  - the Nechako outlet counts left out the 4 `no_candidate`.
+  Fixed by a rule correction (side channels keep routed: `routed_secondary_edges`, `wet_source_pick(secondary =)`, tests first), then both reports rerun: gauges 22.9 % pick at the 290 (routed 24.1, balance 27.6), 23.2 % at 315; province 244,407 flips, Nechako 24.6 %. The m4 invariants check passed again. Research, CLAUDE.md and the vignette are corrected, and the vignette re-rendered.

@@ -273,10 +273,11 @@ Which to use depends on the job:
 - Where routed PCIC has a value, which is most of BC: routed PCIC, which fits
   gauges more closely overall, most of all on larger rivers. By mean error the
   balance is slightly closer in the Peace and the Fraser. The exception is a
-  segment where routed flow is under a fifth of the balance's: a side channel,
-  a reservoir lake, or the Nechako Reservoir, where PCIC's outlets are not
-  placed on the FWA. There, use the balance. wet's per-segment table carries
-  both estimates and picks this way by default.
+  main-flow segment where routed flow is under a fifth of the balance's, such
+  as the Nechako Reservoir, where PCIC's outlets are not placed on the FWA.
+  There, use the balance. A side channel keeps routed flow, which is the
+  channel's own water. wet's per-segment table carries both estimates and
+  picks this way by default.
 - Where it has none (mainly the Liard), for one consistent layer across BC from
   open code, or for 1981–2010 normals: the open water balance.
 - Where both exist and the number matters: both, checked against the nearest
