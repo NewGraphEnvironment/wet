@@ -25,3 +25,7 @@
   - side channels share the main river's lut watershed (301 of 455 sampled), so flipping them to the balance double-counts the main stem;
   - the Nechako outlet counts left out the 4 `no_candidate`.
   Fixed by a rule correction (side channels keep routed: `routed_secondary_edges`, `wet_source_pick(secondary =)`, tests first), then both reports rerun: gauges 22.9 % pick at the 290 (routed 24.1, balance 27.6), 23.2 % at 315; province 244,407 flips, Nechako 24.6 %. The m4 invariants check passed again. Research, CLAUDE.md and the vignette are corrected, and the vignette re-rendered.
+- `/code-check branch` round 2 (`review-round2.md`): **a defect inside round 1's fix**. The side-channel edge-type list missed connections through lakes that sit in the receiving river's lut watershed (1410/1450; Deadman River in Kamloops Lake), and the list was a proxy for the property. Fixed with the property itself, `routed_own_line_sql` (`blue_line_key = watershed_key` and the watershed's own code), as `wet_source_pick(own_line =)`, tests first.
+  - Enumeration, the terminating step: of 4,538,224 lut segments, 96,431 are off their own line (58,705 secondary, 8,126 another code, 29,600 other connections). The report's cross-tab shows 72,242 of them have both sources and 0 flip.
+  - Gauges unchanged (22.9 % / 23.2 %). Province: 224,199 flips, Nechako 26.7 %. The m4 invariants check passed.
+  - Prose corrected: Nechako shares are of segments with both sources; 08KH006 is "unresolved" in #58.
