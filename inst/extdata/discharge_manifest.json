@@ -9,13 +9,19 @@
   "sources": [
     {
       "source": "pcic_routed",
-      "description": "Made-up routed values for the package fixture.",
-      "citation": "Fixture; not data."
+      "description": "Made-up routed values.",
+      "citation": "Fixture; not data.",
+      "provenance": {
+        "routed_table": "fixture"
+      }
     },
     {
       "source": "wet_balance",
-      "description": "Made-up balance values for the package fixture.",
-      "citation": "Fixture; not data."
+      "description": "Made-up balance values.",
+      "citation": "Fixture; not data.",
+      "provenance": {
+        "fit_release": "fixture"
+      }
     }
   ],
   "datasets": [
@@ -23,16 +29,20 @@
       "dataset": "discharge/fwa/v1/segment_monthly",
       "schema": {
         "package": "crate",
+        "version": "0.0.0",
         "source": "nge",
-        "file_name": "discharge/fwa/v1/segment_monthly"
+        "file_name": "discharge/fwa/v1/segment_monthly",
+        "url": "https://github.com/NewGraphEnvironment/crate/blob/v0.0.0/inst/extdata/schemas/nge/discharge/fwa/v1/segment_monthly.yaml"
       }
     },
     {
       "dataset": "discharge/fwa/v1/watershed_monthly",
       "schema": {
         "package": "crate",
+        "version": "0.0.0",
         "source": "nge",
-        "file_name": "discharge/fwa/v1/watershed_monthly"
+        "file_name": "discharge/fwa/v1/watershed_monthly",
+        "url": "https://github.com/NewGraphEnvironment/crate/blob/v0.0.0/inst/extdata/schemas/nge/discharge/fwa/v1/watershed_monthly.yaml"
       }
     }
   ],
@@ -46,8 +56,8 @@
       "code": "100",
       "drainage": "Fraser River",
       "rows": 26,
-      "bytes": 1711,
-      "md5": "5ab7727f86d7dbe83c0c138e0cd4c5e5"
+      "bytes": 1715,
+      "md5": "56b34d071c96da5199e58b55be22f7cd"
     },
     {
       "key": "segment_monthly/scenario=historical/forcing=PNWNAmet/source=pcic_routed/part-100.parquet",
@@ -58,8 +68,8 @@
       "code": "100",
       "drainage": "Fraser River",
       "rows": 26,
-      "bytes": 1595,
-      "md5": "e6e772f2f29f400d8e2dd27c13a95232"
+      "bytes": 1599,
+      "md5": "594e585f9977d626ab4650fc7302868f"
     },
     {
       "key": "watershed_monthly/scenario=historical/forcing=climr/source=wet_balance/part-100.parquet",
@@ -70,8 +80,8 @@
       "code": "100",
       "drainage": "Fraser River",
       "rows": 13,
-      "bytes": 1694,
-      "md5": "345d780a2c04a1b10274b0250a9ca229"
+      "bytes": 1697,
+      "md5": "90970571a9cdc86c4b30216937308a12"
     }
   ]
 }

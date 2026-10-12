@@ -26,8 +26,12 @@
 #'     of `fwa_watershed_code`, e.g. `100` for the Fraser. `drainage` names
 #'     it.}
 #' }
-#' The three keys are in the path, not in the files. Files are overwritten
-#' in place when the data are rebuilt, so `md5` identifies a build.
+#' The three keys are in the path, not in the files: duckdb's
+#' `read_parquet(<hrefs>, hive_partitioning = true)` reads them back from
+#' the hrefs. Files are overwritten in place when the data are rebuilt, so
+#' `md5` identifies a build, and a read during a publish can find a part that
+#' no longer matches its manifest entry: retry once the publish completes.
+#' Each publish rewrites the whole manifest from one local tree.
 #'
 #' @param manifest Path or URL of a `manifest.json`. The default is option
 #'   `wet.catalog_url`, or else the published discharge manifest.
@@ -36,13 +40,15 @@
 #'   path below the manifest, and `href` is where to fetch it. Attributes:
 #'   `manifest` (where it was read from), `id` (e.g. `discharge/fwa/v1`),
 #'   `built` (UTC), `provenance` (a named list: wet version and commit, and
-#'   the fit and routed table it was built from), and `sources` (a data frame
-#'   describing each `source`, with its citation).
+#'   the code that built and published it), `sources` (a data frame
+#'   describing each `source`, with its citation), and `source_provenance`
+#'   (a list by source: what each source's rows were built from, e.g. the
+#'   routed table's fingerprint or the balance's fit release).
 #' @seealso [wet_db_load()] to load one scenario of a dataset into Postgres.
 #' @examples
-#' # a tiny tree shipped with the package, laid out as the published one
-#' cat <- wet_catalog(system.file("extdata", "discharge", "fwa", "v1",
-#'                                "manifest.json", package = "wet"))
+#' # the manifest of a tiny made-up tree, laid out as the published one
+#' cat <- wet_catalog(system.file("extdata", "discharge_manifest.json",
+#'                                package = "wet"))
 #' cat[c("dataset", "scenario", "forcing", "source", "code", "rows")]
 #' attr(cat, "sources")[c("source", "description")]
 #' @export
@@ -101,12 +107,13 @@ wet_catalog <- function(manifest = getOption("wet.catalog_url", wet_catalog_url)
     citation = vapply(src, function(s) as.character(s$citation), ""),
     stringsAsFactors = FALSE
   )
+  source_provenance <- stats::setNames(lapply(src, function(s) s$provenance), sources$source)
   missing_src <- setdiff(out$source, sources$source)
   if (length(missing_src)) {
     stop(manifest, " does not describe source ", paste(missing_src, collapse = ", "), call. = FALSE)
   }
   structure(out, manifest = manifest, id = m$id, built = m$built,
-            provenance = m$provenance, sources = sources)
+            provenance = m$provenance, sources = sources, source_provenance = source_provenance)
 }
 
 wet_catalog_url <- "https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json"
@@ -143,12 +150,16 @@ wet_part_parse <- function(key, id) {
 
 # Write `manifest.json` for the tree under `root` (the local copy of `id`),
 # from the parquet files found there: keys, rows, bytes and md5 come from the
-# files themselves, and the Hive fields from their paths. `drainage` labels
-# each code (named by code), `sources` describes each source
-# (data.frame(source, description, citation)), and `provenance` is a named
-# list of scalars. Written to a temporary file and moved, so a reader never
-# sees half of one.
-wet_manifest_write <- function(root, id, drainage, sources, provenance, built = Sys.time()) {
+# files themselves, and the Hive fields from their paths. The whole manifest
+# is rewritten each time, so `root` must hold every scenario that is to stay
+# published. `drainage` labels each code (named by code); `sources` is a list
+# with one entry per source, list(source, description, citation, provenance),
+# where provenance is what that source's rows were built from; `provenance`
+# is a named list of scalars for the build as a whole; `crate_version` is the
+# crate release whose schemas the parts were conformed to. Written to a
+# temporary file and moved, so a reader never sees half of one.
+wet_manifest_write <- function(root, id, drainage, sources, provenance, crate_version,
+                               built = Sys.time()) {
   wet_id_check(id)
   if (!requireNamespace("duckdb", quietly = TRUE)) {
     stop("install duckdb to count the parts' rows", call. = FALSE)
@@ -160,7 +171,9 @@ wet_manifest_write <- function(root, id, drainage, sources, provenance, built = 
     stop("no drainage label for code ",
          paste(setdiff(parsed$code, names(drainage)), collapse = ", "), call. = FALSE)
   }
-  if (!setequal(unique(parsed$source), sources$source) || anyDuplicated(sources$source)) {
+  src_names <- vapply(sources, function(x) x$source, "")
+  if (!setequal(unique(parsed$source), src_names) || anyDuplicated(src_names) ||
+        !all(vapply(sources, function(x) all(c("description", "citation") %in% names(x)), TRUE))) {
     stop("`sources` must describe each source in the tree once: the tree has ",
          paste(unique(parsed$source), collapse = ", "), call. = FALSE)
   }
@@ -182,9 +195,13 @@ wet_manifest_write <- function(root, id, drainage, sources, provenance, built = 
     id = id,
     built = format(built, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"),
     provenance = provenance,
-    sources = lapply(seq_len(nrow(sources)), function(i) as.list(sources[i, c("source", "description", "citation")])),
+    sources = sources,
     datasets = lapply(sort(unique(parsed$dataset)), function(d) {
-      list(dataset = d, schema = list(package = "crate", source = "nge", file_name = d))
+      list(dataset = d, schema = list(
+        package = "crate", version = crate_version, source = "nge", file_name = d,
+        url = sprintf("https://github.com/NewGraphEnvironment/crate/blob/v%s/inst/extdata/schemas/nge/%s.yaml",
+                      crate_version, d)
+      ))
     }),
     parts = parts
   )
@@ -193,4 +210,33 @@ wet_manifest_write <- function(root, id, drainage, sources, provenance, built = 
   jsonlite::write_json(m, tmp, auto_unbox = TRUE, pretty = TRUE, digits = NA, null = "null", na = "null")
   if (!file.rename(tmp, path)) stop("could not move ", tmp, " to ", path, call. = FALSE)
   invisible(path)
+}
+
+# Whether every part a catalog lists is what its manifest says: for a URL, an
+# anonymous HEAD whose Content-Length is the part's bytes and whose ETag is
+# its md5 (true of a single-part upload, which is how parts are published);
+# for a local path, the file's size and md5. Returns data.frame(key, ok,
+# reason), one row per part.
+wet_catalog_verify <- function(catalog) {
+  check <- function(i) {
+    p <- catalog[i, ]
+    if (!grepl("^https?://", p$href)) {
+      if (!file.exists(p$href)) return("missing")
+      if (file.size(p$href) != p$bytes) return("size differs")
+      if (unname(tools::md5sum(p$href)) != p$md5) return("md5 differs")
+      return("")
+    }
+    h <- curl::new_handle(nobody = TRUE)
+    r <- tryCatch(curl::curl_fetch_memory(p$href, handle = h), error = function(e) e)
+    if (inherits(r, "error")) return(paste("unreachable:", conditionMessage(r)))
+    if (r$status_code != 200L) return(paste("HTTP", r$status_code))
+    hd <- curl::parse_headers_list(r$headers)
+    len <- suppressWarnings(as.numeric(hd[["content-length"]]))
+    etag <- gsub('"', "", hd[["etag"]] %||% "")
+    if (!identical(len, p$bytes)) return("size differs")
+    if (!identical(etag, p$md5)) return(paste0("etag ", etag, " is not the md5"))
+    ""
+  }
+  reason <- vapply(seq_len(nrow(catalog)), check, "")
+  data.frame(key = catalog$key, ok = reason == "", reason = reason, stringsAsFactors = FALSE)
 }

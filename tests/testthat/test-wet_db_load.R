@@ -3,10 +3,8 @@
 # the real `discharge` schema.
 
 local_load_catalog <- function(conn, env = parent.frame()) {
-  dir <- withr::local_tempdir(.local_envir = env)
-  file.copy(dirname(system.file("extdata", "discharge", "fwa", "v1", "manifest.json", package = "wet")),
-            dir, recursive = TRUE)
-  cat <- wet_catalog(file.path(dir, "v1", "manifest.json"))
+  root <- local_discharge_tree(env)
+  cat <- wet_catalog(file.path(root, "manifest.json"))
   # letters only: a dataset ID's variable admits no digits
   digits <- as.integer(strsplit(as.character(Sys.getpid()), "")[[1]])
   schema <- paste0("wet_test_", paste(letters[digits + 1L], collapse = ""))
@@ -16,7 +14,6 @@ local_load_catalog <- function(conn, env = parent.frame()) {
 }
 
 test_that("a scenario loads, with the Hive keys as columns, and fresh's subquery gets one row per segment", {
-  skip_if_not_installed("duckdb")
   conn <- local_fwapg()
   cat <- local_load_catalog(conn)
   ds <- grep("segment_monthly$", unique(cat$dataset), value = TRUE)
@@ -41,7 +38,6 @@ test_that("a scenario loads, with the Hive keys as columns, and fresh's subquery
 })
 
 test_that("a reload replaces the scenario rather than adding to it, and subsets apply", {
-  skip_if_not_installed("duckdb")
   conn <- local_fwapg()
   cat <- local_load_catalog(conn)
   ds <- grep("segment_monthly$", unique(cat$dataset), value = TRUE)
@@ -57,7 +53,6 @@ test_that("a reload replaces the scenario rather than adding to it, and subsets 
 })
 
 test_that("a part whose bytes differ from the manifest is refused and nothing is written", {
-  skip_if_not_installed("duckdb")
   conn <- local_fwapg()
   cat <- local_load_catalog(conn)
   ds <- grep("segment_monthly$", unique(cat$dataset), value = TRUE)
@@ -71,7 +66,6 @@ test_that("a part whose bytes differ from the manifest is refused and nothing is
 })
 
 test_that("the watershed dataset loads, and pick_only is refused there", {
-  skip_if_not_installed("duckdb")
   conn <- local_fwapg()
   cat <- local_load_catalog(conn)
   ds <- grep("watershed_monthly$", unique(cat$dataset), value = TRUE)
@@ -84,13 +78,14 @@ test_that("arguments are checked before anything is written", {
   expect_error(wet_dataset_table("discharge/fwa/segment_monthly"), "dataset ID")
   expect_identical(wet_dataset_table("discharge/fwa/v1/segment_monthly"),
                    c(schema = "discharge", table = "fwa_v1_segment_monthly"))
-  cat <- wet_catalog(system.file("extdata", "discharge", "fwa", "v1", "manifest.json", package = "wet"))
+  cat <- wet_catalog(system.file("extdata", "discharge_manifest.json", package = "wet"))
   expect_error(wet_db_load(NULL, cat, scenario = "ssp245"), "no parts for discharge/fwa/v1/segment_monthly ssp245")
   expect_error(wet_db_load(NULL, cat, months = 13))
 })
 
 test_that("a URL part is fetched into the cache, checked, and reused while it matches", {
-  cat <- wet_catalog(system.file("extdata", "discharge", "fwa", "v1", "manifest.json", package = "wet"))
+  root <- local_discharge_tree()
+  cat <- wet_catalog(file.path(root, "manifest.json"))
   part <- cat[1, ]
   src <- part$href
   part$href <- paste0("https://example.org/discharge/fwa/v1/", part$key)
@@ -111,7 +106,6 @@ test_that("a URL part is fetched into the cache, checked, and reused while it ma
 })
 
 test_that("a failure partway through a load leaves the previous rows", {
-  skip_if_not_installed("duckdb")
   conn <- local_fwapg()
   cat <- local_load_catalog(conn)
   ds <- grep("segment_monthly$", unique(cat$dataset), value = TRUE)
@@ -127,4 +121,24 @@ test_that("a failure partway through a load leaves the previous rows", {
   expect_error(wet_db_load(conn, cat, ds, months = 0, cache_dir = withr::local_tempdir()), "connection lost")
   expect_identical(appended, 2L)
   expect_identical(DBI::dbGetQuery(conn, paste("SELECT count(*)::int AS n FROM", tbl))$n, 52L)
+})
+
+test_that("two picked rows for one segment and month are refused, and the load rolled back", {
+  conn <- local_fwapg()
+  cat <- local_load_catalog(conn)
+  ds <- grep("segment_monthly$", unique(cat$dataset), value = TRUE)
+  tbl <- paste0(sub("/.*", "", ds), ".fwa_v1_segment_monthly")
+  wet_db_load(conn, cat, ds, cache_dir = withr::local_tempdir())
+  # the balance part, rewritten with every row picked
+  i <- which(cat$dataset == ds & cat$source == "wet_balance")
+  con <- DBI::dbConnect(duckdb::duckdb())
+  x <- DBI::dbGetQuery(con, "SELECT * FROM read_parquet(?, hive_partitioning = false)", params = list(cat$href[i]))
+  x$pick <- TRUE
+  duckdb::duckdb_register(con, "x", x)
+  DBI::dbExecute(con, sprintf("COPY x TO '%s' (FORMAT parquet)", cat$href[i]))
+  DBI::dbDisconnect(con, shutdown = TRUE)
+  cat$bytes[i] <- file.size(cat$href[i])
+  cat$md5[i] <- unname(tools::md5sum(cat$href[i]))
+  expect_error(wet_db_load(conn, cat, ds, cache_dir = withr::local_tempdir()), "more than one picked row")
+  expect_identical(DBI::dbGetQuery(conn, paste("SELECT count(*)::int AS n FROM", tbl, "WHERE NOT pick"))$n, 26L)
 })

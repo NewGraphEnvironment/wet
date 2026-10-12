@@ -15,8 +15,10 @@ wet_catalog(manifest = getOption("wet.catalog_url", wet_catalog_url))
 path below the manifest, and \code{href} is where to fetch it. Attributes:
 \code{manifest} (where it was read from), \code{id} (e.g. \code{discharge/fwa/v1}),
 \code{built} (UTC), \code{provenance} (a named list: wet version and commit, and
-the fit and routed table it was built from), and \code{sources} (a data frame
-describing each \code{source}, with its citation).
+the code that built and published it), \code{sources} (a data frame
+describing each \code{source}, with its citation), and \code{source_provenance}
+(a list by source: what each source's rows were built from, e.g. the
+routed table's fingerprint or the balance's fit release).
 }
 \description{
 Reads the \code{manifest.json} of a published discharge tree and returns one row
@@ -46,14 +48,18 @@ water balance's 1981-2010 normals), or \code{ensemble}.}
 of \code{fwa_watershed_code}, e.g. \code{100} for the Fraser. \code{drainage} names
 it.}
 }
-The three keys are in the path, not in the files. Files are overwritten
-in place when the data are rebuilt, so \code{md5} identifies a build.
+The three keys are in the path, not in the files: duckdb's
+\verb{read_parquet(<hrefs>, hive_partitioning = true)} reads them back from
+the hrefs. Files are overwritten in place when the data are rebuilt, so
+\code{md5} identifies a build, and a read during a publish can find a part that
+no longer matches its manifest entry: retry once the publish completes.
+Each publish rewrites the whole manifest from one local tree.
 }
 
 \examples{
-# a tiny tree shipped with the package, laid out as the published one
-cat <- wet_catalog(system.file("extdata", "discharge", "fwa", "v1",
-                               "manifest.json", package = "wet"))
+# the manifest of a tiny made-up tree, laid out as the published one
+cat <- wet_catalog(system.file("extdata", "discharge_manifest.json",
+                               package = "wet"))
 cat[c("dataset", "scenario", "forcing", "source", "code", "rows")]
 attr(cat, "sources")[c("source", "description")]
 }

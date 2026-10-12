@@ -43,8 +43,13 @@ the table are replaced, in one transaction, so a reload never duplicates
 and a failed load leaves the table as it was.
 }
 \details{
+A load with \code{months} or \code{pick_only} set still replaces the whole
+scenario, so it leaves only that subset for every reader of the table; the
+table comment records it.
+
 The table holds the files' columns plus \code{scenario}, \code{forcing} and
-\code{source}. On the first load it is created with a primary key on
+\code{source}. Where the dataset has \code{pick}, the load is refused unless each
+feature and month has at most one picked row in the scenario. On the first load it is created with a primary key on
 \verb{(scenario, forcing, source, <id>, month, period)} and an index on the
 feature ID. fresh then joins the default annual flow per segment with
 \code{frs_col_join(from = "(select linear_feature_id, q_m3s as mad_m3s from discharge.fwa_v1_segment_monthly where scenario = 'historical' and month = 0 and pick)")}.

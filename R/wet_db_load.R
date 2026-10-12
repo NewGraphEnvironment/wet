@@ -7,8 +7,13 @@
 #' the table are replaced, in one transaction, so a reload never duplicates
 #' and a failed load leaves the table as it was.
 #'
+#' A load with `months` or `pick_only` set still replaces the whole
+#' scenario, so it leaves only that subset for every reader of the table; the
+#' table comment records it.
+#'
 #' The table holds the files' columns plus `scenario`, `forcing` and
-#' `source`. On the first load it is created with a primary key on
+#' `source`. Where the dataset has `pick`, the load is refused unless each
+#' feature and month has at most one picked row in the scenario. On the first load it is created with a primary key on
 #' `(scenario, forcing, source, <id>, month, period)` and an index on the
 #' feature ID. fresh then joins the default annual flow per segment with
 #' `frs_col_join(from = "(select linear_feature_id, q_m3s as mad_m3s from
@@ -101,6 +106,15 @@ wet_db_load <- function(conn, catalog, dataset = "discharge/fwa/v1/segment_month
     got <- DBI::dbGetQuery(conn, paste("SELECT count(*)::float8 AS n FROM", qid, "WHERE scenario = $1"),
                            params = list(scenario))$n
     if (got != sum(n)) stop("loaded ", got, " rows but read ", sum(n), call. = FALSE)
+    if ("pick" %in% names(cols)) {
+      # the default is one source per feature and month within a scenario
+      dup <- DBI::dbGetQuery(conn, sprintf(
+        "SELECT %s AS id, month FROM %s WHERE scenario = $1 AND pick GROUP BY 1, 2 HAVING count(*) > 1 LIMIT 1",
+        DBI::dbQuoteIdentifier(conn, id_col), qid), params = list(scenario))
+      if (nrow(dup)) {
+        stop(id_col, " ", dup$id, " month ", dup$month, " has more than one picked row", call. = FALSE)
+      }
+    }
     if (created) {
       key_cols <- c("scenario", "forcing", "source", id_col, "month", "period")
       DBI::dbExecute(conn, sprintf("ALTER TABLE %s ADD PRIMARY KEY (%s)", qid,

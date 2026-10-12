@@ -101,11 +101,11 @@ later:
   - fresh's subquery returns one row per segment
 
 ### Phase 4b: Plan-review fixes to landed code (`review-plan.md`)
-- [ ] G14: ship only a manifest (`inst/extdata/discharge_manifest.json`) for the example; tests build the Hive tree in a tempdir with duckdb and the writer (no parquet in git, no >100-byte paths)
-- [ ] G4: per-source provenance in the manifest's `sources` entries; crate version and schema URL in `datasets`; the rule that each publish rewrites the whole manifest from a local tree holding every scenario
-- [ ] G7: internal `wet_catalog_verify()`: an anonymous HEAD per href, Content-Length == bytes and ETag == md5 (single-part uploads), tested with mocked curl
-- [ ] G3: `wet_db_load()` asserts one `pick` per (feature, month) in the scenario after a load of a dataset that has `pick`
-- [ ] G6: `?wet_catalog` documents reading the tree with duckdb `hive_partitioning = true`
+- [x] G14: ship only a manifest (`inst/extdata/discharge_manifest.json`) for the example; tests build the Hive tree in a tempdir with duckdb and the writer (no parquet in git, no >100-byte paths)
+- [x] G4: per-source provenance in the manifest's `sources` entries; crate version and schema URL in `datasets`; the rule that each publish rewrites the whole manifest from a local tree holding every scenario
+- [x] G7: internal `wet_catalog_verify()`: an anonymous HEAD per href, Content-Length == bytes and ETag == md5 (single-part uploads), tested with mocked curl
+- [x] G3: `wet_db_load()` asserts one `pick` per (feature, month) in the scenario after a load of a dataset that has `pick`
+- [x] G6: `?wet_catalog` documents reading the tree with duckdb `hive_partitioning = true`
 
 ### Phase 5: Build the release tree
 - [ ] ~~`scripts/segment_output.R`: add `watershed_group_code`, and sort by group.~~ The publish script adds `watershed_group_code` from fwapg and sorts (review O3), so the segment table needs no rebuild
