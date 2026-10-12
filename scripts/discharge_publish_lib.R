@@ -11,6 +11,14 @@ stopifnot(identical(publish_url, wet:::wet_catalog_url))
 # what drove each source, the `forcing` key (research/discharge_publish.md)
 publish_forcing <- c(pcic_routed = "PNWNAmet", wet_balance = "climr")
 
+# md5 of bytes held in memory, as tools::md5sum() gives a file's
+digest_raw_md5 <- function(bytes) {
+  f <- tempfile()
+  on.exit(unlink(f), add = TRUE)
+  writeBin(bytes, f)
+  unname(tools::md5sum(f))
+}
+
 # the ordered columns crate declares for a dataset
 publish_schema_cols <- function(dataset) {
   reg <- crate::crt_files("nge")

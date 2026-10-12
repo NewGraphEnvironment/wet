@@ -51,7 +51,10 @@ if (publish) {
   cat_local <- wet_catalog(file.path(root, "manifest.json"))
   # committing the build's report moves HEAD, so compare the code, not the commit
   built_at <- attr(cat_local, "provenance")$wet_commit
-  changed <- git("diff", "--name-only", built_at, "HEAD", "--", "R", "scripts", "DESCRIPTION")
+  if (!is.character(built_at) || length(built_at) != 1L || !grepl("^[0-9a-f]{7,40}$", built_at)) {
+    stop("the manifest names no build commit")
+  }
+  changed <- git("diff", "--name-only", built_at, "HEAD", "--", "R", "scripts")
   if (length(changed)) {
     stop("the code changed since the tree was built at ", built_at, " (", paste(changed, collapse = ", "),
          "): rerun the build")
@@ -103,12 +106,17 @@ invisible(publish_schema_cols(ds_seg))
 invisible(publish_schema_cols(ds_ws))
 # the manifest names each schema at the installed crate's release tag, so
 # that tag must hold it: a branch install reports the last release's version
+# and hold it as installed: a later edit under an unbumped version would not
 for (ds in c(ds_seg, ds_ws)) {
   url <- sprintf("https://raw.githubusercontent.com/NewGraphEnvironment/crate/v%s/inst/extdata/schemas/nge/%s.yaml",
                  crate_version, ds)
-  st <- curl::curl_fetch_memory(url, handle = curl::new_handle(nobody = TRUE))$status_code
-  if (st != 200L) stop("crate v", crate_version, " has no released schema for ", ds, " (HTTP ", st,
-                       "): install the crate release that carries crate#31")
+  r <- curl::curl_fetch_memory(url)
+  if (r$status_code != 200L) stop("crate v", crate_version, " has no released schema for ", ds, " (HTTP ",
+                                  r$status_code, "): install the crate release that carries crate#31")
+  installed <- system.file("extdata", "schemas", "nge", paste0(ds, ".yaml"), package = "crate")
+  if (!identical(unname(tools::md5sum(installed)), digest_raw_md5(r$content))) {
+    stop("the installed crate's schema for ", ds, " differs from crate v", crate_version, "'s: install that release")
+  }
 }
 
 key_dir <- wb_key_dir()
@@ -124,12 +132,25 @@ f_seg_report <- wb_report("segment_output", release)
 sr <- readLines(f_seg_report)
 seg_commit <- sub("^wet commit ([0-9a-f]+);.*", "\\1", grep("^wet commit ", sr, value = TRUE))
 if (length(seg_commit) != 1L) stop(f_seg_report, " names no wet commit")
-code_seg <- c("scripts/segment_output.R", "scripts/pcic_routed_lib.R", "scripts/wb_fit_lib.R",
-              "scripts/wb_score_md5.R", "R/wet_source_pick.R", "R/wet_mm_to_m3s.R")
-changed <- git("diff", "--name-only", seg_commit, "HEAD", "--", code_seg)
+# Every file under R/ and scripts/ but this publish code's own, rather than a
+# list of what the tables depend on: a list misses a dependency and passes,
+# while a file left off the exclusions only forces a rebuild.
+publish_own <- c("R/wet_catalog.R", "R/wet_db_load.R", "scripts/discharge_publish.R",
+                 "scripts/discharge_publish_lib.R")
+# DESCRIPTION is left out: its version moves at every release
+changed <- git("diff", "--name-only", seg_commit, "HEAD", "--", "R", "scripts",
+               paste0(":(exclude)", publish_own))
 if (length(changed)) {
-  stop("the segment code changed since ", f_seg_report, " was built (", paste(changed, collapse = ", "),
-       "): rerun scripts/segment_output.R")
+  stop("code changed since ", f_seg_report, " was built at ", seg_commit, " (", paste(changed, collapse = ", "),
+       "): rerun scripts/wb_output.R and scripts/segment_output.R")
+}
+# and the fit both tables came from is the one the scoring code ships
+source("scripts/wb_score_md5.R")  # score_code_md5, aet_code_md5
+fits <- readRDS(file.path(fit_dir, "fits.rds"))
+winner <- readLines(file.path(fit_dir, "aet_winner.txt"))
+if (!identical(fits$code_md5, score_code_md5) || !identical(winner[1:2], c(fits$aet, aet_code_md5)) ||
+      !any(grepl(paste0("scoring code ", score_code_md5, "$"), sr[3]))) {
+  stop("the fit, its AET choice or the segment report was made under other scoring code")
 }
 mt <- function(f) max(file.mtime(f))
 if (min(file.mtime(seg_files)) < mt(ws_files) || mt(seg_files) > file.mtime(f_seg_report)) {
@@ -225,11 +246,14 @@ sources <- list(
        citation = "New Graph Environment Ltd. wet: stream flow for the BC Freshwater Atlas. https://github.com/NewGraphEnvironment/wet",
        provenance = list(fit_release = release, province_run = basename(key_dir)))
 )
+# the manifest is publishable only once every check below passes: until then
+# it is manifest.pending.json, which PUBLISH does not read
+f_pending <- file.path(root, "manifest.pending.json")
 wet_manifest_write(root, publish_id, drainage = drainage, sources = sources,
                    provenance = list(wet_version = as.character(utils::packageVersion("wet")),
                                      wet_commit = wet_commit, segment_commit = seg_commit),
-                   crate_version = crate_version)
-cat_local <- wet_catalog(file.path(root, "manifest.json"))
+                   crate_version = crate_version, path = f_pending)
+cat_local <- wet_catalog(f_pending)
 v <- wet_catalog_verify(cat_local)
 stopifnot(all(v$ok), sum(cat_local$rows) == sum(tally$rows))
 
@@ -289,6 +313,7 @@ writeLines(c(
   sprintf("## Totals: %d parts, %.2f GB", nrow(cat_local), sum(cat_local$bytes) / 1e9)
 ), f_report)
 if (!all(checks)) stop("cross-checks failed: ", paste(names(checks)[!checks], collapse = ", "), "; see ", f_report)
+if (!file.rename(f_pending, file.path(root, "manifest.json"))) stop("could not move ", f_pending)
 stamp("built ", nrow(cat_local), " parts; report ", f_report)
 message("DRY RUN: WET_PUBLISH=1 would upload ", nrow(cat_local), " parts (", sprintf("%.2f GB", sum(cat_local$bytes) / 1e9),
         ") and the manifest to s3://", publish_bucket, "/", publish_id, "/, then delete keys it no longer names")

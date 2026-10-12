@@ -22,3 +22,7 @@
   - The manifest named crate v0.6.0, which has no discharge schema. BUILD now requires the release tag to hold the schemas.
   - `num()` could drop a cross-check silently; the segment-code guard missed `R/wet_mm_to_m3s.R`; an empty balance output or an all-NA part slipped through; an unknown source was dropped.
   - Consequence: the committed build report (7e738e1) predates these fixes and named crate 0.6.0. The tree must be rebuilt after crate#31 is released, before any upload.
+- /code-check round 2 (`review-round2.md`): 1 bug and 2 fragile issues. The bug was inside a round-1 fix: `num()`'s stop protected BUILD but not PUBLISH, because BUILD wrote a valid manifest before its checks.
+  - Fixes: the manifest is written as `manifest.pending.json` and renamed only after every check passes; PUBLISH refuses a manifest with no build commit; BUILD compares the released crate schema's md5 with the installed one.
+  - The hand-kept list of segment-code dependencies became a diff of all of `R/` and `scripts/` since the segment build, minus the publish code's own files. `DESCRIPTION` is left out, since its version moves at every release. The fit's scoring md5 is checked as `segment_output.R` checks it.
+  - Enumeration (parse data over `scripts/discharge_publish.R`): 20 BUILD refusal sites, all before the rename at line 316 of 319. PUBLISH refuses before any upload except at 3 sites, which come after the upload (the stale-key prefix assertion and the final verification).

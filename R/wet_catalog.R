@@ -157,9 +157,11 @@ wet_part_parse <- function(key, id) {
 # where provenance is what that source's rows were built from; `provenance`
 # is a named list of scalars for the build as a whole; `crate_version` is the
 # crate release whose schemas the parts were conformed to. Written to a
-# temporary file and moved, so a reader never sees half of one.
+# temporary file and moved to `path`, so a reader never sees half of one; a
+# caller with checks still to run writes it under another name and moves it
+# to manifest.json only once they pass.
 wet_manifest_write <- function(root, id, drainage, sources, provenance, crate_version,
-                               built = Sys.time()) {
+                               built = Sys.time(), path = file.path(root, "manifest.json")) {
   wet_id_check(id)
   if (!requireNamespace("duckdb", quietly = TRUE)) {
     stop("install duckdb to count the parts' rows", call. = FALSE)
@@ -205,7 +207,6 @@ wet_manifest_write <- function(root, id, drainage, sources, provenance, crate_ve
     }),
     parts = parts
   )
-  path <- file.path(root, "manifest.json")
   tmp <- tempfile("manifest", tmpdir = root, fileext = ".json")
   jsonlite::write_json(m, tmp, auto_unbox = TRUE, pretty = TRUE, digits = NA, null = "null", na = "null")
   if (!file.rename(tmp, path)) stop("could not move ", tmp, " to ", path, call. = FALSE)
