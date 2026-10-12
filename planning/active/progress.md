@@ -29,3 +29,13 @@
   - Enumeration, the terminating step: of 4,538,224 lut segments, 96,431 are off their own line (58,705 secondary, 8,126 another code, 29,600 other connections). The report's cross-tab shows 72,242 of them have both sources and 0 flip.
   - Gauges unchanged (22.9 % / 23.2 %). Province: 224,199 flips, Nechako 26.7 %. The m4 invariants check passed.
   - Prose corrected: Nechako shares are of segments with both sources; 08KH006 is "unresolved" in #58.
+- `/code-check branch` round 3 (`review-round3.md`). The mechanism behind rounds 1–3: **treating a segment's lut watershed as the segment's own place on the network**. Round 3 found two more places it reaches:
+  - routed `runoff_mm` over the lut watershed's area off the own line, now NA there (72,242 segments, matching the report's off-line count);
+  - wrong prose ("connections through a lake": the off-line class is side channels, 1410 network connectors and 1450 waterbody connections).
+  Edge-type and order rates now divide by own-line segments only.
+  - Enumeration: every use of the lut watershed in the diff:
+    1. the balance value: stored, never picked off the line, documented;
+    2. the routed runoff area: NA off the line;
+    3. the gauge pick's `own_line`: the same lut and the same SQL, verified for all 352 stations by round 3;
+    4. basin assignment: top-level only.
+  - Residual, accepted and documented: on its own line, a segment upstream within its watershed (localcode differs; 53,833 segments) gets the downstream-end value. Round 3 measured that 46 Fraser flips might owe to it.

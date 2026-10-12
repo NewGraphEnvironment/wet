@@ -1,10 +1,10 @@
 # Per-segment flow from either source (#57)
 
-wet commit b92b1b0; fit 20260717, province run 962a9cc2c4, scoring code 94d05b195898abea5bd87cc0bd65018d
+wet commit 1b6167e; fit 20260717, province run 962a9cc2c4, scoring code 94d05b195898abea5bd87cc0bd65018d
 routed: whse_basemapping.fwa_stream_networks_discharge_monthly, built by NewGraphEnvironment/fwapg at 341b078
 table: 40524444 rows, 3377037 segments, 0 null flows, total 178035348.248310 m3/s
 pick: routed PCIC unless its annual flow is under 0.20 x the balance's, then the balance (wet_source_pick);
-a segment off its watershed's own line keeps routed (routed_own_line_sql: side channels, connections)
+a segment off its watershed's own line keeps routed (routed_own_line_sql: side channels, connectors)
 periods: routed 1951-2012, balance 1981-2010
 
 ## Segments
@@ -55,37 +55,31 @@ own_line        both   flipped  flip %
 FALSE          72242         0     0.0
 TRUE         3301891    224199     6.8
 
-## Outside the Nechako groups, segments with both sources and how many flip, by edge type
+## Outside the Nechako groups, on their own line, segments with both sources and how many flip, by edge type
 edge_type       both   flipped  flip %
-1000         2320376    118033     5.1
-1050          229754     13081     5.7
-1100           24308         0     0.0
-1150            1060         0     0.0
-1200          323202     16506     5.1
+1000         2320371    118033     5.1
+1050          229753     13081     5.7
+1200          323168     16506     5.1
 1250          143035       828     0.6
-1300            1453         0     0.0
-1350           16479         0     0.0
-1400            9977      1143    11.5
-1410           51937      5764    11.1
+1400            9952      1143    11.5
+1410           47326      5764    12.2
 1425             296        28     9.5
-1450          187723      8877     4.7
-1475            1808         0     0.0
+1450          166197      8877     5.3
 2000            1667       121     7.3
-2300             149         0     0.0
 6010              49         4     8.2
 
 ## The same, by stream order
 order           both   flipped  flip %
 0                 38         5    13.2
-1            1714744     91874     5.4
-2             743865     40982     5.5
-3             406440     20321     5.0
-4             230252      8500     3.7
-5             119619      1928     1.6
-6              52661       530     1.0
-7              25892       229     0.9
-8              11799        14     0.1
-9               7497         2     0.0
+1            1674967     91874     5.5
+2             727612     40982     5.6
+3             397049     20321     5.1
+4             226860      8500     3.7
+5             118446      1928     1.6
+6              52288       530     1.0
+7              25756       229     0.9
+8              11171        14     0.1
+9               7161         2     0.0
 10               466         0     0.0
 
 ## Groups where more than half the segments with both sources flip (5)
