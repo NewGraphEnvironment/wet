@@ -17,3 +17,8 @@
   - Every cross-check passes: routed 43,901,481 rows, balance 58,889,207, fresh's subquery 3,152,838 + 1,380,005 = 4,532,843.
   - Pruning: a read for BULK opens 2 of 507 row groups.
   - Report committed: `data/checks/discharge_publish_20260717.txt`.
+- /code-check round 1 (`review-round1.md`): 2 bugs and 4 fragile issues, all fixed in the publish script.
+  - PUBLISH could never run: committing the build report moved HEAD past the manifest's commit. It now compares code.
+  - The manifest named crate v0.6.0, which has no discharge schema. BUILD now requires the release tag to hold the schemas.
+  - `num()` could drop a cross-check silently; the segment-code guard missed `R/wet_mm_to_m3s.R`; an empty balance output or an all-NA part slipped through; an unknown source was dropped.
+  - Consequence: the committed build report (7e738e1) predates these fixes and named crate 0.6.0. The tree must be rebuilt after crate#31 is released, before any upload.

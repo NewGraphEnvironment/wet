@@ -49,9 +49,12 @@ if (!identical(release, wb_shipped_release)) stop("publish the shipped fit, ", w
 if (publish) {
   # ---- PUBLISH: the tree BUILD wrote, unchanged, from this commit --------------------------------
   cat_local <- wet_catalog(file.path(root, "manifest.json"))
-  if (!identical(attr(cat_local, "provenance")$wet_commit, wet_commit)) {
-    stop("the tree was built at ", attr(cat_local, "provenance")$wet_commit, ", not HEAD ", wet_commit,
-         ": rerun the build")
+  # committing the build's report moves HEAD, so compare the code, not the commit
+  built_at <- attr(cat_local, "provenance")$wet_commit
+  changed <- git("diff", "--name-only", built_at, "HEAD", "--", "R", "scripts", "DESCRIPTION")
+  if (length(changed)) {
+    stop("the code changed since the tree was built at ", built_at, " (", paste(changed, collapse = ", "),
+         "): rerun the build")
   }
   v <- wet_catalog_verify(cat_local)
   if (!all(v$ok)) stop("the local tree no longer matches its manifest: ", paste(v$key[!v$ok], collapse = ", "))
@@ -98,12 +101,22 @@ ds_seg <- paste0(publish_id, "/segment_monthly")
 ds_ws <- paste0(publish_id, "/watershed_monthly")
 invisible(publish_schema_cols(ds_seg))
 invisible(publish_schema_cols(ds_ws))
+# the manifest names each schema at the installed crate's release tag, so
+# that tag must hold it: a branch install reports the last release's version
+for (ds in c(ds_seg, ds_ws)) {
+  url <- sprintf("https://raw.githubusercontent.com/NewGraphEnvironment/crate/v%s/inst/extdata/schemas/nge/%s.yaml",
+                 crate_version, ds)
+  st <- curl::curl_fetch_memory(url, handle = curl::new_handle(nobody = TRUE))$status_code
+  if (st != 200L) stop("crate v", crate_version, " has no released schema for ", ds, " (HTTP ", st,
+                       "): install the crate release that carries crate#31")
+}
 
 key_dir <- wb_key_dir()
 fit_dir <- wb_fit_dir(key_dir, release)
 seg_files <- list.files(file.path(fit_dir, "segment"), "\\.parquet$", full.names = TRUE)
 ws_files <- list.files(file.path(fit_dir, "output"), "\\.parquet$", full.names = TRUE)
 if (!length(seg_files)) stop("no segment table in ", fit_dir, ": run scripts/segment_output.R")
+if (!length(ws_files)) stop("no balance output in ", fit_dir, ": run scripts/wb_output.R")
 
 # the segment table must be the one its tracked report describes, built by
 # the segment code as it stands now
@@ -112,7 +125,7 @@ sr <- readLines(f_seg_report)
 seg_commit <- sub("^wet commit ([0-9a-f]+);.*", "\\1", grep("^wet commit ", sr, value = TRUE))
 if (length(seg_commit) != 1L) stop(f_seg_report, " names no wet commit")
 code_seg <- c("scripts/segment_output.R", "scripts/pcic_routed_lib.R", "scripts/wb_fit_lib.R",
-              "scripts/wb_score_md5.R", "R/wet_source_pick.R")
+              "scripts/wb_score_md5.R", "R/wet_source_pick.R", "R/wet_mm_to_m3s.R")
 changed <- git("diff", "--name-only", seg_commit, "HEAD", "--", code_seg)
 if (length(changed)) {
   stop("the segment code changed since ", f_seg_report, " was built (", paste(changed, collapse = ", "),
@@ -154,6 +167,9 @@ for (f in seg_files) {
   code <- sub("\\.parquet$", "", basename(f))
   x <- as.data.frame(arrow::read_parquet(f))
   if (!identical(names(x), cols_seg)) stop(f, " has columns ", paste(names(x), collapse = ", "))
+  if (!all(x$source %in% names(publish_forcing))) {
+    stop(f, " has a source with no forcing label: ", paste(setdiff(unique(x$source), names(publish_forcing)), collapse = ", "))
+  }
   x$watershed_group_code <- seg_grp$g[match(x$linear_feature_id, seg_grp$id)]
   # one default per segment and month across the two sources
   key <- paste(x$linear_feature_id, x$month)
@@ -183,10 +199,11 @@ for (f in ws_files) {
   n_na <- sum(is.na(x$q_m3s))
   # a watershed with no balance value has no row, as in the segment table
   x <- x[!is.na(x$q_m3s), ]
-  x$watershed_group_code <- ws_grp$g[match(x$watershed_feature_id, ws_grp$id)]
-  x$period <- period_balance
-  if (nrow(x)) publish_part_write(publish_part_prepare(x, ds_ws, "watershed_feature_id"),
-                                  part_path(ds_ws, "wet_balance", code))
+  if (nrow(x)) {
+    x$watershed_group_code <- ws_grp$g[match(x$watershed_feature_id, ws_grp$id)]
+    x$period <- period_balance
+    publish_part_write(publish_part_prepare(x, ds_ws, "watershed_feature_id"), part_path(ds_ws, "wet_balance", code))
+  }
   tally[[length(tally) + 1L]] <- data.frame(dataset = "watershed_monthly", source = "wet_balance", code = code,
                                             rows = nrow(x), segments = length(unique(x$watershed_feature_id)),
                                             picked = n_na)
@@ -217,7 +234,12 @@ v <- wet_catalog_verify(cat_local)
 stopifnot(all(v$ok), sum(cat_local$rows) == sum(tally$rows))
 
 # ---- cross-checks against the segment report, and what a reader sees --------------------------------
-num <- function(pattern) as.numeric(sub(pattern, "\\1", grep(pattern, sr, value = TRUE)))
+num <- function(pattern) {
+  # one number, or the check it feeds would drop out of `checks` and pass
+  x <- as.numeric(sub(pattern, "\\1", grep(pattern, sr, value = TRUE)))
+  if (length(x) != 1L || is.na(x)) stop(f_seg_report, " has no single line matching ", pattern)
+  x
+}
 both <- num("^both sources: ([0-9]+);.*")
 routed_only <- num("^both sources: [0-9]+; routed only: ([0-9]+);.*")
 balance_only <- num("^both sources: [0-9]+; routed only: [0-9]+; balance only: ([0-9]+);.*")
