@@ -44,7 +44,8 @@ stopifnot(identical(root, file.path("data", "publish", publish_id)))
 stamp <- function(...) message(format(Sys.time(), "%H:%M:%S"), " ", ...)
 
 git <- function(...) {
-  x <- suppressWarnings(system2("git", c(...), stdout = TRUE, stderr = TRUE))
+  # system2() hands its args to sh unquoted, and "(exclude)" is a syntax error there
+  x <- suppressWarnings(system2("git", shQuote(c(...)), stdout = TRUE, stderr = TRUE))
   if (!is.null(attr(x, "status"))) stop("git ", paste(c(...), collapse = " "), " failed: ", paste(x, collapse = " "))
   x
 }
@@ -83,7 +84,7 @@ if (publish) {
   v <- wet_catalog_verify(cat_local)
   if (!all(v$ok)) stop("the local tree no longer matches its manifest: ", paste(v$key[!v$ok], collapse = ", "))
   aws <- function(...) {
-    x <- suppressWarnings(system2("aws", c(...), stdout = TRUE, stderr = TRUE))
+    x <- suppressWarnings(system2("aws", shQuote(c(...)), stdout = TRUE, stderr = TRUE))
     if (!is.null(attr(x, "status"))) stop("aws ", paste(c(...)[1:2], collapse = " "), " failed: ", paste(x, collapse = " "))
     x
   }

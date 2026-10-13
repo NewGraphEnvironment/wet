@@ -74,3 +74,5 @@ Relates to #1, fresh#114.
 
 | Error | Resolution |
 |-------|------------|
+| BUILD on m4: `git diff … :(exclude)R/wet_catalog.R … failed:` with no message | `system2()` passes args to `sh` unquoted, so `(` is a syntax error (status 2). The segment guard was added in #62's code-check rounds, after the last real build, so it had never run. `shQuote()` in the `git()` and `aws()` helpers of `scripts/discharge_publish.R`. |
+| m4 launch: `cd … && … && nohup … &` ran the `cd` in the background too, so the foreground probe looked in `~` | `&` binds to the whole `&&` list (code-check-shell); separate with `;` and guard the `cd` with `|| exit` |

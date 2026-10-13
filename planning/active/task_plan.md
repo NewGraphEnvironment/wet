@@ -3,8 +3,8 @@
 PR #62 (v0.4.0) merged the publish path; #7 stayed open because nothing was uploaded. Both blockers have cleared: crate#32 is released as v0.7.0, and anonymous `s3:GetObject` on `fresh-bc/discharge/*` is live. What remains is the rebuild (the committed report predates the code-check fixes and names crate 0.6.0), the upload, an independent verify, and the Postgres load fresh#114 joins. It runs on m4, from one worktree on this branch: BUILD, commit the report, PUBLISH.
 
 ## Phase 1: m4 setup
-- [ ] Push this branch. On m4: `git worktree add ~/Projects/repo/wet-7-upload <branch>`, then symlink `data/wb` to the main checkout's `data/wb` (as `wet-7-publish` did)
-- [ ] Install crate from main into m4's R library (`pak::pak("NewGraphEnvironment/crate")`) and confirm `packageVersion("crate") == "0.7.0"`
+- [x] Push this branch. On m4: `git worktree add ~/Projects/repo/wet-7-upload <branch>`, then symlink `data/wb` to the main checkout's `data/wb` (as `wet-7-publish` did)
+- [x] Install crate from main into m4's R library (`pak::pak("NewGraphEnvironment/crate")`) and confirm `packageVersion("crate") == "0.7.0"`
 
 ## Phase 2: rebuild
 - [ ] On m4 in the worktree, run `Rscript scripts/discharge_publish.R` (BUILD, about 5 min) in the background, logging to a file, with a completion marker cleared at launch
