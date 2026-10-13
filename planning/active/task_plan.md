@@ -25,16 +25,16 @@ Mechanism choices (mine):
 - The routed checks in BUILD read fwapg per drainage code, with the query shape `segment_output.R` already uses, and join in R. No postgres_scanner.
 
 ## Phase 1: Value-level cross-checks in the publish BUILD
-- [ ] `scripts/discharge_publish_lib.R`: add `publish_value_compare(a, b, keys)` → `c(compared, differing, max_abs_diff)`. Differing means `|a − b| > tol` (relative 1e-9 by default), and keys present on only one side count as differing.
-- [ ] Add tests for it in `tests/testthat/test-discharge_publish_lib.R`, or extend the existing lib tests if there are any: equal, differing, one-sided key, NA on one side. Restore the bug and watch each test go red.
-- [ ] `scripts/discharge_publish.R` BUILD, per drainage code after the parts are written, reading the written parts back with duckdb:
+- [x] ~~`scripts/discharge_publish_lib.R`~~ `R/wet_values_compare.R` (internal, so `data-raw/` shares it, and listed in BUILD's `publish_own`): `wet_values_compare(a, b, id_col, value, tol)` → `c(compared, differing, max_abs_diff)`. Differing means `|a − b| > tol` (relative 1e-9 by default), and keys present on only one side count as differing.
+- [x] Add tests for it in `tests/testthat/test-discharge_publish_lib.R`, or extend the existing lib tests if there are any: equal, differing, one-sided key, NA on one side. Restore the bug and watch each test go red.
+- [x] `scripts/discharge_publish.R` BUILD, per drainage code after the parts are written, reading the written parts back with duckdb:
   - `pcic_routed`, months 1–12, against `fwa_stream_networks_discharge_monthly` for the same segment and month.
   - `pcic_routed`, month 0, against the mean of that segment's 12 published months.
   - The routed months-1–12 total against the report's fingerprint total (178,035,348.248310 m³/s, to the 6 decimals stored).
   - `wet_balance`, all 13 months, against the fit's `output/<code>.parquet` reached through `fwa_streams_watersheds_lut` (an independent path from the segment table's join).
   - `wet_balance` against the #57 segment table rows for the same segment and month (a check of the write).
-- [ ] `scripts/discharge_publish.R` BUILD: compare each part's md5 with the live manifest's (`wet_catalog()`) and report `identical to published: n of N` with the published build commit. This is a report line, not a refusal: a new release is meant to differ.
-- [ ] Report: a new section, "Value cross-checks", with one row per check giving compared, differing and largest difference. A check with any differing row fails the build, as the existing `checks` do.
+- [x] `scripts/discharge_publish.R` BUILD: compare each part's md5 with the live manifest's (`wet_catalog()`) and report `identical to published: n of N` with the published build commit. This is a report line, not a refusal: a new release is meant to differ.
+- [x] Report: a new section, "Value cross-checks", with one row per check giving compared, differing and largest difference. A check with any differing row fails the build, as the existing `checks` do.
 - [ ] Commit. Then on m4, in a fresh worktree off this branch with `data/wb` symlinked (m4 memory note), run BUILD, copy back `data/checks/discharge_publish_20260717.txt`, and commit it. If any part's md5 differs from the published one: stop, report, ask.
 
 ## Phase 2: Vignette data from the published parts
