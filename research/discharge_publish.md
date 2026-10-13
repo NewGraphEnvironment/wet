@@ -60,9 +60,9 @@ discharge/fwa/v1/segment_monthly/scenario=ssp245/forcing=MPI-ESM1-2-HR/source=pc
 - **The manifest is rewritten whole by each publish**, from one local tree, so that tree must hold every scenario meant to stay published. Its `sources` entries carry what each source's rows were built from (the routed table's fingerprint and fwapg commit; the balance's fit release and province run), and each dataset names its crate schema at a crate release.
 - **Overwrites.** Bucket versioning is off, so an overwrite is final. That is acceptable because every file is rebuilt from code and inputs, and the manifest records the wet commit, fit release and routed-table fingerprint that built it.
 
-## Every published value is checked against its source (#64)
+## Every published flow is checked against its source (#64)
 
-The build's original cross-checks compared row and `pick` counts only, which cannot see a value that moved. Since #64 the build reads every written part back and compares it, value by value, with what it was built from (`wet_values_compare()`). It reports compared, differing and largest difference for each check, and fails on any difference:
+The build's original cross-checks compared row and `pick` counts only, which cannot see a value that moved. Since #64 the build reads every written part back and compares it, value by value, with what it was built from (`wet_values_compare()`). It reports compared, differing and largest difference for each check, and fails on any difference. Every published flow (`q_m3s`) is checked against its source. Of the other columns, the segment parts' `runoff_mm`, `coverage` and `pick` are checked against the segment table, and `period`, and the watershed parts' `runoff_mm`, `coverage` and `bc_fraction`, are not checked value by value:
 
 | check | compared | differing | largest difference |
 |---|---|---|---|

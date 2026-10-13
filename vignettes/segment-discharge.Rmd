@@ -603,10 +603,11 @@ stopifnot(isTRUE(prov$keep_adjust), isFALSE(prov$gate_pass), identical(prov$pool
 
 ## Validation
 
-Every published value is checked against what it was built from when the
+Every published flow is checked against what it was built from when the
 product is built: routed months against fwapg's table, routed annual values
-against their twelve months, the balance against the fit's output, and every
-row against the per-segment table it was cut from. The counts compared and
+against their twelve months, and the balance against the fit's output. Each
+segment row's flow, runoff, coverage and `pick` are also checked against the
+per-segment table it was cut from. The counts compared and
 differing are in the build report,
 [`r basename(pub$report)`](`r paste0("https://github.com/NewGraphEnvironment/wet/blob/main/", pub$report)`).
 This article reads its segment values from the published parts and is not

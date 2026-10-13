@@ -335,11 +335,11 @@ hive <- DBI::dbGetQuery(duck, sprintf("
 DBI::dbDisconnect(duck, shutdown = TRUE)
 checks["hive_read"] <- sum(hive$rows) == sum(seg_t$rows) && sum(hive$fresh) == picked_routed + picked_balance
 
-# ---- value cross-checks: every published value against what it was built from ----------------------
+# ---- value cross-checks: every published flow, and four segment columns, against their sources ------
 # Each written part is read back. Routed months 1-12 against fwapg's table,
 # routed month 0 against the mean of the part's own twelve months, the
 # balance's 13 months against the fit's output reached through the lut (the
-# segment table's join, done again here), every column of every segment row
+# segment table's join, done again here), four columns of every segment row
 # against the segment table it was cut from, and each watershed row against
 # the fit's output. Counts alone cannot see a value that moved; these count
 # and size every one that did. Values copied from a double are compared
@@ -461,7 +461,7 @@ writeLines(c(
   sprintf("tree: %s -> s3://%s/%s/", root, publish_bucket, publish_id), "",
   "## Cross-checks against the segment report, and value by value",
   sprintf("%-15s %s", names(checks), ifelse(checks, "ok", "FAIL")), "",
-  "## Value cross-checks (#64): every published value against what it was built from",
+  "## Value cross-checks (#64): every published flow, and four segment columns, against their sources",
   sprintf("%-30s %11s %10s %13s  %s", "check", "compared", "differing", "largest diff", "codes differing"),
   sprintf("%-30s %11.0f %10.0f %13.3g  %s", vc_sum$check, vc_sum$compared, vc_sum$differing, vc_sum$max_abs_diff,
           vc_sum$codes_differing),
