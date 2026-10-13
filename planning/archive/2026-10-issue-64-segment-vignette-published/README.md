@@ -10,11 +10,11 @@ What was learned:
 
 ## Measurement
 
-- **Publish BUILD with the value checks** (m4, wet 032242f, 22:59–23:06:55 UTC 2026-10-13, about 8 min against about 5 without): 555,857,796 values compared, 0 differing.
+- **Publish BUILD with the value checks** (full-run machine, wet 032242f, 22:59–23:06:55 UTC 2026-10-13, about 8 min against about 5 without): 555,857,796 values compared, 0 differing.
   - Exact everywhere except routed month 0 against the mean of its 12 months, where the largest difference is 9.09e-13 m³/s.
   - Routed total 178035348.248310 m³/s equals the table's fingerprint.
   - 67 of 67 parts are identical to the published build.
-- **Vignette data** (m1): 2,180 SALR balance values were exact, and 2,469 routed values (SALR and gauges) were within 1.1e-13. The read from the published parts took 28 s over httpfs.
+- **Vignette data**: 2,180 SALR balance values were exact, and 2,469 routed values (SALR and gauges) were within 1.1e-13. The read from the published parts took 28 s over httpfs.
   - One perturbed published value gave differing = 1 and a refusal, with the bundle unchanged.
   - A first perturbation attempt hit a row outside the checked set and proved nothing; it was redone.
 - **The article** went from about 1,600 words to 1,093.
@@ -22,7 +22,7 @@ What was learned:
 ## Evidence
 
 - `data/checks/discharge_publish_20260717.txt` (the value-checked build report)
-- m4 `~/Projects/repo/wet-64/data/logs/64_build.log` (machine-local)
+- the BUILD's run log on the full-run machine (not committed; the report above is its record)
 - `planning/archive/2026-10-issue-64-segment-vignette-published/review-round*.md`
 
 Closed by: PR (see branch `64-segment-discharge-vignette-lead-with-the`)
