@@ -18,15 +18,15 @@ PR #62 (v0.4.0) merged the publish path; #7 stayed open because nothing was uplo
 ## Phase 3: publish
 - [ ] On m4, run `AWS_PROFILE=airvine WET_PUBLISH=1 Rscript scripts/discharge_publish.R`. It uploads 67 parts plus the manifest with Content-MD5, deletes stale keys, and verifies anonymously; it should end on "published 67 parts … all verify".
   - If auto mode refuses this as a production write, the fallback is to hand over the bare command once, not to retry.
-- [ ] Commit the publish log line or log, if the script writes one (check before committing; nothing extra is invented)
+- [ ] PUBLISH writes no log file (review S2): record its final line in `research/` and on #7
 
 ## Phase 4: independent verify from m1
-- [ ] `wet_catalog()` against the live manifest (unsigned): 67 parts, with md5s identical to m4's local manifest
-- [ ] Run `wet_catalog_verify()` on the published catalogue, and read one part (BULK's drainage) over HTTPS with arrow; its rows equal the manifest's count
+- [ ] `wet_catalog()` against the live manifest (unsigned): 67 parts; `provenance$wet_commit` is the committed report's build; rows sum to 102,790,688 (segment) and 41,904,356 (watershed)
+- [ ] Download one part in full (`segment_monthly/…/source=pcic_routed/part-400.parquet`, BULK's drainage) and md5 it against the manifest; read the local copy with arrow: 3,420,157 rows (review G3, A3, AC4)
 
 ## Phase 5: Postgres from the published copy
-- [ ] On m4, `wet_db_load()` the `historical` scenario of both datasets from the published manifest (about 35 min). This replaces the pre-fix 7e738e1 tables.
-- [ ] Run fresh's subquery (`month = 0 AND pick`): expect 4,532,843 rows (3,152,838 routed, 1,380,005 balance), with the partial index present
+- [ ] On m4, drop the pre-fix 7e738e1 tables (`wet_db_load()` builds its indexes only when it creates a table, review G1), then `cat <- wet_catalog()` (https manifest asserted) and `wet_db_load(conn, cat)` plus `wet_db_load(conn, cat, dataset = "discharge/fwa/v1/watershed_monthly")` (about 35 min)
+- [ ] Run fresh's subquery (`month = 0 AND pick`): expect 4,532,843 rows (3,152,838 routed, 1,380,005 balance); `pg_indexes` holds the partial index; the table comment names the https manifest and the new build commit (review AC3)
 - m1's fwapg is not loaded (19 + 8.5 GB). That is left for whoever runs fresh#114 locally.
 
 ## Phase 6: record and close
