@@ -21,3 +21,7 @@
   - the partial index `WHERE ((month = 0) AND pick)` was created by `wet_db_load()`;
   - both table comments name the https manifest and build 7c62b9e.
 - Phase 6: `research/discharge_publish.md` gets a status line, the load measured from the published copy, and the policy and publish evidence.
+- Phase 6:
+  - #7's body: the Blockers section became "Status: published 2026-10-13".
+  - fresh#114 (closed 2026-09-26, reads fwapg's own `fwa_stream_networks_discharge`): commented that the table is loadable. Checked the coverage claim on m4 (picked annual rows: BULK 30,037, LDEN 21,848).
+  - m4: removed worktrees `wet-7-publish`, `wet-7-upload` and crate `/tmp/crate-31` with `git worktree remove` (crate-31's 536e8ed is in crate main); `data/wb` intact.

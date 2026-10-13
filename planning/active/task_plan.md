@@ -31,8 +31,8 @@ PR #62 (v0.4.0) merged the publish path; #7 stayed open because nothing was uplo
 
 ## Phase 6: record and close
 - [x] `research/discharge_publish.md`: status "published <date>" with the manifest URL, build commit and part count; remove the open-blocker wording
-- [ ] Edit #7's body: mark the blockers resolved and record the publish. Comment on fresh#114 that `discharge.fwa_v1_segment_monthly` can be loaded with `wet_db_load()`
-- [ ] m4 cleanup: `git worktree remove` for `wet-7-publish` and `wet-7-upload`; remove crate's `/tmp/crate-31` registration with `git worktree remove` (not prune). Update the m4 memory file.
+- [x] Edit #7's body: mark the blockers resolved and record the publish. Comment on fresh#114 that `discharge.fwa_v1_segment_monthly` can be loaded with `wet_db_load()`
+- [x] m4 cleanup: `git worktree remove` for `wet-7-publish` and `wet-7-upload`; remove crate's `/tmp/crate-31` registration with `git worktree remove` (not prune). Update the m4 memory file.
 - [ ] `/planning-archive`, then `/gh-pr-push` with "Fixes #7"
 
 ## Validation
