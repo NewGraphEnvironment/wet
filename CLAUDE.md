@@ -1024,6 +1024,9 @@ Construct instants explicitly: a `Date` always becomes UTC midnight whatever `tz
 ### A `for` loop that builds `aes()` captures the loop variable lazily
 `aes()` quotes its arguments, so `aes(fill = lab[i])` is not evaluated until the plot is drawn — by which time `i` holds its **last** value.
 
+### ggplot2: forcing a legend key for an unused factor level
+Keep `drop = FALSE` on the scale and give the layer a named `show.legend` that also sets `FALSE` for each other legend: `drop = FALSE` alone lists the unused level with no glyph, and `show.legend = TRUE` stamps the layer's glyph into every other legend.
+
 ### `paste()` with a zero-length argument returns length ONE, not zero
 `paste0("x", character(0))` is `"x"`, so a key built per element gains one phantom member when the vector is empty; guard the empty case before building keys.
 
@@ -1078,6 +1081,9 @@ A ~600-character free-text field in a `kable` cell wedged `pagedown::chrome_prin
 ### `stats::aggregate()` has three separate silent behaviours, and each fails in a different direction
 All three measured on R 4.5, all three met inside one 800-line script (drift#67).
 
+### `stats::mad()` is already scaled to an SD
+Use `stats::mad(x)` itself as the robust standard deviation, or `mad(x, constant = 1)` for the raw median absolute deviation: the default `constant = 1.4826` already scales it, so multiplying by 1.4826 again inflates the SD by half.
+
 ### `deparse(body(f))` excludes formal defaults, so a body scan cannot see a default
 A guard that scans function bodies for a forbidden literal is blind to that literal in a **signature**.
 
@@ -1089,6 +1095,9 @@ Scan R source for non-ASCII the way `R CMD check` does (`tools:::.check_package_
 
 ### `tryCatch(warning = )` DISCARDS the value the expression produced
 A `warning =` handler is not a filter — it replaces the whole expression, so a call that **succeeded** and merely warned returns the handler's value and the result is thrown away.
+
+### Do not abort inside a handler for a warning raised from C++; note it and abort after the call returns
+Record a flag in the `withCallingHandlers()` handler, `invokeRestart("muffleWarning")`, and raise once the call has returned: for a warning from `Rcpp::warning()`, an abort from inside the handler longjmps through the C++ frames and skips their destructors.
 
 ### `match()` treats NA as a matchable VALUE, so two unknowns join to each other
 `match(NA, c("1", NA))` is **2**.
@@ -1236,6 +1245,9 @@ Sum the bytes as doubles (`sum(as.numeric(raw[i + 1:4]) * 256^(0:3))`) to read a
 
 ### ajv honours keywords beside a `$ref`; Python's jsonschema ignores them
 Keep every `$ref` alone in a draft-07 schema tested with jsonvalidate and read by pystac.
+
+### `load_all()` runs every `.R` file at the top of a package's `data/` as a data script
+Keep helper and ad hoc scripts out of `data/`, which pkgload treats as package data, so `load_all()` sources any `data/*.R` it finds there.
 
 # Code Check — Shell
 Tool-level traps in bash, sed, git and `gh`, and in the host toolchain those commands depend on.
@@ -1457,6 +1469,9 @@ If `bcdata::BBOX()` rejects a length-4 numeric bbox as not a length-4 numeric ve
 ### terra: operator dispatch and edge cases in package code
 - **SpatRaster `%in%` is not dispatched when terra is *imported* (only when *attached*).**
 
+### A classed abort raised while computing an argument to a terra S4 generic loses its class
+Compute an argument whose evaluation can abort before calling the terra generic: `pre <- f(); post <- g(); terra::cover(pre, post)`, never `terra::cover(f(), g())`.
+
 ### terra: `extract()` returns no row for ground beyond the raster, and counts cells by centre
 - Two traps in one call, and both make a partial result look complete.
 
@@ -1526,8 +1541,8 @@ A `NULL` `data` argument does not error and does not warn — the layer inherits
 ### terra: `app()` calls a vector-tolerant `fun` once per CELL, and reads a 5-column return on a 5-column raster as transposed
 Two contracts inside `terra::app()` that read as the opposite of what they are, both measured on terra 1.9.34 (drift#9, 2026-09-05):
 
-### terra: `levels<-` and `coltab<-` copy before they strip; `set.cats(NULL)` is the in-place form
-`levels<-` and `coltab<-` deep-copy before stripping, so a caller-untouched test cannot fail under them; `terra::set.cats(r, layer = i, value = NULL)` strips in place and mutates whatever raster it is given, so use it on a copy you own.
+### terra: `levels<-` and `coltab<-` copy first; `set.cats()` mutates in place, setting or stripping
+`terra::set.cats()` mutates the raster it is given whether it strips (`value = NULL`) or sets levels; `levels<-` and `coltab<-` deep-copy first, so on a caller's raster call `set.cats()` only on the copy one of them returned, or on a `deepcopy()` you own.
 
 ### terra `metags()`: the empty case is `NULL`, and the sidecar is half the artefact
 Three measured facts about raster **container** metadata, all of which fail quietly (floodplains#83, 2026-09-05, terra 1.9.34 / GDAL 3.8.5).
@@ -1561,6 +1576,9 @@ GDAL has two KML drivers and picks `KML` by default, which does not read the `<S
 
 ### GDAL applies `-srcnodata` and an alpha mask together, and the mask loses
 Two ways of saying "these pixels are not data" reach `gdalwarp` independently, and giving it both is not an error — it is an instruction to do both.
+
+### Check an alpha-masked raster by its mask flags, not its colorinterp
+Assert that rasterio's `ds.mask_flag_enums` is `[per_dataset, alpha]` on every image band, as an absolute check: `colorinterp[-1] == alpha` is a proxy, and a guard comparing output to source cannot see a NoData that overrides the alpha when both carry it.
 
 ### `parallel::mclapply()` over a remote raster aborts every fork on macOS, and the wrapper exits 0
 GDAL's curl handles do not survive a fork.
@@ -1607,8 +1625,11 @@ Pass `flat = TRUE` (with the interval in degrees) when densifying a lon/lat exte
 ### Planetary Computer STAC: a floodplain-scale read hits three limits a reach never does
 Query a large AOI by its convex hull, re-sign items before each tile, and give `datetime` explicit times (`…T00:00:00Z/…T23:59:59Z`).
 
-### gdalcubes reports failed chunk reads only on stderr, so a partial cube passes as complete
-Do not guard on it by capturing output.
+### gdalcubes records only a failed image OPEN; check `chunk_status`, and know what it misses
+Read the `chunk_status` variable of every `write_ncdf()` output with ncdf4 and abort on any value other than 0 or the netCDF int fill, and abort after the call returns on the R warning `could not be added to output`.
+
+### `gdalcubes::cube_view()` reads an aggregation or resampling it does not know as a default, with no error
+Validate `aggregation` and `resampling` against sets measured by round-tripping each value through `cube_view()`, not against `?cube_view`: an unknown aggregation silently becomes `"none"` and an unknown resampling `"near"`.
 
 ### terra reads a multi-variable gdalcubes NetCDF with its variables in alphabetical order
 Select layers by name after `terra::rast()` of a `gdalcubes::write_ncdf()` output, never by position.
@@ -1621,6 +1642,9 @@ Read with `promote_to_multi = FALSE` whenever a layer will be written back.
 
 ### `sf::st_make_valid()` rewrites geometry that was already valid
 Run it on the invalid rows only (`!st_is_valid(x)`), or keep the original geometry and use the made-valid copy just for the computation.
+
+### `st_union()` fails after `st_transform()` of a source mixing XY and XYZ rings
+Drop Z with `sf::st_zm()` before any `st_union()` or `st_combine()` on data that may mix XY and XYZ rings and has been through `st_transform()`: the union fails *"Points of LinearRing do not form a closed linestring"*, and `st_make_valid()` fails the same way.
 
 ### terra: `unique()` and `freq()` on a factor return its labels, not its codes
 Read a factor raster's codes from a copy with its levels stripped (`levels(y) <- NULL`), never from `terra::unique(x)[, 1]` or `terra::freq(x)$value`, which on a factor return the active category's labels.
@@ -1693,6 +1717,12 @@ Subtract a local origin before `pdist::pdist()`: at BC Albers magnitudes it retu
 
 ### FWA `upstream_route_measure` misses the next segment's start
 Take a segment's top from the next segment's `downstream_route_measure`, and compare measures from different sources within 1 mm.
+
+### FWA main flow is not edge type 1000 alone
+Select main flow with `edge_type IN (1000, 1050, 1200, 1250, 1450)`, and test what the layer is for rather than that it is non-empty: 1000 is single-line stream only, so a filter built on it draws no large river.
+
+### terra: `focal(na.rm = TRUE)` drops NA cells from the vote, so where you fill NA around a filter changes its output
+Fill NA with the value you mean (`ifel(is.na(x), 0L, x)`) **before** a `focal()` majority or min/max filter, not after it, whenever those cells should count.
 
 # Code Check Conventions
 Structured checklist for reviewing diffs before commit.
@@ -1870,6 +1900,10 @@ On a collision, do not resolve conflicts file by file. The merge conflict hides 
 useful question, which is *which body of work survives*. Ask, then re-land the delta on
 top of what shipped; two independent attempts at one problem are usually complementary
 rather than redundant, and a mechanical resolution keeps whichever half git preferred.
+
+When main only moved under you, with other work and no duplicate, bring it in with
+`git merge origin/main`, not a rebase: `progress.md` and the archive README cite the
+branch's commit SHAs, and a rebase rewrites every one they name (soul#352, 2026-10-12).
 
 ## Re-read the issue body before the baseline
 
@@ -2672,7 +2706,7 @@ repeating itself.
 
 When a failure does generalize, it graduates to the convention that owns its
 class: the `code-check*.md` family for a bug class in a diff — `code-check.md` for a
-mechanism, `-shell`, `-r`, `-spatial` or `-infra` for a tool quirk — `ci-monitoring.md` for CI
+mechanism, `-shell`, `-r`, `-python`, `-spatial` or `-infra` for a tool quirk — `ci-monitoring.md` for CI
 behaviour, the domain convention otherwise.
 
 ## Skills
