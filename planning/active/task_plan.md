@@ -37,7 +37,7 @@ PR #62 (v0.4.0) merged the publish path; #7 stayed open because nothing was uplo
 
 ## Validation
 
-- [ ] Report fails no check; anonymous verify passes on both machines; fresh's subquery count matches
-- [ ] `/code-check` on any change to code or instructions. This branch is expected to touch only a report, `research/` and planning, so it is skipped if no such file changes; the PR says which.
-- [ ] PWF checkboxes match landed work
+- [x] Report fails no check; anonymous verify passes on both machines; fresh's subquery count matches
+- [x] `/code-check` on any change to code or instructions. This branch is expected to touch only a report, `research/` and planning, so it is skipped if no such file changes; the PR says which.
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion

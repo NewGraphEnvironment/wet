@@ -25,3 +25,7 @@
   - #7's body: the Blockers section became "Status: published 2026-10-13".
   - fresh#114 (closed 2026-09-26, reads fwapg's own `fwa_stream_networks_discharge`): commented that the table is loadable. Checked the coverage claim on m4 (picked annual rows: BULK 30,037, LDEN 21,848).
   - m4: removed worktrees `wet-7-publish`, `wet-7-upload` and crate `/tmp/crate-31` with `git worktree remove` (crate-31's 536e8ed is in crate main); `data/wb` intact.
+- `/code-check branch` (the branch changed `scripts/discharge_publish.R`), three rounds, all clean:
+  - Round 1: every `git()`/`aws()` call site under `shQuote()`.
+  - Round 2: the script paths the one real run did not reach, tested in a scratch clone with a faked `aws`.
+  - Round 3: the mechanism, enumerated over every `system2()` call in the repo. Three other `git()` helpers are unquoted but pass only plain words.
