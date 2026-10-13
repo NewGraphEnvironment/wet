@@ -8,6 +8,9 @@
 - [`wet_aet_landcover()`](https://newgraphenvironment.github.io/wet/reference/wet_aet_landcover.md)
   : Adjust modelled AET by land cover, as Chapman et al. (2018) did
 
+- [`wet_catalog()`](https://newgraphenvironment.github.io/wet/reference/wet_catalog.md)
+  : Published discharge: the parts a manifest lists
+
 - [`wet_cgiar_aet()`](https://newgraphenvironment.github.io/wet/reference/wet_cgiar_aet.md)
   : Actual evapotranspiration from the CGIAR Global Soil-Water Balance
 
@@ -19,6 +22,9 @@
 
 - [`wet_cv_folds()`](https://newgraphenvironment.github.io/wet/reference/wet_cv_folds.md)
   : Cross-validation folds for gauges on one stream network
+
+- [`wet_db_load()`](https://newgraphenvironment.github.io/wet/reference/wet_db_load.md)
+  : Load one scenario of published discharge into Postgres
 
 - [`wet_dem_glo90()`](https://newgraphenvironment.github.io/wet/reference/wet_dem_glo90.md)
   : Elevation on a template grid from the Copernicus GLO-90 DEM
