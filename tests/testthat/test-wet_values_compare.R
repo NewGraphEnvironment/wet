@@ -33,6 +33,15 @@ test_that("NA on one side differs; NA on both does not", {
   expect_equal(r[["max_abs_diff"]], 0)
 })
 
+test_that("an infinite value differs from a finite one, at any tolerance", {
+  for (tol in c(0, 1e-9)) {
+    r <- wet_values_compare(fr(1:3, 0L, c(Inf, -Inf, Inf)), fr(1:3, 0L, c(5, Inf, Inf)), tol = tol)
+    expect_equal(r[["differing"]], 2, info = tol)
+    expect_equal(r[["max_abs_diff"]], 0, info = tol)
+  }
+  expect_equal(wet_values_compare(fr(1L, 0L, NA), fr(1L, 0L, Inf))[["differing"]], 1)
+})
+
 test_that("the month is part of the key", {
   a <- fr(c(1L, 1L), c(1L, 2L), c(1, 2))
   b <- fr(c(1L, 1L), c(2L, 1L), c(1, 2))

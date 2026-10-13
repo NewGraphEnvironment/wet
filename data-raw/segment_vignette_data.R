@@ -152,9 +152,6 @@ seg_grp_gauge <- DBI::dbGetQuery(conn, sprintf("
   SELECT linear_feature_id::int AS linear_feature_id, watershed_group_code FROM whse_basemapping.fwa_stream_networks_sp
   WHERE linear_feature_id IN (%s)", paste(unique(sk$linear_feature_id), collapse = ", ")))
 stopifnot(setequal(seg_grp_gauge$linear_feature_id, sk$linear_feature_id))
-# fwapg's routed annual flow on each calibration gauge's segment: what the
-# published value there must equal (below)
-ra <- routed_annual(conn, sk$linear_feature_id)
 # the calibration gauges near SALR, to arbitrate between the two products there:
 # those within 30 km, and the smallest whose basin holds the whole group (its
 # outlet gauge)
@@ -178,7 +175,10 @@ n_salr <- DBI::dbGetQuery(conn, "
 holds <- sk[sk$watershed_feature_id %in% holds$watershed_feature_id[holds$n >= 0.99 * n_salr], ]
 outlet <- holds$station_number[which.min(holds$area_km2)]
 stopifnot(length(outlet) == 1)
-seg_routed <- routed_annual(conn, seg$linear_feature_id)
+# fwapg's routed annual flow on SALR's segments and each calibration gauge's,
+# in one query, so a segment that is both has one value: what the published
+# values must equal (below)
+src_routed <- routed_annual(conn, c(seg$linear_feature_id, sk$linear_feature_id))
 DBI::dbDisconnect(conn)
 sk$watershed_group_code <- st_wsg$watershed_group_code[match(sk$watershed_feature_id, st_wsg$watershed_feature_id)]
 stopifnot(!anyNA(sk$watershed_group_code), !anyDuplicated(seg$linear_feature_id))
@@ -280,8 +280,7 @@ at0 <- function(id, q) data.frame(linear_feature_id = id, month = 0L, q_m3s = q)
 src_b <- seg[!is.na(seg$watershed_feature_id), ]
 src_b <- at0(src_b$linear_feature_id, wb$discharge_m3s[match(src_b$watershed_feature_id, wb$watershed_feature_id)])
 src_b <- src_b[!is.na(src_b$q_m3s), ]
-src_r <- unique(rbind(seg_routed, ra))
-src_r <- src_r[!is.na(src_r$q_m3s), ]
+src_r <- src_routed[!is.na(src_routed$q_m3s), ]
 src_r <- at0(src_r$linear_feature_id, src_r$q_m3s)
 in_salr <- pub$watershed_group_code %in% wsg & pub$linear_feature_id %in% seg$linear_feature_id
 pb_salr <- pub_b[pub_b$linear_feature_id %in% seg$linear_feature_id, ]

@@ -3,12 +3,13 @@
 # built from (scripts/discharge_publish.R, data-raw/segment_vignette_data.R).
 #
 # `a` and `b` each hold `id_col`, `month` (0-12) and `value`, with one row
-# per feature and month. A row differs when its key is on one side only, when
-# its value is NA on one side only, or when the two values are further apart
-# than `tol` relative to the larger. Returns c(compared, differing, max_abs_diff):
-# compared counts the keys on either side, and max_abs_diff is the largest
-# absolute difference among keys on both sides (0 when there are none), so a
-# mismatch is counted and sized rather than averaged away.
+# per feature and month. A row is equal when both values are NA, when both
+# are the same infinity, or when both are finite and no further apart than
+# `tol` relative to the larger; anything else differs, a key on one side only
+# included. Returns c(compared, differing, max_abs_diff): compared counts the
+# keys on either side, and max_abs_diff is the largest absolute difference
+# among finite pairs (0 when there are none), so a mismatch is counted and
+# sized rather than averaged away.
 wet_values_compare <- function(a, b, id_col = "linear_feature_id", value = "q_m3s", tol = 1e-9) {
   key <- function(d, side) {
     if (!all(c(id_col, "month", value) %in% names(d))) {
@@ -29,10 +30,12 @@ wet_values_compare <- function(a, b, id_col = "linear_feature_id", value = "q_m3
   only_b <- sum(!kb %in% ka)
   va <- a[[value]][!is.na(ia)]
   vb <- b[[value]][ia[!is.na(ia)]]
-  na_one <- is.na(va) != is.na(vb)
+  fin <- is.finite(va) & is.finite(vb)
   d <- abs(va - vb)
-  far <- !is.na(d) & d > tol * pmax(abs(va), abs(vb))
+  same <- (is.na(va) & is.na(vb)) |
+    (fin & d <= tol * pmax(abs(va), abs(vb))) |
+    (!fin & !is.na(va) & !is.na(vb) & va == vb)
   c(compared = length(ka) + only_b,
-    differing = only_a + only_b + sum(na_one) + sum(far),
-    max_abs_diff = if (any(!is.na(d))) max(d, na.rm = TRUE) else 0)
+    differing = only_a + only_b + sum(!same),
+    max_abs_diff = if (any(fin)) max(d[fin]) else 0)
 }
