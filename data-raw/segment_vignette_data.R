@@ -1,34 +1,35 @@
-# Data for vignettes/segment-discharge.Rmd (#28), which runs on these files and
-# never touches fwapg, PCIC or the province run at build.
+# Data for vignettes/segment-discharge.Rmd (#28, #64), which runs on these
+# files and never touches fwapg, the network or the province run at build.
 #
-#   Rscript data-raw/segment_vignette_data.R
+#   WET_FWAPG_COMMIT=<sha> Rscript data-raw/segment_vignette_data.R
 #
-# Runs scripts/mad_parity.R SALR itself (a few minutes once PCIC is cached in
-# data/pcic/), so its data/parity/SALR_*.csv come from the same commit as
-# everything else here.
+# Every segment value it bundles is read from the published product
+# (wet_catalog(): the manifest at s3://fresh-bc/discharge/fwa/v1/), and the
+# script refuses to write unless each one equals what it was built from: the
+# balance's month-0 flow in the shipped fit's output (through the lut that
+# gives a segment its watershed), and routed flow's mean of twelve months in
+# fwapg's routed table (scripts/pcic_routed_lib.R). The parts are checked
+# against their manifest md5s before and after the read, so a read during a
+# publish is refused.
 #
 # Writes inst/vignette-data/segment_values.rds, a list:
-#   - parity: one row summarising wet's rebuild of fwapg on SALR from PCIC
-#     VIC-GL (fwapg mode: centroid sampling, fwapg's stored upstream area): the
-#     segments fwapg has a mean annual discharge for, how many match it to the
-#     five decimals fwapg stores, and the largest relative difference
-#   - sampling: per SALR watershed with a stream, wet's mean annual runoff (mm)
-#     with centroid and with area-weighted sampling, and its upstream area
-#   - segments: per order >= 3 segment of SALR and BULK (segment_map.rds), mean
-#     annual discharge from the open water balance (#11) and from PCIC's routed
-#     flow (NewGraphEnvironment/fwapg#6, #58)
+#   - segments: per order >= 3 segment of SALR (segment_map.rds), the
+#     published annual flow (month 0) from the open water balance (#11) and
+#     from PCIC's routed flow (NewGraphEnvironment/fwapg#6, #58), and the
+#     source the published `pick` selects
 #   - skill: the shipped fit's calibration stations, with their held-out
 #     (blocked-CV) error on annual runoff, the segment and watershed each
 #     snapped to, zone, nesting and area, whether it lies in a group routed flow
-#     covers (in_routed), and routed mean annual runoff on the gauge's segment
-#     (routed_mm; NA where the segment has none), so both estimates are scored
+#     covers (in_routed), and the published routed annual runoff on the gauge's
+#     segment (routed_mm; NA where it has none), so both estimates are scored
 #     on one set, as scripts/pcic_routed_compare.R scores them
 #   - gauges_salr: the calibration gauges within 30 km of SALR and its outlet
 #     gauge, with their location and observed, held-out water-balance and
 #     routed mean annual runoff, to say which estimate the gap between them on
 #     SALR belongs to
-#   - provenance: the runs and reports these came from, and the numbers the
-#     vignette quotes about them
+#   - provenance: the runs, reports and published build these came from, the
+#     value checks against the published parts, and the numbers the vignette
+#     quotes about them
 #
 # The water-balance inputs are the shipped fit (scripts/wb_fit_lib.R: the
 # province run under data/wb/ and one HYDAT release; scripts wb_province.R,
@@ -55,7 +56,7 @@ wet_commit <- git("rev-parse", "--short", "HEAD")
 stopifnot(length(wet_commit) == 1, nzchar(wet_commit))
 
 # the routed table must be the one the tracked report scored, built at the
-# commit it names: checked before the minutes-long parity run below
+# commit it names
 source("scripts/wb_fit_lib.R")
 source("scripts/pcic_routed_lib.R")
 fwapg_commit <- routed_commit()
@@ -76,19 +77,10 @@ if (!report_matches) {
        ": rerun scripts/pcic_routed_compare.R")
 }
 
-# PCIC through wet on SALR, from this commit's code: the old outputs go first,
-# so a failed run cannot leave an earlier one to be read
-f_par <- file.path("data", "parity", "SALR_parity.csv")
-f_area <- file.path("data", "parity", "SALR_area_total.csv")
-unlink(c(f_par, f_area))
-f_log <- file.path("data", "parity", "SALR_run.log")
-rc <- system2("Rscript", c("scripts/mad_parity.R", "SALR"), stdout = f_log, stderr = f_log)
-if (rc != 0 || !all(file.exists(c(f_par, f_area)))) stop("scripts/mad_parity.R SALR failed: see ", f_log)
-
 source("scripts/wb_cv_lib.R")  # load_all(), key_dir, cal, groups, score_code_md5
 
 min_order <- 3
-wsg <- c("SALR", "BULK")
+wsg <- "SALR"
 out <- file.path("inst", "vignette-data", "segment_values.rds")
 budget_kb <- 500
 
@@ -151,20 +143,18 @@ routed_large <- DBI::dbGetQuery(conn, sprintf("
 stopifnot(routed_large$segments > 0)
 # the table must not have changed since the check above
 stopifnot(identical(routed_fingerprint(conn), routed_fp))
-# fwapg's annual table on the two groups: the parity rebuild's segments
-n_fwapg <- DBI::dbGetQuery(conn, sprintf("
-  SELECT s.watershed_group_code, count(d.linear_feature_id)::int AS n
-  FROM whse_basemapping.fwa_stream_networks_sp s
-  LEFT JOIN whse_basemapping.fwa_stream_networks_discharge d USING (linear_feature_id)
-  WHERE s.watershed_group_code IN (%s) GROUP BY 1", paste0("'", wsg, "'", collapse = ", ")))
 # the calibration stations in each group, by the watershed their gauge snapped to
 st_wsg <- DBI::dbGetQuery(conn, sprintf("
   SELECT watershed_feature_id, watershed_group_code FROM whse_basemapping.fwa_watersheds_poly
   WHERE watershed_feature_id IN (%s)", paste(sk$watershed_feature_id, collapse = ", ")))
-# routed mean annual runoff on each calibration gauge's segment, in mm over
-# wet's accumulated upstream area, as scripts/pcic_routed_compare.R takes it
+# the group of each gauge's segment, which is the one the published parts carry
+seg_grp_gauge <- DBI::dbGetQuery(conn, sprintf("
+  SELECT linear_feature_id::int AS linear_feature_id, watershed_group_code FROM whse_basemapping.fwa_stream_networks_sp
+  WHERE linear_feature_id IN (%s)", paste(unique(sk$linear_feature_id), collapse = ", ")))
+stopifnot(setequal(seg_grp_gauge$linear_feature_id, sk$linear_feature_id))
+# fwapg's routed annual flow on each calibration gauge's segment: what the
+# published value there must equal (below)
 ra <- routed_annual(conn, sk$linear_feature_id)
-sk$routed_mm <- routed_mm(ra$q_m3s[match(sk$linear_feature_id, ra$linear_feature_id)], sk$upstream_area_m2)
 # the calibration gauges near SALR, to arbitrate between the two products there:
 # those within 30 km, and the smallest whose basin holds the whole group (its
 # outlet gauge)
@@ -188,9 +178,72 @@ n_salr <- DBI::dbGetQuery(conn, "
 holds <- sk[sk$watershed_feature_id %in% holds$watershed_feature_id[holds$n >= 0.99 * n_salr], ]
 outlet <- holds$station_number[which.min(holds$area_km2)]
 stopifnot(length(outlet) == 1)
-near <- sk[sk$salr_km <= near_km | sk$station_number %in% outlet, ]
 seg_routed <- routed_annual(conn, seg$linear_feature_id)
 DBI::dbDisconnect(conn)
+sk$watershed_group_code <- st_wsg$watershed_group_code[match(sk$watershed_feature_id, st_wsg$watershed_feature_id)]
+stopifnot(!anyNA(sk$watershed_group_code), !anyDuplicated(seg$linear_feature_id))
+
+# ---- the published product ------------------------------------------------------------------------
+# The live manifest must be the build the tracked publish report checked value
+# by value (scripts/discharge_publish.R, #64): that report failed no check, and
+# its parts were byte-identical to the live ones
+cat_pub <- wet_catalog()
+stopifnot(identical(attr(cat_pub, "manifest"), wet:::wet_catalog_url))
+pub_commit <- attr(cat_pub, "provenance")$wet_commit
+f_pub <- wb_report("discharge_publish", release)
+pr_lines <- readLines(f_pub)
+re_same <- "^parts identical to the published build ([0-9a-f]+): ([0-9]+) of ([0-9]+) here, ([0-9]+) published"
+same <- regmatches(pr_lines, regexec(re_same, pr_lines))
+same <- Filter(length, same)
+if (any(grepl("FAIL", pr_lines)) || length(same) != 1L || same[[1]][2] != pub_commit ||
+      length(unique(c(same[[1]][3:5], nrow(cat_pub)))) != 1L) {
+  stop(f_pub, " is not a passing value check of the live build ", pub_commit, ": rerun scripts/discharge_publish.R")
+}
+# what a reader of the segment table sees, per source: its rows, and those
+# fresh's `month = 0 AND pick` returns (the report's duckdb read of the tree)
+re_seen <- "^historical +([A-Za-z0-9-]+) +([a-z_]+) +([0-9]+) rows +([0-9]+) fresh-subquery rows$"
+seen <- do.call(rbind, Filter(length, regmatches(pr_lines, regexec(re_seen, pr_lines))))
+stopifnot(!is.null(seen), setequal(seen[, 3], c("pcic_routed", "wet_balance")))
+reader <- data.frame(source = seen[, 3], forcing = seen[, 2], rows = as.numeric(seen[, 4]),
+                     picked = as.numeric(seen[, 5]))
+# Month 0 of both sources in SALR, from the Fraser's parts (100), and of
+# routed flow on every gauge's segment, from the routed parts: a read filtered
+# on watershed_group_code opens only those groups' row groups. The parts must
+# match their manifest before and after
+parts <- cat_pub[cat_pub$dataset == "discharge/fwa/v1/segment_monthly" & cat_pub$scenario == "historical", ]
+verify <- function() {
+  v <- wet:::wet_catalog_verify(parts)
+  if (!all(v$ok)) {
+    stop("published parts do not match their manifest: ", paste(v$key[!v$ok], v$reason[!v$ok], collapse = "; "))
+  }
+}
+verify()
+duck <- DBI::dbConnect(duckdb::duckdb())
+invisible(DBI::dbExecute(duck, "LOAD httpfs"))
+read_pub <- function(hrefs, groups) {
+  DBI::dbGetQuery(duck, sprintf("
+    SELECT source, linear_feature_id, watershed_group_code, month, q_m3s, pick
+    FROM read_parquet([%s], hive_partitioning = true)
+    WHERE month = 0 AND watershed_group_code IN (%s)",
+    paste0("'", hrefs, "'", collapse = ", "), paste0("'", groups, "'", collapse = ", ")))
+}
+t_read <- Sys.time()
+pub_salr <- read_pub(parts$href[parts$code == "100"], wsg)
+# a gauge's group is its segment's, as the parts are sorted by it
+gauge_groups <- sort(unique(seg_grp_gauge$watershed_group_code))
+pub_gauge <- read_pub(parts$href[parts$source == "pcic_routed"], gauge_groups)
+message("published read: ", round(as.numeric(difftime(Sys.time(), t_read, units = "secs"))), " s")
+DBI::dbDisconnect(duck, shutdown = TRUE)
+verify()
+pub <- unique(rbind(pub_salr, pub_gauge))
+stopifnot(setequal(unique(pub$source), c("pcic_routed", "wet_balance")),
+          !anyDuplicated(pub[c("source", "linear_feature_id")]))
+pub_r <- pub[pub$source == "pcic_routed", ]
+pub_b <- pub[pub$source == "wet_balance", ]
+# the published routed annual flow on each gauge's segment, in mm over wet's
+# accumulated upstream area, as scripts/pcic_routed_compare.R takes it
+sk$routed_mm <- routed_mm(pub_r$q_m3s[match(sk$linear_feature_id, pub_r$linear_feature_id)], sk$upstream_area_m2)
+near <- sk[sk$salr_km <= near_km | sk$station_number %in% outlet, ]
 stopifnot(nrow(near) > 0, !anyNA(near$routed_mm))
 gauges_salr <- data.frame(station_number = near$station_number, station_name = near$station_name,
                           holds_salr = near$station_number %in% outlet,
@@ -199,14 +252,11 @@ gauges_salr <- data.frame(station_number = near$station_number, station_name = n
                           obs_mm = near$obs, wb_mm = near$mod, routed_mm = near$routed_mm)
 print(gauges_salr)
 sk$salr_km <- NULL
-sk$watershed_group_code <- st_wsg$watershed_group_code[match(sk$watershed_feature_id, st_wsg$watershed_feature_id)]
-stopifnot(!anyNA(sk$watershed_group_code), !anyDuplicated(seg$linear_feature_id))
 # routed flow is scored at every gauge whose segment carries it, as the
 # report scores it; in_routed says whether the gauge's group is in the
 # coverage the province map outlines
 sk$in_routed <- sk$watershed_group_code %in% routed_groups
 print(table(in_routed = sk$in_routed, routed = !is.na(sk$routed_mm)))
-n_fwapg <- stats::setNames(n_fwapg$n, n_fwapg$watershed_group_code)
 
 # ---- the tracked report is the published record ------------------------------------------------
 # the gauges' routed scores must be its rows, from the same table and commit
@@ -218,56 +268,59 @@ w_sc <- routed_scores(both$err_pct)
 stopifnot(as.integer(rr_all[2]) == nrow(both),
           as.numeric(rr_all[3]) == round(r_sc[["mae"]], 1), as.numeric(rr_all[4]) == round(w_sc[["mae"]], 1))
 
-# ---- PCIC through wet on SALR (scripts/mad_parity.R, run above) -----------------------------------
-par <- utils::read.csv(f_par)
-stopifnot(nrow(par) == n_fwapg[["SALR"]], !anyNA(par$mad_m3s_wet), !anyNA(par$mad_m3s_fwapg))
-parity <- data.frame(n_segments = nrow(par),
-                     n_match5 = sum(round(par$mad_m3s_wet, 5) == round(par$mad_m3s_fwapg, 5)),
-                     max_rel_diff = max(abs(par$mad_m3s_wet / par$mad_m3s_fwapg - 1)))
-print(parity)
-stopifnot(parity$n_match5 == parity$n_segments)   # the vignette says every segment matches
-# one value per watershed in each build; the area-weighted file holds every
-# watershed in the group, the parity file those with a stream segment
-cen <- unique(par[c("watershed_feature_id", "mad_mm_wet")])
-stopifnot(!anyDuplicated(cen$watershed_feature_id))
-aw <- utils::read.csv(f_area)
-sampling <- merge(stats::setNames(cen, c("watershed_feature_id", "mm_centroid")),
-                  data.frame(watershed_feature_id = aw$watershed_feature_id, mm_area = aw$mad_mm,
-                             upstream_area_km2 = aw$upstream_area_m2 / 1e6),
-                  by = "watershed_feature_id")
-stopifnot(nrow(sampling) == nrow(cen), !anyNA(sampling))
+# ---- the published values against what they were built from ---------------------------------------
+# SALR lies in the Fraser (100)
+wb <- as.data.frame(arrow::read_parquet(file.path(fit_dir, "output", "100.parquet")))
+wb <- wb[wb$month == 0 & wb$watershed_feature_id %in% seg$watershed_feature_id, ]
+# the balance on each SALR segment from the fit's output through the lut, and
+# routed flow's mean of twelve months from fwapg, on SALR's segments and every
+# gauge's: each published value must equal its source, and no source value may
+# be missing from the product, nor any published one lack a source
+at0 <- function(id, q) data.frame(linear_feature_id = id, month = 0L, q_m3s = q)
+src_b <- seg[!is.na(seg$watershed_feature_id), ]
+src_b <- at0(src_b$linear_feature_id, wb$discharge_m3s[match(src_b$watershed_feature_id, wb$watershed_feature_id)])
+src_b <- src_b[!is.na(src_b$q_m3s), ]
+src_r <- unique(rbind(seg_routed, ra))
+src_r <- src_r[!is.na(src_r$q_m3s), ]
+src_r <- at0(src_r$linear_feature_id, src_r$q_m3s)
+in_salr <- pub$watershed_group_code %in% wsg & pub$linear_feature_id %in% seg$linear_feature_id
+pb_salr <- pub_b[pub_b$linear_feature_id %in% seg$linear_feature_id, ]
+pr_used <- pub_r[pub_r$linear_feature_id %in% c(seg$linear_feature_id, sk$linear_feature_id), ]
+# the balance is copied from a double, so it must match exactly; routed month
+# 0 is R's mean() at publish and SQL avg() here, which differ in the last bits
+cmp <- list(
+  "balance (SALR) = fit output via lut" =
+    wet_values_compare(at0(pb_salr$linear_feature_id, pb_salr$q_m3s), src_b, tol = 0),
+  "routed (SALR and gauges) = fwapg mean of 12 months" =
+    wet_values_compare(at0(pr_used$linear_feature_id, pr_used$q_m3s), src_r)
+)
+pub_check <- data.frame(check = names(cmp), do.call(rbind, cmp), row.names = NULL)
+print(pub_check)
+# no value differs, and every source value was compared (a check of nothing passes nothing)
+if (any(pub_check$differing > 0) || !identical(pub_check$compared, as.numeric(c(nrow(src_b), nrow(src_r)))) ||
+      any(pub_check$compared == 0)) {
+  stop("the published values differ from what they were built from: see the table above")
+}
 
-# ---- the open water balance per segment ----------------------------------------------------------
-# SALR lies in the Fraser (100), BULK in the Skeena (400)
-basin_of <- c(SALR = "100", BULK = "400")
-wb <- do.call(rbind, lapply(basin_of, function(b) {
-  x <- as.data.frame(arrow::read_parquet(file.path(fit_dir, "output", paste0(b, ".parquet"))))
-  x <- x[x$month == 0 & x$watershed_feature_id %in% seg$watershed_feature_id, ]
-  x[c("watershed_feature_id", "discharge_m3s", "coverage", "bc_fraction")]
-}))
-# four significant figures: the vignette classes these into six discharge
-# classes and prints one decimal, and full doubles cost the bundle its budget
+# the bundled values are the published ones, unrounded
+pick_src <- pub$source[pub$pick & in_salr]
 segments <- data.frame(
   linear_feature_id = seg$linear_feature_id,
   watershed_group_code = seg$watershed_group_code,
-  mad_wb_m3s = signif(wb$discharge_m3s[match(seg$watershed_feature_id, wb$watershed_feature_id)], 4),
-  mad_routed_m3s = signif(seg_routed$q_m3s[match(seg$linear_feature_id, seg_routed$linear_feature_id)], 4)
+  mad_wb_m3s = pub_b$q_m3s[match(seg$linear_feature_id, pub_b$linear_feature_id)],
+  mad_routed_m3s = pub_r$q_m3s[match(seg$linear_feature_id, pub_r$linear_feature_id)],
+  pick = pick_src[match(seg$linear_feature_id, pub$linear_feature_id[pub$pick & in_salr])]
 )
 cov <- wb$coverage[match(seg$watershed_feature_id, wb$watershed_feature_id)]
-print(table(segments$watershed_group_code, is.na(segments$mad_wb_m3s), dnn = c("group", "wb NA")))
-# a segment with no watershed in the lut has no value in either product
-print(table(segments$watershed_group_code, is.na(segments$mad_routed_m3s), dnn = c("group", "routed NA")))
+print(table(wb_na = is.na(segments$mad_wb_m3s), routed_na = is.na(segments$mad_routed_m3s)))
+print(table(segments$pick, useNA = "ifany"))
+# a segment with no watershed in the lut has no value in either product, and
+# every segment with a value has one picked source
 stopifnot(all(is.na(segments$mad_wb_m3s) == is.na(seg$watershed_feature_id)),
+          all(is.na(segments$pick) == (is.na(segments$mad_wb_m3s) & is.na(segments$mad_routed_m3s))),
           all(cov[!is.na(cov)] >= 0.99))
 
 # ---- provenance -------------------------------------------------------------------------------------
-# fwapg's stored upstream area against the live accumulation, Fraser-wide
-# (scripts/upstream_area_check.R): the vignette quotes it
-ua <- readLines("data/checks/upstream_area_100_full.txt")
-ua_line <- grep("^polygons:", ua, value = TRUE)
-ua_mis <- as.integer(sub(".*mismatches > 1e-9: ([0-9]+).*", "\\1", grep("^max relative", ua, value = TRUE)))
-ua_poly <- as.integer(sub("^polygons: ([0-9]+).*", "\\1", ua_line))
-stopifnot(!is.na(ua_mis), !is.na(ua_poly))
 hydat_release <- sub("^HYDAT release: ", "", grep("^HYDAT release:", readLines(wb_report("stations_wb", release)),
                                                    value = TRUE))
 stopifnot(length(hydat_release) == 1)
@@ -285,11 +338,14 @@ provenance <- list(
   hydat_release = hydat_release,
   min_order = min_order,
   near_km = near_km,
-  # SALR segments whose MAD moves between fwapg's stored upstream area and the
-  # live accumulation (the vignette's stale-snapshot bullet)
-  salr_stale_segments = sum(abs(par$mad_m3s_live - par$mad_m3s_wet) > 1e-9 * par$mad_m3s_wet),
-  # fwapg's annual table on the two groups: the parity rebuild's segments
-  fwapg_discharge_rows = n_fwapg,
+  # the published build the segment values were read from, the parts read,
+  # and the check of each value against its source
+  published = list(manifest = attr(cat_pub, "manifest"), built = attr(cat_pub, "built"),
+                   wet_commit = attr(cat_pub, "provenance")$wet_commit,
+                   segment_commit = attr(cat_pub, "provenance")$segment_commit,
+                   parts = cat_pub[c("dataset", "source", "code", "key", "rows", "bytes", "md5")],
+                   reader = reader, report = f_pub),
+  published_check = pub_check,
   # routed flow (fwapg#6): the commit that built the table and its fingerprint
   routed_commit = fwapg_commit,
   routed_fingerprint = routed_fp,
@@ -299,19 +355,17 @@ provenance <- list(
   # in the groups routed flow covers: their segments, and those it reaches
   routed_cov_rows = c(rows = sum(routed_cov$n_rows[routed_cov$watershed_group_code %in% routed_groups]),
                       values = sum(routed_cov$n_values[routed_cov$watershed_group_code %in% routed_groups])),
-  routed_order8 = c(segments = routed_large$segments, valued = routed_large$valued),
-  upstream_area_100 = c(polygons = ua_poly, stale = ua_mis)
+  routed_order8 = c(segments = routed_large$segments, valued = routed_large$valued)
 )
 
 # fwapg's bigint ids reach R as integer64, which readRDS() without bit64 reads
 # as raw bits, so a join in the vignette would match nothing: the SQL casts them
 no64 <- function(x) !any(vapply(x, inherits, NA, "integer64"))
-stopifnot(no64(parity), no64(sampling), no64(segments), no64(sk), no64(gauges_salr))
-values <- list(parity = parity, sampling = sampling, segments = segments, skill = sk,
-               gauges_salr = gauges_salr, provenance = provenance)
+stopifnot(no64(segments), no64(sk), no64(gauges_salr))
+values <- list(segments = segments, skill = sk, gauges_salr = gauges_salr, provenance = provenance)
 saveRDS(values, out, compress = "xz")
 message("segment_values.rds: ", round(file.size(out) / 1024), " KB")
 files <- file.path("inst", "vignette-data", c("segment_values.rds", "segment_map.rds"))
 kb <- sum(file.size(files)) / 1024
-message("vignette data for #28: ", round(kb), " KB of ", budget_kb)
+message("vignette data for #28, #64: ", round(kb), " KB of ", budget_kb)
 stopifnot(all(file.exists(files)), kb < budget_kb)
