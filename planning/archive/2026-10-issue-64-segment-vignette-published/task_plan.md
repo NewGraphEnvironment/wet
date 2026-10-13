@@ -78,8 +78,8 @@ Mechanism choices (mine):
 
 - [x] Tests pass
 - [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] PWF checkboxes match landed work
+- [x] `/planning-archive` on completion
 
 ## Verification
 - m4 BUILD report: every value check has differing = 0, and parts identical to published reads 67 of 67.
