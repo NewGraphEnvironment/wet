@@ -1,16 +1,38 @@
 # Published discharge, build (#7)
 
-wet commit 7c62b9e (segment table built at 653fc13); fit 20260717, province run 962a9cc2c4; crate 0.7.0
+wet commit 032242f (segment table built at 653fc13); fit 20260717, province run 962a9cc2c4; crate 0.7.0
+arrow 25.0.1, duckdb 1.4.3 (a part's bytes depend on the writer's version)
 routed: whse_basemapping.fwa_stream_networks_discharge_monthly, built by NewGraphEnvironment/fwapg at 341b078
 table: 40524444 rows, 3377037 segments, 0 null flows, total 178035348.248310 m3/s
 tree: data/publish/discharge/fwa/v1 -> s3://fresh-bc/discharge/fwa/v1/
 
-## Cross-checks against the segment report
+## Cross-checks against the segment report, and value by value
 routed_rows     ok
 balance_rows    ok
 picked_routed   ok
 picked_balance  ok
 hive_read       ok
+routed_values   ok
+routed_annual   ok
+routed_total    ok
+balance_values  ok
+parts_as_table  ok
+watershed_values ok
+
+## Value cross-checks (#64): every published value against what it was built from
+check                             compared  differing  largest diff  codes differing
+routed months 1-12 = fwapg        40524444          0             0  
+routed month 0 = mean of 1-12      3377037          0      9.09e-13  
+balance = fit output via lut      58889207          0             0  
+segment parts = table: q_m3s     102790688          0             0  
+segment parts = table: runoff_mm   102790688          0             0  
+segment parts = table: coverage   102790688          0             0  
+segment parts = table: pick      102790688          0             0  
+watershed parts = fit output      41904356          0             0  
+routed months 1-12, total rounded to 1e-6 per value: 178035348.248310 m3/s; the table's fingerprint: 178035348.248310 m3/s
+
+## Against the published tree
+parts identical to the published build 7c62b9e: 67 of 67 here, 67 published (https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json)
 
 ## What a reader sees (duckdb, hive_partitioning = true, over the local tree)
 historical PNWNAmet  pcic_routed     43901481 rows   3152838 fresh-subquery rows

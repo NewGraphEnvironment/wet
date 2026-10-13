@@ -35,7 +35,7 @@ Mechanism choices (mine):
   - `wet_balance` against the #57 segment table rows for the same segment and month (a check of the write).
 - [x] `scripts/discharge_publish.R` BUILD: compare each part's md5 with the live manifest's (`wet_catalog()`) and report `identical to published: n of N` with the published build commit. This is a report line, not a refusal: a new release is meant to differ.
 - [x] Report: a new section, "Value cross-checks", with one row per check giving compared, differing and largest difference. A check with any differing row fails the build, as the existing `checks` do.
-- [ ] Commit. Then on m4, in a fresh worktree off this branch with `data/wb` symlinked (m4 memory note), run BUILD, copy back `data/checks/discharge_publish_20260717.txt`, and commit it. If any part's md5 differs from the published one: stop, report, ask.
+- [x] Commit. Then on m4, in a fresh worktree off this branch with `data/wb` symlinked (m4 memory note), run BUILD, copy back `data/checks/discharge_publish_20260717.txt`, and commit it. If any part's md5 differs from the published one: stop, report, ask.
 
 ## Phase 2: Vignette data from the published parts
 - [ ] `data-raw/segment_vignette_data.R`:
