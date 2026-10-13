@@ -1,6 +1,6 @@
 # Published discharge, build (#7)
 
-wet commit 7e738e1 (segment table built at 653fc13); fit 20260717, province run 962a9cc2c4; crate 0.6.0
+wet commit 7c62b9e (segment table built at 653fc13); fit 20260717, province run 962a9cc2c4; crate 0.7.0
 routed: whse_basemapping.fwa_stream_networks_discharge_monthly, built by NewGraphEnvironment/fwapg at 341b078
 table: 40524444 rows, 3377037 segments, 0 null flows, total 178035348.248310 m3/s
 tree: data/publish/discharge/fwa/v1 -> s3://fresh-bc/discharge/fwa/v1/
