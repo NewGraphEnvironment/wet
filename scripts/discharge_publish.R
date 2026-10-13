@@ -338,11 +338,17 @@ checks["hive_read"] <- sum(hive$rows) == sum(seg_t$rows) && sum(hive$fresh) == p
 # ---- value cross-checks: every published value against what it was built from ----------------------
 # Each written part is read back. Routed months 1-12 against fwapg's table,
 # routed month 0 against the mean of the part's own twelve months, the
-# balance's 13 months against the fit's output reached through the lut, and
-# every row against the segment table it was cut from. Counts alone cannot
-# see a value that moved; these count and size every one that did.
-read_part <- function(path, cols = c("linear_feature_id", "month", "q_m3s")) {
-  if (!file.exists(path)) return(data.frame(linear_feature_id = integer(), month = integer(), q_m3s = numeric()))
+# balance's 13 months against the fit's output reached through the lut (the
+# segment table's join, done again here), every column of every segment row
+# against the segment table it was cut from, and each watershed row against
+# the fit's output. Counts alone cannot see a value that moved; these count
+# and size every one that did. Values copied from a double are compared
+# exactly; only the two means of twelve months meet within 1e-9, since R's
+# mean() and a sum over 12 round differently in the last bits.
+cols_val <- c("linear_feature_id", "month", "q_m3s", "runoff_mm", "coverage", "pick")
+read_part <- function(path, cols = cols_val) {
+  # a source with no segment in a drainage writes no part
+  if (!file.exists(path)) return(stats::setNames(data.frame(matrix(numeric(), 0, length(cols))), cols))
   as.data.frame(arrow::read_parquet(path, col_select = cols))
 }
 vc <- list()
@@ -358,10 +364,11 @@ for (code in codes_seg) {
   routed_seen <- c(routed_seen, unique(m112$linear_feature_id))
   routed_micro <- routed_micro + sum(round(m112$q_m3s * 1e6))
   vc_add("routed months 1-12 = fwapg", code,
-         wet_values_compare(m112, rt_all[rt_all$linear_feature_id %in% m112$linear_feature_id, ]))
+         wet_values_compare(m112, rt_all[rt_all$linear_feature_id %in% m112$linear_feature_id, ], tol = 0))
+  # a drainage with no routed segment (800, 945, 990) has nothing to derive
   s12 <- rowsum(m112$q_m3s, m112$linear_feature_id)
   n12 <- rowsum(rep(1, nrow(m112)), m112$linear_feature_id)
-  derived <- data.frame(linear_feature_id = as.integer(rownames(s12)), month = 0L,
+  derived <- data.frame(linear_feature_id = as.integer(rownames(s12)), month = rep(0L, nrow(s12)),
                         q_m3s = ifelse(n12[, 1] == 12, s12[, 1] / 12, NA_real_))
   vc_add("routed month 0 = mean of 1-12", code, wet_values_compare(pr[pr$month == 0L, ], derived))
 
@@ -373,16 +380,29 @@ for (code in codes_seg) {
   l <- lut[lut$watershed_feature_id %in% valued, ]
   expected <- data.frame(linear_feature_id = rep(l$linear_feature_id, 13), month = rep(0:12, each = nrow(l)))
   expected$q_m3s <- out$discharge_m3s[match(as.numeric(rep(l$watershed_feature_id, 13)) * 16 + expected$month, k_out)]
-  vc_add("balance = fit output via lut", code, wet_values_compare(pb, expected))
+  vc_add("balance = fit output via lut", code, wet_values_compare(pb, expected, tol = 0))
 
   st <- as.data.frame(arrow::read_parquet(file.path(fit_dir, "segment", paste0(code, ".parquet")),
-                                          col_select = c("linear_feature_id", "month", "q_m3s", "source")))
-  for (src in c("pcic_routed", "wet_balance")) {
-    vc_add("parts = segment table", code,
-           wet_values_compare(if (src == "pcic_routed") pr else pb, st[st$source == src, ]))
+                                          col_select = c(cols_val, "source")))
+  for (v in c("q_m3s", "runoff_mm", "coverage", "pick")) {
+    for (src in c("pcic_routed", "wet_balance")) {
+      vc_add(paste("segment parts = table:", v), code,
+             wet_values_compare(if (src == "pcic_routed") pr else pb, st[st$source == src, ], value = v, tol = 0))
+    }
   }
+  stamp(code, ": values checked")
   rm(pr, m112, pb, out, l, expected, st)
   gc(verbose = FALSE)
+}
+# the watershed parts: each row the fit's output for that watershed and month,
+# and every watershed with a value published
+for (code in codes_ws) {
+  pw <- read_part(part_path(ds_ws, "wet_balance", code), c("watershed_feature_id", "month", "q_m3s"))
+  out <- as.data.frame(arrow::read_parquet(file.path(fit_dir, "output", paste0(code, ".parquet")),
+                                           col_select = c("watershed_feature_id", "month", "discharge_m3s")))
+  out <- out[!is.na(out$discharge_m3s), ]
+  names(out)[3] <- "q_m3s"
+  vc_add("watershed parts = fit output", code, wet_values_compare(pw, out, "watershed_feature_id", tol = 0))
 }
 # fwapg's routed rows on no published segment
 unpub <- sum(!rt_all$linear_feature_id %in% routed_seen)
@@ -402,8 +422,13 @@ checks["routed_annual"] <- n_vc("routed month 0 = mean of 1-12", "differing") ==
 checks["routed_total"] <- identical(routed_total, fp_total)
 checks["balance_values"] <- n_vc("balance = fit output via lut", "differing") == 0 &&
   n_vc("balance = fit output via lut", "compared") == sum(bt$rows)
-checks["parts_as_table"] <- n_vc("parts = segment table", "differing") == 0 &&
-  n_vc("parts = segment table", "compared") == sum(seg_t$rows)
+tbl_checks <- grep("^segment parts = table: ", vc_sum$check, value = TRUE)
+checks["parts_as_table"] <- length(tbl_checks) == 4L &&
+  all(vapply(tbl_checks, n_vc, 0, "differing") == 0) &&
+  all(vapply(tbl_checks, n_vc, 0, "compared") == sum(seg_t$rows))
+ws_t <- tally[tally$dataset == "watershed_monthly", ]
+checks["watershed_values"] <- n_vc("watershed parts = fit output", "differing") == 0 &&
+  n_vc("watershed parts = fit output", "compared") == sum(ws_t$rows)
 stamp("value cross-checks: ", sum(vc_sum$compared), " values compared, ", sum(vc_sum$differing), " differing")
 
 # the parts against the live manifest's: a rebuild of the same inputs and code
@@ -430,6 +455,8 @@ writeLines(c(
   "# Published discharge, build (#7)", "",
   sprintf("wet commit %s (segment table built at %s); fit %s, province run %s; crate %s", wet_commit, seg_commit,
           release, basename(key_dir), crate_version),
+  sprintf("arrow %s, duckdb %s (a part's bytes depend on the writer's version)",
+          utils::packageVersion("arrow"), utils::packageVersion("duckdb")),
   routed_line, sprintf("table: %s", routed_fp),
   sprintf("tree: %s -> s3://%s/%s/", root, publish_bucket, publish_id), "",
   "## Cross-checks against the segment report, and value by value",

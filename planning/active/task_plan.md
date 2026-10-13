@@ -22,7 +22,7 @@ Decisions made at the plan gate:
 
 Mechanism choices (mine):
 - The vignette data reads the published parts with duckdb `read_parquet(<catalog hrefs>)` over httpfs, filtered on `watershed_group_code`, so row-group pruning reads only a few row groups. `wet_catalog_verify()` runs before and after the read, so a read during a publish is refused. httpfs is installed on m1.
-- The routed checks in BUILD read fwapg per drainage code, with the query shape `segment_output.R` already uses, and join in R. No postgres_scanner.
+- The routed checks in BUILD read fwapg's routed table once (40.5M rows, about 15 s) and join in R. No postgres_scanner.
 
 ## Phase 1: Value-level cross-checks in the publish BUILD
 - [x] ~~`scripts/discharge_publish_lib.R`~~ `R/wet_values_compare.R` (internal, so `data-raw/` shares it, and listed in BUILD's `publish_own`): `wet_values_compare(a, b, id_col, value, tol)` → `c(compared, differing, max_abs_diff)`. Differing means `|a − b| > tol` (relative 1e-9 by default), and keys present on only one side count as differing.

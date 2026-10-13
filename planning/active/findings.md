@@ -51,3 +51,15 @@ Relates to #7, #28, #39, #42.
 
 | Error | Resolution |
 |-------|------------|
+
+## Plan review (Plan agent, 2026-10-13), and what was done with each finding
+
+- **B1 (confirmed by reproduction):** `data.frame(<0-length>, month = 0L, ...)` errors, and codes 800, 945 and 990 have no routed part. The first m4 run was stopped before it reached them. Fixed with `rep(0L, nrow(s12))`, and a missing part now reads as an empty frame of the requested columns.
+- **G1:** the segment parts are now compared with the segment table on `q_m3s`, `runoff_mm`, `coverage` and `pick`, each its own report row.
+- **G2:** the watershed parts are compared with the fit's `output/`.
+- **A2:** the report carries the arrow and duckdb versions.
+- **A3:** values copied from a double are compared with `tol = 0`; only the two means of twelve months use 1e-9.
+- **A5:** checked on m1: 0 lut ids missing from `fwa_stream_networks_sp`, and the lut has one row per segment (4,538,224). The lut join re-does the segment table's join, so it catches indexing errors, not lut errors. The wording says so.
+- **G3, G6:** already met by the Phase 2 code as written: NA source rows dropped, `month = 0L` added, compared before rounding, and `routed_mm` from published `q_m3s`.
+- **To do in Phase 2:** G4 (require compared = the expected count), G5 (gauge groups from `fwa_stream_networks_sp`), G11 (bundle the catalog's key, rows, bytes and md5), O3 (refuse unless the committed publish report has no FAIL and its parts are identical to the live build), A1 (read only the parts needed, and measure).
+- **To do in Phase 3/4:** G7 (palette: keep `parity/one_to_one`, drop `parity/segment`, `skill_nesting/mae`, `product`, `segment_map/key`; small-streams limit without `sampling`; the limits chunk keeps the keep_adjust, gate and pooled asserts; the no-watershed bullet guarded; `ex` out of the named guard; SALR-only wording in the captions and the CSV label; dead code from the table), G8 (one sentence each: the product's balance is the all-gauge fit while the scores are held out; PCIC's may be partly in sample, and the periods differ), G9 (rows exist only where a source has a value; watershed_monthly is balance only; the periods by source; duckdb needs httpfs and `hive_partitioning`), G10 (`README.md:46`, NEWS line, `research/discharge_publish.md` status line), AC1 (cite the published build and the report commit), AC3 (assert the URL).
