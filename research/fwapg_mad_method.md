@@ -16,7 +16,7 @@
 
 The forcing is **observed (PNWNAmet), not a CMIP5 scenario**. fwapg's README citation and the `fwa_streams.mad_m3s` column comment say otherwise.
 
-A worked version of the parity and the sampling sensitivity on SALR, with figures, is the vignette `vignettes/segment-discharge.Rmd` (#28).
+The vignette `vignettes/segment-discharge.Rmd` carried a worked version of the parity and the sampling sensitivity on SALR, with figures, from #28 until #64, which moved it out of the article (now about the published product) and left a link here. The tables below are the record; `scripts/mad_parity.R SALR` reproduces them.
 
 ## Coverage ceiling
 

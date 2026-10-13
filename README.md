@@ -43,7 +43,7 @@ cd::cd_anomaly(s, cd::cd_baseline(s, 1981:2010))
 ## Vignettes
 
 - [Chinook flow at two stations](https://www.newgraphenvironment.com/wet/articles/station-flow.html): the station path on 08EE013 and 08EE003, from map to departure and trend.
-- [Mean annual discharge per segment](https://www.newgraphenvironment.com/wet/articles/segment-discharge.html): parity with fwapg on the Salmon River, the open water balance on the Bulkley, the two estimates side by side, and the balance's out-of-sample skill at 315 gauges.
+- [Stream discharge per segment](https://www.newgraphenvironment.com/wet/articles/segment-discharge.html): the published per-segment discharge, where it is and how to read it, how its two sources were made, and how each scores against the gauges, with the Salmon River as a worked group.
 
 Function reference and both vignettes are on the [pkgdown site](https://www.newgraphenvironment.com/wet/).
 

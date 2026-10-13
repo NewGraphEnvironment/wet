@@ -38,41 +38,41 @@ Mechanism choices (mine):
 - [x] Commit. Then on m4, in a fresh worktree off this branch with `data/wb` symlinked (m4 memory note), run BUILD, copy back `data/checks/discharge_publish_20260717.txt`, and commit it. If any part's md5 differs from the published one: stop, report, ask.
 
 ## Phase 2: Vignette data from the published parts
-- [ ] `data-raw/segment_vignette_data.R`:
+- [x] `data-raw/segment_vignette_data.R`:
   - Read segment values for SALR and BULK from `wet_catalog()`, month 0, both sources, with `pick`. BULK stays only if Phase 3 still needs it; otherwise SALR alone.
   - Read each gauge's segment values the same way, filtered to the gauges' groups.
   - Verify the parts by HEAD/ETag before and after the read.
-- [ ] Refuse to build unless:
+- [x] Refuse to build unless:
   - the published balance values equal the fit's `output/` (month 0, through the lut);
   - the published routed values equal `routed_annual()` from fwapg (the tracked routed table).
   Record compared, differing and largest difference for each in `provenance$published_check`.
-- [ ] Provenance records the manifest URL, its `built`, its `wet_commit`, `segment_commit` and the md5 of each part read.
-- [ ] `skill$routed_mm` and `gauges_salr$routed_mm` come from the published routed value on the gauge's segment, not from fwapg directly.
-- [ ] Drop what leaves the page: the `scripts/mad_parity.R SALR` run, `parity`, `sampling`, `upstream_area_100`, `salr_stale_segments`, `fwapg_discharge_rows` and BULK-only items.
-- [ ] Keep the existing guards: dirty tree, scoring code, the routed table and commit against the tracked report.
-- [ ] Rebuild `inst/vignette-data/segment_values.rds` on m1, and also `segment_map.rds` if the map layers shrink (SALR only). Update `tests/testthat/test-vignette_data.R` to the new names and the published-check fields, including that every `differing` is 0.
+- [x] Provenance records the manifest URL, its `built`, its `wet_commit`, `segment_commit` and the md5 of each part read.
+- [x] `skill$routed_mm` and `gauges_salr$routed_mm` come from the published routed value on the gauge's segment, not from fwapg directly.
+- [x] Drop what leaves the page: the `scripts/mad_parity.R SALR` run, `parity`, `sampling`, `upstream_area_100`, `salr_stale_segments`, `fwapg_discharge_rows` and BULK-only items.
+- [x] Keep the existing guards: dirty tree, scoring code, the routed table and commit against the tracked report.
+- [x] Rebuild `inst/vignette-data/segment_values.rds` on m1, and also `segment_map.rds` if the map layers shrink (SALR only). Update `tests/testthat/test-vignette_data.R` to the new names and the published-check fields, including that every `differing` is 0.
 
 ## Phase 3: Rewrite the vignette around the product
-- [ ] First screen: what `segment_monthly` and `watershed_monthly` hold (one row per feature × month 0–12 × source), the two sources, what `pick` selects (`wet_source_pick()`: routed unless under 0.2 of the balance on a watershed's own line), and the manifest URL. Then a read example (`eval = FALSE`): `wet_catalog()`, `wet_db_load()` with fresh's `month = 0 AND pick` query, and plain duckdb `read_parquet()` on the hrefs.
-- [ ] "How each source was made": two short paragraphs. Routed PCIC is placed on the FWA by fwapg's crosswalk. The open balance is fitted by zone at HYDAT gauges and scored held out by blocked CV. Keep the terms the page uses.
-- [ ] "How the numbers line up at the gauges":
+- [x] First screen: what `segment_monthly` and `watershed_monthly` hold (one row per feature × month 0–12 × source), the two sources, what `pick` selects (`wet_source_pick()`: routed unless under 0.2 of the balance on a watershed's own line), and the manifest URL. Then a read example (`eval = FALSE`): `wet_catalog()`, `wet_db_load()` with fresh's `month = 0 AND pick` query, and plain duckdb `read_parquet()` on the hrefs.
+- [x] "How each source was made": two short paragraphs. Routed PCIC is placed on the FWA by fwapg's crosswalk. The open balance is fitted by zone at HYDAT gauges and scored held out by blocked CV. Keep the terms the page uses.
+- [x] "How the numbers line up at the gauges":
   - Both sources at the gauges both cover: bias, mean absolute error, spread (IQR), and the share within ±20%.
   - The balance held out at all 315 gauges.
   - Keep the comparison scatter and the province map, and drop the histogram.
   - Cut the strengths-and-limits table and the "which to use" bullets. The page says what `pick` selects and nothing more.
-- [ ] SALR worked basin: map, gauge table and paragraph, now on published values, with `pick` shown. Drop BULK. Keep the simplest labelling that passes the cartography self-review. `map_labels()` stays only if SALR needs it.
-- [ ] Limits: keep the facts (coverage, dry zones, small streams, segments without a watershed) and drop the advice.
-- [ ] Validation: one paragraph that links `research/fwapg_mad_method.md` for the parity and sampling checks, and the publish report for the value cross-checks. Remove the parity, sampling, stale-area and recipe chunks.
-- [ ] Remove the code the shorter page no longer needs (BULK, keymap, palettes no longer used). Assert the new prose numbers in `stopifnot()` guards, as the page does now. Keep the named-on-map guard and the word cap, and lower the cap to fit the shorter page.
-- [ ] The vignette asserts that `provenance$published_check` has 0 differing rows, and cites the published build in "Cached inputs".
-- [ ] Check `inst/cartography/wet_segment.csv`: drop classes the page no longer uses, together with the asserts in the vignette's `classes()`.
-- [ ] Render with `devtools::build_vignettes()` or `pkgdown::build_article()`, read every figure PNG against the cartography self-review, and check the word count.
+- [x] SALR worked basin: map, gauge table and paragraph, now on published values, with `pick` shown. Drop BULK. Keep the simplest labelling that passes the cartography self-review. `map_labels()` stays only if SALR needs it.
+- [x] Limits: keep the facts (coverage, dry zones, small streams, segments without a watershed) and drop the advice.
+- [x] Validation: one paragraph that links `research/fwapg_mad_method.md` for the parity and sampling checks, and the publish report for the value cross-checks. Remove the parity, sampling, stale-area and recipe chunks.
+- [x] Remove the code the shorter page no longer needs (BULK, keymap, palettes no longer used). Assert the new prose numbers in `stopifnot()` guards, as the page does now. Keep the named-on-map guard and the word cap, and lower the cap to fit the shorter page.
+- [x] The vignette asserts that `provenance$published_check` has 0 differing rows, and cites the published build in "Cached inputs".
+- [x] Check `inst/cartography/wet_segment.csv`: drop classes the page no longer uses, together with the asserts in the vignette's `classes()`.
+- [x] Render with `devtools::build_vignettes()` or `pkgdown::build_article()`, read every figure PNG against the cartography self-review, and check the word count.
 
 ## Phase 4: Research and docs
-- [ ] `research/fwapg_mad_method.md`: line 19 points at the vignette. Make the research file the home of the SALR parity and sampling results, with the numbers the vignette quoted (9,000 segments to five decimals, and the share of small watersheds moving by more than 5%) and `scripts/mad_parity.R SALR` as the producer.
-- [ ] `research/discharge_publish.md`: record the value cross-checks and their results from the m4 report.
-- [ ] `CLAUDE.md` (above the marker): rewrite the segment vignette paragraph (it no longer needs `mad_parity.R SALR` first; it reads the published manifest), and describe the publish BUILD's value checks.
-- [ ] Update `NEWS.md` if the repo's practice is a line per user-visible change.
+- [x] `research/fwapg_mad_method.md`: line 19 points at the vignette. Make the research file the home of the SALR parity and sampling results, with the numbers the vignette quoted (9,000 segments to five decimals, and the share of small watersheds moving by more than 5%) and `scripts/mad_parity.R SALR` as the producer.
+- [x] `research/discharge_publish.md`: record the value cross-checks and their results from the m4 report.
+- [x] `CLAUDE.md` (above the marker): rewrite the segment vignette paragraph (it no longer needs `mad_parity.R SALR` first; it reads the published manifest), and describe the publish BUILD's value checks.
+- [x] Update `NEWS.md` if the repo's practice is a line per user-visible change. (It is not: NEWS is written at release by `/gh-pr-merge`.)
 
 ## Validation
 

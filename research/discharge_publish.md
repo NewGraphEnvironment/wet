@@ -1,8 +1,8 @@
 # Published discharge: where it lives and how it is named
 
-**Verified:** 2026-10-13 · **Issues:** #7 (decided, then published), #1 (D4, superseded), #57 (the table), fwapg#25 (projections) · **Produced by:** plan-mode discussion on #7, recorded in `planning/archive/2026-10-issue-7-*/findings.md`, plus the probes listed under "Evidence".
+**Verified:** 2026-10-13 · **Issues:** #7 (decided, then published), #64 (value checks), #1 (D4, superseded), #57 (the table), fwapg#25 (projections) · **Produced by:** plan-mode discussion on #7, recorded in `planning/archive/2026-10-issue-7-*/findings.md`, the probes listed under "Evidence", and `scripts/discharge_publish.R` (BUILD) for the value checks.
 
-**Status:** published 2026-10-13 at `https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json`. The `historical` scenario, built at wet 7c62b9e (segment table 653fc13, fit 20260717, crate 0.7.0), is 67 parts and 1.80 GB: 43 `segment_monthly` (102,790,688 rows) and 24 `watershed_monthly` (41,904,356). The build report is `data/checks/discharge_publish_20260717.txt`.
+**Status:** published 2026-10-13 at `https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json`. The `historical` scenario, built at wet 7c62b9e (segment table 653fc13, fit 20260717, crate 0.7.0), is 67 parts and 1.80 GB: 43 `segment_monthly` (102,790,688 rows) and 24 `watershed_monthly` (41,904,356). The build report is `data/checks/discharge_publish_20260717.txt`. Since #64 it is the value-checked rebuild at wet 032242f, whose 67 parts are byte-identical to the 7c62b9e upload, so the upload was not repeated.
 
 ## The rule: one identifier per dataset
 
@@ -59,6 +59,22 @@ discharge/fwa/v1/segment_monthly/scenario=ssp245/forcing=MPI-ESM1-2-HR/source=pc
 - **Access.** Anonymous `s3:GetObject` on `discharge/*` only, and no `s3:ListBucket`. Readers therefore use `manifest.json`, which names every key, rather than globbing.
 - **The manifest is rewritten whole by each publish**, from one local tree, so that tree must hold every scenario meant to stay published. Its `sources` entries carry what each source's rows were built from (the routed table's fingerprint and fwapg commit; the balance's fit release and province run), and each dataset names its crate schema at a crate release.
 - **Overwrites.** Bucket versioning is off, so an overwrite is final. That is acceptable because every file is rebuilt from code and inputs, and the manifest records the wet commit, fit release and routed-table fingerprint that built it.
+
+## Every published value is checked against its source (#64)
+
+The build's original cross-checks compared row and `pick` counts only, which cannot see a value that moved. Since #64 the build reads every written part back and compares it, value by value, with what it was built from (`wet_values_compare()`). It reports compared, differing and largest difference for each check, and fails on any difference:
+
+| check | compared | differing | largest difference |
+|---|---|---|---|
+| routed months 1–12 = fwapg's `fwa_stream_networks_discharge_monthly` | 40,524,444 | 0 | 0 |
+| routed month 0 = mean of its 12 months | 3,377,037 | 0 | 9.1e-13 m³/s |
+| balance (13 months) = the fit's `output/` through `fwa_streams_watersheds_lut` | 58,889,207 | 0 | 0 |
+| segment parts = the #57 segment table, on each of `q_m3s`, `runoff_mm`, `coverage`, `pick` | 102,790,688 | 0 | 0 |
+| watershed parts = the fit's `output/` | 41,904,356 | 0 | 0 |
+
+The routed months' total, rounded to 1e-6 m³/s per value, equals the table's fingerprint (178,035,348.248310 m³/s). Values copied from a double are compared exactly. Only the two means of twelve months meet within a tolerance (relative 1e-9), because R's `mean()` and a sum over 12 round differently in the last bits. The lut join re-does the segment table's join, so it catches indexing errors, not errors in the lut itself. Measured on m4 at wet 032242f on 2026-10-13: the build took about 8 min with the checks, against about 5 without.
+
+The segment-discharge article reads its values from the published parts, and `data-raw/segment_vignette_data.R` refuses to write them unless each equals its source and this report names the live build with no check failed.
 
 ## Why not STAC
 
