@@ -133,8 +133,8 @@ built <- as.Date(substr(pub$built, 1, 10))
 built_text <- paste(as.integer(format(built, "%d")), format(built, "%B %Y"))
 ```
 
-wet publishes the mean flow of every stream segment in British Columbia's
-Freshwater Atlas, in cubic metres per second, for each calendar month and for
+wet publishes the mean flow of British Columbia's Freshwater Atlas stream
+segments, in cubic metres per second, for each calendar month and for
 the year, from two sources. It is public at
 `s3://fresh-bc/discharge/fwa/v1/`, and its manifest,
 <`r pub$manifest`>, lists every part with its rows, size and md5. The bucket
@@ -198,7 +198,8 @@ outlets of its own network
 ([hydromosaic](https://beehive.pacificclimate.org/chyp/)). New Graph's
 [fork of fwapg](https://github.com/NewGraphEnvironment/fwapg/pull/6) places
 those outlets on Freshwater Atlas segments and spreads the flow between
-outlets by drainage area, giving each segment monthly means over 1951–2012.
+outlets by drainage area, giving the segments it reaches monthly means over
+1951–2012.
 The annual value is the mean of the twelve. It covers the Fraser, Peace,
 Columbia and most of the coast, but not the Liard.
 
@@ -209,8 +210,8 @@ grid, is averaged over each watershed's upstream area, then adjusted per
 [hydrologic zone](https://catalogue.data.gov.bc.ca/dataset/bc-hydrologic-zones)
 against gauges in the Water Survey of Canada's
 [HYDAT](https://www.canada.ca/en/environment-climate-change/services/water-overview/quantity/monitoring/survey/data-products-services/national-archive-hydat.html)
-archive. It covers all of BC, and its code and inputs are open. The published
-values come from the fit that uses every gauge; the scores below hold each
+archive. It covers almost all of BC, and its code and inputs are open. The published
+values come from the fit that uses every calibration gauge; the scores below hold each
 gauge out of the fit that predicts it.
 
 ## How the numbers line up at the gauges
@@ -585,7 +586,7 @@ stopifnot(isTRUE(prov$keep_adjust), isFALSE(prov$gate_pass), identical(prov$pool
 - **Coverage.** Routed PCIC has no value, or almost none, in the Liard and in
   a few northern and border basins (the Yukon and Alsek headwaters, the Hay,
   the Skagit), and on the outer coast's islands it reaches only some segments.
-  There `pick` takes the balance.
+  There `pick` takes the balance where the balance has a value.
 - **Dry zones.** In zone `r worst` and the other semi-arid interior zones,
   runoff is a small remainder of precipitation, so a small error in
   evapotranspiration is a large one in runoff.
@@ -597,8 +598,9 @@ stopifnot(isTRUE(prov$keep_adjust), isFALSE(prov$gate_pass), identical(prov$pool
 - **Small streams.** `r sum(sk$area_km2 < small_km2)` of the `r nrow(sk)`
   gauges drain less than `r small_km2` km², and there the balance averages
   `r pct(mae_small)` held-out error.
-- **Segments without a watershed.** A segment with no watershed polygon in
-  the Freshwater Atlas lookup gets a value from neither source. In the
+- **Segments without a value.** A segment with no watershed polygon in the
+  Freshwater Atlas lookup gets a value from neither source, and a few
+  thousand with one, mostly on the central coast, get none either. In the
   `r group_name[["SALR"]]`, `r no_value_text`, left off the map.
 
 ## Validation

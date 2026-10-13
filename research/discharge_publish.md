@@ -62,7 +62,7 @@ discharge/fwa/v1/segment_monthly/scenario=ssp245/forcing=MPI-ESM1-2-HR/source=pc
 
 ## Every published flow is checked against its source (#64)
 
-The build's original cross-checks compared row and `pick` counts only, which cannot see a value that moved. Since #64 the build reads every written part back and compares it, value by value, with what it was built from (`wet_values_compare()`). It reports compared, differing and largest difference for each check, and fails on any difference. Every published flow (`q_m3s`) is checked against its source. Of the other columns, the segment parts' `runoff_mm`, `coverage` and `pick` are checked against the segment table, and `period`, and the watershed parts' `runoff_mm`, `coverage` and `bc_fraction`, are not checked value by value:
+The build's original cross-checks compared row and `pick` counts only, which cannot see a value that moved. Since #64 the build reads every written part back and compares it, value by value, with what it was built from (`wet_values_compare()`). It reports compared, differing and largest difference for each check, and fails on any difference. Every published flow (`q_m3s`) is checked against its source. Of the other columns, the segment parts' `runoff_mm`, `coverage` and `pick` are checked against the segment table, and `period`, `watershed_group_code` (filled from fwapg and checked only for NA), and the watershed parts' `runoff_mm`, `coverage` and `bc_fraction`, are not checked value by value:
 
 | check | compared | differing | largest difference |
 |---|---|---|---|

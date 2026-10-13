@@ -7,7 +7,7 @@
 # BUILD reads the shipped fit's segment table (scripts/segment_output.R, #57)
 # and balance output (scripts/wb_output.R), adds each feature's watershed
 # group from fwapg, conforms every part to its crate schema, checks every
-# written value against what it was built from (#64), and writes
+# written flow (and four segment columns) against its source (#64), and writes
 #   data/publish/discharge/fwa/v1/<unit>_monthly/scenario=/forcing=/source=/part-<code>.parquet
 #   data/publish/discharge/fwa/v1/manifest.json
 # with one parquet row group per watershed group, plus the tracked report
