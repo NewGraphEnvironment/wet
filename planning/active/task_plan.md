@@ -7,22 +7,22 @@ PR #62 (v0.4.0) merged the publish path; #7 stayed open because nothing was uplo
 - [x] Install crate from main into m4's R library (`pak::pak("NewGraphEnvironment/crate")`) and confirm `packageVersion("crate") == "0.7.0"`
 
 ## Phase 2: rebuild
-- [ ] On m4 in the worktree, run `Rscript scripts/discharge_publish.R` (BUILD, about 5 min) in the background, logging to a file, with a completion marker cleared at launch
-- [ ] Check the report:
-  - [ ] It names the worktree's HEAD and crate 0.7.0, and fails no check.
-  - [ ] It has 67 parts: routed 43,901,481 rows, balance 58,889,207, watershed 41,904,356.
-  - [ ] It matches the #57 segment report.
-  - [ ] Any number that differs from 7e738e1's is attributed.
-- [ ] Commit `data/checks/discharge_publish_20260717.txt` on m4, push, and pull on m1
+- [x] On m4 in the worktree, run `Rscript scripts/discharge_publish.R` (BUILD, about 5 min) in the background, logging to a file, with a completion marker cleared at launch
+- [x] Check the report:
+  - [x] It names the worktree's HEAD and crate 0.7.0, and fails no check.
+  - [x] It has 67 parts: routed 43,901,481 rows, balance 58,889,207, watershed 41,904,356.
+  - [x] It matches the #57 segment report.
+  - [x] Any number that differs from 7e738e1's is attributed.
+- [x] Commit `data/checks/discharge_publish_20260717.txt` on m4, push, and pull on m1
 
 ## Phase 3: publish
-- [ ] On m4, run `AWS_PROFILE=airvine WET_PUBLISH=1 Rscript scripts/discharge_publish.R`. It uploads 67 parts plus the manifest with Content-MD5, deletes stale keys, and verifies anonymously; it should end on "published 67 parts … all verify".
+- [x] On m4, run `AWS_PROFILE=airvine WET_PUBLISH=1 Rscript scripts/discharge_publish.R`. It uploads 67 parts plus the manifest with Content-MD5, deletes stale keys, and verifies anonymously; it should end on "published 67 parts … all verify".
   - If auto mode refuses this as a production write, the fallback is to hand over the bare command once, not to retry.
-- [ ] PUBLISH writes no log file (review S2): record its final line in `research/` and on #7
+- [x] PUBLISH writes no log file (review S2): record its final line in `research/` and on #7
 
 ## Phase 4: independent verify from m1
-- [ ] `wet_catalog()` against the live manifest (unsigned): 67 parts; `provenance$wet_commit` is the committed report's build; rows sum to 102,790,688 (segment) and 41,904,356 (watershed)
-- [ ] Download one part in full (`segment_monthly/…/source=pcic_routed/part-400.parquet`, BULK's drainage) and md5 it against the manifest; read the local copy with arrow: 3,420,157 rows (review G3, A3, AC4)
+- [x] `wet_catalog()` against the live manifest (unsigned): 67 parts; `provenance$wet_commit` is the committed report's build; rows sum to 102,790,688 (segment) and 41,904,356 (watershed)
+- [x] Download one part in full (`segment_monthly/…/source=pcic_routed/part-400.parquet`, BULK's drainage) and md5 it against the manifest; read the local copy with arrow: 3,420,157 rows (review G3, A3, AC4)
 
 ## Phase 5: Postgres from the published copy
 - [ ] On m4, drop the pre-fix 7e738e1 tables (`wet_db_load()` builds its indexes only when it creates a table, review G1), then `cat <- wet_catalog()` (https manifest asserted) and `wet_db_load(conn, cat)` plus `wet_db_load(conn, cat, dataset = "discharge/fwa/v1/watershed_monthly")` (about 35 min)
