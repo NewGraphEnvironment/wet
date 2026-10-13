@@ -33,11 +33,11 @@ PR #62 (v0.4.0) merged the publish path; #7 stayed open because nothing was uplo
 - [x] `research/discharge_publish.md`: status "published <date>" with the manifest URL, build commit and part count; remove the open-blocker wording
 - [x] Edit #7's body: mark the blockers resolved and record the publish. Comment on fresh#114 that `discharge.fwa_v1_segment_monthly` can be loaded with `wet_db_load()`
 - [x] m4 cleanup: `git worktree remove` for `wet-7-publish` and `wet-7-upload`; remove crate's `/tmp/crate-31` registration with `git worktree remove` (not prune). Update the m4 memory file.
-- [ ] `/planning-archive`, then `/gh-pr-push` with "Fixes #7"
+- [x] `/planning-archive`, then `/gh-pr-push` with "Fixes #7"
 
 ## Validation
 
 - [x] Report fails no check; anonymous verify passes on both machines; fresh's subquery count matches
 - [x] `/code-check` on any change to code or instructions. This branch is expected to touch only a report, `research/` and planning, so it is skipped if no such file changes; the PR says which.
 - [x] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] `/planning-archive` on completion
