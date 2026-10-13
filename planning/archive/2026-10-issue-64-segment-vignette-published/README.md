@@ -6,7 +6,7 @@ What was learned:
 - The rebuild is byte-reproducible. All 67 parts written at 032242f were md5-identical to the 7c62b9e upload, so the bucket was not touched.
 - The fingerprint total of fwapg's routed table can be reproduced exactly in R as an integer sum of micro-m³/s.
 - Two review findings were the same mechanism: a claim about a whole population (a comparator's notion of "same", the word "every") that nobody had enumerated. Only listing the population ended it.
-- The plan review caught a crash the first m4 BUILD would have hit at a drainage with no routed part.
+- The plan review caught a crash the first BUILD run would have hit at a drainage with no routed part.
 
 ## Measurement
 
