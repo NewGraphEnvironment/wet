@@ -1,6 +1,8 @@
 # Published discharge: where it lives and how it is named
 
-**Verified:** 2026-10-12 · **Issues:** #7 (decided), #1 (D4, superseded), #57 (the table), fwapg#25 (projections) · **Produced by:** plan-mode discussion on #7, recorded in `planning/archive/2026-10-issue-7-*/findings.md`, plus the probes listed under "Evidence".
+**Verified:** 2026-10-13 · **Issues:** #7 (decided, then published), #1 (D4, superseded), #57 (the table), fwapg#25 (projections) · **Produced by:** plan-mode discussion on #7, recorded in `planning/archive/2026-10-issue-7-*/findings.md`, plus the probes listed under "Evidence".
+
+**Status:** published 2026-10-13 at `https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json`. The `historical` scenario, built at wet 7c62b9e (segment table 653fc13, fit 20260717, crate 0.7.0), is 67 parts and 1.80 GB: 43 `segment_monthly` (102,790,688 rows) and 24 `watershed_monthly` (41,904,356). The build report is `data/checks/discharge_publish_20260717.txt`.
 
 ## The rule: one identifier per dataset
 
@@ -79,11 +81,14 @@ where scenario = 'historical' and month = 0 and pick
 
 Measured on the province table (102,790,688 rows, 19 GB with indexes): the load takes about 24 min. fresh's subquery takes 6.7 s for the whole province, and 0.7 s joined to one watershed group, through a partial index `(scenario, linear_feature_id) WHERE month = 0 AND pick` that `wet_db_load()` creates; without it the subquery takes 197 s.
 
+Loaded from the published manifest on 2026-10-13, into tables dropped first. The partial index exists only on a table `wet_db_load()` created, so tables from before it need dropping. Segments took 23.9 min (20 GB with indexes) and watersheds 10.7 min (8.5 GB). Every part was downloaded into an empty cache and md5-checked. fresh's subquery returned 4,532,843 rows (3,152,838 routed, 1,380,005 balance), in 9.3 s as the first query after the load. Each table's comment names the manifest URL and the build commit, which is how to tell which build a database holds.
+
 ## Evidence
 
 - **hydromosaic API** (`https://beehive.pacificclimate.org/hydromosaic/`, 2026-10-12):
   - `/variables` lists `streamflow`, `water_temp` and `DO_sat`.
   - `/outlets` lists 68,716 outlets.
   - `/outlets/4008184/timeseries` lists 19 series per variable: one `historical` (PNWNAmet, 1950–2012) and 9 GCMs × `historical, ssp245` and `historical, ssp585` (1950–2100). The GCMs are CNRM-ESM2-1, FGOALS-g3, IPSL-CM6A-LR, MIROC-ES2L, MPI-ESM1-2-HR, MRI-ESM2-0, NorESM2-LM, TaiESM1 and UKESM1-0-LL.
-- **fresh-bc policy** (`aws s3api get-bucket-policy`, 2026-10-12): anonymous GetObject on `bcfishpass/*`, `bcgw/*` and `fwapg/extras/*`.
+- **fresh-bc policy** (`aws s3api get-bucket-policy`, 2026-10-12): anonymous GetObject on `bcfishpass/*`, `bcgw/*` and `fwapg/extras/*`. `discharge/*` was added on 2026-10-13 (GetObject only, no ListBucket); an unsigned GET of a probe returned 200 (#7 comment). Default encryption is SSE-S3 (`get-bucket-encryption`: AES256), so a single-PUT part's ETag is its md5, which `wet_catalog_verify()` relies on.
+- **The publish** (`WET_PUBLISH=1 Rscript scripts/discharge_publish.R` on the full-run machine, 2026-10-13 03:29–03:31 UTC) ended `published 67 parts, 0 stale keys deleted; all verify`. From a second machine, unsigned, every part answers a HEAD with its bytes and md5, and a full GET of `segment_monthly/scenario=historical/forcing=PNWNAmet/source=pcic_routed/part-400.parquet` matched the manifest's md5 and its 3,420,157 rows.
 - **Drainage codes:** `split_part(fwa_watershed_code, '-', 1)` over `whse_basemapping.fwa_stream_networks_sp` in the local fwapg.

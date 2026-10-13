@@ -25,12 +25,12 @@ PR #62 (v0.4.0) merged the publish path; #7 stayed open because nothing was uplo
 - [x] Download one part in full (`segment_monthly/…/source=pcic_routed/part-400.parquet`, BULK's drainage) and md5 it against the manifest; read the local copy with arrow: 3,420,157 rows (review G3, A3, AC4)
 
 ## Phase 5: Postgres from the published copy
-- [ ] On m4, drop the pre-fix 7e738e1 tables (`wet_db_load()` builds its indexes only when it creates a table, review G1), then `cat <- wet_catalog()` (https manifest asserted) and `wet_db_load(conn, cat)` plus `wet_db_load(conn, cat, dataset = "discharge/fwa/v1/watershed_monthly")` (about 35 min)
-- [ ] Run fresh's subquery (`month = 0 AND pick`): expect 4,532,843 rows (3,152,838 routed, 1,380,005 balance); `pg_indexes` holds the partial index; the table comment names the https manifest and the new build commit (review AC3)
+- [x] On m4, drop the pre-fix 7e738e1 tables (`wet_db_load()` builds its indexes only when it creates a table, review G1), then `cat <- wet_catalog()` (https manifest asserted) and `wet_db_load(conn, cat)` plus `wet_db_load(conn, cat, dataset = "discharge/fwa/v1/watershed_monthly")` (about 35 min)
+- [x] Run fresh's subquery (`month = 0 AND pick`): expect 4,532,843 rows (3,152,838 routed, 1,380,005 balance); `pg_indexes` holds the partial index; the table comment names the https manifest and the new build commit (review AC3)
 - m1's fwapg is not loaded (19 + 8.5 GB). That is left for whoever runs fresh#114 locally.
 
 ## Phase 6: record and close
-- [ ] `research/discharge_publish.md`: status "published <date>" with the manifest URL, build commit and part count; remove the open-blocker wording
+- [x] `research/discharge_publish.md`: status "published <date>" with the manifest URL, build commit and part count; remove the open-blocker wording
 - [ ] Edit #7's body: mark the blockers resolved and record the publish. Comment on fresh#114 that `discharge.fwa_v1_segment_monthly` can be loaded with `wet_db_load()`
 - [ ] m4 cleanup: `git worktree remove` for `wet-7-publish` and `wet-7-upload`; remove crate's `/tmp/crate-31` registration with `git worktree remove` (not prune). Update the m4 memory file.
 - [ ] `/planning-archive`, then `/gh-pr-push` with "Fixes #7"

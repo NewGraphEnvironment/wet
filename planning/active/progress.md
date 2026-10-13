@@ -15,3 +15,9 @@
   - The manifest's `wet_commit` is 7c62b9e, as the committed report names; rows sum to 102,790,688 (segment) and 41,904,356 (watershed); a HEAD verify gives 67 of 67.
   - A full GET of `segment_monthly/…/source=pcic_routed/part-400.parquet` returned 32,094,340 bytes, md5 db2beca3… = manifest, and 3,420,157 rows, 390,481 of them BULK.
 - Phase 5: the first load attempt failed at once (findings, Errors). The reload was launched on m4 at 03:32:58 UTC.
+- Phase 5, the m4 load from the published manifest (03:33–04:07 UTC), into tables dropped first:
+  - segment 102,790,688 rows in 23.9 min (20 GB); watershed 41,904,356 in 10.7 min (8.5 GB);
+  - fresh's subquery returned 3,152,838 + 1,380,005 = 4,532,843 rows, in 9.3 s as the first query after the load (6.7 s measured in #62);
+  - the partial index `WHERE ((month = 0) AND pick)` was created by `wet_db_load()`;
+  - both table comments name the https manifest and build 7c62b9e.
+- Phase 6: `research/discharge_publish.md` gets a status line, the load measured from the published copy, and the policy and publish evidence.
