@@ -1,0 +1,118 @@
+# Published discharge, build (#7)
+
+wet commit 7e738e1 (segment table built at 653fc13); fit 20260717, province run 962a9cc2c4; crate 0.6.0
+routed: whse_basemapping.fwa_stream_networks_discharge_monthly, built by NewGraphEnvironment/fwapg at 341b078
+table: 40524444 rows, 3377037 segments, 0 null flows, total 178035348.248310 m3/s
+tree: data/publish/discharge/fwa/v1 -> s3://fresh-bc/discharge/fwa/v1/
+
+## Cross-checks against the segment report
+routed_rows     ok
+balance_rows    ok
+picked_routed   ok
+picked_balance  ok
+hive_read       ok
+
+## What a reader sees (duckdb, hive_partitioning = true, over the local tree)
+historical PNWNAmet  pcic_routed     43901481 rows   3152838 fresh-subquery rows
+historical climr     wet_balance     58889207 rows   1380005 fresh-subquery rows
+
+## Row-group pruning: a read for BULK opens 2 of 507 row groups in 43 segment parts
+
+## Parts
+picked: for segments, annual rows picked; for watersheds, NA-flow watersheds dropped
+dataset            source       code        rows  features    picked
+segment_monthly    pcic_routed  100     13140088   1010776    896260
+segment_monthly    wet_balance  100     13157092   1012084    115841
+segment_monthly    pcic_routed  200      7851909    603993    578204
+segment_monthly    wet_balance  200     17578132   1352164    773960
+segment_monthly    pcic_routed  300      4779385    367645    351306
+segment_monthly    wet_balance  300      4934813    379601     28295
+segment_monthly    pcic_routed  400      3420157    263089    252101
+segment_monthly    wet_balance  400      3420196    263092     10993
+segment_monthly    pcic_routed  500      1680744    129288    123669
+segment_monthly    wet_balance  500      1680835    129295      5626
+segment_monthly    pcic_routed  600      3622515    278655    257348
+segment_monthly    wet_balance  600      3646487    280499     23151
+segment_monthly    pcic_routed  700      1339559    103043     96303
+segment_monthly    wet_balance  700      1343784    103368      7065
+segment_monthly    wet_balance  800      1803802    138754    138754
+segment_monthly    pcic_routed  900      2115490    162730    154552
+segment_monthly    wet_balance  900      2484508    191116     36564
+segment_monthly    pcic_routed  905        19942      1534      1534
+segment_monthly    wet_balance  905       108875      8375      6841
+segment_monthly    pcic_routed  910      3307317    254409    242013
+segment_monthly    wet_balance  910      3851991    296307     54345
+segment_monthly    pcic_routed  915       353990     27230     27230
+segment_monthly    wet_balance  915      1356706    104362     79963
+segment_monthly    pcic_routed  920       786006     60462     59911
+segment_monthly    wet_balance  920       861666     66282      6371
+segment_monthly    pcic_routed  925          858        66        66
+segment_monthly    wet_balance  925         5213       401       335
+segment_monthly    pcic_routed  930       905476     69652     69428
+segment_monthly    wet_balance  930      1093768     84136     14711
+segment_monthly    pcic_routed  935        10725       825       825
+segment_monthly    wet_balance  935        37128      2856      2031
+segment_monthly    pcic_routed  940       270231     20787     20561
+segment_monthly    wet_balance  940       410020     31540     10979
+segment_monthly    wet_balance  945         4316       332       332
+segment_monthly    pcic_routed  950        47567      3659      3659
+segment_monthly    wet_balance  950       201240     15480     11821
+segment_monthly    pcic_routed  955         9217       709       709
+segment_monthly    wet_balance  955        45630      3510      2801
+segment_monthly    pcic_routed  960       240292     18484     17158
+segment_monthly    wet_balance  960       394511     30347     13189
+segment_monthly    pcic_routed  970           13         1         1
+segment_monthly    wet_balance  970        92638      7126      7125
+segment_monthly    wet_balance  990       375856     28912     28912
+watershed_monthly  wet_balance  100      8381074    644698       156
+watershed_monthly  wet_balance  200     12092119    930163         0
+watershed_monthly  wet_balance  300      3992313    307101         0
+watershed_monthly  wet_balance  400      2462720    189440        13
+watershed_monthly  wet_balance  500      1275235     98095         0
+watershed_monthly  wet_balance  600      2617836    201372         0
+watershed_monthly  wet_balance  700       910572     70044         0
+watershed_monthly  wet_balance  800      1180062     90774         0
+watershed_monthly  wet_balance  900      1966874    151298       299
+watershed_monthly  wet_balance  905       120835      9295     34827
+watershed_monthly  wet_balance  910      2994407    230339      1027
+watershed_monthly  wet_balance  915      1064518     81886    168012
+watershed_monthly  wet_balance  920       641212     49324        13
+watershed_monthly  wet_balance  925         7163       551      6474
+watershed_monthly  wet_balance  930       961207     73939       221
+watershed_monthly  wet_balance  935        49868      3836     47424
+watershed_monthly  wet_balance  940       294866     22682       117
+watershed_monthly  wet_balance  945        10881       837      9945
+watershed_monthly  wet_balance  950       205673     15821       286
+watershed_monthly  wet_balance  955        67353      5181     17719
+watershed_monthly  wet_balance  960       262730     20210         0
+watershed_monthly  wet_balance  970        84513      6501         0
+watershed_monthly  wet_balance  990       259545     19965         0
+watershed_monthly  wet_balance  999          780        60         0
+
+## Drainage labels
+100  Fraser River
+200  watershed groups Toad River, Liard River, Middle Muskwa River
+300  Columbia River
+400  Skeena River
+500  Nass River
+600  Stikine River
+700  Taku River
+800  watershed groups Tutshi River, Atlin Lake, Teslin River
+900  watershed groups Homathko River, Klinaklini River, Toba Inlet
+905  watershed groups Knight Inlet, Comox, Northeast Vancouver Island
+910  watershed groups Owikeno Lake, Kitlope River, Kitimat River
+915  watershed groups Laredo Inlet, Necleetsconnay River, Kumowdah River
+920  watershed groups Nimpkish River, Cowichan, Tsitika River
+925  watershed groups Victoria, Cowichan, Parksville
+930  watershed groups Alberni Inlet, San Juan River, Clayoquot
+935  watershed groups Gold River, Clayoquot, Tahsis
+940  watershed groups Graham Island
+945  watershed groups Graham Island
+950  watershed groups Morsby Island
+955  watershed groups Morsby Island
+960  watershed groups Unuk River, Kusawa River, Barrington River
+970  watershed groups Skagit River, Lower Fraser, Chilliwack River
+990  Alsek River
+999  watershed groups Upper Dean River, Graham Island, Lower Beatton River
+
+## Totals: 67 parts, 1.80 GB
