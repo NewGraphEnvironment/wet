@@ -1,5 +1,28 @@
 # Changelog
 
+## wet 0.4.0
+
+- Per-segment and per-watershed discharge have a published layout at
+  `s3://fresh-bc/discharge/fwa/v1/`
+  ([\#7](https://github.com/NewGraphEnvironment/wet/issues/7)):
+  Hive-partitioned parquet keyed `scenario` / `forcing` / `source`, one
+  part per FWA top-level drainage with one row group per watershed
+  group, and a `manifest.json` describing every part, because the bucket
+  allows reads but no listing.
+  [`wet_catalog()`](https://newgraphenvironment.github.io/wet/reference/wet_catalog.md)
+  reads the manifest.
+  [`wet_db_load()`](https://newgraphenvironment.github.io/wet/reference/wet_db_load.md)
+  loads one scenario of a dataset into Postgres
+  (`discharge.fwa_v1_segment_monthly` or
+  `discharge.fwa_v1_watershed_monthly`), checking each part’s size and
+  md5 first, so fresh can join `month = 0 AND pick`.
+  `scripts/discharge_publish.R` conforms each part to its crate schema
+  (crate 0.7.0), builds the tree and writes a tracked report. Uploading
+  is a separate, explicit step and has not been run yet. One dataset ID,
+  `<variable>/<network>/<version>/<unit>_<timebase>`, names the S3
+  prefix, the crate schema and the table
+  (`research/discharge_publish.md`).
+
 ## wet 0.3.2
 
 - FWA segments now carry both estimates where each exists, PCIC’s routed
