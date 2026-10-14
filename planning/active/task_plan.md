@@ -17,10 +17,10 @@ Life-stage windows straddle months, and a freshet can rise and fall inside one m
 - **Missing segment:** 13 rows (months 0–12), `q_m3s` NA.
 
 ## Phase 1: Tests first
-- [ ] `tests/testthat/test-wet_segment_monthly.R`: fixture tree (`local_discharge_tree()`, `wet_catalog(<local manifest>)`) through the parquet path — both sources' months 0–12 equal the fixture; a missing segment gives 13 NA rows; `groups` filters; duplicates in `segments` deduped, NA refused; unknown source, source with no parts and absent scenario stop with the name
-- [ ] Same file, `local_fwapg()`: Postgres published path on the fixture loaded into a throwaway schema (as `test-wet_db_load.R`), equal to the parquet path; missing table stops naming `wet_db_load()`; `from = "fwapg"` on 17094080 equals the routed table's months with month 0 = mean of 12; `wet_balance` and a non-historical scenario refused from fwapg; missing fwapg table names the fork
-- [ ] `tests/testthat/test-wet_flow_window.R`: monthly path reproduces the article's `from_months()` (copied as oracle) on the three Chinook windows; a window inside one month equals that month; `"12-15"`–`"01-15"` = (17·Dec + 15·Jan)/32; an `"02-29"` end takes 28 February days; a daily fixture gives `basis = "daily"`; `by = "station_number"` on `wet_station_monthly()`-shaped input; a missing month gives NA; month+doy, duplicates, bad windows refused; month 0 ignored
-- [ ] Confirm both files fail (functions absent)
+- [x] `tests/testthat/test-wet_segment_monthly.R`: fixture tree (`local_discharge_tree()`, `wet_catalog(<local manifest>)`) through the parquet path — both sources' months 0–12 equal the fixture; a missing segment gives 13 NA rows; `groups` filters; duplicates in `segments` deduped, NA refused; unknown source, source with no parts and absent scenario stop with the name
+- [x] Same file, `local_fwapg()`: Postgres published path on the fixture loaded into a throwaway schema (as `test-wet_db_load.R`), equal to the parquet path; missing table stops naming `wet_db_load()`; `from = "fwapg"` on 17094080 equals the routed table's months with month 0 = mean of 12; `wet_balance` and a non-historical scenario refused from fwapg; missing fwapg table names the fork
+- [x] `tests/testthat/test-wet_flow_window.R`: monthly path reproduces the article's `from_months()` (copied as oracle) on the three Chinook windows; a window inside one month equals that month; `"12-15"`–`"01-15"` = (17·Dec + 15·Jan)/32; an `"02-29"` end takes 28 February days; a daily fixture gives `basis = "daily"`; `by = "station_number"` on `wet_station_monthly()`-shaped input; a missing month gives NA; month+doy, duplicates, bad windows refused; month 0 ignored
+- [x] Confirm both files fail (functions absent)
 
 ## Phase 2: wet_segment_monthly()
 - [ ] `R/wet_segment_monthly.R`: exported function, internal `wet_segment_sources()` and `wet_segment_read()` (dataset ID → table or parts; timebase → time column)
