@@ -23,4 +23,4 @@ What review taught: the four defects the plan review and the code check found in
 
 Run logs are local to m1 (`data/logs/71/`, gitignored). Tracked inputs: `data/checks/segment_output_20260717.txt` and `data/checks/discharge_publish_20260717.txt`. The reviews are in this directory: `review-plan.md` and `review-round{1,2,3}.md`.
 
-Closed by: PR (see `/gh-pr-push`), branch `71-simplify-the-segment-discharge-article-d`
+Closed by: PR #72
