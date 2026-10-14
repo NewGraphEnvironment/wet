@@ -1,3 +1,7 @@
+# wet 0.4.4
+
+* `wet_segment_monthly()` reads flow per FWA segment and source in the shape of `wet_station_monthly()` (`linear_feature_id, month, q_m3s, source`), so a gauge comparison is a join on `month` (#59). It reads the published product, from Postgres after `wet_db_load()` or from the parquet parts through duckdb, or with `from = "fwapg"` fwapg's routed table, which `scripts/pcic_routed_compare.R` scores before a publish. A segment with no value comes back as 13 `NA` rows. `wet_flow_window()` turns monthly means into mean flow over month-day windows, labelled `basis = "monthly"`; the monthly article's read and its Chinook windows now go through both, with its numbers unchanged.
+
 # wet 0.4.3
 
 * The segment-discharge article is simpler (#71). It now says what the published product is, which value to use, how to read it and how good it is, in that order. `pick` has its own early section with its rule and the province counts: routed PCIC on 3,152,838 segments, the balance on 1,380,005, neither on 374,598. One province map of the source `pick` takes on main rivers replaces the Salmon River maps and the scatter. The map's picks are read from the live published parts by `data-raw/segment_vignette_map.R`, under the guards the values script uses. The rename of `pick` to `is_default` at v2 is recorded in `research/discharge_publish.md`.
