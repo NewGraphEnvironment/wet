@@ -15,3 +15,24 @@ Rounds 1 and 2 found one mechanism: a number or claim in the article's prose com
 | Validation | provenance fields | the bundle | read from `prov`; report path from `prov$published$report` (was hardcoded) |
 
 Prose outside inline values, fixed here: "skip every part" (duckdb skips row groups, not parts); the recipe's "seconds" (measured: 2.5 s cold, 1.1 s warm); 08EE003's windows rest on the window table's years (18), not all 19 years with months. Nothing in the set is left without a guard or a set-correct computation.
+
+## After round 3: the enumeration above was itself incomplete
+
+Round 3 found the mechanism one level down: each sentence's set is chosen twice, in the prose and in the code's filter, and a guard checked only the direction of a claim on the code's set. The table above asked "is the set right?" and never "does the set's own filter move the answer?", and it walked only inline values.
+
+1. **Filter neutrality.** Every filter feeding a statistic, and whether it is correlated with the statistic:
+   - `both`: dropped the balance's zero months (−100 % errors, 62 of 89 in Dec–Mar). January moved from +23 % to +11.5 %, and the winter peak from January to April. **Fixed**: scores are medians of modelled over observed, which rank a zero. The zeros are kept and counted in the prose (89, 34 in January).
+   - `lp`: dropped routed zero months the same way. **Fixed** the same way.
+   - `obs_mm < 1 mm`: drops 33 months. It is a property of the gauge, not of either model, so it moves both sources alike. Kept and counted.
+   - `far`: the routed report's own rule. Kept, with the prose now saying the report attributes each one (no unguarded "most").
+2. **Sentences with no inline value**, walked one by one:
+   - "every FWA segment": now "per source it covers".
+   - "freshet in the right months": removed (66 % vs 64 % peak-month match does not separate the sources).
+   - "hardly a freshet": now "under half the gauge's and a month late", asserted (peak under half; peak month +1).
+   - "its shares know nothing of the lake, and routing does": the lake-outlet comparison is now asserted.
+   - "months add up to month 0" (balance) and "do not" (routed): both asserted.
+   - "08EE003 has no complete years in 1981–2010": asserted from the daily record.
+   - "monthly precipitation, temperature and evapotranspiration": `wet_share_fit()` also uses elevation and location. Corrected.
+   - "a misplaced outlet scales every month alike": overstated; a wrong segment can carry another regime. Reworded to the median argument.
+   - "checked every bundled published value": now "the bundled values". The data script also checks routed month 0 on the gauge segments (290, 0 differing).
+   - "the fit's output held month 0 only": now written from `provenance$output_months`.
