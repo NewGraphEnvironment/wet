@@ -34,16 +34,18 @@ routed_fingerprint <- function(conn) {
 }
 
 # Mean annual routed flow (m3/s) per segment: the mean of its 12 monthly
-# means, unweighted by month length. NA where the segment has no row, or not
-# twelve months of flow.
+# means, unweighted by month length, as wet_segment_monthly() reads it from
+# fwapg (month 0, the published product's rule). NA where the segment has no
+# row, or not twelve months of flow.
 routed_annual <- function(conn, lfid) {
+  # the package names the table too; the report's fingerprint must describe
+  # the table the values come from
+  lk <- wet:::wet_segment_sources("discharge/fwa/v1/segment_monthly")
+  stopifnot(identical(lk$location[lk$from == "fwapg" & lk$source == "pcic_routed"], routed_table))
   lfid <- unique(lfid[!is.na(lfid)])
-  if (!length(lfid)) return(data.frame(linear_feature_id = integer(), q_m3s = numeric()))
-  q <- DBI::dbGetQuery(conn, sprintf("
-    SELECT linear_feature_id::int AS linear_feature_id, avg(q_m3s) AS q_m3s
-    FROM %s WHERE linear_feature_id IN (%s)
-    GROUP BY 1 HAVING count(q_m3s) = 12", routed_table, paste(lfid, collapse = ", ")))
-  data.frame(linear_feature_id = lfid, q_m3s = q$q_m3s[match(lfid, q$linear_feature_id)])
+  q <- wet_segment_monthly(conn, lfid, source = "pcic_routed", from = "fwapg")
+  q <- q[q$month == 0, ]
+  data.frame(linear_feature_id = q$linear_feature_id, q_m3s = q$q_m3s)
 }
 
 # m3/s over an area in m2 as mm a year, on the year scripts/wb_cv_lib.R

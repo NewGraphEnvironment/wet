@@ -143,7 +143,9 @@ stopifnot(as.integer(rr_all[2]) == nrow(both),
 # routed flow's mean of twelve months from fwapg, on every gauge's segment:
 # each published value must equal its source, and no source value may be
 # missing from the product, nor any published one lack a source. Routed month
-# 0 is R's mean() at publish and SQL avg() here, which differ in the last bits
+# 0 is R's mean() at publish and here (wet_segment_monthly() through
+# routed_annual()), over months read in either order, so the two may differ in
+# the last bits
 at0 <- function(id, q) data.frame(linear_feature_id = id, month = 0L, q_m3s = q)
 src_r <- src_routed[!is.na(src_routed$q_m3s), ]
 src_r <- at0(src_r$linear_feature_id, src_r$q_m3s)

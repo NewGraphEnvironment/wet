@@ -1,6 +1,6 @@
 # Published discharge: where it lives and how it is named
 
-**Verified:** 2026-10-13 · **Issues:** #7 (decided, then published), #64 (value checks), #1 (D4, superseded), #57 (the table), fwapg#25 (projections) · **Produced by:** plan-mode discussion on #7, recorded in `planning/archive/2026-10-issue-7-*/findings.md`, the probes listed under "Evidence", and `scripts/discharge_publish.R` (BUILD) for the value checks.
+**Verified:** 2026-10-13 (the reader's parquet timings under "Postgres": 2026-10-14) · **Issues:** #7 (decided, then published), #64 (value checks), #59 (the per-segment reader), #1 (D4, superseded), #57 (the table), fwapg#25 (projections) · **Produced by:** plan-mode discussion on #7, recorded in `planning/archive/2026-10-issue-7-*/findings.md`, the probes listed under "Evidence", and `scripts/discharge_publish.R` (BUILD) for the value checks.
 
 **Status:** published 2026-10-13 at `https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json`. The `historical` scenario, built at wet 7c62b9e (segment table 653fc13, fit 20260717, crate 0.7.0), is 67 parts and 1.80 GB: 43 `segment_monthly` (102,790,688 rows) and 24 `watershed_monthly` (41,904,356). The build report is `data/checks/discharge_publish_20260717.txt`. Since #64 it is the value-checked rebuild at wet 032242f, whose 67 parts are byte-identical to the 7c62b9e upload, so the upload was not repeated.
 
@@ -95,6 +95,8 @@ select linear_feature_id, q_m3s as mad_m3s
 from discharge.fwa_v1_segment_monthly
 where scenario = 'historical' and month = 0 and pick
 ```
+
+`wet_segment_monthly()` (#59) reads the same table per segment and source, keyed on `linear_feature_id`. Without a database it reads the parts through duckdb instead. Measured 2026-10-14 over HTTPS: one segment took 3.3 s with its watershed group named and 27 s without. The parts are sorted by group, and a random ID falls inside about 131 of the 507 row groups' ID ranges, so a read of many IDs with no group reads nearly the whole tree. It warns on a table whose comment records a subset load, and stops on a scenario or source the table does not hold.
 
 Measured on the province table (102,790,688 rows, 19 GB with indexes): the load takes about 24 min. fresh's subquery takes 6.7 s for the whole province, and 0.7 s joined to one watershed group, through a partial index `(scenario, linear_feature_id) WHERE month = 0 AND pick` that `wet_db_load()` creates; without it the subquery takes 197 s.
 
