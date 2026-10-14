@@ -10,7 +10,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/NewGraphEnvironment/wet/blob/v0.4.1/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/NewGraphEnvironment/wet/blob/main/DESCRIPTION)
 
 Irvine A (2026). *wet: Stream Flow and Water Temperature for the BC
 Freshwater Atlas*. R package version 0.4.1,
