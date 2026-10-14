@@ -48,4 +48,4 @@ Life-stage windows straddle months, and a freshet can rise and fall inside one m
 - [x] Tests pass
 - [x] `/code-check` clean (once over the branch with `/code-check branch`)
 - [x] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] `/planning-archive` on completion
