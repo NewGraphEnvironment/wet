@@ -126,33 +126,27 @@ comparison below says which period it uses.
 ## Reading a segment's twelve months
 
 The parts are public and the bucket allows no listing, so the manifest names
-them. One stream is one `linear_feature_id`. Filtering on its watershed group
-as well lets duckdb skip the row groups that cannot hold it, which keeps the read to
+them. One stream is one `linear_feature_id`. Naming its watershed group as well
+lets duckdb skip the row groups that cannot hold it, which keeps the read to
 seconds.
 
 ```{r read, echo = TRUE, eval = FALSE}
 library(wet)
-parts <- wet_catalog()
-parts <- parts[parts$dataset == "discharge/fwa/v1/segment_monthly" & parts$scenario == "historical", ]
-
-con <- DBI::dbConnect(duckdb::duckdb())
-DBI::dbExecute(con, "LOAD httpfs")
 # Buck Creek at its mouth, where gauge 08EE013 sits
-q <- DBI::dbGetQuery(con, sprintf("
-  SELECT source, month, q_m3s, period, pick
-  FROM read_parquet([%s], hive_partitioning = true)
-  WHERE watershed_group_code = 'BULK' AND linear_feature_id = 17094080
-  ORDER BY source, month", paste0("'", parts$href, "'", collapse = ", ")))
-DBI::dbDisconnect(con, shutdown = TRUE)
+q <- wet_segment_monthly(NULL, 17094080, groups = "BULK")
 
 # twelve months a column per source
 reshape(q[q$month > 0, c("source", "month", "q_m3s")], idvar = "month",
         timevar = "source", direction = "wide")
 ```
 
-`data-raw/monthly_vignette_data.R` runs this query and refuses to bundle the
-values below unless it returns them. Once `wet_segment_monthly()` lands (#59),
-it does the same read in one call.
+`wet_segment_monthly()` reads the parts through duckdb when it is given no
+database connection, and the table `wet_db_load()` writes when it is. It
+returns `linear_feature_id, month, q_m3s, source`, in the shape of
+`wet_station_monthly()`'s `station_number, month, q_m3s` for a gauge, so a
+gauge comparison is a join on `month`. A segment with no value for a source comes back with its months as
+`NA`, not as missing rows. `data-raw/monthly_vignette_data.R` runs this read
+and refuses to bundle the values below unless it returns them.
 
 ## The Bulkley at three gauges
 
@@ -306,15 +300,13 @@ ungauged site, and the gauge can check it only in open water.
 # over each window, in each 1981-2010 year with enough of the window's days
 ws <- wet_window_stats(dh[dh$station_number %in% c("08EE013", "08EE003"), c("station_number", "date", "q_m3s")],
                        windows, stats = "mean")
-# a window's mean from monthly means: each day takes its month's mean
-from_months <- function(q12, start, end) {
-  d <- seq(as.Date(paste0("2001-", start)), as.Date(paste0("2001-", end)), by = "day")
-  mean(q12[as.integer(format(d, "%m"))])
-}
-q12 <- function(s, src) {
-  x <- sg[sg$station_number == s & sg$source == src & sg$month > 0, ]
-  x$q_m3s[order(x$month)]
-}
+# a window's mean from monthly means, wet_flow_window(): each day takes its
+# month's mean. The sources' months once per gauge; the observed months per
+# window, since each window has its own years
+src_w <- wet_flow_window(sg[sg$station_number %in% c("08EE013", "08EE003"), c("station_number", "source", "month", "q_m3s")],
+                         windows, by = c("station_number", "source"))
+stopifnot(all(src_w$basis == "monthly"))
+src_q <- function(s, src, w) src_w$q_m3s[src_w$station_number == s & src_w$source == src & src_w$window == w]
 win <- do.call(rbind, lapply(c("08EE013", "08EE003"), function(s) {
   do.call(rbind, lapply(seq_len(nrow(windows)), function(k) {
     w <- windows[k, ]
@@ -322,14 +314,13 @@ win <- do.call(rbind, lapply(c("08EE013", "08EE003"), function(s) {
     # the observed months over the same years as the daily means
     mo <- my[my$station_number == s & my$year %in% yrs, ]
     om <- stats::aggregate(q ~ month, mo, mean)
-    obs12 <- rep(NA_real_, 12)
-    obs12[om$month] <- om$q
+    obs_w <- wet_flow_window(data.frame(month = om$month, q_m3s = om$q), w, by = character())
     data.frame(station_number = s, window = w$window, span = paste(md_text(w$start), "–", md_text(w$end)),
                years = length(yrs),
                daily = mean(ws$value[ws$station_number == s & ws$period == w$window]),
-               obs_months = from_months(obs12, w$start, w$end),
-               routed = from_months(q12(s, "pcic_routed"), w$start, w$end),
-               balance = from_months(q12(s, "wet_balance"), w$start, w$end))
+               obs_months = obs_w$q_m3s,
+               routed = src_q(s, "pcic_routed", w$window),
+               balance = src_q(s, "wet_balance", w$window))
   }))
 }))
 stopifnot(!anyNA(win), all(win$years >= min_years))
@@ -682,8 +673,6 @@ each with its issue:
   issue records the evidence and a draft report to PCIC.
 - **Store the held-out monthly balance with the fit** (#68). Today only its annual
   values are stored, so this article's data script recomputes the months.
-- **Per-segment monthly reads in one call** (#59), which replaces the duckdb
-  recipe above.
 - **Monthly scoring by region and season** (#6), which takes over the scoring
   this article starts.
 
@@ -694,7 +683,9 @@ each with its issue:
 - 08EE003 is seasonal: its monthly means cover `r m003_text`, from
   `r n003` of the years `r base_text`. Its windows rest on the years the window
   table gives.
-- A window's flow from monthly means is an approximation (the window table measures it).
+- A window's flow from monthly means is an approximation (the window table
+  measures it). `wet_flow_window()` labels it `basis = "monthly"`, and gives
+  `"daily"` from the same call once daily flow is published (#70).
 - Routed PCIC's month 0 is a plain mean of its months, so its months converted
   to millimetres do not add up to its annual runoff exactly.
 
