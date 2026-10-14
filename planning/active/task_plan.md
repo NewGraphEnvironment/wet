@@ -25,8 +25,8 @@ Facts from exploration:
 - [x] Record the per-cell completeness measured above (30/30 years on every land cell) and the grid (0.1°, sea NA)
 
 ## Phase 2: Store the held-out monthly balance with each fit (#68)
-- [ ] `scripts/wb_validate.R`: add `cv_share` (held-out shares, n × 12, the shipped specification) and `obs_share` (observed shares, n × 12) to `cv_aet-<AET>.rds`, so `long()` can be rebuilt from the file alone
-- [ ] Update the header comment and `CLAUDE.md`'s `wb_validate.R` line to name the stored months
+- [x] `scripts/wb_validate.R`: add `cv_share` (held-out shares, n × 12, the shipped specification) and `obs_share` (observed shares, n × 12) to `cv_aet-<AET>.rds`, so `long()` can be rebuilt from the file alone
+- [x] Update the header comment and `CLAUDE.md`'s `wb_validate.R` line to name the stored months
 
 ## Phase 3: Snow normals on the 30″ grid
 - [ ] `R/wet_snow_normals.R`: `wet_snow_normals(grid, vars = c("snowmelt_doy_50", "swe_max"), years = 1981:2010, dir = "data/snow", catalog = NULL)`. It reads cd's annual COGs (`cd::cd_catalog()`, `cd::cd_cache_fetch()`; cd stays in Suggests with `rlang::check_installed`), requires every year's band, takes the per-cell mean over `years` (`cd_baseline()`'s definition), and projects bilinearly onto a template of `grid`. The cache is keyed on the grid, the catalog checksums and a method version. Cells with no ERA5-Land land cell are left NA for the caller

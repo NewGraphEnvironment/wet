@@ -7,7 +7,8 @@
 # reads data/wb/stations_<release>.rds (scripts/wb_stations.R) and the
 # upstream means from scripts/wb_province.R. Writes the tracked report
 # wb_report("wb_validation_aet-<AET>", release) and <fit>/cv_aet-<AET>.rds
-# (read by scripts/wb_aet_compare.R). For the shipped AET it also writes
+# (read by scripts/wb_aet_compare.R; it holds the held-out annual and monthly
+# balance at every calibration gauge, #68). For the shipped AET it also writes
 # wb_report("wb_validation", release) and <fit>/fits.rds (the fits the
 # province output uses). The shipped AET is the one scripts/wb_aet_compare.R
 # chose for this fit by the #15 and #18 decision rules (<fit>/aet_winner.txt),
@@ -136,11 +137,14 @@ if (aet_v %in% ship_aet) {
                aet_md5 = aet_code_md5),
           file.path(fit_dir, "fits.rds"))
 }
-# per-station held-out predictions and summaries, for scripts/wb_aet_compare.R
+# per-station held-out predictions and summaries, for scripts/wb_aet_compare.R;
+# the held-out monthly balance too (#68): long(cal, cv_ann, cv_share) rebuilt
+# from obs, obs_share, cv_ann and cv_share alone (rows in station_number order)
 saveRDS(list(aet = aet_v, keep_adjust = keep_adjust, gate_pass = gate_pass, raw_v = raw_v, cv_v = cv_v, lo_v = lo_v,
              plain = plain,
              ship_variant = ship_variant, station_number = cal$station_number, raw = cal$raw,
-             cv_ann = cv$ann, cv_variant = cv_variant, nesting = cal$nesting, obs = cal$obs,
+             cv_ann = cv$ann, cv_share = cv$share, obs_share = as.matrix(cal[sprintf("share_%02d", 1:12)]),
+             cv_variant = cv_variant, nesting = cal$nesting, obs = cal$obs,
              release = release, code_md5 = score_code_md5),
         file.path(fit_dir, sprintf("cv_aet-%s.rds", aet_v)))
 
