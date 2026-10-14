@@ -146,6 +146,11 @@ wet_sql_in <- function(conn, x) {
   if (is.character(x)) paste(DBI::dbQuoteString(conn, x), collapse = ", ") else paste(x, collapse = ", ")
 }
 
+# the optional watershed-group filter, every table and part carrying the column
+wet_sql_groups <- function(conn, groups) {
+  if (is.null(groups)) "" else sprintf(" AND watershed_group_code IN (%s)", wet_sql_in(conn, groups))
+}
+
 # The published dataset from the Postgres table wet_db_load() writes.
 wet_segment_pg <- function(conn, dataset, ids, source, scenario, groups) {
   tbl <- wet_dataset_table(dataset)
@@ -161,11 +166,13 @@ wet_segment_pg <- function(conn, dataset, ids, source, scenario, groups) {
     warning(name, " was loaded as a subset (", sub("^.*; subset ", "", comment),
             "): a row outside it reads as missing", call. = FALSE)
   }
-  DBI::dbGetQuery(conn, sprintf(
+  sql <- sprintf(
     "SELECT linear_feature_id, month, q_m3s, source FROM %s
      WHERE scenario = %s AND source IN (%s) AND linear_feature_id IN (%s)%s",
     qid, DBI::dbQuoteString(conn, scenario), wet_sql_in(conn, source), wet_sql_in(conn, ids),
-    if (is.null(groups)) "" else sprintf(" AND watershed_group_code IN (%s)", wet_sql_in(conn, groups))))
+    wet_sql_groups(conn, groups)
+  )
+  DBI::dbGetQuery(conn, sql)
 }
 
 # The published dataset straight from its parquet parts.
@@ -190,11 +197,12 @@ wet_segment_parts <- function(dataset, ids, source, scenario, groups, catalog) {
   out <- lapply(source, function(s) {
     href <- parts$href[parts$source == s]
     # the keys come from the catalog, as in wet_db_load()
-    d <- DBI::dbGetQuery(duck, sprintf(
+    sql <- sprintf(
       "SELECT linear_feature_id, month, q_m3s FROM read_parquet([%s], hive_partitioning = false)
        WHERE linear_feature_id IN (%s)%s",
-      wet_sql_in(duck, href), wet_sql_in(duck, ids),
-      if (is.null(groups)) "" else sprintf(" AND watershed_group_code IN (%s)", wet_sql_in(duck, groups))))
+      wet_sql_in(duck, href), wet_sql_in(duck, ids), wet_sql_groups(duck, groups)
+    )
+    d <- DBI::dbGetQuery(duck, sql)
     if (nrow(d)) d$source <- s else d$source <- character()
     d
   })
@@ -207,11 +215,12 @@ wet_segment_fwapg <- function(conn, location, origin, ids, scenario, groups) {
   location <- unique(location)
   there <- DBI::dbGetQuery(conn, "SELECT to_regclass($1) IS NOT NULL AS ok", params = list(location))$ok
   if (!isTRUE(there)) stop(location, " does not exist: it is loaded by ", origin, call. = FALSE)
-  d <- DBI::dbGetQuery(conn, sprintf(
+  sql <- sprintf(
     "SELECT linear_feature_id::int AS linear_feature_id, month::int AS month, q_m3s FROM %s
      WHERE linear_feature_id IN (%s) AND month BETWEEN 1 AND 12%s",
-    location, wet_sql_in(conn, ids),
-    if (is.null(groups)) "" else sprintf(" AND watershed_group_code IN (%s)", wet_sql_in(conn, groups))))
+    location, wet_sql_in(conn, ids), wet_sql_groups(conn, groups)
+  )
+  d <- DBI::dbGetQuery(conn, sql)
   d <- rbind(d, wet_segment_annual(d))
   d$source <- rep("pcic_routed", nrow(d))
   d

@@ -9,3 +9,4 @@
 - Phase 1: tests written, all 18 blocks fail before implementation (8 window, 10 reader)
 - Plan correction: the fixture's parquet parts cannot ship (`data-raw/discharge_fixture.R`: their paths exceed the 100 bytes a portable tarball holds), so the reader's example is a `\dontrun{}` live read, as `wet_db_load()`'s is. `_pkgdown.yml` has no reference index, so it needs no entry.
 - Phase 2: `R/wet_segment_monthly.R` (reader, `wet_segment_sources()`, `wet_segment_read()`, per-store helpers, `wet_segment_annual()`); reader tests 43 pass with fwapg up, 0 skip. Example is `\dontrun{}` (plan correction above). Live read of 17094080 with `groups = "BULK"`: 4.5 s, 26 rows, no NA.
+- Phase 3: `R/wet_flow_window.R`; window tests 29 pass; example runs. Group filter factored into `wet_sql_groups()`; no lints in either new R file.

@@ -29,8 +29,8 @@ Life-stage windows straddle months, and a freshet can rise and fall inside one m
 - [x] Phase 1 reader tests pass
 
 ## Phase 3: wet_flow_window()
-- [ ] `R/wet_flow_window.R`, reusing `wet_windows_check()`; runnable example (synthetic months + `wet_windows_calendar()` + a species window)
-- [ ] `_pkgdown.yml`; document; Phase 1 window tests pass
+- [x] `R/wet_flow_window.R`, reusing `wet_windows_check()`; runnable example (synthetic months + `wet_windows_calendar()` + a species window)
+- [x] `_pkgdown.yml`; document; Phase 1 window tests pass
 
 ## Phase 4: Callers
 - [ ] `routed_annual()` in `scripts/pcic_routed_lib.R` becomes `wet_segment_monthly(conn, lfid, "pcic_routed", from = "fwapg")` month 0; probe: old SQL vs new on every calibration-gauge segment, identical (covers `data-raw/segment_vignette_data.R` too)
