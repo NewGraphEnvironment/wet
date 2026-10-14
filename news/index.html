@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,9 +34,14 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/v0.4.4/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.4" id="wet-044">wet 0.4.4<a class="anchor" aria-label="anchor" href="#wet-044"></a></h2>
+<ul><li>
+<code><a href="../reference/wet_segment_monthly.html">wet_segment_monthly()</a></code> reads flow per FWA segment and source in the shape of <code><a href="../reference/wet_station_monthly.html">wet_station_monthly()</a></code> (<code>linear_feature_id, month, q_m3s, source</code>), so a gauge comparison is a join on <code>month</code> (<a href="https://github.com/NewGraphEnvironment/wet/issues/59" class="external-link">#59</a>). It reads the published product, from Postgres after <code><a href="../reference/wet_db_load.html">wet_db_load()</a></code> or from the parquet parts through duckdb, or with <code>from = "fwapg"</code> fwapg’s routed table, which <code>scripts/pcic_routed_compare.R</code> scores before a publish. A segment with no value comes back as 13 <code>NA</code> rows. <code><a href="../reference/wet_flow_window.html">wet_flow_window()</a></code> turns monthly means into mean flow over month-day windows, labelled <code>basis = "monthly"</code>; the monthly article’s read and its Chinook windows now go through both, with its numbers unchanged.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.3" id="wet-043">wet 0.4.3<a class="anchor" aria-label="anchor" href="#wet-043"></a></h2>
 <ul><li>The segment-discharge article is simpler (<a href="https://github.com/NewGraphEnvironment/wet/issues/71" class="external-link">#71</a>). It now says what the published product is, which value to use, how to read it and how good it is, in that order. <code>pick</code> has its own early section with its rule and the province counts: routed PCIC on 3,152,838 segments, the balance on 1,380,005, neither on 374,598. One province map of the source <code>pick</code> takes on main rivers replaces the Salmon River maps and the scatter. The map’s picks are read from the live published parts by <code>data-raw/segment_vignette_map.R</code>, under the guards the values script uses. The rename of <code>pick</code> to <code>is_default</code> at v2 is recorded in <code>research/discharge_publish.md</code>.</li>

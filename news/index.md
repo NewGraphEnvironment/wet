@@ -1,5 +1,23 @@
 # Changelog
 
+## wet 0.4.4
+
+- [`wet_segment_monthly()`](https://newgraphenvironment.github.io/wet/reference/wet_segment_monthly.md)
+  reads flow per FWA segment and source in the shape of
+  [`wet_station_monthly()`](https://newgraphenvironment.github.io/wet/reference/wet_station_monthly.md)
+  (`linear_feature_id, month, q_m3s, source`), so a gauge comparison is
+  a join on `month`
+  ([\#59](https://github.com/NewGraphEnvironment/wet/issues/59)). It
+  reads the published product, from Postgres after
+  [`wet_db_load()`](https://newgraphenvironment.github.io/wet/reference/wet_db_load.md)
+  or from the parquet parts through duckdb, or with `from = "fwapg"`
+  fwapg’s routed table, which `scripts/pcic_routed_compare.R` scores
+  before a publish. A segment with no value comes back as 13 `NA` rows.
+  [`wet_flow_window()`](https://newgraphenvironment.github.io/wet/reference/wet_flow_window.md)
+  turns monthly means into mean flow over month-day windows, labelled
+  `basis = "monthly"`; the monthly article’s read and its Chinook
+  windows now go through both, with its numbers unchanged.
+
 ## wet 0.4.3
 
 - The segment-discharge article is simpler
