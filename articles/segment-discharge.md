@@ -1,165 +1,148 @@
-# Mean Annual Discharge per Segment
+# Stream Discharge per Segment
 
-wet gives every stream segment of British Columbia’s Freshwater Atlas a
-mean annual discharge: the average flow, in cubic metres per second,
-over 1981–2010. This article explains what that number is, the two
-estimates behind it and what each suits, how close they come to measured
-flow, and where they are weakest.
+wet publishes the mean flow of British Columbia’s Freshwater Atlas
+stream segments, in cubic metres per second, for each calendar month and
+for the year, from two sources. It is public at
+`s3://fresh-bc/discharge/fwa/v1/`, and its manifest,
+<https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json>,
+lists every part with its rows, size and md5. The bucket allows no
+listing, so a reader starts from the manifest. The current build has 67
+parquet parts, 1.80 GB, built on 13 October 2026 at wet commit 7c62b9e.
 
-## What mean annual discharge is
+- **`segment_monthly`**: one row per Freshwater Atlas segment, month and
+  source with a value, 102,790,688 rows. Month 0 is the annual mean and
+  months 1–12 the calendar months.
+- **`watershed_monthly`**: the same per fundamental watershed, the small
+  polygon each segment drains, from the open water balance only
+  (41,904,356 rows).
 
-A stream’s mean annual discharge is the volume of water that passes a
-point in an average year, spread over the seconds in that year. It comes
-from **runoff**: the depth of water, in millimetres a year, that the
-land upstream yields to the stream once rain and snow have met
-evaporation and plant use. Spread that depth over the area upstream and
-it becomes a volume. A 100 km² basin yielding 300 mm a year passes about
-0.95 m³/s: 0.3 m over 100 million m² is 30 million m³ a year, and a year
-is 31.5 million seconds. Runoff in mm compares basins of any size;
-discharge in m³/s is what a stream carries.
-[`wet_mm_to_m3s()`](https://newgraphenvironment.github.io/wet/reference/wet_mm_to_m3s.md)
-converts one to the other.
+Each row comes from one `source`: `pcic_routed`, PCIC’s routed flow over
+1951–2012, or `wet_balance`, wet’s open water balance over 1981–2010,
+and 3,374,133 segments have both. `pick` is TRUE on one of them, the
+default: routed PCIC, unless its annual flow is under a fifth of the
+balance’s on a segment that lies on its own watershed’s line, where the
+balance is picked. Where only one source has a value, `pick` takes it.
+Of the 4,532,843 segments with a value, 3,152,838 pick routed PCIC and
+1,380,005 the balance.
 
-The terms used below:
+``` r
 
-- **[Freshwater
-  Atlas](https://www2.gov.bc.ca/gov/content/data/geographic-data-services/topographic-data/freshwater)**
-  (FWA): BC’s mapped stream network. A *segment* is one piece of a
-  stream line. Each segment drains a small *watershed* polygon, and the
-  province is split into 246 *[watershed
-  groups](https://catalogue.data.gov.bc.ca/dataset/freshwater-atlas-watershed-groups)*,
-  such as the Salmon River and the Bulkley River below.
-- **[Stream order](https://en.wikipedia.org/wiki/Strahler_number)**: 1
-  for a headwater stream, rising by one where two streams of the same
-  order meet. The maps here draw order 3 and up.
-- **[HYDAT](https://www.canada.ca/en/environment-climate-change/services/water-overview/quantity/monitoring/survey/data-products-services/national-archive-hydat.html)**:
-  the Water Survey of Canada’s archive of flow measured at gauges. A
-  *calibration gauge* is one of the 315 HYDAT gauges the water balance
-  is fitted and scored on.
-- **PCIC’s models**: the Pacific Climate Impacts Consortium runs the
-  VIC-GL model of snow, glaciers, soil and runoff on a grid of 0.0625°
-  cells, and routes its runoff down rivers with the Raven model
-  ([hydromosaic](https://beehive.pacificclimate.org/chyp/)). The gridded
-  [output](https://services.pacificclimate.org/portal/hydro_model_out/map/)
-  covers the Peace, Fraser and Columbia; the routed flow also covers the
-  coast.
-- **[fwapg](https://github.com/smnorris/fwapg)**: an open database
-  toolkit for the Freshwater Atlas. New Graph’s
-  [fork](https://github.com/NewGraphEnvironment/fwapg/pull/6) places
-  PCIC’s routed outlets on Freshwater Atlas segments and gives each
-  segment a monthly flow. “Routed PCIC” below means that estimate.
-- **Open water balance**: wet’s own estimate, after [Chapman et
-  al. (2018)](https://www2.gov.bc.ca/assets/gov/environment/air-land-water/water/northeast-water-strategy/chapman_et_al-2018-jawra.pdf),
-  the method behind the province’s [water
-  tools](https://www2.gov.bc.ca/gov/content/environment/air-land-water/water/water-science-data/water-data-tools).
-  Precipitation less evapotranspiration per grid cell is averaged
-  upstream, then adjusted by hydrologic zone against HYDAT gauges. Its
-  code ships with wet, and its inputs are public.
-- **[Hydrologic
-  zone](https://catalogue.data.gov.bc.ca/dataset/bc-hydrologic-zones)**:
-  one of BC’s 29 regions of similar runoff. The balance fits one
-  adjustment per zone.
-- **Held out**: scored at a gauge the fit did not see. wet holds out
-  each Water Survey sub-sub-drainage in turn (the first four characters
-  of a station number, such as 08EE), fits on the rest, and predicts the
-  gauges it held out. This is *blocked cross-validation*: whole blocks
-  are held out, so a gauge’s neighbours on the same river cannot vouch
-  for it.
-- **Headwater and nested gauges**: a nested gauge’s basin holds another
-  gauge’s; a headwater gauge’s does not.
-- **Error**: modelled minus observed runoff, as a percentage of
-  observed. One scale runs through every figure: more than 20% under,
-  0–20% under, 0–20% over, more than 20% over.
+library(wet)
+cat <- wet_catalog()   # the manifest: one row per part, with its href
 
-## Two estimates
+# into Postgres (discharge.fwa_v1_segment_monthly), then the default annual flow
+conn <- DBI::dbConnect(RPostgres::Postgres(), dbname = "fwapg")
+wet_db_load(conn, cat)
+DBI::dbGetQuery(conn, "
+  select linear_feature_id, q_m3s as mad_m3s
+  from discharge.fwa_v1_segment_monthly
+  where scenario = 'historical' and month = 0 and pick")
 
-Two estimates of mean annual discharge are available per segment, built
-different ways. They suit different jobs.
+# or straight from the parts: scenario, forcing and source are in the path,
+# not the files, so read them with hive_partitioning
+duck <- DBI::dbConnect(duckdb::duckdb())
+DBI::dbExecute(duck, "LOAD httpfs")
+segs <- cat$href[cat$dataset == "discharge/fwa/v1/segment_monthly"]
+DBI::dbGetQuery(duck, sprintf("
+  SELECT source, linear_feature_id, q_m3s
+  FROM read_parquet([%s], hive_partitioning = true)
+  WHERE watershed_group_code = 'SALR' AND month = 0 AND pick",
+  paste0("'", segs, "'", collapse = ", ")))
+```
 
-|  | Routed PCIC | wet’s open water balance |
-|:---|:---|:---|
-| What it is | VIC-GL, a physically based model of snow, glaciers, soil and runoff, routed down rivers by Raven | Precipitation less evapotranspiration per grid cell, adjusted by hydrologic zone against HYDAT gauges |
-| Where it has values | Peace, Fraser, Columbia and most of the coast (most segments in 186 watershed groups; only some on the outer islands); not the Liard, where 19 of the 25 gauges without it lie | All of BC: every segment with a watershed |
-| Fit at the 290 gauges both cover | 24.1% mean absolute error; 62% within ±20%; bias +0% | 27.6% mean absolute error (held out); 54% within ±20%; bias +9% |
-| Largest rivers | Routed flow on 19,949 of 20,224 segments of order 8 and up in its area; 11.9% mean absolute error at the 103 gauges over 1,000 km² | 20.6% mean absolute error at the same 103 gauges |
-| Grid | 0.0625°, about 7 × 4 km; flow between outlets is spread by drainage area | 30″, about 0.9 × 0.5 km |
-| Time | Monthly means, 1951–2012; no climate projections placed on the FWA yet | 1981–2010 normals, annual and monthly |
-| Open to rebuild | Output is public; the model and routing set-ups are PCIC’s; the placement on the FWA is open (fwapg) | Code ships with wet; its inputs are public and fetched by its scripts |
+Besides flow (`q_m3s`) a row carries `runoff_mm`, the same water as a
+depth over the area upstream (NA for a routed row off its watershed’s
+own line, where the only area is another stream’s), `coverage`, the
+share of that area the balance’s inputs cover, and `period`, the years
+averaged. Parts are split by top-level drainage and sorted by
+`watershed_group_code`, so a read for one group opens a few row groups.
 
-The two estimates. The balance is scored at gauges held out of its fit;
-PCIC does not list the gauges it calibrated to, so its errors may be
-partly in sample. Routed flow covers 1951–2012 and the balance
-1981–2010. The two fits are not strictly like for like. {.table}
+## How each source was made
 
-Which to use depends on the job:
+**Routed PCIC.** The Pacific Climate Impacts Consortium runs the VIC-GL
+model of snow, glaciers, soil and runoff on a 0.0625° grid, driven by
+the PNWNAmet observed climate, and routes its runoff down rivers with
+the Raven model to outlets of its own network
+([hydromosaic](https://beehive.pacificclimate.org/chyp/)). New Graph’s
+[fork of fwapg](https://github.com/NewGraphEnvironment/fwapg/pull/6)
+places those outlets on Freshwater Atlas segments and spreads the flow
+between outlets by drainage area, giving the segments it reaches monthly
+means over 1951–2012. The annual value is the mean of the twelve. It
+covers the Fraser, Peace, Columbia and most of the coast, but not the
+Liard.
 
-- Where routed PCIC has a value, which is most of BC: routed PCIC, which
-  fits gauges more closely overall, most of all on larger rivers. By
-  mean error the balance is slightly closer in the Peace and the Fraser.
-  The exception is a main-flow segment where routed flow is under a
-  fifth of the balance’s, such as the Nechako Reservoir, where PCIC’s
-  outlets are not placed on the FWA. There, use the balance. A side
-  channel keeps routed flow, which is its own water. wet’s per-segment
-  table carries both estimates and picks this way by default.
-- Where it has none (mainly the Liard), for one consistent layer across
-  BC from open code, or for 1981–2010 normals: the open water balance.
-- Where both exist and the number matters: both, checked against the
-  nearest gauge, as the Salmon River section below does.
+**Open water balance.** wet’s own estimate, after [Chapman et
+al. (2018)](https://www2.gov.bc.ca/assets/gov/environment/air-land-water/water/northeast-water-strategy/chapman_et_al-2018-jawra.pdf).
+Precipitation less actual evapotranspiration, from 1981–2010 normals on
+a 30″ grid, is averaged over each watershed’s upstream area, then
+adjusted per [hydrologic
+zone](https://catalogue.data.gov.bc.ca/dataset/bc-hydrologic-zones)
+against gauges in the Water Survey of Canada’s
+[HYDAT](https://www.canada.ca/en/environment-climate-change/services/water-overview/quantity/monitoring/survey/data-products-services/national-archive-hydat.html)
+archive. It covers almost all of BC, and its code and inputs are open.
+The published values come from the fit that uses every calibration
+gauge; the scores below hold each gauge out of the fit that predicts it.
 
-Where fwapg’s older, unrouted annual table also had values, routed PCIC
-scores about the same as it once the few gauges where routed flow reads
-almost nothing are set aside
-([research](https://github.com/NewGraphEnvironment/wet/blob/main/research/water_balance_method.md)).
-What it adds is coverage: the coast and the largest rivers, which that
-table left out.
+## How the numbers line up at the gauges
 
-![Error at each of the 290 calibration gauges both estimates cover:
-routed PCIC's across, the water balance's (held out) up. The shaded
-square holds the gauges both put within ±20%. Between the dashed
-diagonals, the left and right wedges hold gauges where the balance is
-closer, the top and bottom wedges those where routed PCIC is. 1 gauge
-beyond +200% is drawn at the
-edge.](segment-discharge_files/figure-html/compare-1.png)
+Both sources are scored against mean annual runoff measured at the 315
+HYDAT gauges the water balance is calibrated on, over 1981–2010. Error
+is modelled minus observed runoff, as a percentage of observed. The
+balance is scored *held out*: wet holds out each Water Survey
+sub-sub-drainage in turn (the first four characters of a station number,
+such as 08EE), fits on the rest and predicts the gauges it held out, so
+a gauge’s neighbours on the same river cannot vouch for it. Routed PCIC
+has a value at 290 of the gauges; most of the other 25 are in the Liard.
 
-Error at each of the 290 calibration gauges both estimates cover: routed
+|  | Routed PCIC, 290 gauges | Open water balance (held out), 290 gauges | Open water balance (held out), all 315 gauges |
+|:---|---:|---:|---:|
+| Mean absolute error | 24.1% | 27.6% | 27.5% |
+| Bias (mean error) | +0.2% | +9.0% | +8.5% |
+| Middle half of errors | −14% to +10% | −15% to +24% | −16% to +24% |
+| Within ±20% | 62% | 54% | 53% |
+
+Error in mean annual runoff at the calibration gauges. PCIC does not
+list the gauges it calibrated to, so its errors may be partly in sample,
+and its flow covers 1951–2012 against observations over 1981–2010.
+{.table}
+
+![Error at each of the 290 calibration gauges both sources cover: routed
+PCIC's across, the water balance's (held out) up. The shaded square
+holds the gauges both put within ±20%. Between the dashed diagonals, the
+left and right wedges hold gauges where the balance is closer, the top
+and bottom wedges those where routed PCIC is. 1 gauge beyond +200% is
+drawn at the edge.](segment-discharge_files/figure-html/compare-1.png)
+
+Error at each of the 290 calibration gauges both sources cover: routed
 PCIC’s across, the water balance’s (held out) up. The shaded square
 holds the gauges both put within ±20%. Between the dashed diagonals, the
 left and right wedges hold gauges where the balance is closer, the top
 and bottom wedges those where routed PCIC is. 1 gauge beyond +200% is
 drawn at the edge.
 
-## How close it is, province-wide
-
-Out of sample, the balance’s annual runoff at a gauge is off by 28% on
-average, and 53% of gauges fall within ±20%. It does better on larger
-rivers. Nested gauges average 18% against 31% for headwater ones, and
-basins over 1,000 km² average 20% against 40% for those under 100 km².
-One zone stands out: zone 24, the Southern Thompson Plateau, a semi-arid
-interior plateau, where the 9 gauges average 93%.
+A nested gauge’s basin holds another gauge’s; a headwater gauge’s does
+not. Held out, the balance averages 18% error at nested gauges and 31%
+at headwater ones, and 20% on basins over 1,000 km² against 40% on those
+under 100 km². One of BC’s 29 hydrologic zones stands out: zone 24, the
+Southern Thompson Plateau, a semi-arid interior plateau, where its 9
+gauges average 93%.
 
 ![The 315 calibration gauges, filled by the water balance's held-out
 error at each. Routed PCIC's coverage is outlined; zone 24, the weakest,
-is shaded; the two groups mapped below are in
+is shaded; the Salmon River, mapped below, is in
 black.](segment-discharge_files/figure-html/map-province-1.png)
 
 The 315 calibration gauges, filled by the water balance’s held-out error
 at each. Routed PCIC’s coverage is outlined; zone 24, the weakest, is
-shaded; the two groups mapped below are in black.
+shaded; the Salmon River, mapped below, is in black.
 
-![Held-out error at the 315 calibration gauges, in classes of 10%,
-coloured by the error scale. Gauges beyond +200% are counted in the last
-bar.](segment-discharge_files/figure-html/hist-1.png)
+## Salmon River: both sources side by side
 
-Held-out error at the 315 calibration gauges, in classes of 10%,
-coloured by the error scale. Gauges beyond +200% are counted in the last
-bar.
-
-## Salmon River: two estimates side by side
-
-Both products cover the Salmon River, a headwater group of the Fraser
-(1,794 km²), and they differ there. The open water balance gives a
-median 1.23 times routed PCIC’s value per segment. The 5 gauges in and
-around the group show which is closer where.
+The Salmon River is a headwater group of the Fraser (1,794 km²). Both
+sources cover it, and they differ: the balance gives a median 1.23 times
+routed PCIC’s flow per segment. `pick` takes routed PCIC on all 2,180 of
+its segments with a value. The 5 gauges in and around the group show how
+each compares with measured flow.
 
 The balance runs high at all of them, by +2% to +26%. Routed PCIC is
 closer at 3, including 08KC001, the gauge that drains the whole group:
@@ -172,74 +155,30 @@ where routed PCIC is off by +31% and −12%.
 | 08KC003 Muskeg River north of Joanne Lake | 297 | 224 | +24% | +31% |
 | 08JE004 Tsilcoh River near the Mouth | 439 | 180 | +18% | +4% |
 | 07ED001 Nation River near Fort St. James | 4,356 | 401 | +2% | −12% |
-| 08JE001 Stuart River near Fort St. James | 14,235 | 285 | +3% | −0% |
+| 08JE001 Stuart River near Fort St. James | 14,235 | 285 | +3% | 0% |
 
 Calibration gauges within 30 km of the Salmon River group, and its
 outlet gauge (first row): mean annual runoff observed in 1981–2010, and
-each product’s error against it. {.table}
+each source’s error against it. {.table}
 
-![Mean annual discharge on 2,180 of the 2,181 Salmon River segments of
-order 3 or more, from routed PCIC (left) and the open water balance
-(right), with the gauges of the table filled by each product's error.
-Rivers outside the group are
+![Published mean annual discharge on 2,180 of the 2,181 Salmon River
+segments of order 3 or more, from routed PCIC (left) and the open water
+balance (right), with the gauges of the table filled by each source's
+error. Rivers outside the group are
 grey.](segment-discharge_files/figure-html/map-salr-1.png)
 
-Mean annual discharge on 2,180 of the 2,181 Salmon River segments of
-order 3 or more, from routed PCIC (left) and the open water balance
-(right), with the gauges of the table filled by each product’s error.
-Rivers outside the group are grey.
-
-## Bulkley River: tracing one gauge
-
-The Bulkley River, in the Skeena (7,762 km²), lies outside PCIC’s
-gridded output but inside its routed flow. Its 7 gauges average 37%
-held-out error for the balance, from −40% to +85%, in zones 08 and 09.
-Routed PCIC averages 57% here, mostly because of two creeks under 25
-km², where it is off by +196% and −86%. The map shows the balance alone,
-to trace one gauge from its segment’s value.
-
-The map’s segment values come from the fit that includes every gauge,
-while the gauges are filled by the held-out error, so a gauge can look
-worse than the segment it sits on. Take 08EE004, Bulkley River at Quick
-(7,341 km²). It measured 561 mm a year, or 130.7 m³/s over its basin.
-Predicted with its sub-sub-drainage held out, the balance gives 500 mm,
-or 116.4 m³/s (−11%). The segment it sits on reads 118.4 m³/s on the map
-(−9%), closer, because that fit saw this gauge.
-
-![Mean annual discharge on 7,748 of the 7,755 Bulkley River segments of
-order 3 or more, from the open water balance, and the 7 calibration
-gauges in the group, filled by the balance's held-out error. The keymap
-marks the group in
-BC.](segment-discharge_files/figure-html/map-bulk-1.png)
-
-Mean annual discharge on 7,748 of the 7,755 Bulkley River segments of
-order 3 or more, from the open water balance, and the 7 calibration
-gauges in the group, filled by the balance’s held-out error. The keymap
-marks the group in BC.
-
-| Gauge | Area (km²) | Observed (mm) | Water balance (mm, held out) | Error | Routed PCIC error |
-|:---|---:|---:|---:|---:|---:|
-| 08EE004 Bulkley River at Quick | 7,341 | 561 | 500 | −11% | −10% |
-| 08EE013 Buck Creek at the Mouth | 567 | 238 | 193 | −19% | +38% |
-| 08EE020 Telkwa River below Tsai Creek | 364 | 1,234 | 792 | −36% | −12% |
-| 08EE008 Goathorn Creek near Telkwa | 122 | 449 | 650 | +45% | +24% |
-| 08EE025 Two Mile Creek in District Lot 4834 | 22 | 180 | 334 | +85% | +196% |
-| 08EE012 Simpson Creek at the Mouth | 13 | 631 | 757 | +20% | +35% |
-| 08EE028 Station Creek above Diversions | 10 | 894 | 539 | −40% | −86% |
-
-The 7 calibration gauges in the Bulkley River group: mean annual runoff
-observed in 1981–2010, the water balance’s held-out prediction and its
-error, and routed PCIC’s error. {.table}
+Published mean annual discharge on 2,180 of the 2,181 Salmon River
+segments of order 3 or more, from routed PCIC (left) and the open water
+balance (right), with the gauges of the table filled by each source’s
+error. Rivers outside the group are grey.
 
 ## Limits
 
-In order of how much they affect a user:
-
-- **Coverage.** In the Liard, and in a few northern and border basins
-  (the Yukon and Alsek headwaters, the Hay, the Skagit), routed PCIC has
-  no value or almost none, and on the outer coast’s islands it reaches
-  only some segments. There the open water balance is the estimate to
-  use.
+- **Coverage.** Routed PCIC has no value, or almost none, in the Liard
+  and in a few northern and border basins (the Yukon and Alsek
+  headwaters, the Hay, the Skagit), and on the outer coast’s islands it
+  reaches only some segments. There `pick` takes the balance where the
+  balance has a value.
 - **Dry zones.** In zone 24 and the other semi-arid interior zones,
   runoff is a small remainder of precipitation, so a small error in
   evapotranspiration is a large one in runoff.
@@ -248,73 +187,39 @@ In order of how much they affect a user:
   evapotranspiration, and it is kept by a recorded decision for what it
   does on larger rivers (`research/water_balance_method.md`, “Refit on
   HYDAT 2026-07-17”). Zones with too few gauges for their own adjustment
-  get none, a choice tested on short-record gauges no fit uses.
-- **Small streams.** Gauged basins under 100 km² average 40% error, and
-  93% of the Salmon River’s watersheds with a stream are that small.
-- **Segments without a watershed.** In the two groups mapped here, 8
-  segments of order 3 to 7 have no watershed polygon in the Freshwater
-  Atlas lookup, so neither product gives them a value. They are left off
-  the maps, which leaves short gaps in some streams.
+  get none.
+- **Small streams.** 84 of the 315 gauges drain less than 100 km², and
+  there the balance averages 40% held-out error.
+- **Segments without a value.** A segment with no watershed polygon in
+  the Freshwater Atlas lookup gets a value from neither source, and a
+  few thousand with one, mostly on the central coast, get none either.
+  In the Salmon River, one segment of order 3 or more has none, of order
+  5, left off the map.
 
-## How it is built
+## Validation
 
-Before routed flow, fwapg published an annual table built from PCIC’s
-gridded output, with no routing. wet rebuilds that table with its own
-code, and on every one of the 9,000 Salmon River segments it gives a
-value, it matches it to the five decimals fwapg stores.
+Every published flow is checked against what it was built from when the
+product is built: routed months against fwapg’s table, routed annual
+values against their twelve months, and the balance against the fit’s
+output. Each segment row’s flow, runoff, coverage and `pick` are also
+checked against the per-segment table it was cut from. The counts
+compared and differing are in the build report,
+[discharge_publish_20260717.txt](https://github.com/NewGraphEnvironment/wet/blob/main/data/checks/discharge_publish_20260717.txt).
+This article reads its segment values from the published parts and is
+not built unless each equals its source. wet’s own path through PCIC’s
+gridded output reproduces fwapg’s earlier unrouted annual table on the
+Salmon River to the five decimals fwapg stores, and the effect of
+sampling grid cells by area rather than at each watershed’s centroid is
+measured there too
+([research](https://github.com/NewGraphEnvironment/wet/blob/main/research/fwapg_mad_method.md)).
 
-That table gives each watershed the value of the PCIC cell under its
-centroid. A cell is 0.0625°, about 7 by 4 km here, so a small watershed
-gets one cell’s value. wet can instead weight every cell by the area it
-covers. Under 10 km², 11% of watersheds move by more than 5%, by up to
-24% at the 99th percentile. Above 100 km², the 99th percentile is 2.8%,
-because a large basin averages many cells either way.
-
-![Change in mean annual runoff from area-weighted sampling, against
-centroid sampling, for the 4,248 Salmon River watersheds that carry a
-stream. Upstream area is on a logarithmic
-axis.](segment-discharge_files/figure-html/sampling-1.png)
-
-Change in mean annual runoff from area-weighted sampling, against
-centroid sampling, for the 4,248 Salmon River watersheds that carry a
-stream. Upstream area is on a logarithmic axis.
-
-fwapg stores each watershed’s upstream area from an earlier build of the
-Freshwater Atlas. In the Fraser, 1,731 of 644,710 polygons carry a
-stored area that differs from the area accumulated from the Atlas today.
-None of them changes a Salmon River segment, so the match above does not
-test it. wet uses the accumulated area except when it reproduces fwapg.
-
-The PCIC path for one headwater group, as `scripts/mad_parity.R` runs
-it, needs fwapg and the PCIC server. The open water balance is a
-pipeline of scripts (`scripts/wb_inputs.R` to `scripts/wb_output.R`; see
-the package’s `CLAUDE.md`).
-
-``` r
-
-library(wet)
-conn <- DBI::dbConnect(RPostgres::Postgres(), dbname = "fwapg")
-
-# PCIC VIC-GL runoff and baseflow over the group's extent, 1981-2010
-bbox <- c(-124.12, 54.22, -123.12, 55.11)
-runoff <- terra::rast(wet_pcic_fetch("RUNOFF", bbox, "1981-01-01", "2010-12-31"))
-baseflow <- terra::rast(wet_pcic_fetch("BASEFLOW", bbox, "1981-01-01", "2010-12-31"))
-mad_cell <- wet_runoff_annual(runoff) + wet_runoff_annual(baseflow)   # mm/yr per cell
-
-# every watershed polygon in the Fraser; those inside the extent get a cell value
-ws <- wet_ws_fetch(conn, "100")
-in_bb <- ws$lon >= bbox[1] & ws$lon <= bbox[3] & ws$lat >= bbox[2] & ws$lat <= bbox[4]
-cells <- wet_ws_sample(mad_cell, ws[in_bb, c("watershed_feature_id", "lon", "lat")], "centroid")
-up <- wet_upstream_mean(ws, cells, "total", irregular_pairs = wet_upstream_irregular(conn, "100"))
-up$mad_m3s <- wet_mm_to_m3s(up$value, up$upstream_area_m2)
-```
-
-**Cached inputs.** This article runs on saved outputs: PCIC VIC-GL
-through `scripts/mad_parity.R`; the open water balance from province run
-962a9cc2c4 (annual AET cfu, HYDAT release 2026-07-17); routed PCIC from
-fwapg at commit 341b078 (40524444 rows, 3377037 segments, 0 null flows,
-total 178035348.248310 m3/s), scored in
-data/checks/pcic_routed_compare_20260717.txt; built 11 October 2026 at
-commit 0039a01. Regenerated by `data-raw/segment_vignette_data.R`. Map
-layers from the Freshwater Atlas (fwapg), BC Geographic Names and the BC
-Hydrologic Zones, by `data-raw/segment_vignette_map.R`.
+**Cached inputs.** This article runs on saved outputs. Segment values
+were read on 13 October 2026 from the published build 7c62b9e (segment
+table 653fc13), 4,649 of them checked against their sources with none
+differing, by `data-raw/segment_vignette_data.R` at wet commit 7b83959.
+Gauge scores are from province run 962a9cc2c4 (annual AET cfu, HYDAT
+release 2026-07-17), and routed PCIC from fwapg at commit 341b078
+(40524444 rows, 3377037 segments, 0 null flows, total 178035348.248310
+m3/s), scored in data/checks/pcic_routed_compare_20260717.txt. Map
+layers come from the Freshwater Atlas (fwapg), BC Geographic Names and
+the BC Hydrologic Zones, by `data-raw/segment_vignette_map.R`.
