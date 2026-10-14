@@ -34,10 +34,13 @@
 # the stored ones (all.equal: the shares pass through BLAS, which can differ
 # between machines in the last bits).
 #
-# The balance's published months on the Bulkley segments are checked against
-# the fit recomputed for their watersheds as scripts/wb_output.R makes them,
-# because a reduced bundle of the fit keeps month 0 only in output/; month 0
-# must equal output/ exactly.
+# The balance's published month 0 on the Bulkley segments must equal the fit's
+# output/ exactly. A reduced bundle of the fit keeps month 0 only in output/,
+# and upstream predictors only for gauged watersheds, so months 1-12 are
+# recomputed as scripts/wb_output.R makes them for the watersheds it holds
+# (the recomputed month 0 must equal output/ exactly); the rest of the months
+# rest on the publish report's value-by-value check, which vd_published()
+# requires to have passed for the live build.
 
 source("scripts/vignette_data_lib.R")
 wet_commit <- vd_commit()
@@ -168,7 +171,7 @@ names(wb)[names(wb) == "discharge_m3s"] <- "q_m3s"
 # asserted above): a zone the fit never saw gets no adjustment
 up <- readRDS(file.path(key_dir, "upstream", "400.rds"))
 up <- up[up$watershed_feature_id %in% seg_bulk$watershed_feature_id, ]
-stopifnot(setequal(up$watershed_feature_id, seg_bulk$watershed_feature_id))
+stopifnot(nrow(up) > 0)
 up$raw <- wet:::wet_wb_raw(up, fits$aet)
 zc <- grep("^zp?[0-9]+$", names(up), value = TRUE)
 known <- c(paste0("z", fits$wb$coef$zone), paste0("zp", fits$wb$coef$zone))
@@ -177,6 +180,8 @@ mm <- cbind(ann, wet_share_predict(fits$share, up) * ann)
 src_w <- data.frame(watershed_feature_id = rep(up$watershed_feature_id, 13), month = rep(0:12, each = nrow(up)),
                     q_m3s = as.vector(wet_mm_to_m3s(mm, up$upstream_area_m2, days = rep(days, each = nrow(up)))))
 src_b <- merge(seg_bulk[c("linear_feature_id", "watershed_feature_id")], src_w, by = "watershed_feature_id")
+src_b0 <- merge(seg_bulk[c("linear_feature_id", "watershed_feature_id")], wb[c("watershed_feature_id", "month", "q_m3s")],
+                by = "watershed_feature_id")
 src_r0 <- stats::aggregate(q_m3s ~ linear_feature_id, src_routed[src_routed$linear_feature_id %in% seg_bulk$linear_feature_id, ],
                            function(q) if (length(q) == 12) mean(q) else NA_real_)
 src_r0$month <- 0L
@@ -192,16 +197,21 @@ cmp <- list(
   "routed month 0 (Bulkley segments) = mean of fwapg's 12 months" =
     wet_values_compare(pr_b0[c("linear_feature_id", "month", "q_m3s")], src_r0),
   "balance month 0 (Bulkley watersheds), recomputed = fit output" =
-    wet_values_compare(src_w[src_w$month == 0, ], wb[c("watershed_feature_id", "month", "q_m3s")],
+    wet_values_compare(src_w[src_w$month == 0, ],
+                       wb[wb$watershed_feature_id %in% up$watershed_feature_id, c("watershed_feature_id", "month", "q_m3s")],
                        id_col = "watershed_feature_id", tol = 0),
-  "balance months 0-12 (Bulkley segments) = fit recomputed via lut" =
-    wet_values_compare(pb_b[c("linear_feature_id", "month", "q_m3s")], src_b[c("linear_feature_id", "month", "q_m3s")])
+  "balance month 0 (Bulkley segments) = fit output via lut" =
+    wet_values_compare(pb_b[pb_b$month == 0, c("linear_feature_id", "month", "q_m3s")],
+                       src_b0[c("linear_feature_id", "month", "q_m3s")], tol = 0),
+  "balance months 0-12 (Bulkley segments whose watershed the bundle holds) = fit recomputed via lut" =
+    wet_values_compare(pb_b[pb_b$linear_feature_id %in% src_b$linear_feature_id, c("linear_feature_id", "month", "q_m3s")],
+                       src_b[c("linear_feature_id", "month", "q_m3s")])
 )
 pub_check <- data.frame(check = names(cmp), do.call(rbind, cmp), row.names = NULL)
 print(pub_check)
 # no value differs, and every source value was compared
 if (any(pub_check$differing > 0) || any(pub_check$compared == 0) ||
-      !identical(pub_check$compared, as.numeric(c(nrow(src_routed), nrow(src_r0), nrow(wb), nrow(src_b))))) {
+      !identical(pub_check$compared, as.numeric(c(nrow(src_routed), nrow(src_r0), nrow(up), nrow(src_b0), nrow(src_b))))) {
   stop("the published values differ from what they were built from: see the table above")
 }
 
