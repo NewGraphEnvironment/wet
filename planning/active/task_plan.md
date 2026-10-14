@@ -23,10 +23,10 @@ Life-stage windows straddle months, and a freshet can rise and fall inside one m
 - [x] Confirm both files fail (functions absent)
 
 ## Phase 2: wet_segment_monthly()
-- [ ] `R/wet_segment_monthly.R`: exported function, internal `wet_segment_sources()` and `wet_segment_read()` (dataset ID → table or parts; timebase → time column)
-- [ ] roxygen with a runnable example: `inst/extdata/` ships only the fixture manifest, so `data-raw/discharge_fixture.R` also writes the fixture's parquet parts beside it (a few KB; the manifest's md5s stay true) and the example reads them offline, guarded by `requireNamespace("duckdb")`
-- [ ] `_pkgdown.yml` reference entry; `devtools::document()`; `pkgdown::check_pkgdown()`
-- [ ] Phase 1 reader tests pass
+- [x] `R/wet_segment_monthly.R`: exported function, internal `wet_segment_sources()` and `wet_segment_read()` (dataset ID → table or parts; timebase → time column)
+- [x] roxygen with a runnable example: `inst/extdata/` ships only the fixture manifest, so `data-raw/discharge_fixture.R` also writes the fixture's parquet parts beside it (a few KB; the manifest's md5s stay true) and the example reads them offline, guarded by `requireNamespace("duckdb")`
+- [x] `_pkgdown.yml` reference entry; `devtools::document()`; `pkgdown::check_pkgdown()`
+- [x] Phase 1 reader tests pass
 
 ## Phase 3: wet_flow_window()
 - [ ] `R/wet_flow_window.R`, reusing `wet_windows_check()`; runnable example (synthetic months + `wet_windows_calendar()` + a species window)
