@@ -38,6 +38,10 @@ routed_fingerprint <- function(conn) {
 # fwapg (month 0, the published product's rule). NA where the segment has no
 # row, or not twelve months of flow.
 routed_annual <- function(conn, lfid) {
+  # the package names the table too; the report's fingerprint must describe
+  # the table the values come from
+  lk <- wet:::wet_segment_sources("discharge/fwa/v1/segment_monthly")
+  stopifnot(identical(lk$location[lk$from == "fwapg" & lk$source == "pcic_routed"], routed_table))
   lfid <- unique(lfid[!is.na(lfid)])
   q <- wet_segment_monthly(conn, lfid, source = "pcic_routed", from = "fwapg")
   q <- q[q$month == 0, ]

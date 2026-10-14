@@ -9,8 +9,11 @@ months_of <- function(q12, id = 1L, src = "pcic_routed", annual = mean(q12)) {
   data.frame(linear_feature_id = as.integer(id), month = 0:12, q_m3s = c(annual, q12), source = src)
 }
 
-chinook <- data.frame(window = c("Migration", "Spawning", "Fry migration"),
-                      start = c("07-15", "08-20", "03-01"), end = c("09-15", "09-30", "07-15"))
+# the article's Chinook windows on the Bulkley
+lh <- utils::read.csv(system.file("vignette-data", "life_history_bulk.csv", package = "wet"),
+                      stringsAsFactors = FALSE, na.strings = "")
+lh <- lh[lh$species_code == "CH" & lh$life_stage %in% c("migration", "spawning", "fry_migration"), ]
+chinook <- data.frame(window = lh$life_stage, start = lh$start, end = lh$end)
 
 test_that("the monthly path reproduces the article's from_months()", {
   q12 <- c(3.1, 2.8, 3.5, 9.2, 48, 71, 40, 18, 11, 8.5, 6.2, 4)
@@ -19,6 +22,7 @@ test_that("the monthly path reproduces the article's from_months()", {
   out <- wet_flow_window(x, chinook)
   expect_named(out, c("linear_feature_id", "source", "window", "q_m3s", "basis"))
   expect_identical(nrow(out), 6L)
+  expect_identical(nrow(chinook), 3L)
   expect_identical(out$window, rep(chinook$window, 2))
   expect_identical(out$source, rep(c("pcic_routed", "wet_balance"), each = 3))
   expect_identical(out$basis, rep("monthly", 6))

@@ -135,6 +135,8 @@ parts <- cat_pub[cat_pub$dataset == "discharge/fwa/v1/segment_monthly" & cat_pub
 vd_verify(parts)
 duck <- DBI::dbConnect(duckdb::duckdb())
 invisible(DBI::dbExecute(duck, "LOAD httpfs"))
+# wet_segment_monthly() reads q_m3s only; the bundle also carries runoff_mm,
+# coverage, period and pick as published, so it reads the parts itself
 read_pub <- function(hrefs, groups, ids) {
   DBI::dbGetQuery(duck, sprintf("
     SELECT source, linear_feature_id, watershed_group_code, month, q_m3s, runoff_mm, coverage, period, pick
@@ -257,22 +259,15 @@ stopifnot(as.integer(rr_all[2]) == n_routed)
 print(table(month = gauges$month, routed = !is.na(gauges$routed_mm))[1:2, ])
 
 # ---- the vignette's recipe ------------------------------------------------------------------------
-# vignettes/monthly-flow.Rmd shows this read for one segment over every
-# historical part: it must return what the bundle holds
-duck <- DBI::dbConnect(duckdb::duckdb())
-invisible(DBI::dbExecute(duck, "LOAD httpfs"))
+# vignettes/monthly-flow.Rmd shows this read for one segment, wet_segment_monthly()
+# over every historical part: it must return what the bundle holds
 lfid_recipe <- seg_bulk$linear_feature_id[seg_bulk$station_number == "08EE013"]
-recipe <- DBI::dbGetQuery(duck, sprintf("
-  SELECT source, month, q_m3s, period, pick
-  FROM read_parquet([%s], hive_partitioning = true)
-  WHERE watershed_group_code = 'BULK' AND linear_feature_id = %d
-  ORDER BY source, month", paste0("'", parts$href, "'", collapse = ", "), lfid_recipe))
-DBI::dbDisconnect(duck, shutdown = TRUE)
+recipe <- wet_segment_monthly(NULL, lfid_recipe, groups = "BULK", catalog = parts)
 vd_verify(parts)
-mine <- segments[segments$linear_feature_id == lfid_recipe, c("source", "month", "q_m3s", "period", "pick")]
-recipe$month <- as.integer(recipe$month)
+mine <- segments[segments$linear_feature_id == lfid_recipe, c("linear_feature_id", "month", "q_m3s", "source")]
+mine <- mine[order(match(mine$source, recipe$source), mine$month), ]
 rownames(mine) <- NULL
-if (!isTRUE(all.equal(recipe, mine, check.attributes = FALSE))) stop("the recipe's read differs from the bundle")
+if (!identical(recipe, mine)) stop("the recipe's read differs from the bundle")
 
 # ---- provenance -------------------------------------------------------------------------------------
 hydat_release <- sub("^HYDAT release: ", "", grep("^HYDAT release:", readLines(wb_report("stations_wb", release)),

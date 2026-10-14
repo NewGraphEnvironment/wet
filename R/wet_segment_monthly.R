@@ -24,14 +24,18 @@
 #' Reading parts with no `groups` reads the segment ID column of every part
 #' (about half a minute for a few segments over HTTPS, and nearly the whole
 #' 1.8 GB for many). The parts are sorted by watershed group, so naming the
-#' groups that hold the segments keeps a read to seconds.
+#' groups that hold the segments keeps a read to seconds. Parts are read in
+#' place, unlike [wet_db_load()], which checks each one's size and md5 first:
+#' a read during a publish can mix two builds, so retry once it completes.
 #'
 #' @param conn `NULL`, or a [DBI::DBIConnection-class] to Postgres: the
 #'   database [wet_db_load()] wrote to for `from = "published"`, fwapg for
 #'   `from = "fwapg"`.
 #' @param segments `linear_feature_id`s. Repeats are read once.
 #' @param source Any of `"pcic_routed"` (PCIC's routed flow placed on the
-#'   FWA) and `"wet_balance"` (wet's open water balance).
+#'   FWA) and `"wet_balance"` (wet's open water balance). Left out, every
+#'   source `from` holds: both for `"published"`, `"pcic_routed"` for
+#'   `"fwapg"`.
 #' @param from `"published"` or `"fwapg"`, as described above.
 #' @param scenario Scenario of the published product, e.g. `"historical"`.
 #'   fwapg holds only `"historical"`.
@@ -62,6 +66,7 @@ wet_segment_monthly <- function(conn, segments, source = c("pcic_routed", "wet_b
                                 from = c("published", "fwapg"), scenario = "historical",
                                 groups = NULL, catalog = NULL) {
   from <- match.arg(from)
+  if (missing(source)) source <- NULL
   wet_segment_read(conn, "discharge/fwa/v1/segment_monthly", segments, source, from, scenario, groups, catalog)
 }
 
@@ -107,6 +112,7 @@ wet_segment_read <- function(conn, dataset, segments, source, from, scenario, gr
   tb <- wet_timebase(dataset)
   lk <- wet_segment_sources(dataset)
   lk <- lk[lk$from == from, , drop = FALSE]
+  if (is.null(source)) source <- lk$source
   if (!is.character(source) || !length(source) || anyNA(source) || anyDuplicated(source) ||
         !all(source %in% lk$source)) {
     stop("`source` must be some of ", paste(lk$source, collapse = ", "), " for from = \"", from, "\"; got ",
@@ -165,6 +171,17 @@ wet_segment_pg <- function(conn, dataset, ids, source, scenario, groups) {
   if (length(comment) && !is.na(comment) && grepl("; subset ", comment, fixed = TRUE)) {
     warning(name, " was loaded as a subset (", sub("^.*; subset ", "", comment),
             "): a row outside it reads as missing", call. = FALSE)
+  }
+  # an unloaded scenario or source would otherwise read as every segment missing
+  have <- DBI::dbGetQuery(conn, sprintf(
+    "SELECT DISTINCT source FROM %s WHERE scenario = %s AND source IN (%s)",
+    qid, DBI::dbQuoteString(conn, scenario), wet_sql_in(conn, source)
+  ))$source
+  absent <- setdiff(source, have)
+  if (length(absent)) {
+    stop(name, " has no rows for scenario ", scenario, ", source ", paste(absent, collapse = ", "),
+         ": load it with wet_db_load(conn, wet_catalog(), \"", dataset, "\", scenario = \"", scenario, "\")",
+         call. = FALSE)
   }
   sql <- sprintf(
     "SELECT linear_feature_id, month, q_m3s, source FROM %s

@@ -104,6 +104,9 @@ test_that("the Postgres table after wet_db_load() reads the same as the parts", 
   expect_identical(sum(is.na(from_pg$q_m3s)), 26L)
   g <- wet:::wet_segment_read(conn, pg$dataset, 701001, "pcic_routed", "published", "historical", "BULK", NULL)
   expect_true(all(is.na(g$q_m3s)))
+  # a scenario never loaded is an error, not every segment missing
+  expect_error(wet:::wet_segment_read(conn, pg$dataset, 701001, "pcic_routed", "published", "ssp585", NULL, NULL),
+               "no rows for scenario ssp585.*wet_db_load")
 })
 
 test_that("a table loaded as a subset warns, and a missing table names wet_db_load()", {
@@ -131,6 +134,8 @@ test_that("fwapg's routed table gives its months, and month 0 as their plain mea
   expect_equal(b$q_m3s[-1], ref$q_m3s)
   expect_equal(b$q_m3s[1], mean(ref$q_m3s))
   expect_true(all(is.na(out$q_m3s[out$linear_feature_id == 1L])))
+  # left out, `source` is what fwapg holds
+  expect_identical(wet_segment_monthly(conn, c(17094080, 1), from = "fwapg"), out)
   expect_error(wet_segment_monthly(conn, 17094080, source = "wet_balance", from = "fwapg"), "wet_balance")
   expect_error(wet_segment_monthly(conn, 17094080, source = "pcic_routed", from = "fwapg", scenario = "ssp585"),
                "historical")

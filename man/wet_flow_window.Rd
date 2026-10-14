@@ -35,9 +35,12 @@ caller that swaps monthly input for daily gets the same call and a
 }
 \details{
 Days are laid on a common year: February has 28 days, and an \code{end} of
-\code{"02-29"} means its last day, as in \code{\link[=wet_window_stats]{wet_window_stats()}}. A window whose
-\code{end} falls before its \code{start} runs across 1 January. A window is \code{NA}
-when any of its days has no value.
+\code{"02-29"} means its last day. A window whose \code{end} falls before its
+\code{start} runs across 1 January. A window is \code{NA} when any of its days has
+no value. The common year differs slightly from \code{\link[=wet_window_stats]{wet_window_stats()}},
+which counts 29 February in leap years, and from month 0, which weights
+months by \code{\link[=wet_month_days]{wet_month_days()}} (28.25 days in February), so a window over
+the whole year is close to month 0 but not equal to it.
 }
 \examples{
 # a segment's twelve monthly means, with a June freshet

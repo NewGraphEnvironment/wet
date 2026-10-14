@@ -11,9 +11,12 @@
 #' `basis` that says so.
 #'
 #' Days are laid on a common year: February has 28 days, and an `end` of
-#' `"02-29"` means its last day, as in [wet_window_stats()]. A window whose
-#' `end` falls before its `start` runs across 1 January. A window is `NA`
-#' when any of its days has no value.
+#' `"02-29"` means its last day. A window whose `end` falls before its
+#' `start` runs across 1 January. A window is `NA` when any of its days has
+#' no value. The common year differs slightly from [wet_window_stats()],
+#' which counts 29 February in leap years, and from month 0, which weights
+#' months by [wet_month_days()] (28.25 days in February), so a window over
+#' the whole year is close to month 0 but not equal to it.
 #'
 #' @param x A data frame with the `by` columns, `q_m3s`, and either `month`
 #'   (1-12; month 0, the annual value, is ignored) or `doy` (day of a common

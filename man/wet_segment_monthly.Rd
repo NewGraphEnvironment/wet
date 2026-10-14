@@ -22,7 +22,9 @@ database \code{\link[=wet_db_load]{wet_db_load()}} wrote to for \code{from = "pu
 \item{segments}{\code{linear_feature_id}s. Repeats are read once.}
 
 \item{source}{Any of \code{"pcic_routed"} (PCIC's routed flow placed on the
-FWA) and \code{"wet_balance"} (wet's open water balance).}
+FWA) and \code{"wet_balance"} (wet's open water balance). Left out, every
+source \code{from} holds: both for \code{"published"}, \code{"pcic_routed"} for
+\code{"fwapg"}.}
 
 \item{from}{\code{"published"} or \code{"fwapg"}, as described above.}
 
@@ -67,7 +69,9 @@ this way.
 Reading parts with no \code{groups} reads the segment ID column of every part
 (about half a minute for a few segments over HTTPS, and nearly the whole
 1.8 GB for many). The parts are sorted by watershed group, so naming the
-groups that hold the segments keeps a read to seconds.
+groups that hold the segments keeps a read to seconds. Parts are read in
+place, unlike \code{\link[=wet_db_load]{wet_db_load()}}, which checks each one's size and md5 first:
+a read during a publish can mix two builds, so retry once it completes.
 }
 
 \examples{
