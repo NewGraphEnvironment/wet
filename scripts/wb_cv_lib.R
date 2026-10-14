@@ -94,15 +94,30 @@ choose_variant <- function(d) {
   m <- vapply(variants, function(v) mae(d$obs, cv_annual(d, inner, v)), numeric(1))
   variants[which.min(m)]
 }
+# The monthly-share specifications scored (#16): the static predictors of
+# wet_share_fit() in each. scripts/wb_validate.R ships one of them by a rule
+# fixed before the snow layers were first scored.
+share_static <- list(base = c("elev", "e_km", "n_km"),
+                     snow = c("elev", "e_km", "n_km", "snowmelt_doy_50", "swe_max"))
 # held-out annual and monthly predictions; each outer fold runs the whole
 # procedure on its training stations: pooling from their locations, and the
-# pooled-zone variant chosen by an inner blocked CV (plan decision 5)
-predict_cv <- function(d, fold, variant = "nested") {
+# pooled-zone variant chosen by an inner blocked CV (plan decision 5). The
+# shares are held out for each specification in share_specs, in the same
+# folds (`shares`, by name); `share` is the first of them.
+predict_cv <- function(d, fold, variant = "nested", share_specs = names(share_static)) {
+  if (!length(share_specs) || !all(share_specs %in% names(share_static))) stop("unknown share_specs")
+  # a station missing a share predictor would leave one specification's fit
+  # on fewer stations than another's, and its comparison unfair
+  need <- unique(unlist(share_static[share_specs]))
+  if (!all(need %in% names(d))) {
+    stop("d is missing share predictors: ", paste(setdiff(need, names(d)), collapse = ", "))
+  }
+  if (anyNA(d[need])) stop("share predictors are NA at ", sum(!stats::complete.cases(d[need])), " stations")
   ann <- rep(NA_real_, nrow(d))
   raw_adj <- rep(NA_real_, nrow(d))
   was_pooled <- rep(FALSE, nrow(d))
   chosen <- character()
-  sh <- matrix(NA_real_, nrow(d), 12)
+  sh <- lapply(stats::setNames(share_specs, share_specs), function(k) matrix(NA_real_, nrow(d), 12))
   for (f in unique(fold)) {
     tr <- fold != f
     v <- if (variant == "nested") choose_variant(d[tr, ]) else variant
@@ -111,10 +126,12 @@ predict_cv <- function(d, fold, variant = "nested") {
     ann[!tr] <- wet_wb_adjust(fit, d[!tr, ])
     raw_adj[!tr] <- wet_wb_adjust(fit, d[!tr, ], floor = FALSE)
     was_pooled[!tr] <- d$zone[!tr] %in% fit$pooled
-    sf <- wet_share_fit(d[tr, ])
-    sh[!tr, ] <- wet_share_predict(sf, d[!tr, ])
+    for (k in share_specs) {
+      sf <- wet_share_fit(d[tr, ], static = share_static[[k]])
+      sh[[k]][!tr, ] <- wet_share_predict(sf, d[!tr, ])
+    }
   }
-  list(ann = ann, share = sh, n_floored = sum(raw_adj < 0), n_pooled = sum(was_pooled),
+  list(ann = ann, share = sh[[1]], shares = sh, n_floored = sum(raw_adj < 0), n_pooled = sum(was_pooled),
        was_pooled = was_pooled,
        chosen = table(factor(chosen, levels = variants)))
 }

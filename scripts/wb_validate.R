@@ -18,6 +18,10 @@
 # The pooled zones are adjusted by the variant an inner blocked CV picks in
 # each fold, unless <fit>/pooled_variant.txt fixes one (scripts/wb_pooled_test.R,
 # #43): then every fold and the shipped fit use it.
+#
+# The monthly shares are held out with and without the snow predictors (#16),
+# in the same folds; the snow predictors ship only if they pass the rule fixed
+# below (share_min_gain), and scripts/wb_share_snow.R breaks the comparison down.
 
 source("scripts/wb_cv_lib.R")
 f_winner <- file.path(fit_dir, "aet_winner.txt")
@@ -78,10 +82,22 @@ cal$raw <- wet:::wet_wb_raw(cal, aet_v)
 raw_v <- wet_flow_validate(long(cal, pmax(cal$raw, 0), matrix(NA_real_, nrow(cal), 12)), groups)
 ship_variant <- if (is.na(fixed_variant)) choose_variant(cal) else fixed_variant
 ins_fit <- wet_wb_fit(cal, pooled_adjust = ship_variant)
-ins_share <- wet_share_fit(cal)
-ins_v <- wet_flow_validate(long(cal, wet_wb_adjust(ins_fit, cal), wet_share_predict(ins_share, cal)), groups)
 cv_variant <- if (is.na(fixed_variant)) "nested" else fixed_variant
 cv <- predict_cv(cal, cal$fold, cv_variant)
+# Which monthly-share specification ships (#16), by a rule fixed before the
+# snow predictors were first scored: the snow predictors are kept only if the
+# blocked-CV median per-gauge share NSE rises by at least share_min_gain. The
+# median is taken over the gauges where both specifications give a share NSE,
+# so neither is scored on gauges the other is not.
+share_min_gain <- 0.01
+share_st <- lapply(cv$shares, function(sh) wet_flow_validate(long(cal, cv$ann, sh))$stations)
+share_both <- Reduce(`&`, lapply(share_st, function(x) !is.na(x$nse_share)))
+share_med <- vapply(share_st, function(x) stats::median(x$nse_share[share_both]), numeric(1))
+share_gain <- share_med[["snow"]] - share_med[["base"]]
+ship_share <- if (share_gain >= share_min_gain) "snow" else "base"
+cv$share <- cv$shares[[ship_share]]
+ins_share <- wet_share_fit(cal, static = share_static[[ship_share]])
+ins_v <- wet_flow_validate(long(cal, wet_wb_adjust(ins_fit, cal), wet_share_predict(ins_share, cal)), groups)
 # own-zone vs pooled-in-fold, for the headwater stations, raw and adjusted
 g2 <- data.frame(station_number = cal$station_number,
                  zone_in_fold = ifelse(cv$was_pooled, "pooled", "own zone"))
@@ -94,10 +110,10 @@ hw_split <- function(v) {
   x$z <- g2$zone_in_fold[match(x$station_number, g2$station_number)]
   vapply(c("own zone", "pooled"), function(k) mean(abs(x$err_pct[x$z == k]), na.rm = TRUE), numeric(1))
 }
-lo <- predict_cv(cal, loo$fold[match(cal$station_number, loo$station_number)], cv_variant)
+lo <- predict_cv(cal, loo$fold[match(cal$station_number, loo$station_number)], cv_variant, share_specs = ship_share)
 lo_v <- wet_flow_validate(long(cal, lo$ann, lo$share), groups)
 plain <- lapply(variants, function(v) {
-  x <- predict_cv(cal, cal$fold, v)
+  x <- predict_cv(cal, cal$fold, v, share_specs = ship_share)
   wet_flow_validate(long(cal, x$ann, x$share), groups)
 })
 names(plain) <- variants
@@ -131,7 +147,8 @@ if (aet_v %in% ship_aet) {
   # outputs of any earlier fit go with it, so scripts/wb_map.R cannot draw them
   # beside this fit's stations; scripts/wb_output.R rebuilds them
   unlink(c(file.path(fit_dir, "runoff_annual.tif"), file.path(fit_dir, "output")), recursive = TRUE)
-  saveRDS(list(wb = ins_fit, share = ins_share, keep_adjust = keep_adjust, gate_pass = gate_pass, min_frac = min_frac,
+  saveRDS(list(wb = ins_fit, share = ins_share, share_spec = ship_share, keep_adjust = keep_adjust,
+               gate_pass = gate_pass, min_frac = min_frac,
                calibration = cal$station_number, aet = aet_v, pooled_variant = ship_variant,
                pooled_fixed = !is.na(fixed_variant), release = release, code_md5 = score_code_md5,
                aet_md5 = aet_code_md5),
@@ -139,12 +156,17 @@ if (aet_v %in% ship_aet) {
 }
 # per-station held-out predictions and summaries, for scripts/wb_aet_compare.R;
 # the held-out monthly balance too (#68): long(cal, cv_ann, cv_share) rebuilt
-# from obs, obs_share, cv_ann and cv_share alone (rows in station_number order)
+# from obs, obs_share, cv_ann and cv_share alone (rows in station_number
+# order). cv_share is the shipped specification's; cv_shares holds every
+# specification scored, for scripts/wb_share_snow.R (#16)
 saveRDS(list(aet = aet_v, keep_adjust = keep_adjust, gate_pass = gate_pass, raw_v = raw_v, cv_v = cv_v, lo_v = lo_v,
              plain = plain,
              ship_variant = ship_variant, station_number = cal$station_number, raw = cal$raw,
              cv_ann = cv$ann, cv_share = cv$share, obs_share = as.matrix(cal[sprintf("share_%02d", 1:12)]),
-             cv_variant = cv_variant, nesting = cal$nesting, obs = cal$obs,
+             cv_shares = cv$shares, share_spec = ship_share,
+             share_rule = list(min_gain = share_min_gain, median = share_med, gain = share_gain,
+                               n_both = sum(share_both)),
+             zone = cal$zone, lake = groups$lake, cv_variant = cv_variant, nesting = cal$nesting, obs = cal$obs,
              release = release, code_md5 = score_code_md5),
         file.path(fit_dir, sprintf("cv_aet-%s.rds", aet_v)))
 
@@ -207,6 +229,14 @@ writeLines(c(
                   "so the headline has no selection caveat. %s"),
             basename(f_pooled), pooled_test[3])
   },
+  "",
+  sprintf(paste("SHARES (#16; rule fixed before the snow predictors were scored: keep snowmelt_doy_50 and swe_max",
+                "if the blocked-CV median share NSE rises by >= %.2f): base %.3f, with snow %.3f, gain %+.3f",
+                "over %d gauges with both -> %s"),
+          share_min_gain, share_med[["base"]], share_med[["snow"]], share_gain, sum(share_both),
+          if (ship_share == "snow") "snow predictors KEPT" else "snow predictors NOT kept"),
+  sprintf("share predictors shipped: %s (every table below uses them)",
+          paste(share_static[[ship_share]], collapse = ", ")),
   "",
   fmt(raw_v, "Raw P - AET (no fitting)"),
   sprintf(paste("headwater stations, blocked CV MAE, raw -> adjusted: own zone in fold (n %d) %.1f -> %.1f %%;",

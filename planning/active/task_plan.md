@@ -40,10 +40,10 @@ Facts from exploration:
 - [x] `R/wet_share_fit.R`: document the snow predictors as optional `static` columns, and test a fit with `static = c("elev", "e_km", "n_km", "snowmelt_doy_50", "swe_max")` in `test-wet_share_fit.R`
 
 ## Phase 5: Score both share specifications and apply the rule
-- [ ] `scripts/wb_cv_lib.R`: `predict_cv()` returns held-out shares for both specifications (`share_base`, `share_snow`) in the same folds. `share` is the shipped one
-- [ ] `scripts/wb_validate.R`: the pre-set rule (keep snow iff the blocked-CV `nse_share_median` rises by ≥ 0.01). `fits.rds$share` and `share_snow` use the chosen specification, the cv file stores `cv_share_base`, `cv_share_snow` and the outcome, and the report gets a share-specification section (both medians, the rule, the outcome)
-- [ ] `scripts/wb_share_snow.R` (not hashed): reads the stored months only, and writes `data/checks/wb_share_snow_<release>.txt` with base vs snow by month, by zone (27–29 named), at the freshet-peak gauges (peak-month error, share below gauge) and in WSC area 10. Where the set-aside fit exists, it asserts `cv_ann` is identical to the old fit's for every AET variant scored
-- [ ] Commit the rule before any rerun (the commit is the pre-registration)
+- [x] `scripts/wb_cv_lib.R`: `predict_cv()` returns held-out shares for both specifications (`share_base`, `share_snow`) in the same folds. `share` is the shipped one
+- [x] `scripts/wb_validate.R`: the pre-set rule (keep snow iff the blocked-CV `nse_share_median` rises by ≥ 0.01). `fits.rds$share` and `share_snow` use the chosen specification, the cv file stores `cv_share_base`, `cv_share_snow` and the outcome, and the report gets a share-specification section (both medians, the rule, the outcome)
+- [x] `scripts/wb_share_snow.R` (not hashed): reads the stored months only, and writes `data/checks/wb_share_snow_<release>.txt` with base vs snow by month, by zone (27–29 named), at the freshet-peak gauges (peak-month error, share below gauge) and in WSC area 10. Where the set-aside fit exists, it asserts `cv_ann` is identical to the old fit's for every AET variant scored
+- [x] Commit the rule before any rerun (the commit is the pre-registration)
 
 ## Phase 6: Rerun on m4 (worktree of this branch, data linked to the main checkout's)
 - [ ] `wb_inputs.R` (snow grid), then `wb_province.R 4` (new key); set `962a9cc2c4` aside as `data/wb/_pre16/`

@@ -60,7 +60,8 @@ cvr <- readRDS(file.path(fit_dir, sprintf("cv_aet-%s.rds", fits$aet)))
 # what ships is the adjusted balance; raw P - AET has no months to score
 stopifnot(fits$keep_adjust, identical(cvr$station_number, cal$station_number))
 cal$raw <- wet:::wet_wb_raw(cal, fits$aet)
-cv <- predict_cv(cal, cal$fold, cvr$cv_variant)
+# the share specification the fit shipped (#16; a fit made before it is "base")
+cv <- predict_cv(cal, cal$fold, cvr$cv_variant, share_specs = if (is.null(cvr$share_spec)) "base" else cvr$share_spec)
 if (!identical(cv$ann, cvr$cv_ann)) stop("the recomputed held-out annual balance differs from the stored one")
 ho_long <- long(cal, cv$ann, cv$share)
 sc_new <- wet_flow_validate(ho_long)$stations
