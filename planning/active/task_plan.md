@@ -47,7 +47,7 @@ What I found that shapes the plan:
 
 ## Validation
 - [x] Tests pass (`devtools::test()`), and the vignette builds (`pkgdown::build_article("segment-discharge")`)
-- [ ] `/code-check` clean (once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
+- [x] `/code-check` clean (once over the branch with `/code-check branch`)
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
