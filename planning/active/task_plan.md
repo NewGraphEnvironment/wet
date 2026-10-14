@@ -39,16 +39,16 @@ What exploration established (shapes the phases):
 - [x] Figure of bias by month for both sources, and a table; say where each source's seasonal shape is right or wrong (freshet timing, winter low flow)
 - [x] Decide whether a contrasting regime (coastal rain-fed or lake outlet) is needed, from what the scores show; add one only if BULK hides a problem it exposes
 - [x] "What's next": each gap found filed as an issue in wet (or the owning repo) and linked
-- [ ] Render, self-review figures (cartography checklist), `pkgdown::check_pkgdown()`
+- [x] Render, self-review figures (cartography checklist), `pkgdown::check_pkgdown()`
 
 ## Phase 5: Docs
 - [x] `CLAUDE.md` architecture: the vignette, its data script and its guards
 - [x] Body edit to #6 noting the first monthly scoring lives in the vignette, if it holds
 
 ## Validation
-- [ ] Tests pass
-- [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
+- [x] Tests pass
+- [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
 ## Verification

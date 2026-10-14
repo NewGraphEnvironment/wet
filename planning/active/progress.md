@@ -12,3 +12,5 @@
 - Phases 3–4: `vignettes/monthly-flow.Rmd` rendered; every prose claim asserted on the data; figures self-reviewed (Jan axis label fixed)
 - Filed #67 (routed seasonal shape, draft PCIC report not posted) and #68 (store held-out monthly balance); edited #16 and #6 bodies with the evidence
 - Phase 5: CLAUDE.md entry
+- `/code-check branch`: 5 rounds (rounds 1–5: 4, 8, 8, 5, 3 findings, all fixed); ended on a computed enumeration of every filter, with and without it (`review-enumeration.md`). Round 3 changed the published balance numbers (zero months kept), round 5 the scoring sets (each source on its own gauges; the balance's northern winter is now shown)
+- Tests: 990 pass, 0 fail; `pkgdown::check_pkgdown()` clean
