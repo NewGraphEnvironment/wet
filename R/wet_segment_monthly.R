@@ -172,27 +172,34 @@ wet_segment_pg <- function(conn, dataset, ids, source, scenario, groups) {
     warning(name, " was loaded as a subset (", sub("^.*; subset ", "", comment),
             "): a row outside it reads as missing", call. = FALSE)
   }
+  # an unloaded scenario or source would read as every segment missing. The
+  # loaded sources come from a walk of the key's distinct (forcing, source)
+  # pairs, one index seek each: a DISTINCT, or an EXISTS whose source sits
+  # behind another's rows in the table, would scan the table
+  have <- DBI::dbGetQuery(conn, sprintf(
+    "WITH RECURSIVE p AS (
+       (SELECT forcing, source FROM %1$s WHERE scenario = %2$s ORDER BY forcing, source LIMIT 1)
+       UNION ALL
+       SELECT n.forcing, n.source FROM p, LATERAL (
+         SELECT t.forcing, t.source FROM %1$s t
+         WHERE t.scenario = %2$s AND (t.forcing, t.source) > (p.forcing, p.source)
+         ORDER BY t.forcing, t.source LIMIT 1) n
+     ) SELECT DISTINCT source FROM p",
+    qid, DBI::dbQuoteString(conn, scenario)
+  ))$source
+  absent <- setdiff(source, have)
+  if (length(absent)) {
+    stop(name, " has no rows for scenario ", scenario, ", source ", paste(absent, collapse = ", "),
+         ": load it with wet_db_load(conn, wet_catalog(), \"", dataset, "\", scenario = \"", scenario, "\")",
+         call. = FALSE)
+  }
   sql <- sprintf(
     "SELECT linear_feature_id, month, q_m3s, source FROM %s
      WHERE scenario = %s AND source IN (%s) AND linear_feature_id IN (%s)%s",
     qid, DBI::dbQuoteString(conn, scenario), wet_sql_in(conn, source), wet_sql_in(conn, ids),
     wet_sql_groups(conn, groups)
   )
-  d <- DBI::dbGetQuery(conn, sql)
-  # a source with no row here may be unloaded rather than its segments
-  # missing: ask, stopping at the first row (a DISTINCT would scan the table)
-  for (s in setdiff(source, d$source)) {
-    there <- DBI::dbGetQuery(conn, sprintf(
-      "SELECT EXISTS (SELECT 1 FROM %s WHERE scenario = %s AND source = %s) AS ok",
-      qid, DBI::dbQuoteString(conn, scenario), DBI::dbQuoteString(conn, s)
-    ))$ok
-    if (!isTRUE(there)) {
-      stop(name, " has no rows for scenario ", scenario, ", source ", s,
-           ": load it with wet_db_load(conn, wet_catalog(), \"", dataset, "\", scenario = \"", scenario, "\")",
-           call. = FALSE)
-    }
-  }
-  d
+  DBI::dbGetQuery(conn, sql)
 }
 
 # The published dataset straight from its parquet parts.
@@ -213,7 +220,7 @@ wet_segment_parts <- function(dataset, ids, source, scenario, groups, catalog) {
   }
   duck <- DBI::dbConnect(duckdb::duckdb())
   on.exit(DBI::dbDisconnect(duck, shutdown = TRUE), add = TRUE)
-  if (any(grepl("^https?://", parts$href))) DBI::dbExecute(duck, "LOAD httpfs")
+  if (any(grepl("^https?://", parts$href))) DBI::dbExecute(duck, "INSTALL httpfs; LOAD httpfs;")
   out <- lapply(source, function(s) {
     href <- parts$href[parts$source == s]
     # the keys come from the catalog, as in wet_db_load()
