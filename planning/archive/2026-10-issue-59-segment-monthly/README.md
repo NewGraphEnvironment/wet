@@ -25,4 +25,4 @@ What was learned:
   The walk shipped.
 - **Code-check:** three rounds. Round 1 found 1 issue, round 2 found 2 (one inside round 1's fix), and round 3 was clean, with the enumeration. A plan review ran before them and gave 12 findings.
 
-Closed by: PR (see branch `59-per-segment-flow-wet-segment-monthly-and`)
+Closed by: PR #73
