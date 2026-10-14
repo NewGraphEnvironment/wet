@@ -585,10 +585,10 @@ each with its issue:
   change, scored on the same held-out gauge-months as here.
 - **Routed flow over `r base_text`** (NewGraphEnvironment/fwapg#25), so both
   sources and the gauges share one period.
-- **Routed PCIC's seasonal shape** (ISSUE_SHAPE): low in early spring, high in late
+- **Routed PCIC's seasonal shape** (#67): low in early spring, high in late
   summer, beyond what the period explains. Attributed to PCIC's model. The
   issue records the evidence and a draft report to PCIC.
-- **Store the held-out monthly balance with the fit** (ISSUE_STORE). Today only its annual
+- **Store the held-out monthly balance with the fit** (#68). Today only its annual
   values are stored, so this article's data script recomputes the months.
 - **Per-segment monthly reads in one call** (#59), which replaces the duckdb
   recipe above.

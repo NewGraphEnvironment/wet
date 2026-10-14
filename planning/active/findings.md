@@ -50,9 +50,19 @@ Rebuilt `segment_values.rds` from the reduced fit bundle (2026-10-14 03:56–03:
 - Held-out shares floor to 0 in some winter months (07EA002 Jan–Mar `wb_mm` = 0): log ratios need an exclusion rule (review G4).
 - 08EE003 snaps to 17093621 (Bulkley River, order 6), 08EE004 to 17057325, 08EE013 to 17094080 (= the fit's snap).
 
+## Phases 3–4: what the monthly scores show (279 gauges, 3,226 gauge-months both sources have)
+
+- Balance (held out): median +23 % in January, positive December–May; under 50 % of gauges within ±20 % in every month; flattens snowmelt freshets (Buck Creek May: gauge 22 m³/s, balance highest month June 9.6); median monthly NSE 0.74, lake outlets 0.52. Ours: #16.
+- Routed (published): −20 % March–April, +17–19 % July–August; more gauges within ±20 % than the balance in 10 of 12 months; NSE 0.81, but 0.40 on basins under 100 km² (balance 0.56).
+- Period check at 113 long-record gauges: observed 1951–2012 vs 1981–2010 −7 % spring, +6 % summer; routed vs its own period −19 % spring, +10 % summer. Shape error is PCIC's model (placement scales all months alike): #67.
+- Window approximation (day-weighted monthly means vs daily record, same years): migration and spawning within 3 %, fry migration up to 27 % (late July runs below July's mean).
+- Contrasting regime: not added; the province scores split by basin size and lake outlet instead.
+- `data-raw/segment_vignette_data.R`'s fwapg segment query has no `ORDER BY` (row order varies between rebuilds); left as is, outside this issue's scope.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
 | balance check 36 of 39 differing on first run | the reduced bundle's `output/` is month 0 only (review B1); recompute months from `upstream/` |
+| prose claim "routed +10 % or more in July–August over its own period" failed its assertion | measured +10 % (Jul 12, Aug 8); prose and assertion corrected |
 | `setequal(up$watershed_feature_id, ...)` failed | reduced `upstream/400.rds` holds gauged watersheds only; recompute where present |

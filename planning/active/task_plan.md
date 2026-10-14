@@ -28,22 +28,22 @@ What exploration established (shapes the phases):
 - [x] Extend `tests/testthat/test-vignette_data.R`: new budget entry (≤500 KB), plain ids, checks non-empty and zero-differing, 12 months per gauge per source
 
 ## Phase 3: Vignette — explore and use
-- [ ] `vignettes/monthly-flow.Rmd` (`bookdown::html_vignette2`): what months 1–12 are and each source's period, linking the segment-discharge article for the product itself
-- [ ] Hydrographs at 08EE013 and 08EE003: both sources' twelve months and the gauge's observed means, with the period difference stated and quantified (observed 1951–2012 vs 1981–2010)
-- [ ] Chinook windows (migration, spawning, fry migration) shaded on the same axis; flow per window as a day-weighted mean of monthly means, beside the gauge's daily-record window mean (`wet_window_stats()` over 1981–2010), so the approximation error is separated from model error
-- [ ] Recipe chunk (`eval = FALSE`): any `linear_feature_id` → twelve months via `wet_catalog()` + duckdb `hive_partitioning`, note that `wet_segment_monthly()` (#59) replaces it
-- [ ] Source and observed colours added to `inst/cartography/wet_segment.csv`; window strips from `wet_station.csv`
+- [x] `vignettes/monthly-flow.Rmd` (`bookdown::html_vignette2`): what months 1–12 are and each source's period, linking the segment-discharge article for the product itself
+- [x] Hydrographs at 08EE013 and 08EE003: both sources' twelve months and the gauge's observed means, with the period difference stated and quantified (observed 1951–2012 vs 1981–2010)
+- [x] Chinook windows (migration, spawning, fry migration) shaded on the same axis; flow per window as a day-weighted mean of monthly means, beside the gauge's daily-record window mean (`wet_window_stats()` over 1981–2010), so the approximation error is separated from model error
+- [x] Recipe chunk (`eval = FALSE`): any `linear_feature_id` → twelve months via `wet_catalog()` + duckdb `hive_partitioning`, note that `wet_segment_monthly()` (#59) replaces it
+- [x] Source and observed colours added to `inst/cartography/wet_segment.csv`; window strips from `wet_station.csv`
 
 ## Phase 4: Vignette — monthly QA at the gauges
-- [ ] Per month and source: median log ratio (bias), its spread, and the share of gauge-months within ±20 %; held-out balance at all calibration gauges, routed at those its segments cover; per-station NSE on months and shares via `wet_flow_validate()`
-- [ ] Figure of bias by month for both sources, and a table; say where each source's seasonal shape is right or wrong (freshet timing, winter low flow)
-- [ ] Decide whether a contrasting regime (coastal rain-fed or lake outlet) is needed, from what the scores show; add one only if BULK hides a problem it exposes
-- [ ] "What's next": each gap found filed as an issue in wet (or the owning repo) and linked
+- [x] Per month and source: median log ratio (bias), its spread, and the share of gauge-months within ±20 %; held-out balance at all calibration gauges, routed at those its segments cover; per-station NSE on months and shares via `wet_flow_validate()`
+- [x] Figure of bias by month for both sources, and a table; say where each source's seasonal shape is right or wrong (freshet timing, winter low flow)
+- [x] Decide whether a contrasting regime (coastal rain-fed or lake outlet) is needed, from what the scores show; add one only if BULK hides a problem it exposes
+- [x] "What's next": each gap found filed as an issue in wet (or the owning repo) and linked
 - [ ] Render, self-review figures (cartography checklist), `pkgdown::check_pkgdown()`
 
 ## Phase 5: Docs
-- [ ] `CLAUDE.md` architecture: the vignette, its data script and its guards
-- [ ] Body edit to #6 noting the first monthly scoring lives in the vignette, if it holds
+- [x] `CLAUDE.md` architecture: the vignette, its data script and its guards
+- [x] Body edit to #6 noting the first monthly scoring lives in the vignette, if it holds
 
 ## Validation
 - [ ] Tests pass
