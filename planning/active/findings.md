@@ -39,6 +39,10 @@ Relates to #3, #7, #27.
 - `cv_aet-cfu.rds` stores `cv_ann` (held-out annual), `cv_v$stations` (per-station err and NSE), not held-out monthly values. `predict_cv()` (`scripts/wb_cv_lib.R`) returns `share` (n × 12) per fold; `long()` turns it into monthly mm.
 - No source colours in `inst/cartography/`; `wet_station.csv` has `hydrograph/window`.
 
+## Phase 1: guards moved to scripts/vignette_data_lib.R
+
+Rebuilt `segment_values.rds` on m1 (2026-10-14 03:56–03:58 UTC, `WET_FWAPG_COMMIT=341b078`) after the refactor. Against the committed file: `skill`, `gauges_salr` and `provenance` (less `built`, `wet_commit`) identical; `segments` identical once sorted by `linear_feature_id`. The row order comes from the fwapg query, which has no `ORDER BY`, and predates this branch. Committed file kept.
+
 ## Errors Encountered
 
 | Error | Resolution |

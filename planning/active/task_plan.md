@@ -16,8 +16,8 @@ What exploration established (shapes the phases):
 - **Colours:** no source colours in the registries; window strips exist in `wet_station.csv` (`hydrograph/window`).
 
 ## Phase 1: Shared vignette-data guards
-- [ ] Move the guards `data-raw/segment_vignette_data.R` and the new script share into `scripts/vignette_data_lib.R`: clean-tree check and commit, routed table = tracked routed report, live manifest = passing publish report, parts verified against the manifest before and after a read
-- [ ] `data-raw/segment_vignette_data.R` sources it; rebuild `segment_values.rds` on m1 and confirm everything but `built`/`wet_commit` is identical to the committed file
+- [x] Move the guards `data-raw/segment_vignette_data.R` and the new script share into `scripts/vignette_data_lib.R`: clean-tree check and commit, routed table = tracked routed report, live manifest = passing publish report, parts verified against the manifest before and after a read
+- [x] `data-raw/segment_vignette_data.R` sources it; rebuild `segment_values.rds` on m1 and confirm everything but `built`/`wet_commit` is identical to the committed file
 
 ## Phase 2: Monthly data script
 - [ ] `data-raw/monthly_vignette_data.R` writes `inst/vignette-data/monthly_values.rds`:
