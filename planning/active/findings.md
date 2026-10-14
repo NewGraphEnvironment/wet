@@ -50,3 +50,16 @@ Read from cd `origin/main` at 5611c59, and the published catalog (`cd::cd_catalo
   - `snowmelt_doy_50` comes from accumulated `smlt`, sliced `{year}-01-02T00:00` to `{year+1}-01-01T00:00`. A 364-day year arises only when the hourly store ends at `{year}-12-31T23:00`, which is the state at a January run of year+1.
   - Every 1981–2010 year was written by a bulk backfill: the cd#48 run of 2026-05 (`planning/archive/2026-05-issue-48-snow-vars/progress.md`: "2h52min for 75 years", 1950–2025 in one pass), then the rebuild after cd#123's grid fix (2026-10-08). At both, the store ran into 2026, so `{year+1}-01-01T00:00` existed for every baseline year. The January-run path is the only way #88 bites, and it was never the path for these years.
   - Even where it bites, it drops Dec 31's melt from the annual sum, which moves the 50 % crossing by at most the share of the annual melt that falls on Dec 31.
+
+## Phase 3: wet_snow_normals() against cd_baseline() (2026-10-14)
+
+`wet_snow_normals()` onto a 30″ grid over a box, area mean, against `cd::cd_baseline(cd::cd_extract(cat, box, years = 1981:2010))` over the same box (cd 0.5.0, the published catalog):
+
+| box | variable | wet | cd_baseline | diff |
+|---|---|---|---|---|
+| Bulkley −127.4…−126.4, 54.4…55.0 | snowmelt_doy_50 | 141.26 | 141.59 | −0.23 % |
+| Bulkley | swe_max | 417.12 | 423.79 | −1.57 % |
+| Quesnel −123.0…−121.8, 52.6…53.3 | snowmelt_doy_50 | 98.74 | 99.49 | −0.76 % |
+| Quesnel | swe_max | 162.87 | 165.69 | −1.70 % |
+
+The definitions agree; the differences come from the area each one averages: `cd_crop()` snaps out, so it takes the 0.1° cells straddling the box edge whole, while the bilinear grid weights them by position. The test suite pins the definition exactly (the mean over exactly `years`, `test-wet_snow_normals.R`); a mutation that averages every band fails 6 of its 20 expectations once the fixture's years are asymmetric about the baseline (the first fixture, 1979–2012, had the same mean as 1981–2010 and let it through).

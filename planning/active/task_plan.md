@@ -29,11 +29,11 @@ Facts from exploration:
 - [x] Update the header comment and `CLAUDE.md`'s `wb_validate.R` line to name the stored months
 
 ## Phase 3: Snow normals on the 30″ grid
-- [ ] `R/wet_snow_normals.R`: `wet_snow_normals(grid, vars = c("snowmelt_doy_50", "swe_max"), years = 1981:2010, dir = "data/snow", catalog = NULL)`. It reads cd's annual COGs (`cd::cd_catalog()`, `cd::cd_cache_fetch()`; cd stays in Suggests with `rlang::check_installed`), requires every year's band, takes the per-cell mean over `years` (`cd_baseline()`'s definition), and projects bilinearly onto a template of `grid`. The cache is keyed on the grid, the catalog checksums and a method version. Cells with no ERA5-Land land cell are left NA for the caller
-- [ ] `tests/testthat/test-wet_snow_normals.R`: a synthetic local catalog and COGs. Covers: the mean over exactly `years`, refusal on a missing year band, a variable absent from the catalog, cache hit and key change, and NA left where the source is sea
-- [ ] A runnable `@examples` (`@examplesIf interactive()`, as in `wet_terraclimate_aet()`), `devtools::document()`, `pkgdown::check_pkgdown()`
-- [ ] `scripts/wb_inputs.R`: build it, and add manifest rows (source COG hrefs, cd_sha and checksums, output md5 and grid)
-- [ ] One-off check, recorded in `findings.md`: for two AOIs, the area mean of the wet grid matches `cd_baseline(cd_extract(...))` within resampling error
+- [x] `R/wet_snow_normals.R`: `wet_snow_normals(grid, vars = c("snowmelt_doy_50", "swe_max"), years = 1981:2010, dir = "data/snow", catalog = NULL)`. It reads cd's annual COGs (`cd::cd_catalog()`, `cd::cd_cache_fetch()`; cd stays in Suggests with `rlang::check_installed`), requires every year's band, takes the per-cell mean over `years` (`cd_baseline()`'s definition), and projects bilinearly onto a template of `grid`. The cache is keyed on the grid, the catalog checksums and a method version. Cells with no ERA5-Land land cell are left NA for the caller
+- [x] `tests/testthat/test-wet_snow_normals.R`: a synthetic local catalog and COGs. Covers: the mean over exactly `years`, refusal on a missing year band, a variable absent from the catalog, cache hit and key change, and NA left where the source is sea
+- [x] A runnable `@examples` (`@examplesIf interactive()`, as in `wet_terraclimate_aet()`), `devtools::document()`, `pkgdown::check_pkgdown()`
+- [x] `scripts/wb_inputs.R`: build it, and add manifest rows (source COG hrefs, cd_sha and checksums, output md5 and grid)
+- [x] One-off check, recorded in `findings.md`: for two AOIs, the area mean of the wet grid matches `cd_baseline(cd_extract(...))` within resampling error
 
 ## Phase 4: Snow layers in the province run
 - [ ] `scripts/wb_province.R`: `f_in[["snow"]]` and `R/wet_snow_normals.R` in `code_files`. Snow layers are added after the analysis mask like the ET-experiment layers, with coastal cells off ERA5-Land's land filled from the nearest ERA5-Land cell and counted in `ex_filled_cells.txt`. The existing "mask must not have moved" assertion covers them

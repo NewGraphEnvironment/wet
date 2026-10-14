@@ -8,7 +8,8 @@
 # TerraClimate 1981-2010 AET and precipitation, and NRCan 2020 land-cover
 # fractions per Chapman Table 3 class; for #18 the MOD16A3GF 2001-2020 mean
 # annual ET (an Earthdata login in a netrc, for granules not yet in
-# data/mod16). Writes two tracked reports:
+# data/mod16); for #16 cd's ERA5-Land 1981-2010 snow normals (snowmelt_doy_50,
+# swe_max; needs cd). Writes two tracked reports:
 #   * data/checks/wb_inputs.txt    - the input manifest (source, md5, grid)
 #   * data/checks/climr_eccc.txt   - climr 1981-2010 vs ECCC station normals
 # Connection from WET_PG* env vars (for the BC extent).
@@ -57,6 +58,11 @@ stamp("MOD16 ", f_m16)
 # the granules wet_mod16_aet() read (its tiles x 2001-2020), not whatever else is in the directory
 f_m16_granules <- sort(basename(wet:::wet_mod16_local("data/mod16", wet:::wet_modis_tiles(terra::rast(f_aet)),
                                                       2001:2020)$path))
+# ERA5-Land 1981-2010 snow normals (#16), from cd's published annual layers
+snow_cat <- cd::cd_catalog()
+snow_cat <- snow_cat[snow_cat$variable %in% c("snowmelt_doy_50", "swe_max") & snow_cat$period %in% "annual", ]
+f_snow <- wet_snow_normals(f_aet, catalog = snow_cat)
+stamp("snow ", f_snow)
 
 # Extended BC Hydrologic Zones (43 features; reaches the FWA polygons outside BC)
 hz_url <- paste0("https://catalogue.data.gov.bc.ca/dataset/f1f86c41-ae83-49d5-92e1-526897b99fa2/",
@@ -135,14 +141,24 @@ rows <- rbind(rows, data.frame(
              "wet_mod16_aet() (year mean, two-step onto the grid)"),
   file = c("data/mod16/MOD16A3GF.A*.hdf", f_m16),
   md5 = c(wet:::wet_md5_text(paste(f_m16_granules, md5(m16_g))), md5(f_m16))))
+# the cd layers as read (cd's cache), with the build the catalog names
+snow_files <- vapply(snow_cat$href, cd::cd_cache_fetch, "")
+rows <- rbind(rows, data.frame(
+  input = c(sprintf("cd ERA5-Land %s, annual (one band per year)", snow_cat$variable), "Snow normals grid"),
+  source = c(sprintf("%s (cd %s, built %s; ERA5-Land, Copernicus licence)", snow_cat$href,
+                     substr(snow_cat$cd_sha, 1, 7), snow_cat$run_time),
+             "wet_snow_normals() (1981-2010 per-cell mean, bilinear)"),
+  file = c(unname(snow_files), f_snow),
+  md5 = c(md5(unname(snow_files)), md5(f_snow))))
 is_tif <- grepl("\\.tif$", rows$file)
 rows$grid <- ""
 rows$grid[is_tif] <- vapply(rows$file[is_tif], grid_of, "")
 con <- file("data/checks/wb_inputs.txt", "w")
-writeLines(c("# Inputs for the open water balance (#11) and the ET experiments (#15, #18)", "",
+writeLines(c(paste("# Inputs for the open water balance (#11), the ET experiments (#15, #18)",
+                   "and the snow predictors (#16)"), "",
              sprintf("built: %s", Sys.Date()),
              sprintf("bbox (EPSG:4326): %s", paste(bbox, collapse = ", ")),
-             sprintf("climr %s, terra %s", utils::packageVersion("climr"),
+             sprintf("climr %s, cd %s, terra %s", utils::packageVersion("climr"), utils::packageVersion("cd"),
                      utils::packageVersion("terra")), ""), con)
 for (i in seq_len(nrow(rows))) {
   writeLines(c(sprintf("## %s", rows$input[i]), sprintf("source: %s", rows$source[i]),
