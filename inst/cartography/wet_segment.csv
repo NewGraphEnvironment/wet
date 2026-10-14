@@ -21,3 +21,7 @@ context,line,,part,river,River outside the group,#969696,1,,,,,,,,,,,,,,,,ColorB
 flow_source,line,,source,observed,Observed (HYDAT),#000000,1,,,,,,,,,,,,,,,,Okabe-Ito black: the reference the two sources are read against
 flow_source,line,,source,pcic_routed,Routed PCIC,#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue
 flow_source,line,,source,wet_balance,Water balance,#d55e00,1,,,,,,,,,,,,,,,,Okabe-Ito vermillion
+pick_source,line,,class,pcic_routed,Routed PCIC,#0072b2,1,,,,,,,,,,,,,,,,"Okabe-Ito blue, as flow_source: the source pick takes"
+pick_source,line,,class,wet_balance,Water balance,#d55e00,1,,,,,,,,,,,,,,,,"Okabe-Ito vermillion, as flow_source"
+pick_source,line,,class,none,Neither source,#bdbdbd,1,,,,,,,,,,,,,,,,ColorBrewer Greys light: no value from either source
+gauge,point,,part,calibration,Calibration gauge,#000000,1,,,,,,,,,,,,,,,,Black: plain dots over the coloured rivers

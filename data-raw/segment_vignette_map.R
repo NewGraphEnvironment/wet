@@ -1,152 +1,123 @@
-# Map layers for vignettes/segment-discharge.Rmd (#28, #64), which draws them from
+# Map layers for vignettes/segment-discharge.Rmd (#28, #64, #71), which draws them from
 # inst/vignette-data/ and never touches fwapg or the network at build.
 #
 #   Rscript data-raw/segment_vignette_map.R
 #
-# Writes inst/vignette-data/segment_map.rds: a named list of sf layers in
+# Writes inst/vignette-data/segment_map.rds, a named list, sf layers in
 # EPSG:3005, xz-compressed like station_map.rds:
-#   - segments: FWA stream segments of order >= 3 in SALR, keyed by
-#     linear_feature_id, simplified at 50 m and snapped to a 1 m grid; the
-#     discharge per segment is in segment_values.rds
-#     (data-raw/segment_vignette_data.R), joined in the vignette
-#   - groups: the SALR watershed group outline, with its area
-#   - lakes: FWA lakes of at least 100 ha in the group
-#   - places: populated places inside SALR's context box (SALR itself has
-#     none), from BC Geographic Names (bcdata)
-#   - context: the box around SALR that its map may draw, which holds the
-#     gauges near the group (data-raw/segment_vignette_data.R, near_km) and its
-#     outlet gauge, 46 km off at Prince George
-#   - context_streams, context_lakes: the larger rivers (order >= 6) and the
-#     river each HYDAT gauge in the box sits on (the shipped fit's stations), as main
-#     flow lines through lakes, wetlands and double-line reaches, and lakes
-#     (>= 1,000 ha) in that box outside SALR, so a gauge off the group sits on its
-#     river
-#   - coverage: the outline of the watershed groups PCIC's routed flow covers
-#     (NewGraphEnvironment/fwapg#6, #58), simplified for a province map
+#   - rivers: the source `pick` takes on each main-flow FWA segment of order >=
+#     min_order (pcic_routed, wet_balance, or none where neither source has a
+#     value), dissolved by blue_line_key, class and order band, simplified for
+#     a page-width province map
+#   - regions: a label point for each region the article names (the Liard
+#     basin, and the Nechako Reservoir groups scripts/segment_output.R names),
+#     with the source `pick` takes on all of its segments, counted
 #   - zones: the Extended BC Hydrologic Zones the water balance adjusts by
-#     (scripts/wb_inputs.R), simplified for a province map, keyed by the zone
-#     code the calibration stations carry, with the zone's name
+#     (scripts/wb_inputs.R), code and name only: the article names the weakest
+#   - provenance: the published build the picks were read from
 #
-# The province outline is station_map.rds's `bc` layer, not a second copy.
-# Separate from the values so a cartographic refresh does not need the PCIC run
-# or the water-balance fit; it reads only the snapped stations of the
-# water-balance inputs (data/wb/stations_<release>.rds, scripts/wb_fit_lib.R).
-# fwapg from the WET_PG* variables.
+# The picks are read from the published product (wet_catalog(): the manifest
+# at s3://fresh-bc/discharge/fwa/v1/), whose tracked publish report must check
+# every part's `pick` against the segment table with none differing
+# (vd_published()); the parts are checked against their manifest md5s before
+# and after the read, so a read during a publish is refused. The province
+# outline is station_map.rds's `bc` layer, not a second copy. fwapg from the
+# WET_PG* variables.
 
+# the vignette cites the commit these were built at, so that commit must hold
+# what built them (scripts/vignette_data_lib.R)
+source("scripts/vignette_data_lib.R")
+wet_commit <- vd_commit()
+source("scripts/wb_fit_lib.R")
 devtools::load_all(quiet = TRUE)
 sf::sf_use_s2(FALSE)
 
-wsg <- "SALR"
-min_order <- 3
-simplify_m <- 50
-context_km <- 60
-province_simplify_m <- 4000
-cov_share <- 0.5   # as in data-raw/segment_vignette_data.R
+min_order <- 5
+simplify_m <- 2000
+snap_m <- 100
+# main flow is not edge type 1000 alone (code-check-spatial.md): single-line,
+# lake and double-line main flow
+main_flow <- c(1000, 1050, 1200, 1250, 1450)
+nechako <- c("LEUT", "UEUT", "UNRS", "LNRS")   # as scripts/segment_output.R
 out <- file.path("inst", "vignette-data", "segment_map.rds")
-in_wsg <- paste0("'", wsg, "'", collapse = ", ")
+release <- wb_release()
 
-conn <- DBI::dbConnect(RPostgres::Postgres(),
-                       host = Sys.getenv("WET_PGHOST", "localhost"),
-                       port = as.integer(Sys.getenv("WET_PGPORT", "5432")),
-                       dbname = Sys.getenv("WET_PGDATABASE", "fwapg"),
-                       user = Sys.getenv("WET_PGUSER", "postgres"),
-                       password = Sys.getenv("WET_PGPASSWORD", "postgres"))
+# ---- the published picks ------------------------------------------------------------------------
+pb <- vd_published(release)
+parts <- pb$catalog[pb$catalog$dataset == "discharge/fwa/v1/segment_monthly" & pb$catalog$scenario == "historical", ]
+vd_verify(parts)
+duck <- DBI::dbConnect(duckdb::duckdb())
+invisible(DBI::dbExecute(duck, "LOAD httpfs"))
+pick <- DBI::dbGetQuery(duck, sprintf("
+  SELECT linear_feature_id::int AS linear_feature_id, source
+  FROM read_parquet([%s], hive_partitioning = true)
+  WHERE month = 0 AND pick", paste0("'", parts$href, "'", collapse = ", ")))
+DBI::dbDisconnect(duck, shutdown = TRUE)
+vd_verify(parts)
+# one pick per segment, and as many per source as the report's reader saw
+n_pick <- table(factor(pick$source, c("pcic_routed", "wet_balance")))
+stopifnot(!anyDuplicated(pick$linear_feature_id), !anyNA(pick$source),
+          identical(as.numeric(n_pick[pb$reader$source]), pb$reader$picked))
 
-# 1 m snapping after the simplify: coordinates to the metre compress far better
-# under xz, and a metre is invisible at the vignette's scale. A segment shorter
-# than the grid collapses to empty, so it keeps its unsnapped line.
-segments <- sf::st_read(conn, quiet = TRUE, query = sprintf("
-  SELECT linear_feature_id::int AS linear_feature_id, watershed_group_code, blue_line_key, stream_order,
-         CASE WHEN ST_IsEmpty(g) THEN ST_Force2D(geom) ELSE g END AS geom
-  FROM (SELECT *, ST_SnapToGrid(ST_SimplifyPreserveTopology(ST_Force2D(geom), %d), 1) AS g
-        FROM whse_basemapping.fwa_stream_networks_sp
-        WHERE watershed_group_code IN (%s) AND stream_order >= %d) s", simplify_m, in_wsg, min_order))
+# ---- rivers, classed by the source picked -------------------------------------------------------
+conn <- vd_connect()
+DBI::dbWriteTable(conn, "vd_pick", pick, temporary = TRUE)
+DBI::dbExecute(conn, "CREATE INDEX ON vd_pick (linear_feature_id)")
+seg_where <- sprintf("s.stream_order >= %d AND s.edge_type IN (%s)", min_order, paste(main_flow, collapse = ", "))
+# every drawn segment is classed exactly once
+n_cls <- DBI::dbGetQuery(conn, sprintf("
+  SELECT coalesce(p.source, 'none') AS class, count(*)::int AS n
+  FROM whse_basemapping.fwa_stream_networks_sp s LEFT JOIN vd_pick p USING (linear_feature_id)
+  WHERE %s GROUP BY 1", seg_where))
 n_seg <- DBI::dbGetQuery(conn, sprintf("
-  SELECT watershed_group_code, count(*)::int AS n FROM whse_basemapping.fwa_stream_networks_sp
-  WHERE watershed_group_code IN (%s) AND stream_order >= %d GROUP BY 1", in_wsg, min_order))
-stopifnot(identical(as.vector(table(segments$watershed_group_code)[n_seg$watershed_group_code]), n_seg$n),
-          !anyDuplicated(segments$linear_feature_id), all(!sf::st_is_empty(segments)))
+  SELECT count(*)::int FROM whse_basemapping.fwa_stream_networks_sp s WHERE %s", seg_where))[[1]]
+print(n_cls)
+stopifnot(sum(n_cls$n) == n_seg, setequal(n_cls$class, c("pcic_routed", "wet_balance", "none")))
+# order bands 5, 6, 7 and 8 and up, so line width can rank rivers; a reach
+# shorter than the snap grid collapses to empty and is dropped
+rivers <- sf::st_read(conn, quiet = TRUE, query = sprintf("
+  SELECT class, order_band, segments, geom FROM (
+    SELECT coalesce(p.source, 'none') AS class, least(s.stream_order, 8)::int AS order_band,
+           count(*)::int AS segments,
+           ST_SnapToGrid(ST_SimplifyPreserveTopology(ST_LineMerge(ST_Union(ST_Force2D(s.geom))), %d), %d) AS geom
+    FROM whse_basemapping.fwa_stream_networks_sp s LEFT JOIN vd_pick p USING (linear_feature_id)
+    WHERE %s
+    GROUP BY s.blue_line_key, 1, 2) r
+  WHERE NOT ST_IsEmpty(geom)", simplify_m, snap_m, seg_where))
+rivers <- rivers[order(rivers$order_band), ]   # large rivers drawn last, on top
 
-# area before the simplify, so it is the group's, not the drawing's
-groups <- sf::st_read(conn, quiet = TRUE, query = sprintf("
-  SELECT watershed_group_code, watershed_group_name, ST_Area(geom) / 1e6 AS area_km2,
-         ST_SnapToGrid(ST_SimplifyPreserveTopology(ST_Force2D(geom), 100), 1) AS geom
-  FROM whse_basemapping.fwa_watershed_groups_poly WHERE watershed_group_code IN (%s)", in_wsg))
-stopifnot(setequal(groups$watershed_group_code, wsg))
-
-lakes <- sf::st_read(conn, quiet = TRUE, query = sprintf("
-  SELECT watershed_group_code, gnis_name_1 AS gnis_name, area_ha,
-         ST_SnapToGrid(ST_SimplifyPreserveTopology(ST_Force2D(geom), %d), 1) AS geom
-  FROM whse_basemapping.fwa_lakes_poly
-  WHERE watershed_group_code IN (%s) AND area_ha >= 100", simplify_m, in_wsg))
-
-# ---- SALR's context ----------------------------------------------------------------
-# the gauges that arbitrate between the two products on SALR lie off the group,
-# so its map draws a wider box, with the larger rivers and lakes in it
-context <- sf::st_as_sfc(sf::st_bbox(sf::st_buffer(groups[groups$watershed_group_code == "SALR", ],
-                                                   context_km * 1000)))
-context <- sf::st_sf(watershed_group_code = "SALR", geom = context)
-box <- sf::st_bbox(context)
-in_box <- sprintf("ST_Intersects(geom, ST_MakeEnvelope(%f, %f, %f, %f, 3005))",
-                  box[["xmin"]], box[["ymin"]], box[["xmax"]], box[["ymax"]])
-# the rivers drawn: order 6 and up, and the river each accepted HYDAT gauge in
-# the box sits on (08KC003's Muskeg River is order 5), as main-flow lines
-source("scripts/wb_fit_lib.R")
-st <- readRDS(wb_stations_path(wb_shipped_release))$stations
-st <- st[st$accepted, ]
-gauge_blk <- DBI::dbGetQuery(conn, sprintf("
-  SELECT DISTINCT blue_line_key::int AS blue_line_key FROM whse_basemapping.fwa_stream_networks_sp
-  WHERE linear_feature_id IN (%s) AND %s", paste(st$linear_feature_id, collapse = ", "), in_box))[[1]]
-stopifnot(length(gauge_blk) > 0)
-context_streams <- sf::st_read(conn, quiet = TRUE, query = sprintf("
-  SELECT stream_order, ST_SnapToGrid(ST_SimplifyPreserveTopology(ST_Force2D(geom), %d), 1) AS geom
-  FROM whse_basemapping.fwa_stream_networks_sp
-  WHERE %s AND (stream_order >= 6 OR blue_line_key IN (%s)) AND watershed_group_code <> 'SALR'
-    AND edge_type IN (1000, 1050, 1200, 1250, 1450)", 2 * simplify_m, in_box, paste(gauge_blk, collapse = ", ")))
-context_lakes <- sf::st_read(conn, quiet = TRUE, query = sprintf("
-  SELECT gnis_name_1 AS gnis_name, area_ha,
-         ST_Multi(ST_CollectionExtract(ST_MakeValid(
-           ST_SnapToGrid(ST_SimplifyPreserveTopology(ST_Force2D(geom), %d), 1)), 3)) AS geom
-  FROM whse_basemapping.fwa_lakes_poly
-  WHERE %s AND area_ha >= 1000 AND watershed_group_code <> 'SALR'", 4 * simplify_m, in_box))
-context_streams <- context_streams[!sf::st_is_empty(context_streams), ]
-stopifnot(nrow(context_streams) > 0, nrow(context_lakes) > 0)
-
-# ---- province layers ----------------------------------------------------------------
-# routed flow's coverage: the groups where at least half the segments carry
-# routed flow (the table holds no null rows), the rule
-# data-raw/segment_vignette_data.R scores by, as one outline; area before the
-# simplify. The coast's groups bring thousands of islets, which a province map
-# cannot show and which would add half a megabyte, so parts under
-# min_part_km2 are dropped and vertices snap to 1 km (the tests check every
-# covered gauge still falls inside)
-min_part_km2 <- 200
-# simplifying at province_simplify_m cuts fjord heads, which left two covered
-# coast gauges (08FB009, 08FF006) up to 1 km outside: the outline is pushed out
-cov_buffer_m <- 2000
-coverage <- sf::st_read(conn, quiet = TRUE, query = sprintf("
-  WITH cov AS (
-    SELECT sum(ST_Area(geom)) / 1e6 AS area_km2,
-           ST_CollectionExtract(ST_MakeValid(ST_SnapToGrid(ST_Buffer(
-             ST_SimplifyPreserveTopology(ST_Union(geom), %d), %d, 'quad_segs=2'), 1000)), 3) AS geom
-    FROM whse_basemapping.fwa_watershed_groups_poly
-    WHERE watershed_group_code IN (
-      SELECT s.watershed_group_code FROM whse_basemapping.fwa_stream_networks_sp s
-      LEFT JOIN (SELECT linear_feature_id FROM whse_basemapping.fwa_stream_networks_discharge_monthly
-                 WHERE month = 1) r USING (linear_feature_id)
-      GROUP BY 1 HAVING count(r.linear_feature_id) >= %f * count(*)))
-  SELECT min(c.area_km2) AS area_km2, ST_Multi(ST_Collect(d.geom)) AS geom
-  FROM cov c, ST_Dump(c.geom) d
-  WHERE ST_Area(d.geom) >= %f * 1e6", province_simplify_m, cov_buffer_m, cov_share, min_part_km2))
-source("scripts/pcic_routed_lib.R")
-routed_fp <- routed_fingerprint(conn)
+# ---- regions the article names ------------------------------------------------------------------
+# the Liard basin: every segment under the Liard River's watershed code; its
+# label sits in the groups most of whose segments are in it
+liard_ws <- "(SELECT wscode_ltree FROM whse_basemapping.fwa_stream_networks_sp
+              WHERE gnis_name = 'Liard River' ORDER BY downstream_route_measure LIMIT 1)"
+region_sql <- function(name, seg_in, groups_in) sprintf("
+  WITH segs AS (
+    SELECT s.watershed_group_code, coalesce(p.source, 'none') AS class
+    FROM whse_basemapping.fwa_stream_networks_sp s LEFT JOIN vd_pick p USING (linear_feature_id)
+    WHERE %s)
+  SELECT '%s' AS name,
+         (SELECT count(*) FILTER (WHERE class = 'pcic_routed') FROM segs)::int AS pcic_routed,
+         (SELECT count(*) FILTER (WHERE class = 'wet_balance') FROM segs)::int AS wet_balance,
+         (SELECT count(*) FILTER (WHERE class = 'none') FROM segs)::int AS none,
+         (SELECT ST_PointOnSurface(ST_Union(geom)) FROM whse_basemapping.fwa_watershed_groups_poly
+          WHERE watershed_group_code IN (%s)) AS geom", seg_in, name, groups_in)
+liard_groups <- sprintf("
+  SELECT watershed_group_code FROM whse_basemapping.fwa_stream_networks_sp
+  GROUP BY 1 HAVING avg((wscode_ltree <@ %s)::int) > 0.5", liard_ws)
+in_nechako <- paste0("'", nechako, "'", collapse = ", ")
+regions <- rbind(
+  sf::st_read(conn, quiet = TRUE, query = region_sql("Liard", sprintf("s.wscode_ltree <@ %s", liard_ws), liard_groups)),
+  sf::st_read(conn, quiet = TRUE, query = region_sql("Nechako Reservoir",
+                                                     sprintf("s.watershed_group_code IN (%s)", in_nechako),
+                                                     in_nechako)))
 DBI::dbDisconnect(conn)
-stopifnot(nrow(coverage) == 1, !sf::st_is_empty(coverage))
-coverage$cov_share <- cov_share   # the tests hold it to the data script's
-# and the routed table the outline came from to the one the values came from
-coverage$routed_fingerprint <- routed_fp
+print(sf::st_drop_geometry(regions))
+stopifnot(nrow(regions) == 2, all(!sf::st_is_empty(regions)),
+          all(regions$pcic_routed + regions$wet_balance + regions$none > 0))
 
-# the zones the balance adjusts by, from the zip scripts/wb_inputs.R caches
+# ---- zone names ------------------------------------------------------------------------------
+# from the zip scripts/wb_inputs.R caches
 hz_url <- paste0("https://catalogue.data.gov.bc.ca/dataset/f1f86c41-ae83-49d5-92e1-526897b99fa2/",
                  "resource/fc209bd0-26ab-4f8b-9415-8f34081a3c0e/download/bc_hydrologic_zones.zip")
 hz_zip <- file.path("data", "hydz", "bc_hydrologic_zones.zip")
@@ -158,65 +129,25 @@ hz_src <- tempfile("hydz")
 utils::unzip(hz_zip, exdir = hz_src)
 hz_shp <- list.files(hz_src, "\\.shp$", full.names = TRUE, recursive = TRUE)
 stopifnot(length(hz_shp) == 1)
-hz <- sf::st_transform(sf::st_read(hz_shp, quiet = TRUE), 3005)
-# a zone split across the border is several features, dissolved into one; the
-# source mixes XY and XYZ rings, which GEOS will not union until Z is dropped
-hz <- sf::st_zm(hz)
+hz <- sf::st_drop_geometry(sf::st_read(hz_shp, quiet = TRUE))
 hz_code <- sprintf("%02d", as.integer(hz$HYDZN_NO))
-# drawn at province scale: clipped to BC's box, simplified, and rounded to 100 m
-# (st_as_binary's precision), which xz compresses far better than full doubles.
-# One zone at a time, so each geometry keeps its code: a clip can empty a zone,
-# and a union of parts touching along a line can return a collection
-bc_box <- sf::st_as_sfc(sf::st_bbox(readRDS(file.path("inst", "vignette-data", "station_map.rds"))$bc))
-zone_geom <- function(z) {
-  g <- sf::st_union(sf::st_geometry(hz)[hz_code == z])
-  g <- sf::st_simplify(sf::st_intersection(g, bc_box), preserveTopology = TRUE, dTolerance = province_simplify_m)
-  g <- sf::st_as_sfc(sf::st_as_binary(g, precision = 0.01), crs = 3005)
-  if (!all(sf::st_is_valid(g))) g <- sf::st_make_valid(g)
-  if (!length(g) || all(sf::st_is_empty(g))) return(NULL)
-  sf::st_cast(sf::st_union(sf::st_collection_extract(g, "POLYGON")), "MULTIPOLYGON")
-}
-zone_list <- lapply(stats::setNames(sort(unique(hz_code)), sort(unique(hz_code))), zone_geom)
-zone_list <- zone_list[!vapply(zone_list, is.null, NA)]
 # a zone's name is its first feature's: zone 28's two features carry two names
 hz_name <- tapply(as.character(hz$HYDZN_NAME), hz_code, `[`, 1)
-zones <- sf::st_sf(zone = names(zone_list), name = unname(hz_name[names(zone_list)]),
-                   geom = do.call(c, zone_list))
-stopifnot(!anyDuplicated(zones$zone), !anyNA(zones$name), all(!sf::st_is_empty(zones)))
+zones <- data.frame(zone = names(hz_name), name = unname(hz_name))
+stopifnot(!anyDuplicated(zones$zone), !anyNA(zones$name))
 
-# ---- place names ----------------------------------------------------------------
-# a name is not a key: keep the populated places inside SALR's context box
-# (SALR itself has none; Prince George, the nearest city, is 59 km off its
-# boundary)
-frames <- context
-bb <- sf::st_bbox(frames)
-gns <- bcdata::bcdc_query_geodata("WHSE_BASEMAPPING.GNS_GEOGRAPHICAL_NAMES_SP") |>
-  dplyr::filter(FEATURE_TYPE %in% c("City", "Town", "District Municipality (1)", "Village (1)")) |>
-  dplyr::filter(bcdata::BBOX(local(bb), crs = "EPSG:3005")) |>
-  bcdata::collect()
-gns <- sf::st_transform(gns, 3005)
-inside <- sf::st_intersects(gns, frames)
-gns <- gns[lengths(inside) > 0, ]
-places <- sf::st_sf(name = gns$GEOGRAPHICAL_NAME, feature_type = gns$FEATURE_TYPE,
-                    watershed_group_code = frames$watershed_group_code[
-                      vapply(inside[lengths(inside) > 0], `[`, 1L, 1L)],
-                    geom = sf::st_geometry(gns))
-print(sf::st_drop_geometry(places))
-stopifnot(!anyDuplicated(places$name), setequal(places$watershed_group_code, wsg))
-
-# fwapg's bigint ids reach R as integer64, which readRDS() without bit64 reads
-# as raw bits: the SQL casts them, and nothing integer64 is saved
-layers <- list(segments = segments, groups = groups, lakes = lakes, places = places, context = context,
-               context_streams = context_streams, context_lakes = context_lakes, coverage = coverage,
-               zones = zones)
+# ---- write ---------------------------------------------------------------------------------------
+layers <- list(rivers = rivers, regions = regions)
 layers <- lapply(layers, function(x) {
   sf::st_crs(x) <- 3005
   x
 })
 stopifnot(!any(unlist(lapply(layers, function(x) vapply(x, inherits, NA, "integer64")))))
-# a simplify then a snap can turn a hole outside its shell: every polygon must be valid
-poly <- vapply(layers, function(x) all(sf::st_dimension(x) == 2), NA)
-stopifnot(all(vapply(layers[poly], function(x) all(sf::st_is_valid(x)), NA)))
+provenance <- list(built = Sys.Date(), wet_commit = wet_commit, min_order = min_order, simplify_m = simplify_m,
+                   main_flow = main_flow, drawn = stats::setNames(n_cls$n, n_cls$class),
+                   published = list(manifest = attr(pb$catalog, "manifest"), built = attr(pb$catalog, "built"),
+                                    wet_commit = attr(pb$catalog, "provenance")$wet_commit, report = pb$report))
+layers <- c(layers, list(zones = zones, provenance = provenance))
 saveRDS(layers, out, compress = "xz")
-print(vapply(layers, function(x) nrow(sf::st_coordinates(x)), 0))
+print(vapply(layers[c("rivers", "regions")], function(x) nrow(sf::st_coordinates(x)), 0))
 message("segment_map.rds: ", round(file.size(out) / 1024), " KB")
