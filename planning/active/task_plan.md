@@ -26,8 +26,8 @@ What I found that shapes the plan:
 - [x] Rerun both scripts on m1 (`WET_FWAPG_COMMIT=341b078`) and check the bundle stays under 500 KB.
 
 ## Phase 3: Tests
-- [ ] `tests/testthat/test-vignette_data.R`: change the expected names and shapes to the new layers and values. Classes must be exactly the three. The map's published commit must equal the values' commit. Every calibration gauge's zone must have a name. Remove the SALR, coverage and `in_routed` expectations.
-- [ ] Restore-the-bug check: each new guard (class set, commit match) goes red on a planted defect, in a scratch copy.
+- [x] `tests/testthat/test-vignette_data.R`: change the expected names and shapes to the new layers and values. Classes must be exactly the three. The map's published commit must equal the values' commit. Every calibration gauge's zone must have a name. Remove the SALR, coverage and `in_routed` expectations.
+- [x] Restore-the-bug check: each new guard (class set, commit match) goes red on a planted defect, in a scratch copy.
 
 ## Phase 4: Article rewrite
 - [ ] **What it is**: the two sources, their periods, where the product lives, and the manifest. How each source was made shrinks to a paragraph each, inside this section.
