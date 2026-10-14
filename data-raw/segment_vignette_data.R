@@ -17,9 +17,10 @@
 #     runoff on the gauge's segment (routed_mm; NA where it has none), so both
 #     estimates are scored on one set, as scripts/pcic_routed_compare.R scores them
 #   - segments: how many FWA segments `pick` gives each source, how many get
-#     neither and why (no lut watershed; of those, how many are first order), and how many the balance takes because routed flow is
-#     far low, from the tracked segment report, checked against the live
-#     build's reader counts and fwapg's segment count
+#     neither and why (no lut watershed; of those, how many are first
+#     order), and how many the balance takes because routed flow is far low,
+#     from the tracked segment report, checked against the live build's
+#     reader counts and fwapg's
 #   - provenance: the runs, reports and published build these came from, and
 #     the value check against the published parts
 #

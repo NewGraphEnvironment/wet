@@ -21,8 +21,8 @@
 # every part's `pick` against the segment table with none differing
 # (vd_published()); the parts are checked against their manifest md5s before
 # and after the read, so a read during a publish is refused. The province
-# outline is station_map.rds's `bc` layer, not a second copy. fwapg from the
-# WET_PG* variables.
+# outline is station_map.rds's `bc` layer, not a second copy. fwapg is reached
+# through the WET_PG* variables.
 
 # the vignette cites the commit these were built at, so that commit must hold
 # what built them (scripts/vignette_data_lib.R)
@@ -98,7 +98,8 @@ stopifnot(all(sf::st_geometry_type(rivers) == "MULTILINESTRING"))
 # label sits in the groups most of whose segments are in it
 liard_ws <- "(SELECT wscode_ltree FROM whse_basemapping.fwa_stream_networks_sp
               WHERE gnis_name = 'Liard River' ORDER BY downstream_route_measure LIMIT 1)"
-region_sql <- function(name, seg_in, groups_in) sprintf("
+region_sql <- function(name, seg_in, groups_in) {
+  sprintf("
   WITH segs AS (
     SELECT s.watershed_group_code, coalesce(p.source, 'none') AS class
     FROM whse_basemapping.fwa_stream_networks_sp s LEFT JOIN vd_pick p USING (linear_feature_id)
@@ -109,6 +110,7 @@ region_sql <- function(name, seg_in, groups_in) sprintf("
          (SELECT count(*) FILTER (WHERE class = 'none') FROM segs)::int AS none,
          (SELECT ST_PointOnSurface(ST_Union(geom)) FROM whse_basemapping.fwa_watershed_groups_poly
           WHERE watershed_group_code IN (%s)) AS geom", seg_in, name, groups_in)
+}
 liard_groups <- sprintf("
   SELECT watershed_group_code FROM whse_basemapping.fwa_stream_networks_sp
   GROUP BY 1 HAVING avg((wscode_ltree <@ %s)::int) > 0.5", liard_ws)

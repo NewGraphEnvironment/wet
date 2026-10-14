@@ -30,15 +30,15 @@ What I found that shapes the plan:
 - [x] Restore-the-bug check: each new guard (class set, commit match) goes red on a planted defect, in a scratch copy.
 
 ## Phase 4: Article rewrite
-- [ ] **What it is**: the two sources, their periods, where the product lives, and the manifest. How each source was made shrinks to a paragraph each, inside this section.
-- [ ] **Which value to use**: `pick` in its own short section. It gives the rule (routed unless under a fifth of the balance on its own line; whichever has a value; neither) and why a default exists, with the counts for routed, balance and neither. Then the province map of the picked source: gauges as plain dots, labels for the Liard and the Nechako Reservoir, a scale bar, and a caption naming the order threshold.
-- [ ] **How to read it**: duckdb over the parts, filtered to one group (BULK, which the publish report's row-group pruning line uses), then a short `wet_db_load()` Postgres block.
-- [ ] **How good it is**: the score table unchanged, then one sentence each on small basins, headwaters, the dry interior zone, and the Liard without routed coverage. The existing guards stay for each of these. The scatter goes.
-- [ ] **Limits**: the bullets tightened, with segments without a value given province-wide. The research path becomes one "how the balance is built" link to `research/water_balance_method.md` on GitHub, at the end.
-- [ ] **Validation**: two sentences and the build-report link. The cached-inputs paragraph becomes a code comment.
-- [ ] Remove the old registry layers from `wet_segment.csv`.
-- [ ] Remove the Salmon River sections, `map_labels()`, `named-on-map`, the frame checks and the unused palettes. Lower the word cap to the new length plus a small margin.
-- [ ] Render with `devtools::build_rmd()` or pkgdown. Read the map PNG against the cartography self-review (placement and communication checks 1–12).
+- [x] **What it is**: the two sources, their periods, where the product lives, and the manifest. How each source was made shrinks to a paragraph each, inside this section.
+- [x] **Which value to use**: `pick` in its own short section. It gives the rule (routed unless under a fifth of the balance on its own line; whichever has a value; neither) and why a default exists, with the counts for routed, balance and neither. Then the province map of the picked source: gauges as plain dots, labels for the Liard and the Nechako Reservoir, a scale bar, and a caption naming the order threshold.
+- [x] **How to read it**: duckdb over the parts, filtered to one group (BULK, which the publish report's row-group pruning line uses), then a short `wet_db_load()` Postgres block.
+- [x] **How good it is**: the score table unchanged, then one sentence each on small basins, headwaters, the dry interior zone, and the Liard without routed coverage. The existing guards stay for each of these. The scatter goes.
+- [x] **Limits**: the bullets tightened, with segments without a value given province-wide. The research path becomes one "how the balance is built" link to `research/water_balance_method.md` on GitHub, at the end.
+- [x] **Validation**: two sentences and the build-report link. The cached-inputs paragraph becomes a code comment.
+- [x] Remove the old registry layers from `wet_segment.csv`.
+- [x] Remove the Salmon River sections, `map_labels()`, `named-on-map`, the frame checks and the unused palettes. Lower the word cap to the new length plus a small margin.
+- [x] Render with `devtools::build_rmd()` or pkgdown. Read the map PNG against the cartography self-review (placement and communication checks 1–12).
 
 ## Phase 5: Docs
 - [ ] CLAUDE.md's segment-vignette paragraph, README's article line, and a NEWS entry.
