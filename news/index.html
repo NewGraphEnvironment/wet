@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,9 +34,13 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/v0.4.2/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.2" id="wet-042">wet 0.4.2<a class="anchor" aria-label="anchor" href="#wet-042"></a></h2>
+<ul><li>A new article covers months 1–12 of the published product (<a href="https://github.com/NewGraphEnvironment/wet/issues/65" class="external-link">#65</a>): how to read one stream’s twelve months, both sources’ hydrographs at three Bulkley gauges with the Chinook windows, the flow in each window beside the gauge’s daily record, and month-by-month scores at the calibration gauges. Held out at all 315, the water balance reads 8–16 % high from January to May and within ±5 % from June to December, and 67–96 % low in January–March at the 25 northern gauges routed flow does not reach (<a href="https://github.com/NewGraphEnvironment/wet/issues/16" class="external-link">#16</a>). Routed PCIC, at 279 gauges, reads 20 % low in March–April and 19 % high in July–August, and its 1951–2012 period explains only part of that (<a href="https://github.com/NewGraphEnvironment/wet/issues/67" class="external-link">#67</a>). The values are read from the published parts and checked against their sources before they are bundled (<code>data-raw/monthly_vignette_data.R</code>), under guards now shared with the segment article (<code>scripts/vignette_data_lib.R</code>).</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.1" id="wet-041">wet 0.4.1<a class="anchor" aria-label="anchor" href="#wet-041"></a></h2>
 <ul><li>The segment-discharge article now introduces the published product (<a href="https://github.com/NewGraphEnvironment/wet/issues/64" class="external-link">#64</a>): where it is, what a row holds, how to read it with <code><a href="../reference/wet_catalog.html">wet_catalog()</a></code>, <code><a href="../reference/wet_db_load.html">wet_db_load()</a></code> or duckdb, what <code>pick</code> selects, how each source was made, and how both score at the 315 calibration gauges, with the Salmon River as the one worked group. The values it shows are read from the published parts and checked against their sources before they are bundled. <code>scripts/discharge_publish.R</code> now reads each part it writes back and compares the flows, and the segment rows’ runoff, coverage and <code>pick</code>, value by value with what they were built from: on build 7c62b9e, 555,857,796 values with none differing, and all 67 parts identical to the live upload. The fwapg parity and sampling results moved to <code>research/fwapg_mad_method.md</code>.</li>

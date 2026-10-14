@@ -1,5 +1,25 @@
 # Changelog
 
+## wet 0.4.2
+
+- A new article covers months 1–12 of the published product
+  ([\#65](https://github.com/NewGraphEnvironment/wet/issues/65)): how to
+  read one stream’s twelve months, both sources’ hydrographs at three
+  Bulkley gauges with the Chinook windows, the flow in each window
+  beside the gauge’s daily record, and month-by-month scores at the
+  calibration gauges. Held out at all 315, the water balance reads 8–16
+  % high from January to May and within ±5 % from June to December, and
+  67–96 % low in January–March at the 25 northern gauges routed flow
+  does not reach
+  ([\#16](https://github.com/NewGraphEnvironment/wet/issues/16)). Routed
+  PCIC, at 279 gauges, reads 20 % low in March–April and 19 % high in
+  July–August, and its 1951–2012 period explains only part of that
+  ([\#67](https://github.com/NewGraphEnvironment/wet/issues/67)). The
+  values are read from the published parts and checked against their
+  sources before they are bundled (`data-raw/monthly_vignette_data.R`),
+  under guards now shared with the segment article
+  (`scripts/vignette_data_lib.R`).
+
 ## wet 0.4.1
 
 - The segment-discharge article now introduces the published product
