@@ -21,9 +21,9 @@ What I found that shapes the plan:
 - [x] `inst/cartography/wet_segment.csv`: add a `pick_source` layer (routed, balance, neither; routed and balance in the `flow_source` colours) and a plain gauge-dot class. Remove the layers only the dropped figures used: `mad_class`, `skill_nesting`, `guide`, `gauge_error`, `province`, `context`. `flow_source` is untouched (monthly article).
 
 ## Phase 2: Values: drop SALR, add province counts
-- [ ] `data-raw/segment_vignette_data.R`: drop the SALR segment read, `gauges_salr`, the outlet and "holds" queries, `near_km`, the SALR balance-against-fit check (with its `output/100.parquet` read), and the routed-coverage-by-group block. Keep `skill`, the check of routed-at-gauges against fwapg, and provenance.
-- [ ] Add the province counts the prose quotes: FWA segments in total, and those without a lut watershed. Assert that picked plus neither equals the total, against the publish report's reader rows.
-- [ ] Rerun both scripts on m1 (`WET_FWAPG_COMMIT=341b078`) and check the bundle stays under 500 KB.
+- [x] `data-raw/segment_vignette_data.R`: drop the SALR segment read, `gauges_salr`, the outlet and "holds" queries, `near_km`, the SALR balance-against-fit check (with its `output/100.parquet` read), and the routed-coverage-by-group block. Keep `skill`, the check of routed-at-gauges against fwapg, and provenance.
+- [x] Add the province counts the prose quotes: FWA segments in total, and those without a lut watershed. Assert that picked plus neither equals the total, against the publish report's reader rows.
+- [x] Rerun both scripts on m1 (`WET_FWAPG_COMMIT=341b078`) and check the bundle stays under 500 KB.
 
 ## Phase 3: Tests
 - [ ] `tests/testthat/test-vignette_data.R`: change the expected names and shapes to the new layers and values. Classes must be exactly the three. The map's published commit must equal the values' commit. Every calibration gauge's zone must have a name. Remove the SALR, coverage and `in_routed` expectations.
