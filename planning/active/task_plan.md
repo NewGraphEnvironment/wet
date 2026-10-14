@@ -24,21 +24,21 @@ Life-stage windows straddle months, and a freshet can rise and fall inside one m
 
 ## Phase 2: wet_segment_monthly()
 - [x] `R/wet_segment_monthly.R`: exported function, internal `wet_segment_sources()` and `wet_segment_read()` (dataset ID → table or parts; timebase → time column)
-- [x] roxygen with a runnable example: `inst/extdata/` ships only the fixture manifest, so `data-raw/discharge_fixture.R` also writes the fixture's parquet parts beside it (a few KB; the manifest's md5s stay true) and the example reads them offline, guarded by `requireNamespace("duckdb")`
-- [x] `_pkgdown.yml` reference entry; `devtools::document()`; `pkgdown::check_pkgdown()`
+- [x] roxygen with an example: a `\dontrun{}` live read, as `wet_db_load()`'s (corrected: the fixture's parts cannot ship, their tarball paths exceed 100 bytes, `data-raw/discharge_fixture.R`)
+- [x] `devtools::document()` (`_pkgdown.yml` has no reference index, so no entry)
 - [x] Phase 1 reader tests pass
 
 ## Phase 3: wet_flow_window()
 - [x] `R/wet_flow_window.R`, reusing `wet_windows_check()`; runnable example (synthetic months + `wet_windows_calendar()` + a species window)
-- [x] `_pkgdown.yml`; document; Phase 1 window tests pass
+- [x] document; Phase 1 window tests pass
 
 ## Phase 4: Callers
-- [ ] `routed_annual()` in `scripts/pcic_routed_lib.R` becomes `wet_segment_monthly(conn, lfid, "pcic_routed", from = "fwapg")` month 0; probe: old SQL vs new on every calibration-gauge segment, identical (covers `data-raw/segment_vignette_data.R` too)
-- [ ] `scripts/pcic_routed_compare.R`: commit, rerun (`WET_FWAPG_COMMIT=341b078`), tracked `data/checks/pcic_routed_compare_20260717.txt` reproduces except its wet-commit line
-- [ ] `data-raw/monthly_vignette_data.R`: the recipe check calls `wet_segment_monthly(NULL, lfid, groups = "BULK", catalog = <verified catalog>)`; the bundle read (`read_pub()`, needs period/pick/coverage/runoff_mm) stays and says why
-- [ ] `vignettes/monthly-flow.Rmd`: the `read` chunk shows `wet_segment_monthly()`; `from_months()` → `wet_flow_window()` (sources by `c("station_number", "source")`, observed months by `station_number`); prose that promised #59 updated, gaps bullet removed
-- [ ] Regenerate `inst/vignette-data/monthly_values.rds`; values identical to the old bundle except provenance (`built`, `wet_commit`)
-- [ ] Render the article before and after: window table and every inline number identical
+- [x] `routed_annual()` in `scripts/pcic_routed_lib.R` becomes `wet_segment_monthly(conn, lfid, "pcic_routed", from = "fwapg")` month 0; probe: old SQL vs new on 20,000 routed segments, equal within 6.8e-13 m3/s, NA alike (Postgres avg() vs R mean(); covers `data-raw/segment_vignette_data.R` too)
+- [x] `scripts/pcic_routed_compare.R`: commit, rerun (`WET_FWAPG_COMMIT=341b078`), tracked `data/checks/pcic_routed_compare_20260717.txt` reproduces except its wet-commit line
+- [x] `data-raw/monthly_vignette_data.R`: the recipe check calls `wet_segment_monthly(NULL, lfid, groups = "BULK", catalog = <verified catalog>)`; the bundle read (`read_pub()`, needs period/pick/coverage/runoff_mm) stays and says why
+- [x] `vignettes/monthly-flow.Rmd`: the `read` chunk shows `wet_segment_monthly()`; `from_months()` → `wet_flow_window()` (sources by `c("station_number", "source")`, observed months per station and window, on that window's years); prose that promised #59 updated, gaps bullet removed
+- [x] Regenerate `inst/vignette-data/monthly_values.rds`; values identical to the old bundle except provenance (`built`, `wet_commit`)
+- [x] Render the article before and after: window table and every inline number identical
 
 ## Phase 5: Docs
 - [ ] `CLAUDE.md`: readers line (`wet_catalog()`, `wet_db_load()`, `wet_segment_monthly()`, `wet_flow_window()`) and the monthly-flow paragraph; `research/discharge_publish.md` readers section
