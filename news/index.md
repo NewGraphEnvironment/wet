@@ -1,5 +1,23 @@
 # Changelog
 
+## wet 0.4.1
+
+- The segment-discharge article now introduces the published product
+  ([\#64](https://github.com/NewGraphEnvironment/wet/issues/64)): where
+  it is, what a row holds, how to read it with
+  [`wet_catalog()`](https://newgraphenvironment.github.io/wet/reference/wet_catalog.md),
+  [`wet_db_load()`](https://newgraphenvironment.github.io/wet/reference/wet_db_load.md)
+  or duckdb, what `pick` selects, how each source was made, and how both
+  score at the 315 calibration gauges, with the Salmon River as the one
+  worked group. The values it shows are read from the published parts
+  and checked against their sources before they are bundled.
+  `scripts/discharge_publish.R` now reads each part it writes back and
+  compares the flows, and the segment rows’ runoff, coverage and `pick`,
+  value by value with what they were built from: on build 7c62b9e,
+  555,857,796 values with none differing, and all 67 parts identical to
+  the live upload. The fwapg parity and sampling results moved to
+  `research/fwapg_mad_method.md`.
+
 ## wet 0.4.0
 
 - Per-segment and per-watershed discharge have a published layout at

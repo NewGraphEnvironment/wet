@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,9 +33,13 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/v0.4.1/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.1" id="wet-041">wet 0.4.1<a class="anchor" aria-label="anchor" href="#wet-041"></a></h2>
+<ul><li>The segment-discharge article now introduces the published product (<a href="https://github.com/NewGraphEnvironment/wet/issues/64" class="external-link">#64</a>): where it is, what a row holds, how to read it with <code><a href="../reference/wet_catalog.html">wet_catalog()</a></code>, <code><a href="../reference/wet_db_load.html">wet_db_load()</a></code> or duckdb, what <code>pick</code> selects, how each source was made, and how both score at the 315 calibration gauges, with the Salmon River as the one worked group. The values it shows are read from the published parts and checked against their sources before they are bundled. <code>scripts/discharge_publish.R</code> now reads each part it writes back and compares the flows, and the segment rows’ runoff, coverage and <code>pick</code>, value by value with what they were built from: on build 7c62b9e, 555,857,796 values with none differing, and all 67 parts identical to the live upload. The fwapg parity and sampling results moved to <code>research/fwapg_mad_method.md</code>.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.0" id="wet-040">wet 0.4.0<a class="anchor" aria-label="anchor" href="#wet-040"></a></h2>
 <ul><li>Per-segment and per-watershed discharge have a published layout at <code>s3://fresh-bc/discharge/fwa/v1/</code> (<a href="https://github.com/NewGraphEnvironment/wet/issues/7" class="external-link">#7</a>): Hive-partitioned parquet keyed <code>scenario</code> / <code>forcing</code> / <code>source</code>, one part per FWA top-level drainage with one row group per watershed group, and a <code>manifest.json</code> describing every part, because the bucket allows reads but no listing. <code><a href="../reference/wet_catalog.html">wet_catalog()</a></code> reads the manifest. <code><a href="../reference/wet_db_load.html">wet_db_load()</a></code> loads one scenario of a dataset into Postgres (<code>discharge.fwa_v1_segment_monthly</code> or <code>discharge.fwa_v1_watershed_monthly</code>), checking each part’s size and md5 first, so fresh can join <code>month = 0 AND pick</code>. <code>scripts/discharge_publish.R</code> conforms each part to its crate schema (crate 0.7.0), builds the tree and writes a tracked report. Uploading is a separate, explicit step and has not been run yet. One dataset ID, <code>&lt;variable&gt;/&lt;network&gt;/&lt;version&gt;/&lt;unit&gt;_&lt;timebase&gt;</code>, names the S3 prefix, the crate schema and the table (<code>research/discharge_publish.md</code>).</li>
