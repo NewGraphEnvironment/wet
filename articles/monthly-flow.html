@@ -60,7 +60,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Monthly Flow per Segment</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/v0.4.3/vignettes/monthly-flow.Rmd" class="external-link"><code>vignettes/monthly-flow.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/vignettes/monthly-flow.Rmd" class="external-link"><code>vignettes/monthly-flow.Rmd</code></a></small>
       <div class="d-none name"><code>monthly-flow.Rmd</code></div>
     </div>
 
@@ -104,30 +104,26 @@ Each comparison below says which period it uses.</p>
 </h2>
 <p>The parts are public and the bucket allows no listing, so the
 manifest names them. One stream is one <code>linear_feature_id</code>.
-Filtering on its watershed group as well lets duckdb skip the row groups
-that cannot hold it, which keeps the read to seconds.</p>
+Naming its watershed group as well lets duckdb skip the row groups that
+cannot hold it, which keeps the read to seconds.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/NewGraphEnvironment/wet" class="external-link">wet</a></span><span class="op">)</span></span>
-<span><span class="va">parts</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/wet_catalog.html">wet_catalog</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">parts</span> <span class="op">&lt;-</span> <span class="va">parts</span><span class="op">[</span><span class="va">parts</span><span class="op">$</span><span class="va">dataset</span> <span class="op">==</span> <span class="st">"discharge/fwa/v1/segment_monthly"</span> <span class="op">&amp;</span> <span class="va">parts</span><span class="op">$</span><span class="va">scenario</span> <span class="op">==</span> <span class="st">"historical"</span>, <span class="op">]</span></span>
-<span></span>
-<span><span class="va">con</span> <span class="op">&lt;-</span> <span class="fu">DBI</span><span class="fu">::</span><span class="fu"><a href="https://dbi.r-dbi.org/reference/dbConnect.html" class="external-link">dbConnect</a></span><span class="op">(</span><span class="fu">duckdb</span><span class="fu">::</span><span class="fu"><a href="https://r.duckdb.org/reference/duckdb.html" class="external-link">duckdb</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu">DBI</span><span class="fu">::</span><span class="fu"><a href="https://dbi.r-dbi.org/reference/dbExecute.html" class="external-link">dbExecute</a></span><span class="op">(</span><span class="va">con</span>, <span class="st">"LOAD httpfs"</span><span class="op">)</span></span>
 <span><span class="co"># Buck Creek at its mouth, where gauge 08EE013 sits</span></span>
-<span><span class="va">q</span> <span class="op">&lt;-</span> <span class="fu">DBI</span><span class="fu">::</span><span class="fu"><a href="https://dbi.r-dbi.org/reference/dbGetQuery.html" class="external-link">dbGetQuery</a></span><span class="op">(</span><span class="va">con</span>, <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"</span></span>
-<span><span class="st">  SELECT source, month, q_m3s, period, pick</span></span>
-<span><span class="st">  FROM read_parquet([%s], hive_partitioning = true)</span></span>
-<span><span class="st">  WHERE watershed_group_code = 'BULK' AND linear_feature_id = 17094080</span></span>
-<span><span class="st">  ORDER BY source, month"</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"'"</span>, <span class="va">parts</span><span class="op">$</span><span class="va">href</span>, <span class="st">"'"</span>, collapse <span class="op">=</span> <span class="st">", "</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu">DBI</span><span class="fu">::</span><span class="fu"><a href="https://dbi.r-dbi.org/reference/dbDisconnect.html" class="external-link">dbDisconnect</a></span><span class="op">(</span><span class="va">con</span>, shutdown <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">q</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/wet_segment_monthly.html">wet_segment_monthly</a></span><span class="op">(</span><span class="cn">NULL</span>, <span class="fl">17094080</span>, groups <span class="op">=</span> <span class="st">"BULK"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># twelve months a column per source</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/reshape.html" class="external-link">reshape</a></span><span class="op">(</span><span class="va">q</span><span class="op">[</span><span class="va">q</span><span class="op">$</span><span class="va">month</span> <span class="op">&gt;</span> <span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"source"</span>, <span class="st">"month"</span>, <span class="st">"q_m3s"</span><span class="op">)</span><span class="op">]</span>, idvar <span class="op">=</span> <span class="st">"month"</span>,</span>
 <span>        timevar <span class="op">=</span> <span class="st">"source"</span>, direction <span class="op">=</span> <span class="st">"wide"</span><span class="op">)</span></span></code></pre></div>
-<p><code>data-raw/monthly_vignette_data.R</code> runs this query and
-refuses to bundle the values below unless it returns them. Once
-<code>wet_segment_monthly()</code> lands (#59), it does the same read in
-one call.</p>
+<p><code><a href="../reference/wet_segment_monthly.html">wet_segment_monthly()</a></code> reads the parts through duckdb
+when it is given no database connection, and the table
+<code><a href="../reference/wet_db_load.html">wet_db_load()</a></code> writes when it is. It returns
+<code>linear_feature_id, month, q_m3s, source</code>, in the shape of
+<code><a href="../reference/wet_station_monthly.html">wet_station_monthly()</a></code>’s
+<code>station_number, month, q_m3s</code> for a gauge, so a gauge
+comparison is a join on <code>month</code>. A segment with no value for
+a source comes back with its months as <code>NA</code>, not as missing
+rows. <code>data-raw/monthly_vignette_data.R</code> runs this read and
+refuses to bundle the values below unless it returns them.</p>
 </div>
 <div class="section level2">
 <h2 id="the-bulkley-at-three-gauges">The Bulkley at three gauges<a class="anchor" aria-label="anchor" href="#the-bulkley-at-three-gauges"></a>
@@ -523,9 +519,6 @@ PCIC.</li>
 (#68). Today only its annual values are stored, so this article’s data
 script recomputes the months.</li>
 <li>
-<strong>Per-segment monthly reads in one call</strong> (#59), which
-replaces the duckdb recipe above.</li>
-<li>
 <strong>Monthly scoring by region and season</strong> (#6), which
 takes over the scoring this article starts.</li>
 </ul>
@@ -540,7 +533,9 @@ in-sample. The scores above use the held-out balance instead.</li>
 the years 1981–2010. Its windows rest on the years the window table
 gives.</li>
 <li>A window’s flow from monthly means is an approximation (the window
-table measures it).</li>
+table measures it). <code><a href="../reference/wet_flow_window.html">wet_flow_window()</a></code> labels it
+<code>basis = "monthly"</code>, and gives <code>"daily"</code> from the
+same call once daily flow is published (#70).</li>
 <li>Routed PCIC’s month 0 is a plain mean of its months, so its months
 converted to millimetres do not add up to its annual runoff
 exactly.</li>
@@ -550,7 +545,7 @@ exactly.</li>
 <h2 id="validation">Validation<a class="anchor" aria-label="anchor" href="#validation"></a>
 </h2>
 <p><code>data-raw/monthly_vignette_data.R</code> built the data at wet
-b24fcc6 on 2026-10-13, from the published build at wet 7c62b9e (<a href="https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json" class="external-link uri">https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json</a>)
+2a3a756 on 2026-10-14, from the published build at wet 7c62b9e (<a href="https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json" class="external-link uri">https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json</a>)
 and the water balance fit on HYDAT 2026-07-17 (AET cfu). It checked the
 bundled published values against what they were built from, and refused
 to write unless none differed:</p>

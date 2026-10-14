@@ -32,6 +32,9 @@
 - [`wet_flow_validate()`](https://newgraphenvironment.github.io/wet/reference/wet_flow_validate.md)
   : Skill of modelled runoff against observed runoff at gauges
 
+- [`wet_flow_window()`](https://newgraphenvironment.github.io/wet/reference/wet_flow_window.md)
+  : Mean flow over date windows, from monthly or daily means
+
 - [`wet_landcover_nrcan()`](https://newgraphenvironment.github.io/wet/reference/wet_landcover_nrcan.md)
   : Land-cover fractions on a grid from the NRCan 2020 land cover
 
@@ -62,6 +65,9 @@
 
 - [`wet_runoff_annual()`](https://newgraphenvironment.github.io/wet/reference/wet_runoff_annual.md)
   : Mean annual total per cell from a daily raster
+
+- [`wet_segment_monthly()`](https://newgraphenvironment.github.io/wet/reference/wet_segment_monthly.md)
+  : Monthly and annual flow on FWA segments
 
 - [`wet_share_fit()`](https://newgraphenvironment.github.io/wet/reference/wet_share_fit.md)
   : Fit the monthly share-of-annual-runoff regressions

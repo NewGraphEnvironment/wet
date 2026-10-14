@@ -34,34 +34,33 @@ Each comparison below says which period it uses.
 ## Reading a segment’s twelve months
 
 The parts are public and the bucket allows no listing, so the manifest
-names them. One stream is one `linear_feature_id`. Filtering on its
-watershed group as well lets duckdb skip the row groups that cannot hold
-it, which keeps the read to seconds.
+names them. One stream is one `linear_feature_id`. Naming its watershed
+group as well lets duckdb skip the row groups that cannot hold it, which
+keeps the read to seconds.
 
 ``` r
 
 library(wet)
-parts <- wet_catalog()
-parts <- parts[parts$dataset == "discharge/fwa/v1/segment_monthly" & parts$scenario == "historical", ]
-
-con <- DBI::dbConnect(duckdb::duckdb())
-DBI::dbExecute(con, "LOAD httpfs")
 # Buck Creek at its mouth, where gauge 08EE013 sits
-q <- DBI::dbGetQuery(con, sprintf("
-  SELECT source, month, q_m3s, period, pick
-  FROM read_parquet([%s], hive_partitioning = true)
-  WHERE watershed_group_code = 'BULK' AND linear_feature_id = 17094080
-  ORDER BY source, month", paste0("'", parts$href, "'", collapse = ", ")))
-DBI::dbDisconnect(con, shutdown = TRUE)
+q <- wet_segment_monthly(NULL, 17094080, groups = "BULK")
 
 # twelve months a column per source
 reshape(q[q$month > 0, c("source", "month", "q_m3s")], idvar = "month",
         timevar = "source", direction = "wide")
 ```
 
-`data-raw/monthly_vignette_data.R` runs this query and refuses to bundle
-the values below unless it returns them. Once `wet_segment_monthly()`
-lands (#59), it does the same read in one call.
+[`wet_segment_monthly()`](https://newgraphenvironment.github.io/wet/reference/wet_segment_monthly.md)
+reads the parts through duckdb when it is given no database connection,
+and the table
+[`wet_db_load()`](https://newgraphenvironment.github.io/wet/reference/wet_db_load.md)
+writes when it is. It returns `linear_feature_id, month, q_m3s, source`,
+in the shape of
+[`wet_station_monthly()`](https://newgraphenvironment.github.io/wet/reference/wet_station_monthly.md)’s
+`station_number, month, q_m3s` for a gauge, so a gauge comparison is a
+join on `month`. A segment with no value for a source comes back with
+its months as `NA`, not as missing rows.
+`data-raw/monthly_vignette_data.R` runs this read and refuses to bundle
+the values below unless it returns them.
 
 ## The Bulkley at three gauges
 
@@ -261,8 +260,6 @@ useful, each with its issue:
 - **Store the held-out monthly balance with the fit** (#68). Today only
   its annual values are stored, so this article’s data script recomputes
   the months.
-- **Per-segment monthly reads in one call** (#59), which replaces the
-  duckdb recipe above.
 - **Monthly scoring by region and season** (#6), which takes over the
   scoring this article starts.
 
@@ -275,13 +272,16 @@ useful, each with its issue:
   gives.
 - A window’s flow from monthly means is an approximation (the window
   table measures it).
+  [`wet_flow_window()`](https://newgraphenvironment.github.io/wet/reference/wet_flow_window.md)
+  labels it `basis = "monthly"`, and gives `"daily"` from the same call
+  once daily flow is published (#70).
 - Routed PCIC’s month 0 is a plain mean of its months, so its months
   converted to millimetres do not add up to its annual runoff exactly.
 
 ## Validation
 
-`data-raw/monthly_vignette_data.R` built the data at wet b24fcc6 on
-2026-10-13, from the published build at wet 7c62b9e
+`data-raw/monthly_vignette_data.R` built the data at wet 2a3a756 on
+2026-10-14, from the published build at wet 7c62b9e
 (<https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json>)
 and the water balance fit on HYDAT 2026-07-17 (AET cfu). It checked the
 bundled published values against what they were built from, and refused
