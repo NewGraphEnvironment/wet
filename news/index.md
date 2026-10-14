@@ -1,5 +1,19 @@
 # Changelog
 
+## wet 0.4.3
+
+- The segment-discharge article is simpler
+  ([\#71](https://github.com/NewGraphEnvironment/wet/issues/71)). It now
+  says what the published product is, which value to use, how to read it
+  and how good it is, in that order. `pick` has its own early section
+  with its rule and the province counts: routed PCIC on 3,152,838
+  segments, the balance on 1,380,005, neither on 374,598. One province
+  map of the source `pick` takes on main rivers replaces the Salmon
+  River maps and the scatter. The map’s picks are read from the live
+  published parts by `data-raw/segment_vignette_map.R`, under the guards
+  the values script uses. The rename of `pick` to `is_default` at v2 is
+  recorded in `research/discharge_publish.md`.
+
 ## wet 0.4.2
 
 - A new article covers months 1–12 of the published product

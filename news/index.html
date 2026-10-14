@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,9 +34,13 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/v0.4.3/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.3" id="wet-043">wet 0.4.3<a class="anchor" aria-label="anchor" href="#wet-043"></a></h2>
+<ul><li>The segment-discharge article is simpler (<a href="https://github.com/NewGraphEnvironment/wet/issues/71" class="external-link">#71</a>). It now says what the published product is, which value to use, how to read it and how good it is, in that order. <code>pick</code> has its own early section with its rule and the province counts: routed PCIC on 3,152,838 segments, the balance on 1,380,005, neither on 374,598. One province map of the source <code>pick</code> takes on main rivers replaces the Salmon River maps and the scatter. The map’s picks are read from the live published parts by <code>data-raw/segment_vignette_map.R</code>, under the guards the values script uses. The rename of <code>pick</code> to <code>is_default</code> at v2 is recorded in <code>research/discharge_publish.md</code>.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.2" id="wet-042">wet 0.4.2<a class="anchor" aria-label="anchor" href="#wet-042"></a></h2>
 <ul><li>A new article covers months 1–12 of the published product (<a href="https://github.com/NewGraphEnvironment/wet/issues/65" class="external-link">#65</a>): how to read one stream’s twelve months, both sources’ hydrographs at three Bulkley gauges with the Chinook windows, the flow in each window beside the gauge’s daily record, and month-by-month scores at the calibration gauges. Held out at all 315, the water balance reads 8–16 % high from January to May and within ±5 % from June to December, and 67–96 % low in January–March at the 25 northern gauges routed flow does not reach (<a href="https://github.com/NewGraphEnvironment/wet/issues/16" class="external-link">#16</a>). Routed PCIC, at 279 gauges, reads 20 % low in March–April and 19 % high in July–August, and its 1951–2012 period explains only part of that (<a href="https://github.com/NewGraphEnvironment/wet/issues/67" class="external-link">#67</a>). The values are read from the published parts and checked against their sources before they are bundled (<code>data-raw/monthly_vignette_data.R</code>), under guards now shared with the segment article (<code>scripts/vignette_data_lib.R</code>).</li>
