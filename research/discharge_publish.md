@@ -22,6 +22,7 @@ Each level means one thing:
 - **`<variable>`:** what is measured. `discharge` now. Later `water_temperature` and `oxygen_saturation`, which are hydromosaic's `water_temp` and `DO_sat`. Not `temperature`, because cd publishes air temperature.
 - **`<network>`:** the hydrographic network the rows are keyed to. `fwa` (BC Freshwater Atlas: `linear_feature_id`, `watershed_feature_id`). A national product would be `chn` (NRCan's Canadian Hydrospatial Network). The network decides the ID columns and the coverage, so two networks can never share a dataset.
 - **`<version>`:** the schema version. Data are rebuilt and overwritten in place within a version. It bumps only when a column is renamed or changes meaning, and then v2 lands beside v1.
+  - **Decided for v2 (#71, 2026-10-14):** `pick` is renamed `is_default` when a v2 is cut for another reason, not on its own, since a rename alone would move the S3 prefix, the crate schema, the Postgres table and fresh's query. `is_default` follows fresh's `is_`/`has_` pattern; `q_pick` was set aside because under the product's `<quantity>_<unit>` pattern (`q_m3s`, `runoff_mm`) it reads as a flow.
 - **`<unit>_<timebase>`:** the feature a row describes and the time step of its values.
   - `segment_monthly`: one row per FWA segment and calendar month, a mean over a period, with month 0 the annual.
   - `watershed_monthly`: the same per fundamental watershed.
@@ -74,7 +75,7 @@ The build's original cross-checks compared row and `pick` counts only, which can
 
 The routed months' total, rounded to 1e-6 m³/s per value, equals the table's fingerprint (178,035,348.248310 m³/s). Values copied from a double are compared exactly. Only the two means of twelve months meet within a tolerance (relative 1e-9), because R's `mean()` and a sum over 12 round differently in the last bits. The lut join re-does the segment table's join, so it catches indexing errors, not errors in the lut itself. Measured on m4 at wet 032242f on 2026-10-13: the build took about 8 min with the checks, against about 5 without.
 
-The segment-discharge article reads its values from the published parts, and `data-raw/segment_vignette_data.R` refuses to write them unless each equals its source and this report names the live build with no check failed.
+The segment-discharge article reads its routed values at the calibration gauges, and every segment's `pick` for its map, from the published parts. `data-raw/segment_vignette_data.R` refuses to write unless each gauge value equals fwapg's routed mean of twelve months, and both data scripts refuse unless this report names the live build with no check failed (#64, #71).
 
 ## Why not STAC
 

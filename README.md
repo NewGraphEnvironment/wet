@@ -43,7 +43,7 @@ cd::cd_anomaly(s, cd::cd_baseline(s, 1981:2010))
 ## Vignettes
 
 - [Chinook flow at two stations](https://www.newgraphenvironment.com/wet/articles/station-flow.html): the station path on 08EE013 and 08EE003, from map to departure and trend.
-- [Stream discharge per segment](https://www.newgraphenvironment.com/wet/articles/segment-discharge.html): the published per-segment discharge, where it is and how to read it, how its two sources were made, and how each scores against the gauges, with the Salmon River as a worked group.
+- [Stream discharge per segment](https://www.newgraphenvironment.com/wet/articles/segment-discharge.html): the published per-segment discharge, what its two sources are, which value to use (`pick`, with a province map of the source it takes), how to read it, and how each source scores against the gauges.
 
 Function reference and both vignettes are on the [pkgdown site](https://www.newgraphenvironment.com/wet/).
 

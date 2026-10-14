@@ -41,12 +41,12 @@ What I found that shapes the plan:
 - [x] Render with `devtools::build_rmd()` or pkgdown. Read the map PNG against the cartography self-review (placement and communication checks 1–12).
 
 ## Phase 5: Docs
-- [ ] CLAUDE.md's segment-vignette paragraph, README's article line, and a NEWS entry.
-- [ ] `research/water_balance_method.md` lines 69–74 and 83: keep the measurement, naming wet 7b83959 as where it was made, since the article no longer shows it (#71). Reword `research/discharge_publish.md:77`, update `research/fwapg_mad_method.md:19` and CLAUDE.md's frame-guard sentence.
-- [ ] Record the `pick` → `is_default` at v2 decision in `research/discharge_publish.md`.
+- [x] CLAUDE.md's segment-vignette paragraph and README's article line. The NEWS entry is written by `/gh-pr-merge` with the release, as for v0.4.2.
+- [x] `research/water_balance_method.md` lines 69–74 and 83: keep the measurement, naming wet 7b83959 as where it was made, since the article no longer shows it (#71). Reword `research/discharge_publish.md:77`, update `research/fwapg_mad_method.md:19` and CLAUDE.md's frame-guard sentence.
+- [x] Record the `pick` → `is_default` at v2 decision in `research/discharge_publish.md`.
 
 ## Validation
-- [ ] Tests pass (`devtools::test()`), and the vignette builds (`pkgdown::build_article("segment-discharge")`)
+- [x] Tests pass (`devtools::test()`), and the vignette builds (`pkgdown::build_article("segment-discharge")`)
 - [ ] `/code-check` clean (once over the branch with `/code-check branch`)
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
