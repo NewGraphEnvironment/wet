@@ -36,3 +36,16 @@ Round 3 found the mechanism one level down: each sentence's set is chosen twice,
    - "a misplaced outlet scales every month alike": overstated; a wrong segment can carry another regime. Reworded to the median argument.
    - "checked every bundled published value": now "the bundled values". The data script also checks routed month 0 on the gauge segments (290, 0 differing).
    - "the fit's output held month 0 only": now written from `provenance$output_months`.
+
+## After round 4: decide neutrality by recomputing, never by reasoning
+
+Round 4 found that round 3 had judged the 1 mm cut neutral by argument ("moves both sources alike"). Recomputed, it moved the balance's winter medians by up to 4.5 points and its highest month from February to April, and moved routed's much less. The same reasoning-not-computing gave "moves its water into the months after it", which is true at Buck Creek but backwards for the median gauge, and "a shape error shared across the gauges", which no computation produced.
+
+Fixes, each now a computation over the named set:
+- **The 1 mm cut is removed.** No observed month is zero (the smallest is 0.08 mm, asserted `all(obs_mm > 0)`), so every ratio is defined. The scores use all 3,348 gauge-months.
+- **The balance's winter claim** is stated in the words the guard checks: Dec–May each above +5 %, Jun–Nov each within ±5 %. "Highest in …" is dropped, because the top two months are 0.8 points apart.
+- **Flattening** is computed at the 211 gauges that peak in May or June: the balance is below the gauge in the peak month at 72 % of them, median −15 %. The "months after it" clause is dropped.
+- **Routed's shape** is given gauge by gauge over its own period: low in spring at 66 % of the 113 gauges, high in summer at 63 %, both at 40 %. The placement argument now refers to those 113 gauges.
+- **`one()`** wraps the lookups that could come back empty, because `stopifnot(logical(0))` passes.
+
+The candidate set is now every filter that feeds a statistic and every sentence that characterises one. The four filters (`far`; balance zeros, kept; routed zeros, kept; the 1 mm cut, removed) were each recomputed with and without. Each characterising sentence now quotes a number computed over the set it names, and that number is asserted.
