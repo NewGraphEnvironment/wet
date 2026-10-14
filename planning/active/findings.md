@@ -33,19 +33,19 @@ Relates to #3, #7, #27.
 ## Plan-mode exploration (2026-10-13)
 
 - #59 and #6 open; #64 closed. Read through `wet_catalog()` + duckdb parquet.
-- Local fwapg (m1): BULK 32,472 segments, 30,037 with routed flow (month 1 rows). KISP, LSKE, MORR, SALR similar.
-- m1's reduced bundle `data/wb/962a9cc2c4/fit_20260717/output/` holds `100.parquet` and `400.parquet`; `upstream/` holds all basins and `_complete`.
+- Local fwapg: BULK 32,472 segments, 30,037 with routed flow (month 1 rows). KISP, LSKE, MORR, SALR similar.
+- the reduced fit bundle `data/wb/962a9cc2c4/fit_20260717/output/` holds `100.parquet` and `400.parquet`; `upstream/` holds all basins and `_complete`.
 - Calibration stations in 08EE: 08EE004, 08EE008, 08EE012, 08EE013, 08EE020, 08EE025, 08EE028 (all accepted). 08EE005 is in the test set (2 years). 08EE003 is in neither: HYDAT Q 1930–2025, gaps 1952–1970, unregulated; probably seasonal, so no complete years.
 - `cv_aet-cfu.rds` stores `cv_ann` (held-out annual), `cv_v$stations` (per-station err and NSE), not held-out monthly values. `predict_cv()` (`scripts/wb_cv_lib.R`) returns `share` (n × 12) per fold; `long()` turns it into monthly mm.
 - No source colours in `inst/cartography/`; `wet_station.csv` has `hydrograph/window`.
 
 ## Phase 1: guards moved to scripts/vignette_data_lib.R
 
-Rebuilt `segment_values.rds` on m1 (2026-10-14 03:56–03:58 UTC, `WET_FWAPG_COMMIT=341b078`) after the refactor. Against the committed file: `skill`, `gauges_salr` and `provenance` (less `built`, `wet_commit`) identical; `segments` identical once sorted by `linear_feature_id`. The row order comes from the fwapg query, which has no `ORDER BY`, and predates this branch. Committed file kept.
+Rebuilt `segment_values.rds` from the reduced fit bundle (2026-10-14 03:56–03:58 UTC, `WET_FWAPG_COMMIT=341b078`) after the refactor. Against the committed file: `skill`, `gauges_salr` and `provenance` (less `built`, `wet_commit`) identical; `segments` identical once sorted by `linear_feature_id`. The row order comes from the fwapg query, which has no `ORDER BY`, and predates this branch. Committed file kept.
 
 ## Phase 2: the monthly bundle
 
-- m1's reduced bundle: `output/*.parquet` month 0 only; `upstream/400.rds` 17 rows (gauged watersheds only). So balance months 1–12 on the Bulkley segments are recomputed only for 08EE013's and 08EE004's watersheds (26 values, max diff 8.5e-14 m³/s); 08EE003's rest on the publish report's check.
+- the reduced fit bundle: `output/*.parquet` month 0 only; `upstream/400.rds` 17 rows (gauged watersheds only). So balance months 1–12 on the Bulkley segments are recomputed only for 08EE013's and 08EE004's watersheds (26 values, max diff 8.5e-14 m³/s); 08EE003's rest on the publish report's check.
 - Held-out monthly balance recomputed with `predict_cv(cal, cal$fold, "none")`: annual `identical()` to stored `cv_ann`; per-station scores `all.equal()`.
 - Held-out shares floor to 0 in some winter months (07EA002 Jan–Mar `wb_mm` = 0): log ratios need an exclusion rule (review G4).
 - 08EE003 snaps to 17093621 (Bulkley River, order 6), 08EE004 to 17057325, 08EE013 to 17094080 (= the fit's snap).
@@ -54,5 +54,5 @@ Rebuilt `segment_values.rds` on m1 (2026-10-14 03:56–03:58 UTC, `WET_FWAPG_COM
 
 | Error | Resolution |
 |-------|------------|
-| balance check 36 of 39 differing on first run | m1's `output/` is month 0 only (review B1); recompute months from `upstream/` |
+| balance check 36 of 39 differing on first run | the reduced bundle's `output/` is month 0 only (review B1); recompute months from `upstream/` |
 | `setequal(up$watershed_feature_id, ...)` failed | reduced `upstream/400.rds` holds gauged watersheds only; recompute where present |

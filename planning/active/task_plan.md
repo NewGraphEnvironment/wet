@@ -9,7 +9,7 @@ The published product (#7, `s3://fresh-bc/discharge/fwa/v1/`) carries months 1�
 What exploration established (shapes the phases):
 
 - **Dependencies:** #59 (`wet_segment_monthly()`) and #6 are open, so the vignette reads through `wet_catalog()` + duckdb parquet, and carries the first monthly scoring for #6 to take over. #64 is closed (the product page to link).
-- **BULK is routed-covered:** 30,037 of 32,472 BULK segments carry routed flow (local fwapg). Skeena is part `400`; m1's reduced bundle has `output/400.parquet`, so the data script runs on m1.
+- **BULK is routed-covered:** 30,037 of 32,472 BULK segments carry routed flow (local fwapg). Skeena is part `400`; the reduced fit bundle has `output/400.parquet`, so the data script runs from it.
 - **Gauges:** 08EE013 (Buck Creek) is a calibration gauge (29 complete years, 1981–2010). 08EE003 (Bulkley near Houston) is **not** in the 352 selected, though it has 1981–2010 data and is unregulated — most likely seasonal (no complete years). Its observed monthly comes from the daily record already bundled in `station_daily.rds`, months with data only; that is itself a finding. Other BULK calibration gauges (08EE004 Bulkley at Quick, 08EE020 Telkwa, …) are available as context.
 - **Held-out monthly balance is not stored:** `cv_aet-cfu.rds` keeps held-out annual (`cv_ann`) and per-station NSE, not the monthly values. `predict_cv()` in `scripts/wb_cv_lib.R` recomputes them (annual × held-out share); the data script reruns it and asserts its annual equals the stored `cv_ann` exactly, so the balance is scored held out as in #64. The published balance at a gauge is in-sample and is plotted, not scored.
 - **Reuse:** `wet_station_monthly()`/`s$monthly` (observed, complete years), `wet_flow_validate()` (per-station NSE on months and shares), `wet_window_stats()` (daily window means), `life_history_bulk.csv` and `station_daily.rds` (already bundled for #27), `routed_mm()`/`routed_annual()`/`shipped_heldout()` in `scripts/pcic_routed_lib.R`, `wet_values_compare()`, `wet_catalog_verify()`; the guard pattern of `data-raw/segment_vignette_data.R`.
@@ -17,14 +17,14 @@ What exploration established (shapes the phases):
 
 ## Phase 1: Shared vignette-data guards
 - [x] Move the guards `data-raw/segment_vignette_data.R` and the new script share into `scripts/vignette_data_lib.R`: clean-tree check and commit, routed table = tracked routed report, live manifest = passing publish report, parts verified against the manifest before and after a read
-- [x] `data-raw/segment_vignette_data.R` sources it; rebuild `segment_values.rds` on m1 and confirm everything but `built`/`wet_commit` is identical to the committed file
+- [x] `data-raw/segment_vignette_data.R` sources it; rebuild `segment_values.rds` from the reduced fit bundle and confirm everything but `built`/`wet_commit` is identical to the committed file
 
 ## Phase 2: Monthly data script
 - [x] `data-raw/monthly_vignette_data.R` writes `inst/vignette-data/monthly_values.rds`:
   - `segments`: months 0–12, both sources, read from the published parts on the segments 08EE013 and 08EE003 snapped to (plus 08EE004, 08EE020 for context), with `period`, `pick`, `coverage`
   - `gauges`: per calibration gauge × month 1–12 (0 kept): observed (`s$monthly`, 1981–2010 complete years), held-out balance (recomputed `predict_cv()` shares × `cv_ann`, annual asserted equal to the stored), published routed on the gauge's segment; all in mm over wet's accumulated area as `scripts/pcic_routed_compare.R` takes them; with zone, nesting, area class
   - ~~`observed_bulk`~~ computed in the vignette from `station_daily.rds` instead (review G3); `period`: observed 1951–2012 against 1981–2010 at the 122 calibration gauges with ≥ 40 complete years in 1951–2012 (review Q2)
-  - `provenance`, and value checks: published months 1–12 routed = fwapg's monthly table; balance month 0 = `output/400.parquet` through the lut; balance months 1–12 recomputed where m1's bundle holds the watershed, the rest resting on the publish report (review B1); recipe query checked; input md5s; none differing, none empty
+  - `provenance`, and value checks: published months 1–12 routed = fwapg's monthly table; balance month 0 = `output/400.parquet` through the lut; balance months 1–12 recomputed where the reduced bundle holds the watershed, the rest resting on the publish report (review B1); recipe query checked; input md5s; none differing, none empty
 - [x] Extend `tests/testthat/test-vignette_data.R`: new budget entry (≤500 KB), plain ids, checks non-empty and zero-differing, 12 months per gauge per source
 
 ## Phase 3: Vignette — explore and use
@@ -53,5 +53,5 @@ What exploration established (shapes the phases):
 
 ## Verification
 - `Rscript data-raw/segment_vignette_data.R` reproduces the committed values after Phase 1
-- `WET_FWAPG_COMMIT=341b078 WET_HYDAT=... Rscript data-raw/monthly_vignette_data.R` on m1 passes its checks
+- `WET_FWAPG_COMMIT=341b078 WET_HYDAT=... Rscript data-raw/monthly_vignette_data.R` from the reduced fit bundle passes its checks
 - `devtools::test()`, `devtools::build_vignettes()` / `pkgdown::build_article("monthly-flow")`, read rendered PNGs
