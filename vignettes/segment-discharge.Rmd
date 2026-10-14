@@ -154,7 +154,8 @@ every month:
 - **routed PCIC**, where it has a value;
 - **the balance** where routed PCIC's annual flow is under a fifth of the
   balance's on a segment that lies on its own watershed's line. Off that
-  line, on a side channel, routed PCIC is kept however low it is;
+  line (side channels, and connectors and waterbody connections the lookup
+  gives another line's watershed), routed PCIC is kept however low it is;
 - **whichever has a value**, where only one does.
 
 Of the `r num(sg[["fwa"]])` segments in the Freshwater Atlas, `pick` takes
