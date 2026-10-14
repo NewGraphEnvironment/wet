@@ -43,7 +43,16 @@ Relates to #3, #7, #27.
 
 Rebuilt `segment_values.rds` on m1 (2026-10-14 03:56–03:58 UTC, `WET_FWAPG_COMMIT=341b078`) after the refactor. Against the committed file: `skill`, `gauges_salr` and `provenance` (less `built`, `wet_commit`) identical; `segments` identical once sorted by `linear_feature_id`. The row order comes from the fwapg query, which has no `ORDER BY`, and predates this branch. Committed file kept.
 
+## Phase 2: the monthly bundle
+
+- m1's reduced bundle: `output/*.parquet` month 0 only; `upstream/400.rds` 17 rows (gauged watersheds only). So balance months 1–12 on the Bulkley segments are recomputed only for 08EE013's and 08EE004's watersheds (26 values, max diff 8.5e-14 m³/s); 08EE003's rest on the publish report's check.
+- Held-out monthly balance recomputed with `predict_cv(cal, cal$fold, "none")`: annual `identical()` to stored `cv_ann`; per-station scores `all.equal()`.
+- Held-out shares floor to 0 in some winter months (07EA002 Jan–Mar `wb_mm` = 0): log ratios need an exclusion rule (review G4).
+- 08EE003 snaps to 17093621 (Bulkley River, order 6), 08EE004 to 17057325, 08EE013 to 17094080 (= the fit's snap).
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
+| balance check 36 of 39 differing on first run | m1's `output/` is month 0 only (review B1); recompute months from `upstream/` |
+| `setequal(up$watershed_feature_id, ...)` failed | reduced `upstream/400.rds` holds gauged watersheds only; recompute where present |

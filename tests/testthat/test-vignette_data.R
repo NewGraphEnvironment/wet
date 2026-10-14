@@ -1,5 +1,6 @@
-# The vignettes run on data bundled by data-raw/station_vignette_*.R (#27)
-# and data-raw/segment_vignette_*.R (#28, #64), never on HYDAT, fwapg or the network.
+# The vignettes run on data bundled by data-raw/station_vignette_*.R (#27),
+# data-raw/segment_vignette_*.R (#28, #64) and data-raw/monthly_vignette_data.R
+# (#65), never on HYDAT, fwapg or the network.
 
 vignette_data <- function(f) system.file("vignette-data", f, package = "wet")
 
@@ -7,7 +8,8 @@ test_that("each vignette's bundled data stays under 500 KB", {
   files <- list.files(system.file("vignette-data", package = "wet"))
   # every bundled file belongs to one vignette's budget
   budget <- list(station = c("station_daily.rds", "station_map.rds", "life_history_bulk.csv"),
-                 segment = c("segment_values.rds", "segment_map.rds"))
+                 segment = c("segment_values.rds", "segment_map.rds"),
+                 monthly = "monthly_values.rds")
   expect_setequal(files, unlist(budget))
   for (v in names(budget)) {
     expect_lt(sum(file.size(vignette_data(budget[[v]]))), 500 * 1024)
@@ -131,4 +133,48 @@ test_that("the segment map layers are sf in BC Albers and join the values", {
               sf::st_geometry(m$segments[m$segments$watershed_group_code == "SALR", ]))
   expect_true(all(apply(sf::st_distance(near, rivers), 1, min) < 200))
   expect_setequal(m$places$watershed_group_code, "SALR")
+})
+
+test_that("the monthly values hold both sources' months, checked against their sources", {
+  v <- readRDS(vignette_data("monthly_values.rds"))
+  expect_named(v, c("segments", "gauges", "period", "provenance"))
+  for (nm in setdiff(names(v), "provenance")) {
+    expect_false(any(vapply(v[[nm]], inherits, NA, "integer64")), info = nm)
+  }
+  # three Bulkley gauges' segments, 13 months of each source
+  sg <- v$segments
+  expect_setequal(sg$station_number, c("08EE013", "08EE003", "08EE004"))
+  expect_equal(nrow(sg), 3 * 2 * 13)
+  expect_false(anyDuplicated(sg[c("linear_feature_id", "source", "month")]) > 0)
+  expect_false(anyNA(sg$q_m3s))
+  expect_setequal(sg$period[sg$source == "pcic_routed"], "1951-2012")
+  expect_setequal(sg$period[sg$source == "wet_balance"], "1981-2010")
+  # one source picked per segment and month
+  expect_true(all(tapply(sg$pick, paste(sg$linear_feature_id, sg$month), sum) == 1))
+  # every published value checked against its source, none differing, none empty
+  chk <- v$provenance$published_check
+  expect_true(all(chk$compared > 0))
+  expect_true(all(chk$differing == 0))
+  expect_identical(v$provenance$published$manifest, wet:::wet_catalog_url)
+  # the calibration gauges: 13 months each, observed and held-out balance at
+  # all of them, routed where its segment has flow, its months all or none
+  g <- v$gauges
+  n <- length(unique(g$station_number))
+  expect_equal(n, 315L)
+  expect_equal(nrow(g), 13 * n)
+  expect_false(anyNA(g$obs_mm))
+  expect_false(anyNA(g$wb_mm))
+  routed_n <- tapply(!is.na(g$routed_mm), g$station_number, sum)
+  expect_true(all(routed_n %in% c(0, 13)))
+  # observed months sum to the annual (shares of one record), and so do the
+  # balance's (annual times shares that sum to 1)
+  sum_months <- function(x) tapply(ifelse(g$month > 0, x, 0), g$station_number, sum)
+  ann <- function(x) tapply(ifelse(g$month == 0, x, 0), g$station_number, sum)
+  expect_equal(sum_months(g$obs_mm), ann(g$obs_mm), tolerance = 1e-9)
+  expect_equal(sum_months(g$wb_mm), ann(g$wb_mm), tolerance = 1e-9)
+  # the period table: complete years in both periods
+  p <- v$period
+  expect_true(all(p$station_number %in% g$station_number))
+  expect_true(all(p$n_years_5112 >= 40))
+  expect_true(all(table(p$station_number) == 13))
 })

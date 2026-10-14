@@ -20,12 +20,12 @@ What exploration established (shapes the phases):
 - [x] `data-raw/segment_vignette_data.R` sources it; rebuild `segment_values.rds` on m1 and confirm everything but `built`/`wet_commit` is identical to the committed file
 
 ## Phase 2: Monthly data script
-- [ ] `data-raw/monthly_vignette_data.R` writes `inst/vignette-data/monthly_values.rds`:
+- [x] `data-raw/monthly_vignette_data.R` writes `inst/vignette-data/monthly_values.rds`:
   - `segments`: months 0–12, both sources, read from the published parts on the segments 08EE013 and 08EE003 snapped to (plus 08EE004, 08EE020 for context), with `period`, `pick`, `coverage`
   - `gauges`: per calibration gauge × month 1–12 (0 kept): observed (`s$monthly`, 1981–2010 complete years), held-out balance (recomputed `predict_cv()` shares × `cv_ann`, annual asserted equal to the stored), published routed on the gauge's segment; all in mm over wet's accumulated area as `scripts/pcic_routed_compare.R` takes them; with zone, nesting, area class
-  - `observed_bulk`: observed monthly means at 08EE003 and 08EE013 from `station_daily.rds` for 1981–2010 and 1951–2012, with years per month
-  - `provenance`, and value checks: published months 1–12 routed = fwapg's monthly table; balance months = the fit's `output/400.parquet` through the lut; none differing, none empty
-- [ ] Extend `tests/testthat/test-vignette_data.R`: new budget entry (≤500 KB), plain ids, checks non-empty and zero-differing, 12 months per gauge per source
+  - ~~`observed_bulk`~~ computed in the vignette from `station_daily.rds` instead (review G3); `period`: observed 1951–2012 against 1981–2010 at the 122 calibration gauges with ≥ 40 complete years in 1951–2012 (review Q2)
+  - `provenance`, and value checks: published months 1–12 routed = fwapg's monthly table; balance month 0 = `output/400.parquet` through the lut; balance months 1–12 recomputed where m1's bundle holds the watershed, the rest resting on the publish report (review B1); recipe query checked; input md5s; none differing, none empty
+- [x] Extend `tests/testthat/test-vignette_data.R`: new budget entry (≤500 KB), plain ids, checks non-empty and zero-differing, 12 months per gauge per source
 
 ## Phase 3: Vignette — explore and use
 - [ ] `vignettes/monthly-flow.Rmd` (`bookdown::html_vignette2`): what months 1–12 are and each source's period, linking the segment-discharge article for the product itself
