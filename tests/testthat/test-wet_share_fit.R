@@ -40,3 +40,24 @@ test_that("too few stations or missing predictors are refused", {
   expect_error(wet_share_fit(d), "more than")
   expect_error(wet_share_fit(sim_share()[, -1]), "elev")
 })
+
+test_that("snow predictors enter as static columns, with a coefficient per month", {
+  d <- sim_share()
+  d$snowmelt_doy_50 <- runif(nrow(d), 90, 180)
+  d$swe_max <- runif(nrow(d), 0, 900)
+  # melt timing moves share into May and out of March
+  d$share_05 <- d$share_05 + 2e-4 * d$snowmelt_doy_50
+  d$share_03 <- d$share_03 - 1e-4 * d$snowmelt_doy_50 + 1e-5 * d$swe_max
+  static <- c("elev", "e_km", "n_km", "snowmelt_doy_50", "swe_max")
+  f <- wet_share_fit(d, static = static)
+  expect_equal(colnames(f$coef), c("(intercept)", "ppt", "tave", "aet", static))
+  expect_equal(unname(f$coef[5, "snowmelt_doy_50"]), 2e-4)
+  expect_equal(unname(f$coef[3, "snowmelt_doy_50"]), -1e-4)
+  expect_equal(unname(f$coef[3, "swe_max"]), 1e-5)
+  expect_equal(unname(f$coef[7, "snowmelt_doy_50"]), 0, tolerance = 1e-8)
+  # prediction reads the snow columns named in the fit
+  expect_error(wet_share_predict(f, d[setdiff(names(d), "swe_max")]), "undefined columns")
+  # a station missing a snow value is left out of the fit, not filled
+  d$swe_max[1] <- NA
+  expect_equal(wet_share_fit(d, static = static)$n, nrow(d) - 1)
+})

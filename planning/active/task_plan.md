@@ -36,8 +36,8 @@ Facts from exploration:
 - [x] One-off check, recorded in `findings.md`: for two AOIs, the area mean of the wet grid matches `cd_baseline(cd_extract(...))` within resampling error
 
 ## Phase 4: Snow layers in the province run
-- [ ] `scripts/wb_province.R`: `f_in[["snow"]]` and `R/wet_snow_normals.R` in `code_files`. Snow layers are added after the analysis mask like the ET-experiment layers, with coastal cells off ERA5-Land's land filled from the nearest ERA5-Land cell and counted in `ex_filled_cells.txt`. The existing "mask must not have moved" assertion covers them
-- [ ] `R/wet_share_fit.R`: document the snow predictors as optional `static` columns, and test a fit with `static = c("elev", "e_km", "n_km", "snowmelt_doy_50", "swe_max")` in `test-wet_share_fit.R`
+- [x] `scripts/wb_province.R`: `f_in[["snow"]]` and `R/wet_snow_normals.R` in `code_files`. Snow layers are added after the analysis mask like the ET-experiment layers, with coastal cells off ERA5-Land's land filled from the nearest ERA5-Land cell and counted in `ex_filled_cells.txt`. The existing "mask must not have moved" assertion covers them
+- [x] `R/wet_share_fit.R`: document the snow predictors as optional `static` columns, and test a fit with `static = c("elev", "e_km", "n_km", "snowmelt_doy_50", "swe_max")` in `test-wet_share_fit.R`
 
 ## Phase 5: Score both share specifications and apply the rule
 - [ ] `scripts/wb_cv_lib.R`: `predict_cv()` returns held-out shares for both specifications (`share_base`, `share_snow`) in the same folds. `share` is the shipped one

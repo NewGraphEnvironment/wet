@@ -3,7 +3,8 @@
 #
 #   caffeinate -i Rscript scripts/wb_province.R [WORKERS]   # default 4
 #
-# Reads the Phase 1 inputs (scripts/wb_inputs.R) and writes, keyed on those
+# Reads the Phase 1 inputs (scripts/wb_inputs.R, the #16 snow normals among
+# them) and writes, keyed on those
 # inputs (gitignored):
 #   data/wb/<key>/sample/<WSG>.rds   per-polygon layer means and cover
 #   data/wb/<key>/upstream/<CODE>.rds upstream means for every watershed
@@ -40,7 +41,8 @@ f_in <- c(aet = one("data/cgiar", "^cgiar_aet_c.*\\.tif$"), clim = climr_with("P
           dem = one("data/dem", "^glo90_.*\\.tif$"), hz = one("data/hydz", "^hydz_.*\\.tif$"),
           tx = climr_with("Tmax_01"), tc = one("data/terraclimate", "^tc_19812010_.*\\.tif$"),
           lc = one("data/landcover", "^lc2020_frac_.*\\.tif$"),
-          m16 = one("data/mod16", "^mod16_.*\\.tif$"))
+          m16 = one("data/mod16", "^mod16_.*\\.tif$"),
+          snow = one("data/snow", "^snow_19812010_.*\\.tif$"))
 # Each input's name already encodes its content and, since #19, its builder's
 # method version, so a builder change reaches the key through basename(f_in).
 # The key adds this script's own md5 and that of every package file it calls,
@@ -51,7 +53,7 @@ code_files <- c("scripts/wb_province.R", "R/wet_ws_sample.R", "R/wet_upstream_me
                 "R/wet_upstream_sums.R", "R/wet_ws_fetch.R", "R/wet_climr_normals.R",
                 "R/wet_pet_hargreaves.R", "R/wet_aet_budyko.R", "R/wet_aet_landcover.R",
                 "R/wet_terraclimate_aet.R", "R/wet_landcover_nrcan.R", "R/wet_mod16_aet.R",
-                "R/wet_mm_to_m3s.R",
+                "R/wet_snow_normals.R", "R/wet_mm_to_m3s.R",
                 "inst/extdata/chapman_table3.csv")
 # a missing file would hash as NA and leave the key unchanged
 if (!all(file.exists(code_files))) stop("missing: ", paste(code_files[!file.exists(code_files)], collapse = ", "))
@@ -89,8 +91,9 @@ if (!file.exists(lay_file)) {
   tc <- terra::rast(f_in[["tc"]])
   lc <- terra::rast(f_in[["lc"]])
   m16 <- terra::rast(f_in[["m16"]])
+  sn <- terra::rast(f_in[["snow"]])
   inbc <- terra::rast(bc_file)
-  stopifnot(terra::compareGeom(aet, cl, dem, hz, tx, tc, lc, m16, inbc))
+  stopifnot(terra::compareGeom(aet, cl, dem, hz, tx, tc, lc, m16, sn, inbc))
   p_yr <- sum(cl[[sprintf("PPT_%02d", 1:12)]])
   t_yr <- terra::mean(cl[[sprintf("Tave_%02d", 1:12)]])
   xy <- terra::project(terra::vect(terra::crds(aet[[1]], na.rm = FALSE), crs = "EPSG:4326"), "EPSG:3005")
@@ -143,7 +146,24 @@ if (!file.exists(lay_file)) {
                sprintf("aet_mod16 cfu_part %d", n_m16[[3]]),
                sprintf("aet_mod16 cfu_cell_equivalents %.1f", n_m16[[4]])),
              file.path(out_dir, "ex_filled_cells.txt"))
-  lay <- c(lay, ex, m16x)
+  # Snow normals (#16), predictors for the monthly shares. ERA5-Land has no
+  # cell over the sea, so mask cells it leaves empty are filled from their
+  # neighbours, one 3 x 3 mean of the cells already filled per pass, until none
+  # is left; counted per layer.
+  gap <- is.na(sn) & !bad
+  n_snow <- unlist(terra::global(gap, "sum", na.rm = TRUE))
+  snf <- sn
+  for (k in 0:200) {
+    left <- unlist(terra::global(is.na(snf) & !bad, "sum", na.rm = TRUE))
+    if (all(left == 0)) break
+    if (k == 200) stop("snow normals still missing on ", max(left), " mask cells after 200 fill passes")
+    snf <- terra::focal(snf, 3, "mean", na.policy = "only", na.rm = TRUE)
+  }
+  snx <- terra::mask(snf, bad, maskvalues = TRUE)
+  names(snx) <- names(sn)
+  write(c(sprintf("%s filled_from_neighbours %d", names(sn), n_snow), sprintf("snow fill_passes %d", k)),
+        file.path(out_dir, "ex_filled_cells.txt"), append = TRUE)
+  lay <- c(lay, ex, m16x, snx)
   # the mask must not have moved: every layer has a value exactly where the
   # #11 layers all do
   moved <- unlist(terra::global(is.na(lay) != bad, "sum"))
