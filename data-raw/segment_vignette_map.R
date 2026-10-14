@@ -79,12 +79,14 @@ rivers <- sf::st_read(conn, quiet = TRUE, query = sprintf("
   SELECT class, order_band, segments, geom FROM (
     SELECT coalesce(p.source, 'none') AS class, least(s.stream_order, 8)::int AS order_band,
            count(*)::int AS segments,
-           ST_SnapToGrid(ST_SimplifyPreserveTopology(ST_LineMerge(ST_Union(ST_Force2D(s.geom))), %d), %d) AS geom
+           ST_Multi(ST_CollectionExtract(ST_SnapToGrid(ST_SimplifyPreserveTopology(
+             ST_LineMerge(ST_Union(ST_Force2D(s.geom))), %d), %d), 2)) AS geom
     FROM whse_basemapping.fwa_stream_networks_sp s LEFT JOIN vd_pick p USING (linear_feature_id)
     WHERE %s
     GROUP BY s.blue_line_key, 1, 2) r
   WHERE NOT ST_IsEmpty(geom)", simplify_m, snap_m, seg_where))
 rivers <- rivers[order(rivers$order_band), ]   # large rivers drawn last, on top
+stopifnot(all(sf::st_geometry_type(rivers) == "MULTILINESTRING"))
 
 # ---- regions the article names ------------------------------------------------------------------
 # the Liard basin: every segment under the Liard River's watershed code; its
