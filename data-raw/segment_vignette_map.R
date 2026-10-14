@@ -63,8 +63,13 @@ stopifnot(!anyDuplicated(pick$linear_feature_id), !anyNA(pick$source),
 conn <- vd_connect()
 DBI::dbWriteTable(conn, "vd_pick", pick, temporary = TRUE)
 DBI::dbExecute(conn, "CREATE INDEX ON vd_pick (linear_feature_id)")
+# every picked segment is one of this fwapg's, so a segment drawn as none has
+# no pick in the build rather than a pick on an id this FWA load lacks
+n_known <- DBI::dbGetQuery(conn, "
+  SELECT count(*)::int FROM vd_pick JOIN whse_basemapping.fwa_stream_networks_sp USING (linear_feature_id)")[[1]]
+stopifnot(n_known == nrow(pick))
 seg_where <- sprintf("s.stream_order >= %d AND s.edge_type IN (%s)", min_order, paste(main_flow, collapse = ", "))
-# every drawn segment is classed exactly once
+# every drawn segment is classed once
 n_cls <- DBI::dbGetQuery(conn, sprintf("
   SELECT coalesce(p.source, 'none') AS class, count(*)::int AS n
   FROM whse_basemapping.fwa_stream_networks_sp s LEFT JOIN vd_pick p USING (linear_feature_id)
