@@ -41,8 +41,8 @@ Life-stage windows straddle months, and a freshet can rise and fall inside one m
 - [x] Render the article before and after: window table and every inline number identical
 
 ## Phase 5: Docs
-- [ ] `CLAUDE.md`: readers line (`wet_catalog()`, `wet_db_load()`, `wet_segment_monthly()`, `wet_flow_window()`) and the monthly-flow paragraph; `research/discharge_publish.md` readers section
-- [ ] Issue #59 body: record the plan-gate decisions (both stores, gridded out, NA shape)
+- [x] `CLAUDE.md`: readers line (`wet_catalog()`, `wet_db_load()`, `wet_segment_monthly()`, `wet_flow_window()`) and the monthly-flow paragraph; `research/discharge_publish.md` readers section
+- [x] Issue #59 body: record the plan-gate decisions (both stores, gridded out, NA shape)
 
 ## Validation
 - [ ] Tests pass
