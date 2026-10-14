@@ -18,3 +18,6 @@ province,polygon,,part,coverage,PCIC routed flow coverage,#4d4d4d,1,,,,,,,,,,,,,
 province,polygon,,part,zone,Weakest hydrologic zone,#d9d9d9,1,,,,,,,,,,,,,,,,"ColorBrewer Greys light: a ground under the gauges, clear of the PuOr error fills"
 province,polygon,,part,group,This article's group,#000000,1,,,,,,,,,,,,,,,,Black: the watershed group the map below draws
 context,line,,part,river,River outside the group,#969696,1,,,,,,,,,,,,,,,,ColorBrewer Greys mid: rivers beyond the group the map is about
+flow_source,line,,source,observed,Observed (HYDAT),#000000,1,,,,,,,,,,,,,,,,Okabe-Ito black: the reference the two sources are read against
+flow_source,line,,source,pcic_routed,Routed PCIC,#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue
+flow_source,line,,source,wet_balance,Water balance,#d55e00,1,,,,,,,,,,,,,,,,Okabe-Ito vermillion

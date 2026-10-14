@@ -41,41 +41,17 @@
 # fwapg from the WET_PG* variables.
 
 # The vignette cites the commit these were built at, so that commit must hold
-# what built them: the code, and the tracked reports parsed below. Refuse
-# uncommitted changes to either. system2() only warns when git fails and
-# returns character(0), which would read as a clean tree, so check its status.
-git <- function(...) {
-  x <- suppressWarnings(system2("git", c(...), stdout = TRUE, stderr = TRUE))
-  if (!is.null(attr(x, "status"))) stop("git ", paste(c(...), collapse = " "), " failed: ", paste(x, collapse = " "))
-  x
-}
-dirty <- git("status", "--porcelain", "--", "R", "scripts", "data-raw", "data/checks")
-if (length(dirty)) stop("commit these first, so the recorded commit can rebuild the data:\n",
-                        paste(dirty, collapse = "\n"))
-wet_commit <- git("rev-parse", "--short", "HEAD")
-stopifnot(length(wet_commit) == 1, nzchar(wet_commit))
-
-# the routed table must be the one the tracked report scored, built at the
-# commit it names
+# what built them; the routed table must be the one the tracked report scored
+# (scripts/vignette_data_lib.R holds both guards)
+source("scripts/vignette_data_lib.R")
+wet_commit <- vd_commit()
 source("scripts/wb_fit_lib.R")
 source("scripts/pcic_routed_lib.R")
-fwapg_commit <- routed_commit()
-f_routed <- wb_report("pcic_routed_compare", wb_release())
-rr <- readLines(f_routed)
-conn <- DBI::dbConnect(RPostgres::Postgres(),
-                       host = Sys.getenv("WET_PGHOST", "localhost"),
-                       port = as.integer(Sys.getenv("WET_PGPORT", "5432")),
-                       dbname = Sys.getenv("WET_PGDATABASE", "fwapg"),
-                       user = Sys.getenv("WET_PGUSER", "postgres"),
-                       password = Sys.getenv("WET_PGPASSWORD", "postgres"))
-routed_fp <- routed_fingerprint(conn)
-DBI::dbDisconnect(conn)
-routed_line <- sprintf("routed: %s, built by NewGraphEnvironment/fwapg at %s", routed_table, fwapg_commit)
-report_matches <- any(rr == routed_line) && any(rr == sprintf("table: %s", routed_fp))
-if (!report_matches) {
-  stop(f_routed, " was not made from this routed table at fwapg ", fwapg_commit,
-       ": rerun scripts/pcic_routed_compare.R")
-}
+rc <- vd_routed_check()
+fwapg_commit <- rc$commit
+routed_fp <- rc$fingerprint
+f_routed <- rc$report
+rr <- rc$lines
 
 source("scripts/wb_cv_lib.R")  # load_all(), key_dir, cal, groups, score_code_md5
 
@@ -108,12 +84,7 @@ stopifnot(mae(TRUE) == rep_mae("all", "all"),
           mae(sk$nesting == "nested") == rep_mae("nesting", "nested"))
 
 # ---- fwapg ---------------------------------------------------------------------------------------
-conn <- DBI::dbConnect(RPostgres::Postgres(),
-                       host = Sys.getenv("WET_PGHOST", "localhost"),
-                       port = as.integer(Sys.getenv("WET_PGPORT", "5432")),
-                       dbname = Sys.getenv("WET_PGDATABASE", "fwapg"),
-                       user = Sys.getenv("WET_PGUSER", "postgres"),
-                       password = Sys.getenv("WET_PGPASSWORD", "postgres"))
+conn <- vd_connect()
 seg <- DBI::dbGetQuery(conn, sprintf("
   SELECT s.linear_feature_id::int AS linear_feature_id, s.watershed_group_code,
          l.watershed_feature_id::int AS watershed_feature_id
@@ -184,39 +155,18 @@ sk$watershed_group_code <- st_wsg$watershed_group_code[match(sk$watershed_featur
 stopifnot(!anyNA(sk$watershed_group_code), !anyDuplicated(seg$linear_feature_id))
 
 # ---- the published product ------------------------------------------------------------------------
-# The live manifest must be the build the tracked publish report checked value
-# by value (scripts/discharge_publish.R, #64): that report failed no check, and
-# its parts were byte-identical to the live ones
-cat_pub <- wet_catalog()
-stopifnot(identical(attr(cat_pub, "manifest"), wet:::wet_catalog_url))
-pub_commit <- attr(cat_pub, "provenance")$wet_commit
-f_pub <- wb_report("discharge_publish", release)
-pr_lines <- readLines(f_pub)
-re_same <- "^parts identical to the published build ([0-9a-f]+): ([0-9]+) of ([0-9]+) here, ([0-9]+) published"
-same <- regmatches(pr_lines, regexec(re_same, pr_lines))
-same <- Filter(length, same)
-if (any(grepl("FAIL", pr_lines)) || length(same) != 1L || same[[1]][2] != pub_commit ||
-      length(unique(c(same[[1]][3:5], nrow(cat_pub)))) != 1L) {
-  stop(f_pub, " is not a passing value check of the live build ", pub_commit, ": rerun scripts/discharge_publish.R")
-}
-# what a reader of the segment table sees, per source: its rows, and those
-# fresh's `month = 0 AND pick` returns (the report's duckdb read of the tree)
-re_seen <- "^historical +([A-Za-z0-9-]+) +([a-z_]+) +([0-9]+) rows +([0-9]+) fresh-subquery rows$"
-seen <- do.call(rbind, Filter(length, regmatches(pr_lines, regexec(re_seen, pr_lines))))
-stopifnot(!is.null(seen), setequal(seen[, 3], c("pcic_routed", "wet_balance")))
-reader <- data.frame(source = seen[, 3], forcing = seen[, 2], rows = as.numeric(seen[, 4]),
-                     picked = as.numeric(seen[, 5]))
+# the live manifest must be the build the tracked publish report checked
+# value by value, with nothing failed (vd_published())
+pb <- vd_published(release)
+cat_pub <- pb$catalog
+f_pub <- pb$report
+reader <- pb$reader
 # Month 0 of both sources in SALR, from the Fraser's parts (100), and of
 # routed flow on every gauge's segment, from the routed parts: a read filtered
 # on watershed_group_code opens only those groups' row groups. The parts must
 # match their manifest before and after
 parts <- cat_pub[cat_pub$dataset == "discharge/fwa/v1/segment_monthly" & cat_pub$scenario == "historical", ]
-verify <- function() {
-  v <- wet:::wet_catalog_verify(parts)
-  if (!all(v$ok)) {
-    stop("published parts do not match their manifest: ", paste(v$key[!v$ok], v$reason[!v$ok], collapse = "; "))
-  }
-}
+verify <- function() vd_verify(parts)
 verify()
 duck <- DBI::dbConnect(duckdb::duckdb())
 invisible(DBI::dbExecute(duck, "LOAD httpfs"))
