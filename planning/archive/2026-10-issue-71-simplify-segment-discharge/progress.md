@@ -1,0 +1,17 @@
+# Progress — Simplify the segment-discharge article (#71)
+
+## Session 2026-10-14
+
+- Plan-mode exploration — phases approved by user
+- Created branch `71-simplify-the-segment-discharge-article-d` off main
+- Scaffolded PWF baseline from issue #71 with approved phases
+- Next: start Phase 1
+- Phase 1: `data-raw/segment_vignette_map.R` rewritten and run (log `data/logs/71/`). Picks read from the live parts in 17 s; drawn main-flow order >= 5: routed 212,681, balance 70,315, none 1,557 segments. Liard basin: 0 routed, 716,213 balance, 38,270 none; Nechako Reservoir groups: 1,046 routed, 59,821 balance, 7,047 none. `segment_map.rds` 104 KB (was 147). Registry: `pick_source` and `gauge` added; the old layers go with the article rewrite (Phase 4), since the current article still reads them.
+- Phase 2: `data-raw/segment_vignette_data.R` trimmed and run. Province counts from `data/checks/segment_output_20260717.txt`, held to the reader counts and fwapg: FWA 4,907,441; neither 374,598 (369,217 with no lut watershed); picked routed 3,152,838, balance 1,380,005, 224,199 of them because routed is far low. Routed check at the gauges' 289 segments: none differing. Bundle 129 KB of 500.
+- Phase 3: segment tests rewritten for the new shapes; the file passes. Mutation table in a scratch copy: a fourth class, a map from another build, counts that do not add up, picks off the reader's, a missing region: each turns one test red; restored, none red.
+- Plan review (Plan agent) landed: findings and disposition in `review-plan.md`. Fixes: picked ids checked against fwapg (map script); `no_lut_order1` counted (values); "neither" not drawn (1,557 main-flow segments, invisible), its registry class dropped; unguarded prose tightened.
+- Phase 4: article rewritten in the issue's six sections. Body prose 854 words (was 1,124), 384 lines (was 664); cap 900. One figure, the picked-source map; the Salmon River tables and maps, the scatter and `named-on-map` are gone. Old registry layers removed. Rendered to scratch; map self-reviewed.
+- Full suite: FAIL 0, PASS 967, SKIP 1.
+- Phase 5: CLAUDE.md and README rewritten for the article; research/water_balance_method.md names wet 7b83959 (the old bundle's commit, read from its provenance) for the SALR comparison; discharge_publish.md records the `is_default` at v2 decision and what the article's data scripts check; fwapg_mad_method.md notes the removed link.
+- `/code-check branch`: three rounds. R1 (3 findings: an unmeasured cause for far-low flips, a stream-order proxy for "neither", same build by commit only) fixed and the values rebuilt; R2 (1: "off its own line" narrowed to side channels, one axis over from R1's proxy) fixed; R3 named the mechanism (prose restating a code-defined set by its familiar member or a proxy) and enumerated every claim the branch adds against code, data and fwapg: two research lines unsupported, both fixed. Ended by enumeration.
+- Final: full suite FAIL 0, PASS 968, SKIP 1; article renders; 860 words, 386 lines.

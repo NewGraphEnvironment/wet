@@ -1,23 +1,8 @@
 layer_key,type,source_layer,class_field,class_value,class_label,fill_color,fill_opacity,stroke_color,stroke_width,stroke_opacity,mark_color,mark_shape,mark_radius,mark_stroke_color,mark_stroke_width,label_color,label_size,label_font,label_halo_color,label_halo_width,label_offset_x,label_offset_y,note
-mad_class,line,,class,m1,Under 0.1 m³/s,#c7e9b4,1,,,,,,,,,,,,,,,,ColorBrewer YlGnBu 7-class without its lightest: segments on a light ground
-mad_class,line,,class,m2,0.1-0.5,#7fcdbb,1,,,,,,,,,,,,,,,,ColorBrewer YlGnBu 7-class
-mad_class,line,,class,m3,0.5-2,#41b6c4,1,,,,,,,,,,,,,,,,ColorBrewer YlGnBu 7-class
-mad_class,line,,class,m4,2-10,#1d91c0,1,,,,,,,,,,,,,,,,ColorBrewer YlGnBu 7-class
-mad_class,line,,class,m5,10-50,#225ea8,1,,,,,,,,,,,,,,,,ColorBrewer YlGnBu 7-class
-mad_class,line,,class,m6,50 m³/s or more,#0c2c84,1,,,,,,,,,,,,,,,,ColorBrewer YlGnBu 7-class darkest
-segment_map,polygon,,part,group,Watershed group,#f0f0f0,1,,,,,,,,,,,,,,,,"ColorBrewer Greys lightest: the subject's ground, against a white exterior"
 segment_map,line,,part,outline,Group boundary,#636363,1,,,,,,,,,,,,,,,,ColorBrewer Greys dark
-skill_nesting,point,,nesting,headwater,Headwater gauge,#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue
-skill_nesting,point,,nesting,nested,Nested gauge,#e69f00,1,,,,,,,,,,,,,,,,Okabe-Ito orange
-guide,line,,part,one_to_one,1:1,#636363,1,,,,,,,,,,,,,,,,ColorBrewer Greys dark
-gauge_error,point,,class,e1,More than 20% under,#e66101,1,,,,,,,,,,,,,,,,ColorBrewer PuOr 4-class: under-prediction in the orange arm
-gauge_error,point,,class,e2,0-20% under,#fdb863,1,,,,,,,,,,,,,,,,ColorBrewer PuOr 4-class
-gauge_error,point,,class,e3,0-20% over,#b2abd2,1,,,,,,,,,,,,,,,,ColorBrewer PuOr 4-class
-gauge_error,point,,class,e4,More than 20% over,#5e3c99,1,,,,,,,,,,,,,,,,ColorBrewer PuOr 4-class: over-prediction in the purple arm
-province,polygon,,part,coverage,PCIC routed flow coverage,#4d4d4d,1,,,,,,,,,,,,,,,,ColorBrewer Greys dark: the coverage outline on the province map
-province,polygon,,part,zone,Weakest hydrologic zone,#d9d9d9,1,,,,,,,,,,,,,,,,"ColorBrewer Greys light: a ground under the gauges, clear of the PuOr error fills"
-province,polygon,,part,group,This article's group,#000000,1,,,,,,,,,,,,,,,,Black: the watershed group the map below draws
-context,line,,part,river,River outside the group,#969696,1,,,,,,,,,,,,,,,,ColorBrewer Greys mid: rivers beyond the group the map is about
 flow_source,line,,source,observed,Observed (HYDAT),#000000,1,,,,,,,,,,,,,,,,Okabe-Ito black: the reference the two sources are read against
 flow_source,line,,source,pcic_routed,Routed PCIC,#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue
 flow_source,line,,source,wet_balance,Water balance,#d55e00,1,,,,,,,,,,,,,,,,Okabe-Ito vermillion
+pick_source,line,,class,pcic_routed,Routed PCIC,#0072b2,1,,,,,,,,,,,,,,,,"Okabe-Ito blue, as flow_source: the source pick takes"
+pick_source,line,,class,wet_balance,Water balance,#d55e00,1,,,,,,,,,,,,,,,,"Okabe-Ito vermillion, as flow_source"
+gauge,point,,part,calibration,Calibration gauge,#000000,1,,,,,,,,,,,,,,,,Black: plain dots over the coloured rivers
