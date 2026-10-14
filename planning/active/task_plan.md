@@ -45,7 +45,7 @@ Life-stage windows straddle months, and a freshet can rise and fall inside one m
 - [x] Issue #59 body: record the plan-gate decisions (both stores, gridded out, NA shape)
 
 ## Validation
-- [ ] Tests pass
-- [ ] `/code-check` clean (once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
+- [x] Tests pass
+- [x] `/code-check` clean (once over the branch with `/code-check branch`)
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
