@@ -164,9 +164,14 @@ stopifnot(setequal(unique(pub_bulk$source), c("pcic_routed", "wet_balance")),
 
 # ---- the published values against what they were built from ---------------------------------------
 days <- c(365.25, wet_month_days())
-wb <- as.data.frame(arrow::read_parquet(file.path(fit_dir, "output", "400.parquet")))
-wb <- wb[wb$watershed_feature_id %in% seg_bulk$watershed_feature_id & wb$month == 0, ]
-names(wb)[names(wb) == "discharge_m3s"] <- "q_m3s"
+wb_all <- as.data.frame(arrow::read_parquet(file.path(fit_dir, "output", "400.parquet")))
+wb_all <- wb_all[wb_all$watershed_feature_id %in% seg_bulk$watershed_feature_id, ]
+names(wb_all)[names(wb_all) == "discharge_m3s"] <- "q_m3s"
+# the months this copy of the fit's output holds (a reduced bundle: 0 only),
+# which the vignette's validation note states
+output_months <- sort(unique(wb_all$month))
+stopifnot(0L %in% output_months)
+wb <- wb_all[wb_all$month == 0, ]
 # the fit on these watersheds, as scripts/wb_output.R makes it (keep_adjust
 # asserted above): a zone the fit never saw gets no adjustment
 up <- readRDS(file.path(key_dir, "upstream", "400.rds"))
@@ -180,13 +185,16 @@ mm <- cbind(ann, wet_share_predict(fits$share, up) * ann)
 src_w <- data.frame(watershed_feature_id = rep(up$watershed_feature_id, 13), month = rep(0:12, each = nrow(up)),
                     q_m3s = as.vector(wet_mm_to_m3s(mm, up$upstream_area_m2, days = rep(days, each = nrow(up)))))
 src_b <- merge(seg_bulk[c("linear_feature_id", "watershed_feature_id")], src_w, by = "watershed_feature_id")
-src_b0 <- merge(seg_bulk[c("linear_feature_id", "watershed_feature_id")], wb[c("watershed_feature_id", "month", "q_m3s")],
-                by = "watershed_feature_id")
-src_r0 <- stats::aggregate(q_m3s ~ linear_feature_id, src_routed[src_routed$linear_feature_id %in% seg_bulk$linear_feature_id, ],
+src_b0 <- merge(seg_bulk[c("linear_feature_id", "watershed_feature_id")],
+                wb_all[c("watershed_feature_id", "month", "q_m3s")], by = "watershed_feature_id")
+# routed month 0 on every segment used, the gauges' included: the far-low
+# gauges are picked by it
+src_r0 <- stats::aggregate(q_m3s ~ linear_feature_id, src_routed,
                            function(q) if (length(q) == 12) mean(q) else NA_real_)
 src_r0$month <- 0L
 pb_b <- pub_bulk[pub_bulk$source == "wet_balance", ]
-pr_b0 <- pub_bulk[pub_bulk$source == "pcic_routed" & pub_bulk$month == 0, ]
+pr_b0 <- unique(rbind(pub_bulk[pub_bulk$source == "pcic_routed" & pub_bulk$month == 0, names(pub_gauge)],
+                      pub_gauge[pub_gauge$month == 0, ]))
 pr_m <- unique(rbind(pub_bulk[pub_bulk$source == "pcic_routed" & pub_bulk$month > 0, names(pub_gauge)],
                      pub_gauge[pub_gauge$month > 0, ]))
 # copied from a double, so exact; routed month 0 is a mean of twelve, which
@@ -194,14 +202,14 @@ pr_m <- unique(rbind(pub_bulk[pub_bulk$source == "pcic_routed" & pub_bulk$month 
 cmp <- list(
   "routed months 1-12 (Bulkley segments and gauges) = fwapg monthly table" =
     wet_values_compare(pr_m[c("linear_feature_id", "month", "q_m3s")], src_routed, tol = 0),
-  "routed month 0 (Bulkley segments) = mean of fwapg's 12 months" =
+  "routed month 0 (Bulkley segments and gauges) = mean of fwapg's 12 months" =
     wet_values_compare(pr_b0[c("linear_feature_id", "month", "q_m3s")], src_r0),
   "balance month 0 (Bulkley watersheds), recomputed = fit output" =
     wet_values_compare(src_w[src_w$month == 0, ],
                        wb[wb$watershed_feature_id %in% up$watershed_feature_id, c("watershed_feature_id", "month", "q_m3s")],
                        id_col = "watershed_feature_id", tol = 0),
-  "balance month 0 (Bulkley segments) = fit output via lut" =
-    wet_values_compare(pb_b[pb_b$month == 0, c("linear_feature_id", "month", "q_m3s")],
+  "balance months the fit's output holds (Bulkley segments) = fit output via lut" =
+    wet_values_compare(pb_b[pb_b$month %in% output_months, c("linear_feature_id", "month", "q_m3s")],
                        src_b0[c("linear_feature_id", "month", "q_m3s")], tol = 0),
   "balance months 0-12 (Bulkley segments whose watershed the bundle holds) = fit recomputed via lut" =
     wet_values_compare(pb_b[pb_b$linear_feature_id %in% src_b$linear_feature_id, c("linear_feature_id", "month", "q_m3s")],
@@ -288,6 +296,7 @@ provenance <- list(
   routed_fingerprint = rc$fingerprint,
   routed_report = rc$report,
   snap = snap[c("station_number", "linear_feature_id", "distance_m", "area_ratio")],
+  output_months = output_months,
   # inputs outside the tracked tree
   md5 = tools::md5sum(c(file.path(fit_dir, c("fits.rds", sprintf("cv_aet-%s.rds", fits$aet))),
                         file.path(key_dir, "upstream", "400.rds"), wb_stations_path(release)))
