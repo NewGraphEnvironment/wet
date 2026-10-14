@@ -19,14 +19,25 @@
 #     mm over wet's accumulated upstream area, as scripts/pcic_routed_compare.R
 #     takes them; with the gauge's group, zone, nesting, area class and
 #     whether it is a lake outlet
-#   - provenance: the runs, reports and published build these came from, and
-#     the value checks against the published parts
+#   - period: at the calibration gauges with at least 40 complete years in
+#     1951-2012, observed monthly flow over 1951-2012 beside 1981-2010, so the
+#     part of routed PCIC's monthly error that is its period (1951-2012, against
+#     observed 1981-2010) can be bounded
+#   - provenance: the runs, reports and published build these came from, the
+#     value checks against the published parts, and md5s of the inputs the
+#     clean-tree guard cannot see
 #
 # The held-out monthly balance is not stored by scripts/wb_validate.R (only its
 # annual values and scores are), so it is recomputed here with the same
 # procedure (scripts/wb_cv_lib.R's predict_cv()) and refused unless its
 # annual values equal the stored ones exactly and its per-station scores equal
-# the stored ones.
+# the stored ones (all.equal: the shares pass through BLAS, which can differ
+# between machines in the last bits).
+#
+# The balance's published months on the Bulkley segments are checked against
+# the fit recomputed for their watersheds as scripts/wb_output.R makes them,
+# because a reduced bundle of the fit keeps month 0 only in output/; month 0
+# must equal output/ exactly.
 
 source("scripts/vignette_data_lib.R")
 wet_commit <- vd_commit()
@@ -56,14 +67,28 @@ if (!isTRUE(all.equal(sc_new[cols_sc], sc_old[cols_sc], check.attributes = FALSE
   stop("the recomputed held-out scores differ from the stored ones")
 }
 
+# ---- the period: observed 1951-2012 against 1981-2010 -------------------------------------------
+hydat <- wb_hydat(release)
+long_sel <- wet_station_select(hydat, years = 1951:2012, min_years = 40)
+yrs_long <- attr(long_sel, "years")
+long_sel <- long_sel[long_sel$station_number %in% cal$station_number, ]
+attr(long_sel, "years") <- yrs_long[long_sel$station_number]
+mon_long <- wet_station_monthly(long_sel, hydat)
+mon_8110 <- s$monthly[s$monthly$station_number %in% long_sel$station_number, ]
+period <- merge(mon_long[c("station_number", "month", "q_m3s", "n_years")],
+                mon_8110[c("station_number", "month", "q_m3s", "n_years")],
+                by = c("station_number", "month"), suffixes = c("_5112", "_8110"))
+period <- period[order(period$station_number, period$month), ]
+rownames(period) <- NULL
+stopifnot(nrow(long_sel) > 0, nrow(period) == 13 * nrow(long_sel))
+message(nrow(long_sel), " calibration gauges with 40 or more complete years in 1951-2012")
+
 # ---- fwapg ---------------------------------------------------------------------------------------
-hydat <- Sys.getenv("WET_HYDAT")
-if (!nzchar(hydat)) stop("set WET_HYDAT to the ", release, " Hydat.sqlite3")
 hcon <- wet_hydat_connect(hydat)
 st_bulk <- DBI::dbGetQuery(hcon, sprintf("
   SELECT STATION_NUMBER AS station_number, STATION_NAME AS station_name, LONGITUDE AS lon, LATITUDE AS lat,
          DRAINAGE_AREA_GROSS AS drainage_area_gross_km2
-  FROM STATIONS WHERE STATION_NUMBER IN (%s)", paste0("'", stations_bulk, "'", collapse = ", ")))
+  FROM STATIONS WHERE STATION_NUMBER IN (%s) ORDER BY 1", paste0("'", stations_bulk, "'", collapse = ", ")))
 DBI::dbDisconnect(hcon)
 stopifnot(setequal(st_bulk$station_number, stations_bulk))
 
@@ -80,7 +105,7 @@ seg_bulk <- DBI::dbGetQuery(conn, sprintf("
          l.watershed_feature_id::int AS watershed_feature_id
   FROM whse_basemapping.fwa_stream_networks_sp s
   LEFT JOIN whse_basemapping.fwa_streams_watersheds_lut l USING (linear_feature_id)
-  WHERE s.linear_feature_id IN (%s)", paste(snap$linear_feature_id, collapse = ", ")))
+  WHERE s.linear_feature_id IN (%s) ORDER BY 1", paste(snap$linear_feature_id, collapse = ", ")))
 stopifnot(nrow(seg_bulk) == nrow(snap), !anyNA(seg_bulk$watershed_feature_id),
           all(seg_bulk$watershed_group_code == "BULK"))
 seg_bulk <- merge(snap[c("station_number", "linear_feature_id")], seg_bulk, by = "linear_feature_id")
@@ -89,14 +114,14 @@ seg_bulk <- merge(snap[c("station_number", "linear_feature_id")], seg_bulk, by =
 cal$linear_feature_id <- as.integer(cal$linear_feature_id)
 grp <- DBI::dbGetQuery(conn, sprintf("
   SELECT linear_feature_id::int AS linear_feature_id, watershed_group_code
-  FROM whse_basemapping.fwa_stream_networks_sp WHERE linear_feature_id IN (%s)",
+  FROM whse_basemapping.fwa_stream_networks_sp WHERE linear_feature_id IN (%s) ORDER BY 1",
   paste(unique(cal$linear_feature_id), collapse = ", ")))
 stopifnot(setequal(grp$linear_feature_id, cal$linear_feature_id))
 # fwapg's routed months on every segment used, which the published values must equal
 ids_used <- unique(c(seg_bulk$linear_feature_id, cal$linear_feature_id))
 src_routed <- DBI::dbGetQuery(conn, sprintf("
   SELECT linear_feature_id::int AS linear_feature_id, month::int AS month, q_m3s
-  FROM %s WHERE linear_feature_id IN (%s)", routed_table, paste(ids_used, collapse = ", ")))
+  FROM %s WHERE linear_feature_id IN (%s) ORDER BY 1, 2", routed_table, paste(ids_used, collapse = ", ")))
 stopifnot(identical(routed_fingerprint(conn), rc$fingerprint))
 DBI::dbDisconnect(conn)
 
@@ -111,7 +136,8 @@ read_pub <- function(hrefs, groups, ids) {
   DBI::dbGetQuery(duck, sprintf("
     SELECT source, linear_feature_id, watershed_group_code, month, q_m3s, runoff_mm, coverage, period, pick
     FROM read_parquet([%s], hive_partitioning = true)
-    WHERE watershed_group_code IN (%s) AND linear_feature_id IN (%s)",
+    WHERE watershed_group_code IN (%s) AND linear_feature_id IN (%s)
+    ORDER BY source, linear_feature_id, month",
     paste0("'", hrefs, "'", collapse = ", "), paste0("'", groups, "'", collapse = ", "),
     paste(ids, collapse = ", ")))
 }
@@ -134,11 +160,23 @@ stopifnot(setequal(unique(pub_bulk$source), c("pcic_routed", "wet_balance")),
           !anyDuplicated(pub_gauge[c("linear_feature_id", "month")]))
 
 # ---- the published values against what they were built from ---------------------------------------
+days <- c(365.25, wet_month_days())
 wb <- as.data.frame(arrow::read_parquet(file.path(fit_dir, "output", "400.parquet")))
-wb <- wb[wb$watershed_feature_id %in% seg_bulk$watershed_feature_id, ]
-src_b <- merge(seg_bulk[c("linear_feature_id", "watershed_feature_id")],
-               wb[c("watershed_feature_id", "month", "discharge_m3s")], by = "watershed_feature_id")
-names(src_b)[names(src_b) == "discharge_m3s"] <- "q_m3s"
+wb <- wb[wb$watershed_feature_id %in% seg_bulk$watershed_feature_id & wb$month == 0, ]
+names(wb)[names(wb) == "discharge_m3s"] <- "q_m3s"
+# the fit on these watersheds, as scripts/wb_output.R makes it (keep_adjust
+# asserted above): a zone the fit never saw gets no adjustment
+up <- readRDS(file.path(key_dir, "upstream", "400.rds"))
+up <- up[up$watershed_feature_id %in% seg_bulk$watershed_feature_id, ]
+stopifnot(setequal(up$watershed_feature_id, seg_bulk$watershed_feature_id))
+up$raw <- wet:::wet_wb_raw(up, fits$aet)
+zc <- grep("^zp?[0-9]+$", names(up), value = TRUE)
+known <- c(paste0("z", fits$wb$coef$zone), paste0("zp", fits$wb$coef$zone))
+ann <- wet_wb_adjust(fits$wb, up[setdiff(names(up), setdiff(zc, known))])
+mm <- cbind(ann, wet_share_predict(fits$share, up) * ann)
+src_w <- data.frame(watershed_feature_id = rep(up$watershed_feature_id, 13), month = rep(0:12, each = nrow(up)),
+                    q_m3s = as.vector(wet_mm_to_m3s(mm, up$upstream_area_m2, days = rep(days, each = nrow(up)))))
+src_b <- merge(seg_bulk[c("linear_feature_id", "watershed_feature_id")], src_w, by = "watershed_feature_id")
 src_r0 <- stats::aggregate(q_m3s ~ linear_feature_id, src_routed[src_routed$linear_feature_id %in% seg_bulk$linear_feature_id, ],
                            function(q) if (length(q) == 12) mean(q) else NA_real_)
 src_r0$month <- 0L
@@ -153,15 +191,17 @@ cmp <- list(
     wet_values_compare(pr_m[c("linear_feature_id", "month", "q_m3s")], src_routed, tol = 0),
   "routed month 0 (Bulkley segments) = mean of fwapg's 12 months" =
     wet_values_compare(pr_b0[c("linear_feature_id", "month", "q_m3s")], src_r0),
-  "balance months 0-12 (Bulkley segments) = fit output via lut" =
-    wet_values_compare(pb_b[c("linear_feature_id", "month", "q_m3s")], src_b[c("linear_feature_id", "month", "q_m3s")],
-                       tol = 0)
+  "balance month 0 (Bulkley watersheds), recomputed = fit output" =
+    wet_values_compare(src_w[src_w$month == 0, ], wb[c("watershed_feature_id", "month", "q_m3s")],
+                       id_col = "watershed_feature_id", tol = 0),
+  "balance months 0-12 (Bulkley segments) = fit recomputed via lut" =
+    wet_values_compare(pb_b[c("linear_feature_id", "month", "q_m3s")], src_b[c("linear_feature_id", "month", "q_m3s")])
 )
 pub_check <- data.frame(check = names(cmp), do.call(rbind, cmp), row.names = NULL)
 print(pub_check)
 # no value differs, and every source value was compared
 if (any(pub_check$differing > 0) || any(pub_check$compared == 0) ||
-      !identical(pub_check$compared, as.numeric(c(nrow(src_routed), nrow(src_r0), nrow(src_b))))) {
+      !identical(pub_check$compared, as.numeric(c(nrow(src_routed), nrow(src_r0), nrow(wb), nrow(src_b))))) {
   stop("the published values differ from what they were built from: see the table above")
 }
 
@@ -175,8 +215,8 @@ stopifnot(nrow(segments) == 2 * 13 * length(stations_bulk))
 
 # routed PCIC in mm over wet's accumulated area: months by their days, as
 # observed runoff is (scripts/wb_cv_lib.R), and month 0 from the published
-# annual (the plain mean of twelve) on 365.25 days, as the routed report takes it
-days <- c(365.25, wet_month_days())
+# annual (the plain mean of twelve) on 365.25 days, as the routed report takes
+# it, so routed's months do not sum to its month 0 exactly
 area <- cal$upstream_area_m2[match(ho_long$station_number, cal$station_number)]
 lfid <- cal$linear_feature_id[match(ho_long$station_number, cal$station_number)]
 pg <- pub_gauge
@@ -197,6 +237,24 @@ n_routed <- sum(!is.na(gauges$routed_mm[gauges$month == 0]))
 rr_all <- strsplit(trimws(grep("^all +", rc$lines, value = TRUE)[1]), " +")[[1]]
 stopifnot(as.integer(rr_all[2]) == n_routed)
 print(table(month = gauges$month, routed = !is.na(gauges$routed_mm))[1:2, ])
+
+# ---- the vignette's recipe ------------------------------------------------------------------------
+# vignettes/monthly-flow.Rmd shows this read for one segment over every
+# historical part: it must return what the bundle holds
+duck <- DBI::dbConnect(duckdb::duckdb())
+invisible(DBI::dbExecute(duck, "LOAD httpfs"))
+lfid_recipe <- seg_bulk$linear_feature_id[seg_bulk$station_number == "08EE013"]
+recipe <- DBI::dbGetQuery(duck, sprintf("
+  SELECT source, month, q_m3s, period, pick
+  FROM read_parquet([%s], hive_partitioning = true)
+  WHERE watershed_group_code = 'BULK' AND linear_feature_id = %d
+  ORDER BY source, month", paste0("'", parts$href, "'", collapse = ", "), lfid_recipe))
+DBI::dbDisconnect(duck, shutdown = TRUE)
+vd_verify(parts)
+mine <- segments[segments$linear_feature_id == lfid_recipe, c("source", "month", "q_m3s", "period", "pick")]
+recipe$month <- as.integer(recipe$month)
+rownames(mine) <- NULL
+if (!isTRUE(all.equal(recipe, mine, check.attributes = FALSE))) stop("the recipe's read differs from the bundle")
 
 # ---- provenance -------------------------------------------------------------------------------------
 hydat_release <- sub("^HYDAT release: ", "", grep("^HYDAT release:", readLines(wb_report("stations_wb", release)),
@@ -219,12 +277,16 @@ provenance <- list(
   routed_commit = rc$commit,
   routed_fingerprint = rc$fingerprint,
   routed_report = rc$report,
-  snap = snap[c("station_number", "linear_feature_id", "distance_m", "area_ratio")]
+  snap = snap[c("station_number", "linear_feature_id", "distance_m", "area_ratio")],
+  # inputs outside the tracked tree
+  md5 = tools::md5sum(c(file.path(fit_dir, c("fits.rds", sprintf("cv_aet-%s.rds", fits$aet))),
+                        file.path(key_dir, "upstream", "400.rds"), wb_stations_path(release)))
 )
+names(provenance$md5) <- basename(names(provenance$md5))
 
 no64 <- function(x) !any(vapply(x, inherits, NA, "integer64"))
-stopifnot(no64(segments), no64(gauges), no64(provenance$snap))
-values <- list(segments = segments, gauges = gauges, provenance = provenance)
+stopifnot(no64(segments), no64(gauges), no64(period), no64(provenance$snap))
+values <- list(segments = segments, gauges = gauges, period = period, provenance = provenance)
 saveRDS(values, out, compress = "xz")
 kb <- file.size(out) / 1024
 message("monthly_values.rds: ", round(kb), " KB of ", budget_kb)
