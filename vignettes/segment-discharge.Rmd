@@ -40,7 +40,8 @@ bc <- readRDS(vd("station_map.rds"))$bc
 # were built from (none may differ), and the map's picks are the same build's
 stopifnot(identical(pub$manifest, wet:::wet_catalog_url), all(prov$published_check$compared > 0),
           all(prov$published_check$differing == 0),
-          identical(map$provenance$published$wet_commit, pub$wet_commit))
+          identical(map$provenance$published$wet_commit, pub$wet_commit),
+          identical(map$provenance$published$built, pub$built))
 
 # colours come from the gq registries, so no hex literal appears in this
 # vignette; assert each class set, because a malformed CSV row adds a layer silently
@@ -138,9 +139,10 @@ nech <- rg["Nechako Reservoir", ]
 nech_bal <- 100 * nech$wet_balance / (nech$wet_balance + nech$pcic_routed)
 # the prose: routed has no value in the Liard, so the balance is picked there;
 # on the Nechako Reservoir it is picked on nearly every segment; and the cut is a fifth
-# and the segments with neither are almost all first-order streams with no lut watershed
+# and the segments with neither are almost all connection lines and
+# secondary-flow channels with no lut watershed (by FWA edge type)
 stopifnot(liard$pcic_routed == 0, liard$wet_balance > 0, nech_bal > 90, prov$far_low == 0.2,
-          sg[["far_low"]] > 0, sg[["no_lut_order1"]] > 0.9 * sg[["neither"]])
+          sg[["far_low"]] > 0, sg[["no_lut_connector"]] > 0.9 * sg[["neither"]])
 pct_of <- function(n) pct(100 * n / sg[["fwa"]])
 ```
 
@@ -151,17 +153,16 @@ every month:
 
 - **routed PCIC**, where it has a value;
 - **the balance** where routed PCIC's annual flow is under a fifth of the
-  balance's on a segment that lies on its own watershed's line, which is
-  usually a reservoir or an outlet placed on the wrong segment. Off that line,
-  on a side channel, routed PCIC is kept however low it is;
+  balance's on a segment that lies on its own watershed's line. Off that
+  line, on a side channel, routed PCIC is kept however low it is;
 - **whichever has a value**, where only one does.
 
 Of the `r num(sg[["fwa"]])` segments in the Freshwater Atlas, `pick` takes
 routed PCIC on `r num(sg[["pick_routed"]])` (`r pct_of(sg[["pick_routed"]])`),
 the balance on `r num(sg[["pick_balance"]])` (`r pct_of(sg[["pick_balance"]])`;
 `r num(sg[["far_low"]])` of them because routed flow is far low), and
-`r num(sg[["neither"]])` have neither, almost all of them first-order
-streams. The balance takes every segment with a value in the Liard, where
+`r num(sg[["neither"]])` have neither, almost all of them connection lines
+and secondary channels with no watershed polygon of their own. The balance takes every segment with a value in the Liard, where
 routed PCIC has none, and `r pct(nech_bal)` of those in the four Nechako
 Reservoir groups, where routed flow is far below the balance's
 ([fwapg#24](https://github.com/NewGraphEnvironment/fwapg/issues/24)).

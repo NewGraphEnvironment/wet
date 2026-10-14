@@ -17,8 +17,8 @@
 #     runoff on the gauge's segment (routed_mm; NA where it has none), so both
 #     estimates are scored on one set, as scripts/pcic_routed_compare.R scores them
 #   - segments: how many FWA segments `pick` gives each source, how many get
-#     neither and why (no lut watershed; of those, how many are first
-#     order), and how many the balance takes because routed flow is far low,
+#     neither and why (no lut watershed; of those, how many are connection
+#     lines or secondary-flow channels), and how many the balance takes because routed flow is far low,
 #     from the tracked segment report, checked against the live build's
 #     reader counts and fwapg's
 #   - provenance: the runs, reports and published build these came from, and
@@ -82,12 +82,15 @@ seg_grp_gauge <- DBI::dbGetQuery(conn, sprintf("
   WHERE linear_feature_id IN (%s)", paste(unique(sk$linear_feature_id), collapse = ", ")))
 stopifnot(setequal(seg_grp_gauge$linear_feature_id, sk$linear_feature_id))
 # the province's segments, and those with no watershed in the lut, which no
-# source reaches
-n_fwa <- DBI::dbGetQuery(conn, "
+# source reaches: of those, the connection lines and secondary-flow channels
+# (FWA edge types; stream_order cannot say, since these carry order 1 whatever they are)
+connector_edges <- c(1100, 1150, 1300, 1350, 1400, 1450)
+n_fwa <- DBI::dbGetQuery(conn, sprintf("
   SELECT count(*)::int AS segments, count(*) FILTER (WHERE l.linear_feature_id IS NULL)::int AS no_lut,
-         count(*) FILTER (WHERE l.linear_feature_id IS NULL AND s.stream_order = 1)::int AS no_lut_order1
+         count(*) FILTER (WHERE l.linear_feature_id IS NULL AND s.edge_type IN (%s))::int AS no_lut_connector
   FROM whse_basemapping.fwa_stream_networks_sp s
-  LEFT JOIN whse_basemapping.fwa_streams_watersheds_lut l USING (linear_feature_id)")
+  LEFT JOIN whse_basemapping.fwa_streams_watersheds_lut l USING (linear_feature_id)",
+  paste(connector_edges, collapse = ", ")))
 # fwapg's routed annual flow on each calibration gauge's segment: what the
 # published values must equal (below)
 src_routed <- routed_annual(conn, sk$linear_feature_id)
@@ -173,7 +176,7 @@ fwa <- seg_num("^FWA segments: ([0-9]+); with a watershed in the lut: ([0-9]+); 
 neither <- seg_num("; neither: ([0-9]+)$")
 picked <- seg_num("^picked routed: ([0-9]+) .*; picked balance: ([0-9]+), ([0-9]+) of them under the cut$")
 segments <- c(fwa = fwa[1], no_lut = fwa[3], neither = neither, pick_routed = picked[1], pick_balance = picked[2],
-              far_low = picked[3], no_lut_order1 = n_fwa$no_lut_order1)
+              far_low = picked[3], no_lut_connector = n_fwa$no_lut_connector)
 print(segments)
 n_pick <- stats::setNames(reader$picked, reader$source)
 stopifnot(segments[["fwa"]] == n_fwa$segments, segments[["no_lut"]] == n_fwa$no_lut,

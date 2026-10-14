@@ -81,8 +81,8 @@ test_that("the segment values carry plain ids, the calibration gauges and their 
   # what pick gives the province (#71): every segment once, and the picks
   # those a reader of the live build sees
   sg <- v$segments
-  expect_named(sg, c("fwa", "no_lut", "neither", "pick_routed", "pick_balance", "far_low", "no_lut_order1"))
-  expect_lte(sg[["no_lut_order1"]], sg[["no_lut"]])
+  expect_named(sg, c("fwa", "no_lut", "neither", "pick_routed", "pick_balance", "far_low", "no_lut_connector"))
+  expect_lte(sg[["no_lut_connector"]], sg[["no_lut"]])
   expect_equal(sg[["pick_routed"]] + sg[["pick_balance"]] + sg[["neither"]], sg[["fwa"]])
   expect_lte(sg[["no_lut"]], sg[["neither"]])
   expect_lte(sg[["far_low"]], sg[["pick_balance"]])
@@ -112,6 +112,7 @@ test_that("the segment map holds the picked source on the rivers, from the same 
   # the picks drawn come from the build the values were read from
   v <- readRDS(vignette_data("segment_values.rds"))
   expect_identical(m$provenance$published$wet_commit, v$provenance$published$wet_commit)
+  expect_identical(m$provenance$published$built, v$provenance$published$built)
   expect_identical(m$provenance$published$manifest, v$provenance$published$manifest)
   # the regions the article names, with their picks counted
   expect_setequal(m$regions$name, c("Liard", "Nechako Reservoir"))
