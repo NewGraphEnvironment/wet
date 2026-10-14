@@ -1,6 +1,6 @@
 # Published discharge: where it lives and how it is named
 
-**Verified:** 2026-10-13 (the reader's timings under "Postgres": 2026-10-14) · **Issues:** #7 (decided, then published), #64 (value checks), #59 (the per-segment reader), #1 (D4, superseded), #57 (the table), fwapg#25 (projections) · **Produced by:** plan-mode discussion on #7, recorded in `planning/archive/2026-10-issue-7-*/findings.md`, the probes listed under "Evidence", and `scripts/discharge_publish.R` (BUILD) for the value checks.
+**Verified:** 2026-10-13 (the reader's parquet timings under "Postgres": 2026-10-14) · **Issues:** #7 (decided, then published), #64 (value checks), #59 (the per-segment reader), #1 (D4, superseded), #57 (the table), fwapg#25 (projections) · **Produced by:** plan-mode discussion on #7, recorded in `planning/archive/2026-10-issue-7-*/findings.md`, the probes listed under "Evidence", and `scripts/discharge_publish.R` (BUILD) for the value checks.
 
 **Status:** published 2026-10-13 at `https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json`. The `historical` scenario, built at wet 7c62b9e (segment table 653fc13, fit 20260717, crate 0.7.0), is 67 parts and 1.80 GB: 43 `segment_monthly` (102,790,688 rows) and 24 `watershed_monthly` (41,904,356). The build report is `data/checks/discharge_publish_20260717.txt`. Since #64 it is the value-checked rebuild at wet 032242f, whose 67 parts are byte-identical to the 7c62b9e upload, so the upload was not repeated.
 

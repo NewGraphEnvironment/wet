@@ -172,24 +172,27 @@ wet_segment_pg <- function(conn, dataset, ids, source, scenario, groups) {
     warning(name, " was loaded as a subset (", sub("^.*; subset ", "", comment),
             "): a row outside it reads as missing", call. = FALSE)
   }
-  # an unloaded scenario or source would otherwise read as every segment missing
-  have <- DBI::dbGetQuery(conn, sprintf(
-    "SELECT DISTINCT source FROM %s WHERE scenario = %s AND source IN (%s)",
-    qid, DBI::dbQuoteString(conn, scenario), wet_sql_in(conn, source)
-  ))$source
-  absent <- setdiff(source, have)
-  if (length(absent)) {
-    stop(name, " has no rows for scenario ", scenario, ", source ", paste(absent, collapse = ", "),
-         ": load it with wet_db_load(conn, wet_catalog(), \"", dataset, "\", scenario = \"", scenario, "\")",
-         call. = FALSE)
-  }
   sql <- sprintf(
     "SELECT linear_feature_id, month, q_m3s, source FROM %s
      WHERE scenario = %s AND source IN (%s) AND linear_feature_id IN (%s)%s",
     qid, DBI::dbQuoteString(conn, scenario), wet_sql_in(conn, source), wet_sql_in(conn, ids),
     wet_sql_groups(conn, groups)
   )
-  DBI::dbGetQuery(conn, sql)
+  d <- DBI::dbGetQuery(conn, sql)
+  # a source with no row here may be unloaded rather than its segments
+  # missing: ask, stopping at the first row (a DISTINCT would scan the table)
+  for (s in setdiff(source, d$source)) {
+    there <- DBI::dbGetQuery(conn, sprintf(
+      "SELECT EXISTS (SELECT 1 FROM %s WHERE scenario = %s AND source = %s) AS ok",
+      qid, DBI::dbQuoteString(conn, scenario), DBI::dbQuoteString(conn, s)
+    ))$ok
+    if (!isTRUE(there)) {
+      stop(name, " has no rows for scenario ", scenario, ", source ", s,
+           ": load it with wet_db_load(conn, wet_catalog(), \"", dataset, "\", scenario = \"", scenario, "\")",
+           call. = FALSE)
+    }
+  }
+  d
 }
 
 # The published dataset straight from its parquet parts.
