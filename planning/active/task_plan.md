@@ -20,9 +20,9 @@ Facts from exploration:
 - `score_files_for()` (`scripts/wb_score_md5.R`) hashes `wb_validate.R`, `wb_cv_lib.R` and `R/wet_share_fit.R`, so every fit goes stale. `wb_province.R`'s key hashes `basename(f_in)` and its `code_files`.
 
 ## Phase 1: Check the snow inputs in cd (cd#88, cd#139)
-- [ ] cd#139: record that `cd_baseline()` is a plain mean over baseline years and never reads `anomaly_type`, and that wet's per-cell baseline uses the same definition
-- [ ] cd#88: confirm from cd's backfill provenance (`scripts/backfill_edh_snow.py`, run logs or COG tags) that 1981–2010 `snowmelt_doy_50` was written from a store that reached past each year's end (365/366-day years). `swe_max` comes from state variables and is not affected. Record the evidence in `findings.md`
-- [ ] Record the per-cell completeness measured above (30/30 years on every land cell) and the grid (0.1°, sea NA)
+- [x] cd#139: record that `cd_baseline()` is a plain mean over baseline years and never reads `anomaly_type`, and that wet's per-cell baseline uses the same definition
+- [x] cd#88: confirm from cd's backfill provenance (`scripts/backfill_edh_snow.py`, run logs or COG tags) that 1981–2010 `snowmelt_doy_50` was written from a store that reached past each year's end (365/366-day years). `swe_max` comes from state variables and is not affected. Record the evidence in `findings.md`
+- [x] Record the per-cell completeness measured above (30/30 years on every land cell) and the grid (0.1°, sea NA)
 
 ## Phase 2: Store the held-out monthly balance with each fit (#68)
 - [ ] `scripts/wb_validate.R`: add `cv_share` (held-out shares, n × 12, the shipped specification) and `obs_share` (observed shares, n × 12) to `cv_aet-<AET>.rds`, so `long()` can be rebuilt from the file alone

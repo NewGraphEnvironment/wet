@@ -37,3 +37,16 @@ Relates to #11, #65, #70, #68, #6, NewGraphEnvironment/cd#88, NewGraphEnvironmen
 
 | Error | Resolution |
 |-------|------------|
+
+## Phase 1: the snow inputs in cd (2026-10-14)
+
+Read from cd `origin/main` at 5611c59, and the published catalog (`cd::cd_catalog()`, default `https://stac-era5-land.s3.us-west-2.amazonaws.com/catalog.json`).
+
+- **Files.** `snowmelt_doy_50_annual.tif` (2.07 MB) and `swe_max_annual.tif` (5.68 MB), cd_sha 349f9d7, run 2026-10-10T22:36:36Z. 76 bands named 1950–2025, 0.1°, extent −140.05…−113.95, 47.95…60.05 (121 × 261, the full grid after cd#123's 60 N fix, cd d7542e3).
+- **Completeness, 1981–2010.** Counted per cell: non-NA years are 0 or 30, never between. doy: 20,739 cells at 30 and 10,842 at 0. swe_max: 20,746 at 30 and 10,835 at 0. The zero-year cells are sea. 7 cells carry swe_max but no melt year (`annual_sum > 0` fails); they get the nearest fill like any other cell with no value.
+- **cd#139 cannot reach a baseline.** `cd_baseline()` (R/cd_baseline.R) is `mean(value, na.rm = TRUE)` over `baseline_years` by `variable, period`. It never reads `cd_variables()$anomaly_type`, which only `cd_anomaly()` uses. wet's per-cell baseline uses the same definition: the mean over the 30 year bands per cell (with no NA inside the 30 on land, `na.rm` changes nothing).
+- **cd#88 does not reach 1981–2010.**
+  - `swe_max` is `max(sde * rsn)` over daily means of *state* variables, sliced `{year}-01-01T00:00` to `{year}-12-31T23:00` (`scripts/backfill_edh_snow.py`), so it is untouched by #88, which concerns the accumulated variables only.
+  - `snowmelt_doy_50` comes from accumulated `smlt`, sliced `{year}-01-02T00:00` to `{year+1}-01-01T00:00`. A 364-day year arises only when the hourly store ends at `{year}-12-31T23:00`, which is the state at a January run of year+1.
+  - Every 1981–2010 year was written by a bulk backfill: the cd#48 run of 2026-05 (`planning/archive/2026-05-issue-48-snow-vars/progress.md`: "2h52min for 75 years", 1950–2025 in one pass), then the rebuild after cd#123's grid fix (2026-10-08). At both, the store ran into 2026, so `{year+1}-01-01T00:00` existed for every baseline year. The January-run path is the only way #88 bites, and it was never the path for these years.
+  - Even where it bites, it drops Dec 31's melt from the annual sum, which moves the 50 % crossing by at most the share of the annual melt that falls on Dec 31.
