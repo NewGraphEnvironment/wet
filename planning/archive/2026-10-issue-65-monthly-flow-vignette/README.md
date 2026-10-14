@@ -35,4 +35,4 @@ What was learned about method: the article's numbers changed twice under review.
 
 No `research/` file: the article recomputes these numbers from the bundle at every build, and the verdicts live in #16, #67 and #6.
 
-Closed by: the PR from branch `65-monthly-flow-vignette-explore-use-and-qa`
+Closed by: PR #69
