@@ -49,3 +49,29 @@ Fixes, each now a computation over the named set:
 - **`one()`** wraps the lookups that could come back empty, because `stopifnot(logical(0))` passes.
 
 The candidate set is now every filter that feeds a statistic and every sentence that characterises one. The four filters (`far`; balance zeros, kept; routed zeros, kept; the 1 mm cut, removed) were each recomputed with and without. Each characterising sentence now quotes a number computed over the set it names, and that number is asserted.
+
+## After round 5: every filter, with and without it (terminal)
+
+Round 5 found a fifth filter: routed coverage. Scoring the balance only on routed's 279 gauges hid the 25 it does not reach (19 in WSC area 10, the Liard), where the balance reads −67 % to −96 % in January–March. Over all 315 gauges, "high December to May" failed (December +1.2 %). It also found that the peak month was taken from monthly volume, not flow, and that `hq()` and `smv()` could return empty or misaligned results.
+
+Fixes:
+- **Each source is scored on its own gauges.** The balance uses all 315 (3,780 gauge-months); routed uses its 279. The figure, the table and the NSE use those sets. The head-to-head ("more gauges within ±20 %") and the group table use the shared 279, and say so.
+- **The balance's claim is restated as computed and asserted:** January–May +8 % to +16 %, June–December within ±5 %. The northern gauges are named, with an asserted count and winter medians.
+- **Peaks are taken from flow** (mm divided by days): 243 gauges, 69 % below, median −15 %.
+- **`hq()` and `smv()` assert their length**, so `stopifnot(logical(0))` cannot pass.
+
+The complete set of filters feeding a statistic in the article, each computed with and without (round 5's measurements plus the recomputes above):
+
+| Filter | Without it | Decision |
+|---|---|---|
+| far-low (11 gauges, routed only) | routed spring −21.3, summer +17.3, NSE 0.80: every claim holds | kept; the routed report's rule |
+| routed coverage, applied to the balance | balance Dec +1.2, north −67 to −96 % | **removed**: the balance is scored on all 315 |
+| balance zero months | Jan +23 against +11.5 | **removed**: zeros kept |
+| observed < 1 mm | top month February against April | **removed**: no cut |
+| peak by volume vs flow | 211 / 72 % / −15 against 243 / 69 % / −15 (now by flow) | flow |
+| long-record threshold 40 / 45 / 50 years | every sign and guard holds | 40 |
+| window `min_frac` 0.8 / 1.0 | identical tables | default |
+| 08EE003 month rule (≥ 10 years) | May–Oct; April has 7 years, Nov 4 | kept, stated |
+| shared set for head-to-head and the group table | not applicable: a comparison needs one set | kept, labelled |
+
+No filter is left whose removal changes a sentence the article states. Every characterising sentence now quotes a number computed over the set it names, and that number is asserted. The loop ends here, on this enumeration, after five rounds.
