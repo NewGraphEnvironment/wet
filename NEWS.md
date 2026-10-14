@@ -1,3 +1,7 @@
+# wet 0.4.3
+
+* The segment-discharge article is simpler (#71). It now says what the published product is, which value to use, how to read it and how good it is, in that order. `pick` has its own early section with its rule and the province counts: routed PCIC on 3,152,838 segments, the balance on 1,380,005, neither on 374,598. One province map of the source `pick` takes on main rivers replaces the Salmon River maps and the scatter. The map's picks are read from the live published parts by `data-raw/segment_vignette_map.R`, under the guards the values script uses. The rename of `pick` to `is_default` at v2 is recorded in `research/discharge_publish.md`.
+
 # wet 0.4.2
 
 * A new article covers months 1–12 of the published product (#65): how to read one stream's twelve months, both sources' hydrographs at three Bulkley gauges with the Chinook windows, the flow in each window beside the gauge's daily record, and month-by-month scores at the calibration gauges. Held out at all 315, the water balance reads 8–16 % high from January to May and within ±5 % from June to December, and 67–96 % low in January–March at the 25 northern gauges routed flow does not reach (#16). Routed PCIC, at 279 gauges, reads 20 % low in March–April and 19 % high in July–August, and its 1951–2012 period explains only part of that (#67). The values are read from the published parts and checked against their sources before they are bundled (`data-raw/monthly_vignette_data.R`), under guards now shared with the segment article (`scripts/vignette_data_lib.R`).
