@@ -1,5 +1,5 @@
 # The vignettes run on data bundled by data-raw/station_vignette_*.R (#27)
-# and data-raw/segment_vignette_*.R (#28), never on HYDAT, fwapg or the network.
+# and data-raw/segment_vignette_*.R (#28, #64), never on HYDAT, fwapg or the network.
 
 vignette_data <- function(f) system.file("vignette-data", f, package = "wet")
 
@@ -54,16 +54,31 @@ test_that("the map layers are sf in BC Albers, with both stations and their catc
 
 test_that("the segment values carry plain ids, the calibration gauges and their provenance", {
   v <- readRDS(vignette_data("segment_values.rds"))
-  expect_named(v, c("parity", "sampling", "segments", "skill", "gauges_salr", "provenance"))
+  expect_named(v, c("segments", "skill", "gauges_salr", "provenance"))
   # fwapg's bigint ids would arrive as integer64, which a session without bit64
   # reads as raw bits: every table must hold plain types
   for (nm in setdiff(names(v), "provenance")) {
     expect_false(any(vapply(v[[nm]], inherits, NA, "integer64")), info = nm)
   }
   expect_type(v$segments$linear_feature_id, "integer")
-  # the parity summary: every SALR segment fwapg has a value for, all matched
-  expect_equal(v$parity$n_segments, v$provenance$fwapg_discharge_rows[["SALR"]])
-  expect_equal(v$parity$n_match5, v$parity$n_segments)
+  # the segment values are the published product's (#64): read from the live
+  # manifest, every value checked against its source, none differing, and
+  # neither check empty
+  pub <- v$provenance$published
+  expect_identical(pub$manifest, wet:::wet_catalog_url)
+  expect_match(pub$wet_commit, "^[0-9a-f]{7,40}$")
+  expect_true(all(c("key", "rows", "bytes", "md5") %in% names(pub$parts)))
+  chk <- v$provenance$published_check
+  expect_equal(nrow(chk), 2L)
+  expect_true(all(chk$compared > 0))
+  expect_true(all(chk$differing == 0))
+  # the balance check compared every SALR segment with a balance value
+  expect_equal(chk$compared[1], sum(!is.na(v$segments$mad_wb_m3s)))
+  # and the picked source has a value on every segment with one
+  i <- !is.na(v$segments$pick)
+  expect_true(all(v$segments$pick[i] %in% c("pcic_routed", "wet_balance")))
+  q_pick <- ifelse(v$segments$pick[i] == "pcic_routed", v$segments$mad_routed_m3s[i], v$segments$mad_wb_m3s[i])
+  expect_false(anyNA(q_pick))
   expect_equal(nrow(v$skill), 315L)   # the shipped fit's calibration gauges (HYDAT 2026-07-17, #43)
   expect_type(v$skill$linear_feature_id, "integer")
   # routed PCIC flow (fwapg#6, #58) at most gauges in its coverage, and at few outside it
@@ -72,16 +87,14 @@ test_that("the segment values carry plain ids, the calibration gauges and their 
   expect_lt(sum(!v$skill$in_routed & !is.na(v$skill$routed_mm)), 5)
   expect_true(all(v$skill$routed_mm > 0, na.rm = TRUE))
   expect_false(anyNA(v$gauges_salr[c("lon", "lat", "routed_mm")]))
-  expect_setequal(unique(v$segments$watershed_group_code), c("SALR", "BULK"))
-  # routed flow covers both groups: all but a few segments that have a watershed
-  for (g in c("SALR", "BULK")) {
-    i <- v$segments$watershed_group_code == g & !is.na(v$segments$mad_wb_m3s)
-    expect_gt(mean(!is.na(v$segments$mad_routed_m3s[i])), 0.99, label = g)
-  }
+  expect_setequal(unique(v$segments$watershed_group_code), "SALR")
+  # routed flow covers SALR: all but a few segments that have a watershed
+  i <- !is.na(v$segments$mad_wb_m3s)
+  expect_gt(mean(!is.na(v$segments$mad_routed_m3s[i])), 0.99)
   expect_equal(sum(v$gauges_salr$holds_salr), 1L)
-  expect_true(all(c("wet_commit", "province_run", "aet", "hydat_release", "near_km",
-                    "salr_stale_segments", "upstream_area_100", "fwapg_discharge_rows", "routed_commit",
-                    "routed_fingerprint", "routed_groups", "routed_cov_rows", "routed_order8") %in% names(v$provenance)))
+  expect_true(all(c("wet_commit", "province_run", "aet", "hydat_release", "near_km", "published",
+                    "published_check", "routed_commit", "routed_fingerprint", "routed_groups",
+                    "routed_cov_rows", "routed_order8") %in% names(v$provenance)))
 })
 
 test_that("the segment map layers are sf in BC Albers and join the values", {
@@ -94,7 +107,7 @@ test_that("the segment map layers are sf in BC Albers and join the values", {
     expect_equal(sf::st_crs(m[[nm]])$epsg, 3005L, info = nm)
     expect_gt(nrow(m[[nm]]), 0)
   }
-  expect_setequal(m$groups$watershed_group_code, c("SALR", "BULK"))
+  expect_setequal(m$groups$watershed_group_code, "SALR")
   v <- readRDS(vignette_data("segment_values.rds"))
   expect_setequal(m$segments$linear_feature_id, v$segments$linear_feature_id)
   # the coverage outline and the scored gauges come from two queries: every
@@ -117,5 +130,5 @@ test_that("the segment map layers are sf in BC Albers and join the values", {
   rivers <- c(sf::st_geometry(m$context_streams),
               sf::st_geometry(m$segments[m$segments$watershed_group_code == "SALR", ]))
   expect_true(all(apply(sf::st_distance(near, rivers), 1, min) < 200))
-  expect_setequal(m$places$watershed_group_code, c("SALR", "BULK"))
+  expect_setequal(m$places$watershed_group_code, "SALR")
 })

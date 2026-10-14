@@ -1,18 +1,18 @@
-# Map layers for vignettes/segment-discharge.Rmd (#28), which draws them from
+# Map layers for vignettes/segment-discharge.Rmd (#28, #64), which draws them from
 # inst/vignette-data/ and never touches fwapg or the network at build.
 #
 #   Rscript data-raw/segment_vignette_map.R
 #
 # Writes inst/vignette-data/segment_map.rds: a named list of sf layers in
 # EPSG:3005, xz-compressed like station_map.rds:
-#   - segments: FWA stream segments of order >= 3 in SALR and BULK, keyed by
+#   - segments: FWA stream segments of order >= 3 in SALR, keyed by
 #     linear_feature_id, simplified at 50 m and snapped to a 1 m grid; the
 #     discharge per segment is in segment_values.rds
 #     (data-raw/segment_vignette_data.R), joined in the vignette
-#   - groups: the two watershed group outlines, with their area
-#   - lakes: FWA lakes of at least 100 ha in the two groups
-#   - places: populated places inside BULK, and inside SALR's context box
-#     (SALR itself has none), from BC Geographic Names (bcdata)
+#   - groups: the SALR watershed group outline, with its area
+#   - lakes: FWA lakes of at least 100 ha in the group
+#   - places: populated places inside SALR's context box (SALR itself has
+#     none), from BC Geographic Names (bcdata)
 #   - context: the box around SALR that its map may draw, which holds the
 #     gauges near the group (data-raw/segment_vignette_data.R, near_km) and its
 #     outlet gauge, 46 km off at Prince George
@@ -36,7 +36,7 @@
 devtools::load_all(quiet = TRUE)
 sf::sf_use_s2(FALSE)
 
-wsg <- c("SALR", "BULK")
+wsg <- "SALR"
 min_order <- 3
 simplify_m <- 50
 context_km <- 60
@@ -185,12 +185,10 @@ zones <- sf::st_sf(zone = names(zone_list), name = unname(hz_name[names(zone_lis
 stopifnot(!anyDuplicated(zones$zone), !anyNA(zones$name), all(!sf::st_is_empty(zones)))
 
 # ---- place names ----------------------------------------------------------------
-# a name is not a key: keep the populated places inside BULK, and inside SALR's
-# context box (SALR itself has none; Prince George, the nearest city, is 59 km
-# off its boundary)
-frames <- rbind(sf::st_sf(watershed_group_code = "BULK",
-                          geom = sf::st_geometry(groups[groups$watershed_group_code == "BULK", ])),
-                context)
+# a name is not a key: keep the populated places inside SALR's context box
+# (SALR itself has none; Prince George, the nearest city, is 59 km off its
+# boundary)
+frames <- context
 bb <- sf::st_bbox(frames)
 gns <- bcdata::bcdc_query_geodata("WHSE_BASEMAPPING.GNS_GEOGRAPHICAL_NAMES_SP") |>
   dplyr::filter(FEATURE_TYPE %in% c("City", "Town", "District Municipality (1)", "Village (1)")) |>
