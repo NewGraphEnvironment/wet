@@ -20,3 +20,6 @@
   - `station_departure.R` ran (exit 0), and its report reads "HYDAT 2026-07-17". It was kept as `data/logs/46/station_departure_report.txt`, and the tracked report restored, because research cites its figures (review A2).
   - `station_vignette_map.R` regenerated `station_map.rds`. Five layers are `all.equal` to the committed file. Lakes hold the same 19 rows in another order (the query has no ORDER BY) and are equal once sorted. The new file carries `provenance$hydat = "2026-07-17"`, and `test-vignette_data.R` passes 104.
 - Round 1 (2026-10-15, about 6 min): one finding, integer overflow of page_count * page_size past 2 GiB. Reproduced (both integer, `2200000L * 4096L` is NA). Fixed with doubles
+- Full suite at 13150de: 1113 pass, 0 fail, 0 skip (`data/logs/46/test2.rds`); both pinned live tests passed. Lint: no new lints beyond the helpers' existing testthat-visibility pattern
+- `/code-check branch`: round 1 found one bug (integer overflow, fixed b1d9058); rounds 2 and 3 clean. No round found a defect inside a fix. Three reviewer spawns plus one plan review
+- Issue #46 body edited to the landed design (partial dirs, whole-file check, classed error, 20260717 backup, mad_basin.R)
