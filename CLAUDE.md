@@ -362,7 +362,7 @@ check is almost always to read the thing the prose describes.
   keeps finding them, list every quantified or inherited claim with a measured verdict
   (`code-check.md`, "A guard's scope, escape hatches, and remedies").
 
-*80 lines of evidence for this rule are in `conventions/agent-operations.md`.*
+*91 lines of evidence for this rule are in `conventions/agent-operations.md`.*
 
 ### "It can only be answered by testing" is a claim with an author
 
@@ -2733,8 +2733,8 @@ Based on [R Packages (2e)](https://r-pkgs.org/) by Hadley Wickham and Jenny Brya
 
 **Reference packages:** When starting a new package, study these existing
 packages for patterns: `flooded`, `gq`. They demonstrate the conventions below
-in practice (DESCRIPTION fields, README layout, NEWS.md style, pkgdown setup,
-test structure, hex sticker, etc.).
+in practice (DESCRIPTION fields, NEWS.md style, pkgdown setup, test structure,
+hex sticker, etc.). README layout is `readme.md`, with `link` as its worked example.
 
 ## Style
 
@@ -3024,12 +3024,8 @@ run interactively. This is the reproducible recipe for the package scaffold.
 
 ## README
 
-Keep the README lean:
-- Hex sticker, one-line description, install, example showing *why* it's
-  useful
-- Link to pkgdown vignette and function reference — don't duplicate them
-- Don't maintain a function table — it's just another thing to keep updated
-  and pkgdown's reference page is the single source of truth
+What a README says, in what order, and what stays out of it is `readme.md`, which loads
+wherever this file does.
 
 ## LLM Workflow
 
@@ -3053,6 +3049,38 @@ When an LLM assistant modifies R package code:
    ```bash
    Rscript -e 'devtools::check()' 2>&1 | grep -E "(ERROR|WARNING|NOTE|errors|warnings|notes)" | tail -10
    ```
+
+# Writing a README
+A README tells a stranger what a package is, why it is worth their time, and how to try it, in that order and in the fewest words that stay true.
+
+*Index only: each rule's heading and first sentence. The full text is `~/Projects/repo/soul/conventions/readme.md`; read it before writing or reviewing code in its area.*
+
+### Open with what the package is and why it is valuable, not with a list of features
+Open with one to three sentences on what the package is, what data it works on, and why that is valuable, with the restoration planning, implementation or monitoring decision it informs where there is one.
+
+### Write the tagline, the description field, the GitHub About and the opening together
+Change the README tagline, the DESCRIPTION `Title` (or a Python package's pyproject `description`) and the GitHub About text together so they say the same thing, and keep the DESCRIPTION `Description` and the README opening in step with each other.
+
+### Show a little code and its real output, a figure of real output, or both
+Show the package working instead of listing what it can do: a figure of real output where the output is spatial or visual, a short example with the output it really prints, or both.
+
+### Describe nothing that is not fully built
+Leave out every capability that has not shipped, including partly built ones and those framed as a target, a next iteration or a roadmap; add each one when it ships.
+
+### Check each claim against the code path a run takes
+Before a README sentence is published, find the code path a real run takes for it, and check that every "every", "each", "both" or plural holds for every member of the set it names.
+
+### Sections run in a fixed order
+Order a README as: name, hex sticker, a lifecycle badge while unstable, and tagline; the opening; the figure; Installation; the example; Learn more; Ecosystem; Data and methods it builds on; Citation, License and NOTICE.
+
+### State development status with a lifecycle badge, not a warning in the prose
+Mark an unstable installable package with a lifecycle badge under the title, and after the install command say that functions change between releases, link NEWS, and show how to pin a release.
+
+### A README figure of output is made by committed code
+Make every README figure of the package's output from a committed script that runs on real data, check it at its published width, give it alt text and a short caption saying what it shows, and style a map through gq.
+
+### Leave out what another file already keeps
+Leave out roadmaps, changelogs, function tables, version strings in prose, counts of published things, and internal hosts or private repos, because each is kept somewhere else and goes stale in a README.
 
 # Writing for the Reader
 A vignette or a report is written for someone who wants to use what it describes, so it answers their questions in their order and carries nothing that served only its authors.
