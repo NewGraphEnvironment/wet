@@ -37,6 +37,24 @@ Found while planning #81.
 - #43's acceptance rule named the 2026-07-17 fit specifically, so a rule for the next release had to be stated anyway.
 - Running `wb_fit_accept.R ... 20260717` would overwrite #43's tracked report `data/checks/wb_fit_accept_20260717.txt`.
 
+## Sandbox verification (m1, 2026-10-15, after 04bec81)
+
+A `git archive HEAD` copy in the session scratchpad holding the reduced `fit_20260717` (fits, `cv_aet-cfu.rds`, winner, decision files), its stations file, and a synthetic `fit_20990101`: the same files with `release` rewritten and `stations_20990101.rds` copied. Real `data/` untouched. Driver: a throwaway R script that ran each case through `Rscript scripts/wb_fit_accept.R`.
+
+| case | exit | result |
+|---|---|---|
+| base (copy of shipped) | 0 | SHIPS +0.00; both "fixed to 'none'"; both gates "FAIL (adjustment kept by override)"; 30.72 / 30.72 |
+| new fit `cv_variant = "nested"` | 0 | runs; report says "chosen inside each fold" |
+| new fit ships `fu` (fits, cv file, winner) | 0 | runs; "AET: 20260717 cfu, 20990101 fu (switched)" |
+| `pooled_variant.txt` edited after the fit | 1 | "not current under its code and decision files" |
+| winner line 2 stale | 1 | "has no current AET winner for cfu" |
+| no winner file | 1 | same |
+| new == shipped | 1 | "the new fit must be another release" |
+| old not shipped | 1 | "the old fit must be the shipped one" |
+| mutant: line 35's nested-only stop restored | 1 | "fit 20260717 was scored with the pooled variant fixed" — the old stop fires on the shipped fit, so the fix is what lets it run |
+
+The shipped fit on m1 is current under the branch's scoring code (its `fits.rds$code_md5` equals the recomputed `score_code_md5`), so the per-fit check works on a real bundle, not only on a synthetic one. The 30.72 headwater MAE is over fit_20260717's own headwater set (the copy shares all of them), not #43's 209 common gauges (30.90).
+
 ## Errors Encountered
 
 | Error | Resolution |

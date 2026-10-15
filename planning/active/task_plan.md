@@ -30,9 +30,9 @@ Only `wb_fit_accept.R` and docs change. That script is not in `score_files_for()
 - [x] Report each fit's pooled variant (`nested`, or `fixed to 'none'`) and AET. The heading changes to "each fit as it ships".
 
 ## Phase 2: Verify in a sandbox (m1, scratchpad copy; data/ untouched)
-- [ ] Build a sandbox tree with `data/wb/<key>/upstream/_complete`, the reduced `fit_20260717`, and a synthetic `fit_20990101`. The synthetic fit is a copy with its `release` fields rewritten, plus `stations_20990101.rds`.
-- [ ] `wb_fit_accept.R 20260717 20990101`: expect SHIPS, +0.00, and both fits reported as fixed to 'none'.
-- [ ] Mutations, each expected to refuse or to report as stated:
+- [x] Build a sandbox tree with `data/wb/<key>/upstream/_complete`, the reduced `fit_20260717`, and a synthetic `fit_20990101`. The synthetic fit is a copy with its `release` fields rewritten, plus `stations_20990101.rds`.
+- [x] `wb_fit_accept.R 20260717 20990101`: expect SHIPS, +0.00, and both fits reported as fixed to 'none'.
+- [x] Mutations, each expected to refuse or to report as stated:
   - new fit `cv_variant = "nested"`: runs, report says nested
   - new fit with another AET (consistent winner and fits): runs, report names both
   - edited `pooled_variant.txt` on the new fit: refuses, as stale
@@ -48,7 +48,7 @@ Only `wb_fit_accept.R` and docs change. That script is not in `score_files_for()
 
 ## Validation
 
-- [ ] Tests pass (sandbox runs; no package tests touch scripts)
+- [x] Tests pass (sandbox runs; no package tests touch scripts)
 - [ ] `/code-check` clean (once over the branch with `/code-check branch`)
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
