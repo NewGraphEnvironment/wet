@@ -283,7 +283,7 @@ HYDAT 2025-10-14 (`s3://fresh-bc/hydat/20251014/`, md5 `da00052022aa1533b80f9fab
 
 ### The AET re-decided on HYDAT 2026-07-17 (#81)
 
-**Verified:** 2026-10-15 · **Issues:** #81 (from #15, #18, #43; spawned #83) · **Produced by:** `scripts/wb_validate.R <variant>` for all ten variants, then `scripts/wb_aet_compare.R`, on `fit_20260717` → `data/checks/wb_aet_compare_20260717.txt` and `data/checks/wb_validation_aet-*_20260717.txt`. The run logs were not kept.
+**Verified:** 2026-10-15 · **Issues:** #81 (from #15, #18, #43; spawned #83, "Accepting the next refit" below) · **Produced by:** `scripts/wb_validate.R <variant>` for all ten variants, then `scripts/wb_aet_compare.R`, on `fit_20260717` → `data/checks/wb_aet_compare_20260717.txt` and `data/checks/wb_validation_aet-*_20260717.txt`. The run logs were not kept.
 
 Until #81 the AET was chosen only on `fit_20251014`, and newer fits carried it. Now the comparison runs on the shipped release, with #15's and #18's rules unchanged. Each variant is scored as the fit ships it: pooled zones fixed to `none` (#43's pooled test) and the 0.1-point gate override. The nested selection applies both inside each fold. Both decisions were made on `cfu`'s own fit, so this form leans toward `cfu`; the report says so.
 
@@ -304,6 +304,19 @@ Until #81 the AET was chosen only on `fit_20251014`, and newer fits carried it. 
 - **The shipped fit is unchanged.** `cfu`'s held-out predictions and the fit itself are identical to those before #81; only the scoring md5 moved. The province output and the published parts are unchanged too (`data/checks/discharge_publish_20260717.txt`).
 
 **What ships, from now on.** Without a recorded decision only `cfu` ships, and only when the rule picks it. Any other winner, or one that would ship raw under a fixed pooled variant, gets no winner file, and the report says DECISION TO USER. The user records the AET to ship in `<fit>/aet_decision.txt` (the variant, then who decided and why). It is hashed into the fit's scores, recorded in `fits.rds`, and copied into each later release's fit; a fit that should have one and does not is refused.
+
+### Accepting the next refit (#83)
+
+**Verified:** 2026-10-15 · **Issues:** #83 (from #43, #81) · **Produced by:** `scripts/wb_fit_accept.R <shipped> <new>`; rule written before any release after 2026-07-17 was scored.
+
+#43's acceptance rule compared the two fits with the pooled variant chosen inside each fold, and named the 2026-07-17 fit. #43's own pooled-zone test then fixed `fit_20260717` to `none`, so its stored scores no longer have that form, and #81 lets each release re-decide its AET. The rule for every later release, pre-registered here:
+
+- **Each fit as it ships.** For the fit's shipped AET, under its own decision files, the held-out error of what it ships: the blocked-CV adjusted prediction (`cv_v` in `cv_aet-<AET>.rds`), or raw P − AET (`raw_v`) when its gate dropped the adjustment. This is the same choice `scripts/pcic_routed_lib.R` makes. The decision files are `pooled_variant.txt`, `adjust_override.txt`, `aet_decision.txt`. Nothing is rescored for the comparison.
+- **The new fit's chain is complete first.** AET decided, pooled-zone test run, `wb_validate.R` rerun, so its `fits.rds`, scores and winner are current under its decision files. The script refuses either fit whose scores, `fits.rds` or winner are stale, or whose scores do not use its pooled-zone test's outcome (`pooled_test.txt`: the fixed variant, or the nested choice when the test was uninformative). That file names no release, so it must agree with the tracked report the test wrote for that release (`data/checks/wb_pooled_test_<release>.txt`).
+- **Unchanged from #43.** Mean |err_pct| on the headwater calibration gauges common to both fits (observed ≥ 10 mm), each fit against its own release's observed runoff. The new fit ships unless it is more than 1.0 point worse. A new fit that passes with its headwater gate failing goes to the user.
+- **An AET switch is reported, not refused.** It can only come from a user-recorded `aet_decision.txt`, and comparing shipped fits makes the two AETs comparable.
+
+The old side is always `wb_shipped_release` and the new side a later release, so #43's report (`data/checks/wb_fit_accept_20260717.txt`) stays its record.
 
 ### Which term is off in the dry interior (#45)
 
