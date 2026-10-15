@@ -1,5 +1,7 @@
-# Where a water-balance fit lives, and which one ships (#43). Sourced by the
-# wb_* scripts after devtools::load_all(); not run on its own.
+# Where a water-balance fit lives, and which one ships (#43), and the HYDAT
+# release a script reads (#46). Sourced after devtools::load_all() by the wb_*
+# scripts, and by the station-flow scripts and mad_basin.R for wb_hydat(); not
+# run on its own.
 #
 # A fit is the province run (data/wb/<key>/, keyed on the input rasters and
 # their code, scripts/wb_province.R) plus one HYDAT release: the stations

@@ -108,7 +108,7 @@ out <- c(
   "# Flow departure at hydrometric stations (#25)",
   "",
   sprintf("Run %s. HYDAT %s. Baseline %d-%d. Threshold for frac_below: 20%% of the station's MAD (1981-2010, or its whole record of complete years where 1981-2010 has fewer than 5).",
-          format(Sys.Date()), wet_hydat_release(hydat), min(baseline), max(baseline)),
+          format(Sys.Date()), format(as.Date(wet_hydat_release(hydat), "%Y%m%d")), min(baseline), max(baseline)),
   "Anomalies: q_mean and q_min7 in % of normal; q_frac_below as a change in the share of days below the threshold.",
   "ice = share of the days present flagged B (ice); prov = share of the days present that are provisional (no ice flag recorded).",
   "The ch_* windows are examples from the template's Bulkley life-history CSV, pending knowledge#25.",

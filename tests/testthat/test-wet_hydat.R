@@ -39,6 +39,8 @@ test_that("ECCC's current release is downloaded into the cache", {
   local_mocked_bindings(
     wet_hydat_remote = function() "20260717",
     wet_hydat_download = function(dir) {
+      # tidyhydat creates its directory without parents: wet makes it
+      stopifnot(dir.exists(dir))
       calls <<- c(calls, dir)
       version_file(file.path(dir, "Hydat.sqlite3"), "2026-07-17 08:08:08")
     }
@@ -108,4 +110,59 @@ test_that("a release must be YYYYMMDD", {
   expect_error(wet:::wet_hydat(20260717, cache_dir = cache), "YYYYMMDD")
   expect_error(wet:::wet_hydat(c("20260717", "20251014"), cache_dir = cache), "YYYYMMDD")
   expect_error(wet:::wet_hydat(NA_character_, cache_dir = cache), "YYYYMMDD")
+})
+
+test_that("a truncated cached file is refused, not read", {
+  local_no_network()
+  cache <- withr::local_tempdir()
+  f <- file.path(cache, "hydat", "20260717", "Hydat.sqlite3")
+  version_file(f, "2026-07-17 08:08:08")
+  con <- DBI::dbConnect(RSQLite::SQLite(), f)
+  DBI::dbWriteTable(con, "BIG", data.frame(x = seq_len(2e5) / 7))
+  DBI::dbDisconnect(con)
+  writeBin(readBin(f, "raw", file.size(f))[seq_len(4096 * 20)], f)
+  err <- expect_error(wet:::wet_hydat("20260717", cache_dir = cache), "is not a whole HYDAT")
+  expect_false(inherits(err, "wet_hydat_unavailable"))
+})
+
+test_that("a partial left by a killed run is swept once stale; another run's is left", {
+  local_no_network()
+  cache <- withr::local_tempdir()
+  root <- file.path(cache, "hydat")
+  old <- file.path(root, ".20260717.partial-old")
+  live <- file.path(root, ".20260717.partial-live")
+  dir.create(old, recursive = TRUE)
+  dir.create(live)
+  Sys.setFileTime(old, Sys.time() - 3 * 86400)
+  local_mocked_bindings(
+    wet_hydat_remote = function() "20260717",
+    wet_hydat_download = function(dir) version_file(file.path(dir, "Hydat.sqlite3"), "2026-07-17 08:08:08")
+  )
+  wet:::wet_hydat("20260717", cache_dir = cache)
+  expect_false(dir.exists(old))
+  expect_true(dir.exists(live))
+})
+
+test_that("when another run lands the release first, its copy is used", {
+  local_no_network()
+  cache <- withr::local_tempdir()
+  target <- file.path(cache, "hydat", "20260717", "Hydat.sqlite3")
+  local_mocked_bindings(
+    wet_hydat_remote = function() "20260717",
+    wet_hydat_download = function(dir) {
+      version_file(file.path(dir, "Hydat.sqlite3"), "2026-07-17 08:08:08")
+      # the other run renames its download into place meanwhile
+      version_file(target, "2026-07-17 08:08:08")
+    }
+  )
+  expect_equal(wet:::wet_hydat("20260717", cache_dir = cache), target)
+  expect_equal(list.files(file.path(cache, "hydat"), all.files = TRUE, no.. = TRUE), "20260717")
+})
+
+test_that("an answer from ECCC that is not a release is an error, not a skip", {
+  local_no_network()
+  cache <- withr::local_tempdir()
+  local_mocked_bindings(wet_hydat_remote = function() "<html>")
+  err <- expect_error(wet:::wet_hydat("20260717", cache_dir = cache), "not YYYYMMDD")
+  expect_false(inherits(err, "wet_hydat_unavailable"))
 })

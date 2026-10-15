@@ -13,3 +13,5 @@
   - `s3://fresh-bc/hydat/20251014/Hydat.sqlite3` (1,274,108,928 bytes, object metadata `md5`) and `Hydat.sqlite3.md5`, uploaded from m4's wet cache. Read back on m4: md5 da00052022aa1533b80f9fab7cb8b4d0. Anonymous GET of the md5 file gives 403, and the published manifest gives 200 from the same endpoint.
   - m1: `data/hydat/20260717/` moved (a rename) to `~/Library/Caches/org.R-project.R/R/wet/hydat/20260717/`, and `wet:::wet_hydat("20260717")` resolves.
   - m4: the main checkout's `data/hydat/20260717/` moved into the cache; `wet-16`'s `data/hydat` symlink (to it) removed. With this branch's `R/wet_hydat.R`, both 20260717 and 20251014 resolve there.
+- Full suite on m1 at d077db0: 1105 pass, 0 fail, 0 skip (`data/logs/46/test.rds`). Buck Creek and snap tests passed, not skipped
+- Plan review folded in (findings table): whole-file check, unique partials, ECCC answer validated, `mad_basin.R` pinned, 20260717 backed up. Mutations M5-M9 each turn their own test red

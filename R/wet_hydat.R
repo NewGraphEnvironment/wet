@@ -8,15 +8,14 @@
 # A release missing from the cache is downloaded only while ECCC still serves
 # it: ECCC keeps only its current release. A superseded one has to be copied in
 # by hand, from the private backup at s3://fresh-bc/hydat/<release>/ or any
-# other copy; the VERSION check below is what makes such a copy safe to use.
+# other copy; the checks below are what make such a copy safe to use.
 # Internal, because that backup is not reachable outside NGE.
 wet_hydat <- function(release, cache_dir = tools::R_user_dir("wet", "cache")) {
   if (!is.character(release) || length(release) != 1L || is.na(release) || !grepl("^[0-9]{8}$", release)) {
     stop("`release` must be one HYDAT release as YYYYMMDD", call. = FALSE)
   }
   root <- file.path(cache_dir, "hydat")
-  dir <- file.path(root, release)
-  f <- file.path(dir, "Hydat.sqlite3")
+  f <- file.path(root, release, "Hydat.sqlite3")
   if (!file.exists(f)) {
     backup <- sprintf("copy Hydat.sqlite3 from the backup at s3://fresh-bc/hydat/%s/ (check its md5) to %s",
                       release, f)
@@ -24,36 +23,62 @@ wet_hydat <- function(release, cache_dir = tools::R_user_dir("wet", "cache")) {
       wet_hydat_unavailable("HYDAT ", release, " is not in the cache and wet could not ask ECCC for its ",
                             "current release (", conditionMessage(e), "); ", backup)
     })
+    # an answer that is not a release means ECCC's page changed: an error to
+    # fix, not a release that cannot be had
+    if (!is.character(current) || length(current) != 1L || !grepl("^[0-9]{8}$", current)) {
+      stop("ECCC's current HYDAT release read as ", deparse(current), ", not YYYYMMDD", call. = FALSE)
+    }
     if (!identical(current, release)) {
       wet_hydat_unavailable("HYDAT ", release, " is not in the cache and ECCC serves only HYDAT ", current,
                             "; ", backup)
     }
     wet_hydat_fetch(release, root)
   }
-  got <- wet_hydat_release(f)
-  if (!identical(got, release)) stop(f, " holds HYDAT ", got, ", not ", release, call. = FALSE)
+  wet_hydat_check(f, release)
   f
 }
 
-# Download ECCC's current release into a partial directory beside the cache
-# entry and move it into place only once its VERSION says it is `release`, so
-# an interrupted download or a release ECCC replaced in the meantime never
-# lands under a release's name.
+# A cached file must be whole and hold `release`. SQLite refuses most
+# truncated files itself, as "malformed"; the size check covers one it reads.
+wet_hydat_check <- function(f, release, integrity = FALSE) {
+  got <- tryCatch({
+    con <- suppressWarnings(wet_hydat_connect(f))
+    on.exit(DBI::dbDisconnect(con), add = TRUE)
+    bytes <- DBI::dbGetQuery(con, "PRAGMA page_count")[[1]] * DBI::dbGetQuery(con, "PRAGMA page_size")[[1]]
+    if (!isTRUE(bytes == file.size(f))) stop("its pages make ", bytes, " bytes, the file ", file.size(f))
+    if (integrity) {
+      qc <- DBI::dbGetQuery(con, "PRAGMA quick_check")[[1]]
+      if (!identical(qc, "ok")) stop("quick_check: ", paste(utils::head(qc, 3), collapse = "; "))
+    }
+    wet_hydat_release(f)
+  }, error = function(e) {
+    stop(f, " is not a whole HYDAT (", conditionMessage(e), "); copy it again", call. = FALSE)
+  })
+  if (!identical(got, release)) stop(f, " holds HYDAT ", got, ", not ", release, call. = FALSE)
+  invisible(f)
+}
+
+# Download ECCC's current release into a partial directory of this call's own
+# beside the cache entry, and move it into place only once it is whole and its
+# VERSION says it is `release`, so an interrupted download or a release ECCC
+# replaced in the meantime never lands under a release's name. Two callers
+# fetching at once each download; the first rename wins and the second uses it.
 wet_hydat_fetch <- function(release, root) {
-  partial <- file.path(root, paste0(".", release, ".partial"))
-  unlink(partial, recursive = TRUE)
-  dir.create(partial, recursive = TRUE, showWarnings = FALSE)
+  dir.create(root, recursive = TRUE, showWarnings = FALSE)
+  stale <- list.files(root, pattern = paste0("^[.]", release, "[.]partial-"), all.files = TRUE, full.names = TRUE)
+  unlink(stale[difftime(Sys.time(), file.mtime(stale), units = "days") > 1], recursive = TRUE)
+  partial <- tempfile(paste0(".", release, ".partial-"), tmpdir = root)
+  dir.create(partial)
   on.exit(unlink(partial, recursive = TRUE), add = TRUE)
   wet_hydat_download(partial)
-  got <- wet_hydat_release(file.path(partial, "Hydat.sqlite3"))
-  if (!identical(got, release)) {
-    stop("the download holds HYDAT ", got, ", not ", release, "; ECCC may have just replaced it", call. = FALSE)
+  tryCatch(wet_hydat_check(file.path(partial, "Hydat.sqlite3"), release, integrity = TRUE),
+           error = function(e) stop("the download failed its check: ", conditionMessage(e), call. = FALSE))
+  target <- file.path(root, release)
+  # a rename onto a directory another run has just filled fails, and that run's copy is used
+  if (!suppressWarnings(file.rename(partial, target)) && !file.exists(file.path(target, "Hydat.sqlite3"))) {
+    stop("could not move the download into ", target, call. = FALSE)
   }
-  # same directory, so a rename, never a copy
-  if (!file.rename(partial, file.path(root, release))) {
-    stop("could not move the download into ", file.path(root, release), call. = FALSE)
-  }
-  invisible(file.path(root, release, "Hydat.sqlite3"))
+  invisible(file.path(target, "Hydat.sqlite3"))
 }
 
 # The release cannot be had here, as opposed to a cache holding the wrong file:

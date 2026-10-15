@@ -55,3 +55,24 @@ Relates to #43, #81, #25, #27.
 
 | Error | Resolution |
 |-------|------------|
+
+## Plan review (`review-plan.md`, Plan agent, landed after Phases 1–3)
+
+| finding | disposition |
+|---|---|
+| G1 truncated file passes the VERSION check | **Not reproduced as stated.** A VERSION+BIG sqlite cut to 20 pages already fails in `wet_hydat_release()` with "database disk image is malformed". Added anyway: `wet_hydat_check()` turns any open/read failure into "is not a whole HYDAT", compares `page_count * page_size` with the file size on every return, and runs `PRAGMA quick_check` once after a download. The size check alone is not separately pinned: no cheap fixture gets past SQLite's own check |
+| G2 the shipped release has no backup | Fixed. `s3://fresh-bc/hydat/20260717/` uploaded from m4, md5 0a1c40705f31ca89606560b569ea0af5 (the same on m1 and m4), read back. CLAUDE.md: back a release up when it is first pinned |
+| G3 fixed partial name races | Fixed. `tempfile()` partial per call; a failed rename onto a filled target uses that copy; partials over a day old are swept |
+| G4 `mad_basin.R` reads tidyhydat's directory | Fixed: `hydat_path = wb_hydat(wb_release())` and the release printed. The pinned calls give 2664 m3/s over 10957 days, the tracked `data/basin/100_report.txt:63` exactly, so no rerun |
+| G5 test gaps | Added: stale vs live partial, mock asserts its dir exists, another run landing first, non-release answer from ECCC is a plain error. `WET_HYDAT` guard checked by hand (Phase 5); scripts are not under test |
+| O1/O2/O3 | Moot: the m4 move was done before anything ran there, with the branch's files copied over |
+| S1 pin bump needs several edits | CLAUDE.md lists them |
+| S2 lib header | Updated |
+| S5 cache purgeable, Sc1 pruning | CLAUDE.md: backup survives a purge; unpinned releases deleted by hand |
+| S6 tests may download 1 GB | Accepted; the helper says so |
+| Sc2 partial dir vs issue's `dl_hydat_here = <cache>/<release>` | Issue body edited at the end |
+| A1 unquoted grep | The check was run quoted |
+| A2 departure rerun re-dates cited figures | Run as a smoke test into `data/logs/46/`; the tracked report is not refreshed |
+| A3 map comparison | `all.equal` per layer; the committed file kept if any layer differs |
+| A4 skips | Checked from the result table: both pinned tests passed, 0 skipped |
+| A5 two date formats | The departure report now prints 2026-07-17 as the .rds files do |
