@@ -181,6 +181,9 @@ MIT
 - [`wet_share_predict()`](https://newgraphenvironment.github.io/wet/reference/wet_share_predict.md)
   : Predict monthly shares of annual runoff
 
+- [`wet_snow_normals()`](https://newgraphenvironment.github.io/wet/reference/wet_snow_normals.md)
+  : Snow normals from cd's ERA5-Land annual snow layers
+
 - [`wet_station_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_station_daily.md)
   : Daily flow at hydrometric stations, from HYDAT through to the
   present

@@ -24,7 +24,12 @@ wet_share_fit(d, static = c("elev", "e_km", "n_km"))
 
 - static:
 
-  Predictors used in every month.
+  Predictors used in every month, one value per station, each with its
+  own coefficient in each month. The snow predictors scored in \#16
+  enter here:
+  `static = c("elev", "e_km", "n_km", "snowmelt_doy_50", "swe_max")`,
+  the upstream means of
+  [`wet_snow_normals()`](https://newgraphenvironment.github.io/wet/reference/wet_snow_normals.md).
 
 ## Value
 

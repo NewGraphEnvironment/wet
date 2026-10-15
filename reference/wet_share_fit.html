@@ -73,7 +73,9 @@ columns.</p></dd>
 
 
 <dt id="arg-static">static<a class="anchor" aria-label="anchor" href="#arg-static"></a></dt>
-<dd><p>Predictors used in every month.</p></dd>
+<dd><p>Predictors used in every month, one value per station, each
+with its own coefficient in each month. The snow predictors scored in
+#16 enter here: <code>static = c("elev", "e_km", "n_km", "snowmelt_doy_50", "swe_max")</code>, the upstream means of <code><a href="wet_snow_normals.html">wet_snow_normals()</a></code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
