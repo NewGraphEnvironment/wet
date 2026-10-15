@@ -1,3 +1,7 @@
+# wet 0.4.6
+
+* The published discharge at `s3://fresh-bc/discharge/fwa/v1/` now carries the snow-informed monthly balance (build acb820f, #77). Annual flow and each segment's `pick` are unchanged. The monthly-flow article's data were rebuilt from it, and the article now describes the snow terms. The balance reads high only in April and May, by a median of 7 % to 11 %, and is within 5 % in the other months. The freshet is still flattened. `data-raw/monthly_vignette_data.R` reads the held-out months each fit stores, instead of recomputing them (#68).
+
 # wet 0.4.5
 
 * The water balance's monthly shares now also use snow: ERA5-Land's 1981-2010 day by which half the snowpack has melted and its peak snow water equivalent (capped at 3,000 mm for glacier points), from cd through the new `wet_snow_normals()`, averaged upstream like the other predictors. A rule fixed before scoring kept them: the held-out median share NSE rose from 0.856 to 0.874 on the shipped fit. Winter and early-spring flow is much less overpredicted, the spring peak is a little less flattened, and zone 27 is worse. The annual balance is unchanged (#16). Each fit now stores its held-out monthly balance (#68). The published discharge still carries the earlier monthly values until #77.
