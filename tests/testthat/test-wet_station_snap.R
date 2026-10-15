@@ -33,7 +33,7 @@ test_that("stations without a usable candidate or area keep a row with a reason"
 
 test_that("real stations snap to the right stream: mainstem, headwater, confluence", {
   conn <- local_fwapg()
-  h <- local_hydat_real()
+  h <- local_hydat_pinned()
   con <- wet:::wet_hydat_connect(h)
   on.exit(DBI::dbDisconnect(con), add = TRUE)
   st <- DBI::dbGetQuery(con, "

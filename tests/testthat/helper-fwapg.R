@@ -16,11 +16,3 @@ local_fwapg <- function(env = parent.frame()) {
   withr::defer(DBI::dbDisconnect(conn), envir = env)
   conn
 }
-
-# The local HYDAT, or a skip.
-local_hydat_real <- function() {
-  skip_if_not_installed("tidyhydat")
-  p <- file.path(tidyhydat::hy_dir(), "Hydat.sqlite3")
-  if (!file.exists(p)) skip("no local HYDAT")
-  p
-}

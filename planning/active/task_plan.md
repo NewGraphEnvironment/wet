@@ -19,11 +19,11 @@
 - [x] Strip `WET_HYDAT` from the run lines and comments of `scripts/wb_stations.R`, `wb_output.R`, `wb_gauge_diversion.R` and `data-raw/monthly_vignette_data.R`.
 - [x] `scripts/station_departure.R`, `data-raw/station_vignette_data.R` and `data-raw/station_vignette_map.R` source `scripts/wb_fit_lib.R` and take `hydat <- wb_hydat(wb_release())`. The hard-coded `data/hydat/20260717/` default and its stale comment go.
 - [x] Provenance: the departure report prints `HYDAT <release>` (from `wet_hydat_release()`); `station_vignette_data.R` takes its release from `wet_hydat_release()`; `station_map.rds` gains `attr(, "provenance") <- list(hydat = <release>)`.
-- [ ] `grep -rn WET_HYDAT\b` over `R/ scripts/ data-raw/ tests/` finds only the guard.
+- [x] `grep -rn WET_HYDAT\b` over `R/ scripts/ data-raw/ tests/` finds only the guard.
 
 ## Phase 3: Live tests name their release
-- [ ] A helper in `tests/testthat/helper-hydat.R`, `local_hydat_pinned(release = "20260717")`: `wet:::wet_hydat(release)`, or `skip()` with the resolver's message.
-- [ ] The Buck Creek test (`test-wet_station_daily.R:280`) and the snap test (`test-wet_station_snap.R:36`) use it, and `local_hydat_real()` is removed. The fixture tests keep `local_hydat()`.
+- [x] A helper in `tests/testthat/helper-hydat.R`, `local_hydat_pinned(release = "20260717")`: `wet:::wet_hydat(release)`, or `skip()` with the resolver's message.
+- [x] The Buck Creek test (`test-wet_station_daily.R:280`) and the snap test (`test-wet_station_snap.R:36`) use it, and `local_hydat_real()` is removed. The fixture tests keep `local_hydat()`.
 
 ## Phase 4: Copies and backup (m1, m4, S3)
 - [ ] m4: upload `~/Library/Caches/org.R-project.R/R/wet/hydat/20251014/Hydat.sqlite3` to `s3://fresh-bc/hydat/20251014/Hydat.sqlite3` with a `Hydat.sqlite3.md5` sidecar (`AWS_PROFILE=airvine`), private. Verify by downloading it back and checking md5 `da00052022aa1533b80f9fab7cb8b4d0` and 1,274,108,928 bytes.

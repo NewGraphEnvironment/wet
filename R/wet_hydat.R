@@ -21,12 +21,12 @@ wet_hydat <- function(release, cache_dir = tools::R_user_dir("wet", "cache")) {
     backup <- sprintf("copy Hydat.sqlite3 from the backup at s3://fresh-bc/hydat/%s/ (check its md5) to %s",
                       release, f)
     current <- tryCatch(wet_hydat_remote(), error = function(e) {
-      stop("HYDAT ", release, " is not in the cache and wet could not ask ECCC for its current release (",
-           conditionMessage(e), "); ", backup, call. = FALSE)
+      wet_hydat_unavailable("HYDAT ", release, " is not in the cache and wet could not ask ECCC for its ",
+                            "current release (", conditionMessage(e), "); ", backup)
     })
     if (!identical(current, release)) {
-      stop("HYDAT ", release, " is not in the cache and ECCC serves only HYDAT ", current, "; ", backup,
-           call. = FALSE)
+      wet_hydat_unavailable("HYDAT ", release, " is not in the cache and ECCC serves only HYDAT ", current,
+                            "; ", backup)
     }
     wet_hydat_fetch(release, root)
   }
@@ -54,6 +54,13 @@ wet_hydat_fetch <- function(release, root) {
     stop("could not move the download into ", file.path(root, release), call. = FALSE)
   }
   invisible(file.path(root, release, "Hydat.sqlite3"))
+}
+
+# The release cannot be had here, as opposed to a cache holding the wrong file:
+# a classed error, so a live test can skip on this and on nothing else.
+wet_hydat_unavailable <- function(...) {
+  stop(structure(class = c("wet_hydat_unavailable", "error", "condition"),
+                 list(message = paste0(...), call = NULL)))
 }
 
 # The two calls that reach ECCC, kept apart so tests can stand them in.

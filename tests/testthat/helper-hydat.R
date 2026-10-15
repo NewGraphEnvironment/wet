@@ -1,3 +1,13 @@
+# A real HYDAT, pinned by release through wet's cache (wet_hydat(), #46), or a
+# skip when the release cannot be had here. Never tidyhydat's own directory,
+# which holds whatever release the machine last downloaded. Absent from the
+# cache, a release ECCC still serves is downloaded (about 1 GB). A cached file
+# holding another release is an error, not a skip.
+local_hydat_pinned <- function(release = "20260717") {
+  skip_if_not_installed("tidyhydat")
+  tryCatch(wet:::wet_hydat(release), wet_hydat_unavailable = function(e) skip(conditionMessage(e)))
+}
+
 # A tiny HYDAT with the three tables the station functions read.
 # Station flows are constant within a month and equal to the month number,
 # except where a test knocks days out. Symbols are NA except the ones set below.

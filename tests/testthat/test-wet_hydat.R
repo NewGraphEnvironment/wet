@@ -27,7 +27,9 @@ test_that("a cached file holding another release is refused", {
   local_no_network()
   cache <- withr::local_tempdir()
   version_file(file.path(cache, "hydat", "20260717", "Hydat.sqlite3"), "2025-10-14 15:09:54")
-  expect_error(wet:::wet_hydat("20260717", cache_dir = cache), "holds HYDAT 20251014, not 20260717")
+  err <- expect_error(wet:::wet_hydat("20260717", cache_dir = cache), "holds HYDAT 20251014, not 20260717")
+  # a broken cache is not "unavailable": a live test must fail on it, not skip
+  expect_false(inherits(err, "wet_hydat_unavailable"))
 })
 
 test_that("ECCC's current release is downloaded into the cache", {
@@ -57,7 +59,8 @@ test_that("a superseded release is not downloaded, and the error names the backu
   local_no_network()
   cache <- withr::local_tempdir()
   local_mocked_bindings(wet_hydat_remote = function() "20260717")
-  err <- expect_error(wet:::wet_hydat("20251014", cache_dir = cache), "ECCC serves only HYDAT 20260717")
+  err <- expect_error(wet:::wet_hydat("20251014", cache_dir = cache), "ECCC serves only HYDAT 20260717",
+                      class = "wet_hydat_unavailable")
   expect_match(conditionMessage(err), "s3://fresh-bc/hydat/20251014/", fixed = TRUE)
   expect_match(conditionMessage(err), file.path(cache, "hydat", "20251014", "Hydat.sqlite3"), fixed = TRUE)
   expect_false(dir.exists(file.path(cache, "hydat", "20251014")))
@@ -92,7 +95,8 @@ test_that("a failed download leaves nothing", {
 test_that("ECCC unreachable names the backup", {
   local_no_network()
   cache <- withr::local_tempdir()
-  err <- expect_error(wet:::wet_hydat("20251014", cache_dir = cache), "could not ask ECCC")
+  err <- expect_error(wet:::wet_hydat("20251014", cache_dir = cache), "could not ask ECCC",
+                      class = "wet_hydat_unavailable")
   expect_match(conditionMessage(err), "s3://fresh-bc/hydat/20251014/", fixed = TRUE)
   expect_match(conditionMessage(err), "hy_remote called", fixed = TRUE)
 })
