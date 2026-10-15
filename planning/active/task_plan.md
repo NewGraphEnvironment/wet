@@ -47,21 +47,21 @@ Facts from exploration:
 - [x] Commit the rule before any rerun (the commit is the pre-registration)
 
 ## Phase 6: Rerun on m4 (worktree of this branch, data linked to the main checkout's)
-- [ ] `wb_inputs.R` (snow grid), then `wb_province.R 4` (new key); set `962a9cc2c4` aside as `data/wb/_pre16/962a9cc2c4/`, then `scripts/wb_upstream_identity.R data/wb/_pre16/962a9cc2c4` must pass before any fit
-- [ ] `fit_20251014`: `wb_validate.R` for every AET variant, `wb_aet_compare.R` (must reproduce #15), `wb_validate.R <winner>`, `wb_share_snow.R`
-- [ ] `fit_20260717`: carry `pooled_variant.txt`, `pooled_test.txt` and `adjust_override.txt`, run `WET_AET_CARRY=20251014 wb_validate.R`, then `wb_share_snow.R`. Its `cv_ann` identity assertion must pass, or stop and report
-- [ ] `wb_output.R`, commit the reports so far, then `segment_output.R`, commit, then `discharge_publish.R` BUILD only (no `WET_PUBLISH`), commit
-- [ ] Copy a reduced bundle of the new key to m1, replacing `962a9cc2c4` there (the old one set aside), and update the machine memories
+- [x] `wb_inputs.R` (snow grid), then `wb_province.R 4` (new key); set `962a9cc2c4` aside as `data/wb/_pre16/962a9cc2c4/`, then `scripts/wb_upstream_identity.R data/wb/_pre16/962a9cc2c4` must pass before any fit
+- [x] `fit_20251014`: `wb_validate.R` for every AET variant, `wb_aet_compare.R` (must reproduce #15), `wb_validate.R <winner>`, `wb_share_snow.R`
+- [x] `fit_20260717`: carry `pooled_variant.txt`, `pooled_test.txt` and `adjust_override.txt`, run `WET_AET_CARRY=20251014 wb_validate.R`, then `wb_share_snow.R`. Its `cv_ann` identity assertion must pass, or stop and report
+- [x] `wb_output.R`, commit the reports so far, then `segment_output.R`, commit, then `discharge_publish.R` BUILD only (no `WET_PUBLISH`), commit
+- [x] Copy a reduced bundle of the new key to m1, replacing `962a9cc2c4` there (the old one set aside), and update the machine memories
 
 ## Phase 7: Record the outcome
-- [ ] `research/water_balance_method.md`: the share predictors, the rule, and the result by zone and at the freshet gauges
-- [ ] `CLAUDE.md`: architecture lines for `wet_snow_normals()`, `wb_share_snow.R` and the stored months
-- [ ] Edit the #16 and #68 issue bodies with the outcome
-- [ ] If snow is kept, file the follow-up for upload, vignette-data regeneration and the switch of `monthly_vignette_data.R` to stored months (#68's last bullet). If snow is rejected and the BUILD report has all parts identical to the live build (N of N), make that switch here and regenerate, checking `segments`, `gauges`, `period` and `published_check` are identical (the rds carries run provenance, so its bytes cannot be)
+- [x] `research/water_balance_method.md`: the share predictors, the rule, and the result by zone and at the freshet gauges
+- [x] `CLAUDE.md`: architecture lines for `wet_snow_normals()`, `wb_share_snow.R` and the stored months
+- [x] Edit the #16 and #68 issue bodies with the outcome
+- [x] If snow is kept, file the follow-up for upload, vignette-data regeneration and the switch of `monthly_vignette_data.R` to stored months (#68's last bullet). If snow is rejected and the BUILD report has all parts identical to the live build (N of N), make that switch here and regenerate, checking `segments`, `gauges`, `period` and `published_check` are identical (the rds carries run provenance, so its bytes cannot be)
 
 ## Validation
 
-- [ ] Tests pass (`devtools::test()`), `lintr::lint_package()` clean, `devtools::document()`, `pkgdown::check_pkgdown()`
+- [x] Tests pass (`devtools::test()`), `lintr::lint_package()` clean, `devtools::document()`, `pkgdown::check_pkgdown()`
 - [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`) — three rounds before the rerun, ended by round 3's enumeration (15 places of the two-reads mechanism); `review-round{1,2,3}.md`
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
