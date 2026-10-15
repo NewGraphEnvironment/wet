@@ -158,21 +158,22 @@ ns2 <- nested_select(function(m) decide(m[m$aet %in% c(inc, eligible2), ], inc, 
 inc_row <- top[top$aet == inc, ]
 pass_d2 <- ns2$metrics[["hw"]] < inc_row$hw
 winner <- if (winner_top2 != inc && pass_d2) winner_top2 else inc
-# The AET the product ships now, from the shipped release's fit. A winner
+# The AET decided for this fit: #15's cfu, unless the user has recorded a
+# switch in <fit>/aet_decision.txt (scripts/wb_cv_lib.R; hashed into
+# score_code_md5, so it is part of what this run is stamped with). A winner
 # other than it, or one that would ship raw under a fixed pooled variant
-# (which scripts/wb_validate.R refuses, #43), goes to the user before
-# anything ships (#81): no winner file is written for it, so no later run of
-# scripts/wb_validate.R can ship it on its own authority. A switch the user
-# has recorded for this winner (<fit>/aet_decision.txt, scripts/wb_cv_lib.R)
-# is written. #18's stage 2 was
-# registered with cfu as the incumbent, and MOD16's gaps are cfu, so a stage
-# 1 other than cfu is reported as outside that registration.
-f_shipped <- file.path(wb_fit_dir(key_dir, wb_shipped_release), "fits.rds")
-if (!file.exists(f_shipped)) stop("no ", f_shipped, ": the comparison needs the AET the shipped fit uses")
-shipped_aet <- readRDS(f_shipped)$aet
+# (which scripts/wb_validate.R refuses, #43), goes to the user before anything
+# ships (#81): no winner file is written for it, so no later run of
+# scripts/wb_validate.R can ship it on its own authority. It is read from the
+# decision files, never from fits.rds, which scripts/wb_validate.R rewrites, so
+# a recorded switch keeps gating every later comparison and deleting it sends
+# the choice back to the user. At a new release a switch is carried by copying
+# the file into the new fit. #18's stage 2 was registered with cfu as the
+# incumbent, and MOD16's gaps are cfu, so a stage 1 other than cfu is reported
+# as outside that registration.
+decided_aet <- if (is.null(aet_decision)) "cfu" else aet_decision[1]
 winner_raw <- !is.na(fixed_variant) && !res[[winner]]$keep_adjust
-switch_decided <- winner != shipped_aet && identical(aet_decision[1], winner)
-to_user <- (winner != shipped_aet && !switch_decided) || winner_raw
+to_user <- winner != decided_aet || winner_raw
 stamp("stage 2 top-level rule: ", winner_top2, "; nested headwater MAE ", round(ns2$metrics[["hw"]], 1),
       "; winner ", winner)
 # transparency: the incumbent alone under the same nested procedure. Its inner
@@ -294,14 +295,15 @@ writeLines(c(
   if (to_user) {
     sprintf("DECISION TO USER: %s; no aet_winner.txt is written, so nothing ships (#81)",
             if (winner_raw) sprintf("it ships raw P - AET under the fixed pooled variant '%s'", fixed_variant)
-            else sprintf("it is not the AET shipped now (%s)%s", shipped_aet,
-                         if (is.null(aet_decision)) "" else sprintf("; %s names %s", basename(f_aet_decision),
-                                                                    aet_decision[1])))
-  } else if (switch_decided) {
-    sprintf("a switch from %s (fit_%s), recorded in %s: %s; scripts/wb_validate.R ships it", shipped_aet,
-            wb_shipped_release, basename(f_aet_decision), paste(aet_decision[-1], collapse = " "))
+            else sprintf("it is not the AET decided for this fit (%s)", decided_aet))
   } else {
-    sprintf("the AET shipped now (fit_%s); scripts/wb_validate.R ships it", wb_shipped_release)
+    "the AET decided for this fit; scripts/wb_validate.R ships it"
+  },
+  if (is.null(aet_decision)) {
+    "AET decided for this fit: cfu (#15; no aet_decision.txt)"
+  } else {
+    sprintf("AET decided for this fit: %s, a switch recorded in %s: %s", aet_decision[1], basename(f_aet_decision),
+            paste(aet_decision[-1], collapse = " "))
   },
   "",
   "## Transparency (never deciding)",
