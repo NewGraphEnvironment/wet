@@ -285,6 +285,7 @@ provenance <- list(
   province_run = basename(key_dir),
   release = release,
   aet = fits$aet,
+  share_spec = fits$share_spec,
   cv_variant = cvr$cv_variant,
   hydat_release = hydat_release,
   years = range(s$years),
