@@ -101,15 +101,24 @@ tie_tol <- if (is.null(override)) NA_real_ else suppressWarnings(as.numeric(over
 if (!is.null(override) && (is.na(tie_tol) || tie_tol < 0 || tie_tol > 0.5 || length(override) < 2)) {
   stop(f_override, " needs a tolerance (0 to 0.5 point) on line 1 and who decided, and why, after it")
 }
-# A switch of the AET away from #15's cfu, decided by the user after a
-# comparison sent it to them (<fit>/aet_decision.txt: the variant on line 1,
-# then who decided and why; #81). scripts/wb_aet_compare.R writes a winner
-# only if it is the AET this file (or, without it, #15) names.
+# The AET this fit ships, decided by the user after a comparison sent the
+# choice to them (<fit>/aet_decision.txt: the variant on line 1, then who
+# decided and why; #81). Without it the fit ships #15's cfu, and only if the
+# rule picks it (scripts/wb_aet_compare.R).
 f_aet_decision <- file.path(fit_dir, "aet_decision.txt")
 aet_decision <- if (file.exists(f_aet_decision)) readLines(f_aet_decision) else NULL
 if (!is.null(aet_decision) &&
     (length(aet_decision) < 2 || !aet_decision[1] %in% names(wet:::wet_wb_aet_cols()))) {
   stop(f_aet_decision, " needs an AET variant on line 1 and who decided, and why, after it")
+}
+# On another release, a decision the shipped fit records must have been copied
+# into this fit (or replaced by this fit's own): without it the AET would
+# quietly fall back to cfu. Checked here, so the comparison and the scoring
+# runs that ship both refuse.
+f_ref_decision <- file.path(wb_fit_dir(key_dir, wb_shipped_release), "aet_decision.txt")
+if (release != wb_shipped_release && file.exists(f_ref_decision) && is.null(aet_decision)) {
+  stop("the shipped fit_", wb_shipped_release, " records its AET (", readLines(f_ref_decision)[1], ") and fit_",
+       release, " has no aet_decision.txt: copy it, or record this fit's own decision (#81)", call. = FALSE)
 }
 # Whether the adjustment ships, from headwater MAE adjusted and raw: it beats
 # raw P - AET, or loses by no more than the override's tolerance (a tie the

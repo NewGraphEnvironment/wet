@@ -48,7 +48,8 @@ aet_v <- commandArgs(trailingOnly = TRUE)[1]
 if (is.na(aet_v)) aet_v <- ship_aet
 if (is.na(aet_v)) {
   stop("no current AET winner for fit_", release, ": name the AET to score, or score every variant and run ",
-       "scripts/wb_aet_compare.R (after a DECISION TO USER, the user records a switch in ", f_aet_decision, ")")
+       "scripts/wb_aet_compare.R (after a DECISION TO USER, the user records the AET in ", f_aet_decision,
+       ", or for a raw winner changes a decision file)")
 }
 cal$raw <- wet:::wet_wb_raw(cal, aet_v)
 raw_v <- wet_flow_validate(long(cal, pmax(cal$raw, 0), matrix(NA_real_, nrow(cal), 12)), groups)
