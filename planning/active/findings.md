@@ -60,3 +60,4 @@ Before #81 the AET winner was stamped with `aet_code_md5` (scoring code + statio
 
 | Error | Resolution |
 |-------|------------|
+| `pkill -f "scripts/wb_"` on m4, meant for the #81 chain, also killed the #15 reproduction compare at 353721a after it had unlinked `fit_20251014/aet_winner.txt` | Rewrote the two known lines; md5 b5451e9b… matches the pre-run record. Kill by the chain's own process tree, never by a pattern another run matches |

@@ -28,9 +28,11 @@ What exploration found:
 - `wb_fit_accept.R:35` requires `cv_variant == "nested"`, but the shipped fit is fixed to `none`. So the next refit's acceptance (20260717 → next) will refuse. That gap is pre-existing and goes to a follow-up issue, not this one.
 
 ## Phase 1: Freeze #15 as a record
+- [ ] m4: back up `fit_20251014/` to `~/wet81/`; then at 353721a run the full recipe (ten `wb_validate.R`, then `wb_aet_compare.R`) and `git diff --exit-code -- data/checks/` (review AC1, O2)
 - [ ] m4: a detached worktree at 353721a with `data/wb` linked to the main checkout's. Run `WET_HYDAT_RELEASE=20251014 Rscript scripts/wb_aet_compare.R`, then `cmp` its report with the tracked `data/checks/wb_aet_compare.txt` and confirm `fit_20251014/aet_winner.txt` is unchanged. Stop and report if either differs.
 - [ ] Check the S3 backup is present (`s3api head-object` on `s3://fresh-bc/hydat/20251014/Hydat.sqlite3` and `.md5`, md5 `da00052022aa1533b80f9fab7cb8b4d0`)
 - [ ] Annotated tag `aet-15-record` on 353721a. Its message names #15, #81, the release and the fit. Push the tag.
+- [ ] The research paragraph also names what the recipe reads besides the backup: `stations_20251014.rds`, province run `e675918817` and `fit_20251014/` on m4 (review G6)
 - [ ] `research/water_balance_method.md` §0, under "The ET experiment (#15)": a "Reproducing #15" paragraph covering the tag, the HYDAT backup, the cache copy step, the worktree and the commands (the ten `wb_validate.R` runs, then `wb_aet_compare.R`, on `fit_20251014`). Also say that 946da43 is where #15 was decided, and that current main no longer reproduces it on demand.
 
 ## Phase 2: Retire the gate in code
@@ -54,6 +56,7 @@ What exploration found:
   - Add a line: the AET is re-decided at each new shipped release, and `aet-15-record` reproduces #15.
 - [x] (added in work) The winner is stamped and checked with `score_code_md5` (the fit's decision files included) instead of `aet_code_md5`: the comparison scores every variant under those decisions, so a changed decision must stale it. Readers updated: `wb_validate.R`, `wb_output.R`, `segment_output.R`, `discharge_publish.R`, `pcic_routed_lib.R`. `aet_code_md5` stays as `fits.rds$aet_md5` for `wb_fit_accept.R`.
 - [x] (added in work) `scripts/wb_cv_lib.R` refuses release 20251014, so main never overwrites #15's unsuffixed frozen reports (checked: `WET_HYDAT_RELEASE=20251014` stops with the tag pointer)
+- [x] (review G2, G3, G4) No winner file when the winner is not the AET shipped now or would ship raw under a fixed variant (DECISION TO USER); `adjusted*` marks the override in the report; docs flagged by G5
 - [x] Grep that nothing outside `planning/archive/` still names `WET_AET_CARRY` or the rerun-first rule
 
 ## Phase 3: Re-decide on m4 (worktree of this branch, `data/wb` linked to the main checkout's)

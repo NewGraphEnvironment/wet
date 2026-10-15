@@ -23,8 +23,8 @@
 
 # the fit is named, never defaulted: the test runs once per fit and fixes it
 if (!nzchar(Sys.getenv("WET_HYDAT_RELEASE"))) stop("set WET_HYDAT_RELEASE to the fit the test settles")
-# fit_20251014 is the #15 reproduction, which runs with the variant chosen in
-# each fold: fixing one there would leave its AET comparison unrepeatable
+# fit_20251014 is #15's frozen record (#81; scripts/wb_cv_lib.R refuses it
+# too), which ran with the variant chosen in each fold
 if (Sys.getenv("WET_HYDAT_RELEASE") == "20251014") stop("the pooled-zone test settles a refit, not fit_20251014 (#15's)")
 source("scripts/wb_cv_lib.R")
 f_pooled <- file.path(fit_dir, "pooled_variant.txt")

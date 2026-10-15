@@ -110,8 +110,8 @@ gate_pass <- hw(cv_v) < hw(raw_v)
 # (keep_adjust_for()). A larger failure still drops the adjustment.
 keep_adjust <- keep_adjust_for(hw(cv_v), hw(raw_v))
 # a pooled variant fixed on the test gauges that drops the adjustment, so that
-# raw P - AET would ship, is not shipped on its own authority (#43): cfu was
-# chosen with the variant picked inside each fold
+# raw P - AET would ship, is not shipped on its own authority (#43);
+# scripts/wb_aet_compare.R writes no winner file for such a variant (#81)
 if (!is.na(fixed_variant) && !keep_adjust && aet_v %in% ship_aet) {
   stop(sprintf("the fixed pooled variant '%s' fails the headwater gate (%.2f %% vs raw %.2f %%%s): %s",
                fixed_variant, hw(cv_v), hw(raw_v),

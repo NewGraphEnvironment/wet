@@ -124,7 +124,7 @@ Annual runoff; percentages are mean absolute error. This table is the #11 model.
 Since #43 the pipeline holds one fit per HYDAT release (`data/wb/stations_<release>.rds`, `data/wb/<key>/fit_<release>/`, `scripts/wb_fit_lib.R`). `WET_HYDAT_RELEASE` names the release, read from wet's per-user cache and checked against the file's `VERSION` (`wet:::wet_hydat()`, #46; `WET_HYDAT`, the path used before #46, is refused), and the shipped fit is `wb_shipped_release`.
 
 - **The 2025-10-14 fit is reproduced exactly under the new layout.** Rebuilt from HYDAT and fwapg, `stations` and `monthly` are identical, and held-out predictions are identical for all ten AETs. #15 reproduces (cfu), and 24 of 24 output basins match. That fit stays as `fit_20251014`.
-- **HYDAT 2026-07-17 adds no years.** The window is fixed at 1981–2010. It revises gross drainage areas: 336 stations snap within ±10 % against 309, giving 315 calibration gauges (29 new, 4 dropped). AET cfu is carried, not re-picked.
+- **HYDAT 2026-07-17 adds no years.** The window is fixed at 1981–2010. It revises gross drainage areas: 336 stations snap within ±10 % against 309, giving 315 calibration gauges (29 new, 4 dropped). AET cfu was carried, not re-picked, until #81 re-decided it on this release (below).
 - **Acceptance** (pre-registered: not more than 1.0 point worse): headwater blocked-CV MAE on the 209 headwater gauges common to both fits, 30.90 against 31.18. Passes.
 - **The headwater gate fails by 0.03 point.** Adjusted scores 30.72 against raw 30.69.
   - On the same 209 gauges the old fit's raw (30.67) already beat its adjusted (31.18). The old gate passed on its full headwater set of 218. Nine of those fall outside the common 209: either dropped by this release (4 gauges are dropped in all) or now nested under its new upstream gauges.
@@ -224,7 +224,7 @@ The Budyko floor raises AET a little in the wet north too, which moves the alrea
 **The rule, fixed before scoring** (`planning/archive/…issue-18…/task_plan.md`):
 - It is #15's (a)–(d), with `cfu` as the incumbent and `mod16` and `cmod16` as the eligible challengers.
 - (d) is judged against `cfu`'s as-shipped headwater MAE.
-- #15's stage is re-run first and must reproduce its published result, or the comparison stops. It reproduced exactly.
+- #15's stage is re-run first and must reproduce its published result, or the comparison stops. It reproduced exactly. (#81 retired this precondition: the comparison now runs on the shipped release, and #15 is reproduced at tag `aet-15-record`.)
 
 | AET | Shipped as | Headwater | All 290 | Nested | Nested within ±20 % | Raw headwater |
 |---|---|---|---|---|---|---|

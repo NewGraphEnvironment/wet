@@ -76,7 +76,7 @@ metrics <- function(obs, mod, nesting) {
 shipped <- function(x) if (x$keep_adjust) x$cv_ann else pmax(x$raw, 0)
 top <- do.call(rbind, lapply(variants_all, function(v) {
   x <- res[[v]]
-  data.frame(aet = v, gate = x$keep_adjust, t(metrics(cal$obs, shipped(x), cal$nesting)),
+  data.frame(aet = v, gate = x$keep_adjust, gate_pass = x$gate_pass, t(metrics(cal$obs, shipped(x), cal$nesting)),
              raw_hw = metrics(cal$obs, pmax(x$raw, 0), cal$nesting)[["hw"]],
              raw_all = metrics(cal$obs, pmax(x$raw, 0), cal$nesting)[["all"]])
 }))
@@ -158,6 +158,18 @@ ns2 <- nested_select(function(m) decide(m[m$aet %in% c(inc, eligible2), ], inc, 
 inc_row <- top[top$aet == inc, ]
 pass_d2 <- ns2$metrics[["hw"]] < inc_row$hw
 winner <- if (winner_top2 != inc && pass_d2) winner_top2 else inc
+# The AET the product ships now, from the shipped release's fit. A winner
+# other than it, or one that would ship raw under a fixed pooled variant
+# (which scripts/wb_validate.R refuses, #43), goes to the user before
+# anything ships (#81): no winner file is written for it, so no later run of
+# scripts/wb_validate.R can ship it on its own authority. #18's stage 2 was
+# registered with cfu as the incumbent, and MOD16's gaps are cfu, so a stage
+# 1 other than cfu is reported as outside that registration.
+f_shipped <- file.path(wb_fit_dir(key_dir, wb_shipped_release), "fits.rds")
+if (!file.exists(f_shipped)) stop("no ", f_shipped, ": the comparison needs the AET the shipped fit uses")
+shipped_aet <- readRDS(f_shipped)$aet
+winner_raw <- !is.na(fixed_variant) && !res[[winner]]$keep_adjust
+to_user <- winner != shipped_aet || winner_raw
 stamp("stage 2 top-level rule: ", winner_top2, "; nested headwater MAE ", round(ns2$metrics[["hw"]], 1),
       "; winner ", winner)
 # transparency: the incumbent alone under the same nested procedure. Its inner
@@ -200,7 +212,7 @@ detail <- do.call(rbind, lapply(variants_all, function(v) {
 
 # ---- report ---------------------------------------------------------------------------------------
 fmt_top <- sprintf("%-6s %-10s %6.1f %6.1f %6.1f %7.1f %8.1f %8.1f %s", top$aet,
-                   ifelse(top$gate, "adjusted", "raw"), top$hw, top$all, top$nes_mae, top$nes_in20,
+                   ifelse(top$gate, ifelse(top$gate_pass, "adjusted", "adjusted*"), "raw"), top$hw, top$all, top$nes_mae, top$nes_in20,
                    top$raw_hw, top$raw_all,
                    ifelse(top$aet %in% transparency, "(transparency)", ifelse(top$aet %in% eligible2, "(stage 2)", "")))
 fmt_det <- sprintf("%-6s %7.1f %7.1f %7.1f %7.1f %8.1f   %6.0f %6.0f %6.0f", detail$aet, detail$z15, detail$z17,
@@ -237,7 +249,13 @@ writeLines(c(
   "## As shipped (adjusted if it passes the headwater gate, raw otherwise), blocked CV, MAE %",
   sprintf("%-6s %-10s %6s %6s %6s %7s %8s %8s", "aet", "shipped", "head", "all", "nested", "nes_in20",
           "raw_head", "raw_all"),
-  fmt_top, "",
+  fmt_top,
+  if (any(top$gate & !top$gate_pass)) {
+    sprintf(paste("adjusted*: the gate failed and the override kept the adjustment (within %.2f point). The",
+                  "tolerance was recorded for the AET shipped when it was set; it applies here to every variant",
+                  "and every fold, as does the fixed pooled variant, which leans toward that AET."), tie_tol)
+  },
+  "",
   sprintf("(a)-(c) choose: %s", winner_top),
   sprintf(paste("(d) nested selection (outer: %d WSC folds; inner: blocked CV on each fold's training stations,",
                 "pooled variant %s): headwater %.1f, all %.1f, nested %.1f,",
@@ -247,7 +265,12 @@ writeLines(c(
           nested[["hw"]], nested[["all"]], nested[["nes_mae"]], nested[["nes_in20"]],
           cg$hw, if (pass_d) "pass" else "fail"),
   sprintf("    variant chosen by the outer folds: %s", paste(sprintf("%s %d", names(tab), tab), collapse = ", ")),
-  sprintf("Stage 1 winner: %s", winner1), "",
+  sprintf("Stage 1 winner: %s", winner1),
+  if (winner1 != "cfu") {
+    paste("Stage 1 did not choose cfu: stage 2 below is not the comparison #18 registered (cfu the",
+          "incumbent), and MOD16's gaps are still cfu.")
+  },
+  "",
   sprintf("## Stage 2 (#18): %s against mod16 and cmod16", inc), "",
   paste("Rule (fixed before scoring): the same (a)-(c) thresholds with", inc, "as the incumbent, and (d) a fully",
         "nested selection among", paste(c(inc, eligible2), collapse = ", "), "beating the as-shipped headwater MAE",
@@ -264,7 +287,15 @@ writeLines(c(
   sprintf("(d) nested selection: %s; %s as shipped: headwater %.1f -> %s", fmt_ns(ns2$metrics), inc, inc_row$hw,
           if (pass_d2) "pass" else "fail"),
   sprintf("    variant chosen by the outer folds: %s", paste(sprintf("%s %d", names(tab2), tab2), collapse = ", ")),
-  "", sprintf("WINNER: %s", winner), "",
+  "", sprintf("WINNER: %s", winner),
+  if (to_user) {
+    sprintf("DECISION TO USER: %s; no aet_winner.txt is written, so nothing ships (#81)",
+            if (winner != shipped_aet) sprintf("it is not the AET shipped now (%s)", shipped_aet)
+            else sprintf("it ships raw P - AET under the fixed pooled variant '%s'", fixed_variant))
+  } else {
+    sprintf("the AET shipped now (fit_%s); scripts/wb_validate.R ships it", wb_shipped_release)
+  },
+  "",
   "## Transparency (never deciding)",
   sprintf("%s alone under the same nested procedure (inner gate per fold): %s", inc, fmt_ns(ns_inc$metrics)),
   sprintf("Two-stage nested selection (stage 1 then stage 2 inside each fold): %s", fmt_ns(ns12$metrics)),
@@ -282,5 +313,9 @@ writeLines(c(
   sprintf("Greata Creek: upstream P %.0f mm, observed %.0f mm", cal$p_yr[g], cal$obs[g])
 ), con)
 close(con)
-writeLines(c(winner, score_code_md5), file.path(fit_dir, "aet_winner.txt"))
-stamp("report written; winner ", winner)
+if (to_user) {
+  stamp("report written; winner ", winner, ": DECISION TO USER, no winner file written")
+} else {
+  writeLines(c(winner, score_code_md5), file.path(fit_dir, "aet_winner.txt"))
+  stamp("report written; winner ", winner)
+}
