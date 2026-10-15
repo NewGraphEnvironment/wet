@@ -1,6 +1,6 @@
 # Chapman, Kerr & Wilford (2018): the BC Water Tools method, and what a reimplementation must decide
 
-**Verified:** 2026-10-11 · **Issues:** #5 (found), #11 (built and validated), #15 (ET experiment), #18 (MOD16 challenger), #39 (scored against fwapg across PCIC's coverage), #43 (refit on HYDAT 2026-07-17; pooled zones settled), #45 (dry-interior term diagnosis), #58 (scored against PCIC routed flow, replacing fwapg's annual table) · **Produced by:** desk research (sections 1–7), the #11 build and the #15, #18 and #45 experiments (section 0): `scripts/wb_inputs.R`, `wb_stations.R`, `wb_province.R`, `wb_validate.R`, `wb_aet_compare.R`, `wb_output.R`, `wb_term_diagnose.R`, `pcic_routed_compare.R`. Reports: `data/checks/wb_*.txt`, `stations_wb.txt` and `climr_eccc.txt`. **Status:** built. The shipped model uses CGIAR AET constrained from below by a Fu–Budyko AET. A rule fixed before scoring chose it (#15). Blocked-CV MAE on annual runoff was 27.7 % (31.2 % headwater) on the 2025-10-14 fit, against 33.1 % (38.1 %) with CGIAR alone (section 0). Since #43 the shipped fit is on HYDAT 2026-07-17: 27.5 % (30.7 % headwater) at 315 gauges, pooled zones settled on gauges no fit uses, and the zone adjustment kept by a recorded decision ("Refit on HYDAT 2026-07-17"). MOD16 was scored against it under a second pre-set rule (#18) and does not replace it.
+**Verified:** 2026-10-14 · **Issues:** #5 (found), #11 (built and validated), #15 (ET experiment), #18 (MOD16 challenger), #39 (scored against fwapg across PCIC's coverage), #43 (refit on HYDAT 2026-07-17; pooled zones settled), #45 (dry-interior term diagnosis), #58 (scored against PCIC routed flow, replacing fwapg's annual table), #16 (snow predictors for the monthly shares) · **Produced by:** desk research (sections 1–7), the #11 build and the #15, #18 and #45 experiments (section 0): `scripts/wb_inputs.R`, `wb_stations.R`, `wb_province.R`, `wb_validate.R`, `wb_aet_compare.R`, `wb_output.R`, `wb_term_diagnose.R`, `pcic_routed_compare.R`, `wb_share_snow.R`. Reports: `data/checks/wb_*.txt`, `stations_wb.txt` and `climr_eccc.txt`. **Status:** built. The shipped model uses CGIAR AET constrained from below by a Fu–Budyko AET. A rule fixed before scoring chose it (#15). Blocked-CV MAE on annual runoff was 27.7 % (31.2 % headwater) on the 2025-10-14 fit, against 33.1 % (38.1 %) with CGIAR alone (section 0). Since #43 the shipped fit is on HYDAT 2026-07-17: 27.5 % (30.7 % headwater) at 315 gauges, pooled zones settled on gauges no fit uses, and the zone adjustment kept by a recorded decision ("Refit on HYDAT 2026-07-17"). MOD16 was scored against it under a second pre-set rule (#18) and does not replace it. Since #16 the monthly shares also use ERA5-Land snow (melt date and peak SWE), kept by a third pre-set rule: held-out median share NSE 0.856 → 0.874 on the shipped fit.
 
 Legend: **[S]** stated in the source cited · **[I]** inferred · **[U]** unknown or not published. Sources are listed at the end; all are online.
 
@@ -16,6 +16,7 @@ Legend: **[S]** stated in the source cited · **[I]** inferred · **[U]** unknow
   - The ClimateNA series was tried first. Its 1° anomalies are NA over Haida Gwaii and northern Vancouver Island, which blanked about 160 k land cells.
 - **AET:** CGIAR Soil-Water Balance v3 (CC0), annual and monthly. No land-cover ratio. Since #15 the annual AET that ships is `max(CGIAR, Fu–Budyko)` (below, "The ET experiment"). The monthly shares still use CGIAR's monthly AET.
 - **Zones:** the extended BC Hydrologic Zones (43 features, 29 in BC).
+- **Snow (#16), for the monthly shares only:** cd's ERA5-Land annual `snowmelt_doy_50` (calendar day by which half the year's melt has happened) and `swe_max` (peak SWE), averaged per 0.1° cell over 1981–2010 (`wet_snow_normals()`, `cd_baseline()`'s definition) and resampled bilinearly. `swe_max` is capped at 3,000 mm per cell: ERA5-Land's glacier points carry 5,000–10,000 mm of perennial snow (513 BC land cells over 5,000 mm; 584 cells capped in the grid's crop). Mask cells ERA5-Land has no cell for (the coast) are filled from neighbours, 45,879 cells in 36 passes. `snowmelt_doy_50` is a calendar-year statistic, so on maritime cells whose melt straddles the new year it is bimodal (835 cells melt before day 60 in at least a fifth of years); it is used as published.
 
 ### Stations
 
@@ -37,7 +38,7 @@ The item numbers refer to section 7.
 - **12:** blocked CV and leave-one-out are reported separately from in-sample.
 - **13, 14:** OLS on shares, floored at 0 and renormalised.
 - **15:** monthly regressions pooled over the province.
-- **16:** predictors per watershed, as upstream means.
+- **16:** predictors per watershed, as upstream means. Since #16 the shares' static predictors are elevation, easting, northing, `snowmelt_doy_50` and `swe_max`.
 - **20:** 365.25 days a year, February 28.25, so months sum to the year.
 
 ### Skill with CGIAR AET, as built in #11 (`data/checks/wb_validation_aet-cgiar.txt`)
@@ -406,6 +407,31 @@ Also found here: #51. Two older scripts average climr's 1961–1990 reference ro
   
   The remaining candidates are P between ridge-top gauges and the basins they drain, which no observation tests, and how the model partitions P in small, steep, low-runoff basins. Zone 24's error is concentrated in a few basins with very low observed runoff (Greata 50 mm, Camp 128 mm), where any absolute error is a large percentage.
 
+### Snow predictors for the monthly shares (#16)
+
+Before #16 the 12 share regressions saw only the same month's P, T and AET plus elevation and location, so nothing told them when a snowpack melts. Under blocked CV the balance flattened the freshet: at the gauges whose flow peaks in May or June it was below the gauge in the peak month at about 70 % of them (#65).
+
+**Rule, fixed before any snow score (`scripts/wb_validate.R`, committed in 598d013 and made exact in 837ac0b):** keep `snowmelt_doy_50` and `swe_max` as static predictors if the blocked-CV median per-gauge share NSE rises by at least 0.01. Per gauge, NSE is the 12 held-out shares against the observed ones, at gauges with observed runoff of at least 10 mm, over the gauges both specifications score. It does not depend on the annual balance, so every AET variant of a fit gives the same outcome. The shipped fit's outcome is #16's. A specification with the melt date alone is reported and decides nothing. The 3,000 mm cap on `swe_max` was decided after probing the predictors (no outcomes) and before the rule ran.
+
+**Result (`data/checks/wb_share_snow_20260717.txt`, `wb_share_snow.txt`): kept on both fits.**
+
+| | shipped fit 2026-07-17 (315 gauges) | 2025-10-14 (290) |
+|---|---|---|
+| median share NSE, base → snow | 0.856 → 0.874 (+0.018) | 0.866 → 0.880 (+0.014) |
+| melt date alone (not deciding) | 0.859 | 0.869 |
+| median monthly-flow NSE | 0.708 → 0.727 | 0.725 → 0.743 |
+| zones 27–29 share NSE | 0.673 → 0.717 (41 gauges) | 0.620 → 0.714 (32) |
+| zone 27 alone | 0.622 → 0.511 (12) | 0.635 → 0.448 (10) |
+| May–June peak gauges: below the gauge in the peak month | 70.1 % → 66.4 % (241) | 71.8 % → 68.7 % (227) |
+| their median peak-month error | −14.8 % → −12.7 % | −14.6 % → −13.0 % |
+| WSC area 10 (Liard) January error | −76 % → −16 % (19) | −75 % → −11 % |
+| held-out gauge-months with zero predicted flow | 123 → 70 of 3,780 | 93 → 54 of 3,480 |
+
+- **Where it helps:** the January–April bias shrinks (median monthly error +8 to +16 % → 0 to +11 % on the shipped fit), the Liard's winter is much less starved, and gauges peaking outside May–June gain the most share NSE (+0.05). Most of the gain needs both predictors: the melt date alone adds +0.003.
+- **Where it does not:** the freshet stays flattened at most May–June gauges (66 % still below in the peak month), and zone 27 gets worse on both fits (by 0.11 and 0.19 share NSE, 10–12 gauges). Zone 28 and 29 improve, so the zones-27–29 aggregate rises. Zone 27 is not separated out here; a linear share model with province-wide coefficients cannot give each zone its own snow response.
+- **The annual balance did not move.** The snow layers are filled onto the analysis mask after it is fixed. Every non-snow upstream mean agrees with the run before #16 to a relative 6.6e-14 (`data/checks/wb_upstream_identity.txt`), and every AET variant's held-out annual to 5e-15. The residual is summation order, not snow (#76). All annual metrics in the 13 validation reports are unchanged, and `wb_aet_compare.R` reproduces #15. So the decision files `fit_20260717` carries (the pooled variant, the adjustment override) rest on the same numbers.
+- **Held-out months are stored (#68).** `cv_aet-<AET>.rds` holds `cv_share` (the shipped specification) and `cv_shares` (all three), with `obs_share`, `zone` and `lake`, so the breakdown above reads stored months and refits nothing.
+
 ### What this says about the BC Water Tools
 
 Their accuracy figures are in-sample, and after the undocumented "final adjustment to measured flows" they are near 0 % at the gauges. They are not a measure of skill at ungauged sites. The open reimplementation suggests that out-of-sample skill of this method family, province-wide, is about 33 % MAE on annual runoff (38 % for headwater basins) with the CGIAR AET Chapman used, and about 28 % (31 %; 32 % under a fully nested selection) with that AET floored by a Fu–Budyko demand (#15). Our release comparison (#5) should score their values at stations held out of *their* fit where possible.
@@ -418,7 +444,8 @@ Their accuracy figures are in-sample, and after the undocumented "final adjustme
 - The Budyko floor is annual only. The monthly shares still regress on CGIAR's monthly AET (see #16 for the monthly predictors).
 - Zone 24 (Southern Thompson Plateau) runs at +93 % held out on the shipped 2026-07-17 fit (+102 % on 2025-10-14). The candidates are listed in "The ET experiment" above. MOD16, which is independent of P, left +166 % there (#18). Against PCIC (#45), the evidence leaned to climr's plateau P without a registered verdict. Against plateau-elevation observations (#50), climr is at most modestly high relative to the interior (D 1.09, not decided), and part of #45's gap is PNWNAmet's. Licensed diversions above the gauges are ruled out (#53): 0–2 mm/yr against overshoots of 26–245 mm. What remains is P between the ridge-top gauges and the basins they drain, and how the model partitions P in small basins with very low observed runoff.
 - The pre-#15 input caches (CGIAR, climr, DEM, zones raster) are keyed on content and parameters but not on their builder code, as #15's two new builders now are (#19).
-- #16: snow predictors for the monthly shares.
+- #16: snow predictors for the monthly shares. Done; kept. See "Snow predictors for the monthly shares (#16)" above. Zone 27 is worse with them.
+- #76: the province run reproduces only to rounding across database states (unordered fetch).
 - An upstream note to climr on the ClimateNA coastal gap: drafted, not posted.
 - rspatial/terra#2195: `rasterize(filename = )` with an integer datatype writes NA as 0 (worked around in `scripts/wb_inputs.R`).
 
