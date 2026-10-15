@@ -459,8 +459,8 @@ Monthly flow is scored at the `r length(unique(g$station_number))` gauges the
 water balance is calibrated on, against each gauge's monthly means over its
 complete years in `r base_text`. The balance is scored **held out**: each gauge's
 months come from a fit that never saw it or its neighbours (blocked
-cross-validation, as `research/water_balance_method.md` describes), recomputed
-by the data script and checked against the fit's stored held-out annual values.
+cross-validation, as `research/water_balance_method.md` describes), as the fit
+stored them.
 Routed PCIC is scored on the segment each gauge snapped to, at the
 `r n_routed` gauges whose segment carries routed flow, less `r length(far)` whose segment carries
 under `r round(100 * far_low)`% of the observed annual flow (left out as the
@@ -671,8 +671,6 @@ each with its issue:
 - **Routed PCIC's seasonal shape** (#67): low in early spring, high in late
   summer, beyond what the period explains. Attributed to PCIC's model. The
   issue records the evidence and a draft report to PCIC.
-- **Store the held-out monthly balance with the fit** (#68). Today only its annual
-  values are stored, so this article's data script recomputes the months.
 - **Monthly scoring by region and season** (#6), which takes over the scoring
   this article starts.
 
@@ -719,6 +717,7 @@ knitr::kable(data.frame(Check = pc$check, Compared = format(pc$compared, big.mar
 
 `r out_text` The balance's months that neither check covers rest on the publish report's value-by-value check of every month
 (`` `r prov$published$report` ``), which the script requires to have
-passed for the live build. The held-out monthly balance was recomputed with
-the fit's own procedure, and its annual values equal the stored ones exactly.
+passed for the live build. The held-out monthly balance is the one the fit
+stored, under the share specification it shipped, and scored again it gives
+the fit's stored per-gauge scores.
 Routed flow is fwapg `r prov$routed_commit`'s table (`r prov$routed_fingerprint`).
