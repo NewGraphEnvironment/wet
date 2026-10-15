@@ -259,6 +259,28 @@ At Greata Creek the upstream AET is 281 mm with CGIAR, 419 mm with MOD16 and 499
 - Granules are listed through CMR and downloaded with `curl` and an Earthdata netrc. That is 180 granules, about 3.9 GB, in 14 minutes.
 - The province run reproduces #15's layers exactly, and its upstream means within 5.4e-14 after matching by watershed id. Row order is not stable between runs, because the watershed query has no ORDER BY.
 
+### Reproducing #15 and #18 (tag `aet-15-record`, #81)
+
+**Verified:** 2026-10-15 · **Issues:** #81 · **Produced by:** the recipe below, run on m4 (logs `data/logs/81/rec_*` in the worktree).
+
+#15 was decided at 946da43, under a layout and a province run that no longer exist. Since #81, current code refuses release 20251014 (`scripts/wb_cv_lib.R`), so the unsuffixed reports #15 and #18 cite are never overwritten. The record is tag `aet-15-record` (353721a, v0.4.7), where the whole recipe reproduces byte for byte. All twelve unsuffixed reports (`data/checks/wb_validation.txt`, the ten `wb_validation_aet-*.txt` and `wb_aet_compare.txt`) came back unchanged, and every `fit_20251014` file was identical.
+
+```bash
+git worktree add --detach ../wet-aet15 aet-15-record
+cd ../wet-aet15 && ln -s <main checkout>/data/wb data/wb
+export WET_HYDAT_RELEASE=20251014
+for v in cgiar lc tc fu cfu fu15 fu20 fu35 mod16 cmod16; do Rscript scripts/wb_validate.R $v; done
+Rscript scripts/wb_aet_compare.R && Rscript scripts/wb_validate.R
+git diff --exit-code -- data/checks
+```
+
+It reads, besides the code at the tag:
+- `data/wb/stations_20251014.rds`, which is hashed into the scores, so a rebuilt copy whose bytes differ stales them;
+- province run `e675918817` (`upstream/`, `ex_filled_cells.txt`);
+- `fit_20251014/`, which stays on m4.
+
+HYDAT 2025-10-14 (`s3://fresh-bc/hydat/20251014/`, md5 `da00052022aa1533b80f9fab7cb8b4d0`) is needed only to rebuild the stations file with `scripts/wb_stations.R`. Copy it by hand to `tools::R_user_dir("wet", "cache")/hydat/20251014/Hydat.sqlite3`, which `wet:::wet_hydat()` reads. That rebuild also snaps against the live fwapg (#76), so it is not guaranteed to reproduce the stations file's bytes. When the province run is re-keyed, set `e675918817` aside rather than deleting it, or the recipe has nothing to read.
+
 ### The AET re-decided on HYDAT 2026-07-17 (#81)
 
 **Verified:** 2026-10-15 · **Issues:** #81 (from #15, #18, #43; spawned #83) · **Produced by:** `scripts/wb_validate.R <variant>` for all ten variants, then `scripts/wb_aet_compare.R`, on `fit_20260717` → `data/checks/wb_aet_compare_20260717.txt` and `data/checks/wb_validation_aet-*_20260717.txt`. Logs `data/logs/81/` on m4.

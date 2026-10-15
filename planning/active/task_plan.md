@@ -28,12 +28,12 @@ What exploration found:
 - `wb_fit_accept.R:35` requires `cv_variant == "nested"`, but the shipped fit is fixed to `none`. So the next refit's acceptance (20260717 → next) will refuse. That gap is pre-existing and goes to a follow-up issue, not this one.
 
 ## Phase 1: Freeze #15 as a record
-- [ ] m4: back up `fit_20251014/` to `~/wet81/`; then at 353721a run the full recipe (ten `wb_validate.R`, then `wb_aet_compare.R`) and `git diff --exit-code -- data/checks/` (review AC1, O2)
-- [ ] m4: a detached worktree at 353721a with `data/wb` linked to the main checkout's. Run `WET_HYDAT_RELEASE=20251014 Rscript scripts/wb_aet_compare.R`, then `cmp` its report with the tracked `data/checks/wb_aet_compare.txt` and confirm `fit_20251014/aet_winner.txt` is unchanged. Stop and report if either differs.
-- [ ] Check the S3 backup is present (`s3api head-object` on `s3://fresh-bc/hydat/20251014/Hydat.sqlite3` and `.md5`, md5 `da00052022aa1533b80f9fab7cb8b4d0`)
-- [ ] Annotated tag `aet-15-record` on 353721a. Its message names #15, #81, the release and the fit. Push the tag.
-- [ ] The research paragraph also names what the recipe reads besides the backup: `stations_20251014.rds`, province run `e675918817` and `fit_20251014/` on m4 (review G6)
-- [ ] `research/water_balance_method.md` §0, under "The ET experiment (#15)": a "Reproducing #15" paragraph covering the tag, the HYDAT backup, the cache copy step, the worktree and the commands (the ten `wb_validate.R` runs, then `wb_aet_compare.R`, on `fit_20251014`). Also say that 946da43 is where #15 was decided, and that current main no longer reproduces it on demand.
+- [x] m4: back up `fit_20251014/` to `~/wet81/`; then at 353721a run the full recipe (ten `wb_validate.R`, then `wb_aet_compare.R`) and `git diff --exit-code -- data/checks/` (review AC1, O2)
+- [x] m4: a detached worktree at 353721a with `data/wb` linked to the main checkout's. Run `WET_HYDAT_RELEASE=20251014 Rscript scripts/wb_aet_compare.R`, then `cmp` its report with the tracked `data/checks/wb_aet_compare.txt` and confirm `fit_20251014/aet_winner.txt` is unchanged. Stop and report if either differs.
+- [x] Check the S3 backup is present (`s3api head-object` on `s3://fresh-bc/hydat/20251014/Hydat.sqlite3` and `.md5`, md5 `da00052022aa1533b80f9fab7cb8b4d0`)
+- [x] Annotated tag `aet-15-record` on 353721a. Its message names #15, #81, the release and the fit. Push the tag.
+- [x] The research paragraph also names what the recipe reads besides the backup: `stations_20251014.rds`, province run `e675918817` and `fit_20251014/` on m4 (review G6)
+- [x] `research/water_balance_method.md` §0, under "The ET experiment (#15)": a "Reproducing #15" paragraph covering the tag, the HYDAT backup, the cache copy step, the worktree and the commands (the ten `wb_validate.R` runs, then `wb_aet_compare.R`, on `fit_20251014`). Also say that 946da43 is where #15 was decided, and that current main no longer reproduces it on demand.
 
 ## Phase 2: Retire the gate in code
 - [x] `scripts/wb_aet_compare.R`:
@@ -71,7 +71,7 @@ What exploration found:
   - Then `wb_share_snow.R`, `wb_output.R` (output parquet identical to `_pre81`'s), `segment_output.R`, `pcic_routed_compare.R` (with `WET_FWAPG_COMMIT` as tracked), and `discharge_publish.R` BUILD only. Expect every part identical to the live acb820f build.
   - Commit the reports after each step. No upload.
 - [x] Copy the reduced bundle back to m1 (fits.rds, aet_winner.txt, cv_aet-cfu.rds; output/ identical, kept)
-- [ ] Update the m1/m4 memories (drop "rerun fit_20251014 first")
+- [x] Update the m1/m4 memories (drop "rerun fit_20251014 first")
 
 ## Phase 4: Record the outcome
 - [x] `research/water_balance_method.md` §0: the re-decision on 2026-07-17 (both stages' tables, winner, nested selection), compared with #15's numbers on 2025-10-14
