@@ -14,9 +14,9 @@ Checked during exploration:
 - The monthly-flow vignette holds its prose to the data with `stopifnot()` (e.g. `:264-274` Buck Creek freshet "under half and a month late", `:522` "high January to May"), and its gaps list names #16 as open (`:576`, `:666`). These will trip or go stale.
 
 ## Phase 1: Upload (m4)
-- [ ] On m4, in `~/Projects/repo/wet-16`: confirm HEAD's `data/checks/discharge_publish_20260717.txt` names build acb820f with no FAIL, and that the local tree verifies against its manifest
-- [ ] `AWS_PROFILE=airvine WET_PUBLISH=1 Rscript scripts/discharge_publish.R`, under `caffeinate -i`, logged to `data/logs/77/`. If auto mode refuses it as a production write, hand over the bare command
-- [ ] Confirm from m1, unsigned: the manifest names acb820f, and `wet_catalog_verify()` passes 67 of 67
+- [x] On m4, in `~/Projects/repo/wet-16`: confirm HEAD's `data/checks/discharge_publish_20260717.txt` names build acb820f with no FAIL, and that the local tree verifies against its manifest
+- [x] `AWS_PROFILE=airvine WET_PUBLISH=1 Rscript scripts/discharge_publish.R`, under `caffeinate -i`, logged to `data/logs/77/`. If auto mode refuses it as a production write, hand over the bare command
+- [x] Confirm from m1, unsigned: the manifest names acb820f, and `wet_catalog_verify()` passes 67 of 67
 
 ## Phase 2: Report on the live build, and fwapg (m4)
 - [ ] In the wet-16 worktree, check out this branch (no `R/`/`scripts/` changes yet). Rerun BUILD and confirm the report reads `identical to the published build acb820f: 67 of 67`, with every check ok
