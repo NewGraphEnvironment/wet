@@ -29,10 +29,17 @@ for (code in codes_new) {
   if (!all(snow_cols %in% names(b))) stop(code, ": the new run has no snow columns")
   if (any(snow_cols %in% names(a))) stop(code, ": the set-aside run already has snow columns")
   if (anyNA(b[snow_cols][!is.na(b$p_yr), ])) stop(code, ": snow is NA where p_yr is not")
-  if (!identical(a, b[names(a)])) {
-    k <- names(a)[!vapply(names(a), function(x) identical(a[[x]], b[[x]]), TRUE)]
+  # column by column, then the frame's own attributes: subsetting b to a's
+  # columns would drop the `irregular` attribute wet_upstream_means() stores
+  k <- names(a)[!vapply(names(a), function(x) identical(a[[x]], b[[x]]), TRUE)]
+  if (length(k)) {
     stop(code, ": upstream columns differ from the set-aside run: ", paste(utils::head(k, 5), collapse = ", "))
   }
+  if (!identical(attr(a, "row.names"), attr(b, "row.names")) ||
+        !identical(attr(a, "irregular"), attr(b, "irregular"))) {
+    stop(code, ": row names or irregular pairs differ from the set-aside run")
+  }
+  if (!setequal(setdiff(names(b), names(a)), snow_cols)) stop(code, ": the new run adds columns other than snow")
   n_rows <- n_rows + nrow(b)
 }
 writeLines(c(

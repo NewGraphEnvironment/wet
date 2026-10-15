@@ -10,10 +10,11 @@
 # down by month, by hydrologic zone (27-29 named in #16), at the gauges whose
 # flow peaks in May or June, in WSC area 10 (the Liard) and at lake outlets.
 #
-# Where the fit made before #16 is set aside under data/wb/_pre16/, every AET
-# variant scored in both must have an identical held-out annual (cv_ann): the
-# snow layers are filled onto the analysis mask and enter the shares only, so
-# the annual balance must not move. A difference stops the script.
+# The fit made before #16 must be set aside under data/wb/_pre16/<key>/, and
+# every AET variant scored in both must have an identical held-out annual
+# (cv_ann): the snow layers are filled onto the analysis mask and enter the
+# shares only, so the annual balance must not move. A difference, or nothing
+# to compare with, stops the script.
 
 devtools::load_all(quiet = TRUE)
 source("scripts/wb_fit_lib.R")
@@ -39,19 +40,20 @@ shares <- cvr$cv_shares[c("base", "snow")]
 # ---- the annual balance must not have moved ------------------------------------------------
 old_fit <- Sys.glob(file.path("data", "wb", "_pre16", "*", paste0("fit_", release)))
 ident <- character()
-if (length(old_fit) > 1) stop("more than one set-aside fit_", release, " under data/wb/_pre16")
-if (length(old_fit) == 1) {
-  for (f in list.files(fit_dir, "^cv_aet-.*\\.rds$")) {
-    of <- file.path(old_fit, f)
-    if (!file.exists(of)) next
-    a <- readRDS(file.path(fit_dir, f))
-    b <- readRDS(of)
-    same <- identical(a$station_number, b$station_number) && identical(a$cv_ann, b$cv_ann) &&
-      identical(a$raw, b$raw) && identical(a$gate_pass, b$gate_pass)
-    if (!same) stop(f, ": the held-out annual differs from the fit set aside in ", old_fit)
-    ident <- c(ident, sub("^cv_aet-(.*)\\.rds$", "\\1", f))
-  }
+if (length(old_fit) != 1) {
+  stop("expected one set-aside fit_", release, " under data/wb/_pre16, found ", length(old_fit))
 }
+for (f in list.files(fit_dir, "^cv_aet-.*\\.rds$")) {
+  of <- file.path(old_fit, f)
+  if (!file.exists(of)) next
+  a <- readRDS(file.path(fit_dir, f))
+  b <- readRDS(of)
+  same <- identical(a$station_number, b$station_number) && identical(a$cv_ann, b$cv_ann) &&
+    identical(a$raw, b$raw) && identical(a$gate_pass, b$gate_pass)
+  if (!same) stop(f, ": the held-out annual differs from the fit set aside in ", old_fit)
+  ident <- c(ident, sub("^cv_aet-(.*)\\.rds$", "\\1", f))
+}
+if (!aet %in% ident) stop("the set-aside fit has no cv_aet-", aet, ".rds to compare the held-out annual with")
 
 # ---- the held-out months, both specifications ----------------------------------------------
 n <- length(cvr$station_number)
@@ -123,12 +125,8 @@ writeLines(c(
   sprintf("  base %.4f, snow %.4f, gain %+.4f over %d gauges -> %s", r$median[["base"]], r$median[["snow"]], r$gain,
           r$n_both, if (cvr$share_spec == "snow") "KEPT (the fit ships the snow predictors)" else "NOT kept"),
   if ("doy" %in% names(r$median)) sprintf("  not deciding: snowmelt_doy_50 alone %.4f", r$median[["doy"]]),
-  if (length(ident)) {
-    sprintf("held-out annual identical to the fit set aside before #16 (%s) for: %s", old_fit,
-            paste(ident, collapse = ", "))
-  } else {
-    "no fit set aside before #16 to compare the held-out annual with"
-  },
+  sprintf("held-out annual identical to the fit set aside before #16 (%s) for: %s", old_fit,
+          paste(ident, collapse = ", ")),
   "",
   "## Median share NSE and monthly-flow NSE per gauge, base -> snow (wet_flow_validate(); n excludes low gauges)",
   lines_grp("all", "all"),

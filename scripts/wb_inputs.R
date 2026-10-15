@@ -164,9 +164,12 @@ rows <- rbind(rows, data.frame(
                            "ERA5-Land cells, bilinear)"), n_capped)),
   file = c(snow_cat$href, f_snow),
   md5 = c(md5(unname(snow_files)), md5(f_snow))))
-is_tif <- grepl("\\.tif$", rows$file)
+# a remote file's grid is read from its cached copy, the bytes whose md5 is listed
+rows$grid_file <- rows$file
+rows$grid_file[match(snow_cat$href, rows$file)] <- unname(snow_files)
+is_tif <- grepl("\\.tif$", rows$grid_file)
 rows$grid <- ""
-rows$grid[is_tif] <- vapply(rows$file[is_tif], grid_of, "")
+rows$grid[is_tif] <- vapply(rows$grid_file[is_tif], grid_of, "")
 con <- file("data/checks/wb_inputs.txt", "w")
 writeLines(c(paste("# Inputs for the open water balance (#11), the ET experiments (#15, #18)",
                    "and the snow predictors (#16)"), "",
