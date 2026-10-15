@@ -42,9 +42,9 @@ Only `wb_fit_accept.R` and docs change. That script is not in `score_files_for()
   - restore line 35's stop: the base case refuses, which proves the fix is what lets it run
 
 ## Phase 3: Docs and follow-ups
-- [ ] `CLAUDE.md`: the new-release sequence ends with `wb_fit_accept.R <shipped> <new>`, with the rule named.
-- [ ] File a new issue covering the manifest's hard-coded cfu description (`discharge_publish.R:194`) and the pooled test settled on the old AET, which refuses to rerun. Point `discharge_publish.R`'s stop message at it instead of #83.
-- [ ] Edit #83's body with the outcome.
+- [x] `CLAUDE.md`: the new-release sequence ends with `wb_fit_accept.R <shipped> <new>`, with the rule named.
+- [x] File a new issue covering the manifest's hard-coded cfu description (`discharge_publish.R:194`) and the pooled test settled on the old AET, which refuses to rerun. Point `discharge_publish.R`'s stop message at it instead of #83.
+- [x] Edit #83's body with the outcome.
 
 ## Validation
 
