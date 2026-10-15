@@ -65,9 +65,12 @@ snow_cat <- snow_cat[snow_cat$variable %in% c("snowmelt_doy_50", "swe_max") & sn
 snow_files <- vapply(snow_cat$href, cd::cd_cache_fetch, "")
 f_snow <- wet_snow_normals(f_aet, catalog = data.frame(variable = snow_cat$variable, period = "annual",
                                                        href = unname(snow_files)))
-# ERA5-Land cells whose 1981-2010 mean swe_max the 3,000 mm cap limits (glacier points)
-swe_mean <- terra::mean(terra::rast(snow_files[snow_cat$variable == "swe_max"])[[as.character(1981:2010)]])
-n_capped <- unlist(terra::global(swe_mean > 3000, "sum", na.rm = TRUE))
+# ERA5-Land cells whose 1981-2010 mean swe_max the 3,000 mm cap limits (glacier
+# points), over the crop wet_snow_normals() reads: the grid plus two cells
+swe_src <- terra::rast(snow_files[snow_cat$variable == "swe_max"])
+swe_src <- terra::crop(swe_src[[as.character(1981:2010)]],
+                       terra::extend(terra::ext(terra::rast(f_aet)), 2 * terra::res(swe_src)), snap = "out")
+n_capped <- unlist(terra::global(terra::mean(swe_src) > 3000, "sum", na.rm = TRUE))
 stamp("snow ", f_snow, "; ", n_capped, " ERA5-Land cells capped at 3,000 mm swe_max")
 
 # Extended BC Hydrologic Zones (43 features; reaches the FWA polygons outside BC)
@@ -147,14 +150,19 @@ rows <- rbind(rows, data.frame(
              "wet_mod16_aet() (year mean, two-step onto the grid)"),
   file = c("data/mod16/MOD16A3GF.A*.hdf", f_m16),
   md5 = c(wet:::wet_md5_text(paste(f_m16_granules, md5(m16_g))), md5(f_m16))))
-# the cd layers as read (cd's cache), with the build the catalog names
+# the cd layers as read (md5 of cd's cached copy), with the build the catalog
+# names; cd before 0.6.5 carries no build in its catalog
+snow_build <- if (all(c("cd_sha", "run_time") %in% names(snow_cat))) {
+  sprintf("cd %s, built %s", substr(snow_cat$cd_sha, 1, 7), snow_cat$run_time)
+} else {
+  rep("build not in this cd's catalog", nrow(snow_cat))
+}
 rows <- rbind(rows, data.frame(
   input = c(sprintf("cd ERA5-Land %s, annual (one band per year)", snow_cat$variable), "Snow normals grid"),
-  source = c(sprintf("%s (cd %s, built %s; ERA5-Land, Copernicus licence)", snow_cat$href,
-                     substr(snow_cat$cd_sha, 1, 7), snow_cat$run_time),
+  source = c(sprintf("%s (%s; ERA5-Land, Copernicus licence)", snow_cat$href, snow_build),
              sprintf(paste("wet_snow_normals() (1981-2010 per-cell mean, swe_max capped at 3,000 mm on %d",
                            "ERA5-Land cells, bilinear)"), n_capped)),
-  file = c(unname(snow_files), f_snow),
+  file = c(snow_cat$href, f_snow),
   md5 = c(md5(unname(snow_files)), md5(f_snow))))
 is_tif <- grepl("\\.tif$", rows$file)
 rows$grid <- ""

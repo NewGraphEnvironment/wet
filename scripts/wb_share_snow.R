@@ -29,6 +29,11 @@ if (!all(need %in% names(cvr))) {
        "): rerun scripts/wb_validate.R")
 }
 stopifnot(identical(cvr$release, release), all(c("base", "snow") %in% names(cvr$cv_shares)))
+# scored under this code, or the report would restate a stale outcome as current
+source("scripts/wb_score_md5.R")  # score_code_md5
+if (!identical(cvr$code_md5, score_code_md5)) {
+  stop("cv_aet-", aet, ".rds was scored under other code: rerun scripts/wb_validate.R ", aet)
+}
 shares <- cvr$cv_shares[c("base", "snow")]
 
 # ---- the annual balance must not have moved ------------------------------------------------
