@@ -8,8 +8,8 @@ for the year. It is public at `s3://fresh-bc/discharge/fwa/v1/`. The
 bucket allows no listing, so a reader starts from the manifest,
 <https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json>,
 which lists every part with its rows, size and md5. The current build
-has 67 parquet parts, 1.80 GB, built on 13 October 2026 at wet commit
-7c62b9e.
+has 67 parquet parts, 1.84 GB, built on 15 October 2026 at wet commit
+acb820f.
 
 - **`segment_monthly`**: one row per segment, month and source with a
   value, 102,790,688 rows. Month 0 is the annual mean and months 1–12

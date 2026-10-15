@@ -80,13 +80,13 @@ windows.
 
 At Buck Creek (08EE013), a snowmelt stream of 567 km², the gauge peaks
 in May and so does routed PCIC, which overshoots it. The water balance’s
-freshet is under half the gauge’s and a month late: its May–June flow is
-9.2 m³/s against 16.4 observed and 23.6 routed, and its highest month,
-June, is 9.6 m³/s against the gauge’s May 22. It carries more water than
+freshet is low and a month late: its May–June flow is 9.4 m³/s against
+16.4 observed and 23.6 routed, and its highest month, June, is 10.3 m³/s
+against the gauge’s May 22, under half of it. It carries more water than
 the gauge from July through March. On the Bulkley at Quick (08EE004), a
 basin of 7,341 km², both sources fall short of the gauge in May–June by
-about a quarter (338 m³/s observed, 258 routed, 257 balance). The
-balance is still high from January to April, and routed PCIC is high in
+about a quarter (338 m³/s observed, 258 routed, 261 balance). The
+balance is still high from January to March, and routed PCIC is high in
 July and August.
 
 Both gauges are among those the balance is calibrated on, so on their
@@ -108,17 +108,17 @@ put through the day weighting. In migration and spawning they agree
 within 3%. In fry migration they differ by up to 27%, because that
 window takes half of July, when the flow is falling fast, at July’s
 mean. Even there the approximation is smaller than either source’s
-error, which in that window reaches +74% for routed PCIC and +261% for
+error, which in that window reaches +74% for routed PCIC and +237% for
 the balance.
 
 | Gauge | Window | Years | Daily record | Monthly, day-weighted | Routed PCIC | Water balance |
 |:---|:---|---:|---:|---:|---:|---:|
 | Buck Creek at the Mouth (08EE013) | Migration (May 1 – Aug 1) | 30 | 11.7 | 11.7 | 16.8 (+44%) | 8.1 (-30%) |
-|  | Spawning (Aug 1 – Sep 15) | 29 | 0.9 | 0.9 | 1.1 (+22%) | 3.0 (+232%) |
-|  | Fry migration (Jul 15 – Sep 7) | 29 | 1.3 | 1.6 | 2.0 (+54%) | 4.1 (+219%) |
+|  | Spawning (Aug 1 – Sep 15) | 29 | 0.9 | 0.9 | 1.1 (+22%) | 2.7 (+194%) |
+|  | Fry migration (Jul 15 – Sep 7) | 29 | 1.3 | 1.6 | 2.0 (+54%) | 3.7 (+189%) |
 | Bulkley River near Houston (08EE003) | Migration (May 1 – Aug 1) | 18 | 36.8 | 36.8 | 41.4 (+12%) | 26.2 (-29%) |
-|  | Spawning (Aug 1 – Sep 15) | 18 | 2.1 | 2.1 | 3.1 (+50%) | 8.8 (+317%) |
-|  | Fry migration (Jul 15 – Sep 7) | 18 | 3.3 | 4.0 | 5.7 (+74%) | 11.8 (+261%) |
+|  | Spawning (Aug 1 – Sep 15) | 18 | 2.1 | 2.1 | 3.1 (+50%) | 8.1 (+287%) |
+|  | Fry migration (Jul 15 – Sep 7) | 18 | 3.3 | 4.0 | 5.7 (+74%) | 11.0 (+237%) |
 
 Mean flow (m³/s) in each Chinook window. Daily record: the gauge’s mean
 over the window, averaged over the years in 1981–2010 with enough of its
@@ -133,18 +133,17 @@ Monthly flow is scored at the 315 gauges the water balance is calibrated
 on, against each gauge’s monthly means over its complete years in
 1981–2010. The balance is scored **held out**: each gauge’s months come
 from a fit that never saw it or its neighbours (blocked
-cross-validation, as `research/water_balance_method.md` describes),
-recomputed by the data script and checked against the fit’s stored
-held-out annual values. Routed PCIC is scored on the segment each gauge
+cross-validation, as `research/water_balance_method.md` describes), as
+the fit stored them. Routed PCIC is scored on the segment each gauge
 snapped to, at the 290 gauges whose segment carries routed flow, less 11
 whose segment carries under 20% of the observed annual flow (left out as
 the annual routed comparison leaves them out, which attributes each one:
 to the outlet’s placement or the gauge’s snap, to PCIC’s runoff, or
 unresolved). That leaves 279 gauges. Each source is scored on every
 month of all its own gauges, as modelled over observed flow: the balance
-on 3,780 gauge-months, routed PCIC on 3,348. In 123 of the balance’s
+on 3,780 gauge-months, routed PCIC on 3,348. In 70 of the balance’s
 gauge-months the held-out share is zero, so it predicts no flow at all
-(36 of them in January). They count as errors of −100%.
+(14 of them in January). They count as errors of −100%.
 
 ![Error in mean monthly flow by month: the median (line) and the middle
 half of gauges (band), as a percentage of the gauge's 1981–2010 mean.
@@ -161,18 +160,18 @@ covers. Dashed lines mark ±20%.
 
 | Month | Balance median | Balance within ±20% | Routed median | Routed within ±20% |
 |:------|---------------:|--------------------:|--------------:|-------------------:|
-| Jan   |            +8% |                 20% |          -12% |                30% |
-| Feb   |           +10% |                 24% |           -6% |                34% |
-| Mar   |            +8% |                 28% |          -20% |                28% |
-| Apr   |           +16% |                 30% |          -20% |                35% |
-| May   |            +8% |                 31% |          -15% |                39% |
-| Jun   |            -3% |                 39% |           +2% |                61% |
-| Jul   |             0% |                 32% |          +19% |                39% |
-| Aug   |            +4% |                 25% |          +18% |                34% |
-| Sep   |            +4% |                 32% |           +7% |                46% |
-| Oct   |            -3% |                 41% |           -3% |                46% |
-| Nov   |            -3% |                 41% |           -8% |                41% |
-| Dec   |            +1% |                 26% |           -2% |                36% |
+| Jan   |             0% |                 27% |          -12% |                30% |
+| Feb   |            +5% |                 30% |           -6% |                34% |
+| Mar   |            +3% |                 31% |          -20% |                28% |
+| Apr   |           +11% |                 28% |          -20% |                35% |
+| May   |            +7% |                 30% |          -15% |                39% |
+| Jun   |            -2% |                 40% |           +2% |                61% |
+| Jul   |            -3% |                 34% |          +19% |                39% |
+| Aug   |            +3% |                 25% |          +18% |                34% |
+| Sep   |             0% |                 33% |           +7% |                46% |
+| Oct   |            -2% |                 42% |           -3% |                46% |
+| Nov   |            -1% |                 44% |           -8% |                41% |
+| Dec   |            +2% |                 33% |           -2% |                36% |
 
 Median error in mean monthly flow, and the share of gauges within ±20%
 of observed, each source on its own gauges as in the figure above.
@@ -180,21 +179,23 @@ of observed, each source on its own gauges as in the figure above.
 
 The two sources’ errors have different shapes.
 
-- **The water balance** reads high from January to May, by a median of
-  +8% to +16%, and within ±5% from June to December. At the 25 gauges
-  routed PCIC does not reach, 19 of them in WSC drainage area 10 (the
-  Liard), it reads low instead, by a median of -67% to -96% in
-  January–March. Its spread is wide in every month: fewer than half of
-  the gauges fall within ±20% in any month. Its months are an annual
-  flow times a share of the year modelled from monthly precipitation,
-  temperature and evapotranspiration, elevation and location
-  ([`wet_share_fit()`](https://newgraphenvironment.github.io/wet/reference/wet_share_fit.md)),
-  with no snow term. That flattens the freshet: at the 243 gauges whose
-  observed flow peaks in May or June, the balance is below the gauge in
-  that month at 69% of them, by a median of -15%. Held out, its median
-  Nash–Sutcliffe efficiency on the monthly climatology is 0.71 over its
-  315 gauges. This error is ours. Snow predictors for the shares are
-  \#16.
+- **The water balance** reads high in April and May, by a median of +7%
+  to +11%, and within ±5% in the other months. At the 25 gauges routed
+  PCIC does not reach, 19 of them in WSC drainage area 10 (the Liard),
+  it reads low in winter instead, by a median of -16% in January and
+  -62% to -75% in February–March. Its spread is wide in every month:
+  fewer than half of the gauges fall within ±20% in any month. Its
+  months are an annual flow times a share of the year modelled from
+  monthly precipitation, temperature and evapotranspiration, elevation,
+  location, and two snow terms from ERA5-Land: the day by which half the
+  snowpack has melted and the peak snow water equivalent
+  ([`wet_share_fit()`](https://newgraphenvironment.github.io/wet/reference/wet_share_fit.md),
+  \#16). The snow terms reduced the bias in winter and early spring
+  (`research/water_balance_method.md`), but the freshet is still
+  flattened: at the 243 gauges whose observed flow peaks in May or June,
+  the balance is below the gauge in that month at 65% of them, by a
+  median of -13%. Held out, its median Nash–Sutcliffe efficiency on the
+  monthly climatology is 0.73 over its 315 gauges. This error is ours.
 - **Routed PCIC**, on the 279 gauges both sources are scored at, has
   more of them within ±20% than the balance has in 10 of the twelve
   months, May to September among them. It reads low in March and April
@@ -232,13 +233,13 @@ routing does.
 
 | Group             | Gauges | Balance | Routed |
 |:------------------|-------:|--------:|-------:|
-| All gauges        |    279 |    0.74 |   0.81 |
-| \<100 km²         |     74 |    0.56 |   0.40 |
-| 100-1000          |    105 |    0.73 |   0.79 |
+| All gauges        |    279 |    0.76 |   0.81 |
+| \<100 km²         |     74 |    0.55 |   0.40 |
+| 100-1000          |    105 |    0.76 |   0.79 |
 | 1000-10000        |     82 |    0.81 |   0.91 |
-| \>10000           |     18 |    0.83 |   0.94 |
-| Lake outlet       |     17 |    0.52 |   0.93 |
-| Not a lake outlet |    262 |    0.74 |   0.81 |
+| \>10000           |     18 |    0.88 |   0.94 |
+| Lake outlet       |     17 |    0.53 |   0.93 |
+| Not a lake outlet |    262 |    0.76 |   0.81 |
 
 Median Nash–Sutcliffe efficiency of the monthly climatology per gauge,
 by basin size and lake outlets, on the 279 gauges both sources are
@@ -249,17 +250,11 @@ scored at. {.table}
 What this exploration found that would make the monthly values more
 useful, each with its issue:
 
-- **Snow in the balance’s monthly shares** (#16). The balance flattens
-  the freshet and reads high in winter. Snow predictors are the obvious
-  first change, scored on the same held-out gauge-months as here.
 - **Routed flow over 1981–2010** (NewGraphEnvironment/fwapg#25), so both
   sources and the gauges share one period.
 - **Routed PCIC’s seasonal shape** (#67): low in early spring, high in
   late summer, beyond what the period explains. Attributed to PCIC’s
   model. The issue records the evidence and a draft report to PCIC.
-- **Store the held-out monthly balance with the fit** (#68). Today only
-  its annual values are stored, so this article’s data script recomputes
-  the months.
 - **Monthly scoring by region and season** (#6), which takes over the
   scoring this article starts.
 
@@ -280,8 +275,8 @@ useful, each with its issue:
 
 ## Validation
 
-`data-raw/monthly_vignette_data.R` built the data at wet 2a3a756 on
-2026-10-14, from the published build at wet 7c62b9e
+`data-raw/monthly_vignette_data.R` built the data at wet fc105e4 on
+2026-10-14, from the published build at wet acb820f
 (<https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json>)
 and the water balance fit on HYDAT 2026-07-17 (AET cfu). It checked the
 bundled published values against what they were built from, and refused
@@ -303,6 +298,7 @@ that copy held. The balance’s months that neither check covers rest on
 the publish report’s value-by-value check of every month
 (`data/checks/discharge_publish_20260717.txt`), which the script
 requires to have passed for the live build. The held-out monthly balance
-was recomputed with the fit’s own procedure, and its annual values equal
-the stored ones exactly. Routed flow is fwapg 341b078’s table (40524444
-rows, 3377037 segments, 0 null flows, total 178035348.248310 m3/s).
+is the one the fit stored, under the share specification it shipped, and
+scored again it gives the fit’s stored per-gauge scores. Routed flow is
+fwapg 341b078’s table (40524444 rows, 3377037 segments, 0 null flows,
+total 178035348.248310 m3/s).
