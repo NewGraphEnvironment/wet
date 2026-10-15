@@ -1,5 +1,19 @@
 # Changelog
 
+## wet 0.4.7
+
+- Scripts, data scripts and live tests now read a named HYDAT release,
+  from one per-user cache
+  (`tools::R_user_dir("wet", "cache")/hydat/<release>/`), instead of
+  whichever release a machine last downloaded
+  ([\#46](https://github.com/NewGraphEnvironment/wet/issues/46)). The
+  internal `wet_hydat()` downloads ECCC’s current release into the
+  cache, and checks every file is whole and holds the release it is
+  named for. `WET_HYDAT_RELEASE` names the release, by default the
+  shipped one; `WET_HYDAT` is retired and refused. Station-flow outputs
+  record their release. `wet_station_*()` still default to tidyhydat’s
+  own directory for interactive use.
+
 ## wet 0.4.6
 
 - The published discharge at `s3://fresh-bc/discharge/fwa/v1/` now

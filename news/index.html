@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.7</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,9 +34,13 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/v0.4.7/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.7" id="wet-047">wet 0.4.7<a class="anchor" aria-label="anchor" href="#wet-047"></a></h2>
+<ul><li>Scripts, data scripts and live tests now read a named HYDAT release, from one per-user cache (<code>tools::R_user_dir("wet", "cache")/hydat/&lt;release&gt;/</code>), instead of whichever release a machine last downloaded (<a href="https://github.com/NewGraphEnvironment/wet/issues/46" class="external-link">#46</a>). The internal <code>wet_hydat()</code> downloads ECCC’s current release into the cache, and checks every file is whole and holds the release it is named for. <code>WET_HYDAT_RELEASE</code> names the release, by default the shipped one; <code>WET_HYDAT</code> is retired and refused. Station-flow outputs record their release. <code>wet_station_*()</code> still default to tidyhydat’s own directory for interactive use.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.6" id="wet-046">wet 0.4.6<a class="anchor" aria-label="anchor" href="#wet-046"></a></h2>
 <ul><li>The published discharge at <code>s3://fresh-bc/discharge/fwa/v1/</code> now carries the snow-informed monthly balance (build acb820f, <a href="https://github.com/NewGraphEnvironment/wet/issues/77" class="external-link">#77</a>). Annual flow and each segment’s <code>pick</code> are unchanged. The monthly-flow article’s data were rebuilt from it, and the article now describes the snow terms. The balance reads high only in April and May, by a median of 7 % to 11 %, and is within 5 % in the other months. The freshet is still flattened. <code>data-raw/monthly_vignette_data.R</code> reads the held-out months each fit stores, instead of recomputing them (<a href="https://github.com/NewGraphEnvironment/wet/issues/68" class="external-link">#68</a>).</li>
