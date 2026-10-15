@@ -27,6 +27,16 @@ source("scripts/wb_cv_lib.R")
 missing_cv <- setdiff(c("cgiar", "lc", "tc", "fu", "cfu", "fu15", "fu20", "fu35", "mod16", "cmod16"),
                       sub("^cv_aet-(.*)\\.rds$", "\\1", list.files(fit_dir, "^cv_aet-.*\\.rds$")))
 if (length(missing_cv)) stop("run scripts/wb_validate.R first for: ", paste(missing_cv, collapse = " "))
+# the AET decided for this fit (see the rule after stage 2), checked first
+decided_aet <- if (is.null(aet_decision)) "cfu" else aet_decision[1]
+# On another release, a switch the shipped fit records must have been copied
+# into this fit (or replaced by this fit's own record): without it the AET
+# would quietly fall back to cfu
+f_ref <- file.path(wb_fit_dir(key_dir, wb_shipped_release), "aet_decision.txt")
+if (release != wb_shipped_release && file.exists(f_ref) && is.null(aet_decision)) {
+  stop("the shipped fit_", wb_shipped_release, " records an AET switch (", readLines(f_ref)[1], ") and fit_", release,
+       " has no aet_decision.txt: copy it, or record this fit's own decision (#81)")
+}
 # a winner is only ever the result of a complete comparison under this code
 unlink(file.path(fit_dir, "aet_winner.txt"))
 eligible <- c("lc", "tc", "fu", "cfu")          # stage 1 (#15)
@@ -171,7 +181,6 @@ winner <- if (winner_top2 != inc && pass_d2) winner_top2 else inc
 # the file into the new fit. #18's stage 2 was registered with cfu as the
 # incumbent, and MOD16's gaps are cfu, so a stage 1 other than cfu is reported
 # as outside that registration.
-decided_aet <- if (is.null(aet_decision)) "cfu" else aet_decision[1]
 winner_raw <- !is.na(fixed_variant) && !res[[winner]]$keep_adjust
 to_user <- winner != decided_aet || winner_raw
 stamp("stage 2 top-level rule: ", winner_top2, "; nested headwater MAE ", round(ns2$metrics[["hw"]], 1),

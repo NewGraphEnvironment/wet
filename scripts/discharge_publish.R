@@ -189,6 +189,9 @@ if (!identical(fits$code_md5, score_code_md5) || !identical(winner[1:2], c(fits$
       !any(grepl(paste0("scoring code ", score_code_md5, "$"), sr[3]))) {
   stop("the fit, its AET choice or the segment report was made under other scoring code")
 }
+# the balance's source description names cfu; a switched AET needs it rewritten
+# first (#83)
+if (!identical(fits$aet, "cfu")) stop("the fit ships AET ", fits$aet, ", but the manifest describes cfu: see #83")
 mt <- function(f) max(file.mtime(f))
 if (min(file.mtime(seg_files)) < mt(ws_files) || mt(seg_files) > file.mtime(f_seg_report)) {
   stop("the segment table predates the balance output, or postdates its report: rerun scripts/segment_output.R")
