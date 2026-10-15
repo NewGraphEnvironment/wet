@@ -6,7 +6,8 @@
 # The snow layers are filled onto the analysis mask after it is fixed, so
 # sampling and accumulating them cannot move any other column. This is what
 # lets the fits carry their decision files (pooled_variant.txt,
-# adjust_override.txt) and the AET choice to the new key: the annual balance,
+# adjust_override.txt, and aet_decision.txt where one exists, #81) and the AET
+# choice to the new key: the annual balance,
 # and everything that chose them, reads the same numbers.
 #
 # "The same" is to rounding, not to the bit: wet_ws_fetch() takes the basin's

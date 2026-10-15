@@ -18,18 +18,21 @@ score_files_for <- function(rel) {
   if (!all(file.exists(f))) stop("missing: ", paste(f[!file.exists(f)], collapse = ", "))
   f
 }
-# the md5 a fit's AET choice is current under, for any release (#43: a carry
-# checks the fit it carries from is current, not only self-consistent)
+# the md5 of the scoring code and a release's stations, for any release
+# (scripts/wb_fit_accept.R checks both fits it compares are current, #43)
 aet_md5_for <- function(rel) wet_md5_text(unname(tools::md5sum(score_files_for(rel))))
 score_files <- score_files_for(release)
-# The AET choice (aet_winner.txt) is made, or carried, before any per-fit
-# decision file, so it is checked against the md5 without them
-# (aet_code_md5). A pooled-zone variant fixed for this fit
-# (scripts/wb_pooled_test.R) or a recorded override of the headwater gate
-# (adjust_override.txt) changes its fits, so a fit made before either is stale
-# after it: score_code_md5 covers them (#43).
+# The scoring code and stations alone (aet_code_md5): what fits.rds records as
+# aet_md5, which scripts/wb_fit_accept.R compares across releases. A
+# pooled-zone variant fixed for this fit (scripts/wb_pooled_test.R) or a
+# recorded override of the headwater gate (adjust_override.txt) changes its
+# fits, so a fit made before either is stale after it: score_code_md5 covers
+# them (#43). The AET winner is stamped with score_code_md5 too, because the
+# comparison scores every variant under those decisions, and a recorded AET
+# switch (aet_decision.txt) decides whether it writes the winner (#81).
 aet_code_md5 <- aet_md5_for(release)
-fit_decisions <- file.path(wb_fit_dir(wb_key_dir(), release), c("pooled_variant.txt", "adjust_override.txt"))
+fit_decisions <- file.path(wb_fit_dir(wb_key_dir(), release),
+                           c("pooled_variant.txt", "adjust_override.txt", "aet_decision.txt"))
 fit_decisions <- fit_decisions[file.exists(fit_decisions)]
 score_code_md5 <- if (length(fit_decisions)) {
   wet_md5_text(unname(tools::md5sum(c(score_files, fit_decisions))))

@@ -51,7 +51,8 @@ wb_stations_path <- function(release) file.path("data", "wb", sprintf("stations_
 wb_fit_dir <- function(key_dir, release) file.path(key_dir, paste0("fit_", release))
 
 # Tracked reports. The 2025-10-14 fit keeps the names it was published and
-# cited under (research/, CLAUDE.md); a later fit's reports carry its release.
+# cited under (research/, CLAUDE.md): they are #15's frozen record, reproduced
+# at tag aet-15-record (#81). A later fit's reports carry its release.
 wb_report <- function(stem, release) {
   file.path("data", "checks", paste0(stem, if (release == "20251014") "" else paste0("_", release), ".txt"))
 }

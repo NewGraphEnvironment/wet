@@ -24,7 +24,7 @@ if (!file.exists(file.path(fit_dir, "fits.rds"))) stop("run scripts/wb_validate.
 fits <- readRDS(file.path(fit_dir, "fits.rds"))
 aet <- fits$aet
 # Ship only a fit made under the current scoring code, and only the AET chosen
-# (scripts/wb_aet_compare.R, #15) or carried (#43) under that code; without a
+# (scripts/wb_aet_compare.R, #15, #81) under that code; without a
 # winner nothing ships. The old outputs go first, so a refused fit never
 # leaves the parquet or the map (scripts/wb_map.R) of an earlier one.
 # The per-segment table (scripts/segment_output.R, #57) is made from this
@@ -38,12 +38,12 @@ if (!identical(fits$code_md5, score_code_md5)) {
 f_winner <- file.path(fit_dir, "aet_winner.txt")
 if (file.exists(f_winner)) {
   w <- readLines(f_winner)
-  if (!identical(w[2], aet_code_md5)) stop(f_winner, " was chosen under other code: rerun the comparison or the carry")
+  if (!identical(w[2], score_code_md5)) stop(f_winner, " was chosen under other code: rerun scripts/wb_aet_compare.R")
   if (!identical(aet, w[1])) {
     stop("fits.rds ships ", aet, " but the comparison chose ", w[1], ": run scripts/wb_validate.R ", w[1])
   }
 } else {
-  stop("fits.rds ships ", aet, " but no comparison or carry chose it (no ", f_winner, ")")
+  stop("fits.rds ships ", aet, " but no comparison chose it (no ", f_winner, ")")
 }
 dir.create(file.path(fit_dir, "output"), showWarnings = FALSE)
 days <- c(365.25, wet_month_days())

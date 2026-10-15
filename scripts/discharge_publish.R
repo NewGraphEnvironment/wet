@@ -182,13 +182,16 @@ if (length(changed)) {
        "): rerun scripts/wb_output.R and scripts/segment_output.R")
 }
 # and the fit both tables came from is the one the scoring code ships
-source("scripts/wb_score_md5.R")  # score_code_md5, aet_code_md5
+source("scripts/wb_score_md5.R")  # score_code_md5
 fits <- readRDS(file.path(fit_dir, "fits.rds"))
 winner <- readLines(file.path(fit_dir, "aet_winner.txt"))
-if (!identical(fits$code_md5, score_code_md5) || !identical(winner[1:2], c(fits$aet, aet_code_md5)) ||
+if (!identical(fits$code_md5, score_code_md5) || !identical(winner[1:2], c(fits$aet, score_code_md5)) ||
       !any(grepl(paste0("scoring code ", score_code_md5, "$"), sr[3]))) {
   stop("the fit, its AET choice or the segment report was made under other scoring code")
 }
+# the balance's source description names cfu; a switched AET needs it rewritten
+# first (#83)
+if (!identical(fits$aet, "cfu")) stop("the fit ships AET ", fits$aet, ", but the manifest describes cfu: see #83")
 mt <- function(f) max(file.mtime(f))
 if (min(file.mtime(seg_files)) < mt(ws_files) || mt(seg_files) > file.mtime(f_seg_report)) {
   stop("the segment table predates the balance output, or postdates its report: rerun scripts/segment_output.R")

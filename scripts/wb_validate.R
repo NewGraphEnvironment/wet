@@ -12,12 +12,13 @@
 # wb_report("wb_validation", release) and <fit>/fits.rds (the fits the
 # province output uses). The shipped AET is the one scripts/wb_aet_compare.R
 # chose for this fit by the #15 and #18 decision rules (<fit>/aet_winner.txt),
-# or, with WET_AET_CARRY=<release>, the one shipped by that release's fit
-# (#43: AET is carried to a newer HYDAT, not re-picked). Without either, nothing ships.
+# on the fit's own release (#81). Without a winner chosen under this code,
+# nothing ships.
 #
 # The pooled zones are adjusted by the variant an inner blocked CV picks in
 # each fold, unless <fit>/pooled_variant.txt fixes one (scripts/wb_pooled_test.R,
-# #43): then every fold and the shipped fit use it.
+# #43): then every fold and the shipped fit use it. Both it and the gate
+# override are read by scripts/wb_cv_lib.R.
 #
 # The monthly shares are held out with and without the snow predictors (#16),
 # in the same folds; the snow predictors ship only if they pass the rule fixed
@@ -25,58 +26,30 @@
 
 source("scripts/wb_cv_lib.R")
 f_winner <- file.path(fit_dir, "aet_winner.txt")
-carry <- Sys.getenv("WET_AET_CARRY")
-# carry when there is no winner yet, or when a carried one went stale with the
-# scoring code (a compared winner is only remade by scripts/wb_aet_compare.R)
-stale_carry <- file.exists(f_winner) && {
-  w0 <- readLines(f_winner)
-  length(w0) == 3 && startsWith(w0[3], "carried") && !identical(w0[2], aet_code_md5)
-}
-if (nzchar(carry) && (carry == release || release == "20251014")) {
-  stop("fit_", release, " cannot carry its AET", if (release == "20251014") ": its AET comes from the #15 comparison")
-}
-if (nzchar(carry) && (!file.exists(f_winner) || stale_carry)) {
-  # carry the AET a reference fit ships: its winner, checked against its fits
-  ref_dir <- wb_fit_dir(key_dir, carry)
-  rw <- readLines(file.path(ref_dir, "aet_winner.txt"))
-  rf <- readRDS(file.path(ref_dir, "fits.rds"))
-  # the reference fit's winner must be the AET its shipped fits were made
-  # with, and both must be current under this code (aet_md5: without a fixed
-  # variant), or the carry would stamp a stale choice as current
-  ref_md5 <- aet_md5_for(carry)
-  if (!identical(rw[2], ref_md5) || !identical(rf$aet_md5, ref_md5) || !identical(rw[1], rf$aet)) {
-    stop("fit ", carry, " ships no current, consistent AET to carry: rerun its chain first")
-  }
-  writeLines(c(rw[1], aet_code_md5, sprintf("carried from fit_%s (#43; its scores %s)", carry, rf$code_md5)),
-             f_winner)
-  stamp("AET ", rw[1], " carried from fit_", carry)
-}
-# The winner file holds the variant and the aet_code_md5 it was chosen
-# under (and, when carried, where from). One chosen under other code is not
-# shipped (the scores are still written, so the comparison can be rerun);
+# The winner file holds the variant and the score_code_md5 it was chosen
+# under (the fit's decision files included, scripts/wb_score_md5.R). One chosen under other code is not shipped (the scores are still
+# written, so the comparison can be rerun);
 # fits.rds then stays as it was, and scripts/wb_output.R refuses it because it
 # was made under other code. Without a current winner nothing ships: there is
 # no default AET (#43), so a lost winner cannot turn into a cgiar fit.
 ship_aet <- NA_character_
 if (file.exists(f_winner)) {
   w <- readLines(f_winner)
-  if (!length(w) %in% 2:3 || !w[1] %in% names(wet:::wet_wb_aet_cols())) stop("bad ", f_winner)
-  ship_aet <- if (identical(w[2], aet_code_md5)) w[1] else NA_character_
-  if (is.na(ship_aet)) {
-    message(f_winner, " was chosen under other code: not shipping; rerun ",
-            if (length(w) == 3) "with WET_AET_CARRY set" else "scripts/wb_aet_compare.R")
-  }
+  # two lines: a winner carried from another fit (#43, retired by #81) is
+  # not a choice made on this fit's release
+  if (length(w) != 2 || !w[1] %in% names(wet:::wet_wb_aet_cols())) stop("bad ", f_winner)
+  ship_aet <- if (identical(w[2], score_code_md5)) w[1] else NA_character_
+  if (is.na(ship_aet)) message(f_winner, " was chosen under other code: not shipping; rerun scripts/wb_aet_compare.R")
 }
-f_pooled <- file.path(fit_dir, "pooled_variant.txt")
-fixed_variant <- if (file.exists(f_pooled)) readLines(f_pooled)[1] else NA_character_
 # the pooled-zone test's outcome, when it has run (scripts/wb_pooled_test.R)
 f_test <- file.path(fit_dir, "pooled_test.txt")
 pooled_test <- if (file.exists(f_test)) readLines(f_test) else NULL
-if (!is.na(fixed_variant) && !fixed_variant %in% variants) stop("bad ", f_pooled)
 aet_v <- commandArgs(trailingOnly = TRUE)[1]
 if (is.na(aet_v)) aet_v <- ship_aet
 if (is.na(aet_v)) {
-  stop("no current AET winner for fit_", release, ": name the AET to score, or carry one (WET_AET_CARRY)")
+  stop("no current AET winner for fit_", release, ": name the AET to score, or score every variant and run ",
+       "scripts/wb_aet_compare.R (after a DECISION TO USER, the user records the AET in ", f_aet_decision,
+       ", or for a raw winner changes a decision file)")
 }
 cal$raw <- wet:::wet_wb_raw(cal, aet_v)
 raw_v <- wet_flow_validate(long(cal, pmax(cal$raw, 0), matrix(NA_real_, nrow(cal), 12)), groups)
@@ -133,21 +106,13 @@ stamp("validation done")
 # gate: the adjustment must beat raw P - AET on headwater stations under blocked CV
 hw <- function(v) v$summary$mae_pct[v$summary$group == "nesting" & v$summary$value == "headwater"]
 gate_pass <- hw(cv_v) < hw(raw_v)
-# A recorded override (<fit>/adjust_override.txt: a tolerance in points, then
-# who and why) keeps the adjustment when the gate fails by no more than that
-# tolerance: a tie the headwater-only gate cannot break, decided by the user
-# for #43's refit because the adjustment corrects the main stems the gate does
-# not score. A larger failure still drops the adjustment.
-f_override <- file.path(fit_dir, "adjust_override.txt")
-override <- if (file.exists(f_override)) readLines(f_override) else NULL
-tie_tol <- if (is.null(override)) NA_real_ else as.numeric(override[1])
-if (!is.null(override) && (is.na(tie_tol) || tie_tol < 0 || tie_tol > 0.5 || length(override) < 2)) {
-  stop(f_override, " needs a tolerance (0 to 0.5 point) on line 1 and who decided, and why, after it")
-}
-keep_adjust <- gate_pass || (!is.null(override) && hw(cv_v) - hw(raw_v) <= tie_tol)
+# A recorded override (<fit>/adjust_override.txt, read by scripts/wb_cv_lib.R)
+# keeps the adjustment when the gate fails by no more than its tolerance
+# (keep_adjust_for()). A larger failure still drops the adjustment.
+keep_adjust <- keep_adjust_for(hw(cv_v), hw(raw_v))
 # a pooled variant fixed on the test gauges that drops the adjustment, so that
-# raw P - AET would ship, is not shipped on its own authority (#43): cfu was
-# chosen with the variant picked inside each fold
+# raw P - AET would ship, is not shipped on its own authority (#43);
+# scripts/wb_aet_compare.R writes no winner file for such a variant (#81)
 if (!is.na(fixed_variant) && !keep_adjust && aet_v %in% ship_aet) {
   stop(sprintf("the fixed pooled variant '%s' fails the headwater gate (%.2f %% vs raw %.2f %%%s): %s",
                fixed_variant, hw(cv_v), hw(raw_v),
@@ -162,6 +127,7 @@ if (aet_v %in% ship_aet) {
                gate_pass = gate_pass, min_frac = min_frac,
                calibration = cal$station_number, aet = aet_v, pooled_variant = ship_variant,
                pooled_fixed = !is.na(fixed_variant), release = release, code_md5 = score_code_md5,
+               aet_decision = if (is.null(aet_decision)) NA_character_ else aet_decision[1],
                aet_md5 = aet_code_md5),
           file.path(fit_dir, "fits.rds"))
 }

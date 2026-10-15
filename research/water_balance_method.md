@@ -124,7 +124,7 @@ Annual runoff; percentages are mean absolute error. This table is the #11 model.
 Since #43 the pipeline holds one fit per HYDAT release (`data/wb/stations_<release>.rds`, `data/wb/<key>/fit_<release>/`, `scripts/wb_fit_lib.R`). `WET_HYDAT_RELEASE` names the release, read from wet's per-user cache and checked against the file's `VERSION` (`wet:::wet_hydat()`, #46; `WET_HYDAT`, the path used before #46, is refused), and the shipped fit is `wb_shipped_release`.
 
 - **The 2025-10-14 fit is reproduced exactly under the new layout.** Rebuilt from HYDAT and fwapg, `stations` and `monthly` are identical, and held-out predictions are identical for all ten AETs. #15 reproduces (cfu), and 24 of 24 output basins match. That fit stays as `fit_20251014`.
-- **HYDAT 2026-07-17 adds no years.** The window is fixed at 1981–2010. It revises gross drainage areas: 336 stations snap within ±10 % against 309, giving 315 calibration gauges (29 new, 4 dropped). AET cfu is carried, not re-picked.
+- **HYDAT 2026-07-17 adds no years.** The window is fixed at 1981–2010. It revises gross drainage areas: 336 stations snap within ±10 % against 309, giving 315 calibration gauges (29 new, 4 dropped). AET cfu was carried, not re-picked, until #81 re-decided it on this release (below).
 - **Acceptance** (pre-registered: not more than 1.0 point worse): headwater blocked-CV MAE on the 209 headwater gauges common to both fits, 30.90 against 31.18. Passes.
 - **The headwater gate fails by 0.03 point.** Adjusted scores 30.72 against raw 30.69.
   - On the same 209 gauges the old fit's raw (30.67) already beat its adjusted (31.18). The old gate passed on its full headwater set of 218. Nine of those fall outside the common 209: either dropped by this release (4 gauges are dropped in all) or now nested under its new upstream gauges.
@@ -224,7 +224,7 @@ The Budyko floor raises AET a little in the wet north too, which moves the alrea
 **The rule, fixed before scoring** (`planning/archive/…issue-18…/task_plan.md`):
 - It is #15's (a)–(d), with `cfu` as the incumbent and `mod16` and `cmod16` as the eligible challengers.
 - (d) is judged against `cfu`'s as-shipped headwater MAE.
-- #15's stage is re-run first and must reproduce its published result, or the comparison stops. It reproduced exactly.
+- #15's stage is re-run first and must reproduce its published result, or the comparison stops. It reproduced exactly. (#81 retired this precondition: the comparison now runs on the shipped release, and #15 is reproduced at tag `aet-15-record`.)
 
 | AET | Shipped as | Headwater | All 290 | Nested | Nested within ±20 % | Raw headwater |
 |---|---|---|---|---|---|---|
@@ -258,6 +258,52 @@ At Greata Creek the upstream AET is 281 mm with CGIAR, 419 mm with MOD16 and 499
 - The tiles are the 9 sinusoidal tiles the grid reaches, not CMR's loose bounding-box match, which returns 12.
 - Granules are listed through CMR and downloaded with `curl` and an Earthdata netrc. That is 180 granules, about 3.9 GB, in 14 minutes.
 - The province run reproduces #15's layers exactly, and its upstream means within 5.4e-14 after matching by watershed id. Row order is not stable between runs, because the watershed query has no ORDER BY.
+
+### Reproducing #15 and #18 (tag `aet-15-record`, #81)
+
+**Verified:** 2026-10-15 · **Issues:** #81 · **Produced by:** the recipe below, run on m4 (logs `data/logs/81/rec_*` in the worktree).
+
+#15 was decided at 946da43, under a layout and a province run that no longer exist. Since #81, current code refuses release 20251014 (`scripts/wb_cv_lib.R`), so the unsuffixed reports #15 and #18 cite are never overwritten. The record is tag `aet-15-record` (353721a, v0.4.7), where the whole recipe reproduces byte for byte. All twelve unsuffixed reports (`data/checks/wb_validation.txt`, the ten `wb_validation_aet-*.txt` and `wb_aet_compare.txt`) came back unchanged, and every `fit_20251014` file was identical.
+
+```bash
+git worktree add --detach ../wet-aet15 aet-15-record
+cd ../wet-aet15 && ln -s <main checkout>/data/wb data/wb
+export WET_HYDAT_RELEASE=20251014
+for v in cgiar lc tc fu cfu fu15 fu20 fu35 mod16 cmod16; do Rscript scripts/wb_validate.R $v; done
+Rscript scripts/wb_aet_compare.R && Rscript scripts/wb_validate.R
+git diff --exit-code -- data/checks
+```
+
+It reads, besides the code at the tag:
+- `data/wb/stations_20251014.rds`, which is hashed into the scores, so a rebuilt copy whose bytes differ stales them;
+- province run `e675918817` (`upstream/`, `ex_filled_cells.txt`);
+- `fit_20251014/`, which stays on m4.
+
+HYDAT 2025-10-14 (`s3://fresh-bc/hydat/20251014/`, md5 `da00052022aa1533b80f9fab7cb8b4d0`) is needed only to rebuild the stations file with `scripts/wb_stations.R`. Copy it by hand to `tools::R_user_dir("wet", "cache")/hydat/20251014/Hydat.sqlite3`, which `wet:::wet_hydat()` reads. That rebuild also snaps against the live fwapg (#76), so it is not guaranteed to reproduce the stations file's bytes. When the province run is re-keyed, set `e675918817` aside rather than deleting it, or the recipe has nothing to read.
+
+### The AET re-decided on HYDAT 2026-07-17 (#81)
+
+**Verified:** 2026-10-15 · **Issues:** #81 (from #15, #18, #43; spawned #83) · **Produced by:** `scripts/wb_validate.R <variant>` for all ten variants, then `scripts/wb_aet_compare.R`, on `fit_20260717` → `data/checks/wb_aet_compare_20260717.txt` and `data/checks/wb_validation_aet-*_20260717.txt`. Logs `data/logs/81/` on m4.
+
+Until #81 the AET was chosen only on `fit_20251014`, and newer fits carried it. Now the comparison runs on the shipped release, with #15's and #18's rules unchanged. Each variant is scored as the fit ships it: pooled zones fixed to `none` (#43's pooled test) and the 0.1-point gate override. The nested selection applies both inside each fold. Both decisions were made on `cfu`'s own fit, so this form leans toward `cfu`; the report says so.
+
+| AET | Headwater 2026-07-17 (2025-10-14) | All | Nested | Nested within ±20 % |
+|---|---|---|---|---|
+| `cgiar` | 37.4 % (38.1) | 33.0 % | 19.5 % | 70 % |
+| `lc` | 49.4 % (44.1) | 42.7 % | 22.1 % | 64 % |
+| `tc` | 33.0 % (33.5) | 29.0 % | 16.6 % | 73 % |
+| `fu` | 31.6 % (32.0) | 27.9 % | 16.5 % | 73 % |
+| **`cfu`** | **30.7 % (31.2)** | **27.5 %** | 17.6 % | 70 % |
+| `mod16` | 35.5 % (36.3) | 31.1 % | 17.6 % | 70 % |
+| `cmod16` | 34.0 % (34.6) | 30.4 % | 19.0 % | 69 % |
+
+315 gauges (238 headwater), 94 folds. `cfu` is the only variant kept by the override (its gate fails by 0.03 point); every other eligible variant passes its gate.
+
+- **Stage 1 chooses `cfu` again.** The nested selection scores 31.5 % headwater against `cgiar`'s 37.4 %, and passes. Its folds chose `cfu` 68 times and `fu` 26 times. On 2025-10-14 the split was 87 to 6, so `fu` is closer on this release.
+- **Stage 2 keeps `cfu`.** Neither MOD16 variant meets (a), and the nested selection (32.5 %) does not beat `cfu` as shipped (30.7 %).
+- **The shipped fit is unchanged.** `cfu`'s held-out predictions and the fit itself are identical to those before #81; only the scoring md5 moved. The province output and the published parts are unchanged too (`data/checks/discharge_publish_20260717.txt`).
+
+**What ships, from now on.** Without a recorded decision only `cfu` ships, and only when the rule picks it. Any other winner, or one that would ship raw under a fixed pooled variant, gets no winner file, and the report says DECISION TO USER. The user records the AET to ship in `<fit>/aet_decision.txt` (the variant, then who decided and why). It is hashed into the fit's scores, recorded in `fits.rds`, and copied into each later release's fit; a fit that should have one and does not is refused.
 
 ### Which term is off in the dry interior (#45)
 

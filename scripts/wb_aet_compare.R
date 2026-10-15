@@ -14,26 +14,22 @@
 # selection: each outer blocked fold picks the AET variant (and whether to
 # adjust) by the same rule applied to an inner blocked CV on its training
 # stations, so the winner's error is estimated without having been selected on
-# the stations it is scored on. Stage 1 must reproduce #15's published result
-# (cfu, and its numbers) or the script stops: stage 2's gap fill is built on cfu.
-# So it runs for the 2025-10-14 fit, as the check that a rebuild reproduces it;
-# a fit on a newer HYDAT carries cfu instead (WET_AET_CARRY, #43).
+# the stations it is scored on.
+#
+# It runs on the fit's own release (#81): the shipped fit re-decides its AET at
+# each new release, under the rules as #15 and #18 fixed them. Each variant is
+# scored as the fit ships it, under the fit's own decisions (a fixed pooled
+# variant, a gate override; scripts/wb_cv_lib.R), and the nested selection
+# applies the same decisions inside each fold. #15's own run, on HYDAT
+# 2025-10-14, is reproduced at tag aet-15-record, not here.
 
 source("scripts/wb_cv_lib.R")
-# The comparison is the #15 reproduction: it runs for the fit #15 was run on.
-# A fit on another release carries the AET (WET_AET_CARRY, #43), and deleting
-# its winner here would leave it with none.
-if (release != "20251014") stop("the AET comparison reproduces #15 on fit_20251014; fit_", release, " carries its AET")
+# a winner is only ever the result of a complete comparison under this code;
+# the old one goes first, so no early stop below leaves it in place
+unlink(file.path(fit_dir, "aet_winner.txt"))
 missing_cv <- setdiff(c("cgiar", "lc", "tc", "fu", "cfu", "fu15", "fu20", "fu35", "mod16", "cmod16"),
                       sub("^cv_aet-(.*)\\.rds$", "\\1", list.files(fit_dir, "^cv_aet-.*\\.rds$")))
 if (length(missing_cv)) stop("run scripts/wb_validate.R first for: ", paste(missing_cv, collapse = " "))
-# a winner is only ever the result of a complete comparison under this code
-# #15 is reproduced with the pooled variant chosen inside each fold, as it was
-# run: a fit whose variant is fixed (scripts/wb_pooled_test.R) cannot reproduce it
-if (any(file.exists(file.path(fit_dir, c("pooled_variant.txt", "adjust_override.txt"))))) {
-  stop("this fit carries a fixed pooled variant or a gate override: the #15 comparison runs without either")
-}
-unlink(file.path(fit_dir, "aet_winner.txt"))
 eligible <- c("lc", "tc", "fu", "cfu")          # stage 1 (#15)
 transparency <- c("fu15", "fu20", "fu35")
 eligible2 <- c("mod16", "cmod16")                 # stage 2 (#18)
@@ -81,7 +77,7 @@ metrics <- function(obs, mod, nesting) {
 shipped <- function(x) if (x$keep_adjust) x$cv_ann else pmax(x$raw, 0)
 top <- do.call(rbind, lapply(variants_all, function(v) {
   x <- res[[v]]
-  data.frame(aet = v, gate = x$keep_adjust, t(metrics(cal$obs, shipped(x), cal$nesting)),
+  data.frame(aet = v, gate = x$keep_adjust, gate_pass = x$gate_pass, t(metrics(cal$obs, shipped(x), cal$nesting)),
              raw_hw = metrics(cal$obs, pmax(x$raw, 0), cal$nesting)[["hw"]],
              raw_all = metrics(cal$obs, pmax(x$raw, 0), cal$nesting)[["all"]])
 }))
@@ -99,14 +95,17 @@ stamp("stage 1 top-level rule: ", winner_top)
 # ---- (d): fully nested selection -------------------------------------------------------------------
 # Inside each outer fold the training stations score every variant as shipped
 # under an inner blocked CV (their own WSC folds). To bound the cost the pooled
-# variant is chosen once per training set, not again inside each inner fold.
+# variant is chosen once per training set, not again inside each inner fold;
+# a fit that fixes it uses its own throughout. The adjustment is kept as
+# scripts/wb_validate.R keeps it (keep_adjust_for(): the gate, or the fit's
+# recorded override).
 # Each fold's scores are worked out once, over every candidate of both stages,
 # and each selection below applies its own rule to them.
 as_shipped_cv <- function(d, fold) {
-  pv <- choose_variant(d)
+  pv <- if (is.na(fixed_variant)) choose_variant(d) else fixed_variant
   adj <- cv_annual(d, fold, pv)
   raw <- pmax(d$raw, 0)
-  keep <- metrics(d$obs, adj, d$nesting)[["hw"]] < metrics(d$obs, raw, d$nesting)[["hw"]]
+  keep <- keep_adjust_for(metrics(d$obs, adj, d$nesting)[["hw"]], metrics(d$obs, raw, d$nesting)[["hw"]])
   list(pred = if (keep) adj else raw, keep = keep, pv = pv)
 }
 cands <- c("cgiar", eligible)          # stage 1, in #15's order (which.min ties resolve alike)
@@ -149,34 +148,31 @@ pass_d <- nested[["hw"]] < cg$hw
 winner1 <- if (winner_top != "cgiar" && pass_d) winner_top else "cgiar"
 stamp("stage 1 nested selection headwater MAE ", round(nested[["hw"]], 1), "; winner ", winner1)
 
-# ---- stage 1 must reproduce #15 (data/checks/wb_aet_compare.txt at 946da43) ------------------------
-# Same stations, same layers and the same code path: anything else means the
-# inputs moved under #18, and stage 2's rule (built on cfu) no longer applies.
-ref15 <- data.frame(
-  aet = c("cgiar", "lc", "tc", "fu", "cfu", "fu15", "fu20", "fu35"),
-  hw = c(38.1, 44.1, 33.5, 32.0, 31.2, 42.8, 37.8, 28.9),
-  all = c(33.1, 37.1, 29.0, 28.1, 27.7, 36.3, 32.2, 27.6),
-  nes_mae = c(17.9, 16.0, 15.3, 16.3, 17.4, 16.6, 15.1, 23.5),
-  nes_in20 = c(72.2, 76.4, 81.9, 75.0, 70.8, 75.0, 80.6, 38.9),
-  raw_hw = c(39.8, 69.2, 35.4, 32.8, 31.6, 66.3, 42.8, 28.9),
-  raw_all = c(34.7, 59.4, 30.4, 29.1, 28.6, 56.6, 36.1, 27.6))
-got15 <- top[match(ref15$aet, top$aet), names(ref15)[-1]]
-off <- abs(round(as.matrix(got15), 1) - as.matrix(ref15[-1])) > 1e-9
 tab1 <- table(factor(chosen, levels = cands))
-if (any(off) || winner1 != "cfu" ||
-    !isTRUE(all.equal(round(unname(nested), 1), c(32.3, 28.6, 17.3, 70.8))) ||
-    !identical(as.vector(tab1), c(0L, 0L, 0L, 6L, 87L))) {
-  stop("stage 1 does not reproduce #15 (winner ", winner1, "; nested ", paste(round(nested, 1), collapse = "/"),
-       "; folds ", paste(tab1, collapse = "/"), "; top-table cells off: ", sum(off), ")")
-}
 
-# ---- stage 2 (#18): cfu against mod16 and cmod16 ---------------------------------------------------
+# ---- stage 2 (#18): stage 1's winner against mod16 and cmod16 -------------------------------------
+# MOD16's gaps are filled with cfu whatever stage 1 chose (scripts/wb_province.R);
+# the report discloses it
 inc <- winner1
 winner_top2 <- decide(top, inc, eligible2)
 ns2 <- nested_select(function(m) decide(m[m$aet %in% c(inc, eligible2), ], inc, eligible2))
 inc_row <- top[top$aet == inc, ]
 pass_d2 <- ns2$metrics[["hw"]] < inc_row$hw
 winner <- if (winner_top2 != inc && pass_d2) winner_top2 else inc
+# What ships (#81). Without a recorded decision, the rule's winner ships only
+# if it is #15's cfu: any other winner goes to the user, and no winner file is
+# written, so no later run of scripts/wb_validate.R can ship it on its own
+# authority. With one (<fit>/aet_decision.txt, scripts/wb_cv_lib.R; hashed into
+# score_code_md5, so this run is stamped with it), the user's AET ships, whatever
+# the rule picks; the report shows both. The decision is read from that file,
+# never from fits.rds, which scripts/wb_validate.R rewrites. Deleting it returns
+# the fit to #15's default. Either way, an AET that would ship raw under a fixed
+# pooled variant (which scripts/wb_validate.R refuses, #43) goes to the user.
+# #18's stage 2 was registered with cfu as the incumbent, and MOD16's gaps are
+# cfu, so a stage 1 other than cfu is reported as outside that registration.
+ship <- if (is.null(aet_decision)) winner else aet_decision[1]
+ship_raw <- !is.na(fixed_variant) && !res[[ship]]$keep_adjust
+to_user <- (is.null(aet_decision) && winner != "cfu") || ship_raw
 stamp("stage 2 top-level rule: ", winner_top2, "; nested headwater MAE ", round(ns2$metrics[["hw"]], 1),
       "; winner ", winner)
 # transparency: the incumbent alone under the same nested procedure. Its inner
@@ -219,7 +215,7 @@ detail <- do.call(rbind, lapply(variants_all, function(v) {
 
 # ---- report ---------------------------------------------------------------------------------------
 fmt_top <- sprintf("%-6s %-10s %6.1f %6.1f %6.1f %7.1f %8.1f %8.1f %s", top$aet,
-                   ifelse(top$gate, "adjusted", "raw"), top$hw, top$all, top$nes_mae, top$nes_in20,
+                   ifelse(top$gate, ifelse(top$gate_pass, "adjusted", "adjusted*"), "raw"), top$hw, top$all, top$nes_mae, top$nes_in20,
                    top$raw_hw, top$raw_all,
                    ifelse(top$aet %in% transparency, "(transparency)", ifelse(top$aet %in% eligible2, "(stage 2)", "")))
 fmt_det <- sprintf("%-6s %7.1f %7.1f %7.1f %7.1f %8.1f   %6.0f %6.0f %6.0f", detail$aet, detail$z15, detail$z17,
@@ -236,6 +232,10 @@ writeLines(c(
   "# ET experiments (#15, #18): annual AET variants scored as shipped under blocked CV", "",
   sprintf("province run: %s; stations: %d (headwater %d, nested %d); folds: %d", basename(key_dir),
           nrow(cal), sum(cal$nesting == "headwater"), sum(cal$nesting != "headwater"), length(unique(cal$fold))),
+  sprintf("HYDAT release: %s; pooled zones: %s; headwater gate: %s", release,
+          if (is.na(fixed_variant)) "chosen inside each fold" else sprintf("fixed to '%s' (%s)", fixed_variant,
+                                                                           basename(f_pooled)),
+          if (is.na(tie_tol)) "strict" else sprintf("kept within %.2f point (%s)", tie_tol, basename(f_override))),
   paste("Variants: cgiar (CGIAR SWB v3), lc (CGIAR x Chapman Table 3 land-cover ratio, NRCan 2020),",
         "tc (TerraClimate 1981-2010), fu (Fu-Budyko, climr P and Hargreaves PET, omega 2.6),",
         "cfu (max of CGIAR and fu); fu15/fu20/fu35 are fu at omega 1.5/2.0/3.5, transparency only;",
@@ -252,15 +252,28 @@ writeLines(c(
   "## As shipped (adjusted if it passes the headwater gate, raw otherwise), blocked CV, MAE %",
   sprintf("%-6s %-10s %6s %6s %6s %7s %8s %8s", "aet", "shipped", "head", "all", "nested", "nes_in20",
           "raw_head", "raw_all"),
-  fmt_top, "",
+  fmt_top,
+  if (any(top$gate & !top$gate_pass)) {
+    sprintf(paste("adjusted*: the gate failed and the override kept the adjustment (within %.2f point). The",
+                  "tolerance was recorded for the AET shipped when it was set; it applies here to every variant",
+                  "and every fold, as does the fixed pooled variant, which leans toward that AET."), tie_tol)
+  },
+  "",
   sprintf("(a)-(c) choose: %s", winner_top),
   sprintf(paste("(d) nested selection (outer: %d WSC folds; inner: blocked CV on each fold's training stations,",
-                "pooled variant chosen once per training set): headwater %.1f, all %.1f, nested %.1f,",
+                "pooled variant %s): headwater %.1f, all %.1f, nested %.1f,",
                 "nested in +/-20 %% %.1f; cgiar as shipped: headwater %.1f -> %s"),
-          length(unique(cal$fold)), nested[["hw"]], nested[["all"]], nested[["nes_mae"]], nested[["nes_in20"]],
+          length(unique(cal$fold)),
+          if (is.na(fixed_variant)) "chosen once per training set" else sprintf("fixed to '%s'", fixed_variant),
+          nested[["hw"]], nested[["all"]], nested[["nes_mae"]], nested[["nes_in20"]],
           cg$hw, if (pass_d) "pass" else "fail"),
   sprintf("    variant chosen by the outer folds: %s", paste(sprintf("%s %d", names(tab), tab), collapse = ", ")),
-  sprintf("Stage 1 winner: %s (reproduces #15)", winner1), "",
+  sprintf("Stage 1 winner: %s", winner1),
+  if (winner1 != "cfu") {
+    paste("Stage 1 did not choose cfu: stage 2 below is not the comparison #18 registered (cfu the",
+          "incumbent), and MOD16's gaps are still cfu.")
+  },
+  "",
   sprintf("## Stage 2 (#18): %s against mod16 and cmod16", inc), "",
   paste("Rule (fixed before scoring): the same (a)-(c) thresholds with", inc, "as the incumbent, and (d) a fully",
         "nested selection among", paste(c(inc, eligible2), collapse = ", "), "beating the as-shipped headwater MAE",
@@ -277,7 +290,18 @@ writeLines(c(
   sprintf("(d) nested selection: %s; %s as shipped: headwater %.1f -> %s", fmt_ns(ns2$metrics), inc, inc_row$hw,
           if (pass_d2) "pass" else "fail"),
   sprintf("    variant chosen by the outer folds: %s", paste(sprintf("%s %d", names(tab2), tab2), collapse = ", ")),
-  "", sprintf("WINNER: %s", winner), "",
+  "", sprintf("WINNER: %s", winner),
+  if (to_user) {
+    sprintf("DECISION TO USER: %s; no aet_winner.txt is written, so nothing ships (#81)",
+            if (ship_raw) sprintf("%s ships raw P - AET under the fixed pooled variant '%s'", ship, fixed_variant)
+            else "the rule did not choose cfu (#15's), and no aet_decision.txt records the user's choice")
+  } else if (is.null(aet_decision)) {
+    "SHIPS: cfu, the rule's winner and #15's AET; scripts/wb_validate.R ships it"
+  } else {
+    sprintf("SHIPS: %s, the user's decision in %s (%s); the rule chose %s; scripts/wb_validate.R ships it", ship,
+            basename(f_aet_decision), paste(aet_decision[-1], collapse = " "), winner)
+  },
+  "",
   "## Transparency (never deciding)",
   sprintf("%s alone under the same nested procedure (inner gate per fold): %s", inc, fmt_ns(ns_inc$metrics)),
   sprintf("Two-stage nested selection (stage 1 then stage 2 inside each fold): %s", fmt_ns(ns12$metrics)),
@@ -295,5 +319,9 @@ writeLines(c(
   sprintf("Greata Creek: upstream P %.0f mm, observed %.0f mm", cal$p_yr[g], cal$obs[g])
 ), con)
 close(con)
-writeLines(c(winner, aet_code_md5), file.path(fit_dir, "aet_winner.txt"))
-stamp("report written; winner ", winner)
+if (to_user) {
+  stamp("report written; winner ", winner, ": DECISION TO USER, no winner file written")
+} else {
+  writeLines(c(ship, score_code_md5), file.path(fit_dir, "aet_winner.txt"))
+  stamp("report written; winner ", winner, "; ships ", ship)
+}

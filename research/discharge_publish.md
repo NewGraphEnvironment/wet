@@ -45,7 +45,7 @@ discharge/fwa/v1/segment_monthly/scenario=ssp245/forcing=MPI-ESM1-2-HR/source=pc
 
 - **Why two keys, `scenario` and `forcing`.** PCIC's projections are 9 GCMs × 2 SSPs. With one key the GCM would have to be parsed out of a string, and GCM names contain hyphens. As two keys they match hydromosaic's own `(scenario, model)`.
 - **Why `forcing` and not `model`.** "Model" would be confused with the hydrology model, which `source` already names.
-- **`climr` names the balance's climate input**, not every input: its actual evapotranspiration is CGIAR, carried from #15. The manifest's source description gives the whole recipe.
+- **`climr` names the balance's climate input**, not every input: its actual evapotranspiration is `cfu` (CGIAR floored by Fu-Budyko), chosen by #15 and re-decided on the shipped release by #81. The manifest's source description gives the whole recipe.
 - **`period` is a column, not a key.** In `historical`, routed rows are 1951–2012 and balance rows 1981–2010 until fwapg#25 builds routed flow over 1981–2010. A projection partition will hold several periods.
 - **Sources share one dataset**, so one read returns them side by side for the same segment, and reading one directory returns one source. The partition keys live in the path and are dropped from the file columns.
 - **In v1, `pick` is unique per (scenario, feature, month).** `wet_db_load()` refuses a load that breaks this. A projection scenario holding several periods will need the rule restated (per period); that is undecided until one is built.
