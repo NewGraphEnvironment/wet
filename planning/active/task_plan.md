@@ -19,9 +19,9 @@ Checked during exploration:
 - [x] Confirm from m1, unsigned: the manifest names acb820f, and `wet_catalog_verify()` passes 67 of 67
 
 ## Phase 2: Report on the live build, and fwapg (m4)
-- [ ] In the wet-16 worktree, check out this branch (no `R/`/`scripts/` changes yet). Rerun BUILD and confirm the report reads `identical to the published build acb820f: 67 of 67`, with every check ok
-- [ ] Stop unless the rebuilt report is 67 of 67 identical, fails no check, and its reader lines equal a18406a's. Never run `WET_PUBLISH=1` from the rebuilt tree: its manifest names the branch HEAD
-- [ ] Copy that report to m1 and commit it on this branch
+- [x] In the wet-16 worktree, check out this branch (no `R/`/`scripts/` changes yet). Rerun BUILD and confirm the report reads `identical to the published build acb820f: 67 of 67`, with every check ok
+- [x] Stop unless the rebuilt report is 67 of 67 identical, fails no check, and its reader lines equal a18406a's. Never run `WET_PUBLISH=1` from the rebuilt tree: its manifest names the branch HEAD
+- [x] Copy that report to m1 and commit it on this branch
 - [ ] `wet_db_load()` the new manifest into m4's `discharge.fwa_v1_segment_monthly` and `discharge.fwa_v1_watershed_monthly`, from an ad hoc script outside `data/`. Confirm both table comments name acb820f, and that fresh's `month = 0 AND pick` row counts match the report's reader line; then VACUUM both tables (the replace doubles them on disk)
 
 ## Phase 3: Stored held-out months (#68)
