@@ -162,14 +162,17 @@ winner <- if (winner_top2 != inc && pass_d2) winner_top2 else inc
 # other than it, or one that would ship raw under a fixed pooled variant
 # (which scripts/wb_validate.R refuses, #43), goes to the user before
 # anything ships (#81): no winner file is written for it, so no later run of
-# scripts/wb_validate.R can ship it on its own authority. #18's stage 2 was
+# scripts/wb_validate.R can ship it on its own authority. A switch the user
+# has recorded for this winner (<fit>/aet_decision.txt, scripts/wb_cv_lib.R)
+# is written. #18's stage 2 was
 # registered with cfu as the incumbent, and MOD16's gaps are cfu, so a stage
 # 1 other than cfu is reported as outside that registration.
 f_shipped <- file.path(wb_fit_dir(key_dir, wb_shipped_release), "fits.rds")
 if (!file.exists(f_shipped)) stop("no ", f_shipped, ": the comparison needs the AET the shipped fit uses")
 shipped_aet <- readRDS(f_shipped)$aet
 winner_raw <- !is.na(fixed_variant) && !res[[winner]]$keep_adjust
-to_user <- winner != shipped_aet || winner_raw
+switch_decided <- winner != shipped_aet && identical(aet_decision[1], winner)
+to_user <- (winner != shipped_aet && !switch_decided) || winner_raw
 stamp("stage 2 top-level rule: ", winner_top2, "; nested headwater MAE ", round(ns2$metrics[["hw"]], 1),
       "; winner ", winner)
 # transparency: the incumbent alone under the same nested procedure. Its inner
@@ -290,8 +293,13 @@ writeLines(c(
   "", sprintf("WINNER: %s", winner),
   if (to_user) {
     sprintf("DECISION TO USER: %s; no aet_winner.txt is written, so nothing ships (#81)",
-            if (winner != shipped_aet) sprintf("it is not the AET shipped now (%s)", shipped_aet)
-            else sprintf("it ships raw P - AET under the fixed pooled variant '%s'", fixed_variant))
+            if (winner_raw) sprintf("it ships raw P - AET under the fixed pooled variant '%s'", fixed_variant)
+            else sprintf("it is not the AET shipped now (%s)%s", shipped_aet,
+                         if (is.null(aet_decision)) "" else sprintf("; %s names %s", basename(f_aet_decision),
+                                                                    aet_decision[1])))
+  } else if (switch_decided) {
+    sprintf("a switch from %s (fit_%s), recorded in %s: %s; scripts/wb_validate.R ships it", shipped_aet,
+            wb_shipped_release, basename(f_aet_decision), paste(aet_decision[-1], collapse = " "))
   } else {
     sprintf("the AET shipped now (fit_%s); scripts/wb_validate.R ships it", wb_shipped_release)
   },

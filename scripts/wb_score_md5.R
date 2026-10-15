@@ -28,9 +28,11 @@ score_files <- score_files_for(release)
 # recorded override of the headwater gate (adjust_override.txt) changes its
 # fits, so a fit made before either is stale after it: score_code_md5 covers
 # them (#43). The AET winner is stamped with score_code_md5 too, because the
-# comparison scores every variant under those decisions (#81).
+# comparison scores every variant under those decisions, and a recorded AET
+# switch (aet_decision.txt) decides whether it writes the winner (#81).
 aet_code_md5 <- aet_md5_for(release)
-fit_decisions <- file.path(wb_fit_dir(wb_key_dir(), release), c("pooled_variant.txt", "adjust_override.txt"))
+fit_decisions <- file.path(wb_fit_dir(wb_key_dir(), release),
+                           c("pooled_variant.txt", "adjust_override.txt", "aet_decision.txt"))
 fit_decisions <- fit_decisions[file.exists(fit_decisions)]
 score_code_md5 <- if (length(fit_decisions)) {
   wet_md5_text(unname(tools::md5sum(c(score_files, fit_decisions))))

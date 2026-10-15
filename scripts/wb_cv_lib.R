@@ -101,6 +101,15 @@ tie_tol <- if (is.null(override)) NA_real_ else suppressWarnings(as.numeric(over
 if (!is.null(override) && (is.na(tie_tol) || tie_tol < 0 || tie_tol > 0.5 || length(override) < 2)) {
   stop(f_override, " needs a tolerance (0 to 0.5 point) on line 1 and who decided, and why, after it")
 }
+# A switch of the shipped AET, decided by the user after a comparison sent it
+# to them (<fit>/aet_decision.txt: the variant on line 1, then who decided and
+# why; #81). scripts/wb_aet_compare.R writes the winner only if it names it.
+f_aet_decision <- file.path(fit_dir, "aet_decision.txt")
+aet_decision <- if (file.exists(f_aet_decision)) readLines(f_aet_decision) else NULL
+if (!is.null(aet_decision) &&
+    (length(aet_decision) < 2 || !aet_decision[1] %in% names(wet:::wet_wb_aet_cols()))) {
+  stop(f_aet_decision, " needs an AET variant on line 1 and who decided, and why, after it")
+}
 # Whether the adjustment ships, from headwater MAE adjusted and raw: it beats
 # raw P - AET, or loses by no more than the override's tolerance (a tie the
 # headwater-only gate cannot break, decided by the user for #43's refit
