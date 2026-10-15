@@ -1,5 +1,18 @@
 # Changelog
 
+## wet 0.4.6
+
+- The published discharge at `s3://fresh-bc/discharge/fwa/v1/` now
+  carries the snow-informed monthly balance (build acb820f,
+  [\#77](https://github.com/NewGraphEnvironment/wet/issues/77)). Annual
+  flow and each segment’s `pick` are unchanged. The monthly-flow
+  article’s data were rebuilt from it, and the article now describes the
+  snow terms. The balance reads high only in April and May, by a median
+  of 7 % to 11 %, and is within 5 % in the other months. The freshet is
+  still flattened. `data-raw/monthly_vignette_data.R` reads the held-out
+  months each fit stores, instead of recomputing them
+  ([\#68](https://github.com/NewGraphEnvironment/wet/issues/68)).
+
 ## wet 0.4.5
 
 - The water balance’s monthly shares now also use snow: ERA5-Land’s
