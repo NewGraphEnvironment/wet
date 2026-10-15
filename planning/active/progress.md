@@ -6,3 +6,4 @@
 - Created branch `46-pinned-hydat-releases-one-resolver-a-per` off main
 - Scaffolded PWF baseline from issue #46 with approved phases
 - Next: start Phase 1
+- Phase 1: `wet:::wet_hydat()` in `R/wet_hydat.R` (partial dir + rename, VERSION on every return), 23 expectations green. Four restored defects (no return VERSION check, no superseded refusal, no download VERSION check, download straight into place) each turn a test red, run in a tree copy

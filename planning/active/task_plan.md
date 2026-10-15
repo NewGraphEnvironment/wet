@@ -3,7 +3,7 @@
 **If we do it:** every script, data script and live test names the HYDAT release it reads and gets it from one resolver that checks the file. Station-flow outputs record their release, as the water balance's do. Package users keep tidyhydat's usual workflow untouched. **If we never do:** what the station scripts read depends on which release a machine last downloaded. On 2026-10-15 m1's tidyhydat copy was 2026-07-17 and m4's was 2025-10-14, so the same script gave different numbers on the two machines without saying so. A pinned release also exists only where someone happened to copy it.
 
 ## Phase 1: The resolver `wet:::wet_hydat()`
-- [ ] Tests first, `tests/testthat/test-wet_hydat.R`, against a temp `cache_dir` and tiny VERSION-only sqlite files. The network wrappers are mocked to `stop()` by default. Cases:
+- [x] Tests first, `tests/testthat/test-wet_hydat.R`, against a temp `cache_dir` and tiny VERSION-only sqlite files. The network wrappers are mocked to `stop()` by default. Cases:
   - a cached match returns the path with no network call;
   - a cached file holding another release is refused;
   - an absent current release is downloaded into the cache, with no partial directory left;
@@ -11,8 +11,8 @@
   - a download that yields another release (ECCC moved on) stops and leaves nothing in the cache;
   - ECCC unreachable stops, naming the backup;
   - a malformed release is refused.
-- [ ] `R/wet_hydat.R`: `wet_hydat(release, cache_dir = tools::R_user_dir("wet", "cache"))`, internal (`@noRd`), plus thin wrappers `wet_hydat_remote()` (`tidyhydat::hy_remote()`) and `wet_hydat_download(dir)` (`tidyhydat::download_hydat(dl_hydat_here = dir, ask = FALSE)`), so tests mock them inside wet. It downloads into `<cache>/hydat/.<release>.partial/`, checks `wet_hydat_release()`, then `file.rename()`s into place, and checks `VERSION` on every return.
-- [ ] Restore-the-bug: drop the VERSION check, and drop the superseded-release refusal, and watch the tests go red.
+- [x] `R/wet_hydat.R`: `wet_hydat(release, cache_dir = tools::R_user_dir("wet", "cache"))`, internal (`@noRd`), plus thin wrappers `wet_hydat_remote()` (`tidyhydat::hy_remote()`) and `wet_hydat_download(dir)` (`tidyhydat::download_hydat(dl_hydat_here = dir, ask = FALSE)`), so tests mock them inside wet. It downloads into `<cache>/hydat/.<release>.partial/`, checks `wet_hydat_release()`, then `file.rename()`s into place, and checks `VERSION` on every return.
+- [x] Restore-the-bug: drop the VERSION check, and drop the superseded-release refusal, and watch the tests go red.
 
 ## Phase 2: Scripts resolve through it; `WET_HYDAT` retired
 - [ ] `scripts/wb_fit_lib.R`: `wb_hydat(release)` becomes `wet:::wet_hydat(release)`, and it stops if `WET_HYDAT` is set ("retired by #46; name the release with WET_HYDAT_RELEASE; a file goes in <cache>/hydat/<release>/"), so an old run line cannot be silently ignored.
