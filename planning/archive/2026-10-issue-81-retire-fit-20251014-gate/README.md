@@ -6,7 +6,7 @@
 
 - 2026-07-17, as shipped, blocked CV, headwater MAE: cfu 30.7 %, fu 31.6 %, tc 33.0 %, cgiar 37.4 %, mod16 35.5 %, cmod16 34.0 %. The nested selection gave 31.5 % (passes against cgiar); its folds chose cfu 68 and fu 26. On 2025-10-14 the split was 87 to 6, so fu is closer on this release. Stage 2 kept cfu (nested 32.5 % against 30.7 %).
 - The shipped fit is unchanged. `cv_aet-cfu.rds` and `fits.rds` are identical in every field but the two md5s, and the province output parquet is identical. The publish BUILD matched the live acb820f on 67 of 67 parts; nothing was uploaded.
-- At the tag, the #15 recipe took about 61 min on m4 with the pooled variant nested; on the fixed-variant fit, scoring all ten took 2.3 min.
+- At the tag, the #15 recipe took about 61 min on m4 with the pooled variant nested; on the fixed-variant fit, scoring all ten took about 2.5 min.
 - Wrong turns:
   - A first chain run under pre-review code was stopped after scoring.
   - An identity check wrongly required `aet_md5` unchanged.
