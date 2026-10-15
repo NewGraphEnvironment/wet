@@ -28,7 +28,8 @@ if (!all(need %in% names(cvr))) {
   stop("cv_aet-", aet, ".rds predates #16 (no ", paste(setdiff(need, names(cvr)), collapse = ", "),
        "): rerun scripts/wb_validate.R")
 }
-stopifnot(identical(cvr$release, release), identical(names(cvr$cv_shares), c("base", "snow")))
+stopifnot(identical(cvr$release, release), all(c("base", "snow") %in% names(cvr$cv_shares)))
+shares <- cvr$cv_shares[c("base", "snow")]
 
 # ---- the annual balance must not have moved ------------------------------------------------
 old_fit <- Sys.glob(file.path("data", "wb", "_pre16", "*", paste0("fit_", release)))
@@ -62,7 +63,7 @@ groups <- data.frame(station_number = cvr$station_number,
                      freshet = ifelse(peak_obs %in% 5:6, "peak May-June", "peak other months"),
                      wsc = ifelse(substr(cvr$station_number, 1, 2) == "10", "WSC area 10", "other areas"),
                      lake = cvr$lake)
-v <- lapply(cvr$cv_shares, function(sh) wet_flow_validate(long_of(sh), groups))
+v <- lapply(shares, function(sh) wet_flow_validate(long_of(sh), groups))
 med <- function(x) if (any(!is.na(x))) stats::median(x, na.rm = TRUE) else NA_real_
 # per month: the median error of the monthly flow, in percent, over gauges with flow that month
 month_err <- function(sh, keep = rep(TRUE, n)) {
@@ -82,8 +83,8 @@ peak_stats <- function(sh) {
   c(n = length(i), below = mean(mo < ob), median_err = med(100 * (mo - ob) / ob),
     same_peak = mean(max.col(sh[i, , drop = FALSE], ties.method = "first") == peak_obs[i]))
 }
-ps <- lapply(cvr$cv_shares, peak_stats)
-zero <- vapply(cvr$cv_shares, function(sh) sum(sh * cvr$cv_ann == 0, na.rm = TRUE), numeric(1))
+ps <- lapply(shares, peak_stats)
+zero <- vapply(shares, function(sh) sum(sh * cvr$cv_ann == 0, na.rm = TRUE), numeric(1))
 
 # ---- report ----------------------------------------------------------------------------------
 num <- function(x, d = 3) ifelse(is.na(x), "NA", formatC(x, format = "f", digits = d))
@@ -112,9 +113,11 @@ writeLines(c(
   sprintf("snow predictors: upstream means of ERA5-Land 1981-2010 snowmelt_doy_50 and swe_max (wet_snow_normals())"),
   "",
   sprintf(paste("RULE (fixed before the snow predictors were scored, scripts/wb_validate.R): keep them if the",
-                "blocked-CV median share NSE rises by >= %.2f, over the gauges where both give one."), r$min_gain),
-  sprintf("  base %.3f, snow %.3f, gain %+.3f over %d gauges -> %s", r$median[["base"]], r$median[["snow"]], r$gain,
+                "blocked-CV median share NSE (12 held-out shares against the observed, per gauge) rises by",
+                ">= %.2f, over the gauges where both give one."), r$min_gain),
+  sprintf("  base %.4f, snow %.4f, gain %+.4f over %d gauges -> %s", r$median[["base"]], r$median[["snow"]], r$gain,
           r$n_both, if (cvr$share_spec == "snow") "KEPT (the fit ships the snow predictors)" else "NOT kept"),
+  if ("doy" %in% names(r$median)) sprintf("  not deciding: snowmelt_doy_50 alone %.4f", r$median[["doy"]]),
   if (length(ident)) {
     sprintf("held-out annual identical to the fit set aside before #16 (%s) for: %s", old_fit,
             paste(ident, collapse = ", "))
@@ -133,9 +136,9 @@ writeLines(c(
   "## Median error of the monthly flow, percent, by month (gauges with flow that month)",
   sprintf("%-14s %s", "month", paste(sprintf("%6s", month.abb), collapse = "")),
   sprintf("%-14s %s", c("base", "snow"),
-          vapply(cvr$cv_shares, function(sh) paste(sprintf("%6.1f", month_err(sh)), collapse = ""), "")),
+          vapply(shares, function(sh) paste(sprintf("%6.1f", month_err(sh)), collapse = ""), "")),
   sprintf("%-14s %s", c("area 10 base", "area 10 snow"),
-          vapply(cvr$cv_shares, function(sh) {
+          vapply(shares, function(sh) {
             paste(sprintf("%6.1f", month_err(sh, groups$wsc == "WSC area 10")), collapse = "")
           }, "")),
   "",

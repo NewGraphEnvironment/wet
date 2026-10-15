@@ -92,3 +92,36 @@ test_that("a source in another CRS stops", {
   cat <- snow_catalog(c(swe_max = f2))
   expect_error(wet_snow_normals(snow_grid(), "swe_max", dir = dir, catalog = cat), "not in the grid's CRS")
 })
+
+test_that("cap limits a variable's mean before resampling, and only the named variable", {
+  dir <- withr::local_tempdir()
+  cat <- snow_catalog(c(snowmelt_doy_50 = local_snow(dir, "snowmelt_doy_50"),
+                        swe_max = local_snow(dir, "swe_max", scale = 1000)))
+  # means: doy 15.5, swe_max 15,500 -> capped at 3,000 by default
+  r <- terra::rast(wet_snow_normals(snow_grid(), dir = dir, catalog = cat))
+  expect_equal(unname(unlist(terra::global(r, "max"))), c(15.5, 3000), tolerance = 1e-6)
+  r2 <- terra::rast(wet_snow_normals(snow_grid(), dir = dir, catalog = cat, cap = c(swe_max = 20000)))
+  expect_equal(unname(unlist(terra::global(r2, "max"))), c(15.5, 15500), tolerance = 1e-6)
+  r3 <- terra::rast(wet_snow_normals(snow_grid(), dir = dir, catalog = cat, cap = c(snowmelt_doy_50 = 10)))
+  expect_equal(unname(unlist(terra::global(r3, "max"))), c(10, 15500), tolerance = 1e-6)
+  expect_error(wet_snow_normals(snow_grid(), "swe_max", dir = dir, catalog = cat, cap = c(snowmelt_doy_50 = 1)),
+               "cap must name")
+  expect_error(wet_snow_normals(snow_grid(), dir = dir, catalog = cat, cap = 3000), "cap must name")
+})
+
+test_that("the key follows the values read, not the file's bytes", {
+  dir <- withr::local_tempdir()
+  src <- withr::local_tempdir()
+  cat <- snow_catalog(c(swe_max = local_snow(src, "swe_max")))
+  f1 <- wet_snow_normals(snow_grid(), "swe_max", dir = dir, catalog = cat)
+  # the same values rewritten with other metadata (a cd rebuild): same file
+  r <- terra::rast(cat$href)
+  terra::metags(r) <- c(CD_RUN_TIME = "2099-01-01T00:00:00Z")
+  f2 <- file.path(src, "swe_max_rebuilt.tif")
+  terra::writeRaster(r, f2)
+  expect_false(identical(unname(tools::md5sum(f2)), unname(tools::md5sum(cat$href))))
+  expect_identical(wet_snow_normals(snow_grid(), "swe_max", dir = dir, catalog = snow_catalog(c(swe_max = f2))), f1)
+  # a year appended outside `years` changes nothing either
+  f3 <- local_snow(withr::local_tempdir(), "swe_max", years = 1975:2013)
+  expect_identical(wet_snow_normals(snow_grid(), "swe_max", dir = dir, catalog = snow_catalog(c(swe_max = f3))), f1)
+})

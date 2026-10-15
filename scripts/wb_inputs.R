@@ -61,8 +61,14 @@ f_m16_granules <- sort(basename(wet:::wet_mod16_local("data/mod16", wet:::wet_mo
 # ERA5-Land 1981-2010 snow normals (#16), from cd's published annual layers
 snow_cat <- cd::cd_catalog()
 snow_cat <- snow_cat[snow_cat$variable %in% c("snowmelt_doy_50", "swe_max") & snow_cat$period %in% "annual", ]
-f_snow <- wet_snow_normals(f_aet, catalog = snow_cat)
-stamp("snow ", f_snow)
+# fetched once, so the grid and the manifest describe the same bytes
+snow_files <- vapply(snow_cat$href, cd::cd_cache_fetch, "")
+f_snow <- wet_snow_normals(f_aet, catalog = data.frame(variable = snow_cat$variable, period = "annual",
+                                                       href = unname(snow_files)))
+# ERA5-Land cells whose 1981-2010 mean swe_max the 3,000 mm cap limits (glacier points)
+swe_mean <- terra::mean(terra::rast(snow_files[snow_cat$variable == "swe_max"])[[as.character(1981:2010)]])
+n_capped <- unlist(terra::global(swe_mean > 3000, "sum", na.rm = TRUE))
+stamp("snow ", f_snow, "; ", n_capped, " ERA5-Land cells capped at 3,000 mm swe_max")
 
 # Extended BC Hydrologic Zones (43 features; reaches the FWA polygons outside BC)
 hz_url <- paste0("https://catalogue.data.gov.bc.ca/dataset/f1f86c41-ae83-49d5-92e1-526897b99fa2/",
@@ -142,12 +148,12 @@ rows <- rbind(rows, data.frame(
   file = c("data/mod16/MOD16A3GF.A*.hdf", f_m16),
   md5 = c(wet:::wet_md5_text(paste(f_m16_granules, md5(m16_g))), md5(f_m16))))
 # the cd layers as read (cd's cache), with the build the catalog names
-snow_files <- vapply(snow_cat$href, cd::cd_cache_fetch, "")
 rows <- rbind(rows, data.frame(
   input = c(sprintf("cd ERA5-Land %s, annual (one band per year)", snow_cat$variable), "Snow normals grid"),
   source = c(sprintf("%s (cd %s, built %s; ERA5-Land, Copernicus licence)", snow_cat$href,
                      substr(snow_cat$cd_sha, 1, 7), snow_cat$run_time),
-             "wet_snow_normals() (1981-2010 per-cell mean, bilinear)"),
+             sprintf(paste("wet_snow_normals() (1981-2010 per-cell mean, swe_max capped at 3,000 mm on %d",
+                           "ERA5-Land cells, bilinear)"), n_capped)),
   file = c(unname(snow_files), f_snow),
   md5 = c(md5(unname(snow_files)), md5(f_snow))))
 is_tif <- grepl("\\.tif$", rows$file)

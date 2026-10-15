@@ -6,15 +6,16 @@ Done together with #68 (store the held-out monthly balance with each fit).
 
 ## Plan context
 
-The monthly shares (`wet_share_fit()`) are regressions on the same month's P, T and AET plus elevation and location. Under blocked CV the balance flattens the freshet (#65): it is below the gauge in the peak month at 69 % of the 243 gauges that peak in May or June, and the median share NSE is about 0.5 in zones 27–29. #16 adds cd's ERA5-Land `snowmelt_doy_50` and `swe_max` (1981–2010 mean) as upstream-mean predictors, and keeps them only if they pass a rule fixed before the rerun. #68 lands first in the same branch: it stores the held-out monthly values with each fit, so the snow comparison reads them instead of recomputing `predict_cv()`. Both change hashed scoring code, so one rerun of both chains on m4 covers both.
+The monthly shares (`wet_share_fit()`) are regressions on the same month's P, T and AET plus elevation and location. Under blocked CV the balance flattens the freshet (#65): it is below the gauge in the peak month at 69 % of the 243 gauges that peak in May or June, and in zones 27–29 the median monthly-flow NSE is about 0.5 (share NSE 0.62–0.67; 0.86 overall in the shipped fit, 0.87 in fit_20251014). #16 adds cd's ERA5-Land `snowmelt_doy_50` and `swe_max` (1981–2010 mean) as upstream-mean predictors, and keeps them only if they pass a rule fixed before the rerun. #68 lands first in the same branch: it stores the held-out monthly values with each fit, so the snow comparison reads them instead of recomputing `predict_cv()`. Both change hashed scoring code, so one rerun of both chains on m4 covers both.
 
 Decisions made at the plan gate (2026-10-14):
-- **Province key:** snow is a new pair of layers in the province stack, so the run gets a new key. The old `962a9cc2c4` is set aside as `data/wb/_pre16/`. `pooled_variant.txt` and `adjust_override.txt` are carried to the new fit dirs, which is valid only if each fit's held-out annual (`cv_ann`) is identical to the old one's. That is asserted.
-- **Keep rule:** keep snow iff the blocked-CV median per-gauge share NSE over all calibration gauges rises by ≥ 0.01, applied in `wb_validate.R` on each fit's own held-out gauge-months. Zones 27–29, the May/June freshet-peak gauges (peak-month error) and WSC area 10 are reported but do not decide.
+- **Province key:** snow is a new pair of layers in the province stack, so the run gets a new key. The old `962a9cc2c4` is set aside as `data/wb/_pre16/962a9cc2c4/` (nested, so `wb_key_dir()` still finds one run). `pooled_variant.txt` and `adjust_override.txt` are carried to the new fit dirs, which is valid only if each fit's held-out annual (`cv_ann`) is identical to the old one's. That is asserted.
+- **Keep rule:** keep snow iff the blocked-CV median per-gauge share NSE over all calibration gauges rises by ≥ 0.01, applied in `wb_validate.R` on each fit's own held-out gauge-months. Exact form after the plan review (`review-plan.md` G1): per gauge, the NSE of the 12 held-out shares against the observed, at gauges with observed runoff ≥ 10 mm and shares from both specifications; unrounded gain ≥ 0.01 − 1e-9. #16's outcome is the shipped fit's (fit_20260717).
+- **Glacier swe_max (decided 2026-10-14, after the predictor probe and before any score):** cap each ERA5-Land cell's 1981–2010 mean `swe_max` at 3,000 mm. Zones 27–29, the May/June freshet-peak gauges (peak-month error) and WSC area 10 are reported but do not decide.
 - **Publish scope:** build the publish tree and its report on m4, and do not upload. Upload, vignette-data regeneration and the switch of `data-raw/monthly_vignette_data.R` to stored months go to a follow-up issue, unless snow is rejected and the build is byte-identical to the live one (then that switch is done here, see Phase 7).
 
 Facts from exploration:
-- cd publishes `snowmelt_doy_50_annual.tif` and `swe_max_annual.tif` (76 bands, 1950–2025, 0.1°, cd_sha 349f9d7, built 2026-10-10). Over 1981–2010, every land cell has 30/30 non-NA years for both variables: 20,739 cells for doy and 20,746 for swe_max; sea is NA.
+- cd publishes `snowmelt_doy_50_annual.tif` and `swe_max_annual.tif` (76 bands, 1950–2025, 0.1°, cd_sha 349f9d7, built 2026-10-10). Over 1981–2010, every cell has 0 or 30 non-NA years: 20,739 land cells for doy and 20,746 for swe_max (7 cells carry swe but no melt year); sea is NA.
 - `cd_baseline()` is `mean(value, na.rm = TRUE)` over the baseline years and never reads `anomaly_type`, so cd#139 cannot reach a baseline. `swe_max` comes from state variables (`sde`, `rsn`), so cd#88 does not touch it. `snowmelt_doy_50` comes from accumulated `smlt`, which cd#88 does touch.
 - `wet_share_fit(d, static =)` already takes extra per-station predictors. `wet_share_predict()` uses `fit$static`, so `wb_output.R` needs no change beyond the upstream columns being present.
 - `score_files_for()` (`scripts/wb_score_md5.R`) hashes `wb_validate.R`, `wb_cv_lib.R` and `R/wet_share_fit.R`, so every fit goes stale. `wb_province.R`'s key hashes `basename(f_in)` and its `code_files`.
@@ -36,7 +37,7 @@ Facts from exploration:
 - [x] One-off check, recorded in `findings.md`: for two AOIs, the area mean of the wet grid matches `cd_baseline(cd_extract(...))` within resampling error
 
 ## Phase 4: Snow layers in the province run
-- [x] `scripts/wb_province.R`: `f_in[["snow"]]` and `R/wet_snow_normals.R` in `code_files`. Snow layers are added after the analysis mask like the ET-experiment layers, with coastal cells off ERA5-Land's land filled from the nearest ERA5-Land cell and counted in `ex_filled_cells.txt`. The existing "mask must not have moved" assertion covers them
+- [x] `scripts/wb_province.R`: `f_in[["snow"]]` and `R/wet_snow_normals.R` in `code_files`. Snow layers are added after the analysis mask like the ET-experiment layers, with coastal cells off ERA5-Land's land filled by iterated 3 × 3 means of neighbouring filled cells and counted in `ex_filled_cells.txt`. The existing "mask must not have moved" assertion covers them
 - [x] `R/wet_share_fit.R`: document the snow predictors as optional `static` columns, and test a fit with `static = c("elev", "e_km", "n_km", "snowmelt_doy_50", "swe_max")` in `test-wet_share_fit.R`
 
 ## Phase 5: Score both share specifications and apply the rule
@@ -46,17 +47,17 @@ Facts from exploration:
 - [x] Commit the rule before any rerun (the commit is the pre-registration)
 
 ## Phase 6: Rerun on m4 (worktree of this branch, data linked to the main checkout's)
-- [ ] `wb_inputs.R` (snow grid), then `wb_province.R 4` (new key); set `962a9cc2c4` aside as `data/wb/_pre16/`
+- [ ] `wb_inputs.R` (snow grid), then `wb_province.R 4` (new key); set `962a9cc2c4` aside as `data/wb/_pre16/962a9cc2c4/`, then `scripts/wb_upstream_identity.R data/wb/_pre16/962a9cc2c4` must pass before any fit
 - [ ] `fit_20251014`: `wb_validate.R` for every AET variant, `wb_aet_compare.R` (must reproduce #15), `wb_validate.R <winner>`, `wb_share_snow.R`
 - [ ] `fit_20260717`: carry `pooled_variant.txt`, `pooled_test.txt` and `adjust_override.txt`, run `WET_AET_CARRY=20251014 wb_validate.R`, then `wb_share_snow.R`. Its `cv_ann` identity assertion must pass, or stop and report
-- [ ] `wb_output.R`, `segment_output.R`, `discharge_publish.R` BUILD only (no `WET_PUBLISH`), and commit the tracked reports
+- [ ] `wb_output.R`, commit the reports so far, then `segment_output.R`, commit, then `discharge_publish.R` BUILD only (no `WET_PUBLISH`), commit
 - [ ] Copy a reduced bundle of the new key to m1, replacing `962a9cc2c4` there (the old one set aside), and update the machine memories
 
 ## Phase 7: Record the outcome
 - [ ] `research/water_balance_method.md`: the share predictors, the rule, and the result by zone and at the freshet gauges
 - [ ] `CLAUDE.md`: architecture lines for `wet_snow_normals()`, `wb_share_snow.R` and the stored months
 - [ ] Edit the #16 and #68 issue bodies with the outcome
-- [ ] If snow is kept, file the follow-up for upload, vignette-data regeneration and the switch of `monthly_vignette_data.R` to stored months (#68's last bullet). If snow is rejected and the BUILD is byte-identical to the live build, make that switch here and regenerate to prove the result identical
+- [ ] If snow is kept, file the follow-up for upload, vignette-data regeneration and the switch of `monthly_vignette_data.R` to stored months (#68's last bullet). If snow is rejected and the BUILD report has all parts identical to the live build (N of N), make that switch here and regenerate, checking `segments`, `gauges`, `period` and `published_check` are identical (the rds carries run provenance, so its bytes cannot be)
 
 ## Validation
 

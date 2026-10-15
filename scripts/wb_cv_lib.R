@@ -95,10 +95,12 @@ choose_variant <- function(d) {
   variants[which.min(m)]
 }
 # The monthly-share specifications scored (#16): the static predictors of
-# wet_share_fit() in each. scripts/wb_validate.R ships one of them by a rule
-# fixed before the snow layers were first scored.
+# wet_share_fit() in each. scripts/wb_validate.R ships base or snow by a rule
+# fixed before the snow layers were first scored; doy (the melt date alone)
+# is reported beside them and decides nothing.
 share_static <- list(base = c("elev", "e_km", "n_km"),
-                     snow = c("elev", "e_km", "n_km", "snowmelt_doy_50", "swe_max"))
+                     snow = c("elev", "e_km", "n_km", "snowmelt_doy_50", "swe_max"),
+                     doy = c("elev", "e_km", "n_km", "snowmelt_doy_50"))
 # held-out annual and monthly predictions; each outer fold runs the whole
 # procedure on its training stations: pooling from their locations, and the
 # pooled-zone variant chosen by an inner blocked CV (plan decision 5). The
@@ -126,10 +128,11 @@ predict_cv <- function(d, fold, variant = "nested", share_specs = names(share_st
     ann[!tr] <- wet_wb_adjust(fit, d[!tr, ])
     raw_adj[!tr] <- wet_wb_adjust(fit, d[!tr, ], floor = FALSE)
     was_pooled[!tr] <- d$zone[!tr] %in% fit$pooled
-    for (k in share_specs) {
-      sf <- wet_share_fit(d[tr, ], static = share_static[[k]])
-      sh[[k]][!tr, ] <- wet_share_predict(sf, d[!tr, ])
+    sfs <- lapply(share_specs, function(k) wet_share_fit(d[tr, ], static = share_static[[k]]))
+    if (length(unique(vapply(sfs, function(x) x$n, 1L))) != 1) {
+      stop("the share specifications were fitted on different stations in fold ", f)
     }
+    for (j in seq_along(share_specs)) sh[[share_specs[j]]][!tr, ] <- wet_share_predict(sfs[[j]], d[!tr, ])
   }
   list(ann = ann, share = sh[[1]], shares = sh, n_floored = sum(raw_adj < 0), n_pooled = sum(was_pooled),
        was_pooled = was_pooled,

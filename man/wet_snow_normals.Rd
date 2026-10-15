@@ -10,6 +10,7 @@ wet_snow_normals(
   years = 1981:2010,
   dir = "data/snow",
   catalog = NULL,
+  cap = c(swe_max = 3000),
   overwrite = FALSE
 )
 }
@@ -26,12 +27,16 @@ wet_snow_normals(
 as from \code{cd::cd_catalog()}; \code{NULL} reads cd's default catalog. A remote
 \code{href} is read through \code{cd::cd_cache_fetch()}.}
 
+\item{cap}{Named numeric: an upper limit for the per-cell mean of each named
+variable, applied before resampling. Variables not named are not capped.}
+
 \item{overwrite}{Logical. Rebuild the resampled grid even when cached.}
 }
 \value{
 Path to a GeoTIFF with one layer per variable, named as in \code{vars}.
-The cache key is the grid, \code{vars}, \code{years}, the md5 of each file read and
-the method version.
+The cache key is the grid, \code{vars}, \code{years}, \code{cap}, the method version and
+the values of the bands read (not their files, which cd rebuilds with a
+new run time whenever it appends a year).
 }
 \description{
 Reads cd's annual snow layers (one band per year, ERA5-Land at 0.1 degree,
@@ -50,6 +55,12 @@ equivalent (mm).
 ERA5-Land has no cell over the sea, so cells of \code{grid} whose own ERA5-Land
 cell is empty come out \code{NA} (GDAL's bilinear reweights around missing
 neighbours); they are left for the caller to fill.
+
+ERA5-Land's glacier points carry perennial snow: over 1981-2010, 513 BC
+land cells have a mean \code{swe_max} of 5,000 to 10,000 mm, against a seasonal
+maximum of about 3,000 mm elsewhere. \code{cap} limits each cell's mean before
+resampling, so a glacier cell still reads as deep snow without dominating
+an upstream mean (decided for #16 before any score was seen).
 }
 \examples{
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}

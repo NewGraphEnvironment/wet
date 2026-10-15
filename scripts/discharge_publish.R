@@ -289,9 +289,15 @@ sources <- list(
        citation = "Pacific Climate Impacts Consortium, University of Victoria. Hydromosaic routed streamflow. https://services.pacificclimate.org/",
        provenance = list(routed = sub("^routed: ", "", routed_line), routed_fingerprint = routed_fp)),
   list(source = "wet_balance",
-       description = paste("wet's open water balance (#11): climr 1981-2010 precipitation and temperature,",
-                           "CGIAR actual evapotranspiration floored by Fu-Budyko, fitted at HYDAT gauges,",
-                           "accumulated upstream over FWA fundamental watersheds."),
+       description = paste(c("wet's open water balance (#11): climr 1981-2010 precipitation and temperature,",
+                             "CGIAR actual evapotranspiration floored by Fu-Budyko, fitted at HYDAT gauges,",
+                             "accumulated upstream over FWA fundamental watersheds.",
+                             # the snow predictors of the monthly shares, when the fit ships them (#16)
+                             if (identical(fits$share_spec, "snow")) {
+                               paste("Monthly shares also use ERA5-Land 1981-2010 snowmelt timing and peak snow",
+                                     "water equivalent (via NewGraphEnvironment/cd); contains modified Copernicus",
+                                     "Climate Change Service information.")
+                             }), collapse = " "),
        citation = "New Graph Environment Ltd. wet: stream flow for the BC Freshwater Atlas. https://github.com/NewGraphEnvironment/wet",
        provenance = list(fit_release = release, province_run = basename(key_dir)))
 )

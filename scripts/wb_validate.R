@@ -85,16 +85,27 @@ ins_fit <- wet_wb_fit(cal, pooled_adjust = ship_variant)
 cv_variant <- if (is.na(fixed_variant)) "nested" else fixed_variant
 cv <- predict_cv(cal, cal$fold, cv_variant)
 # Which monthly-share specification ships (#16), by a rule fixed before the
-# snow predictors were first scored: the snow predictors are kept only if the
-# blocked-CV median per-gauge share NSE rises by at least share_min_gain. The
-# median is taken over the gauges where both specifications give a share NSE,
-# so neither is scored on gauges the other is not.
+# snow predictors were first scored: they are kept only if the blocked-CV
+# median per-gauge share NSE rises by at least share_min_gain (unrounded, with
+# 1e-9 allowed for floating point). Per gauge, the NSE of the 12 held-out
+# shares against the observed ones, at gauges with observed runoff of at least
+# 10 mm (wet_flow_validate()'s min_obs) and shares from both specifications:
+# taken from the shares themselves, it does not depend on the annual balance,
+# so every AET variant of a fit gives the same outcome. The shipped fit's
+# outcome (fit_20260717) is #16's; each fit ships its own.
 share_min_gain <- 0.01
-share_st <- lapply(cv$shares, function(sh) wet_flow_validate(long(cal, cv$ann, sh))$stations)
-share_both <- Reduce(`&`, lapply(share_st, function(x) !is.na(x$nse_share)))
-share_med <- vapply(share_st, function(x) stats::median(x$nse_share[share_both]), numeric(1))
+obs_sh <- as.matrix(cal[sprintf("share_%02d", 1:12)])
+share_nse <- function(sh) {
+  vapply(seq_len(nrow(cal)), function(i) {
+    if (!(cal$obs[i] >= 10) || anyNA(obs_sh[i, ]) || anyNA(sh[i, ])) return(NA_real_)
+    wet:::wet_nse(obs_sh[i, ], sh[i, ])
+  }, numeric(1))
+}
+share_st <- lapply(cv$shares, share_nse)
+share_both <- !is.na(share_st$base) & !is.na(share_st$snow)
+share_med <- vapply(share_st, function(x) stats::median(x[share_both & !is.na(x)]), numeric(1))
 share_gain <- share_med[["snow"]] - share_med[["base"]]
-ship_share <- if (share_gain >= share_min_gain) "snow" else "base"
+ship_share <- if (share_gain >= share_min_gain - 1e-9) "snow" else "base"
 cv$share <- cv$shares[[ship_share]]
 ins_share <- wet_share_fit(cal, static = share_static[[ship_share]])
 ins_v <- wet_flow_validate(long(cal, wet_wb_adjust(ins_fit, cal), wet_share_predict(ins_share, cal)), groups)
@@ -165,7 +176,7 @@ saveRDS(list(aet = aet_v, keep_adjust = keep_adjust, gate_pass = gate_pass, raw_
              cv_ann = cv$ann, cv_share = cv$share, obs_share = as.matrix(cal[sprintf("share_%02d", 1:12)]),
              cv_shares = cv$shares, share_spec = ship_share,
              share_rule = list(min_gain = share_min_gain, median = share_med, gain = share_gain,
-                               n_both = sum(share_both)),
+                               n_both = sum(share_both), nse = share_st),
              zone = cal$zone, lake = groups$lake, cv_variant = cv_variant, nesting = cal$nesting, obs = cal$obs,
              release = release, code_md5 = score_code_md5),
         file.path(fit_dir, sprintf("cv_aet-%s.rds", aet_v)))
@@ -231,10 +242,11 @@ writeLines(c(
   },
   "",
   sprintf(paste("SHARES (#16; rule fixed before the snow predictors were scored: keep snowmelt_doy_50 and swe_max",
-                "if the blocked-CV median share NSE rises by >= %.2f): base %.3f, with snow %.3f, gain %+.3f",
+                "if the blocked-CV median share NSE rises by >= %.2f): base %.4f, with snow %.4f, gain %+.4f",
                 "over %d gauges with both -> %s"),
           share_min_gain, share_med[["base"]], share_med[["snow"]], share_gain, sum(share_both),
           if (ship_share == "snow") "snow predictors KEPT" else "snow predictors NOT kept"),
+  sprintf("  (not deciding: snowmelt_doy_50 alone %.4f over the same gauges)", share_med[["doy"]]),
   sprintf("share predictors shipped: %s (every table below uses them)",
           paste(share_static[[ship_share]], collapse = ", ")),
   "",
