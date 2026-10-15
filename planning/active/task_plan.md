@@ -60,25 +60,26 @@ What exploration found:
 - [x] Grep that nothing outside `planning/archive/` still names `WET_AET_CARRY` or the rerun-first rule
 
 ## Phase 3: Re-decide on m4 (worktree of this branch, `data/wb` linked to the main checkout's)
-- [ ] Copy `fit_20260717` (fits.rds, aet_winner.txt, cv_aet-cfu.rds, output/, runoff_annual.tif, segment/) into `data/wb/_pre81/fit_20260717/` for identity checks. `wb_key_dir()` does not look there. Then remove the live three-line carried `aet_winner.txt`, which the new `wb_validate.R` refuses as bad.
-- [ ] `WET_HYDAT_RELEASE=20260717`, with `caffeinate -i` and logs in `data/logs/81/`:
+- [x] Copy `fit_20260717` (fits.rds, aet_winner.txt, cv_aet-cfu.rds, output/, runoff_annual.tif, segment/) into `data/wb/_pre81/fit_20260717/` for identity checks. `wb_key_dir()` does not look there. Then remove the live three-line carried `aet_winner.txt`, which the new `wb_validate.R` refuses as bad.
+- [x] `WET_HYDAT_RELEASE=20260717`, with `caffeinate -i` and logs in `data/logs/81/`:
   - `wb_validate.R` for cgiar lc tc fu cfu fu15 fu20 fu35 mod16 cmod16
   - then `wb_aet_compare.R`
   - Commit the reports (`wb_validation_aet-*_20260717.txt`, `wb_aet_compare_20260717.txt`).
-- [ ] **If the winner is not `cfu`: stop here.** Commit, and bring the switch to the user with the numbers (the pooled-variant test was also settled on cfu). Nothing ships.
-- [ ] If `cfu`:
+- [x] **If the winner is not `cfu`: stop here.** Commit, and bring the switch to the user with the numbers (the pooled-variant test was also settled on cfu). Nothing ships.
+- [x] If `cfu`:
   - `wb_validate.R cfu` ships. `cv_ann` and `cv_share` must be identical to `_pre81`'s, or stop and report.
   - Then `wb_share_snow.R`, `wb_output.R` (output parquet identical to `_pre81`'s), `segment_output.R`, `pcic_routed_compare.R` (with `WET_FWAPG_COMMIT` as tracked), and `discharge_publish.R` BUILD only. Expect every part identical to the live acb820f build.
   - Commit the reports after each step. No upload.
-- [ ] Copy the reduced bundle back to m1 (fits.rds, aet_winner.txt, cv_aet-cfu.rds, output/), then update the m1/m4 memories (drop "rerun fit_20251014 first")
+- [x] Copy the reduced bundle back to m1 (fits.rds, aet_winner.txt, cv_aet-cfu.rds; output/ identical, kept)
+- [ ] Update the m1/m4 memories (drop "rerun fit_20251014 first")
 
 ## Phase 4: Record the outcome
-- [ ] `research/water_balance_method.md` §0: the re-decision on 2026-07-17 (both stages' tables, winner, nested selection), compared with #15's numbers on 2025-10-14
+- [x] `research/water_balance_method.md` §0: the re-decision on 2026-07-17 (both stages' tables, winner, nested selection), compared with #15's numbers on 2025-10-14
 - [ ] Edit the #81 body with the outcome. File the follow-up issue: `wb_fit_accept.R` requires a nested-CV old fit, but the shipped fit is fixed to `none`.
 
 ## Validation
-- [ ] Tests pass (`devtools::test()`; the scripts carry no unit tests, so the m4 runs are the end-to-end check)
-- [ ] `/code-check` clean (once over the branch with `/code-check branch`)
+- [x] Tests pass (1113, 0 failed) (`devtools::test()`; the scripts carry no unit tests, so the m4 runs are the end-to-end check)
+- [x] `/code-check` clean (once over the branch with `/code-check branch`)
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 

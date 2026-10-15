@@ -259,6 +259,30 @@ At Greata Creek the upstream AET is 281 mm with CGIAR, 419 mm with MOD16 and 499
 - Granules are listed through CMR and downloaded with `curl` and an Earthdata netrc. That is 180 granules, about 3.9 GB, in 14 minutes.
 - The province run reproduces #15's layers exactly, and its upstream means within 5.4e-14 after matching by watershed id. Row order is not stable between runs, because the watershed query has no ORDER BY.
 
+### The AET re-decided on HYDAT 2026-07-17 (#81)
+
+**Verified:** 2026-10-15 · **Issues:** #81 (from #15, #18, #43; spawned #83) · **Produced by:** `scripts/wb_validate.R <variant>` for all ten variants, then `scripts/wb_aet_compare.R`, on `fit_20260717` → `data/checks/wb_aet_compare_20260717.txt` and `data/checks/wb_validation_aet-*_20260717.txt`. Logs `data/logs/81/` on m4.
+
+Until #81 the AET was chosen only on `fit_20251014`, and newer fits carried it. Now the comparison runs on the shipped release, with #15's and #18's rules unchanged. Each variant is scored as the fit ships it: pooled zones fixed to `none` (#43's pooled test) and the 0.1-point gate override. The nested selection applies both inside each fold. Both decisions were made on `cfu`'s own fit, so this form leans toward `cfu`; the report says so.
+
+| AET | Headwater 2026-07-17 (2025-10-14) | All | Nested | Nested within ±20 % |
+|---|---|---|---|---|
+| `cgiar` | 37.4 % (38.1) | 33.0 % | 19.5 % | 70 % |
+| `lc` | 49.4 % (44.1) | 42.7 % | 22.1 % | 64 % |
+| `tc` | 33.0 % (33.5) | 29.0 % | 16.6 % | 73 % |
+| `fu` | 31.6 % (32.0) | 27.9 % | 16.5 % | 73 % |
+| **`cfu`** | **30.7 % (31.2)** | **27.5 %** | 17.6 % | 70 % |
+| `mod16` | 35.5 % (36.3) | 31.1 % | 17.6 % | 70 % |
+| `cmod16` | 34.0 % (34.6) | 30.4 % | 19.0 % | 69 % |
+
+315 gauges (238 headwater), 94 folds. `cfu` is the only variant kept by the override (its gate fails by 0.03 point); every other eligible variant passes its gate.
+
+- **Stage 1 chooses `cfu` again.** The nested selection scores 31.5 % headwater against `cgiar`'s 37.4 %, and passes. Its folds chose `cfu` 68 times and `fu` 26 times. On 2025-10-14 the split was 87 to 6, so `fu` is closer on this release.
+- **Stage 2 keeps `cfu`.** Neither MOD16 variant meets (a), and the nested selection (32.5 %) does not beat `cfu` as shipped (30.7 %).
+- **The shipped fit is unchanged.** `cfu`'s held-out predictions and the fit itself are identical to those before #81; only the scoring md5 moved. The province output and the published parts are unchanged too (`data/checks/discharge_publish_20260717.txt`).
+
+**What ships, from now on.** Without a recorded decision only `cfu` ships, and only when the rule picks it. Any other winner, or one that would ship raw under a fixed pooled variant, gets no winner file, and the report says DECISION TO USER. The user records the AET to ship in `<fit>/aet_decision.txt` (the variant, then who decided and why). It is hashed into the fit's scores, recorded in `fits.rds`, and copied into each later release's fit; a fit that should have one and does not is refused.
+
 ### Which term is off in the dry interior (#45)
 
 **Verified:** 2026-10-07 · **Issues:** #45 · **Produced by:** `scripts/wb_term_diagnose.R` → `data/checks/wb_term_diagnose_20260717.txt`. The rule was pre-registered, then amended before any PCIC value was computed, in `planning/archive/…issue-45…/findings.md`. Reproduced byte-identical on m1 and m4.
