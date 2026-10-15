@@ -1,6 +1,6 @@
 # HYDAT stations for the open water balance (#11): select, summarise, snap.
 #
-#   WET_HYDAT=data/hydat/20260717/Hydat.sqlite3 WET_HYDAT_RELEASE=20260717 Rscript scripts/wb_stations.R
+#   WET_HYDAT_RELEASE=20260717 Rscript scripts/wb_stations.R
 #
 # Writes data/wb/stations_<release>.rds (gitignored; the station table later
 # phases read) and the tracked report wb_report("stations_wb", release)

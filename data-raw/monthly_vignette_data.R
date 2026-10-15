@@ -1,7 +1,7 @@
 # Data for vignettes/monthly-flow.Rmd (#65), which runs on these files and
 # never touches fwapg, HYDAT, the network or the province run at build.
 #
-#   WET_FWAPG_COMMIT=<sha> WET_HYDAT=<Hydat.sqlite3> Rscript data-raw/monthly_vignette_data.R
+#   WET_FWAPG_COMMIT=<sha> Rscript data-raw/monthly_vignette_data.R
 #
 # The monthly half of the published product (months 1-12 of
 # s3://fresh-bc/discharge/fwa/v1/, read through wet_catalog()), on the Bulkley

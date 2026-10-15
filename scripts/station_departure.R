@@ -12,9 +12,9 @@
 #
 #   Rscript scripts/station_departure.R [STATION ...]   # default 08EE013 08EE003
 #
-# HYDAT from WET_HYDAT, defaulting to data/hydat/20260717/Hydat.sqlite3. That
-# is a newer release than the one the water balance (#11) was fit against,
-# kept at its own path so that fit's inputs do not change.
+# HYDAT is the release WET_HYDAT_RELEASE names, by default the water balance's
+# shipped one (scripts/wb_fit_lib.R), read from wet's per-user cache
+# (wet_hydat(), #46); the report records it.
 #
 # Needs cd with the #92 contract (series outside cd_variables()), plus Kendall
 # and zyp for cd_trend().
@@ -24,10 +24,11 @@
 # until knowledge#25 publishes the timing table.
 
 devtools::load_all(quiet = TRUE)
+source("scripts/wb_fit_lib.R")  # wb_release(), wb_hydat()
 
 stations <- commandArgs(trailingOnly = TRUE)
 if (!length(stations)) stations <- c("08EE013", "08EE003")
-hydat <- Sys.getenv("WET_HYDAT", file.path("data", "hydat", "20260717", "Hydat.sqlite3"))
+hydat <- wb_hydat(wb_release())
 baseline <- 1981:2010
 trend_start <- c(1981, 2000)
 recent <- 2023:2026
@@ -107,7 +108,7 @@ out <- c(
   "# Flow departure at hydrometric stations (#25)",
   "",
   sprintf("Run %s. HYDAT %s. Baseline %d-%d. Threshold for frac_below: 20%% of the station's MAD (1981-2010, or its whole record of complete years where 1981-2010 has fewer than 5).",
-          format(Sys.Date()), hydat, min(baseline), max(baseline)),
+          format(Sys.Date()), wet_hydat_release(hydat), min(baseline), max(baseline)),
   "Anomalies: q_mean and q_min7 in % of normal; q_frac_below as a change in the share of days below the threshold.",
   "ice = share of the days present flagged B (ice); prov = share of the days present that are provisional (no ice flag recorded).",
   "The ch_* windows are examples from the template's Bulkley life-history CSV, pending knowledge#25.",

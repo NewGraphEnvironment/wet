@@ -13,14 +13,16 @@
 #     data/life_history_timing.csv at a pinned commit, one row per species and
 #     life stage, keeping only rows with both a start and an end.
 #
-# HYDAT from WET_HYDAT, defaulting to data/hydat/20260717/Hydat.sqlite3 (as
+# HYDAT is the release WET_HYDAT_RELEASE names, by default the water balance's
+# shipped one, from wet's per-user cache (wb_hydat(), as
 # scripts/station_departure.R). knowledge is private, so its CSV is read with
 # `gh api`, which needs a GitHub login with access to the repo.
 
 devtools::load_all(quiet = TRUE)
+source("scripts/wb_fit_lib.R")  # wb_release(), wb_hydat()
 
 stations <- c("08EE013", "08EE003")
-hydat <- Sys.getenv("WET_HYDAT", file.path("data", "hydat", "20260717", "Hydat.sqlite3"))
+hydat <- wb_hydat(wb_release())
 knowledge_sha <- "c97c4d0e5443d4272ab9ac1a19a5cfa81135bbe0"
 out_dir <- file.path("inst", "vignette-data")
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
@@ -39,9 +41,9 @@ names_hydat <- DBI::dbGetQuery(con, sprintf(
   "SELECT STATION_NUMBER AS station_number, STATION_NAME AS station_name FROM STATIONS
    WHERE STATION_NUMBER IN (%s)", paste0("'", stations, "'", collapse = ", ")
 ))
-# the release date from HYDAT itself, not from the directory it sits in
-hydat_release <- as.Date(DBI::dbGetQuery(con, "SELECT Date FROM VERSION")$Date[1])
 DBI::dbDisconnect(con)
+# the release date from HYDAT itself, not from the directory it sits in
+hydat_release <- as.Date(wet_hydat_release(hydat), "%Y%m%d")
 attr(daily, "provenance") <- list(
   hydat = format(hydat_release),
   stations = names_hydat[match(stations, names_hydat$station_number), ],

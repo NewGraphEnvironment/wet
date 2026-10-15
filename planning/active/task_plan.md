@@ -15,10 +15,10 @@
 - [x] Restore-the-bug: drop the VERSION check, and drop the superseded-release refusal, and watch the tests go red.
 
 ## Phase 2: Scripts resolve through it; `WET_HYDAT` retired
-- [ ] `scripts/wb_fit_lib.R`: `wb_hydat(release)` becomes `wet:::wet_hydat(release)`, and it stops if `WET_HYDAT` is set ("retired by #46; name the release with WET_HYDAT_RELEASE; a file goes in <cache>/hydat/<release>/"), so an old run line cannot be silently ignored.
-- [ ] Strip `WET_HYDAT` from the run lines and comments of `scripts/wb_stations.R`, `wb_output.R`, `wb_gauge_diversion.R` and `data-raw/monthly_vignette_data.R`.
-- [ ] `scripts/station_departure.R`, `data-raw/station_vignette_data.R` and `data-raw/station_vignette_map.R` source `scripts/wb_fit_lib.R` and take `hydat <- wb_hydat(wb_release())`. The hard-coded `data/hydat/20260717/` default and its stale comment go.
-- [ ] Provenance: the departure report prints `HYDAT <release>` (from `wet_hydat_release()`); `station_vignette_data.R` takes its release from `wet_hydat_release()`; `station_map.rds` gains `attr(, "provenance") <- list(hydat = <release>)`.
+- [x] `scripts/wb_fit_lib.R`: `wb_hydat(release)` becomes `wet:::wet_hydat(release)`, and it stops if `WET_HYDAT` is set ("retired by #46; name the release with WET_HYDAT_RELEASE; a file goes in <cache>/hydat/<release>/"), so an old run line cannot be silently ignored.
+- [x] Strip `WET_HYDAT` from the run lines and comments of `scripts/wb_stations.R`, `wb_output.R`, `wb_gauge_diversion.R` and `data-raw/monthly_vignette_data.R`.
+- [x] `scripts/station_departure.R`, `data-raw/station_vignette_data.R` and `data-raw/station_vignette_map.R` source `scripts/wb_fit_lib.R` and take `hydat <- wb_hydat(wb_release())`. The hard-coded `data/hydat/20260717/` default and its stale comment go.
+- [x] Provenance: the departure report prints `HYDAT <release>` (from `wet_hydat_release()`); `station_vignette_data.R` takes its release from `wet_hydat_release()`; `station_map.rds` gains `attr(, "provenance") <- list(hydat = <release>)`.
 - [ ] `grep -rn WET_HYDAT\b` over `R/ scripts/ data-raw/ tests/` finds only the guard.
 
 ## Phase 3: Live tests name their release
