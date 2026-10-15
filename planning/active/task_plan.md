@@ -26,8 +26,8 @@
 - [x] The Buck Creek test (`test-wet_station_daily.R:280`) and the snap test (`test-wet_station_snap.R:36`) use it, and `local_hydat_real()` is removed. The fixture tests keep `local_hydat()`.
 
 ## Phase 4: Copies and backup (m1, m4, S3)
-- [ ] m4: upload `~/Library/Caches/org.R-project.R/R/wet/hydat/20251014/Hydat.sqlite3` to `s3://fresh-bc/hydat/20251014/Hydat.sqlite3` with a `Hydat.sqlite3.md5` sidecar (`AWS_PROFILE=airvine`), private. Verify by downloading it back and checking md5 `da00052022aa1533b80f9fab7cb8b4d0` and 1,274,108,928 bytes.
-- [ ] m1 and m4: move `data/hydat/20260717/` into `<cache>/hydat/20260717/`. Check each by `wet:::wet_hydat("20260717")` and `wet:::wet_hydat("20251014")` (m4), and remove the empty `data/hydat/`.
+- [x] m4: upload `~/Library/Caches/org.R-project.R/R/wet/hydat/20251014/Hydat.sqlite3` to `s3://fresh-bc/hydat/20251014/Hydat.sqlite3` with a `Hydat.sqlite3.md5` sidecar (`AWS_PROFILE=airvine`), private. Verify by downloading it back and checking md5 `da00052022aa1533b80f9fab7cb8b4d0` and 1,274,108,928 bytes.
+- [x] m1 and m4: move `data/hydat/20260717/` into `<cache>/hydat/20260717/`. Check each by `wet:::wet_hydat("20260717")` and `wet:::wet_hydat("20251014")` (m4), and remove the empty `data/hydat/`.
 
 ## Phase 5: Verify on the real files
 - [ ] m1: full `devtools::test()` with the Buck Creek and snap tests passing, not skipped.
