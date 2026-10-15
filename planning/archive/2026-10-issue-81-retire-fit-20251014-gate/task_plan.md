@@ -75,11 +75,11 @@ What exploration found:
 
 ## Phase 4: Record the outcome
 - [x] `research/water_balance_method.md` §0: the re-decision on 2026-07-17 (both stages' tables, winner, nested selection), compared with #15's numbers on 2025-10-14
-- [ ] Edit the #81 body with the outcome. File the follow-up issue: `wb_fit_accept.R` requires a nested-CV old fit, but the shipped fit is fixed to `none`.
+- [x] Edit the #81 body with the outcome. File the follow-up issue: `wb_fit_accept.R` requires a nested-CV old fit, but the shipped fit is fixed to `none` (#83).
 
 ## Validation
 - [x] Tests pass (1113, 0 failed) (`devtools::test()`; the scripts carry no unit tests, so the m4 runs are the end-to-end check)
 - [x] `/code-check` clean (once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] PWF checkboxes match landed work
+- [x] `/planning-archive` on completion
 
