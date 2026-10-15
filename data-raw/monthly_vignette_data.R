@@ -31,8 +31,8 @@
 # the fit (#68): cv_ann and cv_share in cv_aet-<AET>.rds, under the share
 # specification the fit shipped. It is refused unless the stored observed
 # values equal the calibration stations' here, and the stored months, scored
-# again, give the stored per-station scores (all.equal: the scores pass
-# through BLAS, which can differ between machines in the last bits).
+# again, give the stored per-station scores (all.equal: summation can differ
+# between machine architectures in the last bits).
 #
 # The balance's published month 0 on the Bulkley segments must equal the fit's
 # output/ exactly. A reduced bundle of the fit keeps month 0 only in output/,
@@ -59,7 +59,11 @@ fits <- ho$fits
 cvr <- readRDS(file.path(fit_dir, sprintf("cv_aet-%s.rds", fits$aet)))
 # what ships is the adjusted balance; raw P - AET has no months to score
 stopifnot(fits$keep_adjust, identical(cvr$station_number, cal$station_number))
-if (!identical(cvr$share_spec, fits$share_spec)) stop("the stored held-out months are not the shipped share specification")
+if (is.null(cvr$cv_share) || !identical(dim(cvr$cv_share), c(nrow(cal), 12L)) || is.null(fits$share_spec) ||
+      !identical(cvr$share_spec, fits$share_spec) ||
+      !identical(cvr$cv_share, cvr$cv_shares[[fits$share_spec]])) {
+  stop("the fit stores no held-out months under its shipped share specification: rerun scripts/wb_validate.R")
+}
 obs_share <- as.matrix(cal[sprintf("share_%02d", 1:12)])
 if (!identical(cvr$obs, cal$obs) || !identical(unname(cvr$obs_share), unname(obs_share))) {
   stop("the stored observed values differ from the calibration stations'")

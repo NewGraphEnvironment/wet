@@ -20,8 +20,9 @@ Checked during exploration:
 
 ## Phase 2: Report on the live build, and fwapg (m4)
 - [ ] In the wet-16 worktree, check out this branch (no `R/`/`scripts/` changes yet). Rerun BUILD and confirm the report reads `identical to the published build acb820f: 67 of 67`, with every check ok
-- [ ] Commit that report on this branch from m4, push, and pull on m1
-- [ ] `wet_db_load()` the new manifest into m4's `discharge.fwa_v1_segment_monthly` and `discharge.fwa_v1_watershed_monthly`, from an ad hoc script outside `data/`. Confirm both table comments name acb820f, and that fresh's `month = 0 AND pick` row counts match the report's reader line
+- [ ] Stop unless the rebuilt report is 67 of 67 identical, fails no check, and its reader lines equal a18406a's. Never run `WET_PUBLISH=1` from the rebuilt tree: its manifest names the branch HEAD
+- [ ] Copy that report to m1 and commit it on this branch
+- [ ] `wet_db_load()` the new manifest into m4's `discharge.fwa_v1_segment_monthly` and `discharge.fwa_v1_watershed_monthly`, from an ad hoc script outside `data/`. Confirm both table comments name acb820f, and that fresh's `month = 0 AND pick` row counts match the report's reader line; then VACUUM both tables (the replace doubles them on disk)
 
 ## Phase 3: Stored held-out months (#68)
 - [x] `data-raw/monthly_vignette_data.R`: take `ann`/`share` from `cvr$cv_ann`/`cvr$cv_share` and drop `predict_cv()`. Guards: `cvr$share_spec == fits$share_spec`, `cvr$obs` and `cvr$obs_share` equal `cal`'s, and `long(cal, cv_ann, cv_share)` scored by `wet_flow_validate()` equals the stored `cv_v$stations` (all.equal)
@@ -32,6 +33,7 @@ Checked during exploration:
 - [ ] Rerun `data-raw/segment_vignette_data.R`, `segment_vignette_map.R` and `monthly_vignette_data.R` (with `WET_FWAPG_COMMIT=341b078` and `WET_HYDAT`), each from a clean committed tree
 - [ ] Render both articles. Fix every `stopifnot` and prose claim the new months break (the January–May bias, Buck Creek's freshet, the window table), each held to the new numbers
 - [ ] Rewrite the monthly-flow gaps: #16 is shipped, so say what remains (`research/water_balance_method.md`, "Snow predictors…"). Do the same for CLAUDE.md's "Its gaps are #16, …"
+- [ ] Fix the other stale sentences: monthly-flow.Rmd on recomputed months (:460, :721) and "no snow term" (:569); NEWS.md "until #77"; `research/water_balance_method.md` "not yet uploaded"
 - [ ] Update `research/discharge_publish.md`'s status (live build acb820f, uploaded date, the fwapg load) and the #77/#68 issue bodies
 
 ## Validation
