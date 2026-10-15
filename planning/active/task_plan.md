@@ -19,6 +19,7 @@ Only `wb_fit_accept.R` and docs change. That script is not in `score_files_for()
 ## Phase 1: Restate the rule and fix the script
 - [x] Pre-register the rule before any next release is scored. It goes in the `wb_fit_accept.R` header and in a new `research/water_balance_method.md` §0 subsection, "Accepting the next refit (#83)":
   - Metric and gauges stay as in #43: mean |err_pct| of `cv_v`, headwater gauges common to both fits, 1.0-point margin.
+  - *As built (code-check round 3):* the score is of what each fit ships: `cv_v`, or `raw_v` where the gate dropped the adjustment. Rounds 1 and 2 also added the pooled-test requirement (tied to its tracked report) and the later-release requirement. See findings.md.
   - Each fit is scored as it ships: the headline CV of its shipped AET, under its own `pooled_variant.txt`, `adjust_override.txt` and `aet_decision.txt`.
   - The new fit is compared only after its chain is complete: AET decided, pooled test run, final `wb_validate.R`.
 - [x] `old` must be `wb_shipped_release` and `new` must differ from it. This also keeps the script from overwriting #43's tracked `wb_fit_accept_20260717.txt`.
@@ -49,6 +50,6 @@ Only `wb_fit_accept.R` and docs change. That script is not in `score_files_for()
 ## Validation
 
 - [x] Tests pass (sandbox runs; no package tests touch scripts)
-- [ ] `/code-check` clean (once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
+- [x] `/code-check` clean (once over the branch with `/code-check branch`): 4 rounds; ended by enumeration (round 3's 17-input table; `keep_adjust` as the one ships switch, confirmed by round 4)
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion

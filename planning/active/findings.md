@@ -82,7 +82,13 @@ Sandbox after the fixes: 17 cases.
 
 Sandbox: 18 cases, 5 exit 0 and 13 refuse. Raw-shipping cases score raw: shipped raw gives +0.03, new raw gives −0.03. The raw headwater MAE of 30.69 equals #43's documented raw 30.688.
 
+## Code-check round 4
+
+No code defect in ceb28bb. The two scores are comparable: same `long()`, same `cal`, same `err_pct`, and NA handling paired through `common`. `raw_v` is in every current cv file (saved since fdaeb82, and `wb_validate.R` is hashed). `keep_adjust` is the one switch: grep finds `wb_output.R`, `pcic_routed_lib.R` and `wb_aet_compare.R`, and every other use only labels on it or requires it. All gate and `keep_adjust` combinations route correctly. The #83 issue body and this plan were stale against rounds 1–3, and both are now updated.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
+| VERDICT `sprintf` lost its suffix (one `%s` short) after the round 2 edit | Caught by the sandbox as an R warning; format fixed |
+| Sandbox driver stopped at 8 of 18 cases after ceb28bb, because the mutant's anchor line no longer existed | Re-anchored, with `stopifnot(length(i) == 1)` so a missing anchor stops loudly |
