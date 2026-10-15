@@ -27,12 +27,12 @@
 #     value checks against the published parts, and md5s of the inputs the
 #     clean-tree guard cannot see
 #
-# The held-out monthly balance is not stored by scripts/wb_validate.R (only its
-# annual values and scores are), so it is recomputed here with the same
-# procedure (scripts/wb_cv_lib.R's predict_cv()) and refused unless its
-# annual values equal the stored ones exactly and its per-station scores equal
-# the stored ones (all.equal: the shares pass through BLAS, which can differ
-# between machines in the last bits).
+# The held-out monthly balance is the one scripts/wb_validate.R stored with
+# the fit (#68): cv_ann and cv_share in cv_aet-<AET>.rds, under the share
+# specification the fit shipped. It is refused unless the stored observed
+# values equal the calibration stations' here, and the stored months, scored
+# again, give the stored per-station scores (all.equal: summation can differ
+# between machine architectures in the last bits).
 #
 # The balance's published month 0 on the Bulkley segments must equal the fit's
 # output/ exactly. A reduced bundle of the fit keeps month 0 only in output/,
@@ -47,7 +47,7 @@ wet_commit <- vd_commit()
 source("scripts/wb_fit_lib.R")
 source("scripts/pcic_routed_lib.R")
 rc <- vd_routed_check()
-source("scripts/wb_cv_lib.R")  # load_all(), cal, predict_cv(), long(), release, fit_dir
+source("scripts/wb_cv_lib.R")  # load_all(), cal, long(), release, fit_dir
 
 stations_bulk <- c("08EE013", "08EE003", "08EE004")
 out <- file.path("inst", "vignette-data", "monthly_values.rds")
@@ -59,16 +59,21 @@ fits <- ho$fits
 cvr <- readRDS(file.path(fit_dir, sprintf("cv_aet-%s.rds", fits$aet)))
 # what ships is the adjusted balance; raw P - AET has no months to score
 stopifnot(fits$keep_adjust, identical(cvr$station_number, cal$station_number))
-cal$raw <- wet:::wet_wb_raw(cal, fits$aet)
-# the share specification the fit shipped (#16; a fit made before it is "base")
-cv <- predict_cv(cal, cal$fold, cvr$cv_variant, share_specs = if (is.null(cvr$share_spec)) "base" else cvr$share_spec)
-if (!identical(cv$ann, cvr$cv_ann)) stop("the recomputed held-out annual balance differs from the stored one")
-ho_long <- long(cal, cv$ann, cv$share)
+if (is.null(cvr$cv_share) || !identical(dim(cvr$cv_share), c(nrow(cal), 12L)) || is.null(fits$share_spec) ||
+      !identical(cvr$share_spec, fits$share_spec) ||
+      !identical(cvr$cv_share, cvr$cv_shares[[fits$share_spec]])) {
+  stop("the fit stores no held-out months under its shipped share specification: rerun scripts/wb_validate.R")
+}
+obs_share <- as.matrix(cal[sprintf("share_%02d", 1:12)])
+if (!identical(cvr$obs, cal$obs) || !identical(unname(cvr$obs_share), unname(obs_share))) {
+  stop("the stored observed values differ from the calibration stations'")
+}
+ho_long <- long(cal, cvr$cv_ann, cvr$cv_share)
 sc_new <- wet_flow_validate(ho_long)$stations
 sc_old <- cvr$cv_v$stations
 cols_sc <- c("station_number", "obs", "mod", "err_pct", "nse_month", "nse_share")
 if (!isTRUE(all.equal(sc_new[cols_sc], sc_old[cols_sc], check.attributes = FALSE))) {
-  stop("the recomputed held-out scores differ from the stored ones")
+  stop("the stored held-out months do not give the stored scores")
 }
 
 # ---- the period: observed 1951-2012 against 1981-2010 -------------------------------------------
@@ -280,6 +285,7 @@ provenance <- list(
   province_run = basename(key_dir),
   release = release,
   aet = fits$aet,
+  share_spec = fits$share_spec,
   cv_variant = cvr$cv_variant,
   hydat_release = hydat_release,
   years = range(s$years),
