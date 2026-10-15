@@ -10,7 +10,9 @@
 #   to both fits and headwater in both, each fit scored against its own
 #   release's observed runoff; the new fit ships unless its MAE exceeds the
 #   shipped fit's by more than 1.0 point. If it passes but its headwater gate
-#   fails, the decision goes to the user. The new fit is compared only once
+#   fails, the decision goes to the user. Both MAEs are of the adjusted
+#   balance, so if the shipped fit ships raw P - AET, the decision goes to the
+#   user too. The new fit is compared only once
 #   its chain is complete (AET decided, pooled-zone test run, wb_validate.R
 #   rerun), so its fits.rds and winner are current under its decision files
 #   and its scores use the test's outcome. The new release must be later than
@@ -62,12 +64,23 @@ scores <- lapply(args, function(r) {
     stop("fit ", r, " has no current AET winner for ", fits$aet, ": rerun scripts/wb_aet_compare.R")
   }
   if (!identical(x$release, r) || !identical(fits$release, r)) stop("fit ", r, "'s scores carry another release")
-  # the pooled-zone test has run, and the scores use its outcome: a fixed
-  # variant, or the nested choice when it was uninformative. Its outcome file
-  # is not hashed, and pooled_variant.txt exists only when it fixed one.
+  # the pooled-zone test has run on this release, and the scores use its
+  # outcome: a fixed variant, or the nested choice when it was uninformative.
+  # Its outcome file is neither hashed nor named for its release, so a copy
+  # from another fit would pass; the tracked report the test wrote for this
+  # release (scripts/wb_pooled_test.R) must name the release and agree.
   f_test <- file.path(d, "pooled_test.txt")
-  if (!file.exists(f_test)) stop("fit ", r, " has no pooled-zone test: run scripts/wb_pooled_test.R, then rescore")
+  f_test_rep <- wb_report("wb_pooled_test", r)
+  if (!file.exists(f_test) || !file.exists(f_test_rep)) {
+    stop("fit ", r, " has no pooled-zone test: run scripts/wb_pooled_test.R, then rescore")
+  }
   tested <- readLines(f_test)[1]
+  tr <- readLines(f_test_rep)
+  hydat <- sprintf("HYDAT release %s-%s-%s", substr(r, 1, 4), substr(r, 5, 6), substr(r, 7, 8))
+  outcome <- if (identical(tested, "uninformative")) "OUTCOME: nothing fixed" else sprintf("OUTCOME: fixed '%s'", tested)
+  if (!any(grepl(hydat, tr, fixed = TRUE)) || !identical(grep("^OUTCOME: ", tr, value = TRUE), outcome)) {
+    stop(f_test, " does not match ", f_test_rep, ": the pooled-zone test was not run on fit ", r)
+  }
   if (!identical(x$cv_variant, if (identical(tested, "uninformative")) "nested" else tested)) {
     stop("fit ", r, " was scored with pooled variant ", x$cv_variant, ", but its pooled-zone test gave ", tested)
   }
@@ -91,6 +104,9 @@ m_old <- mae_of(old)
 m_new <- mae_of(new)
 ships <- m_new - m_old <= margin
 gate_ok <- isTRUE(new$gate[1])
+# both MAEs are of the adjusted balance; a shipped fit that ships raw P - AET
+# (its gate failed with no override) sets no bar for it, so the user decides
+old_raw <- !isTRUE(old$keep_adjust[1])
 gate_txt <- function(x) {
   if (isTRUE(x$gate[1])) "PASS" else if (isTRUE(x$keep_adjust[1])) "FAIL (adjustment kept by override)" else "FAIL"
 }
@@ -112,8 +128,9 @@ writeLines(c(
   "blocked-CV MAE (%), each fit as it ships, headwater gauges in both:",
   sprintf("  %s %.2f", args, c(m_old, m_new)),
   sprintf("rule: ships unless worse by more than %.1f point", margin),
-  sprintf("VERDICT: %s (%+.2f points)%s", if (ships) "SHIPS" else "DOES NOT SHIP", m_new - m_old,
-          if (ships && !gate_ok) "; its gate FAILS, so the decision goes to the user" else "")
+  sprintf("VERDICT: %s (%+.2f points)%s%s", if (ships) "SHIPS" else "DOES NOT SHIP", m_new - m_old,
+          if (ships && !gate_ok) "; its gate FAILS, so the decision goes to the user" else "",
+          if (old_raw) sprintf("; %s ships raw P - AET, so the decision goes to the user", args[1]) else "")
 ), con)
 close(con)
 message("fit ", args[2], if (ships) " ships" else " does not ship", sprintf(" (%+.2f points)", m_new - m_old))

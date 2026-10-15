@@ -63,6 +63,16 @@ The shipped fit on m1 is current under the branch's scoring code (its `fits.rds$
 
 Sandbox rerun after the fixes: all 13 cases as expected, including "no pooled test", "uninformative with fixed scores" and "older new release" (all refuse).
 
+## Code-check round 2 (fixed in the next commit)
+
+- **Inside round 1's fix:** a `pooled_test.txt` copied from another fit, together with `pooled_variant.txt`, passed the check, because the file is neither hashed nor named for its release. It must now agree with the tracked report the test wrote for that release (`wb_report("wb_pooled_test", r)`). The report's HYDAT line must name the release and its OUTCOME line must match.
+- "Each fit as it ships" was not true of a shipped fit that ships raw P − AET (`keep_adjust` FALSE): the MAE compared is the adjusted CV. Such a case now also sends the verdict to the user. This only adds a route to the user and auto-ships nothing new. It cannot happen today, because `fit_20260717` keeps the adjustment by override.
+- My own edit dropped a `%s` in the VERDICT format. The sandbox caught it as an R warning (the suffix was not printed), and it is fixed.
+
+Sandbox after the fixes: 17 cases.
+- Refused, each with the expected message: the report missing for the release, the report naming another release, and the report's OUTCOME contradicting `pooled_test.txt`.
+- The raw-shipping shipped fit gives "... 20260717 ships raw P - AET, so the decision goes to the user".
+
 ## Errors Encountered
 
 | Error | Resolution |
