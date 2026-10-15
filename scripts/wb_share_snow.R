@@ -42,6 +42,15 @@ shares <- cvr$cv_shares[c("base", "snow")]
 
 # ---- the annual balance must not have moved ------------------------------------------------
 old_fit <- Sys.glob(file.path("data", "wb", "_pre16", "*", paste0("fit_", release)))
+# Largest relative difference between two numeric vectors, Inf unless their
+# missing and non-finite entries match exactly (NA is not NaN, Inf is not -Inf)
+rel_diff <- function(x, y) {
+  if (length(x) != length(y) || !identical(is.finite(x), is.finite(y))) return(Inf)
+  if (!identical(x[!is.finite(x)], y[!is.finite(y)])) return(Inf)
+  f <- is.finite(x)
+  big <- pmax(abs(x[f]), abs(y[f]))
+  max(c(0, ifelse(big > 0, abs(x[f] - y[f]) / big, 0)))
+}
 ident <- character()
 worst_ann <- 0
 if (length(old_fit) != 1) {
@@ -52,12 +61,7 @@ for (f in list.files(fit_dir, "^cv_aet-.*\\.rds$")) {
   if (!file.exists(of)) next
   a <- readRDS(file.path(fit_dir, f))
   b <- readRDS(of)
-  rel <- function(x, y) {
-    if (!identical(is.na(x), is.na(y))) return(Inf)
-    big <- pmax(abs(x), abs(y))
-    max(c(0, ifelse(big > 0, abs(x - y) / big, 0)), na.rm = TRUE)
-  }
-  r <- max(rel(a$cv_ann, b$cv_ann), rel(a$raw, b$raw))
+  r <- max(rel_diff(a$cv_ann, b$cv_ann), rel_diff(a$raw, b$raw))
   same <- identical(a$station_number, b$station_number) && r <= 1e-9 && identical(a$gate_pass, b$gate_pass)
   if (!same) stop(f, ": the held-out annual differs from the fit set aside in ", old_fit)
   worst_ann <- max(worst_ann, r)

@@ -14,7 +14,8 @@
 # table's physical layout, so polygons sharing FWA codes are summed in another
 # order once the database has changed (#76). Rows are matched on
 # watershed_feature_id and every numeric column must agree to a relative
-# 1e-10; the worst difference is reported. NA patterns, codes and the
+# 1e-10, with NA, NaN and infinite values in the same places and equal; the
+# worst difference is reported. NA patterns, codes and the
 # irregularly coded watersheds must be identical. Stops on the first basin that fails;
 # writes the tracked report data/checks/wb_upstream_identity.txt.
 
@@ -30,6 +31,15 @@ snow_cols <- c("snowmelt_doy_50", "swe_max")
 codes_old <- readLines(file.path(old, "upstream", "_complete"))
 codes_new <- readLines(file.path(new, "upstream", "_complete"))
 if (!identical(codes_old, codes_new)) stop("the two runs accumulated different basins")
+# Largest relative difference between two numeric vectors, Inf unless their
+# missing and non-finite entries match exactly (NA is not NaN, Inf is not -Inf)
+rel_diff <- function(x, y) {
+  if (length(x) != length(y) || !identical(is.finite(x), is.finite(y))) return(Inf)
+  if (!identical(x[!is.finite(x)], y[!is.finite(y)])) return(Inf)
+  f <- is.finite(x)
+  big <- pmax(abs(x[f]), abs(y[f]))
+  max(c(0, ifelse(big > 0, abs(x[f] - y[f]) / big, 0)))
+}
 n_rows <- 0
 rel_tol <- 1e-10
 worst <- list(r = 0, at = "")
@@ -44,12 +54,13 @@ for (code in codes_new) {
     stop(code, ": the two runs hold different watersheds")
   }
   b <- b[match(a$watershed_feature_id, b$watershed_feature_id), ]
+  if (!all(names(a) %in% names(b))) {
+    stop(code, ": the current run has no ", paste(setdiff(names(a), names(b)), collapse = ", "))
+  }
   for (x in names(a)) {
     if (!identical(is.na(a[[x]]), is.na(b[[x]]))) stop(code, ": ", x, " is NA in different watersheds")
     if (is.numeric(a[[x]])) {
-      big <- pmax(abs(a[[x]]), abs(b[[x]]))
-      r <- ifelse(big > 0, abs(a[[x]] - b[[x]]) / big, 0)
-      r <- max(c(0, r), na.rm = TRUE)
+      r <- rel_diff(a[[x]], b[[x]])
       if (r > rel_tol) stop(code, ": ", x, " differs from the set-aside run by a relative ", format(r, digits = 3))
       if (r > worst$r) worst <- list(r = r, at = paste(code, x))
     } else if (!identical(a[[x]], b[[x]])) {
