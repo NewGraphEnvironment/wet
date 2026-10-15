@@ -24,9 +24,9 @@ Checked during exploration:
 - [ ] `wet_db_load()` the new manifest into m4's `discharge.fwa_v1_segment_monthly` and `discharge.fwa_v1_watershed_monthly`, from an ad hoc script outside `data/`. Confirm both table comments name acb820f, and that fresh's `month = 0 AND pick` row counts match the report's reader line
 
 ## Phase 3: Stored held-out months (#68)
-- [ ] `data-raw/monthly_vignette_data.R`: take `ann`/`share` from `cvr$cv_ann`/`cvr$cv_share` and drop `predict_cv()`. Guards: `cvr$share_spec == fits$share_spec`, `cvr$obs` and `cvr$obs_share` equal `cal`'s, and `long(cal, cv_ann, cv_share)` scored by `wet_flow_validate()` equals the stored `cv_v$stations` (all.equal)
-- [ ] Rewrite the header comment, which says the months are not stored
-- [ ] Update CLAUDE.md's monthly-flow paragraph ("reading the stored months instead (#68) waits on the next publish (#77)")
+- [x] `data-raw/monthly_vignette_data.R`: take `ann`/`share` from `cvr$cv_ann`/`cvr$cv_share` and drop `predict_cv()`. Guards: `cvr$share_spec == fits$share_spec`, `cvr$obs` and `cvr$obs_share` equal `cal`'s, and `long(cal, cv_ann, cv_share)` scored by `wet_flow_validate()` equals the stored `cv_v$stations` (all.equal)
+- [x] Rewrite the header comment, which says the months are not stored
+- [x] Update CLAUDE.md's monthly-flow paragraph ("reading the stored months instead (#68) waits on the next publish (#77)")
 
 ## Phase 4: Vignette data and prose (m1)
 - [ ] Rerun `data-raw/segment_vignette_data.R`, `segment_vignette_map.R` and `monthly_vignette_data.R` (with `WET_FWAPG_COMMIT=341b078` and `WET_HYDAT`), each from a clean committed tree
