@@ -17,17 +17,17 @@ Decisions (user, 2026-10-15):
 Only `wb_fit_accept.R` and docs change. That script is not in `score_files_for()` (`scripts/wb_score_md5.R`), so no fit goes stale and nothing on m4 needs rescoring.
 
 ## Phase 1: Restate the rule and fix the script
-- [ ] Pre-register the rule before any next release is scored. It goes in the `wb_fit_accept.R` header and in a new `research/water_balance_method.md` §0 subsection, "Accepting the next refit (#83)":
+- [x] Pre-register the rule before any next release is scored. It goes in the `wb_fit_accept.R` header and in a new `research/water_balance_method.md` §0 subsection, "Accepting the next refit (#83)":
   - Metric and gauges stay as in #43: mean |err_pct| of `cv_v`, headwater gauges common to both fits, 1.0-point margin.
   - Each fit is scored as it ships: the headline CV of its shipped AET, under its own `pooled_variant.txt`, `adjust_override.txt` and `aet_decision.txt`.
   - The new fit is compared only after its chain is complete: AET decided, pooled test run, final `wb_validate.R`.
-- [ ] `old` must be `wb_shipped_release` and `new` must differ from it. This also keeps the script from overwriting #43's tracked `wb_fit_accept_20260717.txt`.
-- [ ] Replace the nested-only stop (line 35) with a per-fit check that the fit is what would ship:
+- [x] `old` must be `wb_shipped_release` and `new` must differ from it. This also keeps the script from overwriting #43's tracked `wb_fit_accept_20260717.txt`.
+- [x] Replace the nested-only stop (line 35) with a per-fit check that the fit is what would ship:
   - `fits$code_md5` equals that release's `score_code_md5`, decision files included, computed by `sys.source("scripts/wb_score_md5.R")` into a local env with `release` set.
   - `aet_winner.txt[1:2] == c(fits$aet, score_code_md5)`, the same check `discharge_publish.R` and `wb_output.R` make.
   - This replaces the weaker `aet_md5` check, which misses a pooled test written after `fits.rds`.
-- [ ] Replace the same-AET stop (line 47) with a report line. An AET switch exists only through a user-recorded `aet_decision.txt`.
-- [ ] Report each fit's pooled variant (`nested`, or `fixed to 'none'`) and AET. The heading changes to "each fit as it ships".
+- [x] Replace the same-AET stop (line 47) with a report line. An AET switch exists only through a user-recorded `aet_decision.txt`.
+- [x] Report each fit's pooled variant (`nested`, or `fixed to 'none'`) and AET. The heading changes to "each fit as it ships".
 
 ## Phase 2: Verify in a sandbox (m1, scratchpad copy; data/ untouched)
 - [ ] Build a sandbox tree with `data/wb/<key>/upstream/_complete`, the reduced `fit_20260717`, and a synthetic `fit_20990101`. The synthetic fit is a copy with its `release` fields rewritten, plus `stations_20990101.rds`.
