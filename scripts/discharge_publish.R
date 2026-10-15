@@ -194,7 +194,7 @@ if (!identical(fits$code_md5, score_code_md5) || !identical(winner[1:2], c(fits$
 # AET chosen, rather than kept for every variant now (#85).
 if (!identical(fits$aet, "cfu")) {
   stop("the fit ships AET ", fits$aet, ", but the wet_balance description below names cfu: rewrite it for ",
-       fits$aet, " first (#85)")
+       fits$aet, " first, with README.md and research/discharge_publish.md, which name it too (#85)")
 }
 mt <- function(f) max(file.mtime(f))
 if (min(file.mtime(seg_files)) < mt(ws_files) || mt(seg_files) > file.mtime(f_seg_report)) {
