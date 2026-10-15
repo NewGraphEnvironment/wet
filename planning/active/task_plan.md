@@ -62,6 +62,6 @@ Facts from exploration:
 ## Validation
 
 - [ ] Tests pass (`devtools::test()`), `lintr::lint_package()` clean, `devtools::document()`, `pkgdown::check_pkgdown()`
-- [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
+- [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`) — three rounds before the rerun, ended by round 3's enumeration (15 places of the two-reads mechanism); `review-round{1,2,3}.md`
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion

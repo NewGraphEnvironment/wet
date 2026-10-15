@@ -150,13 +150,14 @@ rows <- rbind(rows, data.frame(
              "wet_mod16_aet() (year mean, two-step onto the grid)"),
   file = c("data/mod16/MOD16A3GF.A*.hdf", f_m16),
   md5 = c(wet:::wet_md5_text(paste(f_m16_granules, md5(m16_g))), md5(f_m16))))
-# the cd layers as read (md5 of cd's cached copy), with the build the catalog
-# names; cd before 0.6.5 carries no build in its catalog
-snow_build <- if (all(c("cd_sha", "run_time") %in% names(snow_cat))) {
-  sprintf("cd %s, built %s", substr(snow_cat$cd_sha, 1, 7), snow_cat$run_time)
-} else {
-  rep("build not in this cd's catalog", nrow(snow_cat))
-}
+# the cd layers as read: md5, grid and build all from cd's cached copy, the
+# build from the file's own tags (a cached copy can lag the catalog)
+snow_build <- vapply(unname(snow_files), function(f) {
+  m <- terra::metags(terra::rast(f))
+  v <- stats::setNames(m$value, m$name)
+  if (!all(c("CD_SHA", "CD_RUN_TIME") %in% names(v))) return("no cd build tags in the file")
+  sprintf("cd %s, built %s", substr(v[["CD_SHA"]], 1, 7), v[["CD_RUN_TIME"]])
+}, "")
 rows <- rbind(rows, data.frame(
   input = c(sprintf("cd ERA5-Land %s, annual (one band per year)", snow_cat$variable), "Snow normals grid"),
   source = c(sprintf("%s (%s; ERA5-Land, Copernicus licence)", snow_cat$href, snow_build),
