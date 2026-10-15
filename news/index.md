@@ -1,5 +1,23 @@
 # Changelog
 
+## wet 0.4.5
+
+- The water balance’s monthly shares now also use snow: ERA5-Land’s
+  1981-2010 day by which half the snowpack has melted and its peak snow
+  water equivalent (capped at 3,000 mm for glacier points), from cd
+  through the new
+  [`wet_snow_normals()`](https://newgraphenvironment.github.io/wet/reference/wet_snow_normals.md),
+  averaged upstream like the other predictors. A rule fixed before
+  scoring kept them: the held-out median share NSE rose from 0.856 to
+  0.874 on the shipped fit. Winter and early-spring flow is much less
+  overpredicted, the spring peak is a little less flattened, and zone 27
+  is worse. The annual balance is unchanged
+  ([\#16](https://github.com/NewGraphEnvironment/wet/issues/16)). Each
+  fit now stores its held-out monthly balance
+  ([\#68](https://github.com/NewGraphEnvironment/wet/issues/68)). The
+  published discharge still carries the earlier monthly values until
+  [\#77](https://github.com/NewGraphEnvironment/wet/issues/77).
+
 ## wet 0.4.4
 
 - [`wet_segment_monthly()`](https://newgraphenvironment.github.io/wet/reference/wet_segment_monthly.md)
