@@ -1,3 +1,7 @@
+# wet 0.4.5
+
+* The water balance's monthly shares now also use snow: ERA5-Land's 1981-2010 day by which half the snowpack has melted and its peak snow water equivalent (capped at 3,000 mm for glacier points), from cd through the new `wet_snow_normals()`, averaged upstream like the other predictors. A rule fixed before scoring kept them: the held-out median share NSE rose from 0.856 to 0.874 on the shipped fit. Winter and early-spring flow is much less overpredicted, the spring peak is a little less flattened, and zone 27 is worse. The annual balance is unchanged (#16). Each fit now stores its held-out monthly balance (#68). The published discharge still carries the earlier monthly values until #77.
+
 # wet 0.4.4
 
 * `wet_segment_monthly()` reads flow per FWA segment and source in the shape of `wet_station_monthly()` (`linear_feature_id, month, q_m3s, source`), so a gauge comparison is a join on `month` (#59). It reads the published product, from Postgres after `wet_db_load()` or from the parquet parts through duckdb, or with `from = "fwapg"` fwapg's routed table, which `scripts/pcic_routed_compare.R` scores before a publish. A segment with no value comes back as 13 `NA` rows. `wet_flow_window()` turns monthly means into mean flow over month-day windows, labelled `basis = "monthly"`; the monthly article's read and its Chinook windows now go through both, with its numbers unchanged.
