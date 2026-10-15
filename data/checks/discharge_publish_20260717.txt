@@ -1,6 +1,6 @@
 # Published discharge, build (#7)
 
-wet commit eb17bca (segment table built at 1718a3d); fit 20260717, province run e675918817; crate 0.7.0
+wet commit e8e482d (segment table built at f854c21); fit 20260717, province run e675918817; crate 0.7.0
 arrow 25.0.1, duckdb 1.4.3 (a part's bytes depend on the writer's version)
 routed: whse_basemapping.fwa_stream_networks_discharge_monthly, built by NewGraphEnvironment/fwapg at 341b078
 table: 40524444 rows, 3377037 segments, 0 null flows, total 178035348.248310 m3/s
