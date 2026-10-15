@@ -10,7 +10,10 @@
 #' @param d `data.frame` with observed shares `share_01` to `share_12`, the
 #'   monthly predictors `ppt_MM`, `tave_MM`, `aet_MM`, and the `static`
 #'   columns.
-#' @param static Predictors used in every month.
+#' @param static Predictors used in every month, one value per station, each
+#'   with its own coefficient in each month. The snow predictors scored in
+#'   #16 enter here: `static = c("elev", "e_km", "n_km", "snowmelt_doy_50",
+#'   "swe_max")`, the upstream means of [wet_snow_normals()].
 #' @return A `wet_share_fit` object: `list(coef, terms, n)`, where `coef` is a
 #'   12-row matrix of coefficients (intercept first) by month.
 #' @export

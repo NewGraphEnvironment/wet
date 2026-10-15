@@ -1,0 +1,9 @@
+# Upstream means with the snow layers (#16) against the run set aside before them
+
+set aside: data/wb/_pre16/962a9cc2c4
+current:   data/wb/e675918817
+basins: 24; watersheds: 3245453
+every column of the set-aside run agrees in the current one, rows matched on watershed_feature_id: codes, NA patterns and irregular watersheds identical, numbers to a relative 1e-10
+worst relative difference: 6.6e-14 (200 tave_10); the polygons come back in another order (#76)
+the current run adds snowmelt_doy_50 and swe_max
+snow has a value wherever p_yr does

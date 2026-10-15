@@ -11,7 +11,9 @@ wet_share_fit(d, static = c("elev", "e_km", "n_km"))
 monthly predictors \code{ppt_MM}, \code{tave_MM}, \code{aet_MM}, and the \code{static}
 columns.}
 
-\item{static}{Predictors used in every month.}
+\item{static}{Predictors used in every month, one value per station, each
+with its own coefficient in each month. The snow predictors scored in
+#16 enter here: \code{static = c("elev", "e_km", "n_km", "snowmelt_doy_50", "swe_max")}, the upstream means of \code{\link[=wet_snow_normals]{wet_snow_normals()}}.}
 }
 \value{
 A \code{wet_share_fit} object: \code{list(coef, terms, n)}, where \code{coef} is a

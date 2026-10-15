@@ -8,7 +8,8 @@
 # TerraClimate 1981-2010 AET and precipitation, and NRCan 2020 land-cover
 # fractions per Chapman Table 3 class; for #18 the MOD16A3GF 2001-2020 mean
 # annual ET (an Earthdata login in a netrc, for granules not yet in
-# data/mod16). Writes two tracked reports:
+# data/mod16); for #16 cd's ERA5-Land 1981-2010 snow normals (snowmelt_doy_50,
+# swe_max; needs cd). Writes two tracked reports:
 #   * data/checks/wb_inputs.txt    - the input manifest (source, md5, grid)
 #   * data/checks/climr_eccc.txt   - climr 1981-2010 vs ECCC station normals
 # Connection from WET_PG* env vars (for the BC extent).
@@ -57,6 +58,20 @@ stamp("MOD16 ", f_m16)
 # the granules wet_mod16_aet() read (its tiles x 2001-2020), not whatever else is in the directory
 f_m16_granules <- sort(basename(wet:::wet_mod16_local("data/mod16", wet:::wet_modis_tiles(terra::rast(f_aet)),
                                                       2001:2020)$path))
+# ERA5-Land 1981-2010 snow normals (#16), from cd's published annual layers
+snow_cat <- cd::cd_catalog()
+snow_cat <- snow_cat[snow_cat$variable %in% c("snowmelt_doy_50", "swe_max") & snow_cat$period %in% "annual", ]
+# fetched once, so the grid and the manifest describe the same bytes
+snow_files <- vapply(snow_cat$href, cd::cd_cache_fetch, "")
+f_snow <- wet_snow_normals(f_aet, catalog = data.frame(variable = snow_cat$variable, period = "annual",
+                                                       href = unname(snow_files)))
+# ERA5-Land cells whose 1981-2010 mean swe_max the 3,000 mm cap limits (glacier
+# points), over the crop wet_snow_normals() reads: the grid plus two cells
+swe_src <- terra::rast(snow_files[snow_cat$variable == "swe_max"])
+swe_src <- terra::crop(swe_src[[as.character(1981:2010)]],
+                       terra::extend(terra::ext(terra::rast(f_aet)), 2 * terra::res(swe_src)), snap = "out")
+n_capped <- unlist(terra::global(terra::mean(swe_src) > 3000, "sum", na.rm = TRUE))
+stamp("snow ", f_snow, "; ", n_capped, " ERA5-Land cells capped at 3,000 mm swe_max")
 
 # Extended BC Hydrologic Zones (43 features; reaches the FWA polygons outside BC)
 hz_url <- paste0("https://catalogue.data.gov.bc.ca/dataset/f1f86c41-ae83-49d5-92e1-526897b99fa2/",
@@ -135,14 +150,33 @@ rows <- rbind(rows, data.frame(
              "wet_mod16_aet() (year mean, two-step onto the grid)"),
   file = c("data/mod16/MOD16A3GF.A*.hdf", f_m16),
   md5 = c(wet:::wet_md5_text(paste(f_m16_granules, md5(m16_g))), md5(f_m16))))
-is_tif <- grepl("\\.tif$", rows$file)
+# the cd layers as read: md5, grid and build all from cd's cached copy, the
+# build from the file's own tags (a cached copy can lag the catalog)
+snow_build <- vapply(unname(snow_files), function(f) {
+  m <- terra::metags(terra::rast(f))
+  v <- stats::setNames(m$value, m$name)
+  if (!all(c("CD_SHA", "CD_RUN_TIME") %in% names(v))) return("no cd build tags in the file")
+  sprintf("cd %s, built %s", substr(v[["CD_SHA"]], 1, 7), v[["CD_RUN_TIME"]])
+}, "")
+rows <- rbind(rows, data.frame(
+  input = c(sprintf("cd ERA5-Land %s, annual (one band per year)", snow_cat$variable), "Snow normals grid"),
+  source = c(sprintf("%s (%s; ERA5-Land, Copernicus licence)", snow_cat$href, snow_build),
+             sprintf(paste("wet_snow_normals() (1981-2010 per-cell mean, swe_max capped at 3,000 mm on %d",
+                           "ERA5-Land cells, bilinear)"), n_capped)),
+  file = c(snow_cat$href, f_snow),
+  md5 = c(md5(unname(snow_files)), md5(f_snow))))
+# a remote file's grid is read from its cached copy, the bytes whose md5 is listed
+rows$grid_file <- rows$file
+rows$grid_file[match(snow_cat$href, rows$file)] <- unname(snow_files)
+is_tif <- grepl("\\.tif$", rows$grid_file)
 rows$grid <- ""
-rows$grid[is_tif] <- vapply(rows$file[is_tif], grid_of, "")
+rows$grid[is_tif] <- vapply(rows$grid_file[is_tif], grid_of, "")
 con <- file("data/checks/wb_inputs.txt", "w")
-writeLines(c("# Inputs for the open water balance (#11) and the ET experiments (#15, #18)", "",
+writeLines(c(paste("# Inputs for the open water balance (#11), the ET experiments (#15, #18)",
+                   "and the snow predictors (#16)"), "",
              sprintf("built: %s", Sys.Date()),
              sprintf("bbox (EPSG:4326): %s", paste(bbox, collapse = ", ")),
-             sprintf("climr %s, terra %s", utils::packageVersion("climr"),
+             sprintf("climr %s, cd %s, terra %s", utils::packageVersion("climr"), utils::packageVersion("cd"),
                      utils::packageVersion("terra")), ""), con)
 for (i in seq_len(nrow(rows))) {
   writeLines(c(sprintf("## %s", rows$input[i]), sprintf("source: %s", rows$source[i]),

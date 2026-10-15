@@ -7,7 +7,8 @@
 # reads data/wb/stations_<release>.rds (scripts/wb_stations.R) and the
 # upstream means from scripts/wb_province.R. Writes the tracked report
 # wb_report("wb_validation_aet-<AET>", release) and <fit>/cv_aet-<AET>.rds
-# (read by scripts/wb_aet_compare.R). For the shipped AET it also writes
+# (read by scripts/wb_aet_compare.R; it holds the held-out annual and monthly
+# balance at every calibration gauge, #68). For the shipped AET it also writes
 # wb_report("wb_validation", release) and <fit>/fits.rds (the fits the
 # province output uses). The shipped AET is the one scripts/wb_aet_compare.R
 # chose for this fit by the #15 and #18 decision rules (<fit>/aet_winner.txt),
@@ -17,6 +18,10 @@
 # The pooled zones are adjusted by the variant an inner blocked CV picks in
 # each fold, unless <fit>/pooled_variant.txt fixes one (scripts/wb_pooled_test.R,
 # #43): then every fold and the shipped fit use it.
+#
+# The monthly shares are held out with and without the snow predictors (#16),
+# in the same folds; the snow predictors ship only if they pass the rule fixed
+# below (share_min_gain), and scripts/wb_share_snow.R breaks the comparison down.
 
 source("scripts/wb_cv_lib.R")
 f_winner <- file.path(fit_dir, "aet_winner.txt")
@@ -77,10 +82,33 @@ cal$raw <- wet:::wet_wb_raw(cal, aet_v)
 raw_v <- wet_flow_validate(long(cal, pmax(cal$raw, 0), matrix(NA_real_, nrow(cal), 12)), groups)
 ship_variant <- if (is.na(fixed_variant)) choose_variant(cal) else fixed_variant
 ins_fit <- wet_wb_fit(cal, pooled_adjust = ship_variant)
-ins_share <- wet_share_fit(cal)
-ins_v <- wet_flow_validate(long(cal, wet_wb_adjust(ins_fit, cal), wet_share_predict(ins_share, cal)), groups)
 cv_variant <- if (is.na(fixed_variant)) "nested" else fixed_variant
 cv <- predict_cv(cal, cal$fold, cv_variant)
+# Which monthly-share specification ships (#16), by a rule fixed before the
+# snow predictors were first scored: they are kept only if the blocked-CV
+# median per-gauge share NSE rises by at least share_min_gain (unrounded, with
+# 1e-9 allowed for floating point). Per gauge, the NSE of the 12 held-out
+# shares against the observed ones, at gauges with observed runoff of at least
+# 10 mm (wet_flow_validate()'s min_obs) and shares from both specifications:
+# taken from the shares themselves, it does not depend on the annual balance,
+# so every AET variant of a fit gives the same outcome. The shipped fit's
+# outcome (fit_20260717) is #16's; each fit ships its own.
+share_min_gain <- 0.01
+obs_sh <- as.matrix(cal[sprintf("share_%02d", 1:12)])
+share_nse <- function(sh) {
+  vapply(seq_len(nrow(cal)), function(i) {
+    if (!(cal$obs[i] >= 10) || anyNA(obs_sh[i, ]) || anyNA(sh[i, ])) return(NA_real_)
+    wet:::wet_nse(obs_sh[i, ], sh[i, ])
+  }, numeric(1))
+}
+share_st <- lapply(cv$shares, share_nse)
+share_both <- !is.na(share_st$base) & !is.na(share_st$snow)
+share_med <- vapply(share_st, function(x) stats::median(x[share_both & !is.na(x)]), numeric(1))
+share_gain <- share_med[["snow"]] - share_med[["base"]]
+ship_share <- if (share_gain >= share_min_gain - 1e-9) "snow" else "base"
+cv$share <- cv$shares[[ship_share]]
+ins_share <- wet_share_fit(cal, static = share_static[[ship_share]])
+ins_v <- wet_flow_validate(long(cal, wet_wb_adjust(ins_fit, cal), wet_share_predict(ins_share, cal)), groups)
 # own-zone vs pooled-in-fold, for the headwater stations, raw and adjusted
 g2 <- data.frame(station_number = cal$station_number,
                  zone_in_fold = ifelse(cv$was_pooled, "pooled", "own zone"))
@@ -93,10 +121,10 @@ hw_split <- function(v) {
   x$z <- g2$zone_in_fold[match(x$station_number, g2$station_number)]
   vapply(c("own zone", "pooled"), function(k) mean(abs(x$err_pct[x$z == k]), na.rm = TRUE), numeric(1))
 }
-lo <- predict_cv(cal, loo$fold[match(cal$station_number, loo$station_number)], cv_variant)
+lo <- predict_cv(cal, loo$fold[match(cal$station_number, loo$station_number)], cv_variant, share_specs = ship_share)
 lo_v <- wet_flow_validate(long(cal, lo$ann, lo$share), groups)
 plain <- lapply(variants, function(v) {
-  x <- predict_cv(cal, cal$fold, v)
+  x <- predict_cv(cal, cal$fold, v, share_specs = ship_share)
   wet_flow_validate(long(cal, x$ann, x$share), groups)
 })
 names(plain) <- variants
@@ -130,17 +158,26 @@ if (aet_v %in% ship_aet) {
   # outputs of any earlier fit go with it, so scripts/wb_map.R cannot draw them
   # beside this fit's stations; scripts/wb_output.R rebuilds them
   unlink(c(file.path(fit_dir, "runoff_annual.tif"), file.path(fit_dir, "output")), recursive = TRUE)
-  saveRDS(list(wb = ins_fit, share = ins_share, keep_adjust = keep_adjust, gate_pass = gate_pass, min_frac = min_frac,
+  saveRDS(list(wb = ins_fit, share = ins_share, share_spec = ship_share, keep_adjust = keep_adjust,
+               gate_pass = gate_pass, min_frac = min_frac,
                calibration = cal$station_number, aet = aet_v, pooled_variant = ship_variant,
                pooled_fixed = !is.na(fixed_variant), release = release, code_md5 = score_code_md5,
                aet_md5 = aet_code_md5),
           file.path(fit_dir, "fits.rds"))
 }
-# per-station held-out predictions and summaries, for scripts/wb_aet_compare.R
+# per-station held-out predictions and summaries, for scripts/wb_aet_compare.R;
+# the held-out monthly balance too (#68): long(cal, cv_ann, cv_share) rebuilt
+# from obs, obs_share, cv_ann and cv_share alone (rows in station_number
+# order). cv_share is the shipped specification's; cv_shares holds every
+# specification scored, for scripts/wb_share_snow.R (#16)
 saveRDS(list(aet = aet_v, keep_adjust = keep_adjust, gate_pass = gate_pass, raw_v = raw_v, cv_v = cv_v, lo_v = lo_v,
              plain = plain,
              ship_variant = ship_variant, station_number = cal$station_number, raw = cal$raw,
-             cv_ann = cv$ann, cv_variant = cv_variant, nesting = cal$nesting, obs = cal$obs,
+             cv_ann = cv$ann, cv_share = cv$share, obs_share = as.matrix(cal[sprintf("share_%02d", 1:12)]),
+             cv_shares = cv$shares, share_spec = ship_share,
+             share_rule = list(min_gain = share_min_gain, median = share_med, gain = share_gain,
+                               n_both = sum(share_both), nse = share_st),
+             zone = cal$zone, lake = groups$lake, cv_variant = cv_variant, nesting = cal$nesting, obs = cal$obs,
              release = release, code_md5 = score_code_md5),
         file.path(fit_dir, sprintf("cv_aet-%s.rds", aet_v)))
 
@@ -203,6 +240,15 @@ writeLines(c(
                   "so the headline has no selection caveat. %s"),
             basename(f_pooled), pooled_test[3])
   },
+  "",
+  sprintf(paste("SHARES (#16; rule fixed before the snow predictors were scored: keep snowmelt_doy_50 and swe_max",
+                "if the blocked-CV median share NSE rises by >= %.2f): base %.4f, with snow %.4f, gain %+.4f",
+                "over %d gauges with both -> %s"),
+          share_min_gain, share_med[["base"]], share_med[["snow"]], share_gain, sum(share_both),
+          if (ship_share == "snow") "snow predictors KEPT" else "snow predictors NOT kept"),
+  sprintf("  (not deciding: snowmelt_doy_50 alone %.4f over the same gauges)", share_med[["doy"]]),
+  sprintf("share predictors shipped: %s (every table below uses them)",
+          paste(share_static[[ship_share]], collapse = ", ")),
   "",
   fmt(raw_v, "Raw P - AET (no fitting)"),
   sprintf(paste("headwater stations, blocked CV MAE, raw -> adjusted: own zone in fold (n %d) %.1f -> %.1f %%;",

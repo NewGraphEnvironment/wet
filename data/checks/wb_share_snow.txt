@@ -1,0 +1,38 @@
+# Monthly shares with and without the snow predictors (#16), held out under blocked CV
+
+province run: e675918817; HYDAT release: 20251014; annual AET: cfu; scores 363fdc6915a6eef740d74676c8e00cdc
+calibration gauges: 290; held-out months read from fit_20251014/cv_aet-cfu.rds (#68), nothing refitted
+snow predictors: upstream means of ERA5-Land 1981-2010 snowmelt_doy_50 and swe_max (wet_snow_normals())
+
+RULE (fixed before the snow predictors were scored, scripts/wb_validate.R): keep them if the blocked-CV median share NSE (12 held-out shares against the observed, per gauge) rises by >= 0.01, over the gauges where both give one.
+  base 0.8659, snow 0.8803, gain +0.0144 over 290 gauges -> KEPT (the fit ships the snow predictors)
+  not deciding: snowmelt_doy_50 alone 0.8694
+held-out annual, raw P - AET and gate the same as in the fit set aside before #16 (data/wb/_pre16/962a9cc2c4/fit_20251014), worst relative difference 4.87e-15 (#76), for: cfu, cgiar, cmod16, fu, fu15, fu20, fu35, lc, mod16, tc
+
+## Median share NSE and monthly-flow NSE per gauge, base -> snow (wet_flow_validate(); n excludes low gauges)
+all                     290   share NSE 0.866 -> 0.880 (+0.014)   monthly NSE 0.725 -> 0.743
+zone 27                  10   share NSE 0.635 -> 0.448 (-0.187)   monthly NSE 0.466 -> 0.305
+zone 28                  13   share NSE 0.659 -> 0.678 (+0.019)   monthly NSE 0.500 -> 0.526
+zone 29                   9   share NSE 0.599 -> 0.761 (+0.161)   monthly NSE 0.513 -> 0.645
+other zones             258   share NSE 0.879 -> 0.895 (+0.017)   monthly NSE 0.757 -> 0.788
+zones 27-29              32   share NSE 0.620 -> 0.714 (+0.094)   monthly NSE 0.493 -> 0.520
+peak May-June           227   share NSE 0.897 -> 0.908 (+0.011)   monthly NSE 0.779 -> 0.795
+peak other months        63   share NSE 0.669 -> 0.740 (+0.071)   monthly NSE 0.511 -> 0.589
+WSC area 10              19   share NSE 0.764 -> 0.781 (+0.018)   monthly NSE 0.679 -> 0.663
+other areas             271   share NSE 0.869 -> 0.884 (+0.015)   monthly NSE 0.731 -> 0.757
+lake outlet              19   share NSE 0.773 -> 0.777 (+0.004)   monthly NSE 0.446 -> 0.553
+not lake outlet         271   share NSE 0.869 -> 0.884 (+0.015)   monthly NSE 0.736 -> 0.757
+
+## Median error of the monthly flow, percent, by month (gauges with flow that month)
+month             Jan   Feb   Mar   Apr   May   Jun   Jul   Aug   Sep   Oct   Nov   Dec
+base              8.5   7.6   4.6  14.5   6.0  -5.2  -1.8   0.9   2.8  -2.8  -5.1   0.5
+snow             -1.8  -0.3  -1.7   8.6   5.6  -3.5  -5.0   2.3   2.4  -5.0  -4.2  -0.9
+area 10 base    -74.9 -89.8 -97.3  22.2  25.8  10.9   0.4  -5.0 -15.6   0.4 -55.8 -39.3
+area 10 snow    -11.0 -52.5 -68.5  32.5  25.4  10.8  -6.5 -19.3 -19.1   0.8 -40.8  -6.3
+
+## Gauges whose observed flow peaks in May or June, in their peak month
+                   n  share below the gauge     median error %        same peak month
+base             227                   71.8              -14.6                   78.0
+snow             227                   68.7              -13.0                   75.3
+
+held-out gauge-months with zero predicted flow: base 93, snow 54 (of 3480)
