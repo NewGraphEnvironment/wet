@@ -63,3 +63,13 @@ Read from cd `origin/main` at 5611c59, and the published catalog (`cd::cd_catalo
 | Quesnel | swe_max | 162.87 | 165.69 | −1.70 % |
 
 The definitions agree; the differences come from the area each one averages: `cd_crop()` snaps out, so it takes the 0.1° cells straddling the box edge whole, while the bilinear grid weights them by position. The test suite pins the definition exactly (the mean over exactly `years`, `test-wet_snow_normals.R`); a mutation that averages every band fails 6 of its 20 expectations once the fixture's years are asymmetric about the baseline (the first fixture, 1979–2012, had the same mean as 1981–2010 and let it through).
+
+## The province run is not bit-reproducible across database states (2026-10-14, #76)
+
+The first `wb_upstream_identity.R` run on m4 stopped at basin 100 with `watershed_feature_id` among the differing columns. Same 644,710 watersheds, another row order: `wet_ws_fetch()` has no `ORDER BY`, PostgreSQL returned the polygons in a different physical order after the database had been written to since 2026-09-28 (the #7 table loads among others), and `wet_upstream_sums()`'s `rowsum()` adds same-code polygons in that order. Measured over all 24 basins and 3,245,453 watersheds, rows matched on `watershed_feature_id`: 17 of 24 basins in another order; codes and NA patterns identical; worst relative difference in any numeric column 6.6e-14 (basin 200, `tave_10`). Not caused by the snow layers: it predates #16 and would hit any rerun. Filed as #76 (an `ORDER BY` lands with the next province run, since it changes the key).
+
+Consequences here: the identity gate matches rows and allows a relative 1e-10 (reports the worst); `wb_share_snow.R`'s held-out annual check allows a relative 1e-9; and the "rejected → parts byte-identical" path of Phase 7 can no longer hold, because the published parts carry these last bits.
+
+| Error | Resolution |
+|-------|------------|
+| `wb_upstream_identity.R`: "100: upstream columns differ ... watershed_feature_id, p_yr, ..." | Row order from an unordered fetch (#76); match on id, relative tolerance 1e-10 |

@@ -1,5 +1,5 @@
 # The province run with the snow layers (#16) against the run set aside before
-# it: every upstream mean but the snow columns must be identical.
+# it: every upstream mean but the snow columns must agree.
 #
 #   Rscript scripts/wb_upstream_identity.R data/wb/_pre16/962a9cc2c4
 #
@@ -7,8 +7,16 @@
 # sampling and accumulating them cannot move any other column. This is what
 # lets the fits carry their decision files (pooled_variant.txt,
 # adjust_override.txt) and the AET choice to the new key: the annual balance,
-# and everything that chose them, reads the same numbers. Stops on the first
-# basin that differs; writes the tracked report data/checks/wb_upstream_identity.txt.
+# and everything that chose them, reads the same numbers.
+#
+# "The same" is to rounding, not to the bit: wet_ws_fetch() takes the basin's
+# polygons in whatever order PostgreSQL returns them, which follows the
+# table's physical layout, so polygons sharing FWA codes are summed in another
+# order once the database has changed (#76). Rows are matched on
+# watershed_feature_id and every numeric column must agree to a relative
+# 1e-10; the worst difference is reported. NA patterns, codes and the
+# irregularly coded watersheds must be identical. Stops on the first basin that fails;
+# writes the tracked report data/checks/wb_upstream_identity.txt.
 
 devtools::load_all(quiet = TRUE)
 source("scripts/wb_fit_lib.R")
@@ -23,21 +31,34 @@ codes_old <- readLines(file.path(old, "upstream", "_complete"))
 codes_new <- readLines(file.path(new, "upstream", "_complete"))
 if (!identical(codes_old, codes_new)) stop("the two runs accumulated different basins")
 n_rows <- 0
+rel_tol <- 1e-10
+worst <- list(r = 0, at = "")
 for (code in codes_new) {
   a <- readRDS(file.path(old, "upstream", paste0(code, ".rds")))
   b <- readRDS(file.path(new, "upstream", paste0(code, ".rds")))
   if (!all(snow_cols %in% names(b))) stop(code, ": the new run has no snow columns")
   if (any(snow_cols %in% names(a))) stop(code, ": the set-aside run already has snow columns")
   if (anyNA(b[snow_cols][!is.na(b$p_yr), ])) stop(code, ": snow is NA where p_yr is not")
-  # column by column, then the frame's own attributes: subsetting b to a's
-  # columns would drop the `irregular` attribute wet_upstream_means() stores
-  k <- names(a)[!vapply(names(a), function(x) identical(a[[x]], b[[x]]), TRUE)]
-  if (length(k)) {
-    stop(code, ": upstream columns differ from the set-aside run: ", paste(utils::head(k, 5), collapse = ", "))
+  if (nrow(a) != nrow(b) || anyDuplicated(b$watershed_feature_id) ||
+        !setequal(a$watershed_feature_id, b$watershed_feature_id)) {
+    stop(code, ": the two runs hold different watersheds")
   }
-  if (!identical(attr(a, "row.names"), attr(b, "row.names")) ||
-        !identical(attr(a, "irregular"), attr(b, "irregular"))) {
-    stop(code, ": row names or irregular pairs differ from the set-aside run")
+  b <- b[match(a$watershed_feature_id, b$watershed_feature_id), ]
+  for (x in names(a)) {
+    if (!identical(is.na(a[[x]]), is.na(b[[x]]))) stop(code, ": ", x, " is NA in different watersheds")
+    if (is.numeric(a[[x]])) {
+      big <- pmax(abs(a[[x]]), abs(b[[x]]))
+      r <- ifelse(big > 0, abs(a[[x]] - b[[x]]) / big, 0)
+      r <- max(c(0, r), na.rm = TRUE)
+      if (r > rel_tol) stop(code, ": ", x, " differs from the set-aside run by a relative ", format(r, digits = 3))
+      if (r > worst$r) worst <- list(r = r, at = paste(code, x))
+    } else if (!identical(a[[x]], b[[x]])) {
+      stop(code, ": ", x, " differs from the set-aside run")
+    }
+  }
+  # the irregularly coded watersheds, as sets (their order follows the fetch's too)
+  if (!identical(sort(attr(a, "irregular")), sort(attr(b, "irregular")))) {
+    stop(code, ": the irregularly coded watersheds differ from the set-aside run")
   }
   if (!setequal(setdiff(names(b), names(a)), snow_cols)) stop(code, ": the new run adds columns other than snow")
   n_rows <- n_rows + nrow(b)
@@ -46,8 +67,12 @@ writeLines(c(
   "# Upstream means with the snow layers (#16) against the run set aside before them", "",
   sprintf("set aside: %s", old), sprintf("current:   %s", new),
   sprintf("basins: %d; watersheds: %d", length(codes_new), n_rows),
-  sprintf("every column of the set-aside run is identical() in the current one; the current run adds %s",
-          paste(snow_cols, collapse = " and ")),
+  sprintf(paste("every column of the set-aside run agrees in the current one, rows matched on",
+                "watershed_feature_id: codes, NA patterns and irregular watersheds identical, numbers to a relative %g"),
+          rel_tol),
+  sprintf("worst relative difference: %s (%s); the polygons come back in another order (#76)",
+          format(worst$r, digits = 3), worst$at),
+  sprintf("the current run adds %s", paste(snow_cols, collapse = " and ")),
   "snow has a value wherever p_yr does"
 ), "data/checks/wb_upstream_identity.txt")
-message("identical: ", length(codes_new), " basins, ", n_rows, " watersheds")
+message("agree: ", length(codes_new), " basins, ", n_rows, " watersheds; worst relative ", format(worst$r, digits = 3))
