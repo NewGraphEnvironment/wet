@@ -12,7 +12,9 @@
 #   shipped fit's by more than 1.0 point. If it passes but its headwater gate
 #   fails, the decision goes to the user. The new fit is compared only once
 #   its chain is complete (AET decided, pooled-zone test run, wb_validate.R
-#   rerun), so its fits.rds and winner are current under its decision files.
+#   rerun), so its fits.rds and winner are current under its decision files
+#   and its scores use the test's outcome. The new release must be later than
+#   the shipped one.
 #
 #   Rscript scripts/wb_fit_accept.R <shipped release> <new release>
 #
@@ -31,7 +33,9 @@ source("scripts/wb_fit_lib.R")
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) != 2) stop("usage: Rscript scripts/wb_fit_accept.R <shipped release> <new release>")
 if (!identical(args[1], wb_shipped_release)) stop("the old fit must be the shipped one, fit_", wb_shipped_release)
-if (identical(args[2], args[1])) stop("the new fit must be another release than the shipped one")
+# newer than the shipped one, so a run can never rewrite an older release's
+# report, #43's wb_fit_accept_20260717.txt included
+if (!grepl("^[0-9]{8}$", args[2]) || args[2] <= args[1]) stop("the new fit must be a release after the shipped one")
 margin <- 1.0
 key_dir <- wb_key_dir()
 # a release's score_code_md5: its scoring code, stations and decision files,
@@ -58,6 +62,15 @@ scores <- lapply(args, function(r) {
     stop("fit ", r, " has no current AET winner for ", fits$aet, ": rerun scripts/wb_aet_compare.R")
   }
   if (!identical(x$release, r) || !identical(fits$release, r)) stop("fit ", r, "'s scores carry another release")
+  # the pooled-zone test has run, and the scores use its outcome: a fixed
+  # variant, or the nested choice when it was uninformative. Its outcome file
+  # is not hashed, and pooled_variant.txt exists only when it fixed one.
+  f_test <- file.path(d, "pooled_test.txt")
+  if (!file.exists(f_test)) stop("fit ", r, " has no pooled-zone test: run scripts/wb_pooled_test.R, then rescore")
+  tested <- readLines(f_test)[1]
+  if (!identical(x$cv_variant, if (identical(tested, "uninformative")) "nested" else tested)) {
+    stop("fit ", r, " was scored with pooled variant ", x$cv_variant, ", but its pooled-zone test gave ", tested)
+  }
   e <- x$cv_v$stations
   data.frame(station_number = x$station_number, nesting = x$nesting,
              err = e$err_pct[match(x$station_number, e$station_number)], aet = fits$aet,

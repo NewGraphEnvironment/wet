@@ -55,6 +55,14 @@ A `git archive HEAD` copy in the session scratchpad holding the reduced `fit_202
 
 The shipped fit on m1 is current under the branch's scoring code (its `fits.rds$code_md5` equals the recomputed `score_code_md5`), so the per-fit check works on a real bundle, not only on a synthetic one. The 30.72 headwater MAE is over fit_20260717's own headwater set (the copy shares all of them), not #43's 209 common gauges (30.90).
 
+## Code-check round 1 (fixed in the next commit)
+
+- A new fit whose pooled-zone test never ran passed: `pooled_test.txt` is not hashed and `pooled_variant.txt` exists only when the test fixes a variant. Now required, and its outcome must match `cv_variant` (fixed variant, or `nested` when uninformative). The earlier "new fit nested" case now refuses, because its test fixed `none`. The nested report is exercised by "test uninformative, scores nested", which exits 0.
+- Once the shipped release moves on, a reverse run (`<new shipped> 20260717`) would rewrite #43's report. The new release must now be later than the shipped one.
+- The `wb_score_md5.R` comments still describe the `aet_md5` cross-release check. Left as is, because editing that file stales every fit; noted on #85.
+
+Sandbox rerun after the fixes: all 13 cases as expected, including "no pooled test", "uninformative with fixed scores" and "older new release" (all refuse).
+
 ## Errors Encountered
 
 | Error | Resolution |
