@@ -19,3 +19,4 @@
   - `wb_hydat(wb_release())` gives the cache path. `WET_HYDAT=x` is refused, and `WET_HYDAT_RELEASE=20251014` stops naming the S3 backup and the cache path.
   - `station_departure.R` ran (exit 0), and its report reads "HYDAT 2026-07-17". It was kept as `data/logs/46/station_departure_report.txt`, and the tracked report restored, because research cites its figures (review A2).
   - `station_vignette_map.R` regenerated `station_map.rds`. Five layers are `all.equal` to the committed file. Lakes hold the same 19 rows in another order (the query has no ORDER BY) and are equal once sorted. The new file carries `provenance$hydat = "2026-07-17"`, and `test-vignette_data.R` passes 104.
+- Round 1 (2026-10-15, about 6 min): one finding, integer overflow of page_count * page_size past 2 GiB. Reproduced (both integer, `2200000L * 4096L` is NA). Fixed with doubles

@@ -44,7 +44,9 @@ wet_hydat_check <- function(f, release, integrity = FALSE) {
   got <- tryCatch({
     con <- suppressWarnings(wet_hydat_connect(f))
     on.exit(DBI::dbDisconnect(con), add = TRUE)
-    bytes <- DBI::dbGetQuery(con, "PRAGMA page_count")[[1]] * DBI::dbGetQuery(con, "PRAGMA page_size")[[1]]
+    # as doubles: both come back as integers, whose product overflows past 2 GiB
+    bytes <- as.numeric(DBI::dbGetQuery(con, "PRAGMA page_count")[[1]]) *
+      as.numeric(DBI::dbGetQuery(con, "PRAGMA page_size")[[1]])
     if (!isTRUE(bytes == file.size(f))) stop("its pages make ", bytes, " bytes, the file ", file.size(f))
     if (integrity) {
       qc <- DBI::dbGetQuery(con, "PRAGMA quick_check")[[1]]
