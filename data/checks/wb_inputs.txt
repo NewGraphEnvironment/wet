@@ -1,8 +1,8 @@
-# Inputs for the open water balance (#11) and the ET experiments (#15, #18)
+# Inputs for the open water balance (#11), the ET experiments (#15, #18) and the snow predictors (#16)
 
-built: 2026-09-28
+built: 2026-10-14
 bbox (EPSG:4326): -139.1, 48.2, -114, 60.1
-climr 0.2.2, terra 1.9.46
+climr 0.2.2, cd 0.5.0, terra 1.9.46
 
 ## CGIAR Soil-Water Balance v3 AET (annual)
 source: https://figshare.com/articles/dataset/7707605 (CC0)
@@ -86,5 +86,23 @@ md5:    092c7774a570fb30e5f3ad6dc9c51cdf
 source: wet_mod16_aet() (year mean, two-step onto the grid)
 file:   data/mod16/mod16_2001_2020_9ca6be3764.tif
 md5:    fe38e82ecd2d41dfd1eec961944d3b2e
+grid:   1428 x 3012 x 2, res 0.0083333, ext -139.1 -114 48.20001 60.10001
+
+## cd ERA5-Land snowmelt_doy_50, annual (one band per year)
+source: https://stac-era5-land.s3.us-west-2.amazonaws.com/snowmelt_doy_50_annual.tif (cd 349f9d7, built 2026-10-10T22:36:36Z; ERA5-Land, Copernicus licence)
+file:   https://stac-era5-land.s3.us-west-2.amazonaws.com/snowmelt_doy_50_annual.tif
+md5:    2f87ff8aab96697fa2a0b870f2946c6b
+grid:   121 x 261 x 76, res 0.1000000, ext -140.05 -113.95 47.95 60.05
+
+## cd ERA5-Land swe_max, annual (one band per year)
+source: https://stac-era5-land.s3.us-west-2.amazonaws.com/swe_max_annual.tif (cd 349f9d7, built 2026-10-10T22:36:36Z; ERA5-Land, Copernicus licence)
+file:   https://stac-era5-land.s3.us-west-2.amazonaws.com/swe_max_annual.tif
+md5:    e75574fcea8d5d4117c6070827c33d2d
+grid:   121 x 261 x 76, res 0.1000000, ext -140.05 -113.95 47.95 60.05
+
+## Snow normals grid
+source: wet_snow_normals() (1981-2010 per-cell mean, swe_max capped at 3,000 mm on 584 ERA5-Land cells, bilinear)
+file:   data/snow/snow_19812010_4816dbcca8.tif
+md5:    1c002ccd39ae7cf2aa40dbe251d5536a
 grid:   1428 x 3012 x 2, res 0.0083333, ext -139.1 -114 48.20001 60.10001
 
