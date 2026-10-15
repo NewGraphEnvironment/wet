@@ -111,6 +111,18 @@ if (!is.null(aet_decision) &&
     (length(aet_decision) < 2 || !aet_decision[1] %in% names(wet:::wet_wb_aet_cols()))) {
   stop(f_aet_decision, " needs an AET variant on line 1 and who decided, and why, after it")
 }
+# A fit whose fits.rds was made under a recorded decision keeps needing the
+# file: fits.rds travels with the fit (a new key, a bundle) and the decision
+# file can be left behind. Removing fits.rds is the deliberate way back to
+# the default (#81).
+f_fits_here <- file.path(fit_dir, "fits.rds")
+if (is.null(aet_decision) && file.exists(f_fits_here)) {
+  rec <- readRDS(f_fits_here)$aet_decision
+  if (length(rec) == 1 && !is.na(rec)) {
+    stop(f_fits_here, " was made under a recorded AET decision (", rec, ") and ", f_aet_decision,
+         " is missing: copy it back, or remove fits.rds to return this fit to #15's default (#81)", call. = FALSE)
+  }
+}
 # On another release, a decision the shipped fit records must have been copied
 # into this fit (or replaced by this fit's own): without it the AET would
 # quietly fall back to cfu. Checked here, so the comparison and the scoring

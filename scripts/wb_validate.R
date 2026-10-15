@@ -127,6 +127,7 @@ if (aet_v %in% ship_aet) {
                gate_pass = gate_pass, min_frac = min_frac,
                calibration = cal$station_number, aet = aet_v, pooled_variant = ship_variant,
                pooled_fixed = !is.na(fixed_variant), release = release, code_md5 = score_code_md5,
+               aet_decision = if (is.null(aet_decision)) NA_character_ else aet_decision[1],
                aet_md5 = aet_code_md5),
           file.path(fit_dir, "fits.rds"))
 }

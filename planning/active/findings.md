@@ -56,6 +56,19 @@ Relates to #15, #18, #43, #46.
 
 Before #81 the AET winner was stamped with `aet_code_md5` (scoring code + stations, no decision files), because the AET was chosen before any per-fit decision existed. Under "as shipped" scoring the comparison depends on `pooled_variant.txt` and `adjust_override.txt`, and it already refused cv files not current under `score_code_md5` (which hashes them). So the winner now carries `score_code_md5`, and every reader checks it. Otherwise a changed decision file would have left a winner made under the old decisions looking current.
 
+## Code-check (branch), 2026-10-15
+
+Five rounds (review-round1..5.md). Round 1: no code bugs; no recorded way to ship a user's AET switch. Rounds 2-5 each found a defect inside the previous fix, all in that decision record. Round 3 named the mechanism: the decision had no record of its own with a lifecycle (create, carry, invalidate). The loop ended on an enumeration of the ways a fit can lack `aet_decision.txt`:
+
+| Route | Handling | Checked |
+|---|---|---|
+| Never created | #15's cfu ships only if the rule picks it; otherwise DECISION TO USER | logic read (rounds 4-5); m4 run exercises the cfu path |
+| Deleted on purpose | `wb_cv_lib.R` refuses while `fits.rds` records a decision; removing `fits.rds` is the way back | sandbox: case 2 |
+| Not copied to a new release | `wb_cv_lib.R` refuses when the shipped fit has one and this fit has none | sandbox: cases 6, 7 |
+| Not copied to a new key or bundle | `fits.rds` travels with the fit and records the decision, so `wb_cv_lib.R` refuses | sandbox: case 2 |
+
+Malformed files refuse (sandbox cases 4, 5). Residual, accepted: after `wb_shipped_release` is bumped, the old shipped fit's decision stops gating; `wb_fit_accept.R`'s same-AET stop (#83) is the barrier.
+
 ## Errors Encountered
 
 | Error | Resolution |
