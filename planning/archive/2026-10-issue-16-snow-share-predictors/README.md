@@ -51,7 +51,7 @@ Breakdown on the shipped fit:
 ## Evidence
 
 - Tracked reports: `data/checks/wb_share_snow*.txt`, `wb_upstream_identity.txt`, `wb_validation*.txt`, `wb_aet_compare.txt`, `wb_inputs.txt`, `wb_province_run.txt`, `wb_output_20260717.txt`, `pcic_routed_compare_20260717.txt`, `segment_output_20260717.txt`, `discharge_publish_20260717.txt`.
-- Run logs on the machine with the full province run: `data/logs/16/*` in the #16 worktree, gitignored.
+- Run logs on the machine with the full province run: `data/logs/16/*` in the #16 worktree, gitignored. Deleted with that worktree on 2026-10-15 (after #81) and not kept.
 - Reviews: `review-plan.md` and `review-round{1..4}.md` in this directory.
 
 Closed by: PR (see `progress.md`); relates to #68, #76, #77

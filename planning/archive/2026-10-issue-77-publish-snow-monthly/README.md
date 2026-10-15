@@ -20,7 +20,7 @@ The snow-informed monthly balance (#16) is published: build acb820f replaced 7c6
 ## Evidence
 
 - `data/checks/discharge_publish_20260717.txt`: the eb17bca rebuild against the live acb820f.
-- m4 `~/Projects/repo/wet-16/data/logs/77/`: `publish.log`, `build.log` and `db_load.log`. The load script is m4 `~/wet77/load_db.R`.
+- m4 `~/Projects/repo/wet-16/data/logs/77/`: `publish.log`, `build.log` and `db_load.log`. The load script is m4 `~/wet77/load_db.R`. (Deleted with the `wet-16` worktree on 2026-10-15, after #81, and not kept.)
 - m1 `data/logs/77/`: the three vignette-data runs.
 - `review-plan.md` and `review-round1.md` to `review-round4.md` in this directory.
 - Recorded in [`research/discharge_publish.md`](../../../research/discharge_publish.md): the status, and the reload paragraph under "Postgres".

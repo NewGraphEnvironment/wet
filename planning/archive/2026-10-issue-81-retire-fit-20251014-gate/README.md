@@ -14,6 +14,6 @@
 
 ## Evidence
 
-On m4: `~/Projects/repo/wet-81/data/logs/81/` (chain*, validate_*, aet_compare, identity_*) and `~/Projects/repo/wet-81rec/data/logs/81/` (rec_*, record.log). Reports: `data/checks/*_20260717.txt`.
+Reports: `data/checks/*_20260717.txt` (tracked). The run logs (`data/logs/81/` in the m4 worktrees `wet-81` and `wet-81rec`) were deleted with those worktrees at cleanup on 2026-10-15 and were not kept; the tracked reports and this archive's findings are the record.
 
 Closed by: PR (this branch, 81-retire-fit-20251014-as-a-gate-re-decide)

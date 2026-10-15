@@ -261,7 +261,7 @@ At Greata Creek the upstream AET is 281 mm with CGIAR, 419 mm with MOD16 and 499
 
 ### Reproducing #15 and #18 (tag `aet-15-record`, #81)
 
-**Verified:** 2026-10-15 · **Issues:** #81 · **Produced by:** the recipe below, run on m4 (logs `data/logs/81/rec_*` in the worktree).
+**Verified:** 2026-10-15 · **Issues:** #81 · **Produced by:** the recipe below, run on m4 (its run logs were not kept; the reports are tracked).
 
 #15 was decided at 946da43, under a layout and a province run that no longer exist. Since #81, current code refuses release 20251014 (`scripts/wb_cv_lib.R`), so the unsuffixed reports #15 and #18 cite are never overwritten. The record is tag `aet-15-record` (353721a, v0.4.7), where the whole recipe reproduces byte for byte. All twelve unsuffixed reports (`data/checks/wb_validation.txt`, the ten `wb_validation_aet-*.txt` and `wb_aet_compare.txt`) came back unchanged, and every `fit_20251014` file was identical.
 
@@ -283,7 +283,7 @@ HYDAT 2025-10-14 (`s3://fresh-bc/hydat/20251014/`, md5 `da00052022aa1533b80f9fab
 
 ### The AET re-decided on HYDAT 2026-07-17 (#81)
 
-**Verified:** 2026-10-15 · **Issues:** #81 (from #15, #18, #43; spawned #83) · **Produced by:** `scripts/wb_validate.R <variant>` for all ten variants, then `scripts/wb_aet_compare.R`, on `fit_20260717` → `data/checks/wb_aet_compare_20260717.txt` and `data/checks/wb_validation_aet-*_20260717.txt`. Logs `data/logs/81/` on m4.
+**Verified:** 2026-10-15 · **Issues:** #81 (from #15, #18, #43; spawned #83) · **Produced by:** `scripts/wb_validate.R <variant>` for all ten variants, then `scripts/wb_aet_compare.R`, on `fit_20260717` → `data/checks/wb_aet_compare_20260717.txt` and `data/checks/wb_validation_aet-*_20260717.txt`. The run logs were not kept.
 
 Until #81 the AET was chosen only on `fit_20251014`, and newer fits carried it. Now the comparison runs on the shipped release, with #15's and #18's rules unchanged. Each variant is scored as the fit ships it: pooled zones fixed to `none` (#43's pooled test) and the 0.1-point gate override. The nested selection applies both inside each fold. Both decisions were made on `cfu`'s own fit, so this form leans toward `cfu`; the report says so.
 
