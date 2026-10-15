@@ -12,3 +12,9 @@
 - Phase 2 started 03:21 UTC: BUILD rerun at this branch in the wet-16 worktree, and `wet_db_load()` of the live manifest (both datasets) alongside it.
 - Plan review (Plan agent) returned: no blockers; `review-plan.md`. Folded in: two more stored-month guards (`cv_share` is `cv_shares[[share_spec]]`; NULL/dim), header wording, the Phase 2 stop rule, VACUUM after the load, the extra stale sentences. Mutation table now six rows, each fires (score check proved with both arrays rotated together).
 - Phase 2 BUILD at eb17bca on m4, 03:21–03:30 UTC (about 9 min, alongside the fwapg load): `parts identical to the published build acb820f: 67 of 67 here, 67 published`, no FAIL, reader lines equal to a18406a's. Only lines 3 and 35 of the report changed. Copied to m1 and committed here. Do not run `WET_PUBLISH=1` from m4's rebuilt tree (its manifest names eb17bca).
+- Phase 4 on m1 (WET_FWAPG_COMMIT=341b078, WET_HYDAT = tidyhydat's 2026-07-17): all three data scripts ran at 5ad20df and wrote segment_values.rds (25 KB), segment_map.rds (104 KB), monthly_values.rds (130 KB). Logs in m1 `data/logs/77/`.
+- segment-discharge rendered unchanged in substance. monthly-flow failed on three claims the snow shares moved, found at once by running the purled code with a recording `stopifnot`:
+  - Quick (08EE004): the balance is high January–March, no longer April (85.7 against 93.4 m³/s).
+  - The balance's median bias is now +7% to +11% in April–May and within ±5% in every other month (was +8% to +16% January–May).
+  - The Liard gauges: −16% in January, −62% to −75% in February–March (all three months were under −50%).
+  Buck Creek's May–June balance is now 57% of the gauge's (9.4 against 16.4 m³/s), so "under half" moved to the peak month (10.3 against 22). The "no snow term" sentence and the #16/#68 gaps were rewritten. Every claim is held by a `stopifnot`; the article renders.

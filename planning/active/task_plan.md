@@ -30,10 +30,10 @@ Checked during exploration:
 - [x] Update CLAUDE.md's monthly-flow paragraph ("reading the stored months instead (#68) waits on the next publish (#77)")
 
 ## Phase 4: Vignette data and prose (m1)
-- [ ] Rerun `data-raw/segment_vignette_data.R`, `segment_vignette_map.R` and `monthly_vignette_data.R` (with `WET_FWAPG_COMMIT=341b078` and `WET_HYDAT`), each from a clean committed tree
-- [ ] Render both articles. Fix every `stopifnot` and prose claim the new months break (the January–May bias, Buck Creek's freshet, the window table), each held to the new numbers
-- [ ] Rewrite the monthly-flow gaps: #16 is shipped, so say what remains (`research/water_balance_method.md`, "Snow predictors…"). Do the same for CLAUDE.md's "Its gaps are #16, …"
-- [ ] Fix the other stale sentences: monthly-flow.Rmd on recomputed months (:460, :721) and "no snow term" (:569); NEWS.md "until #77"; `research/water_balance_method.md` "not yet uploaded"
+- [x] Rerun `data-raw/segment_vignette_data.R`, `segment_vignette_map.R` and `monthly_vignette_data.R` (with `WET_FWAPG_COMMIT=341b078` and `WET_HYDAT`), each from a clean committed tree
+- [x] Render both articles. Fix every `stopifnot` and prose claim the new months break (the January–May bias, Buck Creek's freshet, the window table), each held to the new numbers
+- [x] Rewrite the monthly-flow gaps: #16 is shipped, so say what remains (`research/water_balance_method.md`, "Snow predictors…"). Do the same for CLAUDE.md's "Its gaps are #16, …"
+- [x] Fix the other stale sentences: monthly-flow.Rmd on recomputed months (:460, :721) and "no snow term" (:569); `research/water_balance_method.md` "not yet uploaded". NEWS.md's released 0.4.5 entry stays as written; the release entry `/gh-pr-merge` writes says it is published
 - [ ] Update `research/discharge_publish.md`'s status (live build acb820f, uploaded date, the fwapg load) and the #77/#68 issue bodies
 
 ## Validation
