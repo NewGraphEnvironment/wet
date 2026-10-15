@@ -317,7 +317,7 @@ Until #81 the AET was chosen only on `fit_20251014`, and newer fits carried it. 
 - **An AET switch is reported, not refused.** It can only come from a user-recorded `aet_decision.txt`, and comparing shipped fits makes the two AETs comparable. Two steps can still stop on it, and the user handles each case as it comes up (#85):
   - `wb_fit_accept.R` refuses a fit whose pooled-zone test ran under another AET than it ships, and accepts one whose test ran under the new AET. The test's report records the AET it ran under, and the test does not rerun on its own.
     - To rerun it, remove only `pooled_test.txt` and run `wb_pooled_test.R`, then `wb_validate.R <AET>`. Removing `pooled_variant.txt` as well would stale `fits.rds`.
-    - If `pooled_variant.txt` comes back changed, rescore every variant and compare again first.
+    - If `pooled_variant.txt` comes back changed, rescore every variant and compare again first. The file is untracked; the sign is a changed OUTCOME line in the tracked report's git diff, or `wb_validate.R` saying the winner was chosen under other code.
   - `discharge_publish.R` refuses any AET but cfu until the manifest's `wet_balance` description, the README and `research/discharge_publish.md` are rewritten for the AET chosen.
 
 The old side is always `wb_shipped_release` and the new side a later release, so #43's report (`data/checks/wb_fit_accept_20260717.txt`) stays its record.
