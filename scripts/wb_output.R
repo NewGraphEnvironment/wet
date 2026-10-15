@@ -1,6 +1,6 @@
 # Province output of the open water balance (#11, Phase 7).
 #
-#   WET_HYDAT=<Hydat.sqlite3 of the release> Rscript scripts/wb_output.R
+#   Rscript scripts/wb_output.R
 #
 # Applies the fits from scripts/wb_validate.R, for one fit (the shipped
 # release unless WET_HYDAT_RELEASE says otherwise; scripts/wb_fit_lib.R), to
@@ -10,8 +10,8 @@
 #     watershed_feature_id, month (0 annual, 1-12), runoff_mm, discharge_m3s,
 #     coverage, bc_fraction
 # plus the tracked report wb_report("wb_output", release) and the annual
-# runoff grid <fit>/runoff_annual.tif (for the map). WET_HYDAT must hold the
-# fit's release: the major-river check reads it.
+# runoff grid <fit>/runoff_annual.tif (for the map). The major-river check reads
+# the fit's HYDAT release, from wet's cache (wb_hydat()).
 
 devtools::load_all(quiet = TRUE)
 source("scripts/wb_fit_lib.R")

@@ -16,16 +16,20 @@
 #   - bc: the province outline for the keymap, its parts under 2,000 km2
 #     dropped and the rest simplified at 5 km
 #
+# The list carries a "provenance" attribute naming the HYDAT release.
+#
 # Separate from data-raw/station_vignette_data.R so that refreshing the map
-# does not refetch the daily series. HYDAT from WET_HYDAT, defaulting to
-# data/hydat/20260717/Hydat.sqlite3; fwapg from the WET_PG* variables.
+# does not refetch the daily series. HYDAT is the release WET_HYDAT_RELEASE
+# names, by default the water balance's shipped one, from wet's per-user cache
+# (wb_hydat()); fwapg from the WET_PG* variables.
 
 devtools::load_all(quiet = TRUE)
+source("scripts/wb_fit_lib.R")  # wb_release(), wb_hydat()
 sf::sf_use_s2(FALSE)
 
 stations <- c("08EE013", "08EE003")
 blk <- c(bulkley = 360873822L, buck = 360886221L)   # by key: GNIS names repeat across BC
-hydat <- Sys.getenv("WET_HYDAT", file.path("data", "hydat", "20260717", "Hydat.sqlite3"))
+hydat <- wb_hydat(wb_release())
 out <- file.path("inst", "vignette-data", "station_map.rds")
 simplify_m <- 50
 
@@ -112,6 +116,7 @@ layers <- lapply(layers, function(x) {
   sf::st_crs(x) <- 3005
   x
 })
+attr(layers, "provenance") <- list(hydat = format(as.Date(wet_hydat_release(hydat), "%Y%m%d")))
 saveRDS(layers, out, compress = "xz")
 print(vapply(layers, function(x) nrow(sf::st_coordinates(x)), 0))
 message("station_map.rds: ", round(file.size(out) / 1024), " KB")

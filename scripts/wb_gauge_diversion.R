@@ -4,7 +4,7 @@
 # rule pre-registered in the #53 findings ("Pre-registered rule" as changed by
 # "Amendment 1"; archived with #53) before any licence was joined to a gauge.
 #
-#   WET_HYDAT=<Hydat.sqlite3 of 2026-07-17> WET_HYDAT_RELEASE=20260717 Rscript scripts/wb_gauge_diversion.R
+#   WET_HYDAT_RELEASE=20260717 Rscript scripts/wb_gauge_diversion.R
 #
 # HYDAT's regulation flag cannot do this: wet_station_select() keeps only
 # REGULATED = 0, so every calibration gauge is already "natural" to HYDAT.

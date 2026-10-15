@@ -284,8 +284,11 @@ if (arrow_ok) arrow::write_parquet(seg, file.path(out_dir, paste0(wscode, "_segm
 
 # ---- sanity: Fraser River at Hope (reported, never fatal) ------------------------
 if (wscode == "100") tryCatch({
-  st <- tidyhydat::hy_stations("08MF005")
-  hy <- tidyhydat::hy_daily_flows("08MF005", start_date = "1981-01-01", end_date = "2010-12-31")
+  # the release WET_HYDAT_RELEASE names, from wet's cache, never tidyhydat's own directory (#46)
+  source("scripts/wb_fit_lib.R")
+  hydat <- wb_hydat(wb_release())
+  st <- tidyhydat::hy_stations("08MF005", hydat_path = hydat)
+  hy <- tidyhydat::hy_daily_flows("08MF005", hydat_path = hydat, start_date = "1981-01-01", end_date = "2010-12-31")
   snap <- DBI::dbGetQuery(conn, "
     SELECT linear_feature_id, gnis_name, distance_to_stream
     FROM postgisftw.fwa_indexpoint($1::double precision, $2::double precision,
@@ -294,8 +297,8 @@ if (wscode == "100") tryCatch({
     params = list(st$LONGITUDE, st$LATITUDE))
   h <- seg[seg$linear_feature_id == snap$linear_feature_id, ]
   w <- match(h$watershed_feature_id, ws$watershed_feature_id)
-  cat(sprintf("\n## Fraser River at Hope (08MF005)\nHYDAT 1981-2010 mean %.0f m3/s (%d days), gross drainage %.0f km2\n",
-              mean(hy$Value, na.rm = TRUE), sum(!is.na(hy$Value)), st$DRAINAGE_AREA_GROSS))
+  cat(sprintf("\n## Fraser River at Hope (08MF005)\nHYDAT %s 1981-2010 mean %.0f m3/s (%d days), gross drainage %.0f km2\n",
+              wet_hydat_release(hydat), mean(hy$Value, na.rm = TRUE), sum(!is.na(hy$Value)), st$DRAINAGE_AREA_GROSS))
   cat(sprintf("wet segment %s (%.0f m from gauge): upstream %.0f km2 | centroid/total %.0f m3/s | area/covered %.0f m3/s (coverage %.3f) | fwapg %s\n",
               snap$linear_feature_id, snap$distance_to_stream, live$upstream_area_m2[w] / 1e6,
               live$mad_m3s[w], area_cov$mad_m3s[w], area_cov$coverage[w],

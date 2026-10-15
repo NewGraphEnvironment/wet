@@ -1,5 +1,7 @@
-# Where a water-balance fit lives, and which one ships (#43). Sourced by the
-# wb_* scripts after devtools::load_all(); not run on its own.
+# Where a water-balance fit lives, and which one ships (#43), and the HYDAT
+# release a script reads (#46). Sourced after devtools::load_all() by the wb_*
+# scripts, and by the station-flow scripts and mad_basin.R for wb_hydat(); not
+# run on its own.
 #
 # A fit is the province run (data/wb/<key>/, keyed on the input rasters and
 # their code, scripts/wb_province.R) plus one HYDAT release: the stations
@@ -24,15 +26,17 @@ wb_release <- function() {
   r
 }
 
-# The HYDAT file to read, which must hold the release being worked on. There
-# is no default: tidyhydat's default directory holds whatever release was
-# last downloaded on that machine, which is how a fit would change silently.
+# The HYDAT file of the release being worked on, from wet's per-user cache
+# (wet_hydat(), #46), never tidyhydat's default directory, which holds whatever
+# release was last downloaded on that machine. WET_HYDAT, the path these
+# scripts read before #46, is refused rather than ignored, so an old run line
+# cannot read one release while believing it reads another.
 wb_hydat <- function(release) {
-  f <- Sys.getenv("WET_HYDAT")
-  if (!nzchar(f)) stop("set WET_HYDAT to the Hydat.sqlite3 of release ", release, call. = FALSE)
-  got <- wet:::wet_hydat_release(f)
-  if (!identical(got, release)) stop(f, " holds HYDAT ", got, ", not ", release, call. = FALSE)
-  f
+  if (nzchar(Sys.getenv("WET_HYDAT"))) {
+    stop("WET_HYDAT is retired (#46): name the release with WET_HYDAT_RELEASE, and put a copy of it in ",
+         file.path(tools::R_user_dir("wet", "cache"), "hydat", release), call. = FALSE)
+  }
+  wet:::wet_hydat(release)
 }
 
 # the one complete province run under data/wb

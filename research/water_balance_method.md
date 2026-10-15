@@ -121,7 +121,7 @@ Annual runoff; percentages are mean absolute error. This table is the #11 model.
 
 **Verified:** 2026-10-06 · **Produced by:** `scripts/wb_stations.R`, `wb_validate.R`, `wb_fit_accept.R`, `wb_pooled_test.R`, `wb_output.R` on m4 (logs `data/logs/43/` there) · **Reports:** `data/checks/*_20260717.txt`; rules pre-registered in `planning/archive/2026-10-issue-43-refit/findings.md`.
 
-Since #43 the pipeline holds one fit per HYDAT release (`data/wb/stations_<release>.rds`, `data/wb/<key>/fit_<release>/`, `scripts/wb_fit_lib.R`). `WET_HYDAT` names the file and is checked against its release, and the shipped fit is `wb_shipped_release`.
+Since #43 the pipeline holds one fit per HYDAT release (`data/wb/stations_<release>.rds`, `data/wb/<key>/fit_<release>/`, `scripts/wb_fit_lib.R`). `WET_HYDAT_RELEASE` names the release, read from wet's per-user cache and checked against the file's `VERSION` (`wet:::wet_hydat()`, #46; `WET_HYDAT`, the path used before #46, is refused), and the shipped fit is `wb_shipped_release`.
 
 - **The 2025-10-14 fit is reproduced exactly under the new layout.** Rebuilt from HYDAT and fwapg, `stations` and `monthly` are identical, and held-out predictions are identical for all ten AETs. #15 reproduces (cfu), and 24 of 24 output basins match. That fit stays as `fit_20251014`.
 - **HYDAT 2026-07-17 adds no years.** The window is fixed at 1981–2010. It revises gross drainage areas: 336 stations snap within ±10 % against 309, giving 315 calibration gauges (29 new, 4 dropped). AET cfu is carried, not re-picked.

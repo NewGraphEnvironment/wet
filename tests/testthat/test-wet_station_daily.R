@@ -285,9 +285,8 @@ test_that("live: Buck Creek runs from HYDAT through provisional to real-time", {
   skip_if_not_installed("duckdb")
   skip_if_not_installed("tidyhydat")
   # needs a HYDAT that reaches the provisional archive's start (2024-10);
-  # tidyhydat's default copy may be older, so no fallback to it
-  h <- test_path("..", "..", "data", "hydat", "20260717", "Hydat.sqlite3")
-  if (!file.exists(h)) skip("needs HYDAT 2026-07-17 at data/hydat/20260717/")
+  # tidyhydat's default copy may be older, so the release is pinned
+  h <- local_hydat_pinned("20260717")
   d <- wet_station_daily("08EE013", h, from = "2024-01-01")
   expect_setequal(unique(d$source), c("hydat", "provisional", "realtime"))
   expect_false(any(duplicated(d$date)))
