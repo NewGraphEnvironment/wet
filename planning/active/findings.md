@@ -73,6 +73,15 @@ Sandbox after the fixes: 17 cases.
 - Refused, each with the expected message: the report missing for the release, the report naming another release, and the report's OUTCOME contradicting `pooled_test.txt`.
 - The raw-shipping shipped fit gives "... 20260717 ships raw P - AET, so the decision goes to the user".
 
+## Code-check round 3 (fixed in the next commit)
+
+- **Inside round 2's fix:** `old_raw` covered only the shipped side. A new fit shipping raw P − AET (nested after an uninformative test, gate failed, no override) was judged on its adjusted CV, giving an unqualified DOES NOT SHIP for an estimate it does not ship. The mechanism is that "as it ships" was a proxy: `cv_v` is what ships only while `keep_adjust` is TRUE.
+- **Enumeration** of what "ships" means: `keep_adjust` is the one switch. `wb_output.R:62`, `:122` and `:138` choose adjusted or raw on it, and `scripts/pcic_routed_lib.R:69` already scores the shipped fit as `if (keep_adjust) cv_v else raw_v`. So the fix scores each fit that way, which makes "as it ships" literal. It replaces round 2's raw-to-user route, and the report names which estimate each fit was scored on.
+- The console message now prints the full verdict, user routing included. Before, it said "ships" when the report sent the decision to the user.
+- Round 3's input table (`review-round3.md`, 17 inputs) lists what `score_code_md5` does not bind: the province run key, the AET and stations the pooled test ran on, and which release a decision file was decided for. The rule claims none of them. The pooled-test-vs-switched-AET case is #85's.
+
+Sandbox: 18 cases, 5 exit 0 and 13 refuse. Raw-shipping cases score raw: shipped raw gives +0.03, new raw gives −0.03. The raw headwater MAE of 30.69 equals #43's documented raw 30.688.
+
 ## Errors Encountered
 
 | Error | Resolution |

@@ -3,16 +3,15 @@
 # was scored (research/water_balance_method.md, section 0, "Accepting the next
 # refit"):
 #
-#   blocked-CV MAE on annual runoff (mean |err_pct| of each fit's cv_v, NAs
-#   for observed < 10 mm dropped), each fit as it ships: the headline CV of
-#   its shipped AET under its own decision files (pooled_variant.txt,
+#   MAE on annual runoff (mean |err_pct|, NAs for observed < 10 mm dropped),
+#   each fit as it ships: for its shipped AET under its own decision files,
+#   the blocked-CV adjusted prediction (cv_v), or raw P - AET (raw_v) when its
+#   gate dropped the adjustment (pooled_variant.txt,
 #   adjust_override.txt, aet_decision.txt), on the calibration gauges common
 #   to both fits and headwater in both, each fit scored against its own
 #   release's observed runoff; the new fit ships unless its MAE exceeds the
 #   shipped fit's by more than 1.0 point. If it passes but its headwater gate
-#   fails, the decision goes to the user. Both MAEs are of the adjusted
-#   balance, so if the shipped fit ships raw P - AET, the decision goes to the
-#   user too. The new fit is compared only once
+#   fails, the decision goes to the user. The new fit is compared only once
 #   its chain is complete (AET decided, pooled-zone test run, wb_validate.R
 #   rerun), so its fits.rds and winner are current under its decision files
 #   and its scores use the test's outcome. The new release must be later than
@@ -84,14 +83,18 @@ scores <- lapply(args, function(r) {
   if (!identical(x$cv_variant, if (identical(tested, "uninformative")) "nested" else tested)) {
     stop("fit ", r, " was scored with pooled variant ", x$cv_variant, ", but its pooled-zone test gave ", tested)
   }
-  e <- x$cv_v$stations
+  # what ships: the blocked-CV adjusted prediction, or raw P - AET when the
+  # gate dropped the adjustment (keep_adjust, the one switch in
+  # scripts/wb_output.R), as scripts/pcic_routed_lib.R scores the shipped fit
+  e <- (if (isTRUE(fits$keep_adjust)) x$cv_v else x$raw_v)$stations
   data.frame(station_number = x$station_number, nesting = x$nesting,
              err = e$err_pct[match(x$station_number, e$station_number)], aet = fits$aet,
              variant = if (identical(x$cv_variant, "nested")) "chosen inside each fold" else
                sprintf("fixed to '%s'", x$cv_variant),
              # the gate itself, and whether an override keeps the adjustment
              gate = if (is.null(fits$gate_pass)) fits$keep_adjust else fits$gate_pass,
-             keep_adjust = fits$keep_adjust)
+             keep_adjust = fits$keep_adjust,
+             scored = if (isTRUE(fits$keep_adjust)) "adjusted, blocked CV" else "raw P - AET")
 })
 old <- scores[[1]]
 new <- scores[[2]]
@@ -104,9 +107,8 @@ m_old <- mae_of(old)
 m_new <- mae_of(new)
 ships <- m_new - m_old <= margin
 gate_ok <- isTRUE(new$gate[1])
-# both MAEs are of the adjusted balance; a shipped fit that ships raw P - AET
-# (its gate failed with no override) sets no bar for it, so the user decides
-old_raw <- !isTRUE(old$keep_adjust[1])
+to_user <- if (ships && !gate_ok) "; its gate FAILS, so the decision goes to the user" else ""
+verdict <- sprintf("%s (%+.2f points)%s", if (ships) "SHIPS" else "DOES NOT SHIP", m_new - m_old, to_user)
 gate_txt <- function(x) {
   if (isTRUE(x$gate[1])) "PASS" else if (isTRUE(x$keep_adjust[1])) "FAIL (adjustment kept by override)" else "FAIL"
 }
@@ -123,14 +125,13 @@ writeLines(c(
           if (identical(old$aet[1], new$aet[1])) "" else " (switched)"),
   sprintf("pooled variant: %s %s, %s %s", args[1], old$variant[1], args[2], new$variant[1]),
   sprintf("headwater gate (adjusted beats raw P - AET): %s %s, %s %s", args[1], gate_txt(old), args[2], gate_txt(new)),
-  "each fit is scored as it ships, against its own release's observed runoff: a revised flow moves target and training together",
+  sprintf("scored as each ships: %s %s, %s %s", args[1], old$scored[1], args[2], new$scored[1]),
+  "each fit is scored under its own decision files, against its own release's observed runoff: a revised flow moves target and training together",
   "",
-  "blocked-CV MAE (%), each fit as it ships, headwater gauges in both:",
+  "MAE (%), each fit as it ships, headwater gauges in both:",
   sprintf("  %s %.2f", args, c(m_old, m_new)),
   sprintf("rule: ships unless worse by more than %.1f point", margin),
-  sprintf("VERDICT: %s (%+.2f points)%s%s", if (ships) "SHIPS" else "DOES NOT SHIP", m_new - m_old,
-          if (ships && !gate_ok) "; its gate FAILS, so the decision goes to the user" else "",
-          if (old_raw) sprintf("; %s ships raw P - AET, so the decision goes to the user", args[1]) else "")
+  paste("VERDICT:", verdict)
 ), con)
 close(con)
-message("fit ", args[2], if (ships) " ships" else " does not ship", sprintf(" (%+.2f points)", m_new - m_old))
+message("fit ", args[2], ": ", verdict)
