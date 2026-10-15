@@ -35,8 +35,8 @@
 - [ ] m1: rerun `scripts/station_departure.R` (tracked report gains its release) and `data-raw/station_vignette_map.R` (layers compared with the committed `station_map.rds`; only the provenance attribute should differ). `station_vignette_data.R` is not rerun: it already records its release, and a rerun would refresh the vignette's daily series.
 
 ## Phase 6: Docs
-- [ ] CLAUDE.md: remove `WET_HYDAT` (lines 26, 34, 68), and describe the cache, `WET_HYDAT_RELEASE` and the S3 backup.
-- [ ] `research/water_balance_method.md:124`: the same correction.
+- [x] CLAUDE.md: remove `WET_HYDAT` (lines 26, 34, 68), and describe the cache, `WET_HYDAT_RELEASE` and the S3 backup.
+- [x] `research/water_balance_method.md:124`: the same correction.
 - [ ] Memory `hydat_location_m1.md` rewritten to the new state; the issue body is edited if anything landed differently.
 
 ## Validation
