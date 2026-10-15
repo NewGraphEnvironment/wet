@@ -30,9 +30,9 @@
 - [x] m1 and m4: move `data/hydat/20260717/` into `<cache>/hydat/20260717/`. Check each by `wet:::wet_hydat("20260717")` and `wet:::wet_hydat("20251014")` (m4), and remove the empty `data/hydat/`.
 
 ## Phase 5: Verify on the real files
-- [ ] m1: full `devtools::test()` with the Buck Creek and snap tests passing, not skipped.
-- [ ] m1: `wb_hydat(wb_release())` resolves; `WET_HYDAT=x` is refused; `WET_HYDAT_RELEASE=20251014` stops naming the backup.
-- [ ] m1: rerun `scripts/station_departure.R` (tracked report gains its release) and `data-raw/station_vignette_map.R` (layers compared with the committed `station_map.rds`; only the provenance attribute should differ). `station_vignette_data.R` is not rerun: it already records its release, and a rerun would refresh the vignette's daily series.
+- [x] m1: full `devtools::test()` with the Buck Creek and snap tests passing, not skipped.
+- [x] m1: `wb_hydat(wb_release())` resolves; `WET_HYDAT=x` is refused; `WET_HYDAT_RELEASE=20251014` stops naming the backup.
+- [x] m1: rerun `scripts/station_departure.R` (tracked report gains its release) and `data-raw/station_vignette_map.R` (layers compared with the committed `station_map.rds`; only the provenance attribute should differ). `station_vignette_data.R` is not rerun: it already records its release, and a rerun would refresh the vignette's daily series.
 
 ## Phase 6: Docs
 - [x] CLAUDE.md: remove `WET_HYDAT` (lines 26, 34, 68), and describe the cache, `WET_HYDAT_RELEASE` and the S3 backup.

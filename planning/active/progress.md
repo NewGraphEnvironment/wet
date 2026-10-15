@@ -15,3 +15,7 @@
   - m4: the main checkout's `data/hydat/20260717/` moved into the cache; `wet-16`'s `data/hydat` symlink (to it) removed. With this branch's `R/wet_hydat.R`, both 20260717 and 20251014 resolve there.
 - Full suite on m1 at d077db0: 1105 pass, 0 fail, 0 skip (`data/logs/46/test.rds`). Buck Creek and snap tests passed, not skipped
 - Plan review folded in (findings table): whole-file check, unique partials, ECCC answer validated, `mad_basin.R` pinned, 20260717 backed up. Mutations M5-M9 each turn their own test red
+- Phase 5 on m1:
+  - `wb_hydat(wb_release())` gives the cache path. `WET_HYDAT=x` is refused, and `WET_HYDAT_RELEASE=20251014` stops naming the S3 backup and the cache path.
+  - `station_departure.R` ran (exit 0), and its report reads "HYDAT 2026-07-17". It was kept as `data/logs/46/station_departure_report.txt`, and the tracked report restored, because research cites its figures (review A2).
+  - `station_vignette_map.R` regenerated `station_map.rds`. Five layers are `all.equal` to the committed file. Lakes hold the same 19 rows in another order (the query has no ORDER BY) and are equal once sorted. The new file carries `provenance$hydat = "2026-07-17"`, and `test-vignette_data.R` passes 104.
