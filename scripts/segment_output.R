@@ -61,13 +61,13 @@ if (!identical(release, wb_shipped_release)) {
 fit_dir <- wb_fit_dir(key_dir, release)
 # the old table goes first, so a refused run never leaves one to be read
 unlink(file.path(fit_dir, "segment"), recursive = TRUE)
-source("scripts/wb_score_md5.R")  # score_code_md5, aet_code_md5
+source("scripts/wb_score_md5.R")  # score_code_md5
 
 # the balance as it ships: the fit wb_output.R would accept, and output made
 # from that fit rather than an earlier one
 fits <- readRDS(file.path(fit_dir, "fits.rds"))
 winner <- readLines(file.path(fit_dir, "aet_winner.txt"))
-if (!identical(fits$code_md5, score_code_md5) || !identical(winner[1:2], c(fits$aet, aet_code_md5))) {
+if (!identical(fits$code_md5, score_code_md5) || !identical(winner[1:2], c(fits$aet, score_code_md5))) {
   stop("the fit in ", fit_dir, " was made or chosen under other scoring code: rerun the fit and scripts/wb_output.R")
 }
 out_files <- list.files(file.path(fit_dir, "output"), "\\.parquet$", full.names = TRUE)

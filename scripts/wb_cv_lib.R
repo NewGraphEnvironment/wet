@@ -10,6 +10,12 @@ source("scripts/wb_fit_lib.R")
 stamp <- function(...) message(format(Sys.time(), "%H:%M:%S"), " ", ...)
 key_dir <- wb_key_dir()
 release <- wb_release()
+# fit_20251014 is #15's frozen record (#81): its unsuffixed reports
+# (wb_report()) are what #15 and #18 cite, so this code never rescores it
+if (release == "20251014") {
+  stop("fit_20251014 is #15's frozen record: reproduce it at tag aet-15-record ",
+       "(research/water_balance_method.md, section 0)", call. = FALSE)
+}
 fit_dir <- wb_fit_dir(key_dir, release)
 dir.create(fit_dir, showWarnings = FALSE)
 min_frac <- 0.95  # basin share inside BC and on the grid, to calibrate on
@@ -78,6 +84,28 @@ cal <- merge(cal, folds, by = "station_number")
 pooled <- wet_wb_pooled(cal)
 
 variants <- c("other", "none")
+
+# ---- the fit's own decisions (#43) -------------------------------------------------------
+# A pooled-zone variant fixed for this fit (<fit>/pooled_variant.txt,
+# scripts/wb_pooled_test.R), and a recorded override of the headwater gate
+# (<fit>/adjust_override.txt: a tolerance in points on line 1, then who
+# decided and why). Every AET variant is scored under them
+# (scripts/wb_validate.R), and the AET comparison applies them inside each
+# fold (scripts/wb_aet_compare.R, #81), so both read them here.
+f_pooled <- file.path(fit_dir, "pooled_variant.txt")
+fixed_variant <- if (file.exists(f_pooled)) readLines(f_pooled)[1] else NA_character_
+if (!is.na(fixed_variant) && !fixed_variant %in% variants) stop("bad ", f_pooled)
+f_override <- file.path(fit_dir, "adjust_override.txt")
+override <- if (file.exists(f_override)) readLines(f_override) else NULL
+tie_tol <- if (is.null(override)) NA_real_ else suppressWarnings(as.numeric(override[1]))
+if (!is.null(override) && (is.na(tie_tol) || tie_tol < 0 || tie_tol > 0.5 || length(override) < 2)) {
+  stop(f_override, " needs a tolerance (0 to 0.5 point) on line 1 and who decided, and why, after it")
+}
+# Whether the adjustment ships, from headwater MAE adjusted and raw: it beats
+# raw P - AET, or loses by no more than the override's tolerance (a tie the
+# headwater-only gate cannot break, decided by the user for #43's refit
+# because the adjustment corrects the main stems the gate does not score).
+keep_adjust_for <- function(hw_adj, hw_raw) hw_adj < hw_raw || (!is.na(tie_tol) && hw_adj - hw_raw <= tie_tol)
 # annual only, one variant: held-out predictions for a fold assignment
 cv_annual <- function(d, fold, variant) {
   ann <- rep(NA_real_, nrow(d))

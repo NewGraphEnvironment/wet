@@ -62,7 +62,7 @@ shipped_heldout <- function() {
   cv <- readRDS(file.path(fit_dir, sprintf("cv_aet-%s.rds", fits$aet)))
   stopifnot(identical(release, wb_shipped_release),
             identical(fits$code_md5, score_code_md5),
-            identical(winner[1:2], c(fits$aet, aet_code_md5)),
+            identical(winner[1:2], c(fits$aet, score_code_md5)),
             identical(cv$code_md5, score_code_md5),
             identical(cv$station_number, cal$station_number),
             identical(fits$calibration, cal$station_number))

@@ -34,28 +34,30 @@ What exploration found:
 - [ ] `research/water_balance_method.md` §0, under "The ET experiment (#15)": a "Reproducing #15" paragraph covering the tag, the HYDAT backup, the cache copy step, the worktree and the commands (the ten `wb_validate.R` runs, then `wb_aet_compare.R`, on `fit_20251014`). Also say that 946da43 is where #15 was decided, and that current main no longer reproduces it on demand.
 
 ## Phase 2: Retire the gate in code
-- [ ] `scripts/wb_aet_compare.R`:
+- [x] `scripts/wb_aet_compare.R`:
   - Drop the release refusal (:26) and the refusal of fits with `pooled_variant.txt`/`adjust_override.txt` (:33-35).
   - Drop the #15 reproduction stop (:152-171). The reproduction now lives at the tag.
   - `as_shipped_cv()` uses the fit's fixed variant when there is one. Its keep test mirrors `wb_validate.R`'s `keep_adjust`: pass, or within the override's tolerance.
   - The report adds a line for the HYDAT release and the fit's decisions (fixed variant, override). The stage-1 line drops "(reproduces #15)".
   - Rewrite the header comments to match.
-- [ ] Put the decision-file reading (pooled variant, override tolerance, with its validation) in one place, `scripts/wb_cv_lib.R`, and use it from both `wb_validate.R` and `wb_aet_compare.R`, so the two cannot disagree on what "as shipped" means.
-- [ ] `scripts/wb_validate.R`:
+- [x] Put the decision-file reading (pooled variant, override tolerance, with its validation) in one place, `scripts/wb_cv_lib.R`, and use it from both `wb_validate.R` and `wb_aet_compare.R`, so the two cannot disagree on what "as shipped" means.
+- [x] `scripts/wb_validate.R`:
   - Remove `WET_AET_CARRY`, `stale_carry` and the carry branch (:27-53).
   - A winner is two lines only.
   - The stale-winner and no-winner messages point at `wb_aet_compare.R`.
   - Rewrite the header comment.
-- [ ] `scripts/wb_output.R:41,46`: the messages drop "or the carry"
-- [ ] `scripts/wb_fit_lib.R`: the `wb_report()` comment says the unsuffixed 20251014 reports are the frozen #15 record. Code unchanged.
-- [ ] `CLAUDE.md`:
+- [x] `scripts/wb_output.R:41,46`: the messages drop "or the carry"
+- [x] `scripts/wb_fit_lib.R`: the `wb_report()` comment says the unsuffixed 20251014 reports are the frozen #15 record. Code unchanged.
+- [x] `CLAUDE.md`:
   - The `wb_validate.R` bullet: run every variant, then compare, then the winner, on the shipped release.
   - Remove the `WET_AET_CARRY` and "rerun `fit_20251014` first" lines.
   - Add a line: the AET is re-decided at each new shipped release, and `aet-15-record` reproduces #15.
-- [ ] Grep that nothing outside `planning/archive/` still names `WET_AET_CARRY` or the rerun-first rule
+- [x] (added in work) The winner is stamped and checked with `score_code_md5` (the fit's decision files included) instead of `aet_code_md5`: the comparison scores every variant under those decisions, so a changed decision must stale it. Readers updated: `wb_validate.R`, `wb_output.R`, `segment_output.R`, `discharge_publish.R`, `pcic_routed_lib.R`. `aet_code_md5` stays as `fits.rds$aet_md5` for `wb_fit_accept.R`.
+- [x] (added in work) `scripts/wb_cv_lib.R` refuses release 20251014, so main never overwrites #15's unsuffixed frozen reports (checked: `WET_HYDAT_RELEASE=20251014` stops with the tag pointer)
+- [x] Grep that nothing outside `planning/archive/` still names `WET_AET_CARRY` or the rerun-first rule
 
 ## Phase 3: Re-decide on m4 (worktree of this branch, `data/wb` linked to the main checkout's)
-- [ ] Copy `fit_20260717` (fits.rds, aet_winner.txt, cv_aet-cfu.rds, output/, runoff_annual.tif, segment/) into `data/wb/_pre81/fit_20260717/` for identity checks. `wb_key_dir()` does not look there.
+- [ ] Copy `fit_20260717` (fits.rds, aet_winner.txt, cv_aet-cfu.rds, output/, runoff_annual.tif, segment/) into `data/wb/_pre81/fit_20260717/` for identity checks. `wb_key_dir()` does not look there. Then remove the live three-line carried `aet_winner.txt`, which the new `wb_validate.R` refuses as bad.
 - [ ] `WET_HYDAT_RELEASE=20260717`, with `caffeinate -i` and logs in `data/logs/81/`:
   - `wb_validate.R` for cgiar lc tc fu cfu fu15 fu20 fu35 mod16 cmod16
   - then `wb_aet_compare.R`

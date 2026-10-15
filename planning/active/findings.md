@@ -52,6 +52,10 @@ Relates to #15, #18, #43, #46.
 - `wb_fit_accept.R:35` requires `cv_variant == "nested"`, but the shipped fit is fixed to `none`. So the next refit's acceptance (20260717 → next) will refuse. That gap is pre-existing and goes to a follow-up issue, not this one.
 
 
+## Winner stamp (Phase 2)
+
+Before #81 the AET winner was stamped with `aet_code_md5` (scoring code + stations, no decision files), because the AET was chosen before any per-fit decision existed. Under "as shipped" scoring the comparison depends on `pooled_variant.txt` and `adjust_override.txt`, and it already refused cv files not current under `score_code_md5` (which hashes them). So the winner now carries `score_code_md5`, and every reader checks it. Otherwise a changed decision file would have left a winner made under the old decisions looking current.
+
 ## Errors Encountered
 
 | Error | Resolution |
