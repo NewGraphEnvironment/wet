@@ -18,3 +18,5 @@
   - The balance's median bias is now +7% to +11% in April–May and within ±5% in every other month (was +8% to +16% January–May).
   - The Liard gauges: −16% in January, −62% to −75% in February–March (all three months were under −50%).
   Buck Creek's May–June balance is now 57% of the gauge's (9.4 against 16.4 m³/s), so "under half" moved to the peak month (10.3 against 22). The "no snow term" sentence and the #16/#68 gaps were rewritten. Every claim is held by a `stopifnot`; the article renders.
+- Phase 2 load on m4 (`~/wet77/load_db.R`, log `wet-16/data/logs/77/db_load.log`): segments 03:20:53–04:07:00 UTC (46.1 min), watersheds to 04:28:33 (21.6 min). Comments name acb820f; fresh's subquery 4,532,843 rows (3,152,838 / 1,380,005), equal to the report's reader line, in 1.7 s. `VACUUM ANALYZE` 33.6 min; sizes stay 39 GB and 17 GB (dead space reusable, not returned). `research/discharge_publish.md` status and the reload paragraph updated. #68's body edited to done.
+- Code-check rounds 1 (one fragile: snow named in prose, share spec unchecked; fixed by recording `share_spec` in provenance and asserting it) and 2 (clean).
