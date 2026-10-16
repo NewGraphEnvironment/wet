@@ -36,12 +36,12 @@ Facts from exploration:
 - [x] `discharge_publish.R` BUILD only; expect 67/67 parts identical to live acb820f, so no upload. Commit the report. **If any part differs: stop and bring the differing parts to the user before any `WET_PUBLISH=1`.**
 
 ## Phase 4: Bring m1 current and record
-- [ ] Copy the reduced bundle to m1 (fits.rds, aet_winner.txt, cv_aet-cfu.rds; output/ only if changed)
-- [ ] On m1, run `data-raw/segment_vignette_data.R` and `data-raw/monthly_vignette_data.R` as the check that they now run; commit their `.rds` only if the bytes change, and say which
-- [ ] `research/water_balance_method.md` "The AET incumbent since #89": check the sandbox numbers against the real report; revise the section if any differ, and note it ran on the shipped fit
-- [ ] On m4: move `wet-91/data/logs/91/` into the main checkout's `data/logs/91/` (beside `89/`), then remove the worktree; `_pre91/` stays until merge, then deleted
-- [ ] Update memories `m4_discharge_publish_state` and `wb_data_reduced_bundle_m1` (new scoring md5, nothing owed)
-- [ ] Edit #91's body with the outcome
+- [x] Copy the reduced bundle to m1 (fits.rds, aet_winner.txt, cv_aet-cfu.rds; output/ only if changed)
+- [x] On m1, run `data-raw/segment_vignette_data.R` and `data-raw/monthly_vignette_data.R`: monthly runs, and its `.rds` is committed (values identical; provenance moved: built, wet_commit, fit md5s). Segment refuses at :170 as the review found (B1). The user chose not to republish, so its `.rds` is unchanged.
+- [x] `research/water_balance_method.md` "The AET incumbent since #89": check the sandbox numbers against the real report; revise the section if any differ, and note it ran on the shipped fit
+- [x] On m4: move `wet-91/data/logs/91/` into the main checkout's `data/logs/91/` (beside `89/`), then remove the worktree; `_pre91/` stays until merge, then deleted
+- [x] Update memories `m4_discharge_publish_state` and `wb_data_reduced_bundle_m1` (new scoring md5, nothing owed)
+- [x] Edit #91's body with the outcome
 
 ## Validation
 - [ ] Tests pass
