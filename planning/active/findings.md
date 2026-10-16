@@ -57,7 +57,7 @@ Related: #15, #18, #81, #85 (PR #87, whose guards stay as insurance).
 
 ## Sandbox results (m4, 2026-10-16 16:16-16:35 UTC)
 
-Logs: m4 `data/logs/89/` (moved from the wet-89 and wet-89old worktrees), `summary.txt` and `followup.txt` the summaries, `*_report.txt` each case's full report.
+Logs: m4 main checkout `data/logs/89/new/` (wet-89, new code) and `data/logs/89/old/` (wet-89old); `new/head_real_report.txt` is the real case at the final commit 9cb02d9, `summary.txt` and `followup.txt` the summaries, `*_report.txt` each case's full report.
 
 | case | code | (a)-(c) | (d) nested headwater vs incumbent as shipped | outer folds | result |
 |---|---|---|---|---|---|

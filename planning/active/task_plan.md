@@ -36,11 +36,11 @@ Push the branch first. On m4, make worktree `wet-89` (branch) and `wet-89old` (d
 ## Phase 4: Docs name the incumbent
 - [x] `CLAUDE.md` water-balance bullet (the `wb_validate.R [AET]` paragraph): "#15's and #18's pre-set rules … with cfu as stage 1's incumbent since #89"
 - [x] `research/water_balance_method.md` #81 subsection: "with #15's and #18's rules unchanged" gains a pointer to the #89 subsection. Grep `research/`, `scripts/` and `CLAUDE.md` for other sentences describing stage 1 as cgiar-incumbent at later releases, and fix those that describe current behaviour; #15's record sentences stay
-- [ ] Update the issue body if the work changes what it says (for example, the sandbox outcomes)
+- [x] Update the issue body if the work changes what it says (for example, the sandbox outcomes)
 
 ## Validation
-- [ ] Tests pass (`devtools::test()`; the script isn't under test, so this guards against collateral damage only)
-- [ ] `/code-check branch` clean
-- [ ] PWF checkboxes match landed work
+- [x] Tests pass (`devtools::test()`; the script isn't under test, so this guards against collateral damage only)
+- [x] `/code-check branch` clean
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` (README with Measurement and Evidence: `data/logs/89/` on m4), then `/gh-pr-push`
 
