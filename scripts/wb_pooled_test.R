@@ -19,7 +19,9 @@
 # Writes <fit>/pooled_variant.txt when the test fixes a variant, which
 # scripts/wb_validate.R then uses for every fold and the shipped fit (rerun
 # it), and the tracked report wb_report("wb_pooled_test", release). Runs once
-# per fit: a decision already written is not remade.
+# per fit: a decision already written is not remade, except after the fit's
+# AET switched, when scripts/wb_fit_accept.R asks for it under the new AET
+# (#85): remove only <fit>/pooled_test.txt and run this again.
 
 # the fit is named, never defaulted: the test runs once per fit and fixes it
 if (!nzchar(Sys.getenv("WET_HYDAT_RELEASE"))) stop("set WET_HYDAT_RELEASE to the fit the test settles")
@@ -28,7 +30,7 @@ if (!nzchar(Sys.getenv("WET_HYDAT_RELEASE"))) stop("set WET_HYDAT_RELEASE to the
 if (Sys.getenv("WET_HYDAT_RELEASE") == "20251014") stop("the pooled-zone test settles a refit, not fit_20251014 (#15's)")
 source("scripts/wb_cv_lib.R")
 f_pooled <- file.path(fit_dir, "pooled_variant.txt")
-if (file.exists(file.path(fit_dir, "pooled_test.txt"))) stop("this fit's pooled-zone test has run: it is not remade")
+if (file.exists(file.path(fit_dir, "pooled_test.txt"))) stop("this fit's pooled-zone test has run: it is not remade (after an AET switch, remove pooled_test.txt only; #85)")
 tie <- 1.0
 min_decision <- 10
 min_obs <- 10

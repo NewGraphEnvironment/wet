@@ -80,6 +80,19 @@ scores <- lapply(args, function(r) {
   if (!any(grepl(hydat, tr, fixed = TRUE)) || !identical(grep("^OUTCOME: ", tr, value = TRUE), outcome)) {
     stop(f_test, " does not match ", f_test_rep, ": the pooled-zone test was not run on fit ", r)
   }
+  # the test chose the variant for the AET it ran under (its report's "fit:"
+  # line); after an AET switch the fit would ship a variant chosen for another
+  # AET. The way through is to rerun the test under the new AET (#85): remove
+  # pooled_test.txt (keep pooled_variant.txt, whose removal stales fits.rds)
+  # and run scripts/wb_pooled_test.R, then scripts/wb_validate.R <AET>; if
+  # pooled_variant.txt changed, rescore every variant and compare again first
+  tested_aet <- sub("^fit: .*, annual AET ([A-Za-z0-9]+)$", "\\1", grep("^fit: ", tr, value = TRUE))
+  if (!identical(tested_aet, fits$aet)) {
+    stop("fit ", r, " ships AET ", fits$aet, " but its pooled-zone test ran under ",
+         paste(tested_aet, collapse = " "), " (", f_test_rep, "): rerun it under ", fits$aet,
+         " (remove pooled_test.txt only, run scripts/wb_pooled_test.R, then scripts/wb_validate.R ", fits$aet,
+         "; if pooled_variant.txt changed, rescore every variant and compare again first; #85)")
+  }
   if (!identical(x$cv_variant, if (identical(tested, "uninformative")) "nested" else tested)) {
     stop("fit ", r, " was scored with pooled variant ", x$cv_variant, ", but its pooled-zone test gave ", tested)
   }
