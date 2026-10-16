@@ -16,9 +16,9 @@ Facts from exploration:
 - The vignette guard (`scripts/vignette_data_lib.R:62`) needs the publish report's "parts identical to the published build acb820f: 67 of 67" line, so no upload is needed when every part matches.
 
 ## Phase 1: Set up on m4
-- [ ] Push the branch; on m4, `git worktree add ~/Projects/repo/wet-91 <branch>`; symlink `data/{wb,pcic,cgiar,climr,dem,landcover,mod16,snow,terraclimate,hydz}` to the main checkout's
-- [ ] Set aside identity copies in `data/wb/_pre91/fit_20260717/` (fits.rds, aet_winner.txt, cv_aet-*.rds, output/, segment/), with md5s; `wb_key_dir()` does not look there
-- [ ] Logs under `wet-91/data/logs/91/`, every run under `caffeinate -i` with `WET_HYDAT_RELEASE=20260717`, one backgrounded chain per phase with a DONE marker cleared at launch
+- [x] Push the branch; on m4, `git worktree add ~/Projects/repo/wet-91 <branch>`; symlink `data/{wb,pcic,cgiar,climr,dem,landcover,mod16,snow,terraclimate,hydz}` to the main checkout's
+- [x] Set aside identity copies in `data/wb/e675918817/_pre91/fit_20260717/` (59 files, md5s in `_pre91/MD5SUMS`) (fits.rds, aet_winner.txt, cv_aet-*.rds, output/, segment/), with md5s; `wb_key_dir()` does not look there
+- [x] Logs under `wet-91/data/logs/91/`, every run under `caffeinate -i` with `WET_HYDAT_RELEASE=20260717`, one backgrounded chain per phase with a DONE marker cleared at launch
 
 ## Phase 2: Rescore and re-decide
 - [ ] `wb_validate.R <v>` for cgiar lc tc fu cfu fu15 fu20 fu35 mod16 cmod16, then `wb_aet_compare.R`
