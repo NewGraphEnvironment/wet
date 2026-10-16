@@ -285,7 +285,7 @@ HYDAT 2025-10-14 (`s3://fresh-bc/hydat/20251014/`, md5 `da00052022aa1533b80f9fab
 
 **Verified:** 2026-10-15 · **Issues:** #81 (from #15, #18, #43; spawned #83, "Accepting the next refit" below) · **Produced by:** `scripts/wb_validate.R <variant>` for all ten variants, then `scripts/wb_aet_compare.R`, on `fit_20260717` → `data/checks/wb_aet_compare_20260717.txt` and `data/checks/wb_validation_aet-*_20260717.txt`. The run logs were not kept.
 
-Until #81 the AET was chosen only on `fit_20251014`, and newer fits carried it. Now the comparison runs on the shipped release, with #15's and #18's rules unchanged. Each variant is scored as the fit ships it: pooled zones fixed to `none` (#43's pooled test) and the 0.1-point gate override. The nested selection applies both inside each fold. Both decisions were made on `cfu`'s own fit, so this form leans toward `cfu`; the report says so.
+Until #81 the AET was chosen only on `fit_20251014`, and newer fits carried it. Now the comparison runs on the shipped release, with #15's and #18's rules unchanged (since #89, stage 1's incumbent is `cfu`: "The AET incumbent at later releases" below). Each variant is scored as the fit ships it: pooled zones fixed to `none` (#43's pooled test) and the 0.1-point gate override. The nested selection applies both inside each fold. Both decisions were made on `cfu`'s own fit, so this form leans toward `cfu`; the report says so.
 
 | AET | Headwater 2026-07-17 (2025-10-14) | All | Nested | Nested within ±20 % |
 |---|---|---|---|---|

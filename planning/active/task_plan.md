@@ -34,8 +34,8 @@ Push the branch first. On m4, make worktree `wet-89` (branch) and `wet-89old` (d
 - [ ] Copy each sandbox report out of `data/checks/` into `data/logs/89/<case>.txt`, `git checkout` the tracked report in both worktrees, and record the four outcomes (winner, (a)–(d) lines, fold counts) in `findings.md` and the research subsection
 
 ## Phase 4: Docs name the incumbent
-- [ ] `CLAUDE.md` water-balance bullet (the `wb_validate.R [AET]` paragraph): "#15's and #18's pre-set rules … with cfu as stage 1's incumbent since #89"
-- [ ] `research/water_balance_method.md` #81 subsection: "with #15's and #18's rules unchanged" gains a pointer to the #89 subsection. Grep `research/`, `scripts/` and `CLAUDE.md` for other sentences describing stage 1 as cgiar-incumbent at later releases, and fix those that describe current behaviour; #15's record sentences stay
+- [x] `CLAUDE.md` water-balance bullet (the `wb_validate.R [AET]` paragraph): "#15's and #18's pre-set rules … with cfu as stage 1's incumbent since #89"
+- [x] `research/water_balance_method.md` #81 subsection: "with #15's and #18's rules unchanged" gains a pointer to the #89 subsection. Grep `research/`, `scripts/` and `CLAUDE.md` for other sentences describing stage 1 as cgiar-incumbent at later releases, and fix those that describe current behaviour; #15's record sentences stay
 - [ ] Update the issue body if the work changes what it says (for example, the sandbox outcomes)
 
 ## Validation
