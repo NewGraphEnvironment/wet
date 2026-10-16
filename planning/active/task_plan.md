@@ -17,11 +17,11 @@ Meanwhile the AET inputs are fixed climatologies. A new HYDAT release changes on
 - [x] `scripts/wb_aet_compare.R` header (l.1–24): stage 1 is cfu against cgiar, lc, tc and fu (#89, registered 2026-10-16 before any later release was scored), and #15's own run had cgiar as incumbent (tag `aet-15-record`)
 
 ## Phase 2: cfu as stage 1's incumbent in `wb_aet_compare.R`
-- [ ] `incumbent1 <- "cfu"`; `eligible <- c("cgiar", "lc", "tc", "fu")`. Spell out `variants_all` and `cands` in today's order, so report rows and tie order don't change. Update the `cands` comment
-- [ ] Use `incumbent1` in place of `"cgiar"` at the top-level rule, `ns1`, the (d) reference row and `winner1`, and inside the `ns12` transparency run. Rename `cg` → `inc1_row` (or keep the name and fix the comment)
-- [ ] Threshold comments (l.48–53) say "the incumbent", not cgiar
-- [ ] Report: the stage 1 heading becomes `"## Stage 1 (#15, incumbent since #89): cfu against cgiar, lc, tc, fu"`; the rule text says "replaces cfu", and the (d) line says "cfu as shipped". Every variant's score is still listed, and the DECISION TO USER and SHIPS lines are unchanged
-- [ ] `grep -n cgiar scripts/wb_aet_compare.R`: every remaining hit is a variant name or a description, not the incumbent
+- [x] `incumbent1 <- "cfu"`; `eligible <- c("cgiar", "lc", "tc", "fu")`. Spell out `variants_all` and `cands` in today's order, so report rows and tie order don't change. Update the `cands` comment
+- [x] Use `incumbent1` in place of `"cgiar"` at the top-level rule, `ns1`, the (d) reference row and `winner1`, and inside the `ns12` transparency run. Rename `cg` → `inc1_row` (or keep the name and fix the comment)
+- [x] Threshold comments (l.48–53) say "the incumbent", not cgiar
+- [x] Report: the stage 1 heading becomes `"## Stage 1 (#15, incumbent since #89): cfu against cgiar, lc, tc, fu"`; the rule text says "replaces cfu", and the (d) line says "cfu as shipped". Every variant's score is still listed, and the DECISION TO USER and SHIPS lines are unchanged
+- [x] `grep -n cgiar scripts/wb_aet_compare.R`: every remaining hit is a variant name or a description, not the incumbent
 
 ## Phase 3: Verify in a sandbox on m4
 Push the branch first. On m4, make worktree `wet-89` (branch) and `wet-89old` (detached at `origin/main`). Logs go in each worktree's `data/logs/89/`, and get moved into the main checkout's `data/logs/89/` before the worktrees are removed.
