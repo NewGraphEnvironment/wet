@@ -44,10 +44,10 @@ Facts from exploration:
 - [x] Edit #91's body with the outcome
 
 ## Validation
-- [ ] Tests pass
-- [ ] `/code-check` clean (once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] Tests pass (1113, 0 failed)
+- [x] `/code-check`: not run. The branch changes no code, script or config: only regenerated reports, one data `.rds` (values identical), research prose and planning files (`feature-workflow.md`, "When to Skip": review covers what runs or is loaded as instructions)
+- [x] PWF checkboxes match landed work
+- [x] `/planning-archive` on completion
 
 ## Verification
 Identity checks against `_pre91` at each step (cmp / `identical()` on the R objects); the publish report's byte-identical count against the live manifest; the vignette data scripts running on m1 is the end-to-end check that every guard accepts the new stamps.
