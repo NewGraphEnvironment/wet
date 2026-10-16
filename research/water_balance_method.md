@@ -311,7 +311,7 @@ Until #81 the AET was chosen only on `fit_20251014`, and newer fits carried it. 
 
 #15 chose `cfu` with `cgiar` as the incumbent, and #81 kept that incumbent at every release. On 2026-07-17 `cfu` and `fu` are 0.9 points apart on headwater MAE (30.7 % and 31.6 %), and both clear `cgiar` (37.4 %) by #15's 2.0-point bar. `cfu` is the cell-wise maximum of CGIAR and `fu`, so the two differ mainly where CGIAR exceeds `fu` (zone 17). In the nested selection `fu` already wins 26 of the 94 outer folds. A later release could rank `fu` first on a sub-point difference, and that sends the decision to the user and starts the switch path (#81, #85) for a difference that means nothing. The AET inputs are fixed climatologies; a new HYDAT release changes only revised gauge flows and a few calibration gauges.
 
-The rule for every release after 2026-07-17, pre-registered here:
+The rule for 2026-07-17's rescore and every later release, pre-registered here:
 
 - **Stage 1 is `cfu` against `cgiar`, `lc`, `tc` and `fu`.** #15's thresholds are unchanged, now measured from `cfu`: (a) headwater MAE at least 2.0 points below `cfu`, (b) all-station MAE no higher, (c) nested MAE at most 1.0 point higher and nested within ±20 % at most 3 points lower, and (d) a fully nested selection beating `cfu`'s as-shipped headwater MAE.
 - **Stage 2 is unchanged.** Its incumbent is stage 1's winner, which stays `cfu` unless a challenger clears that bar; #18 registered it with `cfu` as the incumbent.
