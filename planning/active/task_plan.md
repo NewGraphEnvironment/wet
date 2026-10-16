@@ -13,8 +13,8 @@ So a later release can rank fu first on a sub-point difference. That winner is n
 Meanwhile the AET inputs are fixed climatologies. A new HYDAT release changes only revised gauge flows and a few calibration gauges, so it carries little new information about which AET is right.
 
 ## Phase 1: Pre-register the rule
-- [ ] `research/water_balance_method.md` §0: add the subsection "The AET incumbent at later releases (#89)" after "The AET re-decided on HYDAT 2026-07-17 (#81)", with a provenance line. It states the rule, what was rejected and why, the disclosure (changed after seeing cfu ≈ fu; it can't change today's result; it favours the status quo), and that `fit_20251014` / `aet-15-record` stay under cgiar
-- [ ] `scripts/wb_aet_compare.R` header (l.1–24): stage 1 is cfu against cgiar, lc, tc and fu (#89, registered 2026-10-16 before any later release was scored), and #15's own run had cgiar as incumbent (tag `aet-15-record`)
+- [x] `research/water_balance_method.md` §0: add the subsection "The AET incumbent at later releases (#89)" after "The AET re-decided on HYDAT 2026-07-17 (#81)", with a provenance line. It states the rule, what was rejected and why, the disclosure (changed after seeing cfu ≈ fu; it can't change today's result; it favours the status quo), and that `fit_20251014` / `aet-15-record` stay under cgiar
+- [x] `scripts/wb_aet_compare.R` header (l.1–24): stage 1 is cfu against cgiar, lc, tc and fu (#89, registered 2026-10-16 before any later release was scored), and #15's own run had cgiar as incumbent (tag `aet-15-record`)
 
 ## Phase 2: cfu as stage 1's incumbent in `wb_aet_compare.R`
 - [ ] `incumbent1 <- "cfu"`; `eligible <- c("cgiar", "lc", "tc", "fu")`. Spell out `variants_all` and `cands` in today's order, so report rows and tie order don't change. Update the `cands` comment

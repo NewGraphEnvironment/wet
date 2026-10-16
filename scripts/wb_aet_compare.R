@@ -1,7 +1,10 @@
 # Compare the annual AET variants of the ET experiments and apply the decision
-# rules fixed in planning before any variant was scored: #15 (stage 1: CGIAR
-# against lc, tc, fu and cfu) and #18 (stage 2: stage 1's winner against the
-# MOD16 variants mod16 and cmod16).
+# rules fixed in planning before any variant was scored: #15 (stage 1: cgiar,
+# lc, tc, fu and cfu) and #18 (stage 2: stage 1's winner against the MOD16
+# variants mod16 and cmod16). Stage 1's incumbent is cfu, the shipped AET, with
+# cgiar, lc, tc and fu its challengers (#89, registered 2026-10-16 before any
+# release after 2026-07-17 was scored), so a later release cannot switch on a
+# near-tie; #15's own run had cgiar as the incumbent (tag aet-15-record).
 #
 #   for v in cgiar lc tc fu cfu fu15 fu20 fu35 mod16 cmod16; do Rscript scripts/wb_validate.R $v; done
 #   Rscript scripts/wb_aet_compare.R
@@ -17,9 +20,10 @@
 # the stations it is scored on.
 #
 # It runs on the fit's own release (#81): the shipped fit re-decides its AET at
-# each new release, under the rules as #15 and #18 fixed them. Each variant is
-# scored as the fit ships it, under the fit's own decisions (a fixed pooled
-# variant, a gate override; scripts/wb_cv_lib.R), and the nested selection
+# each new release, under the rules as #15 and #18 fixed them, with stage 1's
+# incumbent from #89. Each variant is scored as the fit ships it, under the
+# fit's own decisions (a fixed pooled variant, a gate override;
+# scripts/wb_cv_lib.R), and the nested selection
 # applies the same decisions inside each fold. #15's own run, on HYDAT
 # 2025-10-14, is reproduced at tag aet-15-record, not here.
 

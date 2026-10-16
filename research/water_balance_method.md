@@ -305,6 +305,23 @@ Until #81 the AET was chosen only on `fit_20251014`, and newer fits carried it. 
 
 **What ships, from now on.** Without a recorded decision only `cfu` ships, and only when the rule picks it. Any other winner, or one that would ship raw under a fixed pooled variant, gets no winner file, and the report says DECISION TO USER. The user records the AET to ship in `<fit>/aet_decision.txt` (the variant, then who decided and why). It is hashed into the fit's scores, recorded in `fits.rds`, and copied into each later release's fit; a fit that should have one and does not is refused.
 
+### The AET incumbent at later releases (#89)
+
+**Verified:** 2026-10-16 · **Issues:** #89 (from #15, #18, #81, #85) · **Produced by:** `scripts/wb_aet_compare.R`; rule written before any release after 2026-07-17 was scored.
+
+#15 chose `cfu` with `cgiar` as the incumbent, and #81 kept that incumbent at every release. On 2026-07-17 `cfu` and `fu` are 0.9 points apart on headwater MAE (30.7 % and 31.6 %), and both clear `cgiar` (37.4 %) by #15's 2.0-point bar. `cfu` is the cell-wise maximum of CGIAR and `fu`, so the two differ mainly where CGIAR exceeds `fu` (zone 17). In the nested selection `fu` already wins 26 of the 94 outer folds. A later release could rank `fu` first on a sub-point difference, and that sends the decision to the user and starts the switch path (#81, #85) for a difference that means nothing. The AET inputs are fixed climatologies; a new HYDAT release changes only revised gauge flows and a few calibration gauges.
+
+The rule for every release after 2026-07-17, pre-registered here:
+
+- **Stage 1 is `cfu` against `cgiar`, `lc`, `tc` and `fu`.** #15's thresholds are unchanged, now measured from `cfu`: (a) headwater MAE at least 2.0 points below `cfu`, (b) all-station MAE no higher, (c) nested MAE at most 1.0 point higher and nested within ±20 % at most 3 points lower, and (d) a fully nested selection beating `cfu`'s as-shipped headwater MAE.
+- **Stage 2 is unchanged.** Its incumbent is stage 1's winner, which stays `cfu` unless a challenger clears that bar; #18 registered it with `cfu` as the incumbent.
+- **What ships is unchanged.** A winner other than `cfu` still goes to the user (#81). A challenger that clears the bar is a real gap worth a human decision.
+- **#15's record stays as it was.** `fit_20251014` and tag `aet-15-record` keep `cgiar` as the incumbent, and are not rerun.
+
+Rejected: freezing `cfu` and no longer re-deciding per release (it drops the check at each refit, and `aet_winner.txt` is read by `wb_output.R`, `discharge_publish.R`, `pcic_routed_lib.R` and `wb_fit_accept.R`, so removing it is a wider change); a bigger margin for `fu` alone (a special case for one pair, where an incumbent bar covers every pair the same way).
+
+Disclosed: the rule was changed after seeing that `cfu` and `fu` are close. It cannot change the 2026-07-17 result, since no eligible challenger beats `cfu` on headwater MAE at all (`fu` is 0.9 points behind, `tc` 2.3, `cmod16` 3.3; the transparency-only `fu35` is never eligible). It favours the status quo.
+
 ### Accepting the next refit (#83)
 
 **Verified:** 2026-10-15 · **Issues:** #83 (from #43, #81) · **Produced by:** `scripts/wb_fit_accept.R <shipped> <new>`; rule written before any release after 2026-07-17 was scored.
