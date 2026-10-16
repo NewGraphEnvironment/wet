@@ -4,9 +4,10 @@ Version: 0.4.7
 Date: 2026-10-15
 Authors@R: c(
     person("Allan", "Irvine", , "al@newgraphenvironment.com", role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0002-3495-2128")),
-    person("New Graph Environment Ltd.", role = "cph")
-  )
+           comment = c(ORCID = "0000-0002-3495-2128",
+                       affiliation = "New Graph Environment Ltd.")),
+    person("New Graph Environment Ltd.", role = c("cph", "fnd"))
+    )
 Description: Per-segment stream discharge for the British Columbia
     Freshwater Atlas (FWA), and flow and water-temperature departures at
     hydrometric stations. Gridded runoff, from Pacific Climate Impacts
