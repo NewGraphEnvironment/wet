@@ -1,5 +1,12 @@
 # Changelog
 
+## wet 0.4.9
+
+- The monthly-flow article’s data are rebuilt from the shipped fit after
+  its rescore under the AET rule that keeps cfu on a near-tie
+  ([\#91](https://github.com/NewGraphEnvironment/wet/issues/91)). The
+  values are unchanged.
+
 ## wet 0.4.8
 
 - The citation names New Graph Environment Ltd. as publisher and funder:
