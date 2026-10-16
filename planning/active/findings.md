@@ -54,3 +54,26 @@ Related: #15, #18, #81, #85 (PR #87, whose guards stay as insurance).
 - **Pre-declared after the plan review, before any case result was read:** if fu25's (d) fails, run fu40 (fu 4.0 points better than cfu), and report both. A synthetic fu is cfu shrunk toward obs: (a) scales exactly, but (b) and (c) are never binding (all-station and nested MAE shrink too; nested within ±20 % only rises), and (d) refits on raw, whose floors at 0 and the unscaled 0.1-point gate tolerance break exact scaling.
 - **Also pre-declared:** a `real` run under old code must reproduce the tracked `data/checks/wb_aet_compare_20260717.txt` byte for byte, which validates the sandbox itself. The source scores' `code_md5` must all equal `aet_winner.txt` line 2 in the main checkout, so the re-stamp hides nothing stale.
 - The re-stamp check's `wb_validate.R cfu` took 6 s from stations to "validation done" (Sept logs: about 4 min), so its "no field differs" is re-verified with a file-time stamp and a diff of the rewritten report before it counts.
+
+## Sandbox results (m4, 2026-10-16 16:16-16:35 UTC)
+
+Logs: m4 `data/logs/89/` (moved from the wet-89 and wet-89old worktrees), `summary.txt` and `followup.txt` the summaries, `*_report.txt` each case's full report.
+
+| case | code | (a)-(c) | (d) nested headwater vs incumbent as shipped | outer folds | result |
+|---|---|---|---|---|---|
+| real | new (ca20eca; again at adf52f1) | cfu | 32.5 vs cfu 30.7, fail | cfu 94 | WINNER cfu, SHIPS cfu, `aet_winner.txt` cfu |
+| fu 1.5 better (k 0.9512, fu 29.22) | new | cfu | 32.5 vs 30.7, fail | cfu 94 | WINNER cfu, SHIPS cfu, `aet_winner.txt` cfu |
+| fu 2.5 better (k 0.9186, fu 28.22) | new | fu | 29.8 vs cfu 30.7, pass | fu 94 | WINNER fu, DECISION TO USER, no `aet_winner.txt` |
+| fu 1.5 better | old (origin/main daf64aa) | fu | 31.5 vs cgiar 37.4, pass | tc 25, fu 69 | WINNER fu, DECISION TO USER, no `aet_winner.txt` |
+| real | old | cfu | as tracked | as tracked | report byte-identical to `data/checks/wb_aet_compare_20260717.txt` (0 diff lines) |
+
+- So the change is what holds the 1.5-point case: the same synthetic scores send it to the user under the old rule and keep cfu under the new one. The pre-declared fu40 fallback was not needed.
+- **(d) prints fail on the real fit and the 1.5-point case while cfu wins**, as the plan review predicted: with cfu the incumbent every fold keeps cfu, so the nested selection is cfu's own nested score (32.5 %), above its post-selection as-shipped 30.7 %.
+- **Sandbox validity:** the old-code `real` run reproduced the tracked report byte for byte (symlinks, copies and re-stamp together). All ten source `cv_aet-*.rds` carry one `code_md5`, equal to `aet_winner.txt` line 2 (49ab5f38…), so the re-stamp hid nothing stale. Re-stamp check: `wb_validate.R cfu` in the sandbox rewrote `cv_aet-cfu.rds` (newer than a stamp touched before it), its 22 fields other than `code_md5` are identical to the main checkout's copy, its `code_md5` is the new code's, and the rewritten tracked report had 0 diff lines. Its CV took 6 s from stations to "validation done" (the September logs show about 4 min on 290 stations), so the speed is real, not a skipped step.
+- The new-code `real` reruns ran at adf52f1, before round 1 reworded the report's stage 1 rule line (449e65e). No decision code changed after adf52f1.
+
+## Errors Encountered
+
+| Error | Resolution |
+|-------|------------|
+| follow-up source-currency `Rscript -e` failed: `'\.' is an unrecognized escape` (a `\\.` regex inside nested shell quoting) | reran with `[.]` instead of an escape |
