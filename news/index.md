@@ -1,5 +1,12 @@
 # Changelog
 
+## wet 0.4.8
+
+- The citation names New Graph Environment Ltd. as publisher and funder:
+  `citation("wet")` now reads from `inst/CITATION`, and `Authors@R`
+  gives the author’s affiliation. The small logo keeps its name clear of
+  the icon.
+
 ## wet 0.4.7
 
 - Scripts, data scripts and live tests now read a named HYDAT release,
