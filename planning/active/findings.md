@@ -37,3 +37,10 @@ Related: #89, #83, #85.
 - All ten `cv_aet-*.rds` identical to `_pre91` in every field but `code_md5` (now `a80b045ab7a74678d4dff01dddf77fcb`).
 - The ten `wb_validation_aet-*_20260717.txt` reports are byte-identical (no diff).
 - `aet_winner.txt` = cfu, `a80b045a…`. `wb_aet_compare_20260717.txt`: stage-1 heading, rule and disclosure; (d) nested 32.5 against cfu 30.7, fail; folds cfu 94 (was fu 26, cfu 68 under cgiar as incumbent). As-shipped table unchanged.
+
+## Phase 3 result (m4, 2026-10-16 21:27–21:45 UTC; `data/logs/91/chain3.*` in m4's main checkout)
+
+- `wb_validate.R cfu`: `data/logs/91/check_ship.R` passed every check: `fits.rds` identical but `code_md5` and `aet_md5`; `code_md5` equals the winner stamp and moved; `output/` unlinked; `cv_ann` and `cv_share` identical. `wb_validation_20260717.txt` unchanged.
+- `wb_output.R`: 24 output parquets byte-identical to `_pre91`; `wb_output_20260717.txt` unchanged. `wb_share_snow_20260717.txt`: md5 line only.
+- `pcic_routed_compare.R`, `segment_output.R`: one stamp line each; 23 segment parquets byte-identical.
+- BUILD: "parts identical to the published build acb820f: 67 of 67 here, 67 published", no FAIL. Not uploaded (user, 2026-10-16: don't publish).

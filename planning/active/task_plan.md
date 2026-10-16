@@ -26,11 +26,14 @@ Facts from exploration:
 - [x] Commit `data/checks/wb_validation_aet-*_20260717.txt` and `wb_aet_compare_20260717.txt`
 
 ## Phase 3: Ship the fit and rerun the outputs
-- [ ] `wb_validate.R cfu`: `cv_ann`, `cv_share` identical to `_pre91`'s, `fits.rds` identical in every field but the md5s; else stop and report. Commit its report.
-- [ ] `wb_share_snow.R`; `wb_output.R` (output parquet identical to `_pre91`'s); commit reports
-- [ ] `segment_output.R` (segment parts identical to `_pre91`'s); commit its report
-- [ ] `WET_FWAPG_COMMIT=341b078 pcic_routed_compare.R`; commit its report
-- [ ] `discharge_publish.R` BUILD only; expect 67/67 parts identical to live acb820f, so no upload. Commit the report. **If any part differs: stop and bring the differing parts to the user before any `WET_PUBLISH=1`.**
+
+`WET_FWAPG_COMMIT=341b078` for the whole chain (review B2: `segment_output.R` reads it too); pcic ran before segment, as in #81. Reports committed on m4 at 9d1d190, e280f5d, 71af15a, 382eabe.
+
+- [x] `wb_validate.R cfu`: `cv_ann`, `cv_share` identical to `_pre91`'s, `fits.rds` identical in every field but the md5s; else stop and report. Commit its report.
+- [x] `wb_share_snow.R`; `wb_output.R` (output parquet identical to `_pre91`'s); commit reports
+- [x] `segment_output.R` (segment parts identical to `_pre91`'s); commit its report
+- [x] `WET_FWAPG_COMMIT=341b078 pcic_routed_compare.R`; commit its report
+- [x] `discharge_publish.R` BUILD only; expect 67/67 parts identical to live acb820f, so no upload. Commit the report. **If any part differs: stop and bring the differing parts to the user before any `WET_PUBLISH=1`.**
 
 ## Phase 4: Bring m1 current and record
 - [ ] Copy the reduced bundle to m1 (fits.rds, aet_winner.txt, cv_aet-cfu.rds; output/ only if changed)
