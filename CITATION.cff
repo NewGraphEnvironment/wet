@@ -8,7 +8,7 @@ message: 'To cite package "wet" in publications use:'
 type: software
 license: MIT
 title: 'wet: Stream Flow and Water Temperature for the BC Freshwater Atlas'
-version: 0.4.7
+version: 0.4.8
 abstract: Per-segment stream discharge for the British Columbia Freshwater Atlas (FWA),
   and flow and water-temperature departures at hydrometric stations. Gridded runoff,
   from Pacific Climate Impacts Consortium (PCIC) VIC-GL or from an open water balance
@@ -30,8 +30,8 @@ preferred-citation:
     email: al@newgraphenvironment.com
     orcid: https://orcid.org/0000-0002-3495-2128
     affiliation: New Graph Environment Ltd.
-  version: 0.4.7
-  date-released: '2026-10-15'
+  version: 0.4.8
+  date-released: '2026-10-16'
   url: https://newgraphenvironment.github.io/wet/
   repository-code: https://github.com/NewGraphEnvironment/wet
   license: MIT
@@ -40,7 +40,7 @@ preferred-citation:
     name: New Graph Environment Ltd.
 repository-code: https://github.com/NewGraphEnvironment/wet
 url: https://newgraphenvironment.github.io/wet/
-date-released: '2026-10-15'
+date-released: '2026-10-16'
 contact:
 - family-names: Irvine
   given-names: Allan
