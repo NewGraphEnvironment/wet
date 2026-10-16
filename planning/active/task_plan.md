@@ -21,9 +21,9 @@ Facts from exploration:
 - [x] Logs under `wet-91/data/logs/91/`, every run under `caffeinate -i` with `WET_HYDAT_RELEASE=20260717`, one backgrounded chain per phase with a DONE marker cleared at launch
 
 ## Phase 2: Rescore and re-decide
-- [ ] `wb_validate.R <v>` for cgiar lc tc fu cfu fu15 fu20 fu35 mod16 cmod16, then `wb_aet_compare.R`
-- [ ] Check: `aet_winner.txt` = cfu, stamped with the new `score_code_md5`; all 94 outer folds chose cfu; (d) fails at 32.5 % vs 30.7 %. **If the winner is not cfu, or the report says DECISION TO USER: stop, commit the reports, and bring it to the user.** Nothing ships.
-- [ ] Commit `data/checks/wb_validation_aet-*_20260717.txt` and `wb_aet_compare_20260717.txt`
+- [x] `wb_validate.R <v>` for cgiar lc tc fu cfu fu15 fu20 fu35 mod16 cmod16, then `wb_aet_compare.R`
+- [x] Check: `aet_winner.txt` = cfu, stamped with the new `score_code_md5`; all 94 outer folds chose cfu; (d) fails at 32.5 % vs 30.7 %. **If the winner is not cfu, or the report says DECISION TO USER: stop, commit the reports, and bring it to the user.** Nothing ships.
+- [x] Commit `data/checks/wb_validation_aet-*_20260717.txt` and `wb_aet_compare_20260717.txt`
 
 ## Phase 3: Ship the fit and rerun the outputs
 - [ ] `wb_validate.R cfu`: `cv_ann`, `cv_share` identical to `_pre91`'s, `fits.rds` identical in every field but the md5s; else stop and report. Commit its report.

@@ -5,10 +5,11 @@ HYDAT release: 20260717; pooled zones: fixed to 'none' (pooled_variant.txt); hea
 Variants: cgiar (CGIAR SWB v3), lc (CGIAR x Chapman Table 3 land-cover ratio, NRCan 2020), tc (TerraClimate 1981-2010), fu (Fu-Budyko, climr P and Hargreaves PET, omega 2.6), cfu (max of CGIAR and fu); fu15/fu20/fu35 are fu at omega 1.5/2.0/3.5, transparency only; mod16 (MOD16A3GF v061, mean 2001-2020, gaps filled with cfu by area), cmod16 (max of CGIAR and mod16).
 Monthly shares use CGIAR monthly AET for every variant; differences here are annual only.
 
-## Stage 1 (#15): cgiar against lc, tc, fu, cfu
+## Stage 1 (#15; incumbent since #89): cfu against cgiar, lc, tc, fu
 
-Rule (fixed before scoring): a variant replaces cgiar only if, under blocked CV and as shipped,
-(a) headwater MAE is at least 2.0 points below cgiar, (b) all-station MAE is no higher, (c) nested MAE is at most 1.0 points higher and nested within +/-20 % at most 3 points lower, and (d) a fully nested selection beats cgiar's headwater MAE.
+Rule (#15's thresholds; incumbent set by #89 on 2026-10-16): a variant replaces cfu only if, under blocked CV and as shipped,
+(a) headwater MAE is at least 2.0 points below cfu, (b) all-station MAE is no higher, (c) nested MAE is at most 1.0 points higher and nested within +/-20 % at most 3 points lower, and (d) a fully nested selection beats cfu's headwater MAE.
+Disclosed: #15 ran this stage with cgiar as the incumbent (tag aet-15-record). The incumbent is cfu since #89, chosen after cfu and fu were seen to be close, so a near-tie keeps the shipped AET; the incumbent's score is itself post-selection (the fit's decision files were made on its fit), so (d) in particular leans toward keeping it.
 
 ## As shipped (adjusted if it passes the headwater gate, raw otherwise), blocked CV, MAE %
 aet    shipped      head    all nested nes_in20 raw_head  raw_all
@@ -25,8 +26,8 @@ cmod16 adjusted     34.0   30.4   19.0    68.8     34.7     31.9 (stage 2)
 adjusted*: the gate failed and the override kept the adjustment (within 0.10 point). The tolerance was recorded for the AET shipped when it was set; it applies here to every variant and every fold, as does the fixed pooled variant, which leans toward that AET.
 
 (a)-(c) choose: cfu
-(d) nested selection (outer: 94 WSC folds; inner: blocked CV on each fold's training stations, pooled variant fixed to 'none'): headwater 31.5, all 28.0, nested 17.3, nested in +/-20 % 70.1; cgiar as shipped: headwater 37.4 -> pass
-    variant chosen by the outer folds: cgiar 0, lc 0, tc 0, fu 26, cfu 68
+(d) nested selection (outer: 94 WSC folds; inner: blocked CV on each fold's training stations, pooled variant fixed to 'none'): headwater 32.5, all 29.1, nested 18.9, nested in +/-20 % 66.2; cfu as shipped: headwater 30.7 -> fail
+    variant chosen by the outer folds: cgiar 0, lc 0, tc 0, fu 0, cfu 94
 Stage 1 winner: cfu
 
 ## Stage 2 (#18): cfu against mod16 and cmod16
@@ -44,8 +45,8 @@ SHIPS: cfu, the rule's winner and #15's AET; scripts/wb_validate.R ships it
 
 ## Transparency (never deciding)
 cfu alone under the same nested procedure (inner gate per fold): headwater 32.5, all 29.1, nested 18.9, nested in +/-20 % 66.2
-Two-stage nested selection (stage 1 then stage 2 inside each fold): headwater 31.5, all 28.0, nested 17.3, nested in +/-20 % 70.1
-    variant chosen by the outer folds: cgiar 0, lc 0, tc 0, fu 26, cfu 68, mod16 0, cmod16 0
+Two-stage nested selection (stage 1 then stage 2 inside each fold): headwater 32.5, all 29.1, nested 18.9, nested in +/-20 % 66.2
+    variant chosen by the outer folds: cgiar 0, lc 0, tc 0, fu 0, cfu 94, mod16 0, cmod16 0
 Upstream MOD16 share of the 315 stations: min 0.18, quartiles 0.94 / 0.99 / 1.00, max 1.00
 Headwater MAE, stations whose basin is >= 80 % MOD16 (n = 218): cfu 31.6, mod16 36.8, cmod16 35.2
 
