@@ -275,8 +275,8 @@ useful, each with its issue:
 
 ## Validation
 
-`data-raw/monthly_vignette_data.R` built the data at wet fc105e4 on
-2026-10-14, from the published build at wet acb820f
+`data-raw/monthly_vignette_data.R` built the data at wet 382eabe on
+2026-10-16, from the published build at wet acb820f
 (<https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json>)
 and the water balance fit on HYDAT 2026-07-17 (AET cfu). It checked the
 bundled published values against what they were built from, and refused
