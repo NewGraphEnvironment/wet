@@ -285,7 +285,7 @@ HYDAT 2025-10-14 (`s3://fresh-bc/hydat/20251014/`, md5 `da00052022aa1533b80f9fab
 
 **Verified:** 2026-10-15 · **Issues:** #81 (from #15, #18, #43; spawned #83, "Accepting the next refit" below) · **Produced by:** `scripts/wb_validate.R <variant>` for all ten variants, then `scripts/wb_aet_compare.R`, on `fit_20260717` → `data/checks/wb_aet_compare_20260717.txt` and `data/checks/wb_validation_aet-*_20260717.txt`. The run logs were not kept.
 
-Until #81 the AET was chosen only on `fit_20251014`, and newer fits carried it. Now the comparison runs on the shipped release, with #15's and #18's rules unchanged. Each variant is scored as the fit ships it: pooled zones fixed to `none` (#43's pooled test) and the 0.1-point gate override. The nested selection applies both inside each fold. Both decisions were made on `cfu`'s own fit, so this form leans toward `cfu`; the report says so.
+Until #81 the AET was chosen only on `fit_20251014`, and newer fits carried it. Now the comparison runs on the shipped release, under #15's and #18's rules (since #89 with `cfu`, not `cgiar`, as stage 1's incumbent: "The AET incumbent since #89" below). Each variant is scored as the fit ships it: pooled zones fixed to `none` (#43's pooled test) and the 0.1-point gate override. The nested selection applies both inside each fold. Both decisions were made on `cfu`'s own fit, so this form leans toward `cfu`; the report says so.
 
 | AET | Headwater 2026-07-17 (2025-10-14) | All | Nested | Nested within ±20 % |
 |---|---|---|---|---|
@@ -299,11 +299,30 @@ Until #81 the AET was chosen only on `fit_20251014`, and newer fits carried it. 
 
 315 gauges (238 headwater), 94 folds. `cfu` is the only variant kept by the override (its gate fails by 0.03 point); every other eligible variant passes its gate.
 
-- **Stage 1 chooses `cfu` again.** The nested selection scores 31.5 % headwater against `cgiar`'s 37.4 %, and passes. Its folds chose `cfu` 68 times and `fu` 26 times. On 2025-10-14 the split was 87 to 6, so `fu` is closer on this release.
+- **Stage 1 chooses `cfu` again.** With `cgiar` as the incumbent (the rule until #89), the nested selection scores 31.5 % headwater against `cgiar`'s 37.4 %, and passes. Its folds chose `cfu` 68 times and `fu` 26 times. On 2025-10-14 the split was 87 to 6, so `fu` is closer on this release.
 - **Stage 2 keeps `cfu`.** Neither MOD16 variant meets (a), and the nested selection (32.5 %) does not beat `cfu` as shipped (30.7 %).
 - **The shipped fit is unchanged.** `cfu`'s held-out predictions and the fit itself are identical to those before #81; only the scoring md5 moved. The province output and the published parts are unchanged too (`data/checks/discharge_publish_20260717.txt`).
 
 **What ships, from now on.** Without a recorded decision only `cfu` ships, and only when the rule picks it. Any other winner, or one that would ship raw under a fixed pooled variant, gets no winner file, and the report says DECISION TO USER. The user records the AET to ship in `<fit>/aet_decision.txt` (the variant, then who decided and why). It is hashed into the fit's scores, recorded in `fits.rds`, and copied into each later release's fit; a fit that should have one and does not is refused.
+
+### The AET incumbent since #89
+
+**Verified:** 2026-10-16 · **Issues:** #89 (from #15, #18, #81, #85) · **Produced by:** `scripts/wb_aet_compare.R`; rule written before any release after 2026-07-17 was scored.
+
+#15 chose `cfu` with `cgiar` as the incumbent, and #81 kept that incumbent at every release. On 2026-07-17 `cfu` and `fu` are 0.9 points apart on headwater MAE (30.7 % and 31.6 %), and both clear `cgiar` (37.4 %) by #15's 2.0-point bar. `cfu` is the cell-wise maximum of CGIAR and `fu`, so the two differ mainly where CGIAR exceeds `fu` (zone 17). In the nested selection `fu` already wins 26 of the 94 outer folds. A later release could rank `fu` first on a sub-point difference, and that sends the decision to the user and starts the switch path (#81, #85) for a difference that means nothing. The AET inputs are fixed climatologies; a new HYDAT release changes only revised gauge flows and a few calibration gauges.
+
+The rule, registered here before any release after 2026-07-17 was scored, and applied also to 2026-07-17's own rescore after its scores were seen (Disclosed, below):
+
+- **Stage 1 is `cfu` against `cgiar`, `lc`, `tc` and `fu`.** #15's thresholds are unchanged, now measured from `cfu`: (a) headwater MAE at least 2.0 points below `cfu`, (b) all-station MAE no higher, (c) nested MAE at most 1.0 point higher and nested within ±20 % at most 3 points lower, and (d) a fully nested selection beating `cfu`'s as-shipped headwater MAE.
+- **Stage 2 is unchanged.** Its incumbent is stage 1's winner, which stays `cfu` unless a challenger clears that bar; #18 registered it with `cfu` as the incumbent.
+- **What ships is unchanged.** A winner other than `cfu` still goes to the user (#81). A challenger that clears the bar is a real gap worth a human decision.
+- **#15's record stays as it was.** `fit_20251014` and tag `aet-15-record` keep `cgiar` as the incumbent, and are not rerun.
+
+Rejected: freezing `cfu` and no longer re-deciding per release (it drops the check at each refit, and `aet_winner.txt` is read by `wb_validate.R`, `wb_output.R`, `segment_output.R`, `discharge_publish.R`, `pcic_routed_lib.R`, `wb_fit_accept.R` and `wb_share_snow.R`, so removing it is a wider change); a bigger margin for `fu` alone (a special case for one pair, where an incumbent bar covers every pair the same way).
+
+Disclosed: the rule was changed after seeing that `cfu` and `fu` are close. It cannot change the 2026-07-17 result, since no eligible challenger beats `cfu` on headwater MAE at all (`fu` is 0.9 points behind, `tc` 2.3, `cmod16` 3.3; the transparency-only `fu35` is never eligible). It favours the status quo. (d) leans that way most: it compares the nested selection with `cfu`'s as-shipped headwater MAE (30.7 %), which is itself post-selection, because the pooled variant and the gate override were decided on `cfu`'s fit; `cfu` alone under the nested procedure scores 32.5 %. #18 accepted the same lean for stage 2. So a run with `cfu` the incumbent can print (d) as failing while `cfu` wins, and the 2026-07-17 numbers above (fold counts, the 31.5 % nested selection) were made under `cgiar` as the incumbent; a rescore under this rule rewrites `data/checks/wb_aet_compare_20260717.txt`.
+
+**Checked in a sandbox** (copies of `fit_20260717`'s ten scores on m4, re-stamped for the new code; logs `data/logs/89/` on m4). The shipped scores keep `cfu`: every outer fold picks it, and (d) prints fail (32.5 % against 30.7 %) while `cfu` wins. A synthetic `fu` 1.5 points better than `cfu` (`cfu`'s held-out predictions shrunk toward the observed runoff) keeps `cfu` under this rule, and goes to the user under the old one (`fu` chosen in 69 folds, `tc` in 25). One 2.5 points better passes (a)–(d) (nested 29.8 % against 30.7 %) and goes to the user. The old code on the same sandbox reproduced the tracked report byte for byte. A synthetic `fu` shrinks every error alike, so it never tests (b) or (c) as the binding condition.
 
 ### Accepting the next refit (#83)
 

@@ -1,7 +1,10 @@
 # Compare the annual AET variants of the ET experiments and apply the decision
-# rules fixed in planning before any variant was scored: #15 (stage 1: CGIAR
-# against lc, tc, fu and cfu) and #18 (stage 2: stage 1's winner against the
-# MOD16 variants mod16 and cmod16).
+# rules fixed in planning before any variant was scored: #15 (stage 1: cgiar,
+# lc, tc, fu and cfu) and #18 (stage 2: stage 1's winner against the MOD16
+# variants mod16 and cmod16). Stage 1's incumbent is cfu, the shipped AET, with
+# cgiar, lc, tc and fu its challengers (#89, registered 2026-10-16 before any
+# release after 2026-07-17 was scored), so a later release cannot switch on a
+# near-tie; #15's own run had cgiar as the incumbent (tag aet-15-record).
 #
 #   for v in cgiar lc tc fu cfu fu15 fu20 fu35 mod16 cmod16; do Rscript scripts/wb_validate.R $v; done
 #   Rscript scripts/wb_aet_compare.R
@@ -17,9 +20,10 @@
 # the stations it is scored on.
 #
 # It runs on the fit's own release (#81): the shipped fit re-decides its AET at
-# each new release, under the rules as #15 and #18 fixed them. Each variant is
-# scored as the fit ships it, under the fit's own decisions (a fixed pooled
-# variant, a gate override; scripts/wb_cv_lib.R), and the nested selection
+# each new release, under the rules as #15 and #18 fixed them, with stage 1's
+# incumbent from #89. Each variant is scored as the fit ships it, under the
+# fit's own decisions (a fixed pooled variant, a gate override;
+# scripts/wb_cv_lib.R), and the nested selection
 # applies the same decisions inside each fold. #15's own run, on HYDAT
 # 2025-10-14, is reproduced at tag aet-15-record, not here.
 
@@ -30,10 +34,12 @@ unlink(file.path(fit_dir, "aet_winner.txt"))
 missing_cv <- setdiff(c("cgiar", "lc", "tc", "fu", "cfu", "fu15", "fu20", "fu35", "mod16", "cmod16"),
                       sub("^cv_aet-(.*)\\.rds$", "\\1", list.files(fit_dir, "^cv_aet-.*\\.rds$")))
 if (length(missing_cv)) stop("run scripts/wb_validate.R first for: ", paste(missing_cv, collapse = " "))
-eligible <- c("lc", "tc", "fu", "cfu")          # stage 1 (#15)
+incumbent1 <- "cfu"                              # stage 1's incumbent (#89; cgiar in #15)
+eligible <- c("cgiar", "lc", "tc", "fu")         # stage 1's challengers
 transparency <- c("fu15", "fu20", "fu35")
 eligible2 <- c("mod16", "cmod16")                 # stage 2 (#18)
-variants_all <- c("cgiar", eligible, transparency, eligible2)
+# in #15's order, so the report's rows and which.min ties among challengers are as before
+variants_all <- c("cgiar", "lc", "tc", "fu", "cfu", transparency, eligible2)
 res <- lapply(variants_all, function(v) {
   f <- file.path(fit_dir, sprintf("cv_aet-%s.rds", v))
   if (!file.exists(f)) stop("no ", f, ": run scripts/wb_validate.R ", v)
@@ -45,17 +51,17 @@ res <- lapply(variants_all, function(v) {
 names(res) <- variants_all
 
 # ---- the rule -------------------------------------------------------------------------------------
-margin_hw <- 2.0     # (a) headwater MAE at least this many points below cgiar
-slack_nes_mae <- 1.0 # (c) nested MAE at most this many points above cgiar
-slack_nes_in20 <- 3  # (c) nested within +/-20 % at most this many points below cgiar
+margin_hw <- 2.0     # (a) headwater MAE at least this many points below the incumbent
+slack_nes_mae <- 1.0 # (c) nested MAE at most this many points above the incumbent
+slack_nes_in20 <- 3  # (c) nested within +/-20 % at most this many points below the incumbent
 # m: one row per variant with hw, all, nes_mae, nes_in20 (%), the incumbent
 # among them. The same thresholds serve both stages; only the incumbent and
 # the eligible challengers differ.
 decide <- function(m, incumbent, elig) {
-  cg <- m[m$aet == incumbent, ]
+  im <- m[m$aet == incumbent, ]
   ok <- m$aet %in% elig &
-    m$hw <= cg$hw - margin_hw & m$all <= cg$all &
-    m$nes_mae <= cg$nes_mae + slack_nes_mae & m$nes_in20 >= cg$nes_in20 - slack_nes_in20
+    m$hw <= im$hw - margin_hw & m$all <= im$all &
+    m$nes_mae <= im$nes_mae + slack_nes_mae & m$nes_in20 >= im$nes_in20 - slack_nes_in20
   if (!any(ok)) return(incumbent)
   cand <- m[ok, ]
   cand$aet[which.min(cand$hw)]
@@ -89,7 +95,7 @@ for (v in variants_all) {
   ref <- sm$mae_pct[sm$group == "nesting" & sm$value == "headwater"]
   if (abs(ref - top$hw[top$aet == v]) > 1e-9) stop(v, ": headwater MAE ", top$hw[top$aet == v], " != report ", ref)
 }
-winner_top <- decide(top, "cgiar", eligible)
+winner_top <- decide(top, incumbent1, eligible)
 stamp("stage 1 top-level rule: ", winner_top)
 
 # ---- (d): fully nested selection -------------------------------------------------------------------
@@ -108,7 +114,7 @@ as_shipped_cv <- function(d, fold) {
   keep <- keep_adjust_for(metrics(d$obs, adj, d$nesting)[["hw"]], metrics(d$obs, raw, d$nesting)[["hw"]])
   list(pred = if (keep) adj else raw, keep = keep, pv = pv)
 }
-cands <- c("cgiar", eligible)          # stage 1, in #15's order (which.min ties resolve alike)
+cands <- variants_all[variants_all %in% c(incumbent1, eligible)]  # stage 1, in #15's order
 cands_all <- c(cands, eligible2)
 fold_m <- list()
 for (f in unique(cal$fold)) {
@@ -140,12 +146,12 @@ nested_select <- function(pick) {
   }
   list(metrics = metrics(cal$obs, pred, cal$nesting), chosen = chosen)
 }
-ns1 <- nested_select(function(m) decide(m[m$aet %in% cands, ], "cgiar", eligible))
+ns1 <- nested_select(function(m) decide(m[m$aet %in% cands, ], incumbent1, eligible))
 nested <- ns1$metrics
 chosen <- ns1$chosen
-cg <- top[top$aet == "cgiar", ]
-pass_d <- nested[["hw"]] < cg$hw
-winner1 <- if (winner_top != "cgiar" && pass_d) winner_top else "cgiar"
+inc1_row <- top[top$aet == incumbent1, ]
+pass_d <- nested[["hw"]] < inc1_row$hw
+winner1 <- if (winner_top != incumbent1 && pass_d) winner_top else incumbent1
 stamp("stage 1 nested selection headwater MAE ", round(nested[["hw"]], 1), "; winner ", winner1)
 
 tab1 <- table(factor(chosen, levels = cands))
@@ -181,7 +187,7 @@ stamp("stage 2 top-level rule: ", winner_top2, "; nested headwater MAE ", round(
 ns_inc <- nested_select(function(m) inc)
 # transparency: both stages inside each fold, stage 2 against that fold's own stage-1 winner
 ns12 <- nested_select(function(m) {
-  v1 <- decide(m[m$aet %in% cands, ], "cgiar", eligible)
+  v1 <- decide(m[m$aet %in% cands, ], incumbent1, eligible)
   decide(m[m$aet %in% c(v1, eligible2), ], v1, eligible2)
 })
 
@@ -242,12 +248,17 @@ writeLines(c(
         "mod16 (MOD16A3GF v061, mean 2001-2020, gaps filled with cfu by area), cmod16 (max of CGIAR and mod16)."),
   "Monthly shares use CGIAR monthly AET for every variant; differences here are annual only.",
   "",
-  "## Stage 1 (#15): cgiar against lc, tc, fu, cfu", "",
-  "Rule (fixed before scoring): a variant replaces cgiar only if, under blocked CV and as shipped,",
-  sprintf(paste("(a) headwater MAE is at least %.1f points below cgiar, (b) all-station MAE is no higher,",
+  sprintf("## Stage 1 (#15; incumbent since #89): %s against %s", incumbent1, paste(eligible, collapse = ", ")), "",
+  sprintf("Rule (#15's thresholds; incumbent set by #89 on 2026-10-16): a variant replaces %s only if, under blocked CV and as shipped,",
+          incumbent1),
+  sprintf(paste("(a) headwater MAE is at least %.1f points below %s, (b) all-station MAE is no higher,",
                 "(c) nested MAE is at most %.1f points higher and nested within +/-20 %% at most %d points lower,",
-                "and (d) a fully nested selection beats cgiar's headwater MAE."),
-          margin_hw, slack_nes_mae, slack_nes_in20),
+                "and (d) a fully nested selection beats %s's headwater MAE."),
+          margin_hw, incumbent1, slack_nes_mae, slack_nes_in20, incumbent1),
+  paste("Disclosed: #15 ran this stage with cgiar as the incumbent (tag aet-15-record). The incumbent is",
+        incumbent1, "since #89, chosen after cfu and fu were seen to be close, so a near-tie keeps the shipped",
+        "AET; the incumbent's score is itself post-selection (the fit's decision files were made on its fit),",
+        "so (d) in particular leans toward keeping it."),
   "",
   "## As shipped (adjusted if it passes the headwater gate, raw otherwise), blocked CV, MAE %",
   sprintf("%-6s %-10s %6s %6s %6s %7s %8s %8s", "aet", "shipped", "head", "all", "nested", "nes_in20",
@@ -262,11 +273,11 @@ writeLines(c(
   sprintf("(a)-(c) choose: %s", winner_top),
   sprintf(paste("(d) nested selection (outer: %d WSC folds; inner: blocked CV on each fold's training stations,",
                 "pooled variant %s): headwater %.1f, all %.1f, nested %.1f,",
-                "nested in +/-20 %% %.1f; cgiar as shipped: headwater %.1f -> %s"),
+                "nested in +/-20 %% %.1f; %s as shipped: headwater %.1f -> %s"),
           length(unique(cal$fold)),
           if (is.na(fixed_variant)) "chosen once per training set" else sprintf("fixed to '%s'", fixed_variant),
           nested[["hw"]], nested[["all"]], nested[["nes_mae"]], nested[["nes_in20"]],
-          cg$hw, if (pass_d) "pass" else "fail"),
+          incumbent1, inc1_row$hw, if (pass_d) "pass" else "fail"),
   sprintf("    variant chosen by the outer folds: %s", paste(sprintf("%s %d", names(tab), tab), collapse = ", ")),
   sprintf("Stage 1 winner: %s", winner1),
   if (winner1 != "cfu") {

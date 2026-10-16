@@ -1,0 +1,79 @@
+# Findings — Make cfu the incumbent when the AET is re-decided (#89)
+
+## Issue context
+
+**If we do this:** a new HYDAT release switches the annual AET only when a challenger beats cfu by a real margin (2.0 points headwater, #15's own bar), so the switch path (#81's user decision, #85's pooled-test rerun, rescoring every variant, rewriting the publish texts) becomes rare insurance instead of a likely event. **If we never do:** each release can flip cfu to fu on noise, and nothing ships until someone works through that path for a difference that means nothing.
+
+## Problem
+
+Since #81, `scripts/wb_aet_compare.R` re-decides the AET at every release by #15's and #18's rules as written. Stage 1 starts from **cgiar** as the incumbent every time (`decide(top, "cgiar", eligible)`, lines 92, 143, 184) and ships whichever challenger that passes has the lowest headwater MAE. Two of those challengers are nearly the same estimate:
+
+- On HYDAT 2026-07-17 (`data/checks/wb_aet_compare_20260717.txt`), headwater MAE as shipped: cfu 30.7 %, fu 31.6 %, a 0.9-point gap. Both clear cgiar (37.4 %) by the 2.0-point bar.
+- cfu is the cell-wise maximum of CGIAR and fu, so the two differ mainly where CGIAR exceeds fu (zone 17 in the report's detail table).
+- In the nested selection, fu already wins 26 of the 94 outer folds; cfu wins 68.
+
+So a later release can rank fu first on a sub-point difference. That winner is not cfu, so the run writes no `aet_winner.txt` and the decision goes to the user (#81). Accepting it then means `aet_decision.txt`, rerunning the pooled-zone test under the new AET (#85), rescoring every variant, and rewriting the `wet_balance` description, README and `research/discharge_publish.md` (#85).
+
+Meanwhile the AET inputs are fixed climatologies. A new HYDAT release changes only revised gauge flows and a few calibration gauges, so it carries little new information about which AET is right.
+
+## Decision (2026-10-16)
+
+**The shipped AET, cfu, is the incumbent in stage 1.** Stage 1 becomes cfu against cgiar, lc, tc and fu, with #15's thresholds unchanged: (a) headwater MAE at least 2.0 points below the incumbent, (b) all-station MAE no higher, (c) nested MAE at most 1.0 point higher and nested within ±20 % at most 3 points lower, and (d) a fully nested selection beating the incumbent's as-shipped headwater MAE. Stage 2 (cfu against mod16 and cmod16, #18) is unchanged: its incumbent is stage 1's winner, which stays cfu unless something clears that bar.
+
+Rejected:
+- **Freeze cfu and stop re-deciding per release.** It saves compute, but it drops the check that runs at each release we refit on, and `aet_winner.txt` is read by `wb_output.R`, `discharge_publish.R`, `pcic_routed_lib.R` and `wb_fit_accept.R`, so removing it is a wider change than this one.
+- **A bigger margin for fu alone.** That is a special case for one pair; an incumbent bar covers every pair the same way.
+
+Disclosed: this rule is changed after seeing that cfu and fu are close. It cannot change today's result: no eligible challenger beats cfu on headwater MAE at all (fu is 0.9 points behind, tc 2.3, cmod16 3.3; the transparency-only fu35 is never eligible), and it favours the status quo, which is the direction that needs no defence. It is recorded before any later release is scored.
+
+`fit_20251014` and tag `aet-15-record` stay #15's record under cgiar as the incumbent; they are not rerun.
+
+## Plan
+
+1. **Pre-register** the rule in `research/water_balance_method.md` §0 (a short subsection, "The AET incumbent at later releases") and in `wb_aet_compare.R`'s header, before any later release is scored.
+2. **`scripts/wb_aet_compare.R`**: stage 1's incumbent becomes `"cfu"`, with `cgiar` moving from incumbent to challenger, at all three places it is named (the top-level rule, the nested selection, the two-stage transparency run), and the report's stage 1 heading and rule text say so. The report still lists every variant's score. The `winner != "cfu"` → DECISION TO USER logic is unchanged: a challenger that clears the bar is a real gap worth a human decision.
+3. **Verify in a sandbox** (copy of the reduced shipped fit): the shipped fit still picks cfu; a synthetic fit with fu 1.5 points better than cfu keeps cfu; one with fu 2.5 points better (and passing (b)-(d)) goes to the user. Restore the old incumbent and confirm the 1.5-point case flips, so the change is what holds it.
+4. **Docs**: `CLAUDE.md`'s water-balance bullet and the #81 description in research name the incumbent.
+
+## Cost
+
+`wb_aet_compare.R` is in `score_files_for()` (`scripts/wb_score_md5.R`), so the edit stales every fit, the shipped `fit_20260717` included. Before the next publish, on the machine with the full province run: rescore every variant (`wb_validate.R <v>`), `wb_aet_compare.R`, `wb_validate.R cfu`, then `wb_output.R` and `segment_output.R`. The last two are already owed since #83. The values do not change (same AET, same pooled variant, same gate); the stamps do, and `data/checks/wb_aet_compare_20260717.txt` is rewritten.
+
+Related: #15, #18, #81, #85 (PR #87, whose guards stay as insurance).
+
+
+
+## Errors Encountered
+
+| Error | Resolution |
+|-------|------------|
+
+## Sandbox design notes (2026-10-16, before results)
+
+- The chain on m4 (`data/logs/89/run_89.sh` in the wet-89 worktree) started 16:16 UTC: a re-stamp check, then real, fu15 and fu25 under new code (wet-89), and fu15 under old code (wet-89old, `origin/main` daf64aa), in parallel.
+- **Pre-declared after the plan review, before any case result was read:** if fu25's (d) fails, run fu40 (fu 4.0 points better than cfu), and report both. A synthetic fu is cfu shrunk toward obs: (a) scales exactly, but (b) and (c) are never binding (all-station and nested MAE shrink too; nested within ±20 % only rises), and (d) refits on raw, whose floors at 0 and the unscaled 0.1-point gate tolerance break exact scaling.
+- **Also pre-declared:** a `real` run under old code must reproduce the tracked `data/checks/wb_aet_compare_20260717.txt` byte for byte, which validates the sandbox itself. The source scores' `code_md5` must all equal `aet_winner.txt` line 2 in the main checkout, so the re-stamp hides nothing stale.
+- The re-stamp check's `wb_validate.R cfu` took 6 s from stations to "validation done" (Sept logs: about 4 min), so its "no field differs" is re-verified with a file-time stamp and a diff of the rewritten report before it counts.
+
+## Sandbox results (m4, 2026-10-16 16:16-16:35 UTC)
+
+Logs: m4 main checkout `data/logs/89/new/` (wet-89, new code) and `data/logs/89/old/` (wet-89old); `new/head_real_report.txt` is the real case at the final commit 9cb02d9, `summary.txt` and `followup.txt` the summaries, `*_report.txt` each case's full report.
+
+| case | code | (a)-(c) | (d) nested headwater vs incumbent as shipped | outer folds | result |
+|---|---|---|---|---|---|
+| real | new (ca20eca; again at adf52f1) | cfu | 32.5 vs cfu 30.7, fail | cfu 94 | WINNER cfu, SHIPS cfu, `aet_winner.txt` cfu |
+| fu 1.5 better (k 0.9512, fu 29.22) | new | cfu | 32.5 vs 30.7, fail | cfu 94 | WINNER cfu, SHIPS cfu, `aet_winner.txt` cfu |
+| fu 2.5 better (k 0.9186, fu 28.22) | new | fu | 29.8 vs cfu 30.7, pass | fu 94 | WINNER fu, DECISION TO USER, no `aet_winner.txt` |
+| fu 1.5 better | old (origin/main daf64aa) | fu | 31.5 vs cgiar 37.4, pass | tc 25, fu 69 | WINNER fu, DECISION TO USER, no `aet_winner.txt` |
+| real | old | cfu | as tracked | as tracked | report byte-identical to `data/checks/wb_aet_compare_20260717.txt` (0 diff lines) |
+
+- So the change is what holds the 1.5-point case: the same synthetic scores send it to the user under the old rule and keep cfu under the new one. The pre-declared fu40 fallback was not needed.
+- **(d) prints fail on the real fit and the 1.5-point case while cfu wins**, as the plan review predicted: with cfu the incumbent every fold keeps cfu, so the nested selection is cfu's own nested score (32.5 %), above its post-selection as-shipped 30.7 %.
+- **Sandbox validity:** the old-code `real` run reproduced the tracked report byte for byte (symlinks, copies and re-stamp together). All ten source `cv_aet-*.rds` carry one `code_md5`, equal to `aet_winner.txt` line 2 (49ab5f38…), so the re-stamp hid nothing stale. Re-stamp check: `wb_validate.R cfu` in the sandbox rewrote `cv_aet-cfu.rds` (newer than a stamp touched before it), its 22 fields other than `code_md5` are identical to the main checkout's copy, its `code_md5` is the new code's, and the rewritten tracked report had 0 diff lines. Its CV took 6 s from stations to "validation done" (the September logs show about 4 min on 290 stations), so the speed is real, not a skipped step.
+- The new-code `real` reruns ran at adf52f1, before round 1 reworded the report's stage 1 rule line (449e65e). No decision code changed after adf52f1.
+
+## Errors Encountered
+
+| Error | Resolution |
+|-------|------------|
+| follow-up source-currency `Rscript -e` failed: `'\.' is an unrecognized escape` (a `\\.` regex inside nested shell quoting) | reran with `[.]` instead of an escape |
