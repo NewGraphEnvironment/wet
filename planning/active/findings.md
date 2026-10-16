@@ -47,3 +47,10 @@ Related: #15, #18, #81, #85 (PR #87, whose guards stay as insurance).
 
 | Error | Resolution |
 |-------|------------|
+
+## Sandbox design notes (2026-10-16, before results)
+
+- The chain on m4 (`data/logs/89/run_89.sh` in the wet-89 worktree) started 16:16 UTC: a re-stamp check, then real, fu15 and fu25 under new code (wet-89), and fu15 under old code (wet-89old, `origin/main` daf64aa), in parallel.
+- **Pre-declared after the plan review, before any case result was read:** if fu25's (d) fails, run fu40 (fu 4.0 points better than cfu), and report both. A synthetic fu is cfu shrunk toward obs: (a) scales exactly, but (b) and (c) are never binding (all-station and nested MAE shrink too; nested within ±20 % only rises), and (d) refits on raw, whose floors at 0 and the unscaled 0.1-point gate tolerance break exact scaling.
+- **Also pre-declared:** a `real` run under old code must reproduce the tracked `data/checks/wb_aet_compare_20260717.txt` byte for byte, which validates the sandbox itself. The source scores' `code_md5` must all equal `aet_winner.txt` line 2 in the main checkout, so the re-stamp hides nothing stale.
+- The re-stamp check's `wb_validate.R cfu` took 6 s from stations to "validation done" (Sept logs: about 4 min), so its "no field differs" is re-verified with a file-time stamp and a diff of the rewritten report before it counts.
