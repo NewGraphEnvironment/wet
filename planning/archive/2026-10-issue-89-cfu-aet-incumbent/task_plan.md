@@ -42,5 +42,5 @@ Push the branch first. On m4, make worktree `wet-89` (branch) and `wet-89old` (d
 - [x] Tests pass (`devtools::test()`; the script isn't under test, so this guards against collateral damage only)
 - [x] `/code-check branch` clean
 - [x] PWF checkboxes match landed work
-- [ ] `/planning-archive` (README with Measurement and Evidence: `data/logs/89/` on m4), then `/gh-pr-push`
+- [x] `/planning-archive` (README with Measurement and Evidence: `data/logs/89/` on m4), then `/gh-pr-push`
 
