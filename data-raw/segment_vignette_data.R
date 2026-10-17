@@ -165,16 +165,11 @@ if (any(pub_check$differing > 0) || !identical(pub_check$compared, as.numeric(nr
 # from the tracked segment report (scripts/segment_output.R), which the
 # publish report's build was cut from: its picks must be the live build's
 # reader counts, and its segments fwapg's
-f_seg <- wb_report("segment_output", release)
-seg_lines <- readLines(f_seg)
-# the report of the segment table the publish report's build was cut from,
-# whose parts are all byte-identical to the live build's (vd_published()).
-# The live manifest may name an earlier segment commit: a rerun that changed
-# no part needs no republish (#93)
-if (!any(startsWith(seg_lines, paste0("wet commit ", pb$segment_commit, ";")))) {
-  stop(f_seg, " is not the segment report ", f_pub, " was built from (segment table at ", pb$segment_commit,
-       "): rerun scripts/discharge_publish.R (BUILD)")
-}
+# the report the publish report's build read, whose parts are all
+# byte-identical to the live build's (vd_segment_report(), #93)
+sr <- vd_segment_report(pb, release)
+f_seg <- sr$report
+seg_lines <- sr$lines
 seg_num <- function(re) {
   m <- regmatches(seg_lines, regexec(re, seg_lines))
   m <- Filter(length, m)

@@ -56,12 +56,10 @@ vd_routed_check <- function(release = wb_release()) {
 # The live manifest must be the build the tracked publish report checked value
 # by value (scripts/discharge_publish.R, #64): that report failed no check, and
 # its parts were byte-identical to the live ones. Returns the catalog, the
-# report's path, the commit its segment table was built at (whose tracked
-# segment report therefore describes the live build, even when the live
-# manifest names an earlier commit: a rerun that left every part identical,
-# #93), and what a reader of the segment table sees per source: its rows, and
-# those fresh's `month = 0 AND pick` returns (the report's duckdb read of the
-# tree).
+# report's path, the commit the build ran at and the one its segment table was
+# built at (vd_segment_report()), and what a reader of the segment table sees
+# per source: its rows, and those fresh's `month = 0 AND pick` returns (the
+# report's duckdb read of the tree).
 vd_published <- function(release) {
   cat_pub <- wet_catalog()
   stopifnot(identical(attr(cat_pub, "manifest"), wet:::wet_catalog_url))
@@ -74,7 +72,7 @@ vd_published <- function(release) {
         length(unique(c(same[[1]][3:5], nrow(cat_pub)))) != 1L) {
     stop(f, " is not a passing value check of the live build ", pub_commit, ": rerun scripts/discharge_publish.R")
   }
-  re_seg <- "^wet commit [0-9a-f]+ \\(segment table built at ([0-9a-f]+)\\);"
+  re_seg <- "^wet commit ([0-9a-f]+) \\(segment table built at ([0-9a-f]+)\\);"
   seg <- Filter(length, regmatches(lines, regexec(re_seg, lines)))
   if (length(seg) != 1L) stop(f, " names no single segment table commit")
   re_seen <- "^historical +([A-Za-z0-9-]+) +([a-z_]+) +([0-9]+) rows +([0-9]+) fresh-subquery rows$"
@@ -82,7 +80,24 @@ vd_published <- function(release) {
   stopifnot(!is.null(seen), setequal(seen[, 3], c("pcic_routed", "wet_balance")))
   reader <- data.frame(source = seen[, 3], forcing = seen[, 2], rows = as.numeric(seen[, 4]),
                        picked = as.numeric(seen[, 5]))
-  list(catalog = cat_pub, report = f, segment_commit = seg[[1]][2], reader = reader)
+  list(catalog = cat_pub, report = f, build_commit = seg[[1]][2], segment_commit = seg[[1]][3], reader = reader)
+}
+
+# The tracked segment report must be the one the publish report's build read,
+# so that its counts describe parts byte-identical to the live build's. The
+# build refuses uncommitted data/checks, so that is the report as committed at
+# the build's commit: compared whole, since its head names only a commit, and
+# a rerun at the same commit would name the same one. The live manifest may
+# name an earlier segment commit, from before a rerun that changed no part
+# (#93). Takes vd_published()'s result; returns the report's path and lines.
+vd_segment_report <- function(pb, release) {
+  f <- wb_report("segment_output", release)
+  lines <- readLines(f)
+  if (!identical(lines, vd_git("show", paste0(pb$build_commit, ":", f)))) {
+    stop(f, " is not the segment report ", pb$report, " was built from (at ", pb$build_commit,
+         ", segment table at ", pb$segment_commit, "): rerun scripts/discharge_publish.R (BUILD)")
+  }
+  list(report = f, lines = lines)
 }
 
 # The parts must match their manifest; call before and after a read, so a
