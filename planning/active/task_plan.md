@@ -39,10 +39,10 @@ rerun, the publish report names that same commit.
       also returns `build_commit`)
 
 ## Phase 2: regenerate the vignette data
-- [ ] Commit Phase 1 (clean tree for `vd_commit()`), then on m1:
+- [x] Commit Phase 1 (clean tree for `vd_commit()`), then on m1:
       `WET_FWAPG_COMMIT=341b078 Rscript data-raw/segment_vignette_data.R` — writes
       `inst/vignette-data/segment_values.rds`
-- [ ] Diff old vs new bundle: `skill` and `segments` identical, provenance differs only in
+- [x] Diff old vs new bundle: `skill` and `segments` identical, provenance differs only in
       `built`, `wet_commit`, and the new `segment_report_commit`
 - [x] Prove the guard still fires: a copy of the segment report naming another commit
       (in a scratch copy of the tree, not the working tree) is refused
