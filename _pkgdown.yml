@@ -23,7 +23,7 @@ reference:
   - wet_temp_fill
   - wet_temp_gsdd
 - title: Date windows
-  desc: Mean flow, or per-year statistics of flow or temperature, over month-day windows.
+  desc: Define month-day windows, and take mean flow or per-year statistics of flow or temperature over them.
   contents:
   - wet_flow_window
   - wet_window_stats
@@ -37,7 +37,7 @@ reference:
   - wet_pcic_annual
   - wet_runoff_annual
 - title: Watersheds and upstream accumulation
-  desc: Sample a grid to FWA fundamental watersheds and average it over each upstream area.
+  desc: Sample a grid to FWA fundamental watersheds, average it over each upstream area, and convert the result to discharge.
   contents:
   - wet_ws_fetch
   - wet_ws_geom
@@ -50,7 +50,7 @@ reference:
   - wet_mm_to_m3s
   - wet_month_days
 - title: Water balance inputs
-  desc: Precipitation, evapotranspiration, terrain, land cover and snow, and the evapotranspiration models applied to them.
+  desc: Climate normals, evapotranspiration, terrain, land cover and snow, and the evapotranspiration models applied to them.
   contents:
   - wet_climr_normals
   - wet_cgiar_aet

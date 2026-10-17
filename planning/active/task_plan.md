@@ -88,11 +88,11 @@ Facts checked today (2026-10-16) that change the issue's premises:
 
 ## Validation
 
-- [ ] `pkgdown::check_pkgdown()` clean; `pkgdown::build_site()` locally renders the home page with
+- [x] `pkgdown::check_pkgdown()` clean; `pkgdown::build_site()` locally renders the home page with
   the figure and the grouped reference
-- [ ] Tests pass (no R/ changes expected; `devtools::document()` clean)
-- [ ] `/code-check` clean (once over the branch, `/code-check branch`), with the reviewer
+- [x] Tests pass (no R/ changes expected; `devtools::document()` clean)
+- [x] `/code-check` clean (once over the branch, `/code-check branch`), with the reviewer
   enumerating every README claim against code
-- [ ] PWF checkboxes match landed work
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 

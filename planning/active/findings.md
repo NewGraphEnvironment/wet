@@ -57,3 +57,7 @@ Left open, for the user:
 - **NOTICE.** The published manifest says the balance contains modified Copernicus (C3S, ERA5-Land) information, and the bucket republishes PCIC's routed flow. The repo itself carries only derived values in `inst/vignette-data/` (routed and balance annual values at gauges, picks on rivers). The convention asks for a NOTICE where the repo redistributes someone else's data. This branch adds none; that decision is the user's.
 - The GitHub About was changed outside the PR (before: "Stream discharge for BC's Freshwater Atlas: monthly and seasonal flow per segment, historical and climate-scenario, from modelled runoff and hydrometric stations"; after: the tagline). Record it in the PR body.
 - CITATION.cff picks up New Graph Environment Ltd. only after merge (the workflow runs on pushes to main that touch DESCRIPTION).
+
+## Code-check enumeration (round 3 found a defect inside round 2's rewording)
+
+Mechanism: a sentence naming a set by its best-known members (rounds 1 and 3). The set is the 8 `_pkgdown.yml` group descs × 46 members, walked against each member's Rd title, plus the README and DESCRIPTION claims that rounds 1–3 each enumerated in full (44, 48 and all set-naming sentences). Three descs missed a member and were reworded: water-balance inputs (temperature normals → "Climate normals"), watersheds (conversion to discharge: `wet_mm_to_m3s`, `wet_month_days`), date windows (`wet_windows_calendar` defines windows). The other five hold member by member. This enumeration ends the loop.
