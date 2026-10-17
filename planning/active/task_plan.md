@@ -7,7 +7,7 @@ Decided at the plan gate (2026-10-17): this branch builds and scores the balance
 Product: `q[d] = Q[m(d)] * n[m(d)] * w[d]`, `d = 1..365`, `n` the common-year day count, `sum_{d in m} w[d] = 1`. Candidates for `w`: `flat` (incumbent), `spline`, `donor` (k = 5), `basis` (6 components; static predictors + the 12 monthly shares). Rule: median per-gauge NSE of the 365-day shape with **observed** months, best candidate ships if it beats `flat` by >= 0.01.
 
 ## Phase 1: The rule, committed before anything else
-- [ ] `scripts/wb_shape_daily.R` header only (no body that runs): the product formula, the four candidates with every fixed setting, the sensitivity settings and their no-ship clause, the decision metric and why observed months, the 0.01 margin, the gauge filter and its vacuity, the leak sensitivity, the reported-only items, and the artifacts it will write
+- [x] `scripts/wb_shape_daily.R` header only (no body that runs): the product formula, the four candidates with every fixed setting, the sensitivity settings and their no-ship clause, the decision metric and why observed months, the 0.01 margin, the gauge filter and its vacuity, the leak sensitivity, the reported-only items, and the artifacts it will write
 - [ ] `planning/active/findings.md` records the commit SHA as the registration
 
 ## Phase 2: Observed day-of-year climatology at the gauges
