@@ -11,8 +11,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Stream Flow and Water Temperature for the BC Freshwater Atlas">
-<meta name="description" content="Per-segment stream discharge for the British Columbia Freshwater Atlas (FWA), and flow and water-temperature departures at hydrometric stations. Gridded runoff, from Pacific Climate Impacts Consortium (PCIC) VIC-GL or from an open water balance fitted at Water Survey of Canada (HYDAT) gauges, is sampled to FWA fundamental watersheds and accumulated upstream by area weighting, giving mean annual and monthly discharge per stream segment. Station daily flow and water temperature are summarised per year over month-day windows for departure statistics.">
-<meta property="og:description" content="Per-segment stream discharge for the British Columbia Freshwater Atlas (FWA), and flow and water-temperature departures at hydrometric stations. Gridded runoff, from Pacific Climate Impacts Consortium (PCIC) VIC-GL or from an open water balance fitted at Water Survey of Canada (HYDAT) gauges, is sampled to FWA fundamental watersheds and accumulated upstream by area weighting, giving mean annual and monthly discharge per stream segment. Station daily flow and water temperature are summarised per year over month-day windows for departure statistics.">
+<meta name="description" content="Mean monthly and annual stream flow for the British Columbia Freshwater Atlas (FWA), published openly per stream segment from two sources: the Pacific Climate Impacts Consortium's (PCIC) routed hydrologic model, and an open water balance fitted at Water Survey of Canada (HYDAT) gauges. Daily flow and water temperature at hydrometric stations are summarised per year over month-day windows, so each year can be compared with normal. Under active development.">
+<meta property="og:description" content="Mean monthly and annual stream flow for the British Columbia Freshwater Atlas (FWA), published openly per stream segment from two sources: the Pacific Climate Impacts Consortium's (PCIC) routed hydrologic model, and an open water balance fitted at Water Survey of Canada (HYDAT) gauges. Daily flow and water temperature at hydrometric stations are summarised per year over month-day windows, so each year can be compared with normal. Under active development.">
 <meta property="og:image" content="https://newgraphenvironment.github.io/wet/logo.png">
 </head>
 <body>
@@ -60,68 +60,58 @@
 <img src="logo.png" class="logo" alt=""><h1 id="wet-">wet <a class="anchor" aria-label="anchor" href="#wet-"></a>
 </h1>
 </div>
+<!-- badges: start -->
+
 <blockquote>
 <p>Stream flow and water temperature for BC’s Freshwater Atlas</p>
 </blockquote>
-<p>Mean annual and monthly flow per stream segment, and flow and water-temperature departures at hydrometric stations. wet builds its own open estimate and scores other groups’ products (PCIC, fwapg, the BC Water Tools) against it and against HYDAT.</p>
-<p>Three paths:</p>
-<ul>
-<li>
-<strong>Segments.</strong> Gridded runoff is sampled to FWA fundamental watersheds, accumulated upstream by area weighting, and converted to m³/s. Two sources:
-<ul>
-<li>PCIC VIC-GL, historical, over the Peace, Fraser and Columbia;</li>
-<li>an open water balance (climr precipitation less a Budyko-floored AET), province-wide, fitted at 315 HYDAT gauges and giving mean annual and monthly flow.</li>
-</ul>
-The PCIC fetchers take PCIC’s climate-scenario runs through <code>run =</code>, but no scenario output is built yet.</li>
-<li>
-<strong>Station flow.</strong> Daily flow from HYDAT, continued by ECCC provisional and real-time data, summarised per year over month-day windows for <a href="https://github.com/NewGraphEnvironment/cd" class="external-link">cd</a>’s departure statistics.</li>
-<li>
-<strong>Station water temperature.</strong> Daily water temperature from the ECCC readings that water-temp-bc archives (about 300 stations, from 2002), through the same windows to cd. The baseline is 2016–2025, because few loggers reach back to 1981–2010.</li>
-</ul>
+<p>wet estimates how much water flows in almost every stream in British Columbia, as a long-term average for each month from models, and publishes it openly. It also tracks flow and water temperature at hydrometric stations in the seasons that matter to fish, filling gaps in temperature records from air temperature. Habitat models use the flow to rate where fish can spawn and rear, and the station records show how this year compares with normal when planning or monitoring restoration.</p>
+<p><img src="reference/figures/readme-pick.png" alt="Map of British Columbia's larger rivers coloured by the source of their default flow: blue for routed PCIC across most of the province, orange for the water balance in the far north and the Nechako Reservoir" width="100%"></p>
+<p><em>Where each larger river’s default flow comes from. Most take it from the Pacific Climate Impacts Consortium’s routed model (blue); wet’s own water balance (orange) fills in where that model does not reach or reads far too low.</em></p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"NewGraphEnvironment/wet"</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="prerequisites">Prerequisites<a class="anchor" aria-label="anchor" href="#prerequisites"></a>
-</h2>
-<p>The segment path needs PostgreSQL with <a href="https://github.com/smnorris/fwapg" class="external-link">fwapg</a> loaded; <a href="https://github.com/NewGraphEnvironment/fresh" class="external-link">fresh</a>’s <code>docker/</code> has a local setup. Connection is through the standard libpq env vars (<code>PGHOST</code>, <code>PGPORT</code>, <code>PGDATABASE</code>, <code>PGUSER</code>, <code>PGPASSWORD</code>). The station flow path needs a HYDAT database (<code><a href="https://docs.ropensci.org/tidyhydat/reference/download_hydat.html" class="external-link">tidyhydat::download_hydat()</a></code>). The water-temperature path needs <code>duckdb</code>; it reads water-temp-bc’s public archive, so no credentials are needed.</p>
+<p>wet is under active development and its functions change between releases (see <a href="https://newgraphenvironment.github.io/wet/news/index.html">NEWS</a>). Pin a release for reproducible work: <code>pak::pak("NewGraphEnvironment/wet@vX.Y.Z")</code>.</p>
+<p>Reading the published flow needs only <code>duckdb</code>. Station water temperature also needs <code>tidyhydat</code>, station flow a HYDAT database (<code><a href="https://docs.ropensci.org/tidyhydat/reference/download_hydat.html" class="external-link">tidyhydat::download_hydat()</a></code>), and building the flow the Freshwater Atlas in PostgreSQL through <a href="https://github.com/smnorris/fwapg" class="external-link">fwapg</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h2>
-<p>Flow at Buck Creek since 1981, against its 1981–2010 normal in three Chinook windows:</p>
+<p>Monthly flow (m³/s) on the Bulkley River at Quick from both sources; month 0 is the year:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/NewGraphEnvironment/wet" class="external-link">wet</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">q</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/wet_station_daily.html">wet_station_daily</a></span><span class="op">(</span><span class="st">"08EE013"</span><span class="op">)</span>  <span class="co"># HYDAT, then provisional, then real-time</span></span>
-<span><span class="va">w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>window <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Migration"</span>, <span class="st">"Spawning"</span>, <span class="st">"Fry migration"</span><span class="op">)</span>,</span>
-<span>                start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"05-01"</span>, <span class="st">"08-01"</span>, <span class="st">"07-15"</span><span class="op">)</span>, end <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"08-01"</span>, <span class="st">"09-15"</span>, <span class="st">"09-07"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/wet_window_stats.html">wet_window_stats</a></span><span class="op">(</span><span class="va">q</span>, <span class="va">w</span>, stats <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mean"</span>, <span class="st">"min7"</span><span class="op">)</span><span class="op">)</span>  <span class="co"># one value per year, window, statistic</span></span>
-<span><span class="va">s</span><span class="op">$</span><span class="va">station_number</span> <span class="op">&lt;-</span> <span class="cn">NULL</span>                                 <span class="co"># cd takes one station per call</span></span>
-<span></span>
-<span><span class="fu">cd</span><span class="fu">::</span><span class="fu"><a href="https://newgraphenvironment.github.io/cd/reference/cd_anomaly.html" class="external-link">cd_anomaly</a></span><span class="op">(</span><span class="va">s</span>, <span class="fu">cd</span><span class="fu">::</span><span class="fu"><a href="https://newgraphenvironment.github.io/cd/reference/cd_baseline.html" class="external-link">cd_baseline</a></span><span class="op">(</span><span class="va">s</span>, <span class="fl">1981</span><span class="op">:</span><span class="fl">2010</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">q</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/wet_segment_monthly.html">wet_segment_monthly</a></span><span class="op">(</span><span class="cn">NULL</span>, <span class="fl">17057325</span>, groups <span class="op">=</span> <span class="st">"BULK"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/xtabs.html" class="external-link">xtabs</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">q_m3s</span><span class="op">)</span> <span class="op">~</span> <span class="va">source</span> <span class="op">+</span> <span class="va">month</span>, <span class="va">q</span><span class="op">)</span></span>
+<span><span class="co">#&gt;              month</span></span>
+<span><span class="co">#&gt; source          0   1   2   3   4   5   6   7   8   9  10  11  12</span></span>
+<span><span class="co">#&gt;   pcic_routed 118  32  23  19  48 223 294 248 185 120  97  74  48</span></span>
+<span><span class="co">#&gt;   wet_balance 118  45  50  48  86 220 303 203 109 106  98  87  62</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="vignettes">Vignettes<a class="anchor" aria-label="anchor" href="#vignettes"></a>
+<h2 id="learn-more">Learn more<a class="anchor" aria-label="anchor" href="#learn-more"></a>
 </h2>
 <ul>
 <li>
-<a href="https://www.newgraphenvironment.com/wet/articles/station-flow.html" class="external-link">Chinook flow at two stations</a>: the station path on 08EE013 and 08EE003, from map to departure and trend.</li>
+<a href="https://newgraphenvironment.github.io/wet/articles/segment-discharge.html">Stream Discharge per Segment</a>: what the published flow is, which source to use, how to read it, and how well each source matches the gauges.</li>
 <li>
-<a href="https://www.newgraphenvironment.com/wet/articles/segment-discharge.html" class="external-link">Stream discharge per segment</a>: the published per-segment discharge, what its two sources are, which value to use (<code>pick</code>, with a province map of the source it takes), how to read it, and how each source scores against the gauges.</li>
+<a href="https://newgraphenvironment.github.io/wet/articles/monthly-flow.html">Monthly Flow per Segment</a>: the twelve months, as hydrographs at three Bulkley gauges and scored at gauges across the province.</li>
+<li>
+<a href="https://newgraphenvironment.github.io/wet/articles/station-flow.html">Chinook Flow at Two Stations</a>: how recent flow in three Chinook salmon windows at two stations in the Bulkley compares with its 1981–2010 normal.</li>
+<li>
+<a href="https://newgraphenvironment.github.io/wet/reference/index.html#water-temperature">Water temperature functions</a>: daily station temperature, gap filling and growing-season degree days.</li>
+<li><a href="https://newgraphenvironment.github.io/wet/reference/">Function reference</a></li>
 </ul>
-<p>Function reference and both vignettes are on the <a href="https://www.newgraphenvironment.com/wet/" class="external-link">pkgdown site</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="ecosystem">Ecosystem<a class="anchor" aria-label="anchor" href="#ecosystem"></a>
 </h2>
 <table class="table">
 <colgroup>
-<col width="60%">
-<col width="40%">
+<col width="50%">
+<col width="50%">
 </colgroup>
 <thead><tr>
 <th>Package</th>
@@ -130,42 +120,43 @@ The PCIC fetchers take PCIC’s climate-scenario runs through <code>run =</code>
 <tbody>
 <tr>
 <td><strong>wet</strong></td>
-<td>Stream flow per segment and per station, and station water temperature (this package)</td>
+<td>Stream flow and water temperature for BC’s Freshwater Atlas (this package)</td>
 </tr>
 <tr>
 <td><a href="https://github.com/NewGraphEnvironment/fresh" class="external-link">fresh</a></td>
-<td>Stream network modelling engine; its habitat rules can read mean annual discharge (<code>mad_m3s</code>) per segment</td>
+<td>Stream network modelling engine: segment, classify, cluster, aggregate</td>
 </tr>
 <tr>
 <td><a href="https://github.com/NewGraphEnvironment/link" class="external-link">link</a></td>
-<td>Habitat interpretation layer that runs fresh’s pipeline; reads mean annual discharge per segment through <code>lnk_discharge()</code>
-</td>
+<td>Intrinsic habitat models: develop, test and communicate</td>
 </tr>
 <tr>
 <td><a href="https://github.com/NewGraphEnvironment/cd" class="external-link">cd</a></td>
-<td>Departure statistics (baseline, anomaly, trend) over wet’s per-year values, and ERA5-Land climate</td>
+<td>Climate departure: baselines, anomalies and trends, and ERA5-Land climate</td>
 </tr>
 <tr>
 <td><a href="https://github.com/NewGraphEnvironment/gq" class="external-link">gq</a></td>
-<td>Map symbology for the vignettes</td>
-</tr>
-<tr>
-<td><a href="https://github.com/NewGraphEnvironment/water-temp-bc" class="external-link">water-temp-bc</a></td>
-<td>Monthly archive of ECCC provisional hydrometric data (discharge and water temperature) that bridges HYDAT and real-time</td>
+<td>Shared map symbology</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Pipelines:</strong></p>
-<ul>
-<li>Fish habitat: wet (discharge) → link (<code>lnk_discharge()</code>, pipeline) → fresh (segment attribute, <code>mad</code> rules)</li>
-<li>Flow departure: wet (per-year window values) → cd (baseline, anomaly, trend), against 1981–2010</li>
-<li>Water-temperature departure: wet (per-year window values, °C) → cd, against 2016–2025</li>
-</ul>
+<p>link’s habitat models can read wet’s published discharge, and cd computes the departures from wet’s yearly station values.</p>
+</div>
+<div class="section level2">
+<h2 id="data-and-methods-it-builds-on">Data and methods it builds on<a class="anchor" aria-label="anchor" href="#data-and-methods-it-builds-on"></a>
+</h2>
+<p>Routed flow is <a href="https://www.pacificclimate.org/" class="external-link">PCIC</a>’s VIC-GL model routed with Raven (<a href="https://beehive.pacificclimate.org/chyp/" class="external-link">hydromosaic</a>), placed on the Freshwater Atlas by New Graph’s <a href="https://github.com/NewGraphEnvironment/fwapg/pull/6" class="external-link">fork of fwapg</a>. The water balance follows <a href="https://www2.gov.bc.ca/assets/gov/environment/air-land-water/water/northeast-water-strategy/chapman_et_al-2018-jawra.pdf" class="external-link">Chapman et al. (2018)</a>, fitted to Water Survey of Canada gauges in <a href="https://www.canada.ca/en/environment-climate-change/services/water-overview/quantity/monitoring/survey/data-products-services/national-archive-hydat.html" class="external-link">HYDAT</a>. Station data come from HYDAT, ECCC’s real-time feed and its provisional records as archived by <a href="https://github.com/NewGraphEnvironment/water-temp-bc" class="external-link">water-temp-bc</a>, and the stream network from the <a href="https://www2.gov.bc.ca/gov/content/data/geographic-data-services/topographic-data/freshwater" class="external-link">BC Freshwater Atlas</a> through <a href="https://github.com/smnorris/fwapg" class="external-link">fwapg</a>.</p>
+</div>
+<div class="section level2">
+<h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
+</h2>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span><span class="st">"wet"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>
 </h2>
-<p>MIT</p>
+<p>MIT (see <a href="LICENSE"><code>LICENSE</code></a>).</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
@@ -201,7 +192,12 @@ The PCIC fetchers take PCIC’s climate-scenario runs through <code>run =</code>
 </ul>
 </div>
 
-
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a></li>
+</ul>
+</div>
 
   </aside>
 </div>
