@@ -20,7 +20,7 @@ pak::pak("NewGraphEnvironment/wet")
 
 wet is under active development and its functions change between releases (see [NEWS](https://newgraphenvironment.github.io/wet/news/index.html)). Pin a release for reproducible work: `pak::pak("NewGraphEnvironment/wet@vX.Y.Z")`.
 
-Reading the published flow and station water temperature needs only `duckdb`. Station flow also needs HYDAT (`tidyhydat::download_hydat()`), and building the flow needs the Freshwater Atlas in PostgreSQL through [fwapg](https://github.com/smnorris/fwapg).
+Reading the published flow needs only `duckdb`. Station water temperature also needs `tidyhydat`, station flow a HYDAT database (`tidyhydat::download_hydat()`), and building the flow the Freshwater Atlas in PostgreSQL through [fwapg](https://github.com/smnorris/fwapg).
 
 ## Example
 
