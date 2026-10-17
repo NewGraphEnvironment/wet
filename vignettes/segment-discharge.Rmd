@@ -365,7 +365,9 @@ parts, and its data are not written unless the gauge values equal fwapg's.
 # at map$provenance$wet_commit. Gauge scores are from province run
 # prov$province_run (annual AET prov$aet, HYDAT release prov$hydat_release),
 # routed PCIC from fwapg at prov$routed_commit (prov$routed_fingerprint),
-# scored in prov$routed_report; the province counts are prov$segment_report's.
+# scored in prov$routed_report; the province counts are prov$segment_report's,
+# whose segment table (prov$segment_report_commit) the build's checked tree was
+# cut from, every part byte-identical to the published build's.
 stopifnot(nzchar(prov$wet_commit), nzchar(map$provenance$wet_commit), nzchar(prov$routed_commit))
 ```
 

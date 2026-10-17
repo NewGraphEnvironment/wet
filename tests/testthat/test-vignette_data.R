@@ -91,8 +91,9 @@ test_that("the segment values carry plain ids, the calibration gauges and their 
   expect_equal(sg[["pick_balance"]], rd$picked[rd$source == "wet_balance"])
   expect_equal(v$provenance$far_low, 0.2)
   expect_true(all(c("wet_commit", "province_run", "aet", "hydat_release", "far_low", "segment_report",
-                    "published", "published_check", "routed_commit", "routed_fingerprint",
+                    "segment_report_commit", "published", "published_check", "routed_commit", "routed_fingerprint",
                     "routed_report") %in% names(v$provenance)))
+  expect_match(v$provenance$segment_report_commit, "^[0-9a-f]{7,40}$")
 })
 
 test_that("the segment map holds the picked source on the rivers, from the same build", {

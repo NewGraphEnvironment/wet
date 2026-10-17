@@ -19,7 +19,8 @@
 #   - segments: how many FWA segments `pick` gives each source, how many get
 #     neither and why (no lut watershed; of those, how many are connection
 #     lines or secondary-flow channels), and how many the balance takes because routed flow is far low,
-#     from the tracked segment report, checked against the live build's
+#     from the tracked segment report, which must be the one the tracked
+#     publish report's build was cut from, checked against the live build's
 #     reader counts and fwapg's
 #   - provenance: the runs, reports and published build these came from, and
 #     the value check against the published parts
@@ -164,10 +165,11 @@ if (any(pub_check$differing > 0) || !identical(pub_check$compared, as.numeric(nr
 # from the tracked segment report (scripts/segment_output.R), which the
 # publish report's build was cut from: its picks must be the live build's
 # reader counts, and its segments fwapg's
-f_seg <- wb_report("segment_output", release)
-seg_lines <- readLines(f_seg)
-# the report of the segment table the live build was cut from
-stopifnot(any(startsWith(seg_lines, paste0("wet commit ", attr(cat_pub, "provenance")$segment_commit, ";"))))
+# the report the publish report's build read, whose parts are all
+# byte-identical to the live build's (vd_segment_report(), #93)
+sr <- vd_segment_report(pb, release)
+f_seg <- sr$report
+seg_lines <- sr$lines
 seg_num <- function(re) {
   m <- regmatches(seg_lines, regexec(re, seg_lines))
   m <- Filter(length, m)
@@ -205,6 +207,9 @@ provenance <- list(
   # the cut wet_source_pick() takes the balance under (scripts/pcic_routed_lib.R)
   far_low = routed_far_low,
   segment_report = f_seg,
+  # the commit the segment report and the publish report's build name, which
+  # may be later than the live manifest's segment_commit (#93)
+  segment_report_commit = pb$segment_commit,
   # the published build the segment values were read from, the parts read,
   # and the check of each value against its source
   published = list(manifest = attr(cat_pub, "manifest"), built = attr(cat_pub, "built"),
