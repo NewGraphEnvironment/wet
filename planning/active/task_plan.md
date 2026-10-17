@@ -49,30 +49,30 @@ Facts checked today (2026-10-16) that change the issue's premises:
 - [x] Read the PNG and run the cartography self-review (placement 1–7, communicate 8–12) at about 700 px
 
 ## Phase 3: README rewrite (`README.md`)
-- [ ] Title line: hex sticker, lifecycle badge (experimental), and a tagline matching the DESCRIPTION `Title`
-- [ ] Opening, 1–3 plain sentences: mean monthly and annual flow on every FWA segment, published
+- [x] Title line: hex sticker, lifecycle badge (experimental), and a tagline matching the DESCRIPTION `Title`
+- [x] Opening, 1–3 plain sentences: mean monthly and annual flow on every FWA segment, published
   openly from two sources, plus flow and water-temperature departures at stations. Say which
   decisions it informs: the discharge input to habitat models such as link's, and the flow and
   temperature in species windows for monitoring. Name no functions.
-- [ ] Figure and caption, with alt text
-- [ ] Installation, then what each path needs (fwapg and libpq env vars, HYDAT, duckdb; the
+- [x] Figure and caption, with alt text
+- [x] Installation, then what each path needs (fwapg and libpq env vars, HYDAT, duckdb; the
   published product needs no credentials). Add the "under active development, see NEWS" line and
   the `@vX.Y.Z` pin placeholder.
-- [ ] Example: one short read of the published product (`wet_segment_monthly()` on one Bulkley
+- [x] Example: one short read of the published product (`wet_segment_monthly()` on one Bulkley
   segment, through duckdb), with output pasted from a real run. This replaces the station
   example, which the station article already shows.
-- [ ] Learn more: all three articles with their titles ("Chinook Flow at Two Stations",
+- [x] Learn more: all three articles with their titles ("Chinook Flow at Two Stations",
   "Stream Discharge per Segment", "Monthly Flow per Segment"), each a line on what it shows, then
   the function reference. All links on `newgraphenvironment.github.io/wet/`.
-- [ ] Ecosystem: roles worded as in the sibling READMEs. link reads wet's published annual
+- [x] Ecosystem: roles worded as in the sibling READMEs. link reads wet's published annual
   discharge in bundles set to `discharge_source: wet` and fwapg's table otherwise; no `lnk_discharge()`.
   Pipelines line corrected to match.
-- [ ] Data and methods it builds on: PCIC VIC-GL and its Raven routing (hydromosaic), placed on
+- [x] Data and methods it builds on: PCIC VIC-GL and its Raven routing (hydromosaic), placed on
   the FWA by NewGraphEnvironment/fwapg#6; the FWA through fwapg; HYDAT; climr normals; CGIAR AET;
   ERA5-Land snow through cd; water-temp-bc; Chapman et al. (2018)
-- [ ] Citation (`citation("wet")` / CITATION.cff) and License
-- [ ] Leave out version strings, counts of published rows and function tables
-- [ ] Check every claim against code: every function named is exported, every link resolves
+- [x] Citation (`citation("wet")` / CITATION.cff) and License
+- [x] Leave out version strings, counts of published rows and function tables
+- [x] Check every claim against code: every function named is exported, every link resolves
   (curl each), each "both", "every" and plural checked against the code path
 
 ## Phase 4: Text that travels with the README
