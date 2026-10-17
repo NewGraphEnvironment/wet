@@ -1,5 +1,18 @@
 # Changelog
 
+## wet 0.4.11
+
+- The README is rewritten in plain language
+  ([\#75](https://github.com/NewGraphEnvironment/wet/issues/75)). It
+  says what wet gives: modelled monthly flow on almost every BC stream,
+  published openly, and flow and water temperature at stations in the
+  seasons that matter to fish. It shows a province map of where each
+  river’s default flow comes from, drawn by `data-raw/readme_figure.R`,
+  and a read of the published flow that needs no credentials. It lists
+  all three articles. link can now read wet’s published discharge
+  (NewGraphEnvironment/link#331). The function reference is grouped by
+  purpose, and DESCRIPTION names the two published sources.
+
 ## wet 0.4.10
 
 - `data-raw/segment_vignette_data.R` accepts the segment report that the

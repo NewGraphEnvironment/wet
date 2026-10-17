@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.11</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,9 +34,13 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/v0.4.11/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.11" id="wet-0411">wet 0.4.11<a class="anchor" aria-label="anchor" href="#wet-0411"></a></h2>
+<ul><li>The README is rewritten in plain language (<a href="https://github.com/NewGraphEnvironment/wet/issues/75" class="external-link">#75</a>). It says what wet gives: modelled monthly flow on almost every BC stream, published openly, and flow and water temperature at stations in the seasons that matter to fish. It shows a province map of where each river’s default flow comes from, drawn by <code>data-raw/readme_figure.R</code>, and a read of the published flow that needs no credentials. It lists all three articles. link can now read wet’s published discharge (NewGraphEnvironment/link#331). The function reference is grouped by purpose, and DESCRIPTION names the two published sources.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.10" id="wet-0410">wet 0.4.10<a class="anchor" aria-label="anchor" href="#wet-0410"></a></h2>
 <ul><li><p><code>data-raw/segment_vignette_data.R</code> accepts the segment report that the tracked publish build read, so a rerun that leaves every published part identical needs only a passing BUILD, not a republish (<a href="https://github.com/NewGraphEnvironment/wet/issues/93" class="external-link">#93</a>). It requires that report to be identical to its copy at the build’s commit, and the segment article’s data now record its commit (<code>segment_report_commit</code>). The values are unchanged.</p></li>
