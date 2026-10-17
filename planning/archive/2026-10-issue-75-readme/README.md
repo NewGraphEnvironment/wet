@@ -12,4 +12,4 @@ The plan review moved the date-window functions into their own group, since flow
 
 The README is 548 words on main, 657 in the first draft and 582 at merge.
 
-Closed by: PR (see branch `75-readme-correct-the-link-connection-list`)
+Closed by: PR #96
