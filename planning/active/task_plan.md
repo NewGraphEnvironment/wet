@@ -41,12 +41,12 @@ Facts checked today (2026-10-16) that change the issue's premises:
 - [x] `pkgdown::check_pkgdown()` passes, so every one of the 46 exports is placed
 
 ## Phase 2: README figure from committed code
-- [ ] `data-raw/readme_figure.R`: draws the province map of the source `pick` takes on main-flow rivers
+- [x] `data-raw/readme_figure.R`: draws the province map of the source `pick` takes on main-flow rivers
   of order 5 and up, with the 315 calibration gauges. It reads the bundled `inst/vignette-data/segment_map.rds`,
   `station_map.rds` and `segment_values.rds` from the source tree (`pkgload::load_all()`), takes its
   colours from `inst/cartography/wet_segment.csv` through gq, and draws the same ggplot as the
   segment article's `map-pick` chunk. It writes `man/figures/readme-pick.png`, opaque, at the README's width.
-- [ ] Read the PNG and run the cartography self-review (placement 1–7, communicate 8–12) at about 700 px
+- [x] Read the PNG and run the cartography self-review (placement 1–7, communicate 8–12) at about 700 px
 
 ## Phase 3: README rewrite (`README.md`)
 - [ ] Title line: hex sticker, lifecycle badge (experimental), and a tagline matching the DESCRIPTION `Title`
