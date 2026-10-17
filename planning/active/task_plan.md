@@ -46,17 +46,18 @@ rerun, the publish report names that same commit.
       `built`, `wet_commit`, and the new `segment_report_commit`
 - [x] Prove the guard still fires: a copy of the segment report naming another commit
       (in a scratch copy of the tree, not the working tree) is refused
-- [ ] `monthly_vignette_data.R` and `segment_vignette_map.R` unaffected (they don't read the
+- [x] `monthly_vignette_data.R` and `segment_vignette_map.R` unaffected (they don't read the
+      (they were not rerun: their only new dependency, `vd_published()`'s segment-commit parse, was probed live; 1114 tests pass, 0 skipped; the vignette renders)
       segment report); `devtools::test()` passes; vignette renders
 
 ## Phase 3: docs
 - [x] `CLAUDE.md` segment-vignette paragraph and `research/discharge_publish.md:78`: the
       segment report must be the one the passing, all-identical publish report was built from
-- [ ] Update the m4 publish-state memory (no longer refuses after an identical rerun)
+- [x] Update the m4 publish-state memory (no longer refuses after an identical rerun)
 
 ## Validation
 
-- [ ] Tests pass
-- [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
+- [x] Tests pass
+- [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
