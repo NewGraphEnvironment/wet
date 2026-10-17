@@ -6,7 +6,7 @@
 
 > Stream flow and water temperature for BC's Freshwater Atlas
 
-wet estimates how much water flows in almost every stream in British Columbia, month by month, and publishes it openly. It also tracks flow and water temperature at hydrometric stations in the seasons that matter to fish. Habitat models use the flow to rate where fish can spawn and rear, and the station records show how this year compares with normal when planning or monitoring restoration.
+wet estimates how much water flows in almost every stream in British Columbia, as a long-term average for each month from models, and publishes it openly. It also tracks flow and water temperature at hydrometric stations in the seasons that matter to fish, filling gaps in temperature records from air temperature. Habitat models use the flow to rate where fish can spawn and rear, and the station records show how this year compares with normal when planning or monitoring restoration.
 
 <img src="man/figures/readme-pick.png" alt="Map of British Columbia's larger rivers coloured by the source of their default flow: blue for routed PCIC across most of the province, orange for the water balance in the far north and the Nechako Reservoir" width="100%" />
 
@@ -42,6 +42,7 @@ xtabs(round(q_m3s) ~ source + month, q)
 - [Stream Discharge per Segment](https://newgraphenvironment.github.io/wet/articles/segment-discharge.html): what the published flow is, which source to use, how to read it, and how well each source matches the gauges.
 - [Monthly Flow per Segment](https://newgraphenvironment.github.io/wet/articles/monthly-flow.html): the twelve months, as hydrographs at three Bulkley gauges and scored at gauges across the province.
 - [Chinook Flow at Two Stations](https://newgraphenvironment.github.io/wet/articles/station-flow.html): how recent flow in three Chinook salmon windows at two stations in the Bulkley compares with its 1981–2010 normal.
+- [Water temperature functions](https://newgraphenvironment.github.io/wet/reference/index.html#water-temperature): daily station temperature, gap filling and growing-season degree days.
 - [Function reference](https://newgraphenvironment.github.io/wet/reference/)
 
 ## Ecosystem
@@ -52,14 +53,13 @@ xtabs(round(q_m3s) ~ source + month, q)
 | [fresh](https://github.com/NewGraphEnvironment/fresh) | Stream network modelling engine: segment, classify, cluster, aggregate |
 | [link](https://github.com/NewGraphEnvironment/link) | Intrinsic habitat models: develop, test and communicate |
 | [cd](https://github.com/NewGraphEnvironment/cd) | Climate departure: baselines, anomalies and trends, and ERA5-Land climate |
-| [water-temp-bc](https://github.com/NewGraphEnvironment/water-temp-bc) | Archive of provisional flow and water temperature from BC's hydrometric stations |
 | [gq](https://github.com/NewGraphEnvironment/gq) | Shared map symbology |
 
 link's habitat models can read wet's published discharge, and cd computes the departures from wet's yearly station values.
 
 ## Data and methods it builds on
 
-Routed flow is [PCIC](https://www.pacificclimate.org/)'s VIC-GL model routed with Raven ([hydromosaic](https://beehive.pacificclimate.org/chyp/)), placed on the Freshwater Atlas by New Graph's [fork of fwapg](https://github.com/NewGraphEnvironment/fwapg/pull/6). The water balance follows [Chapman et al. (2018)](https://www2.gov.bc.ca/assets/gov/environment/air-land-water/water/northeast-water-strategy/chapman_et_al-2018-jawra.pdf), fitted to Water Survey of Canada gauges in [HYDAT](https://www.canada.ca/en/environment-climate-change/services/water-overview/quantity/monitoring/survey/data-products-services/national-archive-hydat.html). Station data come from HYDAT, ECCC's real-time feed and its provisional records as archived by water-temp-bc, and the stream network from the [BC Freshwater Atlas](https://www2.gov.bc.ca/gov/content/data/geographic-data-services/topographic-data/freshwater) through [fwapg](https://github.com/smnorris/fwapg).
+Routed flow is [PCIC](https://www.pacificclimate.org/)'s VIC-GL model routed with Raven ([hydromosaic](https://beehive.pacificclimate.org/chyp/)), placed on the Freshwater Atlas by New Graph's [fork of fwapg](https://github.com/NewGraphEnvironment/fwapg/pull/6). The water balance follows [Chapman et al. (2018)](https://www2.gov.bc.ca/assets/gov/environment/air-land-water/water/northeast-water-strategy/chapman_et_al-2018-jawra.pdf), fitted to Water Survey of Canada gauges in [HYDAT](https://www.canada.ca/en/environment-climate-change/services/water-overview/quantity/monitoring/survey/data-products-services/national-archive-hydat.html). Station data come from HYDAT, ECCC's real-time feed and its provisional records as archived by [water-temp-bc](https://github.com/NewGraphEnvironment/water-temp-bc), and the stream network from the [BC Freshwater Atlas](https://www2.gov.bc.ca/gov/content/data/geographic-data-services/topographic-data/freshwater) through [fwapg](https://github.com/smnorris/fwapg).
 
 ## Citation
 

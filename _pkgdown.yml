@@ -9,25 +9,27 @@ reference:
   - wet_catalog
   - wet_db_load
   - wet_segment_monthly
-  - wet_flow_window
-  - wet_month_days
 - title: Station flow
-  desc: Daily flow at hydrometric stations, summarised per year over date windows.
+  desc: Daily and monthly flow at hydrometric stations, and the gauges the water balance is fitted at.
   contents:
   - wet_station_daily
   - wet_station_monthly
   - wet_station_select
   - wet_station_snap
-  - wet_window_stats
-  - wet_windows_calendar
 - title: Water temperature
   desc: Daily water temperature at stations, gap filling and growing season degree days.
   contents:
   - wet_temp_daily
   - wet_temp_fill
   - wet_temp_gsdd
+- title: Date windows
+  desc: Mean flow, or per-year statistics of flow or temperature, over month-day windows.
+  contents:
+  - wet_flow_window
+  - wet_window_stats
+  - wet_windows_calendar
 - title: PCIC gridded runoff
-  desc: Fetch PCIC VIC-GL runoff and summarise it per year.
+  desc: Fetch PCIC VIC-GL gridded variables and summarise them per year.
   contents:
   - wet_pcic_url
   - wet_pcic_index
@@ -46,6 +48,7 @@ reference:
   - wet_upstream_irregular
   - wet_upstream_pairs
   - wet_mm_to_m3s
+  - wet_month_days
 - title: Water balance inputs
   desc: Precipitation, evapotranspiration, terrain, land cover and snow on a common grid.
   contents:

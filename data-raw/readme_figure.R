@@ -10,7 +10,6 @@
 # Colours come from inst/cartography/wet_segment.csv through gq. Writes
 # man/figures/readme-pick.png on a white background.
 
-devtools::load_all(quiet = TRUE)
 library(ggplot2)
 sf::sf_use_s2(FALSE)
 

@@ -45,3 +45,15 @@ The New Graph website will describe this package from its README (NewGraphEnviro
 
 | Error | Resolution |
 |-------|------------|
+| `pkgdown::init_site()` into a scratch destination still wrote `pkgdown/favicon/` in the repo | Removed it (untracked, made by that run); build only home + reference into scratch |
+
+## Plan review (Plan agent, delivered 2026-10-17 ~06:45 UTC)
+
+Acted on: window functions moved to a "Date windows" group, since flow and temperature share them; `wet_month_days` placed next to `wet_mm_to_m3s`; the dead `devtools::load_all()` dropped from the figure script (PNG byte-identical); the opening now says the flow is a modelled long-term average and mentions temperature gap filling; a Learn more line for the water-temperature reference section; water-temp-bc moved from Ecosystem (packages) into Data; Phase 2 text brought in line with the landed script.
+
+Checked and already true of the landed README: "almost every" (not "every") stream, since 374,598 of 4,907,441 segments have neither source; no "departures" claim (cd computes them); the example does not claim to return the default (`wet_segment_monthly()` has no `pick`); no Pipelines block; no counts or periods in the prose.
+
+Left open, for the user:
+- **NOTICE.** The published manifest says the balance contains modified Copernicus (C3S, ERA5-Land) information, and the bucket republishes PCIC's routed flow. The repo itself carries only derived values in `inst/vignette-data/` (routed and balance annual values at gauges, picks on rivers). The convention asks for a NOTICE where the repo redistributes someone else's data. This branch adds none; that decision is the user's.
+- The GitHub About was changed outside the PR (before: "Stream discharge for BC's Freshwater Atlas: monthly and seasonal flow per segment, historical and climate-scenario, from modelled runoff and hydrometric stations"; after: the tagline). Record it in the PR body.
+- CITATION.cff picks up New Graph Environment Ltd. only after merge (the workflow runs on pushes to main that touch DESCRIPTION).
