@@ -205,6 +205,7 @@ for (f in unique(fold)) {
 }
 held$flat <- wet_shape_flat(n)
 held$spline <- wet_shape_spline(q_m_obs)      # through the observed months (the rule's setting)
+n_fallback[["spline"]] <- sum(attr(held$spline, "flat"))  # months the spline floored to 0 throughout
 spline_cv <- wet_shape_spline(q_m_cv)         # through the held-out months (the product's setting)
 stamp("held-out shapes for ", length(settings), " fitted settings in ", length(unique(fold)), " folds")
 
@@ -383,7 +384,8 @@ writeLines(c(
   "## Median NSE (observed months) by group",
   unlist(lapply(names(groups_of), function(g) c(sprintf("# %s", g), group_lines(g, groups_of[[g]])))),
   "",
-  "## Flow in the Chinook windows at the Bulkley gauges (m3/s), 1981-2010 years with the window's days",
+  sprintf("## Flow in the Chinook windows at the Bulkley gauges (m3/s), %d-%d years with the window's days",
+          min(s$years), max(s$years)),
   "   daily_record: the gauge, mean of per-year window means (wet_window_stats()); from_months: those years' observed",
   sprintf("   months spread flat (today's reader); shape_a: the same months with the held-out %s weights;", ship),
   "   shape_b: the held-out balance (cv_ann x cv_share) with them. 08EE003 is not a calibration gauge: record only.",

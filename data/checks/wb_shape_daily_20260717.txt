@@ -1,6 +1,6 @@
 # The balance's daily shape within the month (#70), held out under blocked CV
 
-province run: e675918817; HYDAT release: 20260717; annual AET: cfu; fit scores a80b045ab7a74678d4dff01dddf77fcb; shape code ccbb528d10480021613c2b514bfde17b
+province run: e675918817; HYDAT release: 20260717; annual AET: cfu; fit scores a80b045ab7a74678d4dff01dddf77fcb; shape code 2c819f2f349d87dcf9a3a219ab89c627
 calibration gauges: 315, scored 315 (observed runoff >= 10 mm, every candidate scored); folds: 94
 day-of-year record: 0 gauge-days interpolated (wet_station_doy()); 0 observed gauge-months with no flow
 
@@ -11,7 +11,7 @@ RULE (fixed in this script's header before any candidate existed): per gauge, th
 ## Median per-gauge NSE: observed months (the rule), held-out months (the product), the weights alone (flat = 0)
 candidate       obs_m   cv_m      w flatbk
 flat           0.8994 0.7769 0.0000      -
-spline         0.9768 0.8317 0.7519      -
+spline         0.9768 0.8317 0.7519      0
 donor          0.9824 0.8489 0.7951      0
 basis          0.9708 0.8361 0.6803      0
 sensitivity settings (reported, unable to ship):
