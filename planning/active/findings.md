@@ -58,3 +58,7 @@ Relates to #3, #16, #59, #65, NewGraphEnvironment/fwapg#25.
 
 | Error | Resolution |
 |-------|------------|
+
+## Rule registration
+
+The daily-shape rule, candidates and fixed settings are the header of `scripts/wb_shape_daily.R` at commit 44ce054 (2026-10-17), before any candidate code or score existed.

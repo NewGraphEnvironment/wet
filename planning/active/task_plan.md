@@ -8,7 +8,7 @@ Product: `q[d] = Q[m(d)] * n[m(d)] * w[d]`, `d = 1..365`, `n` the common-year da
 
 ## Phase 1: The rule, committed before anything else
 - [x] `scripts/wb_shape_daily.R` header only (no body that runs): the product formula, the four candidates with every fixed setting, the sensitivity settings and their no-ship clause, the decision metric and why observed months, the 0.01 margin, the gauge filter and its vacuity, the leak sensitivity, the reported-only items, and the artifacts it will write
-- [ ] `planning/active/findings.md` records the commit SHA as the registration
+- [x] `planning/active/findings.md` records the commit SHA as the registration
 
 ## Phase 2: Observed day-of-year climatology at the gauges
 - [ ] `R/wet_doy_month.R`: internal `wet_doy_month()` → integer month of each day 1–365 of a common year, and `wet_doy_days()` → `n` (the common-year day count; **not** beside `wet_month_days()` in the hashed `wet_mm_to_m3s.R`)
