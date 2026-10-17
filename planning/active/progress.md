@@ -9,3 +9,4 @@
 - Phase 1 rule registered at 44ce054; Phase 2 `wet_station_doy()` 81468ad; Phase 3 `wet_shape_*` dd831b8
 - Phase 4 run on m1 (17:18–17:21 UTC first run; two reruns identical): donor ships, +0.083 over flat
 - Phase 5: research §0 subsection, `discharge_publish.md` stored form, CLAUDE.md, follow-up #99 filed, #70 body edited, vignette limits line re-pointed
+- Code-check branch: round 1 clean; round 2 three report/prose findings fixed in b8b402c; round 3 spawned 17:55 UTC
