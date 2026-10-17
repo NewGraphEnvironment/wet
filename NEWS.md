@@ -1,3 +1,9 @@
+# wet 0.4.10
+
+* `data-raw/segment_vignette_data.R` accepts the segment report that the tracked publish build read, so a rerun that leaves every published part identical needs only a passing BUILD, not a republish (#93). It requires that report to be identical to its copy at the build's commit, and the segment article's data now record its commit (`segment_report_commit`). The values are unchanged.
+
+* `citation("wet")` has the key `wet` and a note `knitr::write_bib()` keeps, so a report can cite `@wet` and get the publisher and the installed version.
+
 # wet 0.4.9
 
 * The monthly-flow article's data are rebuilt from the shipped fit after its rescore under the AET rule that keeps cfu on a near-tie (#91). The values are unchanged.
