@@ -38,9 +38,9 @@ Product: `q[d] = Q[m(d)] * n[m(d)] * w[d]`, `d = 1..365`, `n` the common-year da
 
 ## Validation
 
-- [ ] Tests pass (`Rscript -e 'devtools::test()' 2>&1 | grep -E "(FAIL|ERROR|PASS)" | tail -5`)
-- [ ] `lintr::lint_package()` clean on new files; `pkgdown::check_pkgdown()`
+- [x] Tests pass (1206 pass, 0 fail, 0 skip, 2026-10-17) (`Rscript -e 'devtools::test()' 2>&1 | grep -E "(FAIL|ERROR|PASS)" | tail -5`)
+- [x] `lintr::lint_package()` clean on new files (one `commented_code` lint on a prose line of the registered header, left as registered); `pkgdown::check_pkgdown()` clean
 - [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
-- [ ] The shipped fit is not staled: `git diff main -- $(Rscript -e 'source("scripts/wb_fit_lib.R"); source("scripts/wb_score_md5.R"); cat(score_files_for("20260717"))')` is empty, and `wb_share_snow.R` still runs
+- [x] The shipped fit is not staled (every hashed file identical to main; `wb_share_snow.R` reran and its report is unchanged): `git diff main -- $(Rscript -e 'source("scripts/wb_fit_lib.R"); source("scripts/wb_score_md5.R"); cat(score_files_for("20260717"))')` is empty, and `wb_share_snow.R` still runs
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion; archive README carries Measurement (median NSEs per candidate, the Chinook window errors) and Evidence (`data/checks/wb_shape_daily_20260717.txt`)
