@@ -1,0 +1,20 @@
+# #70 — Sub-monthly flow per segment: the balance's daily shape within the month
+
+**Outcome.** The issue asked for a daily climatology for both sources with weeks and windows derived from it. At the plan gate (2026-10-17) the branch was scoped to the balance's shape *within the month*: each calendar month's days average to the published monthly mean, so `segment_monthly` is untouched, on a 365-day common year (29 February folded into 28, `wet_flow_window()`'s `doy`). Routed PCIC's days are fwapg#25 (open) and publishing `segment_daily` for both sources is #99. New: `wet_station_doy()` (the gauges' day-of-year record over the same complete years as the monthly), `wet_shape_fit()`/`wet_shape_predict()` (`donor`, `basis`), `wet_shape_flat()`, `wet_shape_spline()`, `wet_shape_daily()`, and `scripts/wb_shape_daily.R`, whose header registered the rule (commit 44ce054) before any candidate was coded. The free day-of-year curve the issue proposed was measured and set aside. A `wet_segment_daily()` reader was dropped on plan review (both read paths hard-code `month`; nothing to read yet). Closing PR: added by the push step.
+
+## Measurement
+
+Blocked CV on the shipped fit (315 calibration gauges, 94 WSC sub-sub-drainage folds), median per-gauge NSE of the 365-day shape laid on each gauge's observed months: flat 0.899, spline 0.977, **donor 0.982**, basis 0.971. Donor clears the registered 0.01 margin by +0.083 and ships to `fit_20260717/shape_daily.rds` (k = 5, the five static share predictors). On the held-out months, the product's skill: flat 0.777 → donor 0.849. Leak check (upstream and downstream training gauges removed from the pool): donor 0.9824 → 0.9818, so the gain is not nested gauges copying their river. Buck Creek (08EE013) fry-migration window from the record's own months: 26.8 % over the gauge spread flat, 16.8 % with the donor weights; Bulkley at Quick (08EE004): 5.6 % → −2.9 %. The free donor curve's months score 0.939 against the observed shares where the shipped held-out shares score 0.874 — a finding about the monthly shares, recorded for a later issue, deciding nothing here. Nothing hashed by `scripts/wb_score_md5.R` changed, so the shipped fit's scores and decisions stand.
+
+## Evidence
+
+Reviews: `review-round{1,2,3}.md` here. 
+`data/checks/wb_shape_daily_20260717.txt` (byte-identical across three runs; only a code edit moves its `shape code` line). Fit artifacts on m1: `data/wb/e675918817/fit_20260717/shape_daily.rds`, `cv_shape_daily.rds` (gitignored). The rule as registered: `scripts/wb_shape_daily.R` header at 44ce054. Method and numbers: `research/water_balance_method.md`, "Daily shape within the month (#70)"; the stored form of `segment_daily`: `research/discharge_publish.md`.
+
+## Wrong turns kept
+
+- The plan's first draft defined the product in shares; the plan review found the unit mismatch (monthly shares use 28.25 February days, a daily share 28), so the product is defined in flow units (`q[d] = Q[m] · n[m] · w[d]`) and the identity tested is each month's mean.
+- `stations_20260717.rds` had lost its `"years"` attribute at a `merge()`; the script recomputes the complete years on the same release and asserts `n_years` rather than regenerating the hashed rds.
+- The spline candidate was planned as an iterative mean-preserving smoother; within-month normalisation makes one pass exact, so the iteration was never needed.
+- Code-check (branch, three rounds): round 3 found the zone enumeration round 2 had written by hand off the 3-dp table wrong in three places (19 zones not 20; zone 17 spline's; zone 06 gains more than 27). The script now computes and prints the leaders, counts and gains, and every number in the research prose was enumerated against the report to end the loop (`findings.md`, "Code-check").
+- Test fixtures: the HYDAT fixture's calibration-eligible station has no leap year among its complete years with the monthly test's 1981–1984 window (1980 is needed), and its synthetic predictors were collinear (rank 2), which capped the basis at one component until they were made independent.
