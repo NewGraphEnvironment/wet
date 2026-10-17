@@ -62,3 +62,16 @@ Relates to #3, #16, #59, #65, NewGraphEnvironment/fwapg#25.
 ## Rule registration
 
 The daily-shape rule, candidates and fixed settings are the header of `scripts/wb_shape_daily.R` at commit 44ce054 (2026-10-17), before any candidate code or score existed.
+
+## Outcome of the run (2026-10-17, m1, `data/checks/wb_shape_daily_20260717.txt`)
+
+Rule (observed months, median per-gauge NSE of the 365-day shape, 315 gauges, 94 folds): flat 0.8994, spline 0.9768, **donor 0.9824**, basis 0.9708. Donor beats flat by +0.083, far over the 0.01 margin: **donor ships** (`fit_20260717/shape_daily.rds`, method donor, k = 5, the five static share predictors).
+
+- With the held-out months (the product's skill): flat 0.777, spline 0.832, donor 0.849, basis 0.836. On the weights alone (flat = 0): donor 0.795, spline 0.752, basis 0.680.
+- Sensitivities (unable to ship): donor k = 8 is 0.9829 (k = 3: 0.9812); basis 4/8 components 0.9715/0.9700; basis on static + p_yr + t_yr 0.9736. A rule in a new issue could move k; the gain over k = 5 is 0.0005.
+- Leak: removing a held-out gauge's upstream and downstream training gauges moves donor from 0.9824 to 0.9818, basis not at all. The donor gain is not nested gauges copying their river.
+- Groups: donor leads everywhere except lake outlets (spline 0.994 vs 0.979, 19 gauges), zone 11 (2 gauges), zone 14/15 (spline by 0.01/0.003), zone 17 and 26. Gauges peaking outside May–June: spline 0.933, donor 0.927 (74 gauges). Zones 27–29 gain most from donor (0.716→0.842, 0.761→0.923, 0.644→0.855 over flat).
+- **The issue's free day-of-year curve** (donor mean of doy shares, no month constraint): median daily NSE 0.909 against the record. Aggregated to months its NSE against the observed shares is **0.939, against 0.874 for the shipped held-out shares (cv_share)**. The free donor curve beats the #16 share regression at the monthly scale. Reported, deciding nothing here; a candidate for a later issue on the monthly shares themselves.
+- Chinook windows, Buck Creek 08EE013: fry migration from months 26.8 % over the record, with the held-out donor weights on the same months 16.8 %; spawning 3.0 % → 5.5 %; migration −0.1 → −0.0. Bulkley at Quick 08EE004: fry migration 5.6 % → −2.9 %, spawning −0.5 → −2.3. With the held-out balance's own months (shape_b) the errors are the balance's annual and monthly errors (Buck Creek +150–178 % in the low-flow windows, Quick −13 to −22 %), not the shape's.
+- 0 gauge-days needed interpolation; 0 observed gauge-months with no flow; 0 basis fallbacks to flat.
+- The report reproduces byte for byte across runs (md5 6700588f… twice before the lint-only edits; the shape-code md5 line is the only line a code edit moves).

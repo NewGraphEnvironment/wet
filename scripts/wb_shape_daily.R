@@ -111,4 +111,290 @@
 # reproduced by its daily flows to 1e-12. The report carries no timestamp, so
 # a rerun reproduces it byte for byte.
 
-stop("rule registered; the body follows in a later commit (#70)")
+
+# cal (with fold, nesting, leaks, zone, lake, shares), s, fit_dir, release, score_code_md5
+source("scripts/wb_cv_lib.R")
+aet <- commandArgs(trailingOnly = TRUE)[1]
+if (is.na(aet)) aet <- readLines(file.path(fit_dir, "aet_winner.txt"))[1]
+cvr <- readRDS(file.path(fit_dir, sprintf("cv_aet-%s.rds", aet)))
+fits <- readRDS(file.path(fit_dir, "fits.rds"))
+if (!identical(cvr$code_md5, score_code_md5)) {
+  stop("cv_aet-", aet, ".rds was scored under other code: rerun scripts/wb_validate.R ", aet)
+}
+if (!identical(fits$code_md5, cvr$code_md5)) stop("fits.rds was made under other code than cv_aet-", aet, ".rds")
+if (!identical(fits$share_spec, cvr$share_spec)) {
+  stop("fits.rds ships another share specification than cv_aet-", aet, ".rds")
+}
+if (!identical(cvr$release, release)) stop("cv_aet-", aet, ".rds is for release ", cvr$release)
+if (!identical(cal$station_number, cvr$station_number)) stop("the calibration stations are not the cv file's")
+obs_sh <- as.matrix(cal[sprintf("share_%02d", 1:12)])
+stopifnot(isTRUE(all.equal(unname(obs_sh), unname(cvr$obs_share))), !anyNA(cvr$cv_share), !anyNA(obs_sh))
+n <- nrow(cal)
+m <- wet:::wet_doy_month()
+nd <- wet:::wet_doy_days()
+days <- wet_month_days()
+shape_files <- c("scripts/wb_shape_daily.R", sort(Sys.glob("R/wet_shape_*.R")), "R/wet_station_doy.R",
+                 "R/wet_doy_month.R")
+stopifnot(all(file.exists(shape_files)))
+shape_code_md5 <- wet:::wet_md5_text(unname(tools::md5sum(shape_files)))
+
+# ---- the gauges' day-of-year record ----------------------------------------------------------
+# The stations rds lost its "years" attribute at a merge, so the complete years
+# are recomputed on the same release with the same rule (scripts/wb_stations.R)
+hydat <- wb_hydat(release)
+sel <- wet_station_select(hydat, years = s$years, min_years = 10)
+yrs <- attr(sel, "years")[cal$station_number]
+if (anyNA(names(yrs)) || !all(lengths(yrs) == cal$n_years)) {
+  stop("the recomputed complete years differ from the stations rds")
+}
+doy <- wet_station_doy(cal["station_number"], hydat, years = yrs)
+stopifnot(nrow(doy) == 365L * n, !anyNA(doy$q_m3s))
+q_obs <- matrix(doy$q_m3s, nrow = n, ncol = 365, byrow = TRUE,
+                dimnames = list(unique(doy$station_number), NULL))[cal$station_number, ]
+w_obs <- wet:::wet_shape_within(q_obs)
+n_filled <- nrow(attr(doy, "filled"))
+n_flat_obs <- sum(attr(w_obs, "flat"))
+stamp(n, " gauges with a day-of-year record; ", n_filled, " gauge-days interpolated; ", n_flat_obs,
+      " observed gauge-months with no flow")
+
+# ---- monthly means the shape is laid on -------------------------------------------------------
+# relative monthly means (mm/day up to the annual, which the shape score cancels)
+q_m_obs <- sweep(obs_sh, 2, days, "/")
+q_m_cv <- sweep(cvr$cv_share, 2, days, "/")
+static <- share_static$snow
+static_pt <- c(static, "p_yr", "t_yr")
+stopifnot(all(c(static_pt) %in% names(cal)), !anyNA(cal[static_pt]))
+
+# ---- candidates, held out ---------------------------------------------------------------------
+# upstream relation between the calibration gauges, for the leak sensitivity
+# (as wet_cv_folds() computes it; that file is hashed and stays unedited)
+up <- matrix(FALSE, n, n)
+for (i in seq_len(n)) up[i, ] <- wet:::wet_fwa_upstream(cal$wscode[i], cal$localcode[i], cal$wscode, cal$localcode)
+diag(up) <- FALSE
+related <- up | t(up)  # related[i, j]: j is upstream or downstream of i
+
+settings <- list(
+  donor = list(method = "donor", k = 5, static = static, shares = FALSE),
+  basis = list(method = "basis", n_comp = 6, static = static, shares = TRUE),
+  donor_k3 = list(method = "donor", k = 3, static = static, shares = FALSE),
+  donor_k8 = list(method = "donor", k = 8, static = static, shares = FALSE),
+  basis_c4 = list(method = "basis", n_comp = 4, static = static, shares = TRUE),
+  basis_c8 = list(method = "basis", n_comp = 8, static = static, shares = TRUE),
+  basis_static = list(method = "basis", n_comp = 6, static = static_pt, shares = FALSE)
+)
+shippable <- c("flat", "spline", "donor", "basis")
+fit_of <- function(st, tr) {
+  wet_shape_fit(cal[tr, ], w_obs[tr, , drop = FALSE], st$method, static = st$static,
+                k = if (is.null(st$k)) 5 else st$k, n_comp = if (is.null(st$n_comp)) 6 else st$n_comp,
+                shares = if (st$shares) obs_sh[tr, , drop = FALSE] else NULL)
+}
+predict_of <- function(fit, st, te) {
+  wet_shape_predict(fit, cal[te, , drop = FALSE], shares = if (st$shares) cvr$cv_share[te, , drop = FALSE] else NULL)
+}
+fold <- cal$fold
+held <- lapply(settings, function(st) matrix(NA_real_, n, 365))
+n_fallback <- stats::setNames(integer(length(settings)), names(settings))
+for (f in unique(fold)) {
+  te <- which(fold == f)
+  tr <- which(fold != f)
+  for (k in names(settings)) {
+    w <- predict_of(fit_of(settings[[k]], tr), settings[[k]], te)
+    held[[k]][te, ] <- w
+    n_fallback[[k]] <- n_fallback[[k]] + sum(attr(w, "flat"))
+  }
+}
+held$flat <- wet_shape_flat(n)
+held$spline <- wet_shape_spline(q_m_obs)      # through the observed months (the rule's setting)
+spline_cv <- wet_shape_spline(q_m_cv)         # through the held-out months (the product's setting)
+stamp("held-out shapes for ", length(settings), " fitted settings in ", length(unique(fold)), " folds")
+
+# leak sensitivity: for donor and basis, each held-out gauge's pool loses the
+# training gauges upstream or downstream of it
+leak <- lapply(settings[c("donor", "basis")], function(st) matrix(NA_real_, n, 365))
+for (i in seq_len(n)) {
+  tr <- which(fold != fold[i] & !related[i, ])
+  for (k in names(leak)) leak[[k]][i, ] <- predict_of(fit_of(settings[[k]], tr), settings[[k]], i)
+}
+
+# the issue's free day-of-year curve: the donor mean of the training gauges'
+# doy shares, with no month constraint (k = 5, the same distance)
+free <- matrix(NA_real_, n, 365)
+sh_obs_doy <- q_obs / rowSums(q_obs)
+for (f in unique(fold)) {
+  te <- which(fold == f)
+  tr <- which(fold != f)
+  # wet_shape_fit() only carries weights, so the distance weighting is reproduced here
+  xs <- scale(as.matrix(cal[tr, static]), center = FALSE, scale = apply(as.matrix(cal[tr, static]), 2, stats::sd))
+  for (i in te) {
+    r <- as.numeric(as.matrix(cal[i, static])) / attr(xs, "scaled:scale")
+    dist <- sqrt(colSums((t(xs) - r)^2))
+    o <- order(dist)[1:5]
+    wt <- 1 / (dist[o] + 1e-6 * stats::median(dist))
+    free[i, ] <- colSums(sh_obs_doy[tr[o], , drop = FALSE] * wt) / sum(wt)
+  }
+}
+free_months <- t(apply(free, 1, function(r) tapply(r, m, sum)))
+
+# ---- scores -----------------------------------------------------------------------------------
+nse <- wet:::wet_nse
+# the shape score: daily flows from monthly means Q and weights w, each scaled
+# by its own mean, against the gauge's days scaled by theirs
+shape_nse <- function(q_month, w) {
+  q <- wet_shape_daily(q_month, w)
+  # every candidate reproduces the monthly means it was laid on
+  back <- t(apply(q, 1, function(r) tapply(r, m, mean)))
+  if (max(abs(back / q_month - 1), na.rm = TRUE) > 1e-12) stop("a candidate does not keep the monthly means")
+  vapply(seq_len(n), function(i) nse(q_obs[i, ] / mean(q_obs[i, ]), q[i, ] / mean(q[i, ])), numeric(1))
+}
+w_nse <- function(w) vapply(seq_len(n), function(i) nse(w_obs[i, ] * nd[m], w[i, ] * nd[m]), numeric(1))
+scored <- cal$obs >= 10
+nse_obs <- lapply(held, function(w) shape_nse(q_m_obs, w))
+nse_cv <- lapply(held, function(w) shape_nse(q_m_cv, w))
+nse_cv$spline <- shape_nse(q_m_cv, spline_cv)
+nse_w <- lapply(held, w_nse)
+nse_leak <- lapply(leak, function(w) shape_nse(q_m_obs, w))
+nse_free_day <- vapply(seq_len(n), function(i) nse(sh_obs_doy[i, ], free[i, ]), numeric(1))
+nse_free_month <- vapply(seq_len(n), function(i) nse(obs_sh[i, ], free_months[i, ]), numeric(1))
+nse_cv_month <- vapply(seq_len(n), function(i) nse(obs_sh[i, ], cvr$cv_share[i, ]), numeric(1))
+all_scored <- scored & Reduce(`&`, lapply(nse_obs, function(x) !is.na(x)))
+med <- function(x, sel = all_scored) if (any(sel)) stats::median(x[sel]) else NA_real_
+med_obs <- vapply(nse_obs, med, numeric(1))
+med_cv <- vapply(nse_cv, med, numeric(1))
+med_w <- vapply(nse_w, med, numeric(1))
+
+# ---- the rule ---------------------------------------------------------------------------------
+min_gain <- 0.01
+best <- names(which.max(med_obs[shippable]))
+gain <- med_obs[[best]] - med_obs[["flat"]]
+ship <- if (best != "flat" && gain >= min_gain - 1e-9) best else "flat"
+stamp("medians (observed months): ", paste(sprintf("%s %.4f", shippable, med_obs[shippable]), collapse = ", "),
+      "; best ", best, ", gain ", sprintf("%+.4f", gain), " -> ships ", ship)
+
+# ---- breakdowns -------------------------------------------------------------------------------
+peak <- max.col(obs_sh, ties.method = "first")
+groups_of <- list(
+  nesting = cal$nesting,
+  leak_up = ifelse(cal$leak_up > 0, "leak_up > 0", "leak_up = 0"),
+  leak_down = ifelse(cal$leak_down, "leak_down", "no leak_down"),
+  peak = ifelse(peak %in% 5:6, "peak May-June", "peak other months"),
+  lake = cvr$lake,
+  zone = paste("zone", cvr$zone)
+)
+group_lines <- function(name, g) {
+  vals <- sort(unique(g))
+  vapply(vals, function(v) {
+    sel <- all_scored & g == v
+    meds <- vapply(nse_obs[shippable], med, numeric(1), sel = sel)
+    sprintf("%-20s %4d  %s", v, sum(sel), paste(sprintf("%s %.3f", shippable, meds), collapse = "  "))
+  }, "")
+}
+
+# ---- the Chinook windows at the Bulkley gauges -----------------------------------------------
+lh <- utils::read.csv(system.file("vignette-data", "life_history_bulk.csv", package = "wet"))
+ch <- lh[lh$species_code == "CH" & lh$life_stage %in% c("migration", "spawning", "fry_migration"), ]
+stopifnot(nrow(ch) == 3)
+windows <- data.frame(window = sub("_", " ", ch$life_stage), start = ch$start, end = ch$end)
+ck_st <- c("08EE013", "08EE004", "08EE003")
+rec <- wet_station_daily(ck_st, hydat, from = sprintf("%d-01-01", min(s$years)), to = sprintf("%d-12-31", max(s$years)),
+                         sources = "hydat")
+ws <- wet_window_stats(rec[c("station_number", "date", "q_m3s")], windows, stats = "mean")
+rec$year <- as.integer(format(rec$date, "%Y"))
+rec$month <- as.integer(format(rec$date, "%m"))
+ck_rows <- do.call(rbind, lapply(ck_st, function(st) {
+  i <- match(st, cal$station_number)
+  do.call(rbind, lapply(seq_len(nrow(windows)), function(k) {
+    w <- windows[k, ]
+    sel <- ws$station_number == st & ws$period == w$window
+    yr <- ws$year[sel]
+    if (!length(yr)) return(NULL)
+    # the observed months over the same years as the window's daily means
+    om <- stats::aggregate(q_m3s ~ month, rec[rec$station_number == st & rec$year %in% yr, ], mean)
+    om <- om$q_m3s[match(1:12, om$month)]  # NA in the months a seasonal gauge never records
+    stopifnot(is.na(i) || !anyNA(om))
+    win_of <- function(q_doy) wet_flow_window(data.frame(doy = 1:365, q_m3s = q_doy), w, by = character())$q_m3s
+    from_months <- wet_flow_window(data.frame(month = 1:12, q_m3s = om), w, by = character())$q_m3s
+    # (a) the observed months with the held-out weights; (b) the held-out balance with them
+    shape_a <- if (is.na(i)) NA_real_ else win_of(wet_shape_daily(om, held[[ship]][i, , drop = FALSE])[1, ])
+    to_m3s <- if (is.na(i)) NA_real_ else cal$upstream_area_m2[i] / 1000 / 86400  # mm/day over the basin to m3/s
+    q_cv_m3s <- if (is.na(i)) NA_real_ else cvr$cv_ann[i] * cvr$cv_share[i, ] / days * to_m3s
+    shape_b <- if (is.na(i)) NA_real_ else win_of(wet_shape_daily(q_cv_m3s, held[[ship]][i, , drop = FALSE])[1, ])
+    data.frame(station_number = st, window = w$window, years = length(yr), daily_record = mean(ws$value[sel]),
+               from_months = from_months, shape_a = shape_a, shape_b = shape_b)
+  }))
+}))
+pct <- function(x, ref) 100 * (x / ref - 1)
+
+# ---- artifacts --------------------------------------------------------------------------------
+ship_fit <- if (ship %in% names(settings)) fit_of(settings[[ship]], seq_len(n)) else NULL
+saveRDS(list(method = ship, fit = ship_fit, setting = settings[[ship]], static = static, aet = aet,
+             rule = list(min_gain = min_gain, median = med_obs[shippable], best = best, gain = gain,
+                         n = sum(all_scored)),
+             release = release, code_md5 = fits$code_md5, shape_code_md5 = shape_code_md5),
+        file.path(fit_dir, "shape_daily.rds"))
+saveRDS(list(station_number = cal$station_number, held = held, spline_cv = spline_cv, leak = leak, free = free,
+             w_obs = w_obs, q_obs = q_obs, nse_obs = nse_obs, nse_cv = nse_cv, nse_w = nse_w, nse_leak = nse_leak,
+             nse_free_day = nse_free_day, nse_free_month = nse_free_month, nse_cv_month = nse_cv_month,
+             scored = all_scored, zone = cvr$zone, nesting = cal$nesting, leak_up = cal$leak_up,
+             leak_down = cal$leak_down, lake = cvr$lake, peak = peak, chinook = ck_rows, ship = ship, aet = aet,
+             release = release, code_md5 = fits$code_md5, shape_code_md5 = shape_code_md5),
+        file.path(fit_dir, "cv_shape_daily.rds"))
+
+# ---- report -----------------------------------------------------------------------------------
+num <- function(x, d = 4) ifelse(is.na(x), "NA", formatC(x, format = "f", digits = d))
+line_of <- function(k) {
+  sprintf("%-14s %s %s %s %s", k, num(med_obs[[k]]), num(med_cv[[k]]), num(med_w[[k]]),
+          if (k %in% names(n_fallback)) sprintf("%6d", n_fallback[[k]]) else "     -")
+}
+report <- wb_report("wb_shape_daily", release)
+writeLines(c(
+  "# The balance's daily shape within the month (#70), held out under blocked CV", "",
+  sprintf("province run: %s; HYDAT release: %s; annual AET: %s; fit scores %s; shape code %s", basename(key_dir),
+          release, aet, fits$code_md5, shape_code_md5),
+  sprintf("calibration gauges: %d, scored %d (observed runoff >= 10 mm, every candidate scored); folds: %d", n,
+          sum(all_scored), length(unique(fold))),
+  sprintf("day-of-year record: %d gauge-days interpolated (wet_station_doy()); %d observed gauge-months with no flow",
+          n_filled, n_flat_obs),
+  "",
+  paste("RULE (fixed in this script's header before any candidate existed): per gauge, the NSE of the 365 daily",
+        "flows laid on the gauge's OBSERVED monthly means (q / mean(q) against the record's q_obs / mean(q_obs));",
+        "the candidate with the highest median ships if it exceeds flat's by >= 0.01."),
+  sprintf("  %s", paste(sprintf("%s %.4f", shippable, med_obs[shippable]), collapse = ", ")),
+  sprintf("  best %s, gain over flat %+.4f over %d gauges -> %s", best, gain, sum(all_scored),
+          if (ship == "flat") "NOTHING SHIPS (the shape stays flat)" else sprintf("SHIPS %s", ship)),
+  "",
+  "## Median per-gauge NSE: observed months (the rule), held-out months (the product), the weights alone (flat = 0)",
+  sprintf("%-14s %6s %6s %6s %6s", "candidate", "obs_m", "cv_m", "w", "flatbk"),
+  vapply(shippable, line_of, ""),
+  "sensitivity settings (reported, unable to ship):",
+  vapply(setdiff(names(settings), shippable), line_of, ""),
+  "  flatbk: held-out gauge-months whose reconstruction fell back to flat",
+  "",
+  "## Leak sensitivity: the held-out gauge's upstream and downstream training gauges removed from its pool",
+  "   (observed months)",
+  sprintf("%-14s with %s  without %s  (%d gauges)", names(nse_leak), num(med_obs[names(nse_leak)]),
+          num(vapply(nse_leak, med, numeric(1))), sum(all_scored)),
+  "",
+  "## The issue's free day-of-year curve (donor mean of doy shares, k = 5, no month constraint), reported only",
+  sprintf("median NSE of the 365 daily shares against the record: %s (within-month %s on held-out months: %s)",
+          num(med(nse_free_day)), ship, num(med_cv[[ship]])),
+  sprintf("median NSE of its 12 months against the observed shares: %s; the shipped held-out shares (cv_share): %s",
+          num(med(nse_free_month)), num(med(nse_cv_month))),
+  "",
+  "## Median NSE (observed months) by group",
+  unlist(lapply(names(groups_of), function(g) c(sprintf("# %s", g), group_lines(g, groups_of[[g]])))),
+  "",
+  "## Flow in the Chinook windows at the Bulkley gauges (m3/s), 1981-2010 years with the window's days",
+  "   daily_record: the gauge, mean of per-year window means (wet_window_stats()); from_months: those years' observed",
+  sprintf("   months spread flat (today's reader); shape_a: the same months with the held-out %s weights;", ship),
+  "   shape_b: the held-out balance (cv_ann x cv_share) with them. 08EE003 is not a calibration gauge: record only.",
+  sprintf("%-8s %-14s %5s %12s %11s %7s %11s %7s %11s %7s", "gauge", "window", "years", "daily_record", "from_months",
+          "err%", "shape_a", "err%", "shape_b", "err%"),
+  sprintf("%-8s %-14s %5d %12.2f %11.2f %7.1f %11s %7s %11s %7s", ck_rows$station_number, ck_rows$window, ck_rows$years,
+          ck_rows$daily_record, ck_rows$from_months, pct(ck_rows$from_months, ck_rows$daily_record),
+          num(ck_rows$shape_a, 2), num(pct(ck_rows$shape_a, ck_rows$daily_record), 1),
+          num(ck_rows$shape_b, 2), num(pct(ck_rows$shape_b, ck_rows$daily_record), 1)),
+  "",
+  sprintf("artifacts: %s (method %s), %s", file.path(basename(fit_dir), "shape_daily.rds"), ship,
+          file.path(basename(fit_dir), "cv_shape_daily.rds"))
+), report)
+message("report written: ", report)
