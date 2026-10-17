@@ -30,7 +30,7 @@ Facts checked today (2026-10-16) that change the issue's premises:
   `authors_roles`, so New Graph Environment Ltd. is missing from `CITATION.cff`.
 
 ## Phase 1: Reference index grouped by purpose (`_pkgdown.yml`)
-- [ ] Add `reference:` sections, using each function's Rd title:
+- [x] Add `reference:` sections, using each function's Rd title:
   - **Published discharge**: `wet_catalog`, `wet_db_load`, `wet_segment_monthly`, `wet_flow_window`, `wet_month_days`
   - **Station flow**: `wet_station_daily`, `wet_station_monthly`, `wet_station_select`, `wet_station_snap`, `wet_window_stats`, `wet_windows_calendar`
   - **Water temperature**: `wet_temp_daily`, `wet_temp_fill`, `wet_temp_gsdd`
@@ -38,7 +38,7 @@ Facts checked today (2026-10-16) that change the issue's premises:
   - **FWA watersheds and upstream accumulation**: `wet_ws_fetch`, `wet_ws_geom`, `wet_ws_sample`, `wet_upstream_mean`, `wet_upstream_means`, `wet_upstream_sums`, `wet_upstream_irregular`, `wet_upstream_pairs`, `wet_mm_to_m3s`
   - **Water balance inputs**: `wet_climr_normals`, `wet_cgiar_aet`, `wet_terraclimate_aet`, `wet_mod16_aet`, `wet_aet_budyko`, `wet_aet_landcover`, `wet_chapman_table3`, `wet_pet_hargreaves`, `wet_dem_glo90`, `wet_landcover_nrcan`, `wet_snow_normals`
   - **Water balance fit and validation**: `wet_wb_fit`, `wet_wb_adjust`, `wet_wb_pooled`, `wet_share_fit`, `wet_share_predict`, `wet_cv_folds`, `wet_flow_validate`
-- [ ] `pkgdown::check_pkgdown()` passes, so every one of the 46 exports is placed
+- [x] `pkgdown::check_pkgdown()` passes, so every one of the 46 exports is placed
 
 ## Phase 2: README figure from committed code
 - [ ] `data-raw/readme_figure.R`: draws the province map of the source `pick` takes on main-flow rivers

@@ -1,3 +1,72 @@
 url: https://newgraphenvironment.github.io/wet/
 template:
   bootstrap: 5
+
+reference:
+- title: Published discharge
+  desc: Read the per-segment and per-watershed discharge wet publishes.
+  contents:
+  - wet_catalog
+  - wet_db_load
+  - wet_segment_monthly
+  - wet_flow_window
+  - wet_month_days
+- title: Station flow
+  desc: Daily flow at hydrometric stations, summarised per year over date windows.
+  contents:
+  - wet_station_daily
+  - wet_station_monthly
+  - wet_station_select
+  - wet_station_snap
+  - wet_window_stats
+  - wet_windows_calendar
+- title: Water temperature
+  desc: Daily water temperature at stations, gap filling and growing season degree days.
+  contents:
+  - wet_temp_daily
+  - wet_temp_fill
+  - wet_temp_gsdd
+- title: PCIC gridded runoff
+  desc: Fetch PCIC VIC-GL runoff and summarise it per year.
+  contents:
+  - wet_pcic_url
+  - wet_pcic_index
+  - wet_pcic_fetch
+  - wet_pcic_annual
+  - wet_runoff_annual
+- title: Watersheds and upstream accumulation
+  desc: Sample a grid to FWA fundamental watersheds and average it over each upstream area.
+  contents:
+  - wet_ws_fetch
+  - wet_ws_geom
+  - wet_ws_sample
+  - wet_upstream_mean
+  - wet_upstream_means
+  - wet_upstream_sums
+  - wet_upstream_irregular
+  - wet_upstream_pairs
+  - wet_mm_to_m3s
+- title: Water balance inputs
+  desc: Precipitation, evapotranspiration, terrain, land cover and snow on a common grid.
+  contents:
+  - wet_climr_normals
+  - wet_cgiar_aet
+  - wet_terraclimate_aet
+  - wet_mod16_aet
+  - wet_aet_budyko
+  - wet_aet_landcover
+  - wet_chapman_table3
+  - wet_pet_hargreaves
+  - wet_dem_glo90
+  - wet_landcover_nrcan
+  - wet_snow_normals
+- title: Water balance fit and validation
+  desc: Fit the balance at HYDAT gauges, split it into months and score it held out.
+  contents:
+  - wet_wb_fit
+  - wet_wb_adjust
+  - wet_wb_pooled
+  - wet_share_fit
+  - wet_share_predict
+  - wet_cv_folds
+  - wet_flow_validate
