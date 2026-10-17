@@ -20,18 +20,18 @@ The live manifest's own `segment_commit` needs no separate acceptance: when noth
 rerun, the publish report names that same commit.
 
 ## Phase 1: accept the segment report the identical build was cut from
-- [ ] `scripts/vignette_data_lib.R` `vd_published()`: parse the publish report's head
+- [x] `scripts/vignette_data_lib.R` `vd_published()`: parse the publish report's head
       `^wet commit ([0-9a-f]+) \(segment table built at ([0-9a-f]+)\);`, require exactly one
       match, return it as `segment_commit`; update the function's header comment
-- [ ] `data-raw/segment_vignette_data.R:170`: replace the `stopifnot()` on the live manifest's
+- [x] `data-raw/segment_vignette_data.R:170`: replace the `stopifnot()` on the live manifest's
       commit with a `stop()` requiring the segment report to name `pb$segment_commit`, whose
       message names both commits and says to rerun `scripts/discharge_publish.R` (BUILD);
       update the comments above it and at the top of the file
-- [ ] provenance: add `segment_report_commit = pb$segment_commit` (the segment table the
+- [x] provenance: add `segment_report_commit = pb$segment_commit` (the segment table the
       counts came from) beside `published$segment_commit` (the one the live manifest names)
-- [ ] `tests/testthat/test-vignette_data.R`: `segment_report_commit` in the required
+- [x] `tests/testthat/test-vignette_data.R`: `segment_report_commit` in the required
       provenance fields, matching `^[0-9a-f]{7,40}$`
-- [ ] `vignettes/segment-discharge.Rmd` provenance chunk comment: name the counts' segment
+- [x] `vignettes/segment-discharge.Rmd` provenance chunk comment: name the counts' segment
       table (`prov$segment_report_commit`)
 
 - [x] Plan review (Gap): the report's head names only a commit, so compare the whole report with its copy at
