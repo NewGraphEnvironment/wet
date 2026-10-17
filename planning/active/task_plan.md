@@ -34,19 +34,23 @@ rerun, the publish report names that same commit.
 - [ ] `vignettes/segment-discharge.Rmd` provenance chunk comment: name the counts' segment
       table (`prov$segment_report_commit`)
 
+- [x] Plan review (Gap): the report's head names only a commit, so compare the whole report with its copy at
+      the publish build's commit (`vd_segment_report()` in `scripts/vignette_data_lib.R`; `vd_published()`
+      also returns `build_commit`)
+
 ## Phase 2: regenerate the vignette data
 - [ ] Commit Phase 1 (clean tree for `vd_commit()`), then on m1:
       `WET_FWAPG_COMMIT=341b078 Rscript data-raw/segment_vignette_data.R` — writes
       `inst/vignette-data/segment_values.rds`
 - [ ] Diff old vs new bundle: `skill` and `segments` identical, provenance differs only in
       `built`, `wet_commit`, and the new `segment_report_commit`
-- [ ] Prove the guard still fires: a copy of the segment report naming another commit
+- [x] Prove the guard still fires: a copy of the segment report naming another commit
       (in a scratch copy of the tree, not the working tree) is refused
 - [ ] `monthly_vignette_data.R` and `segment_vignette_map.R` unaffected (they don't read the
       segment report); `devtools::test()` passes; vignette renders
 
 ## Phase 3: docs
-- [ ] `CLAUDE.md` segment-vignette paragraph and `research/discharge_publish.md:78`: the
+- [x] `CLAUDE.md` segment-vignette paragraph and `research/discharge_publish.md:78`: the
       segment report must be the one the passing, all-identical publish report was built from
 - [ ] Update the m4 publish-state memory (no longer refuses after an identical rerun)
 

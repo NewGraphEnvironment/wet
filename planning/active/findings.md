@@ -17,7 +17,27 @@
 
 Related: #81, #91, #64.
 
+## Plan review (Plan agent, 2026-10-16, no blockers)
+
+- **Gap, taken:** the segment report's head (`scripts/segment_output.R:257`) names commit, fit, province run and
+  scoring code, nothing that marks a run, so a rerun at the same commit would pass a commit match. The publish
+  BUILD refuses uncommitted `data/checks` (`scripts/discharge_publish.R:54`), so the report at the build's commit
+  (71af15a) is the one it read. `vd_segment_report()` compares the tracked report with that copy, whole.
+- **Q4, not taken:** an `is-ancestor` check of the live manifest's segment commit (1718a3d) against the publish
+  report's. Every part is byte-identical to the live build, so it adds nothing about values.
+- **Ordering:** the test needs `segment_report_commit`, which the bundle gets only on regeneration (Phase 2).
+- **Q2:** only the PUBLISH branch (`discharge_publish.R:83`) also reads the publish report's head; unchanged.
+  `segment_vignette_map.R` and `monthly_vignette_data.R` call `vd_published()` and inherit its new
+  single-segment-commit parse, which matches the tracked report.
+
+## Guard probes (`vd_published()` live, no fwapg)
+
+- Tracked state: build 71af15a, segment table e280f5d, live manifest segment 1718a3d. `vd_segment_report()` passes.
+- `build_commit` set to 1718a3d (another build's report): refused.
+- Same commit, one count changed in a scratch worktree's report: refused.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
+| First data run: `FATAL: terminating connection due to administrator command` | Docker Desktop on m1 quit at about 17:45 PDT mid-run (not this session); asked the user |
