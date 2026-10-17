@@ -8,20 +8,20 @@ message: 'To cite package "wet" in publications use:'
 type: software
 license: MIT
 title: 'wet: Stream Flow and Water Temperature for the BC Freshwater Atlas'
-version: 0.4.10
-abstract: Per-segment stream discharge for the British Columbia Freshwater Atlas (FWA),
-  and flow and water-temperature departures at hydrometric stations. Gridded runoff,
-  from Pacific Climate Impacts Consortium (PCIC) VIC-GL or from an open water balance
-  fitted at Water Survey of Canada (HYDAT) gauges, is sampled to FWA fundamental watersheds
-  and accumulated upstream by area weighting, giving mean annual and monthly discharge
-  per stream segment. Station daily flow and water temperature are summarised per
-  year over month-day windows for departure statistics.
+version: 0.4.11
+abstract: 'Mean monthly and annual stream flow for the British Columbia Freshwater
+  Atlas (FWA), published openly per stream segment from two sources: the Pacific Climate
+  Impacts Consortium''s (PCIC) routed hydrologic model, and an open water balance
+  fitted at Water Survey of Canada (HYDAT) gauges. Daily flow and water temperature
+  at hydrometric stations are summarised per year over month-day windows, so each
+  year can be compared with normal. Under active development.'
 authors:
 - family-names: Irvine
   given-names: Allan
   email: al@newgraphenvironment.com
   orcid: https://orcid.org/0000-0002-3495-2128
   affiliation: New Graph Environment Ltd.
+- name: New Graph Environment Ltd.
 preferred-citation:
   title: 'wet: Stream Flow and Water Temperature for the BC Freshwater Atlas'
   authors:
@@ -30,7 +30,8 @@ preferred-citation:
     email: al@newgraphenvironment.com
     orcid: https://orcid.org/0000-0002-3495-2128
     affiliation: New Graph Environment Ltd.
-  version: 0.4.10
+  - name: New Graph Environment Ltd.
+  version: 0.4.11
   date-released: '2026-10-17'
   url: https://newgraphenvironment.github.io/wet/
   repository-code: https://github.com/NewGraphEnvironment/wet
