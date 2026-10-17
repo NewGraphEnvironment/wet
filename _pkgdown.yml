@@ -50,7 +50,7 @@ reference:
   - wet_mm_to_m3s
   - wet_month_days
 - title: Water balance inputs
-  desc: Precipitation, evapotranspiration, terrain, land cover and snow on a common grid.
+  desc: Precipitation, evapotranspiration, terrain, land cover and snow, and the evapotranspiration models applied to them.
   contents:
   - wet_climr_normals
   - wet_cgiar_aet
