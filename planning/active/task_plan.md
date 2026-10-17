@@ -30,11 +30,11 @@ Product: `q[d] = Q[m(d)] * n[m(d)] * w[d]`, `d = 1..365`, `n` the common-year da
 - [x] Run on m1; commit report + `progress.md`; `findings.md` records the outcome, the breakdowns and the free-curve numbers (the issue's proposal, measured). The rule is not edited after Phase 1; a bug fix after a run is recorded as such with the rerun
 
 ## Phase 5: Record and hand-off
-- [ ] `research/water_balance_method.md` §0: subsection "Daily shape within the month (#70)" — rule and its registration commit, candidates, outcome, leak sensitivity, Chinook windows, the free curve's numbers, what did not help; header `Verified`/`Issues` line updated
-- [ ] `research/discharge_publish.md`: the decided stored form of `segment_daily` (365-day common-year climatology per segment and source, flow units, months consistent by construction for the balance; weeks and windows derived on read; 29 Feb folded; fwapg#25's 366 folded on read) — decided, nothing described as published
-- [ ] CLAUDE.md Architecture: one sentence for `wet_station_doy()` → `wet_shape_*` → `scripts/wb_shape_daily.R` → `<fit>/shape_daily.rds` and the report; NEWS.md entry
-- [ ] File the follow-up issue (publish `segment_daily` for both sources: fwapg#25 dependency and its clamped-row count, the 366→365 fold, crate `segment_daily.yaml`, `segment_output.R`/`discharge_publish.R` for a daily dataset, readers over `doy` in `wet_segment_*`, `wet_db_load()`, `wet_values_compare()`, m4 run and size); edit #70's body to say what this branch did and point to it
-- [ ] `vignettes/monthly-flow.Rmd:689` ("once daily flow is published (#70)") re-pointed to the follow-up
+- [x] `research/water_balance_method.md` §0: subsection "Daily shape within the month (#70)" — rule and its registration commit, candidates, outcome, leak sensitivity, Chinook windows, the free curve's numbers, what did not help; header `Verified`/`Issues` line updated
+- [x] `research/discharge_publish.md`: the decided stored form of `segment_daily` (365-day common-year climatology per segment and source, flow units, months consistent by construction for the balance; weeks and windows derived on read; 29 Feb folded; fwapg#25's 366 folded on read) — decided, nothing described as published
+- [x] CLAUDE.md Architecture: one sentence for `wet_station_doy()` → `wet_shape_*` → `scripts/wb_shape_daily.R` → `<fit>/shape_daily.rds` and the report; NEWS.md entry (written by `/gh-pr-merge`'s release bookkeeping, as every release here)
+- [x] File the follow-up issue #99 (publish `segment_daily` for both sources: fwapg#25 dependency and its clamped-row count, the 366→365 fold, crate `segment_daily.yaml`, `segment_output.R`/`discharge_publish.R` for a daily dataset, readers over `doy` in `wet_segment_*`, `wet_db_load()`, `wet_values_compare()`, m4 run and size); edit #70's body to say what this branch did and point to it
+- [x] `vignettes/monthly-flow.Rmd:689` ("once daily flow is published (#70)") re-pointed to the follow-up
 
 ## Validation
 
