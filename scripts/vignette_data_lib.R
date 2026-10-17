@@ -56,9 +56,12 @@ vd_routed_check <- function(release = wb_release()) {
 # The live manifest must be the build the tracked publish report checked value
 # by value (scripts/discharge_publish.R, #64): that report failed no check, and
 # its parts were byte-identical to the live ones. Returns the catalog, the
-# report's path, and what a reader of the segment table sees per source: its
-# rows, and those fresh's `month = 0 AND pick` returns (the report's duckdb
-# read of the tree).
+# report's path, the commit its segment table was built at (whose tracked
+# segment report therefore describes the live build, even when the live
+# manifest names an earlier commit: a rerun that left every part identical,
+# #93), and what a reader of the segment table sees per source: its rows, and
+# those fresh's `month = 0 AND pick` returns (the report's duckdb read of the
+# tree).
 vd_published <- function(release) {
   cat_pub <- wet_catalog()
   stopifnot(identical(attr(cat_pub, "manifest"), wet:::wet_catalog_url))
@@ -71,12 +74,15 @@ vd_published <- function(release) {
         length(unique(c(same[[1]][3:5], nrow(cat_pub)))) != 1L) {
     stop(f, " is not a passing value check of the live build ", pub_commit, ": rerun scripts/discharge_publish.R")
   }
+  re_seg <- "^wet commit [0-9a-f]+ \\(segment table built at ([0-9a-f]+)\\);"
+  seg <- Filter(length, regmatches(lines, regexec(re_seg, lines)))
+  if (length(seg) != 1L) stop(f, " names no single segment table commit")
   re_seen <- "^historical +([A-Za-z0-9-]+) +([a-z_]+) +([0-9]+) rows +([0-9]+) fresh-subquery rows$"
   seen <- do.call(rbind, Filter(length, regmatches(lines, regexec(re_seen, lines))))
   stopifnot(!is.null(seen), setequal(seen[, 3], c("pcic_routed", "wet_balance")))
   reader <- data.frame(source = seen[, 3], forcing = seen[, 2], rows = as.numeric(seen[, 4]),
                        picked = as.numeric(seen[, 5]))
-  list(catalog = cat_pub, report = f, reader = reader)
+  list(catalog = cat_pub, report = f, segment_commit = seg[[1]][2], reader = reader)
 }
 
 # The parts must match their manifest; call before and after a read, so a
