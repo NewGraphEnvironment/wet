@@ -76,14 +76,14 @@ Facts checked today (2026-10-16) that change the issue's premises:
   (curl each), each "both", "every" and plural checked against the code path
 
 ## Phase 4: Text that travels with the README
-- [ ] DESCRIPTION `Description` in step with the opening (routed PCIC plus the balance, not
+- [x] DESCRIPTION `Description` in step with the opening (routed PCIC plus the balance, not
   VIC-GL alone), and "Under active development." Keep `Title` unless the tagline changes it.
   Run `devtools::document()`.
-- [ ] `update-citation-cff.yaml`: `cffr::cff_create(authors_roles = c("aut", "cre", "cph"))`
-- [ ] GitHub About, with `gh repo edit --description`: drop "climate-scenario" and "seasonal" and
+- [x] `update-citation-cff.yaml`: `cffr::cff_create(authors_roles = c("aut", "cre", "cph"))`
+- [x] GitHub About, with `gh repo edit --description`: drop "climate-scenario" and "seasonal" and
   match the tagline. The homepage stays `www.newgraphenvironment.com/wet/`, which is where
   github.io lands.
-- [ ] NEWS entry
+- [x] NEWS entry: moved to `/gh-pr-merge`, which writes NEWS in the release commit (every release since v0.4.3 has)
 
 ## Validation
 

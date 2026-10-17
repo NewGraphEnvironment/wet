@@ -8,7 +8,7 @@
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-Per-segment stream discharge for the British Columbia Freshwater Atlas (FWA), and flow and water-temperature departures at hydrometric stations. Gridded runoff, from Pacific Climate Impacts Consortium (PCIC) VIC-GL or from an open water balance fitted at Water Survey of Canada (HYDAT) gauges, is sampled to FWA fundamental watersheds and accumulated upstream by area weighting, giving mean annual and monthly discharge per stream segment. Station daily flow and water temperature are summarised per year over month-day windows for departure statistics.
+Mean monthly and annual stream flow for the British Columbia Freshwater Atlas (FWA), published openly per stream segment from two sources: the Pacific Climate Impacts Consortium's (PCIC) routed hydrologic model, and an open water balance fitted at Water Survey of Canada (HYDAT) gauges. Daily flow and water temperature at hydrometric stations are summarised per year over month-day windows, so each year can be compared with normal. Under active development.
 }
 \seealso{
 Useful links:
@@ -20,11 +20,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Allan Irvine \email{al@newgraphenvironment.com} (\href{https://orcid.org/0000-0002-3495-2128}{ORCID})
+\strong{Maintainer}: Allan Irvine \email{al@newgraphenvironment.com} (\href{https://orcid.org/0000-0002-3495-2128}{ORCID}) (New Graph Environment Ltd.)
 
 Other contributors:
 \itemize{
-  \item New Graph Environment Ltd. [copyright holder]
+  \item New Graph Environment Ltd. [copyright holder, funder]
 }
 
 }
