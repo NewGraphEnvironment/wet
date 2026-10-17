@@ -162,6 +162,7 @@ stamp(n, " gauges with a day-of-year record; ", n_filled, " gauge-days interpola
 q_m_obs <- sweep(obs_sh, 2, days, "/")
 q_m_cv <- sweep(cvr$cv_share, 2, days, "/")
 static <- share_static$snow
+stopifnot(identical(fits$share_spec, "snow"))  # the header calls these the shipped shares' static predictors
 static_pt <- c(static, "p_yr", "t_yr")
 stopifnot(all(c(static_pt) %in% names(cal)), !anyNA(cal[static_pt]))
 
@@ -205,8 +206,10 @@ for (f in unique(fold)) {
 }
 held$flat <- wet_shape_flat(n)
 held$spline <- wet_shape_spline(q_m_obs)      # through the observed months (the rule's setting)
-n_fallback[["spline"]] <- sum(attr(held$spline, "flat"))  # months the spline floored to 0 throughout
 spline_cv <- wet_shape_spline(q_m_cv)         # through the held-out months (the product's setting)
+# the flatbk column counts held-out gauge-months, so the spline's count is spline_cv's
+n_fallback[["spline"]] <- sum(attr(spline_cv, "flat"))
+n_fallback_spline_obs <- sum(attr(held$spline, "flat"))
 stamp("held-out shapes for ", length(settings), " fitted settings in ", length(unique(fold)), " folds")
 
 # leak sensitivity: for donor and basis, each held-out gauge's pool loses the
@@ -218,7 +221,7 @@ for (i in seq_len(n)) {
 }
 
 # the issue's free day-of-year curve: the donor mean of the training gauges'
-# doy shares, with no month constraint (k = 5, the same distance)
+# doy shares, with no month constraint (donor's k, the same distance)
 free <- matrix(NA_real_, n, 365)
 sh_obs_doy <- q_obs / rowSums(q_obs)
 for (f in unique(fold)) {
@@ -229,7 +232,7 @@ for (f in unique(fold)) {
   for (i in te) {
     r <- as.numeric(as.matrix(cal[i, static])) / attr(xs, "scaled:scale")
     dist <- sqrt(colSums((t(xs) - r)^2))
-    o <- order(dist)[1:5]
+    o <- order(dist)[seq_len(settings$donor$k)]
     wt <- 1 / (dist[o] + 1e-6 * stats::median(dist))
     free[i, ] <- colSums(sh_obs_doy[tr[o], , drop = FALSE] * wt) / sum(wt)
   }
@@ -290,12 +293,39 @@ group_lines <- function(name, g) {
   }, "")
 }
 
+# which candidate leads each group, computed, so the prose can quote it rather than read a rounded table
+leader_of <- function(sel) {
+  meds <- sort(vapply(nse_obs[shippable], med, numeric(1), sel = sel), decreasing = TRUE)
+  margin <- meds[[1]] - meds[[2]]
+  list(name = if (margin < 1e-6) sprintf("tie %s/%s", names(meds)[1], names(meds)[2]) else names(meds)[1],
+       runner = names(meds)[2], margin = margin)
+}
+leader_lines <- function(g) {
+  vapply(sort(unique(g)), function(v) {
+    sel <- all_scored & g == v
+    l <- leader_of(sel)
+    gain_v <- med(nse_obs[[ship]], sel) - med(nse_obs$flat, sel)
+    sprintf("%-20s %4d  %-8s %+.4f over %-7s %s over flat %+.4f", v, sum(sel), l$name, l$margin, l$runner, ship, gain_v)
+  }, "")
+}
+zone_vals <- sort(unique(groups_of$zone))
+zone_lead <- vapply(zone_vals, function(v) leader_of(all_scored & groups_of$zone == v)$name, "")
+lead_count <- table(factor(zone_lead, levels = c(shippable, setdiff(unique(zone_lead), shippable))))
+lead_count <- lead_count[lead_count > 0]
+gain_zone <- vapply(zone_vals, function(v) {
+  sel <- all_scored & groups_of$zone == v
+  med(nse_obs[[ship]], sel) - med(nse_obs$flat, sel)
+}, numeric(1))
+gain_top <- sort(gain_zone, decreasing = TRUE)[1:5]
+
 # ---- the Chinook windows at the Bulkley gauges -----------------------------------------------
 lh <- utils::read.csv(system.file("vignette-data", "life_history_bulk.csv", package = "wet"))
 ch <- lh[lh$species_code == "CH" & lh$life_stage %in% c("migration", "spawning", "fry_migration"), ]
 stopifnot(nrow(ch) == 3)
 windows <- data.frame(window = sub("_", " ", ch$life_stage), start = ch$start, end = ch$end)
 ck_st <- c("08EE013", "08EE004", "08EE003")
+# the report's text says which of them the balance is calibrated on
+stopifnot(c("08EE013", "08EE004") %in% cal$station_number, !"08EE003" %in% cal$station_number)
 rec <- wet_station_daily(ck_st, hydat, from = sprintf("%d-01-01", min(s$years)), to = sprintf("%d-12-31", max(s$years)),
                          sources = "hydat")
 ws <- wet_window_stats(rec[c("station_number", "date", "q_m3s")], windows, stats = "mean")
@@ -375,7 +405,9 @@ writeLines(c(
   sprintf("%-14s with %s  without %s  (%d gauges)", names(nse_leak), num(med_obs[names(nse_leak)]),
           num(vapply(nse_leak, med, numeric(1))), sum(all_scored)),
   "",
-  "## The issue's free day-of-year curve (donor mean of doy shares, k = 5, no month constraint), reported only",
+  sprintf("## The issue's free day-of-year curve (donor mean of doy shares, k = %d, no month constraint),",
+          settings$donor$k),
+  "   reported only",
   sprintf("median NSE of the 365 daily shares against the record: %s (within-month %s on held-out months: %s)",
           num(med(nse_free_day)), ship, num(med_cv[[ship]])),
   sprintf("median NSE of its 12 months against the observed shares: %s; the shipped held-out shares (cv_share): %s",
@@ -383,6 +415,14 @@ writeLines(c(
   "",
   "## Median NSE (observed months) by group",
   unlist(lapply(names(groups_of), function(g) c(sprintf("# %s", g), group_lines(g, groups_of[[g]])))),
+  "",
+  "## Leader by group: the candidate with the highest median (observed months), its margin over the runner-up",
+  "   (a difference under 1e-6 is a tie), and the shipped candidate's gain over flat",
+  unlist(lapply(names(groups_of), function(g) leader_lines(groups_of[[g]]))),
+  sprintf("zones led: %s", paste(sprintf("%s %d", names(lead_count), lead_count), collapse = ", ")),
+  sprintf("largest gains of %s over flat by zone: %s", ship,
+          paste(sprintf("%s %+.3f", names(gain_top), gain_top), collapse = ", ")),
+  sprintf("spline fallbacks to flat on the observed months: %d gauge-months", n_fallback_spline_obs),
   "",
   sprintf("## Flow in the Chinook windows at the Bulkley gauges (m3/s), %d-%d years with the window's days",
           min(s$years), max(s$years)),

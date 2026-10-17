@@ -1,6 +1,6 @@
 # The balance's daily shape within the month (#70), held out under blocked CV
 
-province run: e675918817; HYDAT release: 20260717; annual AET: cfu; fit scores a80b045ab7a74678d4dff01dddf77fcb; shape code 2c819f2f349d87dcf9a3a219ab89c627
+province run: e675918817; HYDAT release: 20260717; annual AET: cfu; fit scores a80b045ab7a74678d4dff01dddf77fcb; shape code b6833564da45cc91c0ade4883e4b98d3
 calibration gauges: 315, scored 315 (observed runoff >= 10 mm, every candidate scored); folds: 94
 day-of-year record: 0 gauge-days interpolated (wet_station_doy()); 0 observed gauge-months with no flow
 
@@ -11,7 +11,7 @@ RULE (fixed in this script's header before any candidate existed): per gauge, th
 ## Median per-gauge NSE: observed months (the rule), held-out months (the product), the weights alone (flat = 0)
 candidate       obs_m   cv_m      w flatbk
 flat           0.8994 0.7769 0.0000      -
-spline         0.9768 0.8317 0.7519      0
+spline         0.9768 0.8317 0.7519      1
 donor          0.9824 0.8489 0.7951      0
 basis          0.9708 0.8361 0.6803      0
 sensitivity settings (reported, unable to ship):
@@ -27,7 +27,8 @@ basis_static   0.9736 0.8395 0.7005      0
 donor          with 0.9824  without 0.9818  (315 gauges)
 basis          with 0.9708  without 0.9708  (315 gauges)
 
-## The issue's free day-of-year curve (donor mean of doy shares, k = 5, no month constraint), reported only
+## The issue's free day-of-year curve (donor mean of doy shares, k = 5, no month constraint),
+   reported only
 median NSE of the 365 daily shares against the record: 0.9091 (within-month donor on held-out months: 0.8489)
 median NSE of its 12 months against the observed shares: 0.9388; the shipped held-out shares (cv_share): 0.8735
 
@@ -77,6 +78,51 @@ zone 26                13  flat 0.908  spline 0.954  donor 0.940  basis 0.926
 zone 27                12  flat 0.716  spline 0.758  donor 0.842  basis 0.831
 zone 28                16  flat 0.761  spline 0.840  donor 0.923  basis 0.908
 zone 29                13  flat 0.644  spline 0.662  donor 0.855  basis 0.829
+
+## Leader by group: the candidate with the highest median (observed months), its margin over the runner-up
+   (a difference under 1e-6 is a tie), and the shipped candidate's gain over flat
+headwater             238  donor    +0.0068 over spline  donor over flat +0.0875
+nested                 77  donor    +0.0042 over spline  donor over flat +0.0709
+leak_up = 0           297  donor    +0.0067 over spline  donor over flat +0.0866
+leak_up > 0            18  donor    +0.0020 over spline  donor over flat +0.0598
+leak_down              71  donor    +0.0037 over spline  donor over flat +0.0772
+no leak_down          244  donor    +0.0074 over spline  donor over flat +0.0858
+peak May-June         241  donor    +0.0078 over basis   donor over flat +0.0863
+peak other months      74  spline   +0.0057 over donor   donor over flat +0.0378
+lake outlet            19  spline   +0.0154 over donor   donor over flat +0.0389
+not lake outlet       296  donor    +0.0079 over spline  donor over flat +0.0872
+zone 01                12  spline   +0.0075 over basis   donor over flat +0.0236
+zone 02                 5  donor    +0.0083 over basis   donor over flat +0.1210
+zone 03                21  donor    +0.0115 over basis   donor over flat +0.0805
+zone 04                 5  spline   +0.0116 over basis   donor over flat +0.0231
+zone 05                 7  donor    +0.0041 over basis   donor over flat +0.0885
+zone 06                 3  donor    +0.0172 over basis   donor over flat +0.1565
+zone 07                 9  donor    +0.0109 over basis   donor over flat +0.1159
+zone 08                23  donor    +0.0157 over spline  donor over flat +0.0982
+zone 09                 7  spline   +0.0001 over donor   donor over flat +0.0612
+zone 10                 9  donor    +0.0133 over spline  donor over flat +0.0822
+zone 11                 2  spline   +0.0381 over flat    donor over flat -0.0882
+zone 12                 3  donor    +0.0071 over spline  donor over flat +0.0985
+zone 13                10  spline   +0.0018 over donor   donor over flat +0.0502
+zone 14                22  spline   +0.0096 over donor   donor over flat +0.0503
+zone 15                19  spline   +0.0032 over donor   donor over flat +0.0737
+zone 16                 6  basis    +0.0003 over donor   donor over flat +0.0966
+zone 17                 4  spline   +0.0008 over basis   donor over flat +0.0701
+zone 18                12  donor    +0.0024 over spline  donor over flat +0.0468
+zone 19                11  donor    +0.0016 over basis   donor over flat +0.0871
+zone 20                10  donor    +0.0039 over spline  donor over flat +0.0816
+zone 21                13  donor    +0.0031 over basis   donor over flat +0.0886
+zone 22                15  donor    +0.0022 over spline  donor over flat +0.0773
+zone 23                 8  donor    +0.0015 over basis   donor over flat +0.0858
+zone 24                 9  donor    +0.0078 over basis   donor over flat +0.0954
+zone 25                16  donor    +0.0061 over spline  donor over flat +0.0451
+zone 26                13  spline   +0.0140 over donor   donor over flat +0.0320
+zone 27                12  donor    +0.0111 over basis   donor over flat +0.1265
+zone 28                16  donor    +0.0152 over basis   donor over flat +0.1618
+zone 29                13  donor    +0.0266 over basis   donor over flat +0.2116
+zones led: spline 9, donor 19, basis 1
+largest gains of donor over flat by zone: zone 29 +0.212, zone 28 +0.162, zone 06 +0.156, zone 27 +0.127, zone 02 +0.121
+spline fallbacks to flat on the observed months: 0 gauge-months
 
 ## Flow in the Chinook windows at the Bulkley gauges (m3/s), 1981-2010 years with the window's days
    daily_record: the gauge, mean of per-year window means (wet_window_stats()); from_months: those years' observed
