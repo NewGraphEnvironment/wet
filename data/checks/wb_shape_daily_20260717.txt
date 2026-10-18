@@ -1,0 +1,142 @@
+# The balance's daily shape within the month (#70), held out under blocked CV
+
+province run: e675918817; HYDAT release: 20260717; annual AET: cfu; fit scores a80b045ab7a74678d4dff01dddf77fcb; shape code b6833564da45cc91c0ade4883e4b98d3
+calibration gauges: 315, scored 315 (observed runoff >= 10 mm, every candidate scored); folds: 94
+day-of-year record: 0 gauge-days interpolated (wet_station_doy()); 0 observed gauge-months with no flow
+
+RULE (fixed in this script's header before any candidate existed): per gauge, the NSE of the 365 daily flows laid on the gauge's OBSERVED monthly means (q / mean(q) against the record's q_obs / mean(q_obs)); the candidate with the highest median ships if it exceeds flat's by >= 0.01.
+  flat 0.8994, spline 0.9768, donor 0.9824, basis 0.9708
+  best donor, gain over flat +0.0830 over 315 gauges -> SHIPS donor
+
+## Median per-gauge NSE: observed months (the rule), held-out months (the product), the weights alone (flat = 0)
+candidate       obs_m   cv_m      w flatbk
+flat           0.8994 0.7769 0.0000      -
+spline         0.9768 0.8317 0.7519      1
+donor          0.9824 0.8489 0.7951      0
+basis          0.9708 0.8361 0.6803      0
+sensitivity settings (reported, unable to ship):
+donor_k3       0.9812 0.8479 0.7756      0
+donor_k8       0.9829 0.8516 0.8020      0
+basis_c4       0.9715 0.8351 0.6856      0
+basis_c8       0.9700 0.8380 0.6768      0
+basis_static   0.9736 0.8395 0.7005      0
+  flatbk: held-out gauge-months whose reconstruction fell back to flat
+
+## Leak sensitivity: the held-out gauge's upstream and downstream training gauges removed from its pool
+   (observed months)
+donor          with 0.9824  without 0.9818  (315 gauges)
+basis          with 0.9708  without 0.9708  (315 gauges)
+
+## The issue's free day-of-year curve (donor mean of doy shares, k = 5, no month constraint),
+   reported only
+median NSE of the 365 daily shares against the record: 0.9091 (within-month donor on held-out months: 0.8489)
+median NSE of its 12 months against the observed shares: 0.9388; the shipped held-out shares (cv_share): 0.8735
+
+## Median NSE (observed months) by group
+# nesting
+headwater             238  flat 0.892  spline 0.973  donor 0.980  basis 0.966
+nested                 77  flat 0.919  spline 0.986  donor 0.990  basis 0.981
+# leak_up
+leak_up = 0           297  flat 0.895  spline 0.975  donor 0.982  basis 0.970
+leak_up > 0            18  flat 0.932  spline 0.990  donor 0.992  basis 0.986
+# leak_down
+leak_down              71  flat 0.909  spline 0.982  donor 0.986  basis 0.982
+no leak_down          244  flat 0.895  spline 0.973  donor 0.981  basis 0.963
+# peak
+peak May-June         241  flat 0.900  spline 0.978  donor 0.986  basis 0.978
+peak other months      74  flat 0.890  spline 0.933  donor 0.927  basis 0.912
+# lake
+lake outlet            19  flat 0.940  spline 0.994  donor 0.979  basis 0.955
+not lake outlet       296  flat 0.896  spline 0.975  donor 0.983  basis 0.972
+# zone
+zone 01                12  flat 0.953  spline 0.988  donor 0.977  basis 0.981
+zone 02                 5  flat 0.865  spline 0.958  donor 0.986  basis 0.978
+zone 03                21  flat 0.909  spline 0.972  donor 0.990  basis 0.978
+zone 04                 5  flat 0.875  spline 0.914  donor 0.898  basis 0.902
+zone 05                 7  flat 0.907  spline 0.978  donor 0.995  basis 0.991
+zone 06                 3  flat 0.768  spline 0.865  donor 0.925  basis 0.907
+zone 07                 9  flat 0.865  spline 0.967  donor 0.981  basis 0.970
+zone 08                23  flat 0.885  spline 0.968  donor 0.983  basis 0.954
+zone 09                 7  flat 0.927  spline 0.988  donor 0.988  basis 0.987
+zone 10                 9  flat 0.854  spline 0.923  donor 0.936  basis 0.903
+zone 11                 2  flat 0.895  spline 0.933  donor 0.807  basis 0.856
+zone 12                 3  flat 0.890  spline 0.981  donor 0.988  basis 0.980
+zone 13                10  flat 0.938  spline 0.990  donor 0.988  basis 0.985
+zone 14                22  flat 0.931  spline 0.991  donor 0.981  basis 0.978
+zone 15                19  flat 0.900  spline 0.977  donor 0.974  basis 0.966
+zone 16                 6  flat 0.888  spline 0.976  donor 0.984  basis 0.985
+zone 17                 4  flat 0.854  spline 0.952  donor 0.924  basis 0.951
+zone 18                12  flat 0.947  spline 0.991  donor 0.994  basis 0.973
+zone 19                11  flat 0.904  spline 0.982  donor 0.991  basis 0.989
+zone 20                10  flat 0.907  spline 0.985  donor 0.989  basis 0.984
+zone 21                13  flat 0.902  spline 0.984  donor 0.990  basis 0.987
+zone 22                15  flat 0.913  spline 0.988  donor 0.990  basis 0.982
+zone 23                 8  flat 0.903  spline 0.983  donor 0.989  basis 0.987
+zone 24                 9  flat 0.895  spline 0.977  donor 0.991  basis 0.983
+zone 25                16  flat 0.945  spline 0.984  donor 0.990  basis 0.960
+zone 26                13  flat 0.908  spline 0.954  donor 0.940  basis 0.926
+zone 27                12  flat 0.716  spline 0.758  donor 0.842  basis 0.831
+zone 28                16  flat 0.761  spline 0.840  donor 0.923  basis 0.908
+zone 29                13  flat 0.644  spline 0.662  donor 0.855  basis 0.829
+
+## Leader by group: the candidate with the highest median (observed months), its margin over the runner-up
+   (a difference under 1e-6 is a tie), and the shipped candidate's gain over flat
+headwater             238  donor    +0.0068 over spline  donor over flat +0.0875
+nested                 77  donor    +0.0042 over spline  donor over flat +0.0709
+leak_up = 0           297  donor    +0.0067 over spline  donor over flat +0.0866
+leak_up > 0            18  donor    +0.0020 over spline  donor over flat +0.0598
+leak_down              71  donor    +0.0037 over spline  donor over flat +0.0772
+no leak_down          244  donor    +0.0074 over spline  donor over flat +0.0858
+peak May-June         241  donor    +0.0078 over basis   donor over flat +0.0863
+peak other months      74  spline   +0.0057 over donor   donor over flat +0.0378
+lake outlet            19  spline   +0.0154 over donor   donor over flat +0.0389
+not lake outlet       296  donor    +0.0079 over spline  donor over flat +0.0872
+zone 01                12  spline   +0.0075 over basis   donor over flat +0.0236
+zone 02                 5  donor    +0.0083 over basis   donor over flat +0.1210
+zone 03                21  donor    +0.0115 over basis   donor over flat +0.0805
+zone 04                 5  spline   +0.0116 over basis   donor over flat +0.0231
+zone 05                 7  donor    +0.0041 over basis   donor over flat +0.0885
+zone 06                 3  donor    +0.0172 over basis   donor over flat +0.1565
+zone 07                 9  donor    +0.0109 over basis   donor over flat +0.1159
+zone 08                23  donor    +0.0157 over spline  donor over flat +0.0982
+zone 09                 7  spline   +0.0001 over donor   donor over flat +0.0612
+zone 10                 9  donor    +0.0133 over spline  donor over flat +0.0822
+zone 11                 2  spline   +0.0381 over flat    donor over flat -0.0882
+zone 12                 3  donor    +0.0071 over spline  donor over flat +0.0985
+zone 13                10  spline   +0.0018 over donor   donor over flat +0.0502
+zone 14                22  spline   +0.0096 over donor   donor over flat +0.0503
+zone 15                19  spline   +0.0032 over donor   donor over flat +0.0737
+zone 16                 6  basis    +0.0003 over donor   donor over flat +0.0966
+zone 17                 4  spline   +0.0008 over basis   donor over flat +0.0701
+zone 18                12  donor    +0.0024 over spline  donor over flat +0.0468
+zone 19                11  donor    +0.0016 over basis   donor over flat +0.0871
+zone 20                10  donor    +0.0039 over spline  donor over flat +0.0816
+zone 21                13  donor    +0.0031 over basis   donor over flat +0.0886
+zone 22                15  donor    +0.0022 over spline  donor over flat +0.0773
+zone 23                 8  donor    +0.0015 over basis   donor over flat +0.0858
+zone 24                 9  donor    +0.0078 over basis   donor over flat +0.0954
+zone 25                16  donor    +0.0061 over spline  donor over flat +0.0451
+zone 26                13  spline   +0.0140 over donor   donor over flat +0.0320
+zone 27                12  donor    +0.0111 over basis   donor over flat +0.1265
+zone 28                16  donor    +0.0152 over basis   donor over flat +0.1618
+zone 29                13  donor    +0.0266 over basis   donor over flat +0.2116
+zones led: spline 9, donor 19, basis 1
+largest gains of donor over flat by zone: zone 29 +0.212, zone 28 +0.162, zone 06 +0.156, zone 27 +0.127, zone 02 +0.121
+spline fallbacks to flat on the observed months: 0 gauge-months
+
+## Flow in the Chinook windows at the Bulkley gauges (m3/s), 1981-2010 years with the window's days
+   daily_record: the gauge, mean of per-year window means (wet_window_stats()); from_months: those years' observed
+   months spread flat (today's reader); shape_a: the same months with the held-out donor weights;
+   shape_b: the held-out balance (cv_ann x cv_share) with them. 08EE003 is not a calibration gauge: record only.
+gauge    window         years daily_record from_months    err%     shape_a    err%     shape_b    err%
+08EE013  migration         30        11.67       11.67    -0.1       11.67    -0.0        7.38   -36.8
+08EE013  spawning          29         0.91        0.94     3.0        0.96     5.5        2.54   178.4
+08EE013  fry migration     29         1.27        1.61    26.8        1.48    16.8        3.17   150.2
+08EE004  migration         30       298.38      297.99    -0.1      298.37    -0.0      233.50   -21.7
+08EE004  spawning          30       119.79      119.22    -0.5      117.03    -2.3      104.49   -12.8
+08EE004  fry migration     30       147.37      155.59     5.6      143.14    -2.9      124.76   -15.3
+08EE003  migration         18        36.81       36.79    -0.1          NA      NA          NA      NA
+08EE003  spawning          18         2.10        2.10     0.2          NA      NA          NA      NA
+08EE003  fry migration     18         3.26        4.05    24.3          NA      NA          NA      NA
+
+artifacts: fit_20260717/shape_daily.rds (method donor), fit_20260717/cv_shape_daily.rds

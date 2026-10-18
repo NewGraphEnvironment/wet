@@ -14,6 +14,7 @@ reference:
   contents:
   - wet_station_daily
   - wet_station_monthly
+  - wet_station_doy
   - wet_station_select
   - wet_station_snap
 - title: Water temperature
@@ -71,5 +72,7 @@ reference:
   - wet_wb_pooled
   - wet_share_fit
   - wet_share_predict
+  - wet_shape_fit
+  - wet_shape_predict
   - wet_cv_folds
   - wet_flow_validate
