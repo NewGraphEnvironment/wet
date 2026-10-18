@@ -21,6 +21,8 @@ balance is fitted at.
   present
 - [`wet_station_monthly()`](https://newgraphenvironment.github.io/wet/reference/wet_station_monthly.md)
   : Observed monthly and annual flow climatology at HYDAT stations
+- [`wet_station_doy()`](https://newgraphenvironment.github.io/wet/reference/wet_station_doy.md)
+  : Observed day-of-year flow climatology at HYDAT stations
 - [`wet_station_select()`](https://newgraphenvironment.github.io/wet/reference/wet_station_select.md)
   : Natural-flow HYDAT stations with a usable record in a period
 - [`wet_station_snap()`](https://newgraphenvironment.github.io/wet/reference/wet_station_snap.md)
@@ -149,6 +151,13 @@ out.
   : Fit the monthly share-of-annual-runoff regressions
 - [`wet_share_predict()`](https://newgraphenvironment.github.io/wet/reference/wet_share_predict.md)
   : Predict monthly shares of annual runoff
+- [`wet_shape_fit()`](https://newgraphenvironment.github.io/wet/reference/wet_shape_fit.md)
+  : Fit a within-month daily shape at gauges
+- [`wet_shape_predict()`](https://newgraphenvironment.github.io/wet/reference/wet_shape_predict.md)
+  [`wet_shape_flat()`](https://newgraphenvironment.github.io/wet/reference/wet_shape_predict.md)
+  [`wet_shape_spline()`](https://newgraphenvironment.github.io/wet/reference/wet_shape_predict.md)
+  [`wet_shape_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_shape_predict.md)
+  : Within-month weights for watersheds, and the daily flows they give
 - [`wet_cv_folds()`](https://newgraphenvironment.github.io/wet/reference/wet_cv_folds.md)
   : Cross-validation folds for gauges on one stream network
 - [`wet_flow_validate()`](https://newgraphenvironment.github.io/wet/reference/wet_flow_validate.md)

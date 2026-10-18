@@ -528,7 +528,8 @@ gives.</li>
 <li>A window’s flow from monthly means is an approximation (the window
 table measures it). <code><a href="../reference/wet_flow_window.html">wet_flow_window()</a></code> labels it
 <code>basis = "monthly"</code>, and gives <code>"daily"</code> from the
-same call once daily flow is published (#70).</li>
+same call once daily flow is published (#99; the balance’s shape within
+the month is fitted and scored in #70).</li>
 <li>Routed PCIC’s month 0 is a plain mean of its months, so its months
 converted to millimetres do not add up to its annual runoff
 exactly.</li>

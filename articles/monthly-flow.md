@@ -269,7 +269,8 @@ useful, each with its issue:
   table measures it).
   [`wet_flow_window()`](https://newgraphenvironment.github.io/wet/reference/wet_flow_window.md)
   labels it `basis = "monthly"`, and gives `"daily"` from the same call
-  once daily flow is published (#70).
+  once daily flow is published (#99; the balance’s shape within the
+  month is fitted and scored in \#70).
 - Routed PCIC’s month 0 is a plain mean of its months, so its months
   converted to millimetres do not add up to its annual runoff exactly.
 
