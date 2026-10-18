@@ -44,10 +44,9 @@
 
 source("scripts/vignette_data_lib.R")
 wet_commit <- vd_commit()
-source("scripts/wb_fit_lib.R")
-source("scripts/pcic_routed_lib.R")
-rc <- vd_routed_check()
 source("scripts/wb_cv_lib.R")  # load_all(), cal, long(), release, fit_dir
+source("scripts/pcic_routed_lib.R")  # after load_all(): it reads the run from the package
+rc <- vd_routed_check()
 
 stations_bulk <- c("08EE013", "08EE003", "08EE004")
 out <- file.path("inst", "vignette-data", "monthly_values.rds")
@@ -130,7 +129,8 @@ stopifnot(setequal(grp$linear_feature_id, cal$linear_feature_id))
 ids_used <- unique(c(seg_bulk$linear_feature_id, cal$linear_feature_id))
 src_routed <- DBI::dbGetQuery(conn, sprintf("
   SELECT linear_feature_id::int AS linear_feature_id, month::int AS month, q_m3s
-  FROM %s WHERE linear_feature_id IN (%s) ORDER BY 1, 2", routed_table, paste(ids_used, collapse = ", ")))
+  FROM %s WHERE %s AND linear_feature_id IN (%s) ORDER BY 1, 2", routed_table, routed_where,
+  paste(ids_used, collapse = ", ")))
 stopifnot(identical(routed_fingerprint(conn), rc$fingerprint))
 DBI::dbDisconnect(conn)
 
@@ -294,6 +294,7 @@ provenance <- list(
                    parts = cat_pub[c("dataset", "source", "code", "key", "rows", "bytes", "md5")],
                    reader = pb$reader, report = pb$report),
   published_check = pub_check,
+  routed = sub("^routed: ", "", routed_report_line(rc$commit)),
   routed_commit = rc$commit,
   routed_fingerprint = rc$fingerprint,
   routed_report = rc$report,

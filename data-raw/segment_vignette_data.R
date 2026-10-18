@@ -39,15 +39,13 @@
 # (scripts/vignette_data_lib.R holds both guards)
 source("scripts/vignette_data_lib.R")
 wet_commit <- vd_commit()
-source("scripts/wb_fit_lib.R")
-source("scripts/pcic_routed_lib.R")
+source("scripts/wb_cv_lib.R")  # load_all(), key_dir, cal, groups, score_code_md5
+source("scripts/pcic_routed_lib.R")  # after load_all(): it reads the run from the package
 rc <- vd_routed_check()
 fwapg_commit <- rc$commit
 routed_fp <- rc$fingerprint
 f_routed <- rc$report
 rr <- rc$lines
-
-source("scripts/wb_cv_lib.R")  # load_all(), key_dir, cal, groups, score_code_md5
 
 out <- file.path("inst", "vignette-data", "segment_values.rds")
 budget_kb <- 500
@@ -218,7 +216,9 @@ provenance <- list(
                    parts = cat_pub[c("dataset", "source", "code", "key", "rows", "bytes", "md5")],
                    reader = reader, report = f_pub),
   published_check = pub_check,
-  # routed flow (fwapg#6): the commit that built the table and its fingerprint
+  # routed flow (fwapg#6): the table and run read, the commit that built the
+  # run, and its fingerprint
+  routed = sub("^routed: ", "", routed_report_line(fwapg_commit)),
   routed_commit = fwapg_commit,
   routed_fingerprint = routed_fp,
   routed_report = f_routed
