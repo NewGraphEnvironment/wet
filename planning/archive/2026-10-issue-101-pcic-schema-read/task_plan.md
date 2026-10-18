@@ -87,14 +87,14 @@ which deletes `segment/` first. Merge with a merge commit (reports cite branch S
 - [x] Vignette data: not rebuilt here (decided 2026-10-18). Their guard needs every part identical to
       the live build, which waits for #103's republish; the bundles stand as built
 - [ ] Comment on NewGraphEnvironment/fwapg#31 that wet no longer reads the frozen tables (after merge
-      of this PR, linking it)
+      of this PR, linking it) — posted once the PR is open, naming it; true on merge
 
 ## Validation
 
 - [x] Tests pass
 - [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
 - [x] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] `/planning-archive` on completion
 
 ## Verification
 - Phase 1: `SELECT * FROM pcic.runs`; the `EXCEPT` both ways returns 0.
