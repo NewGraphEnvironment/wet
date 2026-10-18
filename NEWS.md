@@ -1,3 +1,7 @@
+# wet 0.4.12
+
+* The water balance has a daily shape within the month (#70). `wet_station_doy()` gives each calibration gauge's day-of-year record on a 365-day common year (29 February folded into 28); `wet_shape_fit()` and `wet_shape_predict()` (`donor`, `basis`), `wet_shape_flat()` and `wet_shape_spline()` give within-month weights that sum to 1 per month; `wet_shape_daily()` lays monthly means on them, so every calendar month's mean stays the published one and `segment_monthly` is untouched. `scripts/wb_shape_daily.R` scores the candidates held out on the shipped fit under a rule registered before any candidate existed, and donor gauges (k = 5) ship to `fit_20260717/shape_daily.rds`: median per-gauge NSE 0.982 against 0.899 for flat months (`data/checks/wb_shape_daily_20260717.txt`). Nothing is published yet; `segment_daily` for both sources is #99, blocked on NewGraphEnvironment/fwapg#25.
+
 # wet 0.4.11
 
 * The README is rewritten in plain language (#75). It says what wet gives: modelled monthly flow on almost every BC stream, published openly, and flow and water temperature at stations in the seasons that matter to fish. It shows a province map of where each river's default flow comes from, drawn by `data-raw/readme_figure.R`, and a read of the published flow that needs no credentials. It lists all three articles. link can now read wet's published discharge (NewGraphEnvironment/link#331). The function reference is grouped by purpose, and DESCRIPTION names the two published sources.
