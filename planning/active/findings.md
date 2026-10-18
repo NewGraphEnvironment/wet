@@ -57,3 +57,24 @@ Relates to #57, #58, #59, #99, #103, NewGraphEnvironment/fwapg#25, NewGraphEnvir
 
 | Error | Resolution |
 |-------|------------|
+
+## Exploration (2026-10-18)
+
+- Table name hard-coded in `R/wet_segment_monthly.R` (`wet_segment_sources()`) and `scripts/pcic_routed_lib.R` (`routed_table`); the `routed:` report line built by `sprintf` in three scripts; "1951-2012" hard-coded in `segment_output.R` (`period_routed`, published `period` column), `pcic_routed_compare.R` (report text) and `discharge_publish.R` (manifest description). All now come from `wet_segment_sources()`.
+- `data-raw/monthly_vignette_data.R` compares observed 1951–2012 against 1981–2010 to size routed PCIC's period error. That is about the vignette's argument, not the read, and stays for #103 to revisit.
+- The fresh-db container has psql 17.5 but no curl, so fwapg's `load/pcic.sql` (`\copy … FROM PROGRAM 'curl …'`) runs from a host psql. m1 has one.
+- m4's fwapg already held both runs (`pcic.runs` built_at 2026-10-17 19:13 and 21:39 UTC, crosswalk md5 b1a710836df2cafea0ef514b7ed1c338). Its Postgres answers on the LAN (192.168.1.111:5432); its shell does not (m1's Tailscale logged out; m4 refuses ssh on port 22).
+- NEWS.md is written by the release commit at merge, not on the branch.
+
+## Phase 1 measurements (2026-10-18)
+
+- m1 load (fwapg 7c30f58's `load/pcic_schema.sql`, `load/pcic.sql`, `load/pcic_run.sql`, both monthly runs): 19:36–19:42 UTC. `pcic.runs` on m1 and m4 identical: 1951–2012 40524444 rows / 3377037 segments / 178035348.248310; 1981–2010 40524444 / 3377037 / 178918222.786650; crosswalk md5 b1a710836df2cafea0ef514b7ed1c338.
+- `(linear_feature_id, watershed_group_code, month, q_m3s)` of the 1951–2012 run `EXCEPT ALL` the `whse_basemapping` table, both ways: 0 and 0 on m1 (101 s) and on m4 (195 s, over the LAN).
+- `routed_fingerprint()` on m1 under the run filter: `40524444 rows, 3377037 segments, 0 null flows, total 178035348.248310 m3/s`, the tracked report's `table:` line exactly; 23 s. A filter over both runs stops ("is not the run pcic.runs describes").
+
+## Plan review verdicts
+
+- B1 confirmed (installed wet 0.4.5; both data scripts sourced the lib before `load_all()`); fixed both ways: scripts reordered, lib refuses a non-dev wet.
+- G1 adopted (`ORDER BY`), cheap insurance for byte-identical month 0. G2 adopted (`routed` in both bundles' provenance). G3 confirmed and fixed. G4 adopted as an assertion. G5 fixed in the plan.
+- S3 (`scenario` column name in the lookup vs the argument) left: the lookup's columns are the table's key names.
+- Mutations (copy of the tree): dropping the run-exists check fails the missing-run test; dropping the run filter errors the months test (two rows per segment and month).

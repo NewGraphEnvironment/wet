@@ -27,47 +27,56 @@ Found while exploring:
   must run from a host psql. m1 has one; m4 has none.
 
 ## Phase 1: Load the `pcic` schema
-- [ ] m1: run the issue's load block from an fwapg checkout at `origin/newgraph` (7c30f58), both runs;
+- [x] m1: run the issue's load block from an fwapg checkout at `origin/newgraph` (7c30f58), both runs;
       check `pcic.runs` has the 1951–2012 row with 40524444 / 3377037 / 178035348.248310
-- [ ] m1: confirm 0 rows differ between the 1951–2012 run and the `whse_basemapping` table (one SQL
+- [x] m1: confirm 0 rows differ between the 1951–2012 run and the `whse_basemapping` table (one SQL
       `EXCEPT` both ways), recorded in findings
-- [ ] m4: same load. Route: psql on m1 against m4's fwapg over Tailscale if its port is reachable;
-      otherwise ask (installing psql on m4 is a machine change)
+- [x] m4: same load. Route: psql on m1 against m4's fwapg over Tailscale if its port is reachable;
+      otherwise ask (installing psql on m4 is a machine change). Not needed: m4's fwapg already holds both
+      runs (built 2026-10-17, crosswalk b1a7108…, 1951–2012 row 40524444 / 3377037 / 178035348.248310)
 
 ## Phase 2: One definition of the run (package)
-- [ ] `wet_segment_sources()`: the fwapg row names `location = "pcic.discharge_monthly"` and the run in
+- [x] `wet_segment_sources()`: the fwapg row names `location = "pcic.discharge_monthly"` and the run in
       three new columns `model`, `scenario`, `period` (`PNWNAmet`, `historical`, `1951-2012`; NA on the
       published rows); `origin` names fwapg's `load/pcic_schema.sql`, `load/pcic.sql`, `load/pcic_run.sql`
-- [ ] `wet_segment_fwapg()`: filter every read on `(model, scenario, period)`; the requested scenario
+- [x] `wet_segment_fwapg()`: filter every read on `(model, scenario, period)`; the requested scenario
       must equal the run's (message from the lookup, "historical" still the only one); a missing table
       names the three load files; a table with no rows for the run is an error naming
       `load/pcic_run.sql` and the run (index seek on the primary-key prefix, not a scan)
-- [ ] roxygen: `from = "fwapg"` names the table, the run and the period; `devtools::document()`
-- [ ] tests (`test-wet_segment_monthly.R`): reference months from `pcic.discharge_monthly` under the run
+- [x] roxygen: `from = "fwapg"` names the table, the run and the period; `devtools::document()`
+- [x] tests (`test-wet_segment_monthly.R`): reference months from `pcic.discharge_monthly` under the run
       filter; new test that a missing run is an error (mock `wet_segment_sources()` to a run that does
       not exist); the missing-table test expects the load-file names. Restore each defect once to see
       the new tests go red
 
 ## Phase 3: Scripts take the run from the package
-- [ ] `scripts/pcic_routed_lib.R`: `routed_run` (the lookup row) and `routed_table` from
-      `wet:::wet_segment_sources()`, a `routed_where` SQL filter, and `routed_line(commit)` replacing the
-      three `sprintf`s (`routed: pcic.discharge_monthly (PNWNAmet historical 1951-2012), built by
+- [x] `scripts/pcic_routed_lib.R`: `routed_run` (the lookup row) and `routed_table` from
+      `wet:::wet_segment_sources()`, a `routed_where` SQL filter, and `routed_report_line(commit)` replacing the
+      three `sprintf`s (not `routed_line`, already a variable in two scripts) (`routed: pcic.discharge_monthly (PNWNAmet historical 1951-2012), built by
       NewGraphEnvironment/fwapg at <commit>`); header comment rewritten
-- [ ] `routed_fingerprint()`: computed from the run's rows as now (same text, so the `table:` line is
+- [x] `routed_fingerprint()`: computed from the run's rows as now (same text, so the `table:` line is
       unchanged), and stops unless rows, segments and total equal the run's row in `pcic.runs`
-- [ ] `segment_output.R` (routed join, count of routed segments, `period_routed`),
+- [x] `segment_output.R` (routed join, count of routed segments, `period_routed`),
       `discharge_publish.R` (whole-run read, description period), `data-raw/monthly_vignette_data.R`
       (routed months), `pcic_routed_compare.R` (report text period): filter on the run, use
-      `routed_line()` / `routed_run$period`; `vignette_data_lib.R` uses `routed_line()`
-- [ ] `WET_FWAPG_COMMIT` stays; its error message names the run; usage headers say 7c30f58
+      `routed_report_line()` / `routed_run$period`; `vignette_data_lib.R` uses `routed_report_line()`
+- [x] Plan review fixes: data scripts `load_all()` before sourcing the lib (which now refuses an installed
+      wet); `ORDER BY` on segment_output's routed read; vignette bundles record `routed` (table and run);
+      first fwapg test skips without `pcic`; `publish_forcing` asserted equal to the run's model
+- [x] `WET_FWAPG_COMMIT` stays; its error message names the run; usage headers keep `<sha>` (CLAUDE.md names 7c30f58)
 
 ## Phase 4: Docs
-- [ ] CLAUDE.md routed-table lines (scripts list #58, Data Sources "PCIC routed flow"),
+- [x] CLAUDE.md routed-table lines (scripts list #58, Data Sources "PCIC routed flow"),
       `research/discharge_publish.md` (value-check row and the table named, Verified line),
       `research/README.md` row if it names the table. Dated records stay as written
-- [ ] NEWS.md entry under the development version
+- [x] NEWS.md entry under the development version — dropped: the release commit at merge writes NEWS (`/gh-pr-merge`)
 
 ## Phase 5: Reruns (the issue's "Done when")
+
+`/code-check branch` and its fixes land before this phase: `discharge_publish.R` refuses a segment table
+whose `R/` or `scripts/` changed since its report's commit. Record part md5s before `segment_output.R`,
+which deletes `segment/` first. Merge with a merge commit (reports cite branch SHAs).
+
 - [ ] m1: `WET_FWAPG_COMMIT=7c30f58 Rscript scripts/pcic_routed_compare.R`; diff vs committed report:
       only the wet commit and `routed:` lines differ; commit the report
 - [ ] m4 (worktree, `data/wb` symlinked): `segment_output.R`; every segment part byte-identical (md5

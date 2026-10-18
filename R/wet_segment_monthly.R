@@ -14,12 +14,15 @@
 #' the twelve months, and fresh joins the same rows.
 #'
 #' With `from = "fwapg"`, `pcic_routed` is read from fwapg's own routed table
-#' (`whse_basemapping.fwa_stream_networks_discharge_monthly`), with month 0
-#' computed by the same rule as the published one: the mean of the twelve
-#' months, `NA` unless all twelve have flow. That table is loaded by the
-#' NewGraphEnvironment fork of fwapg, not by upstream fwapg. Scoring the
-#' table before it is published (`scripts/pcic_routed_compare.R`) reads it
-#' this way.
+#' (`pcic.discharge_monthly`), the run PCIC's hydromosaic made with PNWNAmet
+#' forcing, `historical`, averaged over 1951-2012 (`model`, `scenario` and
+#' `period` `PNWNAmet`, `historical`, `1951-2012`), with month 0 computed by
+#' the same rule as the published one: the mean of the twelve months, `NA`
+#' unless all twelve have flow. That table is loaded by the
+#' NewGraphEnvironment fork of fwapg (`load/pcic_schema.sql`, `load/pcic.sql`,
+#' then `load/pcic_run.sql` per run), not by upstream fwapg; a table without
+#' the run's rows is an error. Scoring the table before it is published
+#' (`scripts/pcic_routed_compare.R`) reads it this way.
 #'
 #' Reading parts with no `groups` reads the segment ID column of every part
 #' (about half a minute for a few segments over HTTPS, and nearly the whole
@@ -38,7 +41,7 @@
 #'   `"fwapg"`.
 #' @param from `"published"` or `"fwapg"`, as described above.
 #' @param scenario Scenario of the published product, e.g. `"historical"`.
-#'   fwapg holds only `"historical"`.
+#'   fwapg's run is `"historical"` only.
 #' @param groups Optional watershed group codes that hold the segments. A
 #'   segment outside them reads as missing.
 #' @param catalog For parts read without `conn`: the output of
@@ -71,19 +74,23 @@ wet_segment_monthly <- function(conn, segments, source = c("pcic_routed", "wet_b
 }
 
 # Where each source's values are, by store: a published dataset ID or a
-# database table, and what loads it (for the error when it is missing). The
-# one place a source is mapped to a table.
+# database table, what loads it (for the error when it is missing), and for a
+# table that holds several runs, the run read (model, scenario, period; NA
+# where the store has no runs). The one place a source is mapped to a table
+# and a run.
 wet_segment_sources <- function(dataset) {
   out <- data.frame(
     from = "published", source = c("pcic_routed", "wet_balance"), location = dataset,
-    origin = "wet's published product (wet_catalog(), loaded into Postgres by wet_db_load())"
+    origin = "wet's published product (wet_catalog(), loaded into Postgres by wet_db_load())",
+    model = NA_character_, scenario = NA_character_, period = NA_character_
   )
   if (wet_timebase(dataset)$col == "month") {
     out <- rbind(out, data.frame(
-      from = "fwapg", source = "pcic_routed",
-      location = "whse_basemapping.fwa_stream_networks_discharge_monthly",
-      origin = paste("the NewGraphEnvironment fork of fwapg (extras/pcic_crosswalk on its newgraph branch,",
-                     "NewGraphEnvironment/fwapg#9); upstream fwapg does not load it (NewGraphEnvironment/fwapg#20)")
+      from = "fwapg", source = "pcic_routed", location = "pcic.discharge_monthly",
+      origin = paste("the NewGraphEnvironment fork of fwapg (its newgraph branch, NewGraphEnvironment/fwapg#25):",
+                     "load/pcic_schema.sql, load/pcic.sql, then load/pcic_run.sql for each run;",
+                     "upstream fwapg does not load it"),
+      model = "PNWNAmet", scenario = "historical", period = "1951-2012"
     ))
   }
   out
@@ -126,7 +133,7 @@ wet_segment_read <- function(conn, dataset, segments, source, from, scenario, gr
   if (!length(ids)) return(cbind(grid[c("linear_feature_id", tb$col)], q_m3s = numeric(), grid["source"]))
 
   got <- if (from == "fwapg") {
-    wet_segment_fwapg(conn, lk$location[match(source, lk$source)], lk$origin[1], ids, scenario, groups)
+    wet_segment_fwapg(conn, lk[match(source, lk$source), , drop = FALSE], ids, scenario, groups)
   } else if (is.null(conn)) {
     wet_segment_parts(dataset, ids, source, scenario, groups, catalog)
   } else {
@@ -155,6 +162,11 @@ wet_sql_in <- function(conn, x) {
 # the optional watershed-group filter, every table and part carrying the column
 wet_sql_groups <- function(conn, groups) {
   if (is.null(groups)) "" else sprintf(" AND watershed_group_code IN (%s)", wet_sql_in(conn, groups))
+}
+
+# The filter on one run of a table keyed by run (wet_segment_sources()).
+wet_sql_run <- function(conn, lk) {
+  sprintf("(model, scenario, period) = (%s)", wet_sql_in(conn, c(lk$model, lk$scenario, lk$period)))
 }
 
 # The published dataset from the Postgres table wet_db_load() writes.
@@ -236,16 +248,27 @@ wet_segment_parts <- function(dataset, ids, source, scenario, groups, catalog) {
   do.call(rbind, out)
 }
 
-# pcic_routed from fwapg's routed table, month 0 by the published rule.
-wet_segment_fwapg <- function(conn, location, origin, ids, scenario, groups) {
-  if (scenario != "historical") stop("fwapg holds only the historical scenario, not ", scenario, call. = FALSE)
-  location <- unique(location)
-  there <- DBI::dbGetQuery(conn, "SELECT to_regclass($1) IS NOT NULL AS ok", params = list(location))$ok
-  if (!isTRUE(there)) stop(location, " does not exist: it is loaded by ", origin, call. = FALSE)
+# pcic_routed from fwapg's routed table, the run wet_segment_sources() names,
+# month 0 by the published rule. `lk` is that lookup's row for the source.
+wet_segment_fwapg <- function(conn, lk, ids, scenario, groups) {
+  stopifnot(nrow(lk) == 1L)
+  if (scenario != lk$scenario) {
+    stop("fwapg's routed run is the ", lk$scenario, " scenario only, not ", scenario, call. = FALSE)
+  }
+  there <- DBI::dbGetQuery(conn, "SELECT to_regclass($1) IS NOT NULL AS ok", params = list(lk$location))$ok
+  if (!isTRUE(there)) stop(lk$location, " does not exist: it is loaded by ", lk$origin, call. = FALSE)
+  run <- wet_sql_run(conn, lk)
+  # a run never loaded would read as every segment missing; the run is the
+  # primary key's prefix, so this is one index seek
+  have <- DBI::dbGetQuery(conn, sprintf("SELECT EXISTS (SELECT 1 FROM %s WHERE %s) AS ok", lk$location, run))$ok
+  if (!isTRUE(have)) {
+    stop(lk$location, " has no rows for the run ", paste(lk$model, lk$scenario, lk$period),
+         ": load it with fwapg's load/pcic_run.sql (", lk$origin, ")", call. = FALSE)
+  }
   sql <- sprintf(
     "SELECT linear_feature_id::int AS linear_feature_id, month::int AS month, q_m3s FROM %s
-     WHERE linear_feature_id IN (%s) AND month BETWEEN 1 AND 12%s",
-    location, wet_sql_in(conn, ids), wet_sql_groups(conn, groups)
+     WHERE %s AND linear_feature_id IN (%s) AND month BETWEEN 1 AND 12%s",
+    lk$location, run, wet_sql_in(conn, ids), wet_sql_groups(conn, groups)
   )
   d <- DBI::dbGetQuery(conn, sql)
   d <- rbind(d, wet_segment_annual(d))
