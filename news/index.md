@@ -1,5 +1,32 @@
 # Changelog
 
+## wet 0.4.12
+
+- The water balance has a daily shape within the month
+  ([\#70](https://github.com/NewGraphEnvironment/wet/issues/70)).
+  [`wet_station_doy()`](https://newgraphenvironment.github.io/wet/reference/wet_station_doy.md)
+  gives each calibration gauge’s day-of-year record on a 365-day common
+  year (29 February folded into 28);
+  [`wet_shape_fit()`](https://newgraphenvironment.github.io/wet/reference/wet_shape_fit.md)
+  and
+  [`wet_shape_predict()`](https://newgraphenvironment.github.io/wet/reference/wet_shape_predict.md)
+  (`donor`, `basis`),
+  [`wet_shape_flat()`](https://newgraphenvironment.github.io/wet/reference/wet_shape_predict.md)
+  and
+  [`wet_shape_spline()`](https://newgraphenvironment.github.io/wet/reference/wet_shape_predict.md)
+  give within-month weights that sum to 1 per month;
+  [`wet_shape_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_shape_predict.md)
+  lays monthly means on them, so every calendar month’s mean stays the
+  published one and `segment_monthly` is untouched.
+  `scripts/wb_shape_daily.R` scores the candidates held out on the
+  shipped fit under a rule registered before any candidate existed, and
+  donor gauges (k = 5) ship to `fit_20260717/shape_daily.rds`: median
+  per-gauge NSE 0.982 against 0.899 for flat months
+  (`data/checks/wb_shape_daily_20260717.txt`). Nothing is published yet;
+  `segment_daily` for both sources is
+  [\#99](https://github.com/NewGraphEnvironment/wet/issues/99), blocked
+  on NewGraphEnvironment/fwapg#25.
+
 ## wet 0.4.11
 
 - The README is rewritten in plain language

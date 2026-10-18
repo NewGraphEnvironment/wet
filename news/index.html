@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.11</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.12</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,9 +34,13 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/v0.4.12/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.12" id="wet-0412">wet 0.4.12<a class="anchor" aria-label="anchor" href="#wet-0412"></a></h2>
+<ul><li>The water balance has a daily shape within the month (<a href="https://github.com/NewGraphEnvironment/wet/issues/70" class="external-link">#70</a>). <code><a href="../reference/wet_station_doy.html">wet_station_doy()</a></code> gives each calibration gauge’s day-of-year record on a 365-day common year (29 February folded into 28); <code><a href="../reference/wet_shape_fit.html">wet_shape_fit()</a></code> and <code><a href="../reference/wet_shape_predict.html">wet_shape_predict()</a></code> (<code>donor</code>, <code>basis</code>), <code><a href="../reference/wet_shape_predict.html">wet_shape_flat()</a></code> and <code><a href="../reference/wet_shape_predict.html">wet_shape_spline()</a></code> give within-month weights that sum to 1 per month; <code><a href="../reference/wet_shape_predict.html">wet_shape_daily()</a></code> lays monthly means on them, so every calendar month’s mean stays the published one and <code>segment_monthly</code> is untouched. <code>scripts/wb_shape_daily.R</code> scores the candidates held out on the shipped fit under a rule registered before any candidate existed, and donor gauges (k = 5) ship to <code>fit_20260717/shape_daily.rds</code>: median per-gauge NSE 0.982 against 0.899 for flat months (<code>data/checks/wb_shape_daily_20260717.txt</code>). Nothing is published yet; <code>segment_daily</code> for both sources is <a href="https://github.com/NewGraphEnvironment/wet/issues/99" class="external-link">#99</a>, blocked on NewGraphEnvironment/fwapg#25.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.11" id="wet-0411">wet 0.4.11<a class="anchor" aria-label="anchor" href="#wet-0411"></a></h2>
 <ul><li>The README is rewritten in plain language (<a href="https://github.com/NewGraphEnvironment/wet/issues/75" class="external-link">#75</a>). It says what wet gives: modelled monthly flow on almost every BC stream, published openly, and flow and water temperature at stations in the seasons that matter to fish. It shows a province map of where each river’s default flow comes from, drawn by <code>data-raw/readme_figure.R</code>, and a read of the published flow that needs no credentials. It lists all three articles. link can now read wet’s published discharge (NewGraphEnvironment/link#331). The function reference is grouped by purpose, and DESCRIPTION names the two published sources.</li>
