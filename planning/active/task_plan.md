@@ -77,7 +77,7 @@ Found while exploring:
 whose `R/` or `scripts/` changed since its report's commit. Record part md5s before `segment_output.R`,
 which deletes `segment/` first. Merge with a merge commit (reports cite branch SHAs).
 
-- [ ] m1: `WET_FWAPG_COMMIT=7c30f58 Rscript scripts/pcic_routed_compare.R`; diff vs committed report:
+- [x] m1: `WET_FWAPG_COMMIT=7c30f58 Rscript scripts/pcic_routed_compare.R`; diff vs committed report:
       only the wet commit and `routed:` lines differ; commit the report
 - [ ] m4 (worktree, `data/wb` symlinked): `segment_output.R`; every value equal to the previous parts'
       except routed month 0 (last bits, decided 2026-10-18: months summed in month order); report
