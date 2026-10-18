@@ -141,7 +141,9 @@ for (code in codes) {
   s$q_balance <- bal$discharge_m3s[iw]
   s$area_m2 <- up$upstream_area_m2[match(s$watershed_feature_id, up$watershed_feature_id)]
 
-  # routed: all twelve months on the segment
+  # routed: all twelve months on the segment, in month order, so month 0 is
+  # their mean summed in that order. Before #101 the rows came in the old
+  # table's storage order, and the mean's last bits followed it
   invisible(DBI::dbExecute(conn, "TRUNCATE seg_ids"))
   DBI::dbWriteTable(conn, "seg_ids", data.frame(linear_feature_id = s$linear_feature_id), append = TRUE)
   rt <- DBI::dbGetQuery(conn, sprintf("

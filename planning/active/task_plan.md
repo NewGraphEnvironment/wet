@@ -79,13 +79,13 @@ which deletes `segment/` first. Merge with a merge commit (reports cite branch S
 
 - [ ] m1: `WET_FWAPG_COMMIT=7c30f58 Rscript scripts/pcic_routed_compare.R`; diff vs committed report:
       only the wet commit and `routed:` lines differ; commit the report
-- [ ] m4 (worktree, `data/wb` symlinked): `segment_output.R`; every segment part byte-identical (md5
-      before/after); report differs only in those lines; commit the report
-- [ ] m4: `discharge_publish.R` BUILD (no `WET_PUBLISH`): every value check passes, every part
-      byte-identical to the live build; commit the report. Nothing uploaded
-- [ ] m1: `data-raw/segment_vignette_data.R` and `data-raw/monthly_vignette_data.R` pass their guards;
-      bundle values equal the previous bundles' (compare all but provenance); provenance names
-      7c30f58 and the new table; commit the `.rds`
+- [ ] m4 (worktree, `data/wb` symlinked): `segment_output.R`; every value equal to the previous parts'
+      except routed month 0 (last bits, decided 2026-10-18: months summed in month order); report
+      differs only in the wet commit and `routed:` lines; commit the report
+- [ ] m4: `discharge_publish.R` BUILD (no `WET_PUBLISH`): every value check passes; parts identical to
+      the live build except the routed parts with a moved month 0; commit the report. Nothing uploaded
+- [x] Vignette data: not rebuilt here (decided 2026-10-18). Their guard needs every part identical to
+      the live build, which waits for #103's republish; the bundles stand as built
 - [ ] Comment on NewGraphEnvironment/fwapg#31 that wet no longer reads the frozen tables (after merge
       of this PR, linking it)
 

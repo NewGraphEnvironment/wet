@@ -78,3 +78,11 @@ Relates to #57, #58, #59, #99, #103, NewGraphEnvironment/fwapg#25, NewGraphEnvir
 - G1 adopted (`ORDER BY`), cheap insurance for byte-identical month 0. G2 adopted (`routed` in both bundles' provenance). G3 confirmed and fixed. G4 adopted as an assertion. G5 fixed in the plan.
 - S3 (`scenario` column name in the lookup vs the argument) left: the lookup's columns are the table's key names.
 - Mutations (copy of the tree): dropping the run-exists check fails the missing-run test; dropping the run filter errors the months test (two rows per segment and month).
+
+## Code-check round 1: routed month 0 follows row order (2026-10-18)
+
+The reviewer found that the new `ORDER BY` in `segment_output.R` changes routed month 0's last bits in about 15 % of routed segments. The `findings.md` note above calling it "cheap insurance" was wrong. `stats::aggregate(mean)` sums in arrival order, and the old read arrived in the old table's storage order (a hash join over a seq scan for a large basin; small basins took a nested loop over the key and were unaffected).
+
+Verified on the live Fraser routed part (code 100): 82,681 of 1,010,776 segments' month 0 differ from the month-ordered mean. Earlier reruns matched 67 of 67 only because the old table never moved. No read of `pcic.discharge_monthly` reproduces those bits without reading the old table.
+
+**Decision (user, 2026-10-18):** order the months; do not upload; #103 republishes. Acceptance moved accordingly, and the issue body was edited. The BUILD's month-0 check uses a 1e-9 tolerance and passes; its "parts identical" line will read fewer than 67. The vignette data guard (`vd_published()`) needs every part identical, so the bundles are not rebuilt until #103.
