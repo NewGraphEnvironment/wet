@@ -86,3 +86,9 @@ The reviewer found that the new `ORDER BY` in `segment_output.R` changes routed 
 Verified on the live Fraser routed part (code 100): 82,681 of 1,010,776 segments' month 0 differ from the month-ordered mean. Earlier reruns matched 67 of 67 only because the old table never moved. No read of `pcic.discharge_monthly` reproduces those bits without reading the old table.
 
 **Decision (user, 2026-10-18):** order the months; do not upload; #103 republishes. Acceptance moved accordingly, and the issue body was edited. The BUILD's month-0 check uses a 1e-9 tolerance and passes; its "parts identical" line will read fewer than 67. The vignette data guard (`vd_published()`) needs every part identical, so the bundles are not rebuilt until #103.
+
+## Code-check round 2 (2026-10-18)
+
+No bugs. Three findings: `wet_segment_fwapg()` read with no `ORDER BY` (same class; fixed, `ORDER BY 1, 2`); "about 8 %" in research and the issue is the Fraser rate, and the reviewer measured 11.4 % province-wide (384,680 of 3,377,037, 9 of 20 routed parts), to be confirmed from the m4 rebuild; research's Status line names the BUILD report that Phase 5 replaces. The round-1 fix's own text carried the 8 %, so the loop ended by enumeration: the 8 sites that reduce routed rows (segment_output's aggregate, wet_segment_fwapg/annual, monthly_vignette_data's aggregate, discharge_publish's month-0 check and routed_micro, routed_fingerprint, and routed_annual through pcic_routed_compare and segment_vignette_data) are each ordered, exact, or compared with a tolerance.
+
+Side sweep (user's question): the class also stands in wet#76 (province runs; body updated) and in link (link#356 filed). No soul convention covers it; a rule was offered to the user, not written.

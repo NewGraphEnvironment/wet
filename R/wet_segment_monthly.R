@@ -267,7 +267,8 @@ wet_segment_fwapg <- function(conn, lk, ids, scenario, groups) {
   }
   sql <- sprintf(
     "SELECT linear_feature_id::int AS linear_feature_id, month::int AS month, q_m3s FROM %s
-     WHERE %s AND linear_feature_id IN (%s) AND month BETWEEN 1 AND 12%s",
+     WHERE %s AND linear_feature_id IN (%s) AND month BETWEEN 1 AND 12%s
+     ORDER BY 1, 2",
     lk$location, run, wet_sql_in(conn, ids), wet_sql_groups(conn, groups)
   )
   d <- DBI::dbGetQuery(conn, sql)
@@ -277,7 +278,8 @@ wet_segment_fwapg <- function(conn, lk, ids, scenario, groups) {
 }
 
 # Month 0 as the published product defines it: the plain mean of months 1-12,
-# NA unless all twelve have flow.
+# NA unless all twelve have flow. The mean adds the months in the order given,
+# so callers pass them in month order, as scripts/segment_output.R sums them.
 wet_segment_annual <- function(d) {
   d <- d[d$month %in% 1:12, , drop = FALSE]
   ids <- unique(d$linear_feature_id)
