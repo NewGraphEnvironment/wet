@@ -12,3 +12,6 @@
 - code-check round 2: reader ordered too (2e49dd9); loop ended by enumeration of the 8 routed reductions
 - Side question: same class in wet#76 (body updated) and link (link#356 filed)
 - pcic_routed_compare.R rerun on m1: report differs only in the wet commit and routed: lines
+- m4 segment_output.R (20:08-20:15 UTC, 433d036): report differs only in wet commit and routed: lines; routed month 0 moved in 384,680 of 3,377,037 segments (11.4 %, max 1.81 ulp), every other value identical, 14 of 23 parts byte-identical (m4 `data/logs/101/segcmp.txt`); committed 1d0faf8 from m4
+- m4 BUILD (to 20:25 UTC): every check ok, 555,857,796 values compared, 0 differing; 58 of 67 parts identical to acb820f; nothing uploaded; committed 1fc4109 from m4
+- Research and issue corrected from 8 % to the measured 11.4 %

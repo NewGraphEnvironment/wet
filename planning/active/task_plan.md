@@ -79,10 +79,10 @@ which deletes `segment/` first. Merge with a merge commit (reports cite branch S
 
 - [x] m1: `WET_FWAPG_COMMIT=7c30f58 Rscript scripts/pcic_routed_compare.R`; diff vs committed report:
       only the wet commit and `routed:` lines differ; commit the report
-- [ ] m4 (worktree, `data/wb` symlinked): `segment_output.R`; every value equal to the previous parts'
+- [x] m4 (worktree, `data/wb` symlinked): `segment_output.R`; every value equal to the previous parts'
       except routed month 0 (last bits, decided 2026-10-18: months summed in month order); report
       differs only in the wet commit and `routed:` lines; commit the report
-- [ ] m4: `discharge_publish.R` BUILD (no `WET_PUBLISH`): every value check passes; parts identical to
+- [x] m4: `discharge_publish.R` BUILD (no `WET_PUBLISH`): every value check passes; parts identical to
       the live build except the routed parts with a moved month 0; commit the report. Nothing uploaded
 - [x] Vignette data: not rebuilt here (decided 2026-10-18). Their guard needs every part identical to
       the live build, which waits for #103's republish; the bundles stand as built
@@ -91,9 +91,9 @@ which deletes `segment/` first. Merge with a merge commit (reports cite branch S
 
 ## Validation
 
-- [ ] Tests pass
-- [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
+- [x] Tests pass
+- [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
 ## Verification
