@@ -79,9 +79,18 @@ By month (scratch probe, `data/logs/103/period_probe.R` and `.txt`): routed over
 
 Seasons (median over gauge-months): March-April -19.5 -> -11.5; July-August +18.7 -> +15.8. Per gauge, 1981-2010: low in March-April at 61 % (was 69 %), high in July-August at 68 % (69 %), both 41 % (48 %).
 
-**The #67 test.** Routed's spring-low, summer-high shape survives on 1981-2010, so it is not the period. The period accounted for about 40 % of the March-April shortfall and about 15 % of the July-August excess, against the old article's long-record estimate, which put both under 50 %. With both periods equal, what remains (-11.5 % spring, +15.8 % summer) is attributable to PCIC's model or its placement, not to the period. The article's thresholds (spring < -10 %, summer > +10 %) still hold, March-April narrowly.
+**The #67 test.** Routed's spring-low, summer-high shape survives on 1981-2010, so it is not the period. The period accounted for about 40 % of the March-April shortfall and about 15 % of the July-August excess, against the old article's long-record estimate, which put both under 50 %. With both periods equal, what remains (-11.5 % spring, +15.8 % summer) is attributable to PCIC's model, not to the period (the monthly article argues against placement: a misplaced outlet would not move the median of the gauges toward a late melt). The article's thresholds (spring < -10 %, summer > +10 %) still hold, March-April narrowly.
+
+## Phase 3: the segment table on the 1981-2010 run (m4, 2026-10-18)
+
+`WET_FWAPG_COMMIT=7c30f58 Rscript scripts/segment_output.R` in `~/Projects/repo/wet-103` (log `data/logs/103/segment_output.log` on m4; 6.6 min). The first attempt stopped at once without `WET_FWAPG_COMMIT`, which `segment_output.R` needs as `pcic_routed_compare.R` does (the plan named it only for the latter). Report committed from m4 (603ddc1). The post-#101 table is set aside at `data/wb/e675918817/_pre103/segment` on m4; md5s in `data/logs/103/segment_md5_before.txt` there.
+
+Same segment counts (both 3,374,133; routed only 2,904; balance only 1,155,806). Routed picked on 3,154,131 (was 3,152,838), the balance on 1,378,712 (1,380,005), 222,906 of those under the cut (224,199). Nechako groups' share of flips 26.8 % (26.7 %).
+
+Picks that moved, segment by segment (`data/logs/103/pickmove.R`, `.txt`): 3,013 to routed and 1,720 to the balance, 4,733 in all (0.10 % of the 4,532,843 segments with a value). The most were in the Fraser (1,508 to routed, 596 to the balance), the Columbia (447 to routed, none back), 600 (649 to routed), 200 (443 to the balance) and 910 (560 to the balance). Every routed row's period is 1981-2010, and every balance row's too.
 
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
+| `segment_output.R`: set WET_FWAPG_COMMIT to the fwapg commit that built pcic.discharge_monthly | Rerun with `WET_FWAPG_COMMIT=7c30f58` |

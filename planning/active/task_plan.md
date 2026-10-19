@@ -17,7 +17,7 @@ Depends on #101 (merged, v0.4.13). Decided at the plan gate (2026-10-18): #103 p
 - [x] Commit the report
 
 ## Phase 3: Segment table and BUILD (m4)
-- [ ] Pull on m4; `WET_FWAPG_COMMIT=7c30f58 Rscript scripts/segment_output.R`. Record how many picks moved, and where. Commit `data/checks/segment_output_20260717.txt`
+- [x] Pull on m4; `WET_FWAPG_COMMIT=7c30f58 Rscript scripts/segment_output.R`. Record how many picks moved, and where. Commit `data/checks/segment_output_20260717.txt`
 - [ ] `scripts/discharge_publish.R` BUILD. Every value check must pass. Commit `data/checks/discharge_publish_20260717.txt`
 - [ ] **Stop for the user's go**, then `AWS_PROFILE=airvine WET_PUBLISH=1 Rscript scripts/discharge_publish.R`, which uploads and verifies anonymously (it writes no report)
 - [ ] Rerun BUILD after the upload, with nothing under R/ or scripts/ changed; its report must read N of N identical to the new live build. Commit it (B1; #77 did the same)
