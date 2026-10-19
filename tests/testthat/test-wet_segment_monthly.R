@@ -127,7 +127,7 @@ test_that("fwapg's routed table gives its months, and month 0 as their plain mea
   skip_if(is.na(DBI::dbGetQuery(conn, "SELECT to_regclass('pcic.discharge_monthly') AS t")$t),
           "no pcic.discharge_monthly")
   ref <- DBI::dbGetQuery(conn, "SELECT month, q_m3s FROM pcic.discharge_monthly
-                                WHERE (model, scenario, period) = ('PNWNAmet', 'historical', '1951-2012')
+                                WHERE (model, scenario, period) = ('PNWNAmet', 'historical', '1981-2010')
                                 AND linear_feature_id = 17094080 ORDER BY month")
   skip_if(nrow(ref) != 12, "no routed months for 17094080")
   out <- wet_segment_monthly(conn, c(17094080, 1), source = "pcic_routed", from = "fwapg")
@@ -155,7 +155,7 @@ test_that("a missing fwapg table names the fork's loads, and a missing run is an
   lk <- wet:::wet_segment_sources("discharge/fwa/v1/segment_monthly")
   lk <- lk[lk$from == "fwapg", ]
   expect_identical(unlist(lk[c("location", "model", "scenario", "period")], use.names = FALSE),
-                   c("pcic.discharge_monthly", "PNWNAmet", "historical", "1951-2012"))
+                   c("pcic.discharge_monthly", "PNWNAmet", "historical", "1981-2010"))
   mock <- function(...) function(dataset) utils::modifyList(lk, list(...))
   local_mocked_bindings(wet_segment_sources = mock(location = "pcic.no_such_table"))
   expect_error(wet_segment_monthly(conn, 17094080, source = "pcic_routed", from = "fwapg"),

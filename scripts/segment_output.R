@@ -30,8 +30,8 @@
 #   (routed_own_line_sql: side channels, and connectors sitting in another
 #   stream's watershed or off the main line) keeps routed, because the
 #   balance there is another line's flow.
-# - period: routed over its run's period (routed_run, 1951-2012), the balance
-#   1981-2010 (#57's decision, until #103 reads fwapg's 1981-2010 run).
+# - period: routed over its run's period (routed_run, 1981-2010 since #103), the
+#   balance 1981-2010.
 #
 # Run where the full province run is (m4 holds it; m1's bundle is cut). Uses
 # about 10 GB for the Fraser. Connection from WET_PG*.
