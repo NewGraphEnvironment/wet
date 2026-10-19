@@ -24,11 +24,11 @@ The balance splits annual runoff into months with twelve share regressions (#16,
 - [x] `scripts/wb_validate.R` header: the candidates and the rule above, word for word, committed alone, so the git history shows the rule came before any candidate code.
 
 ## Phase 2: Share candidates in the package (tests first)
-- [ ] `tests/testthat/test-wet_share_fit.R`: donor (k nearest, exact match takes the whole weight, k capped at n, shares sum to 1, predictors scaled by the training SD), blend (the mean of the two, sums to 1), regression unchanged (`identical()` to the current output), bad `method`/`k` refused.
-- [ ] `R/wet_donor_weights.R` (internal): the k-nearest inverse-distance weights, factored out of `wet_shape_predict()`'s donor branch. A test asserts that `wet_shape_predict()` output is `identical()` before and after the refactor.
-- [ ] `R/wet_share_fit.R`: `method = c("regression", "donor", "blend")` and `k = 5`. `R/wet_share_predict.R` dispatches on `fit$method`, with the donor vectorised in row chunks so that `wb_output.R` is fast over a whole basin. `fits$share` therefore stays one object, and `wb_output.R`'s `wet_share_predict(fits$share, up)` is unchanged.
-- [ ] `scripts/wb_score_md5.R`: add `R/wet_donor_weights.R` to `score_files_for()`.
-- [ ] roxygen, `devtools::document()`, lintr, and `pkgdown::check_pkgdown()`.
+- [x] `tests/testthat/test-wet_share_fit.R`: donor (k nearest, exact match takes the whole weight, k capped at n, shares sum to 1, predictors scaled by the training SD), blend (the mean of the two, sums to 1), regression unchanged (`identical()` to the current output), bad `method`/`k` refused.
+- [x] `R/wet_donor_mean.R` (internal): the k-nearest inverse-distance mean, factored out of `wet_shape_predict()`'s donor branch. A test asserts that `wet_shape_predict()` output is `identical()` before and after the refactor.
+- [x] `R/wet_share_fit.R`: `method = c("regression", "donor", "blend")` and `k = 5`. `R/wet_share_predict.R` dispatches on `fit$method`, with the donor vectorised in row chunks so that `wb_output.R` is fast over a whole basin. `fits$share` therefore stays one object, and `wb_output.R`'s `wet_share_predict(fits$share, up)` is unchanged.
+- [x] `scripts/wb_score_md5.R`: add `R/wet_donor_mean.R` to `score_files_for()` (and to `wb_shape_daily.R`'s shape_files).
+- [x] roxygen, `devtools::document()`, lintr, and `pkgdown::check_pkgdown()`.
 
 ## Phase 3: Scoring in the CV
 - [ ] `scripts/wb_cv_lib.R`: add `share_related` (the upstream/downstream matrix via `wet:::wet_fwa_upstream()`, as `wb_shape_daily.R` builds it). Add a share-only `cv_share_methods(d, fold, static, methods, leak_free = FALSE)` that returns held-out shares per method. `predict_cv()` gains `share_method` (default `"regression"`) so that LOO and the transparency runs use the shipped method.

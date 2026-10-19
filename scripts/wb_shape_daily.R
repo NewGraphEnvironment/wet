@@ -133,7 +133,7 @@ n <- nrow(cal)
 m <- wet:::wet_doy_month()
 nd <- wet:::wet_doy_days()
 days <- wet_month_days()
-shape_files <- c("scripts/wb_shape_daily.R", sort(Sys.glob("R/wet_shape_*.R")), "R/wet_station_doy.R",
+shape_files <- c("scripts/wb_shape_daily.R", sort(Sys.glob("R/wet_shape_*.R")), "R/wet_donor_mean.R", "R/wet_station_doy.R",
                  "R/wet_doy_month.R")
 stopifnot(all(file.exists(shape_files)))
 shape_code_md5 <- wet:::wet_md5_text(unname(tools::md5sum(shape_files)))

@@ -16,7 +16,9 @@ A matrix with one row per row of \code{d} and columns \code{share_01} to
 \code{share_12}.
 }
 \description{
-Applies the 12 regressions of \code{\link[=wet_share_fit]{wet_share_fit()}}, floors each prediction at
-0 and renormalises so the 12 shares sum to 1. A watershed whose 12 floored
-predictions are all 0 gets \code{NA} shares.
+Applies a \code{\link[=wet_share_fit]{wet_share_fit()}}. The regressions' predictions are floored at 0
+and renormalised so the 12 shares sum to 1, and a watershed whose 12
+floored predictions are all 0 gets \code{NA} shares. A donor prediction is a
+weighted mean of observed shares, so it sums to 1 already; a blend is the
+mean of the two. A watershed missing a predictor gets \code{NA} shares.
 }
