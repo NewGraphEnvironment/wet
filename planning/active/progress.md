@@ -10,3 +10,6 @@
 - m4 worktree `~/Projects/repo/wet-103` made, `data/*` inputs symlinked to the main checkout as in wet-101
 - Phase 2 on m1: routed report on the 1981-2010 run; annual skill nearly unchanged; by-month probe shows the #67 shape survives (spring -19.5 -> -11.5 %, summer +18.7 -> +15.8 %); findings.md
 - Phase 3 on m4: segment_output on the 1981-2010 run (603ddc1); 4,733 picks moved (3,013 to routed, 1,720 to the balance). BUILD started
+- BUILD on m4 (06:04-06:11 UTC): every check ok, 555,857,796 values compared, 0 differing; reader counts 3,154,131 / 1,378,712 equal the segment report; 35 of 67 parts identical to live acb820f; committed 9b601dc from m4
+- Upload refused by auto mode's classifier ("Production Deploy"); routes offered to the user (leave auto mode for the step, or run the bare command). /code-check branch started meanwhile, so any R/ or scripts/ fix lands before the upload
+- Docs (research, CLAUDE.md) committed 9fecc4a
