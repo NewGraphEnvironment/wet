@@ -5,10 +5,10 @@
 Depends on #101 (merged, v0.4.13). Decided at the plan gate (2026-10-18): #103 publishes on its own, before #102; the upload waits for the user's go.
 
 ## Phase 1: Flip the pin
-- [ ] `R/wet_segment_monthly.R`: `period = "1981-2010"` in `wet_segment_sources()`, and the roxygen text on the run (lines 18–19); `devtools::document()`
-- [ ] Tests: `test-wet_segment_monthly.R` (the run in the SQL and in the sources row, lines ~130, 158) and `test-vignette_data.R:138` (routed period expected)
-- [ ] `scripts/segment_output.R:33` comment
-- [ ] `devtools::test()` green
+- [x] `R/wet_segment_monthly.R`: `period = "1981-2010"` in `wet_segment_sources()`, and the roxygen text on the run (lines 18–19); `devtools::document()`
+- [x] Tests: `test-wet_segment_monthly.R` (the run in the SQL and in the sources row, lines ~130, 158). `test-vignette_data.R:138` moved to Phase 4: it reads the committed rds, which stays 1951-2012 until it is rebuilt
+- [x] `scripts/segment_output.R:33` comment
+- [x] `devtools::test()` green (1208 passed, 0 failed, 0 errors; `data/logs/103/test_phase1.log`)
 
 ## Phase 2: New routed scores and the #67 test (m4)
 - [ ] `scripts/pcic_routed_compare.R` with `WET_FWAPG_COMMIT=7c30f58`. The report header must read `PNWNAmet historical 1981-2010`, and its fingerprint must match the run's `pcic.runs` row (178918222.786650)
@@ -22,7 +22,7 @@ Depends on #101 (merged, v0.4.13). Decided at the plan gate (2026-10-18): #103 p
 - [ ] **Stop for the user's go**, then `AWS_PROFILE=airvine WET_PUBLISH=1 Rscript scripts/discharge_publish.R`, which uploads and verifies anonymously. Commit the report it rewrites
 
 ## Phase 4: Vignette data, maps, articles (m1, after the upload)
-- [ ] `data-raw/monthly_vignette_data.R`: remove the observed 1951–2012 block (`long_sel` … `period`), the `period` element of the rds and its header text; update `test-vignette_data.R`'s `expect_named` and the period-table test
+- [ ] `data-raw/monthly_vignette_data.R`: remove the observed 1951–2012 block (`long_sel` … `period`), the `period` element of the rds and its header text; update `test-vignette_data.R`'s `expect_named`, the period-table test and the routed period expected (line 138)
 - [ ] `vignettes/monthly-flow.Rmd`: remove the period paragraph, the `period-check` chunk and the long-record lines of `score-text`, and the `stopifnot(routed_text == "1951–2012")`. Rewrite "The two sources cover different periods" and the "What's next" fwapg#25 item. The #67 attribution stays only if the spring/summer `stopifnot()`s still hold; otherwise rewrite the prose to match the numbers
 - [ ] `vignettes/segment-discharge.Rmd`: the routed source paragraph (`1951–2012`), the score-table caption, and any prose the new routed-closer and pick counts change
 - [ ] Rerun `data-raw/segment_vignette_data.R`, `data-raw/monthly_vignette_data.R`, `data-raw/segment_vignette_map.R` and `data-raw/readme_figure.R`. Check the map and the README figure as rendered images

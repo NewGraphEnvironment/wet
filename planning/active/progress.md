@@ -6,3 +6,5 @@
 - Created branch `103-routed-pcic-over-1981-2010-switch-the-pc` off main (5611166 + release 0acfcc1 + syncs, 2675636)
 - Scaffolded PWF baseline from issue #103 with approved phases
 - Next: Phase 1 (flip the pin)
+- Phase 1: pin flipped (ba1dda5); tests 1208 passed, 0 failed, 0 errors. The test-vignette_data.R routed-period expectation moved to Phase 4 (it reads the committed rds)
+- m4 worktree `~/Projects/repo/wet-103` made, `data/*` inputs symlinked to the main checkout as in wet-101
