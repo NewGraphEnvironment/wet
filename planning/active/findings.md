@@ -62,7 +62,7 @@ Annual, at the 290 gauges (mean abs / median abs / within 20 % / bias / routed c
 
 The period barely moves annual skill: routed's bias rises by about 1 point (the 1981-2010 table total is 0.5 % higher), the Columbia's by 3.8 and the Peace's falls by 3.9.
 
-By month (scratch probe, `data/logs/103/period_probe.R` and `.txt`): routed over observed 1981-2010 months at the 279 gauges with routed flow, less the 11 far-low, median error %:
+By month (scratch probe, `evidence/period_probe.R` and `.txt`): routed over observed 1981-2010 months at the 279 gauges with routed flow, less the 11 far-low, median error %:
 
 | month | 1951-2012 | 1981-2010 | move |
 |---|---|---|---|
@@ -87,7 +87,7 @@ Seasons (median over gauge-months): March-April -19.5 -> -11.5; July-August +18.
 
 Same segment counts (both 3,374,133; routed only 2,904; balance only 1,155,806). Routed picked on 3,154,131 (was 3,152,838), the balance on 1,378,712 (1,380,005), 222,906 of those under the cut (224,199). Nechako groups' share of flips 26.8 % (26.7 %).
 
-Picks that moved, segment by segment (`data/logs/103/pickmove.R`, `.txt`): 3,013 to routed and 1,720 to the balance, 4,733 in all (0.10 % of the 4,532,843 segments with a value). The most were in the Fraser (1,508 to routed, 596 to the balance), the Columbia (447 to routed, none back), 600 (649 to routed), 200 (443 to the balance) and 910 (560 to the balance). Every routed row's period is 1981-2010, and every balance row's too.
+Picks that moved, segment by segment (`evidence/pickmove.R`, `.txt`): 3,013 to routed and 1,720 to the balance, 4,733 in all (0.10 % of the 4,532,843 segments with a value). The most were in the Fraser (1,508 to routed, 596 to the balance), the Columbia (447 to routed, none back), 600 (649 to routed), 200 (443 to the balance) and 910 (560 to the balance). Every routed row's period is 1981-2010, and every balance row's too.
 
 ## Errors Encountered
 
