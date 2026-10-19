@@ -302,9 +302,17 @@ sources <- list(
        description = paste(c("wet's open water balance (#11): climr 1981-2010 precipitation and temperature,",
                              "CGIAR actual evapotranspiration floored by Fu-Budyko, fitted at HYDAT gauges,",
                              "accumulated upstream over FWA fundamental watersheds.",
-                             # the snow predictors of the monthly shares, when the fit ships them (#16)
+                             # how the monthly shares are made (#102), and the snow predictors they use,
+                             # when the fit ships them (#16)
+                             switch(fits$share_method,
+                                    regression = "Monthly shares from twelve regressions fitted at the gauges.",
+                                    donor = paste("Monthly shares are the inverse-distance mean of the observed shares",
+                                                  "of the five most similar calibration gauges."),
+                                    blend = paste("Monthly shares are the mean of twelve regressions fitted at the",
+                                                  "gauges and the observed shares of the five most similar gauges."),
+                                    stop("unknown share method: ", fits$share_method)),
                              if (identical(fits$share_spec, "snow")) {
-                               paste("Monthly shares also use ERA5-Land 1981-2010 snowmelt timing and peak snow",
+                               paste("The shares also use ERA5-Land 1981-2010 snowmelt timing and peak snow",
                                      "water equivalent (via NewGraphEnvironment/cd); contains modified Copernicus",
                                      "Climate Change Service information.")
                              }), collapse = " "),

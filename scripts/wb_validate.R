@@ -127,8 +127,32 @@ share_both <- !is.na(share_st$base) & !is.na(share_st$snow)
 share_med <- vapply(share_st, function(x) stats::median(x[share_both & !is.na(x)]), numeric(1))
 share_gain <- share_med[["snow"]] - share_med[["base"]]
 ship_share <- if (share_gain >= share_min_gain - 1e-9) "snow" else "base"
-cv$share <- cv$shares[[ship_share]]
-ins_share <- wet_share_fit(cal, static = share_static[[ship_share]])
+# How the shares are made (#102), by the rule in this script's header, on the
+# static predictors just chosen: donor and blend against the regression, under
+# the blocked CV and the leak-free pool
+share_method_min_gain <- 0.01
+static_sh <- share_static[[ship_share]]
+sm_cv <- cv_share_methods(cal, cal$fold, static_sh)
+# the incumbent is #16's held-out shares exactly: one fit, two routes to it
+if (!identical(sm_cv$regression, cv$shares[[ship_share]])) stop("the regression's held-out shares are not #16's")
+sm_lf <- cv_share_methods(cal, cal$fold, static_sh, related = share_related(cal))
+sm_nse <- lapply(sm_cv, share_nse)
+sm_nse_lf <- lapply(sm_lf, share_nse)
+sm_scored <- Reduce(`&`, lapply(c(sm_nse, sm_nse_lf), function(x) !is.na(x)))
+sm_med <- vapply(sm_nse, function(x) stats::median(x[sm_scored]), numeric(1))
+sm_med_lf <- vapply(sm_nse_lf, function(x) stats::median(x[sm_scored]), numeric(1))
+cands <- setdiff(share_methods, "regression")
+sm_gain <- sm_med[cands] - sm_med[["regression"]]
+sm_gain_lf <- sm_med_lf[cands] - sm_med_lf[["regression"]]
+sm_pass <- sm_gain >= share_method_min_gain - 1e-9 & sm_gain_lf >= share_method_min_gain - 1e-9
+ship_method <- if (any(sm_pass)) {
+  ok <- cands[sm_pass]
+  ok[which.max(sm_med[ok])]
+} else {
+  "regression"
+}
+cv$share <- sm_cv[[ship_method]]
+ins_share <- wet_share_fit(cal, static = static_sh, method = ship_method)
 ins_v <- wet_flow_validate(long(cal, wet_wb_adjust(ins_fit, cal), wet_share_predict(ins_share, cal)), groups)
 # own-zone vs pooled-in-fold, for the headwater stations, raw and adjusted
 g2 <- data.frame(station_number = cal$station_number,
@@ -142,10 +166,11 @@ hw_split <- function(v) {
   x$z <- g2$zone_in_fold[match(x$station_number, g2$station_number)]
   vapply(c("own zone", "pooled"), function(k) mean(abs(x$err_pct[x$z == k]), na.rm = TRUE), numeric(1))
 }
-lo <- predict_cv(cal, loo$fold[match(cal$station_number, loo$station_number)], cv_variant, share_specs = ship_share)
+lo <- predict_cv(cal, loo$fold[match(cal$station_number, loo$station_number)], cv_variant, share_specs = ship_share,
+                 share_method = ship_method)
 lo_v <- wet_flow_validate(long(cal, lo$ann, lo$share), groups)
 plain <- lapply(variants, function(v) {
-  x <- predict_cv(cal, cal$fold, v, share_specs = ship_share)
+  x <- predict_cv(cal, cal$fold, v, share_specs = ship_share, share_method = ship_method)
   wet_flow_validate(long(cal, x$ann, x$share), groups)
 })
 names(plain) <- variants
@@ -171,7 +196,8 @@ if (aet_v %in% ship_aet) {
   # outputs of any earlier fit go with it, so scripts/wb_map.R cannot draw them
   # beside this fit's stations; scripts/wb_output.R rebuilds them
   unlink(c(file.path(fit_dir, "runoff_annual.tif"), file.path(fit_dir, "output")), recursive = TRUE)
-  saveRDS(list(wb = ins_fit, share = ins_share, share_spec = ship_share, keep_adjust = keep_adjust,
+  saveRDS(list(wb = ins_fit, share = ins_share, share_spec = ship_share, share_method = ship_method,
+               keep_adjust = keep_adjust,
                gate_pass = gate_pass, min_frac = min_frac,
                calibration = cal$station_number, aet = aet_v, pooled_variant = ship_variant,
                pooled_fixed = !is.na(fixed_variant), release = release, code_md5 = score_code_md5,
@@ -191,6 +217,10 @@ saveRDS(list(aet = aet_v, keep_adjust = keep_adjust, gate_pass = gate_pass, raw_
              cv_shares = cv$shares, share_spec = ship_share,
              share_rule = list(min_gain = share_min_gain, median = share_med, gain = share_gain,
                                n_both = sum(share_both), nse = share_st),
+             share_method = ship_method, cv_share_methods = sm_cv, cv_share_methods_leakfree = sm_lf,
+             share_method_rule = list(min_gain = share_method_min_gain, median = sm_med, median_leakfree = sm_med_lf,
+                                      gain = sm_gain, gain_leakfree = sm_gain_lf, pass = sm_pass,
+                                      n = sum(sm_scored), nse = sm_nse, nse_leakfree = sm_nse_lf),
              zone = cal$zone, lake = groups$lake, cv_variant = cv_variant, nesting = cal$nesting, obs = cal$obs,
              release = release, code_md5 = score_code_md5),
         file.path(fit_dir, sprintf("cv_aet-%s.rds", aet_v)))
@@ -261,7 +291,16 @@ writeLines(c(
           share_min_gain, share_med[["base"]], share_med[["snow"]], share_gain, sum(share_both),
           if (ship_share == "snow") "snow predictors KEPT" else "snow predictors NOT kept"),
   sprintf("  (not deciding: snowmelt_doy_50 alone %.4f over the same gauges)", share_med[["doy"]]),
-  sprintf("share predictors shipped: %s (every table below uses them)",
+  sprintf(paste("SHARE METHOD (#102; rule fixed in this script's header before any candidate was scored: donor or",
+                "blend ships if its median share NSE beats the regression's by >= %.2f under blocked CV and in the",
+                "leak-free pool), over %d gauges:"), share_method_min_gain, sum(sm_scored)),
+  sprintf("  blocked CV: %s", paste(sprintf("%s %.4f", share_methods, sm_med[share_methods]), collapse = ", ")),
+  sprintf("  leak-free:  %s", paste(sprintf("%s %.4f", share_methods, sm_med_lf[share_methods]), collapse = ", ")),
+  sprintf("  gain over the regression: %s -> %s",
+          paste(sprintf("%s %+.4f / %+.4f%s", cands, sm_gain, sm_gain_lf, ifelse(sm_pass, " (passes)", "")),
+                collapse = ", "),
+          if (ship_method == "regression") "the regression STAYS" else sprintf("%s SHIPS", ship_method)),
+  sprintf("shares shipped: the %s on %s (every table below uses them)", ship_method,
           paste(share_static[[ship_share]], collapse = ", ")),
   "",
   fmt(raw_v, "Raw P - AET (no fitting)"),
@@ -286,7 +325,9 @@ writeLines(c(
                     if (is.na(fixed_variant)) "chosen inside each fold" else sprintf("fixed to '%s'", fixed_variant))),
   fmt(plain[["other"]], "Transparency: blocked CV with every fold forced to 'other'"),
   fmt(plain[["none"]], "Transparency: blocked CV with every fold forced to 'none'"),
-  fmt(ins_v, "Adjusted, in-sample (all stations in the fit)"),
+  fmt(ins_v, if (ship_method == "regression") "Adjusted, in-sample (all stations in the fit)" else {
+    sprintf("Adjusted, in-sample (all stations in the fit; the %s shares draw on each gauge's own)", ship_method)
+  }),
   "## Fitted adjustment (all calibration stations): zone, a (mm), b (per mm of P)",
   sprintf("%s  %9.2f  %8.4f%s", co$zone, co$a, co$b,
           ifelse(co$zone %in% ins_fit$pooled, sprintf("  (pooled: %s)", ship_variant), ""))

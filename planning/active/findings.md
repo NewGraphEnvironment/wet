@@ -53,3 +53,14 @@ Relates to #16, #65, #67, #70, #81, #99, #103.
 
 | Error | Resolution |
 |-------|------------|
+
+## Probe on m1's reduced bundle (2026-10-19, after the rule's commit a8ca570)
+
+Read-only (`scratchpad/probe102.R`, not committed): `cv_share_methods()` on the 315 calibration gauges, snow static set.
+
+| median share NSE | regression | donor | blend |
+|---|---|---|---|
+| blocked CV | 0.8735 | 0.9389 | 0.9187 |
+| leak-free | 0.8735 | 0.9353 | 0.9209 |
+
+230 related (upstream/downstream) calibration pairs. The rebuilt regression differs from m4's stored `cv_shares$snow` by 1.9e-16 (another machine); `predict_cv()` and `cv_share_methods()` on one machine are `identical()`, which is what `wb_validate.R` asserts. 6 s for all three pools. Under the rule, donor passes both pools and ships; the chain on m4 decides it of record.
