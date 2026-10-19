@@ -1,3 +1,7 @@
+# wet 0.4.14
+
+* Routed PCIC is read from fwapg's PNWNAmet historical 1981–2010 run instead of 1951–2012 (#103), so both sources on every segment, and the gauge scores, describe the same period. The published product at `s3://fresh-bc/discharge/fwa/v1/` was rebuilt and republished from it: 4,733 segments changed their default source (3,013 to routed, 1,720 to the balance), and annual skill at the gauges barely moved (routed mean absolute error 24.2 %, 24.1 % before). Routed's spring-low, summer-high shape survives on matching periods (March–April −11.5 %, July–August +15.8 %), so the period explains part of it and PCIC's model the rest (#67). The monthly-flow article's period section is gone, and both articles, their data and the README map are rebuilt on the new build.
+
 # wet 0.4.13
 
 * `wet_segment_monthly(from = "fwapg")` and the routed scripts read PCIC's routed flow from fwapg's `pcic.discharge_monthly`, for the PNWNAmet historical 1951-2012 run, instead of the frozen `whse_basemapping.fwa_stream_networks_discharge_monthly` (#101). The run equals the frozen table row for row. The table and run are named once, in the internal `wet_segment_sources()`. A table without the run's rows is an error that names fwapg's load files, and the routed fingerprint must equal the run's row in `pcic.runs`. A segment's routed month 0 is now the mean of its months summed in month order, which moves its last bits in 11.4 % of routed segments; the published product is unchanged until #103 republishes it.
