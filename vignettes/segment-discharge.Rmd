@@ -42,6 +42,8 @@ stopifnot(identical(pub$manifest, wet:::wet_catalog_url), all(prov$published_che
           all(prov$published_check$differing == 0),
           identical(map$provenance$published$wet_commit, pub$wet_commit),
           identical(map$provenance$published$built, pub$built))
+# the prose gives routed's period from the published rows; the balance's is 1981-2010
+stopifnot(length(prov$routed_period) == 1, grepl(prov$routed_period, prov$routed, fixed = TRUE))
 
 # colours come from the gq registries, so no hex literal appears in this
 # vignette; assert each class set, because a malformed CSV row adds a layer silently
@@ -113,7 +115,7 @@ GB, built on `r built_text` at wet commit `r pub$wet_commit`.
 
 Each row comes from one of two sources:
 
-**Routed PCIC** (`pcic_routed`, 1951–2012). The Pacific Climate Impacts
+**Routed PCIC** (`pcic_routed`, `r sub("-", "–", prov$routed_period)`). The Pacific Climate Impacts
 Consortium runs the VIC-GL hydrologic model on a 0.0625° grid, driven by
 observed climate, and routes its runoff with the Raven model ([hydromosaic](https://beehive.pacificclimate.org/chyp/)).
 New Graph's [fork of fwapg](https://github.com/NewGraphEnvironment/fwapg/pull/6)
@@ -304,8 +306,7 @@ river cannot vouch for it.
 knitr::kable(score_tab, align = "lrrr", row.names = FALSE,
              caption = paste(
                "Error in mean annual runoff at the calibration gauges. PCIC does not list the gauges it",
-               "calibrated to, so its errors may be partly in sample, and its flow covers 1951–2012",
-               "against observations over 1981–2010."
+               "calibrated to, so its errors may be partly in sample."
              ))
 ```
 

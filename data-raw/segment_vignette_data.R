@@ -115,7 +115,7 @@ invisible(DBI::dbExecute(duck, "LOAD httpfs"))
 gauge_groups <- sort(unique(seg_grp_gauge$watershed_group_code))
 t_read <- Sys.time()
 pub_r <- DBI::dbGetQuery(duck, sprintf("
-  SELECT source, linear_feature_id, watershed_group_code, month, q_m3s, pick
+  SELECT source, linear_feature_id, watershed_group_code, month, q_m3s, pick, period
   FROM read_parquet([%s], hive_partitioning = true)
   WHERE month = 0 AND watershed_group_code IN (%s)",
   paste0("'", parts$href, "'", collapse = ", "), paste0("'", gauge_groups, "'", collapse = ", ")))
@@ -123,6 +123,8 @@ message("published read: ", round(as.numeric(difftime(Sys.time(), t_read, units 
 DBI::dbDisconnect(duck, shutdown = TRUE)
 vd_verify(parts)
 stopifnot(all(pub_r$source == "pcic_routed"), !anyDuplicated(pub_r$linear_feature_id))
+# the published routed rows carry the run's period, which the article states
+stopifnot(identical(unique(pub_r$period), routed_run$period))
 # the published routed annual flow on each gauge's segment, in mm over wet's
 # accumulated upstream area, as scripts/pcic_routed_compare.R takes it
 sk$routed_mm <- routed_mm(pub_r$q_m3s[match(sk$linear_feature_id, pub_r$linear_feature_id)], sk$upstream_area_m2)
@@ -219,6 +221,8 @@ provenance <- list(
   # routed flow (fwapg#6): the table and run read, the commit that built the
   # run, and its fingerprint
   routed = sub("^routed: ", "", routed_report_line(fwapg_commit)),
+  # the period on the published routed rows read
+  routed_period = unique(pub_r$period),
   routed_commit = fwapg_commit,
   routed_fingerprint = routed_fp,
   routed_report = f_routed
