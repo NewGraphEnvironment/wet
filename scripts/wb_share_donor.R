@@ -162,7 +162,7 @@ writeLines(c(
   "## Short-record test gauges (1-9 complete years; no fit uses them), reported only",
   sprintf(paste("%d gauges with twelve observed months and observed runoff >= 10 mm, each predicted from the",
                 "calibration gauges outside its sub-sub-drainage (%d of them); median share NSE over the %d every",
-                "method scores (their observed shares rest on 1-9 years, so every method scores lower there):"),
+                "method scores (their observed shares rest on 1-9 years):"),
           nrow(tst), length(unique(tst$subsubdrainage)), sum(tst_ok)),
   sprintf("  %s", paste(sprintf("%s %s", share_methods,
                                 num(vapply(tst_nse, function(x) med(x[tst_ok]), 1), 4)), collapse = ", "))

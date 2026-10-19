@@ -523,6 +523,8 @@ pk_below <- 100 * mean(pk$ratio_wb < 1)
 pk_ratio <- 100 * (stats::median(pk$ratio_wb) - 1)
 # the prose names the snow terms: the fit must have shipped them (#16)
 stopifnot(identical(prov$share_spec, "snow"))
+# and as the regression: a bundle from a donor or blend fit (#102) needs this prose rewritten
+stopifnot(is.null(prov$share_method) || identical(prov$share_method, "regression"))
 stopifnot(min(wb_spring) > 5, max(abs(wb_rest)) < 5, pk_below > 50, pk_ratio < 0,
           n_un + n_both_gauges + length(far) == n_bal_gauges, n_un_10 > n_un / 2, un_winter[1] < 0, all(un_winter[2:3] < -50),
           max(smv("wet_balance", 1:12, "within")) < 50,

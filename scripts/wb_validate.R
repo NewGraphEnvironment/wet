@@ -219,8 +219,11 @@ if (aet_v %in% ship_aet) {
 # per-station held-out predictions and summaries, for scripts/wb_aet_compare.R;
 # the held-out monthly balance too (#68): long(cal, cv_ann, cv_share) rebuilt
 # from obs, obs_share, cv_ann and cv_share alone (rows in station_number
-# order). cv_share is the shipped specification's; cv_shares holds every
-# specification scored, for scripts/wb_share_snow.R (#16)
+# order). cv_share is what ships: the shipped specification's static set
+# under the shipped method (#102), so it is cv_shares[[share_spec]] only
+# when the regression ships. cv_shares holds every specification's
+# regression, for scripts/wb_share_snow.R (#16); cv_share_methods every
+# method on the shipped set, for scripts/wb_share_donor.R
 saveRDS(list(aet = aet_v, keep_adjust = keep_adjust, gate_pass = gate_pass, raw_v = raw_v, cv_v = cv_v, lo_v = lo_v,
              plain = plain,
              ship_variant = ship_variant, station_number = cal$station_number, raw = cal$raw,
@@ -253,8 +256,9 @@ con <- file(report, "w")
 writeLines(c(
   "# Open water balance (Chapman et al. 2018 method) validated at HYDAT stations (#11)", "",
   sprintf("province run: %s; annual AET: %s (%s)", basename(key_dir), aet_v,
-          switch(ship_method, donor = "monthly shares from the donor gauges' observed shares",
-                 "monthly shares use CGIAR monthly AET")),
+          switch(ship_method, regression = "monthly shares use CGIAR monthly AET",
+                 donor = "monthly shares from the donor gauges' observed shares",
+                 blend = "monthly shares: the mean of the regression (CGIAR monthly AET) and the donor gauges' shares")),
   sprintf("HYDAT release: %s", s$hydat_release),
   sprintf("stations: %d accepted snaps, %d with predictors; %d calibrated on (basin >= %.0f %% in BC and on the grid)",
           nrow(st), sum(st$coverage > 0, na.rm = TRUE), nrow(cal), 100 * min_frac),
