@@ -1,5 +1,22 @@
 # Changelog
 
+## wet 0.4.14
+
+- Routed PCIC is read from fwapg’s PNWNAmet historical 1981–2010 run
+  instead of 1951–2012
+  ([\#103](https://github.com/NewGraphEnvironment/wet/issues/103)), so
+  both sources on every segment, and the gauge scores, describe the same
+  period. The published product at `s3://fresh-bc/discharge/fwa/v1/` was
+  rebuilt and republished from it: 4,733 segments changed their default
+  source (3,013 to routed, 1,720 to the balance), and annual skill at
+  the gauges barely moved (routed mean absolute error 24.2 %, 24.1 %
+  before). Routed’s spring-low, summer-high shape survives on matching
+  periods (March–April −11.5 %, July–August +15.8 %), so the period
+  explains part of it and PCIC’s model the rest
+  ([\#67](https://github.com/NewGraphEnvironment/wet/issues/67)). The
+  monthly-flow article’s period section is gone, and both articles,
+  their data and the README map are rebuilt on the new build.
+
 ## wet 0.4.13
 
 - `wet_segment_monthly(from = "fwapg")` and the routed scripts read
