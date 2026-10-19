@@ -91,7 +91,7 @@ source <code>from</code> holds: both for <code>"published"</code>, <code>"pcic_r
 
 <dt id="arg-scenario">scenario<a class="anchor" aria-label="anchor" href="#arg-scenario"></a></dt>
 <dd><p>Scenario of the published product, e.g. <code>"historical"</code>.
-fwapg holds only <code>"historical"</code>.</p></dd>
+fwapg's run is <code>"historical"</code> only.</p></dd>
 
 
 <dt id="arg-groups">groups<a class="anchor" aria-label="anchor" href="#arg-groups"></a></dt>
@@ -122,12 +122,15 @@ writes when <code>conn</code> is given, otherwise straight from the parquet part
 manifest lists, through duckdb. Its routed month 0 is the plain mean of
 the twelve months, and fresh joins the same rows.</p>
 <p>With <code>from = "fwapg"</code>, <code>pcic_routed</code> is read from fwapg's own routed table
-(<code>whse_basemapping.fwa_stream_networks_discharge_monthly</code>), with month 0
-computed by the same rule as the published one: the mean of the twelve
-months, <code>NA</code> unless all twelve have flow. That table is loaded by the
-NewGraphEnvironment fork of fwapg, not by upstream fwapg. Scoring the
-table before it is published (<code>scripts/pcic_routed_compare.R</code>) reads it
-this way.</p>
+(<code>pcic.discharge_monthly</code>), the run PCIC's hydromosaic made with PNWNAmet
+forcing, <code>historical</code>, averaged over 1951-2012 (<code>model</code>, <code>scenario</code> and
+<code>period</code> <code>PNWNAmet</code>, <code>historical</code>, <code>1951-2012</code>), with month 0 computed by
+the same rule as the published one: the mean of the twelve months, <code>NA</code>
+unless all twelve have flow. That table is loaded by the
+NewGraphEnvironment fork of fwapg (<code>load/pcic_schema.sql</code>, <code>load/pcic.sql</code>,
+then <code>load/pcic_run.sql</code> per run), not by upstream fwapg; a table without
+the run's rows is an error. Scoring the table before it is published
+(<code>scripts/pcic_routed_compare.R</code>) reads it this way.</p>
 <p>Reading parts with no <code>groups</code> reads the segment ID column of every part
 (about half a minute for a few segments over HTTPS, and nearly the whole
 1.8 GB for many). The parts are sorted by watershed group, so naming the

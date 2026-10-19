@@ -47,8 +47,8 @@ wet_segment_monthly(
 
 - scenario:
 
-  Scenario of the published product, e.g. `"historical"`. fwapg holds
-  only `"historical"`.
+  Scenario of the published product, e.g. `"historical"`. fwapg's run is
+  `"historical"` only.
 
 - groups:
 
@@ -80,12 +80,16 @@ the manifest lists, through duckdb. Its routed month 0 is the plain mean
 of the twelve months, and fresh joins the same rows.
 
 With `from = "fwapg"`, `pcic_routed` is read from fwapg's own routed
-table (`whse_basemapping.fwa_stream_networks_discharge_monthly`), with
+table (`pcic.discharge_monthly`), the run PCIC's hydromosaic made with
+PNWNAmet forcing, `historical`, averaged over 1951-2012 (`model`,
+`scenario` and `period` `PNWNAmet`, `historical`, `1951-2012`), with
 month 0 computed by the same rule as the published one: the mean of the
 twelve months, `NA` unless all twelve have flow. That table is loaded by
-the NewGraphEnvironment fork of fwapg, not by upstream fwapg. Scoring
-the table before it is published (`scripts/pcic_routed_compare.R`) reads
-it this way.
+the NewGraphEnvironment fork of fwapg (`load/pcic_schema.sql`,
+`load/pcic.sql`, then `load/pcic_run.sql` per run), not by upstream
+fwapg; a table without the run's rows is an error. Scoring the table
+before it is published (`scripts/pcic_routed_compare.R`) reads it this
+way.
 
 Reading parts with no `groups` reads the segment ID column of every part
 (about half a minute for a few segments over HTTPS, and nearly the whole
