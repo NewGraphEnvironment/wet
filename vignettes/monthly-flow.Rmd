@@ -62,10 +62,10 @@ days <- c(365.25, wet_month_days())
 base <- 1981:2010
 base_text <- paste0(min(base), "–", max(base))
 period_of <- function(src) unique(v$segments$period[v$segments$source == src])
-# the product spells a period with a hyphen; the prose with an en dash
+# the product spells a period with a hyphen; the prose with an en dash. The
+# prose says both sources cover the gauges' period
 stopifnot(identical(period_of("wet_balance"), paste0(min(base), "-", max(base))),
-          length(period_of("pcic_routed")) == 1)
-routed_text <- sub("-", "–", period_of("pcic_routed"))
+          identical(period_of("pcic_routed"), period_of("wet_balance")))
 ```
 
 The published discharge table (`vignette("segment-discharge")`) gives an
@@ -111,7 +111,7 @@ stopifnot(isTRUE(all.equal(unname(bal_sum), bal$q_m3s[bal$month == 0][match(stat
 Each source fills the twelve months its own way:
 
 - **Routed PCIC** (`pcic_routed`) is the mean of each month's daily flow over
-  `r routed_text` from PCIC's Raven routing of VIC-GL runoff, placed on FWA
+  `r base_text` from PCIC's Raven routing of VIC-GL runoff, placed on FWA
   segments by NewGraphEnvironment/fwapg#6. Its month 0 is the plain mean of the
   twelve months, not weighted by their days. On the three segments below that
   moves it by at most `r sprintf("%.1f%%", wtd_diff)`.
@@ -120,8 +120,8 @@ Each source fills the twelve months its own way:
   gauges (`wet_share_fit()`). Its months are volume shares of its month 0, so
   they add up to it exactly.
 
-The two sources cover different periods. Neither is the gauge record. Each
-comparison below says which period it uses.
+Both sources cover `r base_text`, the period the gauges are scored over.
+Neither is the gauge record.
 
 ## Reading a segment's twelve months
 
@@ -227,7 +227,7 @@ bal_peak <- month.name[peak_month("wet_balance")]
 
 cap_hyd <- paste0(
   "Mean monthly flow on the segments three Bulkley gauges sit on, from each source, beside the gauge's ",
-  "observed monthly means over ", base_text, ". Routed PCIC is over ", routed_text, ". At ",
+  "observed monthly means over ", base_text, ". At ",
   st_label[["08EE003"]], ", a seasonal gauge, only the months with ", min_years, " or more years of ",
   min_days, " days' flow are drawn (", m003_text, "). The strips under each panel are the Chinook windows."
 )
@@ -378,7 +378,7 @@ knitr::kable(tab, row.names = FALSE, align = "llrrrrr",
              caption = paste0("Mean flow (m³/s) in each Chinook window. Daily record: the gauge's mean over the window, ",
                               "averaged over the years in ", base_text, " with enough of its days. ",
                               "Monthly, day-weighted: the same years' observed monthly means, each day taking its ",
-                              "month's mean. The two sources are day-weighted the same way, from their own periods, ",
+                              "month's mean. The two sources are day-weighted the same way, ",
                               "with their difference from the daily record in brackets."))
 ```
 
@@ -451,7 +451,7 @@ nse <- function(sk, col) stats::median(sk$stations[[col]], na.rm = TRUE)
 cap_err <- paste0(
   "Error in mean monthly flow by month: the median (line) and the middle half of gauges (band), as a ",
   "percentage of the gauge's ", base_text, " mean. The water balance is held out (blocked cross-validation) at ",
-  n_bal_gauges, " calibration gauges; routed PCIC, over ", routed_text, ", at the ", n_both_gauges,
+  n_bal_gauges, " calibration gauges; routed PCIC at the ", n_both_gauges,
   " of them it covers. Dashed lines mark ±", round(100 * band), "%."
 )
 ```
@@ -529,36 +529,14 @@ stopifnot(min(wb_spring) > 5, max(abs(wb_rest)) < 5, pk_below > 50, pk_ratio < 0
           all(smv("pcic_routed", r_spring, "median") < -10), all(smv("pcic_routed", r_summer, "median") > 10),
           season_med("ratio_r", r_spring) < -10, season_med("ratio_r", r_summer) > 10,
           all(5:9 %in% r_closer))
-# routed over its own period at the long-record gauges: observed 1951-2012
-# complete years against routed 1951-2012 on the same months
-p <- v$period
-stopifnot(identical(range(base), c(1981L, 2010L)), identical(routed_text, "1951–2012"))
-lp <- merge(p[p$month > 0, ], g[g$month > 0, c("station_number", "month", "routed_mm", "area_km2")],
-            by = c("station_number", "month"))
-lp$routed_q <- lp$routed_mm * lp$area_km2 * 1e6 / (days[lp$month + 1] * 86400 * 1000)
-n_long_far <- length(intersect(unique(lp$station_number[!is.na(lp$routed_q)]), far))
-# every routed month kept, zeros included, as in the scores above
-lp <- lp[!is.na(lp$routed_q) & !lp$station_number %in% far, ]
-n_long <- length(unique(lp$station_number))
-stopifnot(all(lp$q_m3s_5112 > 0), all(lp$q_m3s_8110 > 0))
-long_med <- function(num, den, mo) {
-  x <- lp[lp$month %in% mo, ]
-  100 * (stats::median(x[[num]] / x[[den]]) - 1)
-}
-per_med <- function(mo) {
-  x <- p[p$month %in% mo & p$station_number %in% lp$station_number, ]
-  100 * (stats::median(x$q_m3s_5112 / x$q_m3s_8110) - 1)
-}
-# per gauge over its own period: routed low in spring, high in summer, both
-by_g <- function(mo) tapply(lp$routed_q[lp$month %in% mo] / lp$q_m3s_5112[lp$month %in% mo],
-                            lp$station_number[lp$month %in% mo], mean)
+# per gauge: routed low in spring, high in summer, both
+by_g <- function(mo) tapply(both$ratio_r[both$month %in% mo], both$station_number[both$month %in% mo], mean)
 g_low <- by_g(r_spring) < 1
 g_high <- by_g(r_summer) > 1
-stopifnot(identical(names(g_low), names(g_high)))
+stopifnot(identical(names(g_low), names(g_high)), length(g_low) == n_both_gauges)
 shape_pct <- 100 * c(low = mean(g_low), high = mean(g_high), both = mean(g_low & g_high))
-# the share of routed's error against 1981-2010 that its own period removes
-explained <- c(spring = 1 - long_med("routed_q", "q_m3s_5112", r_spring) / long_med("routed_q", "q_m3s_8110", r_spring),
-               summer = 1 - long_med("routed_q", "q_m3s_5112", r_summer) / long_med("routed_q", "q_m3s_8110", r_summer))
+# the prose: the shape holds at most gauges, not only at the median
+stopifnot(shape_pct[["low"]] > 50, shape_pct[["high"]] > 50)
 ```
 
 The two sources' errors have different shapes.
@@ -588,26 +566,14 @@ The two sources' errors have different shapes.
   starts late and runs on. Its median monthly efficiency is
   `r sprintf("%.2f", nse(sk_r, "nse_month"))` over its `r n_both_gauges` gauges.
 
-Routed PCIC's period is `r routed_text` and the gauges' is `r base_text`, so
-part of its error could be the period. At the `r n_long` calibration gauges with
-40 or more complete years in `r routed_text` and routed flow on their segment
-(less `r n_long_far` whose segment carries under `r round(100 * far_low)`%), observed flow over the longer period
-differs from `r base_text` by a median of `r pct(per_med(r_spring))` in March–April
-and `r pct(per_med(r_summer))` in July–August. Scored against the gauges' own
-`r routed_text` means, routed PCIC is still `r pct(long_med("routed_q", "q_m3s_5112", r_spring))`
-in March–April and `r pct(long_med("routed_q", "q_m3s_5112", r_summer))` in July–August.
-Against `r base_text` at the same gauges it is `r pct(long_med("routed_q", "q_m3s_8110", r_spring))`
-and `r pct(long_med("routed_q", "q_m3s_8110", r_summer))`. The period explains
-about `r round(100 * explained[["spring"]])`% of the spring shortfall and
-`r round(100 * explained[["summer"]])`% of the summer excess. What is left is the shape of the median gauge. Gauge by gauge,
-over its own period, routed PCIC is low in March–April at
-`r round(shape_pct[["low"]])`% of the `r n_long` gauges and high in July–August at
+Both sources and the gauges cover `r base_text`, so this shape is not a
+difference of period. Gauge by gauge, routed PCIC is low in March–April at
+`r round(shape_pct[["low"]])`% of the `r n_both_gauges` gauges and high in July–August at
 `r round(shape_pct[["high"]])`% (both at `r round(shape_pct[["both"]])`%). A
 misplaced outlet changes one gauge's hydrograph, mostly in size; it would not
-move the median of `r n_long` gauges toward a late melt. So the median shape
+move the median of `r n_both_gauges` gauges toward a late melt. So the median shape
 comes from the routed model, not from the placement. That attributes it to PCIC's model, which wet does not run; it is
-recorded here and in #6. Routed flow over `r base_text` (NewGraphEnvironment/fwapg#25)
-would remove the period question.
+recorded here and in #67.
 
 ```{r groups}
 grp <- unique(g[c("station_number", "area_class", "lake")])
@@ -653,26 +619,13 @@ knitr::kable(gt, row.names = FALSE, align = "lrrr",
                              "by basin size and lake outlets, on the", n_both_gauges, "gauges both sources are scored at."))
 ```
 
-```{r period-check}
-# the prose: the period moves each season by under 10%; over its own period
-# routed stays more than 10% low in spring, and stays high in summer by less
-# than against 1981-2010
-stopifnot(all(explained > 0), all(explained < 0.5), shape_pct[["low"]] > 50, shape_pct[["high"]] > 50,
-          abs(per_med(r_spring)) < 10, abs(per_med(r_summer)) < 10,
-          long_med("routed_q", "q_m3s_5112", r_spring) < -10,
-          long_med("routed_q", "q_m3s_5112", r_summer) > 5,
-          long_med("routed_q", "q_m3s_5112", r_summer) < long_med("routed_q", "q_m3s_8110", r_summer))
-```
-
 ## What's next
 
 What this exploration found that would make the monthly values more useful,
 each with its issue:
 
-- **Routed flow over `r base_text`** (NewGraphEnvironment/fwapg#25), so both
-  sources and the gauges share one period.
 - **Routed PCIC's seasonal shape** (#67): low in early spring, high in late
-  summer, beyond what the period explains. Attributed to PCIC's model. The
+  summer, over the gauges' own period. Attributed to PCIC's model. The
   issue records the evidence and a draft report to PCIC.
 - **Monthly scoring by region and season** (#6), which takes over the scoring
   this article starts.

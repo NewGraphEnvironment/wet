@@ -94,6 +94,8 @@ test_that("the segment values carry plain ids, the calibration gauges and their 
                     "segment_report_commit", "published", "published_check", "routed_commit", "routed_fingerprint",
                     "routed_report") %in% names(v$provenance)))
   expect_match(v$provenance$segment_report_commit, "^[0-9a-f]{7,40}$")
+  # routed's period as the published rows carry it, which the article states
+  expect_identical(v$provenance$routed_period, "1981-2010")
 })
 
 test_that("the segment map holds the picked source on the rivers, from the same build", {
@@ -125,7 +127,7 @@ test_that("the segment map holds the picked source on the rivers, from the same 
 
 test_that("the monthly values hold both sources' months, checked against their sources", {
   v <- readRDS(vignette_data("monthly_values.rds"))
-  expect_named(v, c("segments", "gauges", "period", "provenance"))
+  expect_named(v, c("segments", "gauges", "provenance"))
   for (nm in setdiff(names(v), "provenance")) {
     expect_false(any(vapply(v[[nm]], inherits, NA, "integer64")), info = nm)
   }
@@ -135,7 +137,7 @@ test_that("the monthly values hold both sources' months, checked against their s
   expect_equal(nrow(sg), 3 * 2 * 13)
   expect_false(anyDuplicated(sg[c("linear_feature_id", "source", "month")]) > 0)
   expect_false(anyNA(sg$q_m3s))
-  expect_setequal(sg$period[sg$source == "pcic_routed"], "1951-2012")
+  expect_setequal(sg$period[sg$source == "pcic_routed"], "1981-2010")
   expect_setequal(sg$period[sg$source == "wet_balance"], "1981-2010")
   # one source picked per segment and month
   expect_true(all(tapply(sg$pick, paste(sg$linear_feature_id, sg$month), sum) == 1))
@@ -160,9 +162,4 @@ test_that("the monthly values hold both sources' months, checked against their s
   ann <- function(x) tapply(ifelse(g$month == 0, x, 0), g$station_number, sum)
   expect_equal(sum_months(g$obs_mm), ann(g$obs_mm), tolerance = 1e-9)
   expect_equal(sum_months(g$wb_mm), ann(g$wb_mm), tolerance = 1e-9)
-  # the period table: complete years in both periods
-  p <- v$period
-  expect_true(all(p$station_number %in% g$station_number))
-  expect_true(all(p$n_years_5112 >= 40))
-  expect_true(all(table(p$station_number) == 13))
 })
