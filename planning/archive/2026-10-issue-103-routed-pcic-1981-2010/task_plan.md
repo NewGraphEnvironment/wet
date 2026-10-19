@@ -39,8 +39,8 @@ Depends on #101 (merged, v0.4.13). Decided at the plan gate (2026-10-18): #103 p
 ## Validation
 - [x] Tests pass
 - [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] PWF checkboxes match landed work
+- [x] `/planning-archive` on completion
 
 ## Verification
 - Routed report header names 1981–2010; its fingerprint equals `pcic.runs`.
