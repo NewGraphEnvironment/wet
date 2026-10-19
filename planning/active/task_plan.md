@@ -29,15 +29,15 @@ Depends on #101 (merged, v0.4.13). Decided at the plan gate (2026-10-18): #103 p
 - [x] `vignettes/segment-discharge.Rmd`: the routed source paragraph (`1951–2012`, held to `prov$routed`), the score-table caption, and any prose the new routed-closer and pick counts change
 - [x] Rerun `data-raw/segment_vignette_data.R`, `data-raw/monthly_vignette_data.R`, `data-raw/segment_vignette_map.R` and `data-raw/readme_figure.R`. Check the map and the README figure as rendered images
 - [x] README: rerun the Buck Creek example and paste its output, which is hand-pasted in `README.md`. Check the figure caption and alt text still describe the map
-- [ ] Both articles build (`devtools::build_vignettes()` or pkgdown article render); `devtools::test()` green
+- [x] Both articles build (`devtools::build_vignettes()` or pkgdown article render); `devtools::test()` green
 
 ## Phase 5: Docs
-- [ ] `research/discharge_publish.md` ("`period` is a column"; the routed row of the value-check table), `research/water_balance_method.md` (the #58/#57 block, lines ~76-111, quotes 1951-2012 results), `research/discharge_publish.md:62`, with Verified/Issues lines
-- [ ] `CLAUDE.md`: the routed data source (:63), the monthly article's period and gaps (:49), ("wet reads the 1951–2012 run (#101)", "#103 moves it to 1981–2010") and the `pcic_routed_compare.R` entry
-- [ ] Edit the bodies of issues #67 and #103 with the outcome of the period test. Note in #102 that #103 published on its own
+- [x] `research/discharge_publish.md` ("`period` is a column"; the routed row of the value-check table), `research/water_balance_method.md` (the #58/#57 block, lines ~76-111, quotes 1951-2012 results), `research/discharge_publish.md:62`, with Verified/Issues lines
+- [x] `CLAUDE.md`: the routed data source (:63), the monthly article's period and gaps (:49), ("wet reads the 1951–2012 run (#101)", "#103 moves it to 1981–2010") and the `pcic_routed_compare.R` entry
+- [x] Edit the bodies of issues #67 and #103 with the outcome of the period test. Note in #102 that #103 published on its own
 
 ## Validation
-- [ ] Tests pass
+- [x] Tests pass
 - [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
