@@ -1,0 +1,27 @@
+# Progress — Routed PCIC over 1981-2010: switch the pcic run and republish (#103)
+
+## Session 2026-10-18
+
+- Plan-mode exploration; phases approved by user. #103 publishes alone, ahead of #102 (user agreed: #102 is unstarted, the vignette data scripts refuse until a republish, and #103's period test decides the monthly article's #67 text).
+- Created branch `103-routed-pcic-over-1981-2010-switch-the-pc` off main (5611166 + release 0acfcc1 + syncs, 2675636)
+- Scaffolded PWF baseline from issue #103 with approved phases
+- Next: Phase 1 (flip the pin)
+- Phase 1: pin flipped (ba1dda5); tests 1208 passed, 0 failed, 0 errors. The test-vignette_data.R routed-period expectation moved to Phase 4 (it reads the committed rds)
+- m4 worktree `~/Projects/repo/wet-103` made, `data/*` inputs symlinked to the main checkout as in wet-101
+- Phase 2 on m1: routed report on the 1981-2010 run; annual skill nearly unchanged; by-month probe shows the #67 shape survives (spring -19.5 -> -11.5 %, summer +18.7 -> +15.8 %); findings.md
+- Phase 3 on m4: segment_output on the 1981-2010 run (603ddc1); 4,733 picks moved (3,013 to routed, 1,720 to the balance). BUILD started
+- BUILD on m4 (06:04-06:11 UTC): every check ok, 555,857,796 values compared, 0 differing; reader counts 3,154,131 / 1,378,712 equal the segment report; 35 of 67 parts identical to live acb820f; committed 9b601dc from m4
+- Upload refused by auto mode's classifier ("Production Deploy"); routes offered to the user (leave auto mode for the step, or run the bare command). /code-check branch started meanwhile, so any R/ or scripts/ fix lands before the upload
+- Docs (research, CLAUDE.md) committed 9fecc4a
+
+## Session 2026-10-19
+
+- The user ran the upload on m4 (`WET_PUBLISH=1`); it exited 14:50 UTC. The live manifest now names wet 94deeb5, built 2026-10-19T06:08:31Z, routed `pcic.discharge_monthly` PNWNAmet historical 1981-2010, fingerprint 178918222.786650.
+- BUILD rerun on m4 at 00a3805 (no R/ or scripts/ change since 5215906): every check passes, 67 of 67 parts identical to the live 94deeb5 build. Report committed.
+- Started the reload of m4's `discharge.*` tables from the live manifest (`data/logs/103/db_reload.R`).
+- Phase 4 on m1, `WET_FWAPG_COMMIT=7c30f58`: `segment_vignette_data.R` (289 routed gauge values = fwapg, 0 differing; picks 3,154,131 / 1,378,712, far low 222,906), `monthly_vignette_data.R` (all checks 0 differing), `segment_vignette_map.R` and `readme_figure.R` all passed their guards. Logs in `data/logs/103/` on m1. Map and README figure checked as images; the README caption and alt text still hold. Bulkley example rerun: the routed row changes in months 2–12, month 0 stays 118.
+- Both articles render with every `stopifnot()` passing; the literal claims (Buck Creek routed peak in May, routed weaker only on basins under 100 km², balance weakest at lake outlets, May–September among routed's closer months) are each guarded and hold. Routed is closer than the balance in 10 of 12 months on the common 279 gauges; per gauge it is low in March–April at 61 % and high in July–August at 68 %.
+- `devtools::test()` on 2f37605: 1205 passed, 0 failed, 0 errors, 0 skipped (`data/logs/103/test_full.log` on m1).
+- `research/discharge_publish.md` marked published: Status (2026-10-19 upload, about 5 min; report = BUILD after the upload, 67 of 67), Verified and Issues lines, the manifest bullet. The live manifest's `pcic_routed` provenance names the 1981-2010 run and fingerprint 178918222.786650.
+- Issue bodies edited: #67 (the period test's outcome replaces the long-record bound; table and PCIC draft on the 1981-2010 run), #103 (Outcome section; published alone, not with #102), #102 (its publish is its own).
+- Reload of m4's `discharge.*` tables from the 94deeb5 manifest finished 17:28 UTC: segments 100.6 min, watersheds 47.6 min; both comments name 94deeb5; every row's period 1981-2010; picked rows 3,154,131 routed and 1,378,712 balance, equal to the segment report (count in 11.7 s). Tables 41 GB and 8.5 GB with indexes. Recorded under "Postgres" in `research/discharge_publish.md`.

@@ -60,8 +60,8 @@ the twelve months, and fresh joins the same rows.
 
 With \code{from = "fwapg"}, \code{pcic_routed} is read from fwapg's own routed table
 (\code{pcic.discharge_monthly}), the run PCIC's hydromosaic made with PNWNAmet
-forcing, \code{historical}, averaged over 1951-2012 (\code{model}, \code{scenario} and
-\code{period} \code{PNWNAmet}, \code{historical}, \code{1951-2012}), with month 0 computed by
+forcing, \code{historical}, averaged over 1981-2010 (\code{model}, \code{scenario} and
+\code{period} \code{PNWNAmet}, \code{historical}, \code{1981-2010}), with month 0 computed by
 the same rule as the published one: the mean of the twelve months, \code{NA}
 unless all twelve have flow. That table is loaded by the
 NewGraphEnvironment fork of fwapg (\code{load/pcic_schema.sql}, \code{load/pcic.sql},

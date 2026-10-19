@@ -19,10 +19,6 @@
 #     mm over wet's accumulated upstream area, as scripts/pcic_routed_compare.R
 #     takes them; with the gauge's group, zone, nesting, area class and
 #     whether it is a lake outlet
-#   - period: at the calibration gauges with at least 40 complete years in
-#     1951-2012, observed monthly flow over 1951-2012 beside 1981-2010, so the
-#     part of routed PCIC's monthly error that is its period (1951-2012, against
-#     observed 1981-2010) can be bounded
 #   - provenance: the runs, reports and published build these came from, the
 #     value checks against the published parts, and md5s of the inputs the
 #     clean-tree guard cannot see
@@ -75,21 +71,7 @@ if (!isTRUE(all.equal(sc_new[cols_sc], sc_old[cols_sc], check.attributes = FALSE
   stop("the stored held-out months do not give the stored scores")
 }
 
-# ---- the period: observed 1951-2012 against 1981-2010 -------------------------------------------
 hydat <- wb_hydat(release)
-long_sel <- wet_station_select(hydat, years = 1951:2012, min_years = 40)
-yrs_long <- attr(long_sel, "years")
-long_sel <- long_sel[long_sel$station_number %in% cal$station_number, ]
-attr(long_sel, "years") <- yrs_long[long_sel$station_number]
-mon_long <- wet_station_monthly(long_sel, hydat)
-mon_8110 <- s$monthly[s$monthly$station_number %in% long_sel$station_number, ]
-period <- merge(mon_long[c("station_number", "month", "q_m3s", "n_years")],
-                mon_8110[c("station_number", "month", "q_m3s", "n_years")],
-                by = c("station_number", "month"), suffixes = c("_5112", "_8110"))
-period <- period[order(period$station_number, period$month), ]
-rownames(period) <- NULL
-stopifnot(nrow(long_sel) > 0, nrow(period) == 13 * nrow(long_sel))
-message(nrow(long_sel), " calibration gauges with 40 or more complete years in 1951-2012")
 
 # ---- fwapg ---------------------------------------------------------------------------------------
 hcon <- wet_hydat_connect(hydat)
@@ -307,8 +289,8 @@ provenance <- list(
 names(provenance$md5) <- basename(names(provenance$md5))
 
 no64 <- function(x) !any(vapply(x, inherits, NA, "integer64"))
-stopifnot(no64(segments), no64(gauges), no64(period), no64(provenance$snap))
-values <- list(segments = segments, gauges = gauges, period = period, provenance = provenance)
+stopifnot(no64(segments), no64(gauges), no64(provenance$snap))
+values <- list(segments = segments, gauges = gauges, provenance = provenance)
 saveRDS(values, out, compress = "xz")
 kb <- file.size(out) / 1024
 message("monthly_values.rds: ", round(kb), " KB of ", budget_kb)
