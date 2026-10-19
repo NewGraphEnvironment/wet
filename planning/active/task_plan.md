@@ -21,7 +21,7 @@ Depends on #101 (merged, v0.4.13). Decided at the plan gate (2026-10-18): #103 p
 - [x] `scripts/discharge_publish.R` BUILD. Every value check must pass. Commit `data/checks/discharge_publish_20260717.txt`
 - [x] **Stop for the user's go**, then `AWS_PROFILE=airvine WET_PUBLISH=1 Rscript scripts/discharge_publish.R`, which uploads and verifies anonymously (it writes no report)
 - [x] Rerun BUILD after the upload, with nothing under R/ or scripts/ changed; its report must read N of N identical to the new live build. Commit it (B1; #77 did the same)
-- [ ] Reload m4's `discharge.*` tables from the new build with `wet_db_load()` (S1)
+- [x] Reload m4's `discharge.*` tables from the new build with `wet_db_load()` (S1)
 
 ## Phase 4: Vignette data, maps, articles (m1, after the upload; pull first; data scripts with `WET_FWAPG_COMMIT=7c30f58`; commit data-raw edits before running them)
 - [x] `data-raw/monthly_vignette_data.R`: remove the observed 1951–2012 block (`long_sel` … `period`), the `period` element of the rds and its header text; update `test-vignette_data.R`'s `expect_named`, the period-table test and the routed period expected (line 138)
