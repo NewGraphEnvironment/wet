@@ -11,10 +11,10 @@ Depends on #101 (merged, v0.4.13). Decided at the plan gate (2026-10-18): #103 p
 - [x] `devtools::test()` green (1208 passed, 0 failed, 0 errors; `data/logs/103/test_phase1.log`)
 
 ## Phase 2: New routed scores and the #67 test (m4)
-- [ ] `scripts/pcic_routed_compare.R` with `WET_FWAPG_COMMIT=7c30f58`. The report header must read `PNWNAmet historical 1981-2010`, and its fingerprint must match the run's `pcic.runs` row (178918222.786650)
-- [ ] Record the change against the 1951–2012 report in `findings.md`, using the tracked report's git diff: overall, headwater/nested, by basin, the pick block, the far-low gauges
-- [ ] By month: a scratchpad probe reading both runs from `pcic.discharge_monthly` at the report's gauge segments, against the held-out observed monthly shares in `cv_aet-cfu.rds`. Does routed's March–April low and July–August high (#67) survive at 1981–2010? The final per-month numbers come from the regenerated vignette data in Phase 4
-- [ ] Commit the report
+- [x] `scripts/pcic_routed_compare.R` with `WET_FWAPG_COMMIT=7c30f58`. The report header must read `PNWNAmet historical 1981-2010`, and its fingerprint must match the run's `pcic.runs` row (178918222.786650)
+- [x] Record the change against the 1951–2012 report in `findings.md`, using the tracked report's git diff: overall, headwater/nested, by basin, the pick block, the far-low gauges
+- [x] By month: a scratchpad probe reading both runs from `pcic.discharge_monthly` at the report's gauge segments, against the held-out observed monthly shares in `cv_aet-cfu.rds`. Does routed's March–April low and July–August high (#67) survive at 1981–2010? The final per-month numbers come from the regenerated vignette data in Phase 4
+- [x] Commit the report
 
 ## Phase 3: Segment table and BUILD (m4)
 - [ ] `scripts/segment_output.R`. Record how many picks moved, and where. Commit `data/checks/segment_output_20260717.txt`
