@@ -305,17 +305,25 @@ sources <- list(
                              # how the monthly shares are made (#102), and the snow predictors they use,
                              # when the fit ships them (#16)
                              switch(fits$share_method,
-                                    regression = "Monthly shares from twelve regressions fitted at the gauges.",
-                                    donor = paste("Monthly shares are the inverse-distance mean of the observed shares",
-                                                  "of the five most similar calibration gauges."),
-                                    blend = paste("Monthly shares are the mean of twelve regressions fitted at the",
-                                                  "gauges and the observed shares of the five most similar gauges."),
-                                    stop("unknown share method: ", fits$share_method)),
-                             if (identical(fits$share_spec, "snow")) {
-                               paste("The shares also use ERA5-Land 1981-2010 snowmelt timing and peak snow",
-                                     "water equivalent (via NewGraphEnvironment/cd); contains modified Copernicus",
-                                     "Climate Change Service information.")
-                             }), collapse = " "),
+                                    regression = if (identical(fits$share_spec, "snow")) {
+                                      paste("Monthly shares also use ERA5-Land 1981-2010 snowmelt timing and peak",
+                                            "snow water equivalent (via NewGraphEnvironment/cd); contains modified",
+                                            "Copernicus Climate Change Service information.")
+                                    },
+                                    donor = paste("Monthly shares are the inverse-distance mean of the observed",
+                                                  "monthly shares of the five most similar HYDAT calibration gauges",
+                                                  "(#102), similar in",
+                                                  if (identical(fits$share_spec, "snow")) {
+                                                    paste("elevation, location, and ERA5-Land 1981-2010 snowmelt",
+                                                          "timing and peak snow water equivalent (via",
+                                                          "NewGraphEnvironment/cd); contains modified Copernicus",
+                                                          "Climate Change Service information.")
+                                                  } else {
+                                                    "elevation and location."
+                                                  }),
+                                    stop("the wet_balance description has no text for share method ",
+                                         fits$share_method)),
+                             NULL), collapse = " "),
        citation = "New Graph Environment Ltd. wet: stream flow for the BC Freshwater Atlas. https://github.com/NewGraphEnvironment/wet",
        provenance = list(fit_release = release, province_run = basename(key_dir)))
 )

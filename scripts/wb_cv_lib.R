@@ -211,7 +211,9 @@ cv_share_methods <- function(d, fold, static, methods = share_methods, related =
   }
   for (p in pools) {
     fits <- lapply(methods, function(k) wet_share_fit(d[p$tr, ], static = static, method = k))
-    if (length(unique(vapply(fits, function(x) x$n, 1L))) != 1) stop("the share methods were fitted on different stations")
+    if (length(unique(vapply(fits, function(x) x$n, 1L))) != 1) {
+      stop("the share methods were fitted on different stations")
+    }
     for (j in seq_along(methods)) sh[[methods[j]]][p$te, ] <- wet_share_predict(fits[[j]], d[p$te, , drop = FALSE])
   }
   sh

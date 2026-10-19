@@ -122,8 +122,8 @@ if (!identical(cvr$code_md5, score_code_md5)) {
   stop("cv_aet-", aet, ".rds was scored under other code: rerun scripts/wb_validate.R ", aet)
 }
 if (!identical(fits$code_md5, cvr$code_md5)) stop("fits.rds was made under other code than cv_aet-", aet, ".rds")
-if (!identical(fits$share_spec, cvr$share_spec)) {
-  stop("fits.rds ships another share specification than cv_aet-", aet, ".rds")
+if (!identical(fits$share_spec, cvr$share_spec) || !identical(fits$share_method, cvr$share_method)) {
+  stop("fits.rds ships another share specification or method than cv_aet-", aet, ".rds")
 }
 if (!identical(cvr$release, release)) stop("cv_aet-", aet, ".rds is for release ", cvr$release)
 if (!identical(cal$station_number, cvr$station_number)) stop("the calibration stations are not the cv file's")
@@ -410,8 +410,9 @@ writeLines(c(
   "   reported only",
   sprintf("median NSE of the 365 daily shares against the record: %s (within-month %s on held-out months: %s)",
           num(med(nse_free_day)), ship, num(med_cv[[ship]])),
-  sprintf("median NSE of its 12 months against the observed shares: %s; the shipped held-out shares (cv_share): %s",
-          num(med(nse_free_month)), num(med(nse_cv_month))),
+  sprintf("median NSE of its 12 months against the observed shares: %s; the shipped held-out shares (cv_share, %s): %s",
+          num(med(nse_free_month)), if (is.null(cvr$share_method)) "regression" else cvr$share_method,
+          num(med(nse_cv_month))),
   "",
   "## Median NSE (observed months) by group",
   unlist(lapply(names(groups_of), function(g) c(sprintf("# %s", g), group_lines(g, groups_of[[g]])))),

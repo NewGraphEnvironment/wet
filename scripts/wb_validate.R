@@ -71,6 +71,17 @@
 # 2025-10-14 fit and the two share the window and most gauges. Headwater and
 # nested gauges, and the short-record test stations, are reported beside the
 # rule by scripts/wb_share_donor.R and decide nothing.
+#
+# How the code reads four details the rule above leaves to its references
+# (written 2026-10-19 after a read-only probe on m1 had scored the candidates,
+# so it records the code as first written, not a choice; on fit_20260717 none
+# of them moves the outcome): "the gauges every candidate scores" is one set,
+# the gauges every method scores in both pools (all 315); a donor and blend
+# tied on the blocked-CV median ship the donor; "median dist" is over the
+# distances to every training gauge, and the SDs are the pool's own (as
+# wet_shape_predict()'s donor does it); and every method fits on the same
+# complete stations, those with the shares, the monthly predictors and the
+# static ones (wet_share_fit()).
 
 source("scripts/wb_cv_lib.R")
 f_winner <- file.path(fit_dir, "aet_winner.txt")
@@ -241,7 +252,9 @@ report <- wb_report(sprintf("wb_validation_aet-%s", aet_v), release)
 con <- file(report, "w")
 writeLines(c(
   "# Open water balance (Chapman et al. 2018 method) validated at HYDAT stations (#11)", "",
-  sprintf("province run: %s; annual AET: %s (monthly shares use CGIAR monthly AET)", basename(key_dir), aet_v),
+  sprintf("province run: %s; annual AET: %s (%s)", basename(key_dir), aet_v,
+          switch(ship_method, donor = "monthly shares from the donor gauges' observed shares",
+                 "monthly shares use CGIAR monthly AET")),
   sprintf("HYDAT release: %s", s$hydat_release),
   sprintf("stations: %d accepted snaps, %d with predictors; %d calibrated on (basin >= %.0f %% in BC and on the grid)",
           nrow(st), sum(st$coverage > 0, na.rm = TRUE), nrow(cal), 100 * min_frac),
@@ -321,11 +334,19 @@ writeLines(c(
   } else {
     fmt(cv_v, sprintf("Adjusted, blocked CV, pooled variant fixed to '%s' (headline)", fixed_variant))
   },
-  fmt(lo_v, sprintf("Adjusted, leave-one-out, pooled variant %s (comparable with Chapman)",
-                    if (is.na(fixed_variant)) "chosen inside each fold" else sprintf("fixed to '%s'", fixed_variant))),
+  fmt(lo_v, sprintf("Adjusted, leave-one-out, pooled variant %s (comparable with Chapman%s)",
+                    if (is.na(fixed_variant)) "chosen inside each fold" else sprintf("fixed to '%s'", fixed_variant),
+                    if (ship_method == "regression") {
+                      ""
+                    } else {
+                      sprintf(paste("; the %s shares of a gauge draw on its nearest other gauges, nested and",
+                                    "co-located ones included, so the share columns are optimistic"), ship_method)
+                    })),
   fmt(plain[["other"]], "Transparency: blocked CV with every fold forced to 'other'"),
   fmt(plain[["none"]], "Transparency: blocked CV with every fold forced to 'none'"),
-  fmt(ins_v, if (ship_method == "regression") "Adjusted, in-sample (all stations in the fit)" else {
+  fmt(ins_v, if (ship_method == "regression") {
+    "Adjusted, in-sample (all stations in the fit)"
+  } else {
     sprintf("Adjusted, in-sample (all stations in the fit; the %s shares draw on each gauge's own)", ship_method)
   }),
   "## Fitted adjustment (all calibration stations): zone, a (mm), b (per mm of P)",
