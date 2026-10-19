@@ -52,7 +52,7 @@ q <- wet_segment_monthly(NULL, 17057325, groups = "BULK")
 xtabs(round(q_m3s) ~ source + month, q)
 #>              month
 #> source          0   1   2   3   4   5   6   7   8   9  10  11  12
-#>   pcic_routed 118  32  23  19  48 223 294 248 185 120  97  74  48
+#>   pcic_routed 118  32  24  20  55 221 299 250 182 118  95  71  46
 #>   wet_balance 118  45  50  48  86 220 303 203 109 106  98  87  62
 ```
 

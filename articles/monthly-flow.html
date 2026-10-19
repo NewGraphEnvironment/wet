@@ -84,7 +84,7 @@ fix.</p>
 <ul>
 <li>
 <strong>Routed PCIC</strong> (<code>pcic_routed</code>) is the mean
-of each month’s daily flow over 1951–2012 from PCIC’s Raven routing of
+of each month’s daily flow over 1981–2010 from PCIC’s Raven routing of
 VIC-GL runoff, placed on FWA segments by NewGraphEnvironment/fwapg#6.
 Its month 0 is the plain mean of the twelve months, not weighted by
 their days. On the three segments below that moves it by at most
@@ -96,8 +96,8 @@ share of the year, fitted to the gauges (<code><a href="../reference/wet_share_f
 Its months are volume shares of its month 0, so they add up to it
 exactly.</li>
 </ul>
-<p>The two sources cover different periods. Neither is the gauge record.
-Each comparison below says which period it uses.</p>
+<p>Both sources cover 1981–2010, the period the gauges are scored over.
+Neither is the gauge record.</p>
 </div>
 <div class="section level2">
 <h2 id="reading-a-segments-twelve-months">Reading a segment’s twelve months<a class="anchor" aria-label="anchor" href="#reading-a-segments-twelve-months"></a>
@@ -129,23 +129,22 @@ refuses to bundle the values below unless it returns them.</p>
 <h2 id="the-bulkley-at-three-gauges">The Bulkley at three gauges<a class="anchor" aria-label="anchor" href="#the-bulkley-at-three-gauges"></a>
 </h2>
 <div class="figure">
-<img src="monthly-flow_files/figure-html/hydrographs-1.png" class="r-plt" alt="Mean monthly flow on the segments three Bulkley gauges sit on, from each source, beside the gauge's observed monthly means over 1981–2010. Routed PCIC is over 1951–2012. At Bulkley River near Houston (08EE003), a seasonal gauge, only the months with 10 or more years of 20 days' flow are drawn (May–October). The strips under each panel are the Chinook windows." width="100%"><p class="caption">
+<img src="monthly-flow_files/figure-html/hydrographs-1.png" class="r-plt" alt="Mean monthly flow on the segments three Bulkley gauges sit on, from each source, beside the gauge's observed monthly means over 1981–2010. At Bulkley River near Houston (08EE003), a seasonal gauge, only the months with 10 or more years of 20 days' flow are drawn (May–October). The strips under each panel are the Chinook windows." width="100%"><p class="caption">
 Mean monthly flow on the segments three Bulkley gauges sit on, from each
-source, beside the gauge’s observed monthly means over 1981–2010. Routed
-PCIC is over 1951–2012. At Bulkley River near Houston (08EE003), a
-seasonal gauge, only the months with 10 or more years of 20 days’ flow
-are drawn (May–October). The strips under each panel are the Chinook
-windows.
+source, beside the gauge’s observed monthly means over 1981–2010. At
+Bulkley River near Houston (08EE003), a seasonal gauge, only the months
+with 10 or more years of 20 days’ flow are drawn (May–October). The
+strips under each panel are the Chinook windows.
 </p>
 </div>
 <p>At Buck Creek (08EE013), a snowmelt stream of 567 km², the gauge
 peaks in May and so does routed PCIC, which overshoots it. The water
 balance’s freshet is low and a month late: its May–June flow is 9.4 m³/s
-against 16.4 observed and 23.6 routed, and its highest month, June, is
+against 16.4 observed and 23 routed, and its highest month, June, is
 10.3 m³/s against the gauge’s May 22, under half of it. It carries more
 water than the gauge from July through March. On the Bulkley at Quick
 (08EE004), a basin of 7,341 km², both sources fall short of the gauge in
-May–June by about a quarter (338 m³/s observed, 258 routed, 261
+May–June by about a quarter (338 m³/s observed, 259 routed, 261
 balance). The balance is still high from January to March, and routed
 PCIC is high in July and August.</p>
 <p>Both gauges are among those the balance is calibrated on, so on their
@@ -168,15 +167,15 @@ observed monthly means put through the day weighting. In migration and
 spawning they agree within 3%. In fry migration they differ by up to
 27%, because that window takes half of July, when the flow is falling
 fast, at July’s mean. Even there the approximation is smaller than
-either source’s error, which in that window reaches +74% for routed PCIC
+either source’s error, which in that window reaches +60% for routed PCIC
 and +237% for the balance.</p>
 <table class="table">
 <caption>Mean flow (m³/s) in each Chinook window. Daily record: the
 gauge’s mean over the window, averaged over the years in 1981–2010 with
 enough of its days. Monthly, day-weighted: the same years’ observed
 monthly means, each day taking its month’s mean. The two sources are
-day-weighted the same way, from their own periods, with their difference
-from the daily record in brackets.</caption>
+day-weighted the same way, with their difference from the daily record
+in brackets.</caption>
 <colgroup>
 <col width="27%">
 <col width="22%">
@@ -202,7 +201,7 @@ from the daily record in brackets.</caption>
 <td align="right">30</td>
 <td align="right">11.7</td>
 <td align="right">11.7</td>
-<td align="right">16.8 (+44%)</td>
+<td align="right">16.4 (+40%)</td>
 <td align="right">8.1 (-30%)</td>
 </tr>
 <tr class="even">
@@ -211,7 +210,7 @@ from the daily record in brackets.</caption>
 <td align="right">29</td>
 <td align="right">0.9</td>
 <td align="right">0.9</td>
-<td align="right">1.1 (+22%)</td>
+<td align="right">0.9 (0%)</td>
 <td align="right">2.7 (+194%)</td>
 </tr>
 <tr class="odd">
@@ -220,7 +219,7 @@ from the daily record in brackets.</caption>
 <td align="right">29</td>
 <td align="right">1.3</td>
 <td align="right">1.6</td>
-<td align="right">2.0 (+54%)</td>
+<td align="right">1.8 (+39%)</td>
 <td align="right">3.7 (+189%)</td>
 </tr>
 <tr class="even">
@@ -229,7 +228,7 @@ from the daily record in brackets.</caption>
 <td align="right">18</td>
 <td align="right">36.8</td>
 <td align="right">36.8</td>
-<td align="right">41.4 (+12%)</td>
+<td align="right">39.8 (+8%)</td>
 <td align="right">26.2 (-29%)</td>
 </tr>
 <tr class="odd">
@@ -238,7 +237,7 @@ from the daily record in brackets.</caption>
 <td align="right">18</td>
 <td align="right">2.1</td>
 <td align="right">2.1</td>
-<td align="right">3.1 (+50%)</td>
+<td align="right">2.7 (+29%)</td>
 <td align="right">8.1 (+287%)</td>
 </tr>
 <tr class="even">
@@ -247,7 +246,7 @@ from the daily record in brackets.</caption>
 <td align="right">18</td>
 <td align="right">3.3</td>
 <td align="right">4.0</td>
-<td align="right">5.7 (+74%)</td>
+<td align="right">5.2 (+60%)</td>
 <td align="right">11.0 (+237%)</td>
 </tr>
 </tbody>
@@ -273,12 +272,12 @@ on 3,780 gauge-months, routed PCIC on 3,348. In 70 of the balance’s
 gauge-months the held-out share is zero, so it predicts no flow at all
 (14 of them in January). They count as errors of −100%.</p>
 <div class="figure">
-<img src="monthly-flow_files/figure-html/error-month-1.png" class="r-plt" alt="Error in mean monthly flow by month: the median (line) and the middle half of gauges (band), as a percentage of the gauge's 1981–2010 mean. The water balance is held out (blocked cross-validation) at 315 calibration gauges; routed PCIC, over 1951–2012, at the 279 of them it covers. Dashed lines mark ±20%." width="100%"><p class="caption">
+<img src="monthly-flow_files/figure-html/error-month-1.png" class="r-plt" alt="Error in mean monthly flow by month: the median (line) and the middle half of gauges (band), as a percentage of the gauge's 1981–2010 mean. The water balance is held out (blocked cross-validation) at 315 calibration gauges; routed PCIC at the 279 of them it covers. Dashed lines mark ±20%." width="100%"><p class="caption">
 Error in mean monthly flow by month: the median (line) and the middle
 half of gauges (band), as a percentage of the gauge’s 1981–2010 mean.
 The water balance is held out (blocked cross-validation) at 315
-calibration gauges; routed PCIC, over 1951–2012, at the 279 of them it
-covers. Dashed lines mark ±20%.
+calibration gauges; routed PCIC at the 279 of them it covers. Dashed
+lines mark ±20%.
 </p>
 </div>
 <table class="table">
@@ -304,77 +303,77 @@ above.</caption>
 <td align="left">Jan</td>
 <td align="right">0%</td>
 <td align="right">27%</td>
-<td align="right">-12%</td>
-<td align="right">30%</td>
+<td align="right">-6%</td>
+<td align="right">34%</td>
 </tr>
 <tr class="even">
 <td align="left">Feb</td>
 <td align="right">+5%</td>
 <td align="right">30%</td>
-<td align="right">-6%</td>
+<td align="right">0%</td>
 <td align="right">34%</td>
 </tr>
 <tr class="odd">
 <td align="left">Mar</td>
 <td align="right">+3%</td>
 <td align="right">31%</td>
-<td align="right">-20%</td>
-<td align="right">28%</td>
+<td align="right">-11%</td>
+<td align="right">33%</td>
 </tr>
 <tr class="even">
 <td align="left">Apr</td>
 <td align="right">+11%</td>
 <td align="right">28%</td>
-<td align="right">-20%</td>
+<td align="right">-12%</td>
 <td align="right">35%</td>
 </tr>
 <tr class="odd">
 <td align="left">May</td>
 <td align="right">+7%</td>
 <td align="right">30%</td>
-<td align="right">-15%</td>
+<td align="right">-17%</td>
 <td align="right">39%</td>
 </tr>
 <tr class="even">
 <td align="left">Jun</td>
 <td align="right">-2%</td>
 <td align="right">40%</td>
-<td align="right">+2%</td>
+<td align="right">+1%</td>
 <td align="right">61%</td>
 </tr>
 <tr class="odd">
 <td align="left">Jul</td>
 <td align="right">-3%</td>
 <td align="right">34%</td>
-<td align="right">+19%</td>
-<td align="right">39%</td>
+<td align="right">+20%</td>
+<td align="right">38%</td>
 </tr>
 <tr class="even">
 <td align="left">Aug</td>
 <td align="right">+3%</td>
 <td align="right">25%</td>
-<td align="right">+18%</td>
-<td align="right">34%</td>
+<td align="right">+13%</td>
+<td align="right">36%</td>
 </tr>
 <tr class="odd">
 <td align="left">Sep</td>
 <td align="right">0%</td>
 <td align="right">33%</td>
-<td align="right">+7%</td>
-<td align="right">46%</td>
+<td align="right">+3%</td>
+<td align="right">44%</td>
 </tr>
 <tr class="even">
 <td align="left">Oct</td>
 <td align="right">-2%</td>
 <td align="right">42%</td>
 <td align="right">-3%</td>
-<td align="right">46%</td>
+<td align="right">44%</td>
 </tr>
 <tr class="odd">
 <td align="left">Nov</td>
 <td align="right">-1%</td>
 <td align="right">44%</td>
-<td align="right">-8%</td>
+<td align="right">-6%</td>
 <td align="right">41%</td>
 </tr>
 <tr class="even">
@@ -382,7 +381,7 @@ above.</caption>
 <td align="right">+2%</td>
 <td align="right">33%</td>
 <td align="right">-2%</td>
-<td align="right">36%</td>
+<td align="right">38%</td>
 </tr>
 </tbody>
 </table>
@@ -410,28 +409,18 @@ error is ours.</li>
 <strong>Routed PCIC</strong>, on the 279 gauges both sources are
 scored at, has more of them within ±20% than the balance has in 10 of
 the twelve months, May to September among them. It reads low in March
-and April (median -20%) and high in July and August (+19%): as if its
-melt starts late and runs on. Its median monthly efficiency is 0.81 over
+and April (median -11%) and high in July and August (+16%): as if its
+melt starts late and runs on. Its median monthly efficiency is 0.82 over
 its 279 gauges.</li>
 </ul>
-<p>Routed PCIC’s period is 1951–2012 and the gauges’ is 1981–2010, so
-part of its error could be the period. At the 113 calibration gauges
-with 40 or more complete years in 1951–2012 and routed flow on their
-segment (less 2 whose segment carries under 20%), observed flow over the
-longer period differs from 1981–2010 by a median of -7% in March–April
-and +6% in July–August. Scored against the gauges’ own 1951–2012 means,
-routed PCIC is still -19% in March–April and +10% in July–August.
-Against 1981–2010 at the same gauges it is -23% and +14%. The period
-explains about 18% of the spring shortfall and 32% of the summer excess.
-What is left is the shape of the median gauge. Gauge by gauge, over its
-own period, routed PCIC is low in March–April at 66% of the 113 gauges
-and high in July–August at 63% (both at 40%). A misplaced outlet changes
-one gauge’s hydrograph, mostly in size; it would not move the median of
-113 gauges toward a late melt. So the median shape comes from the routed
-model, not from the placement. That attributes it to PCIC’s model, which
-wet does not run; it is recorded here and in #6. Routed flow over
-1981–2010 (NewGraphEnvironment/fwapg#25) would remove the period
-question.</p>
+<p>Both sources and the gauges cover 1981–2010, so this shape is not a
+difference of period. Gauge by gauge, routed PCIC is low in March–April
+at 61% of the 279 gauges and high in July–August at 68% (both at 41%). A
+misplaced outlet changes one gauge’s hydrograph, mostly in size; it
+would not move the median of 279 gauges toward a late melt. So the
+median shape comes from the routed model, not from the placement. That
+attributes it to PCIC’s model, which wet does not run; it is recorded
+here and in #67.</p>
 <p>A second place was not needed to find these patterns, because the
 province-wide scores already span regimes. The table below splits them
 by basin size and by lake outlets, which a regime contrast would have
@@ -455,43 +444,43 @@ are scored at.</caption>
 <td align="left">All gauges</td>
 <td align="right">279</td>
 <td align="right">0.76</td>
-<td align="right">0.81</td>
+<td align="right">0.82</td>
 </tr>
 <tr class="even">
 <td align="left">&lt;100 km²</td>
 <td align="right">74</td>
 <td align="right">0.55</td>
-<td align="right">0.40</td>
+<td align="right">0.43</td>
 </tr>
 <tr class="odd">
 <td align="left">100-1000</td>
 <td align="right">105</td>
 <td align="right">0.76</td>
-<td align="right">0.79</td>
+<td align="right">0.80</td>
 </tr>
 <tr class="even">
 <td align="left">1000-10000</td>
 <td align="right">82</td>
 <td align="right">0.81</td>
-<td align="right">0.91</td>
+<td align="right">0.92</td>
 </tr>
 <tr class="odd">
 <td align="left">&gt;10000</td>
 <td align="right">18</td>
 <td align="right">0.88</td>
-<td align="right">0.94</td>
+<td align="right">0.95</td>
 </tr>
 <tr class="even">
 <td align="left">Lake outlet</td>
 <td align="right">17</td>
 <td align="right">0.53</td>
-<td align="right">0.93</td>
+<td align="right">0.92</td>
 </tr>
 <tr class="odd">
 <td align="left">Not a lake outlet</td>
 <td align="right">262</td>
 <td align="right">0.76</td>
-<td align="right">0.81</td>
+<td align="right">0.82</td>
 </tr>
 </tbody>
 </table>
@@ -503,13 +492,9 @@ are scored at.</caption>
 useful, each with its issue:</p>
 <ul>
 <li>
-<strong>Routed flow over 1981–2010</strong>
-(NewGraphEnvironment/fwapg#25), so both sources and the gauges share one
-period.</li>
-<li>
 <strong>Routed PCIC’s seasonal shape</strong> (#67): low in early
-spring, high in late summer, beyond what the period explains. Attributed
-to PCIC’s model. The issue records the evidence and a draft report to
+spring, high in late summer, over the gauges’ own period. Attributed to
+PCIC’s model. The issue records the evidence and a draft report to
 PCIC.</li>
 <li>
 <strong>Monthly scoring by region and season</strong> (#6), which
@@ -539,7 +524,7 @@ exactly.</li>
 <h2 id="validation">Validation<a class="anchor" aria-label="anchor" href="#validation"></a>
 </h2>
 <p><code>data-raw/monthly_vignette_data.R</code> built the data at wet
-382eabe on 2026-10-16, from the published build at wet acb820f (<a href="https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json" class="external-link uri">https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json</a>)
+96f42d8 on 2026-10-19, from the published build at wet 94deeb5 (<a href="https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json" class="external-link uri">https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json</a>)
 and the water balance fit on HYDAT 2026-07-17 (AET cfu). It checked the
 bundled published values against what they were built from, and refused
 to write unless none differed:</p>
@@ -596,8 +581,8 @@ the publish report’s value-by-value check of every month
 script requires to have passed for the live build. The held-out monthly
 balance is the one the fit stored, under the share specification it
 shipped, and scored again it gives the fit’s stored per-gauge scores.
-Routed flow is fwapg 341b078’s table (40524444 rows, 3377037 segments, 0
-null flows, total 178035348.248310 m3/s).</p>
+Routed flow is fwapg 7c30f58’s table (40524444 rows, 3377037 segments, 0
+null flows, total 178918222.786650 m3/s).</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

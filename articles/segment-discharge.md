@@ -8,8 +8,8 @@ for the year. It is public at `s3://fresh-bc/discharge/fwa/v1/`. The
 bucket allows no listing, so a reader starts from the manifest,
 <https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json>,
 which lists every part with its rows, size and md5. The current build
-has 67 parquet parts, 1.84 GB, built on 15 October 2026 at wet commit
-acb820f.
+has 67 parquet parts, 1.84 GB, built on 19 October 2026 at wet commit
+94deeb5.
 
 - **`segment_monthly`**: one row per segment, month and source with a
   value, 102,790,688 rows. Month 0 is the annual mean and months 1–12
@@ -19,7 +19,7 @@ acb820f.
 
 Each row comes from one of two sources:
 
-**Routed PCIC** (`pcic_routed`, 1951–2012). The Pacific Climate Impacts
+**Routed PCIC** (`pcic_routed`, 1981–2010). The Pacific Climate Impacts
 Consortium runs the VIC-GL hydrologic model on a 0.0625° grid, driven by
 observed climate, and routes its runoff with the Raven model
 ([hydromosaic](https://beehive.pacificclimate.org/chyp/)). New Graph’s
@@ -55,7 +55,7 @@ for every month:
 - **whichever has a value**, where only one does.
 
 Of the 4,907,441 segments in the Freshwater Atlas, `pick` takes routed
-PCIC on 3,152,838 (64%), the balance on 1,380,005 (28%; 224,199 of them
+PCIC on 3,154,131 (64%), the balance on 1,378,712 (28%; 222,906 of them
 because routed flow is far low), and 374,598 have neither, almost all of
 them connection lines and secondary channels with no watershed polygon
 of their own. The balance takes every segment with a value in the Liard,
@@ -120,17 +120,16 @@ river cannot vouch for it.
 
 |  | Routed PCIC, 290 gauges | Open water balance (held out), 290 gauges | Open water balance (held out), all 315 gauges |
 |:---|---:|---:|---:|
-| Mean absolute error | 24.1% | 27.6% | 27.5% |
-| Bias (mean error) | +0.2% | +9.0% | +8.5% |
-| Middle half of errors | −14% to +10% | −15% to +24% | −16% to +24% |
-| Within ±20% | 62% | 54% | 53% |
+| Mean absolute error | 24.2% | 27.6% | 27.5% |
+| Bias (mean error) | +1.4% | +9.0% | +8.5% |
+| Middle half of errors | −14% to +12% | −15% to +24% | −16% to +24% |
+| Within ±20% | 63% | 54% | 53% |
 
 Error in mean annual runoff at the calibration gauges. PCIC does not
-list the gauges it calibrated to, so its errors may be partly in sample,
-and its flow covers 1951–2012 against observations over 1981–2010.
+list the gauges it calibrated to, so its errors may be partly in sample.
 {.table}
 
-Routed PCIC is closer than the held-out balance at 170 of the 290 gauges
+Routed PCIC is closer than the held-out balance at 169 of the 290 gauges
 both cover. Where each is weak:
 
 - **Headwaters.** The balance averages 31% error at headwater gauges,

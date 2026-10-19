@@ -123,8 +123,8 @@ manifest lists, through duckdb. Its routed month 0 is the plain mean of
 the twelve months, and fresh joins the same rows.</p>
 <p>With <code>from = "fwapg"</code>, <code>pcic_routed</code> is read from fwapg's own routed table
 (<code>pcic.discharge_monthly</code>), the run PCIC's hydromosaic made with PNWNAmet
-forcing, <code>historical</code>, averaged over 1951-2012 (<code>model</code>, <code>scenario</code> and
-<code>period</code> <code>PNWNAmet</code>, <code>historical</code>, <code>1951-2012</code>), with month 0 computed by
+forcing, <code>historical</code>, averaged over 1981-2010 (<code>model</code>, <code>scenario</code> and
+<code>period</code> <code>PNWNAmet</code>, <code>historical</code>, <code>1981-2010</code>), with month 0 computed by
 the same rule as the published one: the mean of the twelve months, <code>NA</code>
 unless all twelve have flow. That table is loaded by the
 NewGraphEnvironment fork of fwapg (<code>load/pcic_schema.sql</code>, <code>load/pcic.sql</code>,

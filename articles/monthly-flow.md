@@ -17,7 +17,7 @@ to fix.
 Each source fills the twelve months its own way:
 
 - **Routed PCIC** (`pcic_routed`) is the mean of each month’s daily flow
-  over 1951–2012 from PCIC’s Raven routing of VIC-GL runoff, placed on
+  over 1981–2010 from PCIC’s Raven routing of VIC-GL runoff, placed on
   FWA segments by NewGraphEnvironment/fwapg#6. Its month 0 is the plain
   mean of the twelve months, not weighted by their days. On the three
   segments below that moves it by at most 0.4%.
@@ -28,8 +28,8 @@ Each source fills the twelve months its own way:
   Its months are volume shares of its month 0, so they add up to it
   exactly.
 
-The two sources cover different periods. Neither is the gauge record.
-Each comparison below says which period it uses.
+Both sources cover 1981–2010, the period the gauges are scored over.
+Neither is the gauge record.
 
 ## Reading a segment’s twelve months
 
@@ -66,26 +66,25 @@ the values below unless it returns them.
 
 ![Mean monthly flow on the segments three Bulkley gauges sit on, from
 each source, beside the gauge's observed monthly means over 1981–2010.
-Routed PCIC is over 1951–2012. At Bulkley River near Houston (08EE003),
-a seasonal gauge, only the months with 10 or more years of 20 days' flow
-are drawn (May–October). The strips under each panel are the Chinook
+At Bulkley River near Houston (08EE003), a seasonal gauge, only the
+months with 10 or more years of 20 days' flow are drawn (May–October).
+The strips under each panel are the Chinook
 windows.](monthly-flow_files/figure-html/hydrographs-1.png)
 
 Mean monthly flow on the segments three Bulkley gauges sit on, from each
-source, beside the gauge’s observed monthly means over 1981–2010. Routed
-PCIC is over 1951–2012. At Bulkley River near Houston (08EE003), a
-seasonal gauge, only the months with 10 or more years of 20 days’ flow
-are drawn (May–October). The strips under each panel are the Chinook
-windows.
+source, beside the gauge’s observed monthly means over 1981–2010. At
+Bulkley River near Houston (08EE003), a seasonal gauge, only the months
+with 10 or more years of 20 days’ flow are drawn (May–October). The
+strips under each panel are the Chinook windows.
 
 At Buck Creek (08EE013), a snowmelt stream of 567 km², the gauge peaks
 in May and so does routed PCIC, which overshoots it. The water balance’s
 freshet is low and a month late: its May–June flow is 9.4 m³/s against
-16.4 observed and 23.6 routed, and its highest month, June, is 10.3 m³/s
+16.4 observed and 23 routed, and its highest month, June, is 10.3 m³/s
 against the gauge’s May 22, under half of it. It carries more water than
 the gauge from July through March. On the Bulkley at Quick (08EE004), a
 basin of 7,341 km², both sources fall short of the gauge in May–June by
-about a quarter (338 m³/s observed, 258 routed, 261 balance). The
+about a quarter (338 m³/s observed, 259 routed, 261 balance). The
 balance is still high from January to March, and routed PCIC is high in
 July and August.
 
@@ -108,24 +107,24 @@ put through the day weighting. In migration and spawning they agree
 within 3%. In fry migration they differ by up to 27%, because that
 window takes half of July, when the flow is falling fast, at July’s
 mean. Even there the approximation is smaller than either source’s
-error, which in that window reaches +74% for routed PCIC and +237% for
+error, which in that window reaches +60% for routed PCIC and +237% for
 the balance.
 
 | Gauge | Window | Years | Daily record | Monthly, day-weighted | Routed PCIC | Water balance |
 |:---|:---|---:|---:|---:|---:|---:|
-| Buck Creek at the Mouth (08EE013) | Migration (May 1 – Aug 1) | 30 | 11.7 | 11.7 | 16.8 (+44%) | 8.1 (-30%) |
-|  | Spawning (Aug 1 – Sep 15) | 29 | 0.9 | 0.9 | 1.1 (+22%) | 2.7 (+194%) |
-|  | Fry migration (Jul 15 – Sep 7) | 29 | 1.3 | 1.6 | 2.0 (+54%) | 3.7 (+189%) |
-| Bulkley River near Houston (08EE003) | Migration (May 1 – Aug 1) | 18 | 36.8 | 36.8 | 41.4 (+12%) | 26.2 (-29%) |
-|  | Spawning (Aug 1 – Sep 15) | 18 | 2.1 | 2.1 | 3.1 (+50%) | 8.1 (+287%) |
-|  | Fry migration (Jul 15 – Sep 7) | 18 | 3.3 | 4.0 | 5.7 (+74%) | 11.0 (+237%) |
+| Buck Creek at the Mouth (08EE013) | Migration (May 1 – Aug 1) | 30 | 11.7 | 11.7 | 16.4 (+40%) | 8.1 (-30%) |
+|  | Spawning (Aug 1 – Sep 15) | 29 | 0.9 | 0.9 | 0.9 (0%) | 2.7 (+194%) |
+|  | Fry migration (Jul 15 – Sep 7) | 29 | 1.3 | 1.6 | 1.8 (+39%) | 3.7 (+189%) |
+| Bulkley River near Houston (08EE003) | Migration (May 1 – Aug 1) | 18 | 36.8 | 36.8 | 39.8 (+8%) | 26.2 (-29%) |
+|  | Spawning (Aug 1 – Sep 15) | 18 | 2.1 | 2.1 | 2.7 (+29%) | 8.1 (+287%) |
+|  | Fry migration (Jul 15 – Sep 7) | 18 | 3.3 | 4.0 | 5.2 (+60%) | 11.0 (+237%) |
 
 Mean flow (m³/s) in each Chinook window. Daily record: the gauge’s mean
 over the window, averaged over the years in 1981–2010 with enough of its
 days. Monthly, day-weighted: the same years’ observed monthly means,
 each day taking its month’s mean. The two sources are day-weighted the
-same way, from their own periods, with their difference from the daily
-record in brackets. {.table}
+same way, with their difference from the daily record in brackets.
+{.table}
 
 ## Monthly error at the gauges
 
@@ -148,30 +147,29 @@ gauge-months the held-out share is zero, so it predicts no flow at all
 ![Error in mean monthly flow by month: the median (line) and the middle
 half of gauges (band), as a percentage of the gauge's 1981–2010 mean.
 The water balance is held out (blocked cross-validation) at 315
-calibration gauges; routed PCIC, over 1951–2012, at the 279 of them it
-covers. Dashed lines mark
-±20%.](monthly-flow_files/figure-html/error-month-1.png)
+calibration gauges; routed PCIC at the 279 of them it covers. Dashed
+lines mark ±20%.](monthly-flow_files/figure-html/error-month-1.png)
 
 Error in mean monthly flow by month: the median (line) and the middle
 half of gauges (band), as a percentage of the gauge’s 1981–2010 mean.
 The water balance is held out (blocked cross-validation) at 315
-calibration gauges; routed PCIC, over 1951–2012, at the 279 of them it
-covers. Dashed lines mark ±20%.
+calibration gauges; routed PCIC at the 279 of them it covers. Dashed
+lines mark ±20%.
 
 | Month | Balance median | Balance within ±20% | Routed median | Routed within ±20% |
 |:------|---------------:|--------------------:|--------------:|-------------------:|
-| Jan   |             0% |                 27% |          -12% |                30% |
-| Feb   |            +5% |                 30% |           -6% |                34% |
-| Mar   |            +3% |                 31% |          -20% |                28% |
-| Apr   |           +11% |                 28% |          -20% |                35% |
-| May   |            +7% |                 30% |          -15% |                39% |
-| Jun   |            -2% |                 40% |           +2% |                61% |
-| Jul   |            -3% |                 34% |          +19% |                39% |
-| Aug   |            +3% |                 25% |          +18% |                34% |
-| Sep   |             0% |                 33% |           +7% |                46% |
-| Oct   |            -2% |                 42% |           -3% |                46% |
-| Nov   |            -1% |                 44% |           -8% |                41% |
-| Dec   |            +2% |                 33% |           -2% |                36% |
+| Jan   |             0% |                 27% |           -6% |                34% |
+| Feb   |            +5% |                 30% |            0% |                34% |
+| Mar   |            +3% |                 31% |          -11% |                33% |
+| Apr   |           +11% |                 28% |          -12% |                35% |
+| May   |            +7% |                 30% |          -17% |                39% |
+| Jun   |            -2% |                 40% |           +1% |                61% |
+| Jul   |            -3% |                 34% |          +20% |                38% |
+| Aug   |            +3% |                 25% |          +13% |                36% |
+| Sep   |             0% |                 33% |           +3% |                44% |
+| Oct   |            -2% |                 42% |           -3% |                44% |
+| Nov   |            -1% |                 44% |           -6% |                41% |
+| Dec   |            +2% |                 33% |           -2% |                38% |
 
 Median error in mean monthly flow, and the share of gauges within ±20%
 of observed, each source on its own gauges as in the figure above.
@@ -199,28 +197,18 @@ The two sources’ errors have different shapes.
 - **Routed PCIC**, on the 279 gauges both sources are scored at, has
   more of them within ±20% than the balance has in 10 of the twelve
   months, May to September among them. It reads low in March and April
-  (median -20%) and high in July and August (+19%): as if its melt
-  starts late and runs on. Its median monthly efficiency is 0.81 over
+  (median -11%) and high in July and August (+16%): as if its melt
+  starts late and runs on. Its median monthly efficiency is 0.82 over
   its 279 gauges.
 
-Routed PCIC’s period is 1951–2012 and the gauges’ is 1981–2010, so part
-of its error could be the period. At the 113 calibration gauges with 40
-or more complete years in 1951–2012 and routed flow on their segment
-(less 2 whose segment carries under 20%), observed flow over the longer
-period differs from 1981–2010 by a median of -7% in March–April and +6%
-in July–August. Scored against the gauges’ own 1951–2012 means, routed
-PCIC is still -19% in March–April and +10% in July–August. Against
-1981–2010 at the same gauges it is -23% and +14%. The period explains
-about 18% of the spring shortfall and 32% of the summer excess. What is
-left is the shape of the median gauge. Gauge by gauge, over its own
-period, routed PCIC is low in March–April at 66% of the 113 gauges and
-high in July–August at 63% (both at 40%). A misplaced outlet changes one
-gauge’s hydrograph, mostly in size; it would not move the median of 113
-gauges toward a late melt. So the median shape comes from the routed
-model, not from the placement. That attributes it to PCIC’s model, which
-wet does not run; it is recorded here and in \#6. Routed flow over
-1981–2010 (NewGraphEnvironment/fwapg#25) would remove the period
-question.
+Both sources and the gauges cover 1981–2010, so this shape is not a
+difference of period. Gauge by gauge, routed PCIC is low in March–April
+at 61% of the 279 gauges and high in July–August at 68% (both at 41%). A
+misplaced outlet changes one gauge’s hydrograph, mostly in size; it
+would not move the median of 279 gauges toward a late melt. So the
+median shape comes from the routed model, not from the placement. That
+attributes it to PCIC’s model, which wet does not run; it is recorded
+here and in \#67.
 
 A second place was not needed to find these patterns, because the
 province-wide scores already span regimes. The table below splits them
@@ -233,13 +221,13 @@ routing does.
 
 | Group             | Gauges | Balance | Routed |
 |:------------------|-------:|--------:|-------:|
-| All gauges        |    279 |    0.76 |   0.81 |
-| \<100 km²         |     74 |    0.55 |   0.40 |
-| 100-1000          |    105 |    0.76 |   0.79 |
-| 1000-10000        |     82 |    0.81 |   0.91 |
-| \>10000           |     18 |    0.88 |   0.94 |
-| Lake outlet       |     17 |    0.53 |   0.93 |
-| Not a lake outlet |    262 |    0.76 |   0.81 |
+| All gauges        |    279 |    0.76 |   0.82 |
+| \<100 km²         |     74 |    0.55 |   0.43 |
+| 100-1000          |    105 |    0.76 |   0.80 |
+| 1000-10000        |     82 |    0.81 |   0.92 |
+| \>10000           |     18 |    0.88 |   0.95 |
+| Lake outlet       |     17 |    0.53 |   0.92 |
+| Not a lake outlet |    262 |    0.76 |   0.82 |
 
 Median Nash–Sutcliffe efficiency of the monthly climatology per gauge,
 by basin size and lake outlets, on the 279 gauges both sources are
@@ -250,11 +238,9 @@ scored at. {.table}
 What this exploration found that would make the monthly values more
 useful, each with its issue:
 
-- **Routed flow over 1981–2010** (NewGraphEnvironment/fwapg#25), so both
-  sources and the gauges share one period.
 - **Routed PCIC’s seasonal shape** (#67): low in early spring, high in
-  late summer, beyond what the period explains. Attributed to PCIC’s
-  model. The issue records the evidence and a draft report to PCIC.
+  late summer, over the gauges’ own period. Attributed to PCIC’s model.
+  The issue records the evidence and a draft report to PCIC.
 - **Monthly scoring by region and season** (#6), which takes over the
   scoring this article starts.
 
@@ -276,8 +262,8 @@ useful, each with its issue:
 
 ## Validation
 
-`data-raw/monthly_vignette_data.R` built the data at wet 382eabe on
-2026-10-16, from the published build at wet acb820f
+`data-raw/monthly_vignette_data.R` built the data at wet 96f42d8 on
+2026-10-19, from the published build at wet 94deeb5
 (<https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json>)
 and the water balance fit on HYDAT 2026-07-17 (AET cfu). It checked the
 bundled published values against what they were built from, and refused
@@ -301,5 +287,5 @@ the publish report’s value-by-value check of every month
 requires to have passed for the live build. The held-out monthly balance
 is the one the fit stored, under the share specification it shipped, and
 scored again it gives the fit’s stored per-gauge scores. Routed flow is
-fwapg 341b078’s table (40524444 rows, 3377037 segments, 0 null flows,
-total 178035348.248310 m3/s).
+fwapg 7c30f58’s table (40524444 rows, 3377037 segments, 0 null flows,
+total 178918222.786650 m3/s).

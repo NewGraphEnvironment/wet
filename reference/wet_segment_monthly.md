@@ -81,8 +81,8 @@ of the twelve months, and fresh joins the same rows.
 
 With `from = "fwapg"`, `pcic_routed` is read from fwapg's own routed
 table (`pcic.discharge_monthly`), the run PCIC's hydromosaic made with
-PNWNAmet forcing, `historical`, averaged over 1951-2012 (`model`,
-`scenario` and `period` `PNWNAmet`, `historical`, `1951-2012`), with
+PNWNAmet forcing, `historical`, averaged over 1981-2010 (`model`,
+`scenario` and `period` `PNWNAmet`, `historical`, `1981-2010`), with
 month 0 computed by the same rule as the published one: the mean of the
 twelve months, `NA` unless all twelve have flow. That table is loaded by
 the NewGraphEnvironment fork of fwapg (`load/pcic_schema.sql`,

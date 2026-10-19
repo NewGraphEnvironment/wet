@@ -75,8 +75,8 @@ for the year. It is public at
 <code>s3://fresh-bc/discharge/fwa/v1/</code>. The bucket allows no
 listing, so a reader starts from the manifest, <a href="https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json" class="external-link uri">https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json</a>,
 which lists every part with its rows, size and md5. The current build
-has 67 parquet parts, 1.84 GB, built on 15 October 2026 at wet commit
-acb820f.</p>
+has 67 parquet parts, 1.84 GB, built on 19 October 2026 at wet commit
+94deeb5.</p>
 <ul>
 <li>
 <strong><code>segment_monthly</code></strong>: one row per segment,
@@ -88,7 +88,7 @@ fundamental watershed, the small polygon each segment drains, from the
 water balance only.</li>
 </ul>
 <p>Each row comes from one of two sources:</p>
-<p><strong>Routed PCIC</strong> (<code>pcic_routed</code>, 1951–2012).
+<p><strong>Routed PCIC</strong> (<code>pcic_routed</code>, 1981–2010).
 The Pacific Climate Impacts Consortium runs the VIC-GL hydrologic model
 on a 0.0625° grid, driven by observed climate, and routes its runoff
 with the Raven model (<a href="https://beehive.pacificclimate.org/chyp/" class="external-link">hydromosaic</a>). New
@@ -125,8 +125,8 @@ PCIC is kept however low it is;</li>
 <strong>whichever has a value</strong>, where only one does.</li>
 </ul>
 <p>Of the 4,907,441 segments in the Freshwater Atlas, <code>pick</code>
-takes routed PCIC on 3,152,838 (64%), the balance on 1,380,005 (28%;
-224,199 of them because routed flow is far low), and 374,598 have
+takes routed PCIC on 3,154,131 (64%), the balance on 1,378,712 (28%;
+222,906 of them because routed flow is far low), and 374,598 have
 neither, almost all of them connection lines and secondary channels with
 no watershed polygon of their own. The balance takes every segment with
 a value in the Liard, where routed PCIC has none, and 98% of those in
@@ -184,8 +184,7 @@ neighbours on the same river cannot vouch for it.</p>
 <table class="table">
 <caption>Error in mean annual runoff at the calibration gauges. PCIC
 does not list the gauges it calibrated to, so its errors may be partly
-in sample, and its flow covers 1951–2012 against observations over
-1981–2010.</caption>
+in sample.</caption>
 <colgroup>
 <col width="16%">
 <col width="17%">
@@ -201,31 +200,31 @@ in sample, and its flow covers 1951–2012 against observations over
 <tbody>
 <tr class="odd">
 <td align="left">Mean absolute error</td>
-<td align="right">24.1%</td>
+<td align="right">24.2%</td>
 <td align="right">27.6%</td>
 <td align="right">27.5%</td>
 </tr>
 <tr class="even">
 <td align="left">Bias (mean error)</td>
-<td align="right">+0.2%</td>
+<td align="right">+1.4%</td>
 <td align="right">+9.0%</td>
 <td align="right">+8.5%</td>
 </tr>
 <tr class="odd">
 <td align="left">Middle half of errors</td>
-<td align="right">−14% to +10%</td>
+<td align="right">−14% to +12%</td>
 <td align="right">−15% to +24%</td>
 <td align="right">−16% to +24%</td>
 </tr>
 <tr class="even">
 <td align="left">Within ±20%</td>
-<td align="right">62%</td>
+<td align="right">63%</td>
 <td align="right">54%</td>
 <td align="right">53%</td>
 </tr>
 </tbody>
 </table>
-<p>Routed PCIC is closer than the held-out balance at 170 of the 290
+<p>Routed PCIC is closer than the held-out balance at 169 of the 290
 gauges both cover. Where each is weak:</p>
 <ul>
 <li>
