@@ -21,7 +21,7 @@ The balance splits annual runoff into months with twelve share regressions (#16,
 - No "kept on both fits" clause. Headwater and nested gauges, and the short-record test stations, are reported beside the rule and do not gate it.
 
 ## Phase 1: Register the rule (no code that scores yet)
-- [ ] `scripts/wb_validate.R` header: the candidates and the rule above, word for word, committed alone, so the git history shows the rule came before any candidate code.
+- [x] `scripts/wb_validate.R` header: the candidates and the rule above, word for word, committed alone, so the git history shows the rule came before any candidate code.
 
 ## Phase 2: Share candidates in the package (tests first)
 - [ ] `tests/testthat/test-wet_share_fit.R`: donor (k nearest, exact match takes the whole weight, k capped at n, shares sum to 1, predictors scaled by the training SD), blend (the mean of the two, sums to 1), regression unchanged (`identical()` to the current output), bad `method`/`k` refused.

@@ -23,6 +23,54 @@
 # The monthly shares are held out with and without the snow predictors (#16),
 # in the same folds; the snow predictors ship only if they pass the rule fixed
 # below (share_min_gain), and scripts/wb_share_snow.R breaks the comparison down.
+#
+# ---- how the shares are made (#102): the rule, fixed here before any candidate was coded or scored --
+#
+# #70 measured, deciding nothing, that the donor mean of the five nearest
+# training gauges' day-of-year shares, summed to months, scores a median share
+# NSE of 0.939 against 0.874 for the shipped regression on the same held-out
+# gauges. That number is known, so what guards against a lucky pick is that
+# every setting of the candidates is fixed here, not tuned after scoring.
+# Decided at the plan gate (airvine, 2026-10-19): the months only (a winner
+# replaces the 12 shares; #70's within-month shape stays the daily method and
+# is refitted on the new months by scripts/wb_shape_daily.R), and a symmetric
+# leak test.
+#
+# On the static share predictors #16's rule ships (`static`; on fit_20260717
+# elev, e_km, n_km, snowmelt_doy_50, swe_max):
+#
+#   regression  the incumbent: wet_share_fit() as before #102, the twelve
+#               monthly regressions, floored at 0 and renormalised.
+#   donor       the inverse-distance mean of the OBSERVED monthly shares
+#               (share_01..12, from monthly volumes, the values scored against)
+#               of the k = 5 nearest training gauges in the space of `static`,
+#               each predictor divided by its SD across the training gauges;
+#               weights 1 / (dist + 1e-6 * median dist), a gauge at distance 0
+#               taking the whole weight (as wet_shape_predict()'s donor, #70);
+#               k capped at the number of training gauges.
+#   blend       the equal-weight mean of the donor and regression shares.
+#
+# Per calibration gauge, the NSE of its 12 held-out shares against its
+# observed ones (share_nse() below: observed runoff of at least 10 mm), over
+# the gauges every candidate scores, in two pools:
+#
+#   blocked CV  the shipped fit's folds (wet_cv_folds(), WSC sub-sub-drainage
+#               blocks): each candidate fitted on the fold's training gauges;
+#   leak-free   for each held-out gauge, every candidate (the regression
+#               included) refitted on its fold's training gauges less those
+#               upstream or downstream of it (wet:::wet_fwa_upstream() on
+#               wscode and localcode).
+#
+# A candidate passes if its median exceeds the regression's in the same pool
+# by at least share_method_min_gain = 0.01 (unrounded, 1e-9 allowed for
+# floating point; #16's margin) in BOTH pools. If both pass, the higher
+# blocked-CV median ships; if neither, the regression stays. The outcome is
+# share_method in fits.rds and cv_aet-<AET>.rds. Taken from the shares alone,
+# it does not depend on the annual balance, so every AET variant of a fit gives
+# the same outcome. There is no "kept on both fits" clause: #81 retired the
+# 2025-10-14 fit and the two share the window and most gauges. Headwater and
+# nested gauges, and the short-record test stations, are reported beside the
+# rule by scripts/wb_share_donor.R and decide nothing.
 
 source("scripts/wb_cv_lib.R")
 f_winner <- file.path(fit_dir, "aet_winner.txt")
