@@ -2,46 +2,74 @@
 # and data-raw/segment_vignette_data.R, so the report and the vignette read
 # one definition. Sourced after scripts/wb_cv_lib.R; not run on its own.
 #
-# The table is NewGraphEnvironment/fwapg#6's
-# whse_basemapping.fwa_stream_networks_discharge_monthly: monthly means of
-# daily flow (m3/s), 1951-2012, PCIC's Raven routing driven by PNWNAmet,
-# placed on FWA segments. Nothing in the database says which fwapg commit
-# built it, so a caller names it (WET_FWAPG_COMMIT) and records the table's
-# fingerprint beside it.
+# The table is fwapg's pcic.discharge_monthly (NewGraphEnvironment/fwapg#25),
+# read for one run: monthly means of daily flow (m3/s) over the run's period,
+# PCIC's Raven routing driven by PNWNAmet, placed on FWA segments. The package
+# names the table and the run (wet:::wet_segment_sources(), the one place #103
+# changes the period); everything here takes them from there. Nothing in the
+# database says which fwapg commit built the run, so a caller names it
+# (WET_FWAPG_COMMIT) and records the run's fingerprint beside it.
 
-routed_table <- "whse_basemapping.fwa_stream_networks_discharge_monthly"
+# the run must come from the source tree, not an installed wet
+if (!pkgload::is_dev_package("wet")) stop("devtools::load_all() before sourcing scripts/pcic_routed_lib.R", call. = FALSE)
+routed_run <- local({
+  lk <- wet:::wet_segment_sources("discharge/fwa/v1/segment_monthly")
+  lk <- lk[lk$from == "fwapg" & lk$source == "pcic_routed", ]
+  stopifnot(nrow(lk) == 1L, !anyNA(lk[c("location", "model", "scenario", "period")]))
+  as.list(lk[c("location", "model", "scenario", "period")])
+})
+routed_table <- routed_run$location
+# the filter every read of routed_table carries
+routed_where <- sprintf("(model, scenario, period) = ('%s', '%s', '%s')",
+                        routed_run$model, routed_run$scenario, routed_run$period)
+stopifnot(!grepl("'", paste(routed_run$model, routed_run$scenario, routed_run$period)))
 
-# the fwapg commit the routed table was built at: 7 to 40 hex characters
+# the fwapg commit the routed run was built at: 7 to 40 hex characters
 routed_commit <- function() {
   x <- Sys.getenv("WET_FWAPG_COMMIT")
   if (!grepl("^[0-9a-f]{7,40}$", x)) {
-    stop("set WET_FWAPG_COMMIT to the fwapg commit that built ", routed_table, call. = FALSE)
+    stop("set WET_FWAPG_COMMIT to the fwapg commit that built ", routed_table, " ",
+         paste(routed_run$model, routed_run$scenario, routed_run$period), call. = FALSE)
   }
   x
 }
 
-# rows, segments, null flows and total flow: a rebuild that moves any value
-# moves the total. Summed as numeric over values rounded to 1e-6 m3/s, so the
-# total is exact whatever order a parallel aggregate adds in, and returned as
-# text, which compares as the report prints it
+# the report line naming the table, run and commit; written by
+# scripts/pcic_routed_compare.R and scripts/segment_output.R, and matched by
+# scripts/vignette_data_lib.R and segment_output.R against the routed report
+routed_report_line <- function(commit) {
+  sprintf("routed: %s (%s %s %s), built by NewGraphEnvironment/fwapg at %s", routed_table,
+          routed_run$model, routed_run$scenario, routed_run$period, commit)
+}
+
+# rows, segments, null flows and total flow of the run: a rebuild that moves
+# any value moves the total. Summed as numeric over values rounded to 1e-6
+# m3/s, so the total is exact whatever order a parallel aggregate adds in, and
+# returned as text, which compares as the report prints it. Computed from the
+# rows, which is what catches a table changing during a run, and refused
+# unless it equals the run's row in pcic.runs (which uses the same rounding)
 routed_fingerprint <- function(conn) {
   fp <- DBI::dbGetQuery(conn, sprintf("
     SELECT count(*)::text AS rows, count(DISTINCT linear_feature_id)::text AS segments,
            count(*) FILTER (WHERE q_m3s IS NULL)::text AS null_q,
            sum(round(q_m3s::numeric, 6))::text AS sum_q
-    FROM %s", routed_table))
+    FROM %s WHERE %s", routed_table, routed_where))
+  # the totals compared as numeric in the database, exactly
+  run <- DBI::dbGetQuery(conn, sprintf("
+    SELECT monthly_rows::text AS rows, monthly_segments::text AS segments, monthly_q_sum = $1::numeric AS same_q
+    FROM pcic.runs WHERE %s", routed_where), params = list(fp$sum_q))
+  if (nrow(run) != 1L || fp$rows != run$rows || fp$segments != run$segments || !isTRUE(run$same_q)) {
+    stop(routed_table, " ", routed_where, " (", fp$rows, " rows, ", fp$segments, " segments, total ", fp$sum_q,
+         ") is not the run pcic.runs describes", call. = FALSE)
+  }
   sprintf("%s rows, %s segments, %s null flows, total %s m3/s", fp$rows, fp$segments, fp$null_q, fp$sum_q)
 }
 
 # Mean annual routed flow (m3/s) per segment: the mean of its 12 monthly
 # means, unweighted by month length, as wet_segment_monthly() reads it from
-# fwapg (month 0, the published product's rule). NA where the segment has no
+# fwapg (month 0, the published product's rule), from the run routed_run names. NA where the segment has no
 # row, or not twelve months of flow.
 routed_annual <- function(conn, lfid) {
-  # the package names the table too; the report's fingerprint must describe
-  # the table the values come from
-  lk <- wet:::wet_segment_sources("discharge/fwa/v1/segment_monthly")
-  stopifnot(identical(lk$location[lk$from == "fwapg" & lk$source == "pcic_routed"], routed_table))
   lfid <- unique(lfid[!is.na(lfid)])
   q <- wet_segment_monthly(conn, lfid, source = "pcic_routed", from = "fwapg")
   q <- q[q$month == 0, ]

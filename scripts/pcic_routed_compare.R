@@ -3,7 +3,7 @@
 #
 #   WET_FWAPG_COMMIT=<sha> Rscript scripts/pcic_routed_compare.R
 #
-# Routed flow is NewGraphEnvironment/fwapg#6's monthly table
+# Routed flow is fwapg's pcic.discharge_monthly, one run
 # (scripts/pcic_routed_lib.R): each gauge's mean annual flow is the mean of
 # the 12 monthly means on the segment the gauge snapped to, in mm over wet's
 # accumulated upstream area, against observed runoff over the same area. The
@@ -12,7 +12,7 @@
 # estimates first").
 #
 # Report: data/checks/pcic_routed_compare_<release>.txt (tracked, wb_report()).
-# It names the fwapg commit that built the table and the table's fingerprint;
+# It names the fwapg commit that built the run and the run's fingerprint;
 # neither is recorded in the database. Connection from WET_PG*.
 
 source("scripts/wb_cv_lib.R")  # load_all(), cal, release, fit_dir, score_code_md5
@@ -103,9 +103,10 @@ lines <- c(
   sprintf("wet commit %s; fit %s (HYDAT %s), province run %s, scoring code %s; balance %s, held out (blocked CV)",
           wet_commit, release, hydat_release, basename(key_dir), score_code_md5,
           if (ho$fits$keep_adjust) "adjusted" else "raw P - AET"),
-  sprintf("routed: %s, built by NewGraphEnvironment/fwapg at %s", routed_table, fwapg_commit),
+  routed_report_line(fwapg_commit),
   sprintf("table: %s", fp),
-  "routed per gauge: the mean of the 12 monthly means (1951-2012, unweighted by month length) on the segment",
+  sprintf("routed per gauge: the mean of the 12 monthly means (%s, unweighted by month length) on the segment",
+          routed_run$period),
   "the gauge snapped to, in mm over wet's accumulated upstream area; observed runoff over the same area",
   "",
   sprintf("calibration gauges: %d; with routed flow on their segment: %d; without: %d",
@@ -203,7 +204,8 @@ lines <- c(
   "## Not like for like",
   "- PCIC calibrated its model at gauges it does not publish, so routed errors may be partly in sample;",
   "  the balance's are out of sample.",
-  "- Routed flow is 1951-2012; the balance is 1981-2010 normals; observed is each gauge's complete years",
+  sprintf("- Routed flow is %s; the balance is 1981-2010 normals; observed is each gauge's complete years",
+          routed_run$period),
   "  within 1981-2010 (at least 10; scripts/wb_stations.R).",
   "",
   "## Per gauge (mm/yr; errors %)",

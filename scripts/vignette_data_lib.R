@@ -45,8 +45,7 @@ vd_routed_check <- function(release = wb_release()) {
   conn <- vd_connect()
   on.exit(DBI::dbDisconnect(conn), add = TRUE)
   fp <- routed_fingerprint(conn)
-  routed_line <- sprintf("routed: %s, built by NewGraphEnvironment/fwapg at %s", routed_table, commit)
-  if (!(any(lines == routed_line) && any(lines == sprintf("table: %s", fp)))) {
+  if (!(any(lines == routed_report_line(commit)) && any(lines == sprintf("table: %s", fp)))) {
     stop(f, " was not made from this routed table at fwapg ", commit,
          ": rerun scripts/pcic_routed_compare.R")
   }

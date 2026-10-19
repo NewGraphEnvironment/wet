@@ -124,8 +124,11 @@ test_that("a table loaded as a subset warns, and a missing table names wet_db_lo
 
 test_that("fwapg's routed table gives its months, and month 0 as their plain mean", {
   conn <- local_fwapg()
-  ref <- DBI::dbGetQuery(conn, "SELECT month, q_m3s FROM whse_basemapping.fwa_stream_networks_discharge_monthly
-                                WHERE linear_feature_id = 17094080 ORDER BY month")
+  skip_if(is.na(DBI::dbGetQuery(conn, "SELECT to_regclass('pcic.discharge_monthly') AS t")$t),
+          "no pcic.discharge_monthly")
+  ref <- DBI::dbGetQuery(conn, "SELECT month, q_m3s FROM pcic.discharge_monthly
+                                WHERE (model, scenario, period) = ('PNWNAmet', 'historical', '1951-2012')
+                                AND linear_feature_id = 17094080 ORDER BY month")
   skip_if(nrow(ref) != 12, "no routed months for 17094080")
   out <- wet_segment_monthly(conn, c(17094080, 1), source = "pcic_routed", from = "fwapg")
   expect_identical(nrow(out), 26L)
@@ -147,12 +150,20 @@ test_that("fwapg's month 0 is NA unless all twelve months have flow", {
   expect_identical(wet:::wet_segment_annual(d)$q_m3s, c(6.5, NA, NA))
 })
 
-test_that("a missing fwapg table names the fork that loads it", {
+test_that("a missing fwapg table names the fork's loads, and a missing run is an error", {
   conn <- local_fwapg()
-  local_mocked_bindings(wet_segment_sources = function(dataset) {
-    data.frame(from = "fwapg", source = "pcic_routed", location = "whse_basemapping.no_such_table",
-               origin = "the NewGraphEnvironment fork of fwapg")
-  })
+  lk <- wet:::wet_segment_sources("discharge/fwa/v1/segment_monthly")
+  lk <- lk[lk$from == "fwapg", ]
+  expect_identical(unlist(lk[c("location", "model", "scenario", "period")], use.names = FALSE),
+                   c("pcic.discharge_monthly", "PNWNAmet", "historical", "1951-2012"))
+  mock <- function(...) function(dataset) utils::modifyList(lk, list(...))
+  local_mocked_bindings(wet_segment_sources = mock(location = "pcic.no_such_table"))
   expect_error(wet_segment_monthly(conn, 17094080, source = "pcic_routed", from = "fwapg"),
-               "no_such_table.*NewGraphEnvironment fork")
+               "no_such_table.*NewGraphEnvironment fork.*pcic_schema.sql.*pcic.sql.*pcic_run.sql")
+  skip_if(is.na(DBI::dbGetQuery(conn, "SELECT to_regclass('pcic.discharge_monthly') AS t")$t),
+          "no pcic.discharge_monthly")
+  # a run never loaded is an error, not every segment missing
+  local_mocked_bindings(wet_segment_sources = mock(period = "1900-1901"))
+  expect_error(wet_segment_monthly(conn, 17094080, source = "pcic_routed", from = "fwapg"),
+               "no rows for the run PNWNAmet historical 1900-1901.*pcic_run.sql")
 })

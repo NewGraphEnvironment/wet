@@ -29,7 +29,7 @@ source \code{from} holds: both for \code{"published"}, \code{"pcic_routed"} for
 \item{from}{\code{"published"} or \code{"fwapg"}, as described above.}
 
 \item{scenario}{Scenario of the published product, e.g. \code{"historical"}.
-fwapg holds only \code{"historical"}.}
+fwapg's run is \code{"historical"} only.}
 
 \item{groups}{Optional watershed group codes that hold the segments. A
 segment outside them reads as missing.}
@@ -59,12 +59,15 @@ manifest lists, through duckdb. Its routed month 0 is the plain mean of
 the twelve months, and fresh joins the same rows.
 
 With \code{from = "fwapg"}, \code{pcic_routed} is read from fwapg's own routed table
-(\code{whse_basemapping.fwa_stream_networks_discharge_monthly}), with month 0
-computed by the same rule as the published one: the mean of the twelve
-months, \code{NA} unless all twelve have flow. That table is loaded by the
-NewGraphEnvironment fork of fwapg, not by upstream fwapg. Scoring the
-table before it is published (\code{scripts/pcic_routed_compare.R}) reads it
-this way.
+(\code{pcic.discharge_monthly}), the run PCIC's hydromosaic made with PNWNAmet
+forcing, \code{historical}, averaged over 1951-2012 (\code{model}, \code{scenario} and
+\code{period} \code{PNWNAmet}, \code{historical}, \code{1951-2012}), with month 0 computed by
+the same rule as the published one: the mean of the twelve months, \code{NA}
+unless all twelve have flow. That table is loaded by the
+NewGraphEnvironment fork of fwapg (\code{load/pcic_schema.sql}, \code{load/pcic.sql},
+then \code{load/pcic_run.sql} per run), not by upstream fwapg; a table without
+the run's rows is an error. Scoring the table before it is published
+(\code{scripts/pcic_routed_compare.R}) reads it this way.
 
 Reading parts with no \code{groups} reads the segment ID column of every part
 (about half a minute for a few segments over HTTPS, and nearly the whole

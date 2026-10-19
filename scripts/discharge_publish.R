@@ -41,7 +41,9 @@ if (!publish) {
 devtools::load_all(quiet = TRUE)
 source("scripts/wb_fit_lib.R")
 source("scripts/discharge_publish_lib.R")
-source("scripts/pcic_routed_lib.R")  # routed_table, routed_fingerprint()
+source("scripts/pcic_routed_lib.R")  # routed_table, routed_where, routed_run, routed_fingerprint()
+# the routed source's forcing key is the run's model
+stopifnot(identical(publish_forcing[["pcic_routed"]], routed_run$model))
 stopifnot(identical(root, file.path("data", "publish", publish_id)))
 stamp <- function(...) message(format(Sys.time(), "%H:%M:%S"), " ", ...)
 
@@ -222,7 +224,7 @@ if (!identical(routed_fingerprint(conn), routed_fp)) {
   stop("fwapg's ", routed_table, " is not the table ", f_seg_report, " was built from (", routed_fp, ")")
 }
 rt_all <- DBI::dbGetQuery(conn, sprintf("
-  SELECT linear_feature_id::int AS linear_feature_id, month, q_m3s FROM %s", routed_table))
+  SELECT linear_feature_id::int AS linear_feature_id, month, q_m3s FROM %s WHERE %s", routed_table, routed_where))
 lut <- DBI::dbGetQuery(conn, "
   SELECT linear_feature_id::int AS linear_feature_id, watershed_feature_id::int AS watershed_feature_id
   FROM whse_basemapping.fwa_streams_watersheds_lut")
@@ -291,7 +293,8 @@ tally <- do.call(rbind, tally)
 sources <- list(
   list(source = "pcic_routed",
        description = paste("PCIC's routed streamflow (Raven routing over VIC-GL, hydromosaic, PNWNAmet forcing),",
-                           "monthly means 1951-2012 placed on FWA segments by NewGraphEnvironment/fwapg#6;",
+                           sprintf("monthly means %s placed on FWA segments by NewGraphEnvironment/fwapg#6;",
+                                   routed_run$period),
                            "annual is the mean of the 12 monthly means."),
        citation = "Pacific Climate Impacts Consortium, University of Victoria. Hydromosaic routed streamflow. https://services.pacificclimate.org/",
        provenance = list(routed = sub("^routed: ", "", routed_line), routed_fingerprint = routed_fp)),

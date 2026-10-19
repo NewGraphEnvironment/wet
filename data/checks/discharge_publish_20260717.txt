@@ -1,8 +1,8 @@
 # Published discharge, build (#7)
 
-wet commit 71af15a (segment table built at e280f5d); fit 20260717, province run e675918817; crate 0.7.0
+wet commit 1d0faf8 (segment table built at 433d036); fit 20260717, province run e675918817; crate 0.7.0
 arrow 25.0.1, duckdb 1.4.3 (a part's bytes depend on the writer's version)
-routed: whse_basemapping.fwa_stream_networks_discharge_monthly, built by NewGraphEnvironment/fwapg at 341b078
+routed: pcic.discharge_monthly (PNWNAmet historical 1951-2012), built by NewGraphEnvironment/fwapg at 7c30f58
 table: 40524444 rows, 3377037 segments, 0 null flows, total 178035348.248310 m3/s
 tree: data/publish/discharge/fwa/v1 -> s3://fresh-bc/discharge/fwa/v1/
 
@@ -32,7 +32,7 @@ watershed parts = fit output      41904356          0             0
 routed months 1-12, total rounded to 1e-6 per value: 178035348.248310 m3/s; the table's fingerprint: 178035348.248310 m3/s
 
 ## Against the published tree
-parts identical to the published build acb820f: 67 of 67 here, 67 published (https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json)
+parts identical to the published build acb820f: 58 of 67 here, 67 published (https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json)
 
 ## What a reader sees (duckdb, hive_partitioning = true, over the local tree)
 historical PNWNAmet  pcic_routed     43901481 rows   3152838 fresh-subquery rows

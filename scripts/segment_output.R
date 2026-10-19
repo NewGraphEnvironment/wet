@@ -30,8 +30,8 @@
 #   (routed_own_line_sql: side channels, and connectors sitting in another
 #   stream's watershed or off the main line) keeps routed, because the
 #   balance there is another line's flow.
-# - period: routed 1951-2012, the balance 1981-2010 (#57's decision, until
-#   fwapg builds routed flow over 1981-2010).
+# - period: routed over its run's period (routed_run, 1951-2012), the balance
+#   1981-2010 (#57's decision, until #103 reads fwapg's 1981-2010 run).
 #
 # Run where the full province run is (m4 holds it; m1's bundle is cut). Uses
 # about 10 GB for the Fraser. Connection from WET_PG*.
@@ -93,7 +93,7 @@ conn <- DBI::dbConnect(RPostgres::Postgres(),
                        user = Sys.getenv("WET_PGUSER", "postgres"),
                        password = Sys.getenv("WET_PGPASSWORD", "postgres"))
 routed_fp <- routed_fingerprint(conn)
-routed_line <- sprintf("routed: %s, built by NewGraphEnvironment/fwapg at %s", routed_table, fwapg_commit)
+routed_line <- routed_report_line(fwapg_commit)
 if (!(any(rr == routed_line) && any(rr == sprintf("table: %s", routed_fp)))) {
   stop(f_routed, " was not made from this routed table at fwapg ", fwapg_commit,
        ": rerun scripts/pcic_routed_compare.R")
@@ -117,7 +117,7 @@ stamp(nrow(seg), " segments, ", sum(!is.na(seg$watershed_feature_id)), " with a 
 dir.create(file.path(fit_dir, "segment"))
 days <- c(365.25, wet_month_days())
 cols_out <- c("linear_feature_id", "month", "runoff_mm", "q_m3s", "coverage", "source", "period", "pick")
-period_routed <- "1951-2012"
+period_routed <- routed_run$period
 period_balance <- "1981-2010"
 tally <- list()
 seg_q <- list()  # annual flow of each source and the pick, per segment, for the report
@@ -141,12 +141,15 @@ for (code in codes) {
   s$q_balance <- bal$discharge_m3s[iw]
   s$area_m2 <- up$upstream_area_m2[match(s$watershed_feature_id, up$watershed_feature_id)]
 
-  # routed: all twelve months on the segment
+  # routed: all twelve months on the segment, in month order, so month 0 is
+  # their mean summed in that order. Before #101 the rows came in the old
+  # table's storage order, and the mean's last bits followed it
   invisible(DBI::dbExecute(conn, "TRUNCATE seg_ids"))
   DBI::dbWriteTable(conn, "seg_ids", data.frame(linear_feature_id = s$linear_feature_id), append = TRUE)
   rt <- DBI::dbGetQuery(conn, sprintf("
     SELECT r.linear_feature_id::int AS linear_feature_id, r.month, r.q_m3s
-    FROM %s r JOIN seg_ids USING (linear_feature_id)", routed_table))
+    FROM %s r JOIN seg_ids USING (linear_feature_id) WHERE %s
+    ORDER BY r.linear_feature_id, r.month", routed_table, routed_where))
   stopifnot(all(rt$month %in% 1:12))
   n12 <- tabulate(match(rt$linear_feature_id[!is.na(rt$q_m3s)], s$linear_feature_id), nbins = nrow(s))
   rt <- rt[rt$linear_feature_id %in% s$linear_feature_id[n12 == 12], ]
@@ -214,7 +217,7 @@ for (code in codes) {
 stopifnot(identical(routed_fingerprint(conn), routed_fp))
 # a routed segment whose watershed is in no basin's output would be dropped
 n_routed_unplaced <- DBI::dbGetQuery(conn, sprintf("
-  SELECT count(DISTINCT linear_feature_id)::int AS n FROM %s", routed_table))$n -
+  SELECT count(DISTINCT linear_feature_id)::int AS n FROM %s WHERE %s", routed_table, routed_where))$n -
   sum(vapply(tally, function(x) x$both + x$routed_only, integer(1)))
 DBI::dbDisconnect(conn)
 tally <- do.call(rbind, tally)

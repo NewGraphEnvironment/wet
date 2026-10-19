@@ -1,0 +1,94 @@
+# Findings — Read routed PCIC from fwapg's pcic schema (#101)
+
+## Issue context
+
+**If we do it:** wet reads routed PCIC from fwapg's `pcic` schema, with the run named in one place, and fwapg can drop its two frozen `whse_basemapping` copies (NewGraphEnvironment/fwapg#31). No published value changes. **If we never do:** wet keeps reading the frozen first build, fwapg#31 waits, and a reader can pick the stale copy by name.
+
+**Scope:** the read only, pinned to the 1951–2012 run, which equals today's table row for row. Switching to the 1981–2010 run changes every routed value and needs a republish; that is #103.
+
+Upstream fwapg loads no PCIC table, so this neither moves wet away from upstream nor toward it: the routed table was always an extra of New Graph's fork. Wet's other FWA reads stay on `whse_basemapping`.
+
+## What fwapg provides (NewGraphEnvironment/fwapg#25, PR #32)
+
+- `pcic.discharge_monthly`: `model, scenario, period, linear_feature_id, watershed_group_code, month, q_m3s`, primary key `(model, scenario, period, linear_feature_id, month)`.
+- `pcic.runs`: one row per run, with `monthly_rows`, `monthly_segments`, `monthly_q_sum` (`sum(round(q_m3s::numeric, 6))`), `crosswalk_md5` and `built_at`. It records no build commit.
+- `pcic.fwa_crosswalk`, shared by every run.
+- The 1951–2012 run: 40,524,444 rows on 3,377,037 segments, `monthly_q_sum` 178035348.248310, and 0 rows differing from `whse_basemapping.fwa_stream_networks_discharge_monthly`.
+
+## What changes in wet
+
+- **One definition of the run.** The package names the table and the run together (`wet_segment_sources()` in `R/wet_segment_monthly.R`), and `scripts/pcic_routed_lib.R` takes them from there, so #103 flips one value. Every read is filtered on `(model, scenario, period) = ('PNWNAmet', 'historical', '1951-2012')`. The reads that interpolate `routed_table` today:
+  - `routed_fingerprint()` and, through `wet_segment_monthly(from = "fwapg")`, `routed_annual()` (`scripts/pcic_routed_lib.R`);
+  - `scripts/segment_output.R` (the per-basin routed join and the count of routed segments);
+  - `scripts/discharge_publish.R` (the whole table, for the value checks);
+  - `data-raw/monthly_vignette_data.R` (routed months at the segments used).
+- **The fingerprint is still computed from the rows,** because it is what catches a table changing during a run, which a stored row cannot. It also asserts that its rows, segments and total equal the run's row in `pcic.runs`.
+- **`WET_FWAPG_COMMIT` stays,** because `pcic.runs` has no commit. The runs were built from fwapg PR #32's branch, merged as 7c30f58.
+- **`wet_segment_monthly(from = "fwapg")`:** its documentation names the table, the run and the period. A missing table names fwapg's `load/pcic_schema.sql`, `load/pcic.sql` and `load/pcic_run.sql`. A table without the run's rows is an error, not every segment missing. `"historical"` stays the only scenario.
+- **Tests:** `tests/testthat/test-wet_segment_monthly.R` reads its reference months from `pcic.discharge_monthly` under the run filter, and gains a test that a missing run is an error.
+- **Docs:** the routed-table lines in CLAUDE.md, `research/discharge_publish.md` and the roxygen. Dated records (`research/water_balance_method.md`, the planning archives) stay as written.
+
+## Loading
+
+fwapg's `load.sh` loads both runs. On an existing database, from an fwapg checkout on its `newgraph` branch:
+
+```
+psql $DATABASE_URL -v ON_ERROR_STOP=1 -f load/pcic_schema.sql -f load/pcic.sql
+for run in pnwnamet_historical_1951-2012 pnwnamet_historical_1981-2010; do
+  curl -sSf "https://fresh-bc.s3.us-west-2.amazonaws.com/fwapg/extras/pcic.discharge_monthly.$run.csv.gz" \
+    | gunzip | psql $DATABASE_URL -v ON_ERROR_STOP=1 -v table=discharge_monthly -f load/pcic_run.sql
+done
+```
+
+Load both: this issue reads 1951–2012, #103 reads 1981–2010. The loads use `psql`'s `\copy` and `COPY ... HEADER MATCH`, so the machine needs `psql` and PostgreSQL 15 or later.
+
+## Done when
+
+- `scripts/pcic_routed_compare.R`, rerun: scores and the `table:` fingerprint line unchanged; only the `routed:` line (table, fwapg commit) and the wet commit differ.
+- `scripts/segment_output.R`, rerun on the full province run: every segment part byte-identical; the report differs only in those lines.
+- `scripts/discharge_publish.R` BUILD: every value check passes and every part is byte-identical to the live build. Nothing is uploaded; the live manifest's provenance keeps naming the old table until #103 publishes.
+- The vignette data scripts pass their guards against the new reports; their bundles' values are unchanged and their provenance names the new table and commit.
+- Comment on NewGraphEnvironment/fwapg#31 that wet no longer reads the frozen tables.
+
+Relates to #57, #58, #59, #99, #103, NewGraphEnvironment/fwapg#25, NewGraphEnvironment/fwapg#23, NewGraphEnvironment/fwapg#31.
+
+
+## Errors Encountered
+
+| Error | Resolution |
+|-------|------------|
+
+## Exploration (2026-10-18)
+
+- Table name hard-coded in `R/wet_segment_monthly.R` (`wet_segment_sources()`) and `scripts/pcic_routed_lib.R` (`routed_table`); the `routed:` report line built by `sprintf` in three scripts; "1951-2012" hard-coded in `segment_output.R` (`period_routed`, published `period` column), `pcic_routed_compare.R` (report text) and `discharge_publish.R` (manifest description). All now come from `wet_segment_sources()`.
+- `data-raw/monthly_vignette_data.R` compares observed 1951–2012 against 1981–2010 to size routed PCIC's period error. That is about the vignette's argument, not the read, and stays for #103 to revisit.
+- The fresh-db container has psql 17.5 but no curl, so fwapg's `load/pcic.sql` (`\copy … FROM PROGRAM 'curl …'`) runs from a host psql. m1 has one.
+- m4's fwapg already held both runs (`pcic.runs` built_at 2026-10-17 19:13 and 21:39 UTC, crosswalk md5 b1a710836df2cafea0ef514b7ed1c338). Its Postgres answers on the LAN (192.168.1.111:5432); its shell does not (m1's Tailscale logged out; m4 refuses ssh on port 22).
+- NEWS.md is written by the release commit at merge, not on the branch.
+
+## Phase 1 measurements (2026-10-18)
+
+- m1 load (fwapg 7c30f58's `load/pcic_schema.sql`, `load/pcic.sql`, `load/pcic_run.sql`, both monthly runs): 19:36–19:42 UTC. `pcic.runs` on m1 and m4 identical: 1951–2012 40524444 rows / 3377037 segments / 178035348.248310; 1981–2010 40524444 / 3377037 / 178918222.786650; crosswalk md5 b1a710836df2cafea0ef514b7ed1c338.
+- `(linear_feature_id, watershed_group_code, month, q_m3s)` of the 1951–2012 run `EXCEPT ALL` the `whse_basemapping` table, both ways: 0 and 0 on m1 (101 s) and on m4 (195 s, over the LAN).
+- `routed_fingerprint()` on m1 under the run filter: `40524444 rows, 3377037 segments, 0 null flows, total 178035348.248310 m3/s`, the tracked report's `table:` line exactly; 23 s. A filter over both runs stops ("is not the run pcic.runs describes").
+
+## Plan review verdicts
+
+- B1 confirmed (installed wet 0.4.5; both data scripts sourced the lib before `load_all()`); fixed both ways: scripts reordered, lib refuses a non-dev wet.
+- G1 adopted (`ORDER BY`), cheap insurance for byte-identical month 0. G2 adopted (`routed` in both bundles' provenance). G3 confirmed and fixed. G4 adopted as an assertion. G5 fixed in the plan.
+- S3 (`scenario` column name in the lookup vs the argument) left: the lookup's columns are the table's key names.
+- Mutations (copy of the tree): dropping the run-exists check fails the missing-run test; dropping the run filter errors the months test (two rows per segment and month).
+
+## Code-check round 1: routed month 0 follows row order (2026-10-18)
+
+The reviewer found that the new `ORDER BY` in `segment_output.R` changes routed month 0's last bits in about 15 % of routed segments. The `findings.md` note above calling it "cheap insurance" was wrong. `stats::aggregate(mean)` sums in arrival order, and the old read arrived in the old table's storage order (a hash join over a seq scan for a large basin; small basins took a nested loop over the key and were unaffected).
+
+Verified on the live Fraser routed part (code 100): 82,681 of 1,010,776 segments' month 0 differ from the month-ordered mean. Earlier reruns matched 67 of 67 only because the old table never moved. No read of `pcic.discharge_monthly` reproduces those bits without reading the old table.
+
+**Decision (user, 2026-10-18):** order the months; do not upload; #103 republishes. Acceptance moved accordingly, and the issue body was edited. The BUILD's month-0 check uses a 1e-9 tolerance and passes; its "parts identical" line will read fewer than 67. The vignette data guard (`vd_published()`) needs every part identical, so the bundles are not rebuilt until #103.
+
+## Code-check round 2 (2026-10-18)
+
+No bugs. Three findings: `wet_segment_fwapg()` read with no `ORDER BY` (same class; fixed, `ORDER BY 1, 2`); "about 8 %" in research and the issue is the Fraser rate, and the reviewer measured 11.4 % province-wide (384,680 of 3,377,037, 9 of 20 routed parts), to be confirmed from the m4 rebuild; research's Status line names the BUILD report that Phase 5 replaces. The round-1 fix's own text carried the 8 %, so the loop ended by enumeration: the 8 sites that reduce routed rows (segment_output's aggregate, wet_segment_fwapg/annual, monthly_vignette_data's aggregate, discharge_publish's month-0 check and routed_micro, routed_fingerprint, and routed_annual through pcic_routed_compare and segment_vignette_data) are each ordered, exact, or compared with a tolerance.
+
+Side sweep (user's question): the class also stands in wet#76 (province runs; body updated) and in link (link#356 filed). No soul convention covers it; a rule was offered to the user, not written.
