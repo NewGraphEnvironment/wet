@@ -38,7 +38,7 @@ Depends on #101 (merged, v0.4.13). Decided at the plan gate (2026-10-18): #103 p
 
 ## Validation
 - [x] Tests pass
-- [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
+- [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 

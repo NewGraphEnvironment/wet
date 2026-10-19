@@ -15,7 +15,7 @@ fwapg publishes it (NewGraphEnvironment/fwapg#25, `pcic.runs`):
 | PNWNAmet historical 1951–2012 (today) | 40,524,444 | 3,377,037 | 178035348.248310 |
 | PNWNAmet historical 1981–2010 | 40,524,444 | 3,377,037 | 178918222.786650 |
 
-Same segments, same crosswalk (`crosswalk_md5` b1a71083…), so coverage does not move. Every routed value does.
+Same segments, same crosswalk (`crosswalk_md5` b1a71083…), so coverage does not move. Every routed value does. *(Measured in review round 3: not every value. 3,824,264 of the 40,524,444 monthly values are equal in both runs, 1,368,632 of them zeros; every routed part changes.)*
 
 ## What changes
 
