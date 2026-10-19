@@ -43,19 +43,19 @@ The balance splits annual runoff into months with twelve share regressions (#16,
 - [x] `/code-check branch`, three rounds, BEFORE Phase 5: a fix to a hashed file after scoring would stale all ten variants.
 
 ## Phase 5: The stale chain on m4 (a worktree of the branch, `data/` symlinked; logs in `data/logs/102/`, moved to the main checkout before the worktree is removed)
-- [ ] Rescore all ten AET variants (`wb_validate.R <v>`), run `wb_aet_compare.R`, then `wb_validate.R <winner>`.
-- [ ] `wb_share_snow.R`, `wb_share_donor.R` and `wb_shape_daily.R` (refits #70's shape on the shipped months; m4 lacks `shape_daily.rds` today, so this run creates it there).
-- [ ] Commit the `wb_validation*`, `wb_aet_compare`, `wb_share_*`, `wb_shape_daily` reports; then `wb_output.R`, commit its report; `segment_output.R` (`WET_FWAPG_COMMIT=7c30f58`), commit its report; then `discharge_publish.R` BUILD and commit its report (the clean-tree guards). Check that #16's median in the new cv file is 0.873517978845096 to 1e-9.
+- [x] Rescore all ten AET variants (`wb_validate.R <v>`), run `wb_aet_compare.R`, then `wb_validate.R <winner>`.
+- [x] `wb_share_snow.R`, `wb_share_donor.R` and `wb_shape_daily.R` (refits #70's shape on the shipped months; m4 lacks `shape_daily.rds` today, so this run creates it there).
+- [x] Commit the `wb_validation*`, `wb_aet_compare`, `wb_share_*`, `wb_shape_daily` reports; then `wb_output.R`, commit its report; `segment_output.R` (`WET_FWAPG_COMMIT=7c30f58`), commit its report; then `discharge_publish.R` BUILD and commit its report (the clean-tree guards). Check that #16's median in the new cv file is 0.873517978845096 to 1e-9.
 - [ ] After the user's upload: BUILD again, so its report names the live build N of N identical (`vd_published()`), and commit it.
-- [ ] Copy the reduced bundle back to m1 (fits.rds, cv_aet-cfu.rds, aet_winner.txt, shape files, output month 0).
-- [ ] **If the regression stays:** outputs and parts should be byte-identical, so no upload is needed. Confirm with the BUILD's identical count.
+- [x] Copy the reduced bundle back to m1 (fits.rds, cv_aet-cfu.rds, aet_winner.txt, shape files, output month 0).
+- [x] (n/a: donor ships) **If the regression stays:** outputs and parts should be byte-identical, so no upload is needed. Confirm with the BUILD's identical count.
 - [ ] **If a candidate ships:** the upload is the user's step (auto mode refuses a production write). I hand over the bare command and continue on Phase 6's text while it runs.
 
 ## Phase 6: Docs and articles
-- [ ] `research/water_balance_method.md`: a new section, "Monthly shares from donor gauges (#102)", covering the rule, the result, the breakdowns and the leak test. Update the #70 bullet that points here, and the follow-ups.
+- [x] `research/water_balance_method.md`: a new section, "Monthly shares from donor gauges (#102)", covering the rule, the result, the breakdowns and the leak test. Update the #70 bullet that points here, and the follow-ups.
 - [ ] After the upload (only if something ships): rerun `data-raw/monthly_vignette_data.R`, then rewrite every `wet_balance`-dependent check and sentence in `vignettes/monthly-flow.Rmd` (about :117-121, :251-295, :330-345, :517-557 including the :525 guard, :590-614, :635). At a calibration gauge the donor publishes the gauge's own observed shares times the modelled annual, and near a gauge almost that: say so in Limits. Change the Rmd and the bundle together (`share_method`), so CI never builds one without the other.
 - [ ] `research/discharge_publish.md`: the status and upload record. Rerun `data-raw/segment_vignette_data.R` if its guards require it. README only if it states the share method.
-- [ ] CLAUDE.md: the `wb_validate.R` paragraph names the #102 rule and `share_method`; add `wb_share_donor.R` to the pipeline list.
+- [x] CLAUDE.md: the `wb_validate.R` paragraph names the #102 rule and `share_method`; add `wb_share_donor.R` to the pipeline list.
 
 ## Owed at the end (reported, done after merge)
 - [ ] m4: remove the worktree after moving `data/logs/102/` into the main checkout; update the m4 and m1 memories (fit md5, live build).
