@@ -531,8 +531,43 @@ The monthly product gives a window that starts or ends inside a month that month
 - **Where donor does not lead (the report's "Leader by group" lines, computed, not read off the table):** donor has the highest median in 19 of the 29 zones, spline in 9 (zones 01, 04, 09, 11, 13, 14, 15, 17 and 26; zone 09 by 0.0001 and zone 17 by 0.0008) and basis in 1 (zone 16, by 0.0003). Zone 11 (2 gauges) is the one place donor is below flat, by 0.088; everywhere else it gains. Spline also leads at lake outlets (by 0.0154, 19 gauges) and at gauges peaking outside May–June (by 0.0057, 74 gauges). Donor's largest gains over flat by zone: 29 +0.212, 28 +0.162, 06 +0.156, 27 +0.127, 02 +0.121.
 - **Sensitivities:** donor k = 8 scores 0.9829 and k = 3 0.9812; basis with 4 or 8 components 0.9715 and 0.9700; basis on the static predictors plus annual P and T 0.9736. A different k is a new rule in a new issue; the gain over k = 5 is 0.0005.
 - **Chinook windows (Buck Creek 08EE013, Bulkley at Quick 08EE004, from the record's own months with the held-out donor weights):** fry migration at Buck Creek from 26.8 % over the gauge to 16.8 %, at Quick from 5.6 % to −2.9 %; spawning 3.0 % → 5.5 % and −0.5 % → −2.3 %; migration unchanged at 0. With the held-out balance's own months the errors are the balance's (Buck Creek +150 to +178 % in the low-flow windows, Quick −13 to −22 %), not the shape's.
-- **The issue's free day-of-year curve, measured and set aside.** #70 proposed a day-of-year hydrograph carrying the whole shape. The donor mean of the training gauges' doy shares with no month constraint scores a median 0.909 against the record's 365 shares, and aggregated to months its NSE against the observed shares is **0.939, against 0.874 for the shipped held-out shares (`cv_share`)**: at the monthly scale a donor shape beats the #16 share regression. Reported, deciding nothing here; #102 takes it up.
+- **The issue's free day-of-year curve, measured and set aside.** #70 proposed a day-of-year hydrograph carrying the whole shape. The donor mean of the training gauges' doy shares with no month constraint scores a median 0.909 against the record's 365 shares, and aggregated to months its NSE against the observed shares is **0.939, against 0.874 for the shipped held-out shares (`cv_share`)**: at the monthly scale a donor shape beats the #16 share regression. Reported, deciding nothing here; #102 took it up, and the donor's months now ship ("Monthly shares from donor gauges (#102)" below).
 - Nothing is published yet. Publishing `segment_daily` for both sources waits on fwapg#25 (the routed day-of-year climatology), a crate schema and an m4 run; the stored form is decided in `research/discharge_publish.md`.
+
+### Monthly shares from donor gauges (#102)
+
+**Verified:** 2026-10-19 · **Issues:** #102 (from #70's free-curve measurement; daily follow-up #99) · **Produced by:** `scripts/wb_validate.R` (rule and outcome), `scripts/wb_share_donor.R` (`data/checks/wb_share_donor_20260717.txt`), run on m4 (logs `data/logs/102/`)
+
+#70 had measured, without deciding anything, that a donor mean of the training gauges' shares beats the #16 regression at the monthly scale (0.939 against 0.874). That number was known, so the guard against a lucky pick was to fix every setting of the candidates in advance, not to widen the margin.
+
+**Rule, fixed in `scripts/wb_validate.R`'s header (a8ca570) before any candidate was coded or scored:** on the static share predictors #16 ships (`elev, e_km, n_km, snowmelt_doy_50, swe_max`), three candidates:
+- `regression`, the incumbent;
+- `donor`, the inverse-distance mean of the observed monthly shares of the k = 5 nearest training gauges, each predictor scaled by its SD, using #70's weighting (`wet_donor_mean()`, now shared with the daily shape);
+- `blend`, the equal-weight mean of the two.
+
+A candidate ships if its median per-gauge share NSE beats the regression's by at least 0.01 in two pools: the shipped fit's blocked CV, and a leak-free pool in which each held-out gauge's upstream and downstream training gauges are removed and every method is refitted. If both candidates pass, the higher blocked-CV median ships. There is no "kept on both fits" clause, because #81 retired the 2025-10-14 fit. Two choices were made at the plan gate (airvine, 2026-10-19): the months only (#70's within-month shape stays the daily method, refitted on the new months), and a symmetric leak test.
+
+**Result: donor ships** (315 gauges; every AET variant gives the same outcome, the annual of every variant is identical to before, and #16's median reproduces to 0.873517978845096).
+
+| median per-gauge NSE | regression | donor | blend |
+|---|---|---|---|
+| share, blocked CV (the rule) | 0.8735 | **0.9389** | 0.9187 |
+| share, leak-free (the rule) | 0.8735 | **0.9353** | 0.9209 |
+| monthly flow, blocked CV | 0.727 | 0.813 | 0.810 |
+| share, short-record test gauges (110, not deciding) | 0.772 | 0.837 | 0.812 |
+
+The donor scores 0.9389 here against #70's free curve at 0.9388. The two differ in what they average: here the gauges' monthly-volume shares, with an exact-match branch; there, day-of-year shares summed to months.
+
+- **Where it helps most:**
+  - Gauges that peak outside May–June: share NSE 0.725 to 0.892, monthly NSE 0.494 to 0.753.
+  - The Liard (WSC area 10, 19 gauges): 0.785 to 0.911. Its winter months, which the regression left −74 % and −80 % low in February and March, now run within 4 %.
+  - Zones 27–29, where the snow regression was weakest. Zone 27 goes from 0.511 to 0.942.
+  - The freshet: at the 241 May–June peak gauges, 57.7 % are below the gauge in the peak month (66.4 % under the regression), the median peak-month error is −6.2 % (from −12.7 %), and 85.9 % have the same peak month (from 75.9 %).
+- **Where it does not:** the regression scores higher in four of the 29 zones: 17 (4 gauges, 0.887 to 0.824), 06 (3 gauges, 0.937 to 0.879), 16 (6 gauges, 0.933 to 0.917) and 26 (13 gauges, 0.884 to 0.882). Zones 01 and 02 gain under 0.005. Lake outlets gain (0.760 to 0.867) but stay the weakest group.
+- **Leak.** Removing related gauges costs donor 0.0036 (0.9389 to 0.9353); the regression reads 0.8735 in both pools, to four decimals.
+- **The daily shape on the new months (`wb_shape_daily.R` rerun).** The rule picks donor again: 0.9824 on observed months, unchanged, because that score does not use the held-out months. On the held-out months, which is what the product gives, the within-month donor now scores 0.909 (0.849 on the regression's months). That equals #70's free 365-day curve (0.9091). So the months-only choice loses nothing at the daily scale against the curve #99 was to weigh.
+- **What a donor publishes.** At a calibration gauge, the donor's nearest match is the gauge itself at distance 0, so the published months there are the gauge's own observed shares times the modelled annual. Watersheds near a gauge in predictor space get almost the same shape. The annual is unchanged everywhere: month 0 is byte-identical in all 24 basins, and `pick` does not move.
+- **Published:** BUILD at 8ca2dee, 20 of 67 parts identical to 94deeb5 (the routed ones), every value check passes. Upload: pending.
 
 ### What this says about the BC Water Tools
 
@@ -548,6 +583,7 @@ Their accuracy figures are in-sample, and after the undocumented "final adjustme
 - The pre-#15 input caches (CGIAR, climr, DEM, zones raster) are keyed on content and parameters but not on their builder code, as #15's two new builders now are (#19).
 - #16: snow predictors for the monthly shares. Done; kept. See "Snow predictors for the monthly shares (#16)" above. Zone 27 is worse with them. Published with #77: build acb820f, uploaded 2026-10-15.
 - #70: the balance's daily shape within the month. Done; donor ships. See "Daily shape within the month (#70)" above. Publishing it waits on fwapg#25.
+- #102: how the monthly shares are made. Done; the donor gauges' shares ship. See "Monthly shares from donor gauges (#102)" above.
 - #76: the province run reproduces only to rounding across database states (unordered fetch).
 - An upstream note to climr on the ClimateNA coastal gap: drafted, not posted.
 - rspatial/terra#2195: `rasterize(filename = )` with an integer datatype writes NA as 0 (worked around in `scripts/wb_inputs.R`).
