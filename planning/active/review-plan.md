@@ -24,3 +24,12 @@ Findings and what was done with each. A probe or code read checked each one befo
 | S1 | local Postgres `discharge.*` on m4 goes stale after the upload | Folded: reload on m4 with `wet_db_load()` after the upload |
 | S2 | NEWS | Left to /gh-pr-merge |
 | S3 | fixture "1951-2012" in helper-discharge.R | Left: made-up data; changing it rebuilds the shipped fixture manifest |
+
+## /code-check branch
+
+| Round | Findings | Fixed | Accepted | Inside previous fix? |
+|---|---|---|---|---|
+| 1 | 2 (discharge_publish.md status stale and claimed an upload; probes cited under gitignored data/logs) | 2 | 0 | — |
+| 2 | 1 (round 1's status rewrite left "The upload took about 4 min" reading as #103's) | 1 | 0 | yes |
+
+Ended by enumeration: every publish-state sentence in research/discharge_publish.md (the Verified line, the 8 Status sentences, the 5 manifest-bullet sentences; 14 in all) assigned to the build it describes. Only round 2's sentence was wrong; it now follows the 2026-10-15 upload it describes. R/, scripts/, data-raw/, tests and vignettes: no findings in either round.
