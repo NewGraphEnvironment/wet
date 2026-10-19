@@ -40,7 +40,7 @@ The balance splits annual runoff into months with twelve share regressions (#16,
 
 ## Phase 4b: Plan review folded in (review-plan.md), and code-check before the chain
 - [x] Hashed-file fixes before any m4 scoring: the LOO label for a donor and the report's CGIAR line (`wb_validate.R`); NA-share counts (`wb_output.R`); a `wet_balance` description byte-identical for the regression and correct for donor (`discharge_publish.R`); the method check and its label in `wb_shape_daily.R`; a header note recording how the code reads four details the rule leaves to its references (after the probe, so it records the code and is not a choice).
-- [ ] `/code-check branch`, three rounds, BEFORE Phase 5: a fix to a hashed file after scoring would stale all ten variants.
+- [x] `/code-check branch`, three rounds, BEFORE Phase 5: a fix to a hashed file after scoring would stale all ten variants.
 
 ## Phase 5: The stale chain on m4 (a worktree of the branch, `data/` symlinked; logs in `data/logs/102/`, moved to the main checkout before the worktree is removed)
 - [ ] Rescore all ten AET variants (`wb_validate.R <v>`), run `wb_aet_compare.R`, then `wb_validate.R <winner>`.
