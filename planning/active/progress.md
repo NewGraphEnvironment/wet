@@ -9,3 +9,4 @@
 - Phase 1: pin flipped (ba1dda5); tests 1208 passed, 0 failed, 0 errors. The test-vignette_data.R routed-period expectation moved to Phase 4 (it reads the committed rds)
 - m4 worktree `~/Projects/repo/wet-103` made, `data/*` inputs symlinked to the main checkout as in wet-101
 - Phase 2 on m1: routed report on the 1981-2010 run; annual skill nearly unchanged; by-month probe shows the #67 shape survives (spring -19.5 -> -11.5 %, summer +18.7 -> +15.8 %); findings.md
+- Phase 3 on m4: segment_output on the 1981-2010 run (603ddc1); 4,733 picks moved (3,013 to routed, 1,720 to the balance). BUILD started
