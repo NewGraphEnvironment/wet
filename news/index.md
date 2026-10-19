@@ -1,5 +1,22 @@
 # Changelog
 
+## wet 0.4.13
+
+- `wet_segment_monthly(from = "fwapg")` and the routed scripts read
+  PCIC’s routed flow from fwapg’s `pcic.discharge_monthly`, for the
+  PNWNAmet historical 1951-2012 run, instead of the frozen
+  `whse_basemapping.fwa_stream_networks_discharge_monthly`
+  ([\#101](https://github.com/NewGraphEnvironment/wet/issues/101)). The
+  run equals the frozen table row for row. The table and run are named
+  once, in the internal `wet_segment_sources()`. A table without the
+  run’s rows is an error that names fwapg’s load files, and the routed
+  fingerprint must equal the run’s row in `pcic.runs`. A segment’s
+  routed month 0 is now the mean of its months summed in month order,
+  which moves its last bits in 11.4 % of routed segments; the published
+  product is unchanged until
+  [\#103](https://github.com/NewGraphEnvironment/wet/issues/103)
+  republishes it.
+
 ## wet 0.4.12
 
 - The water balance has a daily shape within the month

@@ -11,10 +11,10 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/NewGraphEnvironment/wet/blob/main/inst/CITATION)
+[`inst/CITATION`](https://github.com/NewGraphEnvironment/wet/blob/v0.4.13/inst/CITATION)
 
 Irvine A (2026). *wet: Stream Flow and Water Temperature for the BC
-Freshwater Atlas*. New Graph Environment Ltd. Version 0.4.12,
+Freshwater Atlas*. New Graph Environment Ltd. Version 0.4.13,
 <https://github.com/NewGraphEnvironment/wet>.
 
     @Manual{wet,
@@ -22,7 +22,7 @@ Freshwater Atlas*. New Graph Environment Ltd. Version 0.4.12,
       author = {Allan Irvine},
       organization = {New Graph Environment Ltd.},
       year = {2026},
-      version = {0.4.12},
-      note = {Version 0.4.12},
+      version = {0.4.13},
+      note = {Version 0.4.13},
       url = {https://github.com/NewGraphEnvironment/wet},
     }
