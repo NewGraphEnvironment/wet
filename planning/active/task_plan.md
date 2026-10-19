@@ -24,11 +24,11 @@ Depends on #101 (merged, v0.4.13). Decided at the plan gate (2026-10-18): #103 p
 - [ ] Reload m4's `discharge.*` tables from the new build with `wet_db_load()` (S1)
 
 ## Phase 4: Vignette data, maps, articles (m1, after the upload; pull first; data scripts with `WET_FWAPG_COMMIT=7c30f58`; commit data-raw edits before running them)
-- [ ] `data-raw/monthly_vignette_data.R`: remove the observed 1951–2012 block (`long_sel` … `period`), the `period` element of the rds and its header text; update `test-vignette_data.R`'s `expect_named`, the period-table test and the routed period expected (line 138)
-- [ ] `vignettes/monthly-flow.Rmd`: remove the period paragraph, the `period-check` chunk and the long-record lines of `score-text`, and the `stopifnot(routed_text == "1951–2012")`. Rewrite "The two sources cover different periods" and the "What's next" fwapg#25 item. The #67 attribution stays only if the spring/summer `stopifnot()`s still hold; otherwise rewrite the prose to match the numbers
-- [ ] `vignettes/segment-discharge.Rmd`: the routed source paragraph (`1951–2012`, held to `prov$routed`), the score-table caption, and any prose the new routed-closer and pick counts change
-- [ ] Rerun `data-raw/segment_vignette_data.R`, `data-raw/monthly_vignette_data.R`, `data-raw/segment_vignette_map.R` and `data-raw/readme_figure.R`. Check the map and the README figure as rendered images
-- [ ] README: rerun the Buck Creek example and paste its output, which is hand-pasted in `README.md`. Check the figure caption and alt text still describe the map
+- [x] `data-raw/monthly_vignette_data.R`: remove the observed 1951–2012 block (`long_sel` … `period`), the `period` element of the rds and its header text; update `test-vignette_data.R`'s `expect_named`, the period-table test and the routed period expected (line 138)
+- [x] `vignettes/monthly-flow.Rmd`: remove the period paragraph, the `period-check` chunk and the long-record lines of `score-text`, and the `stopifnot(routed_text == "1951–2012")`. Rewrite "The two sources cover different periods" and the "What's next" fwapg#25 item. The #67 attribution stays only if the spring/summer `stopifnot()`s still hold; otherwise rewrite the prose to match the numbers
+- [x] `vignettes/segment-discharge.Rmd`: the routed source paragraph (`1951–2012`, held to `prov$routed`), the score-table caption, and any prose the new routed-closer and pick counts change
+- [x] Rerun `data-raw/segment_vignette_data.R`, `data-raw/monthly_vignette_data.R`, `data-raw/segment_vignette_map.R` and `data-raw/readme_figure.R`. Check the map and the README figure as rendered images
+- [x] README: rerun the Buck Creek example and paste its output, which is hand-pasted in `README.md`. Check the figure caption and alt text still describe the map
 - [ ] Both articles build (`devtools::build_vignettes()` or pkgdown article render); `devtools::test()` green
 
 ## Phase 5: Docs
