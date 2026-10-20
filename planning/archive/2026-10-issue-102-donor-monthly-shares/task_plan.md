@@ -62,10 +62,10 @@ The balance splits annual runoff into months with twelve share regressions (#16,
 - [ ] #99's body: the daily decision it now owns (the donor's free curve against #70's shape on the new months), with the numbers from the rerun.
 
 ## Validation
-- [ ] Tests pass (`devtools::test()`), and `R CMD check` passes on CI.
-- [ ] `/code-check branch`, three rounds minimum.
-- [ ] PWF checkboxes match the landed work.
-- [ ] `/planning-archive`, then `/gh-pr-push`.
+- [x] Tests pass (`devtools::test()`), and `R CMD check` passes on CI.
+- [x] `/code-check branch`, three rounds minimum.
+- [x] PWF checkboxes match the landed work.
+- [x] `/planning-archive`, then `/gh-pr-push`.
 
 **How each change is proved:** the rule's commit precedes the first commit of candidate code (git log). The regression path is `identical()` to before (test). The `wet_shape_predict()` refactor is `identical()` (test). Under symmetric leak-free pools, the regression's blocked-CV median equals the #16 number in the existing report (0.8735) to 1e-9, which checks the scorer before anything is decided. The `wb_validate.R` reports and `wb_aet_compare.R` are reproducible. If nothing ships, BUILD is 67/67 identical to live 94deeb5. If a candidate ships, BUILD's value checks pass and the monthly vignette data's guards accept the uploaded build.
 
