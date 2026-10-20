@@ -2008,10 +2008,10 @@ Three things are exempt, each for a stated reason:
   says, and one batch's wrong claims each read correctly on their own.
 - **Commits a skill writes itself and gates mechanically**: `/gh-pr-merge`'s release
   bookkeeping, CLAUDE.md syncs, `CITATION.cff` refreshes.
-- **Commits from the skills built to run unattended**: `/compact-prep`'s capture commit
-  of the working tree and its convention appends, and `/claude-memory-audit`'s writes to
-  CLAUDE.md and `research/`. They are exempt for now, not reviewed, and a capture commit
-  can carry code. Whether they should get review is an open issue.
+- **Unattended skills' capture commits**: `/compact-prep` step 2's, which can carry code,
+  and `/claude-memory-audit`'s `CLAUDE.md` and `research/` writes. Not covered, as each
+  reaches one repo; a soul `skills/` commit on `main` is the open exception. Convention
+  appends get one reviewer instead, held on a finding.
 
 The review is the cheap half. Scaffolding costs a plan, a branch and an archive; a review
 costs a few reviewer agents, and its three-round floor stays, because small edits are
