@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.14</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.15</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,9 +34,13 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/v0.4.15/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.15" id="wet-0415">wet 0.4.15<a class="anchor" aria-label="anchor" href="#wet-0415"></a></h2>
+<ul><li>The water balance’s monthly shares come from donor gauges (<a href="https://github.com/NewGraphEnvironment/wet/issues/102" class="external-link">#102</a>): each watershed takes the inverse-distance mean of the observed monthly shares of the five calibration gauges most like it in elevation, location, snowmelt timing and peak snow water equivalent (<code>wet_share_fit(method = "donor")</code>; <code>"blend"</code> and the twelve regressions remain as methods). A rule registered in <code>scripts/wb_validate.R</code> before any candidate was coded chose it: held out, the median per-gauge share NSE rises from 0.874 to 0.939 (0.935 with each gauge’s upstream and downstream neighbours removed), and on 110 short-record gauges no fit uses from 0.772 to 0.837. The freshet, the Liard’s winter and non-snowmelt regimes gain most; four zones (17, 06, 16 and 26) score lower under the donor. The annual flow and every segment’s default source are unchanged. The published product at <code>s3://fresh-bc/discharge/fwa/v1/</code> was rebuilt and republished with the new months (build 8ca2dee), and on a calibration gauge’s segment the balance now carries that gauge’s own monthly pattern. The monthly-flow article is rewritten on it, including the balance’s late-summer overshoot at 08EE003. <code><a href="../reference/wet_shape_predict.html">wet_shape_predict()</a></code>’s donor shares its weighting with the shares (<code>wet_donor_mean()</code>); its output is unchanged.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.14" id="wet-0414">wet 0.4.14<a class="anchor" aria-label="anchor" href="#wet-0414"></a></h2>
 <ul><li>Routed PCIC is read from fwapg’s PNWNAmet historical 1981–2010 run instead of 1951–2012 (<a href="https://github.com/NewGraphEnvironment/wet/issues/103" class="external-link">#103</a>), so both sources on every segment, and the gauge scores, describe the same period. The published product at <code>s3://fresh-bc/discharge/fwa/v1/</code> was rebuilt and republished from it: 4,733 segments changed their default source (3,013 to routed, 1,720 to the balance), and annual skill at the gauges barely moved (routed mean absolute error 24.2 %, 24.1 % before). Routed’s spring-low, summer-high shape survives on matching periods (March–April −11.5 %, July–August +15.8 %), so the period explains part of it and PCIC’s model the rest (<a href="https://github.com/NewGraphEnvironment/wet/issues/67" class="external-link">#67</a>). The monthly-flow article’s period section is gone, and both articles, their data and the README map are rebuilt on the new build.</li>

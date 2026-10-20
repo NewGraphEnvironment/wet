@@ -1,5 +1,30 @@
 # Changelog
 
+## wet 0.4.15
+
+- The water balance’s monthly shares come from donor gauges
+  ([\#102](https://github.com/NewGraphEnvironment/wet/issues/102)): each
+  watershed takes the inverse-distance mean of the observed monthly
+  shares of the five calibration gauges most like it in elevation,
+  location, snowmelt timing and peak snow water equivalent
+  (`wet_share_fit(method = "donor")`; `"blend"` and the twelve
+  regressions remain as methods). A rule registered in
+  `scripts/wb_validate.R` before any candidate was coded chose it: held
+  out, the median per-gauge share NSE rises from 0.874 to 0.939 (0.935
+  with each gauge’s upstream and downstream neighbours removed), and on
+  110 short-record gauges no fit uses from 0.772 to 0.837. The freshet,
+  the Liard’s winter and non-snowmelt regimes gain most; four zones (17,
+  06, 16 and 26) score lower under the donor. The annual flow and every
+  segment’s default source are unchanged. The published product at
+  `s3://fresh-bc/discharge/fwa/v1/` was rebuilt and republished with the
+  new months (build 8ca2dee), and on a calibration gauge’s segment the
+  balance now carries that gauge’s own monthly pattern. The monthly-flow
+  article is rewritten on it, including the balance’s late-summer
+  overshoot at 08EE003.
+  [`wet_shape_predict()`](https://newgraphenvironment.github.io/wet/reference/wet_shape_predict.md)’s
+  donor shares its weighting with the shares (`wet_donor_mean()`); its
+  output is unchanged.
+
 ## wet 0.4.14
 
 - Routed PCIC is read from fwapg’s PNWNAmet historical 1981–2010 run
