@@ -100,7 +100,7 @@ Mechanism choices I made (not questions):
       `devtools::document()`, `lintr`, `pkgdown::check_pkgdown()`
 
 ## Phase 4: The daily table (`scripts/segment_daily_output.R`)
-- [ ] Loop over drainages (the inputs' unit, review 4): each watershed's 365 days computed once,
+- [x] Loop over drainages (the inputs' unit, review 4): each watershed's 365 days computed once,
       `wet_shape_daily(output months, wet_shape_predict(shape_daily.rds, upstream predictors))`, only
       where the balance has months, asserted equal to the complete-predictor set and
       `shape_daily.rds$method == "donor"` (review 5); through `fwa_streams_watersheds_lut` to
@@ -110,15 +110,15 @@ Mechanism choices I made (not questions):
       clean tree, shipped fit and scoring md5, `shape_daily.rds` made on this fit, routed table =
       the tracked routed report's, the daily inputs' fingerprint, monthly segment table current,
       routed segments in the weights = the monthly table's routed segments (review 15)
-- [ ] The province reproduction of `pcic.discharge_monthly` from the raw days is a guard in the
+- [x] The province reproduction of `pcic.discharge_monthly` from the raw days is a guard in the
       script, its counts in the report (review 15); `wb_output.R` and `segment_output.R` unlink
       `segment_daily/` with `segment/` (review 6)
-- [ ] Writes `<fit>/segment_daily/<GROUP>.parquet` and report
+- [x] Writes `<fit>/segment_daily/<GROUP>.parquet` and report
       `data/checks/segment_daily_output_<release>.txt`: rows, the per-day clamp, the routed
       segment-months whose n_days-weighted day mean differs from the published month by more than
       the rounding (count and largest), and the balance identity (every calendar month's days
       average to its monthly row, relative 1e-9; review 14)
-- [ ] Run on m4 (worktree, `data/` symlinked), whole-province Phase-1 reproduction there, timing
+- [x] Run on m4 (worktree, `data/` symlinked), whole-province Phase-1 reproduction there, timing
       recorded; commit the report
 
 ## Phase 5: Publish (`scripts/discharge_publish.R`, `_lib.R`)

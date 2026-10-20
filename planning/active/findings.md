@@ -69,6 +69,21 @@ log `data/logs/99/probe_routed_days.log`, results `data/logs/99/probe_routed_day
   days mid-network: 16 May 874, 25 May 869, 11 May 867, 12 May 864, 15 May 860 (worst month May 774,
   worst week 22 805). A daily step adds a little clamping overall and almost none mid-network.
 
+## The province daily table (m4, 2026-10-20, report at 6bb261e)
+
+`data/checks/segment_daily_output_20260717.txt`, 132.0 min on m4 for all drainages:
+- 2,886,046,240 rows in 246 group files; 3,377,037 routed and 4,529,939 balance segments; no
+  weighted segment without routed days.
+- Balance: 38,680,224 watershed-months, days averaging to the month within 1.17e-15 relative;
+  daily `runoff_mm` sums within 1.25e-15 of the month's (x 28/28.25 in February).
+- Routed months rebuilt from the raw days: all 40,524,444 segment-months equal fwapg's, 0 one-step
+  tie flips.
+- A reader's plain mean of a month's published routed days against the published month: 1,869,949
+  segment-months (4.614 %) more than 1e-5 m3/s apart, 1,021,601 of them in February (the fold);
+  largest above 197.24528 m3/s, largest below -0.12366 m3/s.
+- Per-day clamp: 13,456,319 of 1,232,618,505 rows (1.092 %); mid-network 48,440 of 97,680,205
+  (0.050 %), worst 16 May (874). Same as the Phase 1 probe.
+
 ## Errors Encountered
 
 | Error | Resolution |

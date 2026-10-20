@@ -24,3 +24,5 @@
   Ended by enumeration: round 3 walked every place its two mechanisms reach (fixture of one group with both sources; a condition standing for a property) and found one open instance, fixed in d20a624. Fixes 90d3c00, b69e2c8, d20a624.
 - First province daily run on m4 (code f35c673/86a5b78) passed both guards on the Fraser (22 min for drainage 100) and was stopped at 14:45 UTC as superseded; log kept as `data/logs/99/segment_daily_output_run1_stopped.log` on m4
 - Monthly table rerun on m4 at d20a624 started 14:46 UTC; full test suite on m1 started
+- Final province daily run on m4 at 6bb261e: exit 0, 132.0 min, every guard passed; report committed from m4 (77585a8). Figures in `findings.md`
+- BUILD (`discharge_publish.R`) started on m4 17:07 UTC
