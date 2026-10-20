@@ -4,18 +4,21 @@
 #   Rscript scripts/discharge_publish.R                 # BUILD: the local tree, its manifest, the report
 #   WET_PUBLISH=1 Rscript scripts/discharge_publish.R   # PUBLISH: upload the built tree, then verify it
 #
-# BUILD reads the shipped fit's segment table (scripts/segment_output.R, #57)
-# and balance output (scripts/wb_output.R), adds each feature's watershed
+# BUILD reads the shipped fit's segment table (scripts/segment_output.R, #57),
+# its daily table (scripts/segment_daily_output.R, #99) and balance output
+# (scripts/wb_output.R), adds each feature's watershed
 # group from fwapg, conforms every part to its crate schema, checks every
 # written flow (and four segment columns) against its source (#64), and writes
 #   data/publish/discharge/fwa/v1/<unit>_monthly/scenario=/forcing=/source=/part-<code>.parquet
+#   data/publish/discharge/fwa/v1/segment_daily/scenario=/forcing=/source=/part-<GROUP>.parquet
 #   data/publish/discharge/fwa/v1/manifest.json
 # with one parquet row group per watershed group, plus the tracked report
 # wb_report("discharge_publish", release). It prints what PUBLISH would
 # upload and delete, and writes nothing to S3.
 #
 # PUBLISH uploads that tree, each part with a single PUT whose Content-MD5 S3
-# checks, then the manifest, then deletes keys under the prefix the manifest
+# checks (skipping a part whose live object's ETag is already its md5), then
+# the manifest, then deletes keys under the prefix the manifest
 # no longer names. It then reads the public manifest anonymously and checks
 # every part's size and ETag (wet_catalog_verify()), which also proves the
 # bucket policy opens the prefix. The bucket has no versioning: an overwrite
@@ -77,8 +80,10 @@ if (publish) {
   # current segment report describes, and the build's own report is committed,
   # names this build and failed no check
   sr <- readLines(wb_report("segment_output", release))
-  if (!any(grepl(paste0("^wet commit ", attr(cat_local, "provenance")$segment_commit, ";"), sr))) {
-    stop("the segment report has moved on since the tree was built: rerun the build")
+  dr <- readLines(wb_report("segment_daily_output", release))
+  if (!any(grepl(paste0("^wet commit ", attr(cat_local, "provenance")$segment_commit, ";"), sr)) ||
+        !any(grepl(paste0("^wet commit ", attr(cat_local, "provenance")$segment_daily_commit, " "), dr))) {
+    stop("the segment or daily report has moved on since the tree was built: rerun the build")
   }
   f_report <- wb_report("discharge_publish", release)
   rep_head <- tryCatch(git("show", paste0("HEAD:", f_report)), error = function(e) character())
@@ -97,7 +102,15 @@ if (publish) {
     aws("s3api", "put-object", "--bucket", publish_bucket, "--key", key, "--body", file,
         "--content-md5", md5_b64(md5), "--content-type", type, ...)
   }
-  for (i in seq_len(nrow(cat_local))) {
+  # a part whose live object already has this md5 (a single PUT's ETag, read
+  # by an anonymous HEAD) is not sent again: the daily parts are most of the
+  # bytes and rarely change. An object a failed upload left is not skipped,
+  # since its ETag is not the local md5
+  live <- cat_local
+  live$href <- paste(sub("/manifest.json$", "", publish_url), live$key, sep = "/")
+  same <- wet_catalog_verify(live)$ok
+  stamp(sum(same), " of ", nrow(cat_local), " parts already live with these bytes")
+  for (i in which(!same)) {
     put(cat_local$href[i], paste(publish_id, cat_local$key[i], sep = "/"), "application/vnd.apache.parquet",
         cat_local$md5[i])
     stamp("put ", cat_local$key[i])
@@ -119,7 +132,8 @@ if (publish) {
   stopifnot(identical(cat_pub$md5, cat_local$md5))
   v <- wet_catalog_verify(cat_pub)
   if (!all(v$ok)) stop("published parts do not verify: ", paste(v$key[!v$ok], v$reason[!v$ok], collapse = "; "))
-  stamp("published ", nrow(cat_pub), " parts, ", length(stale), " stale keys deleted; all verify at ", publish_url)
+  stamp("published ", nrow(cat_pub), " parts (", sum(!same), " uploaded), ", length(stale),
+        " stale keys deleted; all verify at ", publish_url)
   quit(save = "no")
 }
 
@@ -128,12 +142,14 @@ if (!requireNamespace("crate", quietly = TRUE)) stop("install crate (with crate#
 crate_version <- as.character(utils::packageVersion("crate"))
 ds_seg <- paste0(publish_id, "/segment_monthly")
 ds_ws <- paste0(publish_id, "/watershed_monthly")
+ds_day <- paste0(publish_id, "/segment_daily")
 invisible(publish_schema_cols(ds_seg))
 invisible(publish_schema_cols(ds_ws))
+invisible(publish_schema_cols(ds_day))
 # the manifest names each schema at the installed crate's release tag, so
 # that tag must hold it: a branch install reports the last release's version
 # and hold it as installed: a later edit under an unbumped version would not
-for (ds in c(ds_seg, ds_ws)) {
+for (ds in c(ds_seg, ds_ws, ds_day)) {
   url <- sprintf("https://raw.githubusercontent.com/NewGraphEnvironment/crate/v%s/inst/extdata/schemas/nge/%s.yaml",
                  crate_version, ds)
   r <- curl::curl_fetch_memory(url)
@@ -149,6 +165,8 @@ key_dir <- wb_key_dir()
 fit_dir <- wb_fit_dir(key_dir, release)
 seg_files <- list.files(file.path(fit_dir, "segment"), "\\.parquet$", full.names = TRUE)
 ws_files <- list.files(file.path(fit_dir, "output"), "\\.parquet$", full.names = TRUE)
+day_files <- list.files(file.path(fit_dir, "segment_daily"), "\\.parquet$", full.names = TRUE)
+if (!length(day_files)) stop("no daily segment table in ", fit_dir, ": run scripts/segment_daily_output.R")
 if (!length(seg_files)) stop("no segment table in ", fit_dir, ": run scripts/segment_output.R")
 if (!length(ws_files)) stop("no balance output in ", fit_dir, ": run scripts/wb_output.R")
 # every basin of the province run, and only those: a partial copy is refused
@@ -176,9 +194,12 @@ if (length(seg_commit) != 1L) stop(f_seg_report, " names no wet commit")
 # while a file left off the exclusions only forces a rebuild.
 publish_own <- c("R/wet_catalog.R", "R/wet_db_load.R", "R/wet_values_compare.R", "scripts/discharge_publish.R",
                  "scripts/discharge_publish_lib.R")
+# the daily table is made after the monthly one and from it, so its script is
+# no input of the monthly table
+daily_own <- "scripts/segment_daily_output.R"
 # DESCRIPTION is left out: its version moves at every release
 changed <- git("diff", "--name-only", seg_commit, "HEAD", "--", "R", "scripts",
-               paste0(":(exclude)", publish_own))
+               paste0(":(exclude)", c(publish_own, daily_own)))
 if (length(changed)) {
   stop("code changed since ", f_seg_report, " was built at ", seg_commit, " (", paste(changed, collapse = ", "),
        "): rerun scripts/wb_output.R and scripts/segment_output.R")
@@ -202,6 +223,28 @@ mt <- function(f) max(file.mtime(f))
 if (min(file.mtime(seg_files)) < mt(ws_files) || mt(seg_files) > file.mtime(f_seg_report)) {
   stop("the segment table predates the balance output, or postdates its report: rerun scripts/segment_output.R")
 }
+# the daily table: made from this monthly table, by the daily code as it stands
+f_day_report <- wb_report("segment_daily_output", release)
+dr <- readLines(f_day_report)
+re_day <- "^wet commit ([0-9a-f]+) \\(segment table built at ([0-9a-f]+)\\);"
+day_head <- Filter(length, regmatches(dr, regexec(re_day, dr)))
+if (length(day_head) != 1L || day_head[[1]][3] != seg_commit) {
+  stop(f_day_report, " was not made from the segment table ", f_seg_report, " describes: rerun ",
+       "scripts/segment_daily_output.R")
+}
+day_commit <- day_head[[1]][2]
+changed <- git("diff", "--name-only", day_commit, "HEAD", "--", "R", "scripts", paste0(":(exclude)", publish_own))
+if (length(changed)) {
+  stop("code changed since ", f_day_report, " was built at ", day_commit, " (", paste(changed, collapse = ", "),
+       "): rerun scripts/segment_daily_output.R")
+}
+if (min(file.mtime(day_files)) < mt(seg_files) || mt(day_files) > file.mtime(f_day_report) ||
+      !identical(grep("^routed: |^table: ", dr, value = TRUE), grep("^routed: |^table: ", sr, value = TRUE))) {
+  stop("the daily table predates the segment table, postdates its report, or names another routed table: ",
+       "rerun scripts/segment_daily_output.R")
+}
+daily_fp <- sub("^daily: ", "", grep("^daily: ", dr, value = TRUE))
+stopifnot(length(daily_fp) == 1L)
 routed_line <- grep("^routed: ", sr, value = TRUE)
 routed_fp <- sub("^table: ", "", grep("^table: ", sr, value = TRUE))
 stopifnot(length(routed_line) == 1L, length(routed_fp) == 1L)
@@ -217,7 +260,14 @@ seg_grp <- DBI::dbGetQuery(conn, "
 ws_grp <- DBI::dbGetQuery(conn, "
   SELECT watershed_feature_id::int AS id, watershed_group_code AS g FROM whse_basemapping.fwa_watersheds_poly")
 codes <- sort(unique(sub("\\.parquet$", "", basename(c(seg_files, ws_files)))))
-drainage <- publish_drainage_labels(conn, codes)
+groups_day <- sort(sub("\\.parquet$", "", basename(day_files)))
+# a daily part is keyed by its watershed group, labelled with the group's name
+drainage <- c(publish_drainage_labels(conn, codes), publish_group_labels(conn, groups_day))
+if (!identical(routed_daily_fingerprint(conn), daily_fp)) {
+  stop("fwapg's routed days or weights are not those ", f_day_report, " was built from (", daily_fp, ")")
+}
+# the routed days, read again, for the daily value check
+day_inp <- routed_daily_inputs(conn)
 # what the value cross-checks compare against: the routed table the segment
 # table was built from, all of it, and the lut that gives a segment its watershed
 if (!identical(routed_fingerprint(conn), routed_fp)) {
@@ -288,22 +338,52 @@ for (f in ws_files) {
                                             picked = n_na)
   stamp(code, ": ", nrow(x), " watershed rows (", n_na, " NA dropped)")
 }
+# the daily parts: one per source and watershed group, in row groups of 2,048
+# segments' days
+cols_day <- c("linear_feature_id", "doy", "runoff_mm", "q_m3s", "coverage", "source", "period", "pick")
+for (f in day_files) {
+  g <- sub("\\.parquet$", "", basename(f))
+  x <- as.data.frame(arrow::read_parquet(f))
+  if (!identical(names(x), cols_day)) stop(f, " has columns ", paste(names(x), collapse = ", "))
+  x$watershed_group_code <- seg_grp$g[match(x$linear_feature_id, seg_grp$id)]
+  if (!all(x$watershed_group_code == g)) stop(f, " holds segments of another watershed group")
+  key <- paste(x$linear_feature_id, x$doy)
+  stopifnot(all(tabulate(match(key[x$pick], unique(key)), nbins = length(unique(key))) == 1L))
+  for (src in names(publish_forcing)) {
+    p <- x[x$source == src, ]
+    if (!nrow(p)) next
+    publish_part_write(publish_part_prepare(p, ds_day, "linear_feature_id"), part_path(ds_day, src, g),
+                       rows_per_group = 365L * 2048L)
+    tally[[length(tally) + 1L]] <- data.frame(dataset = "segment_daily", source = src, code = g, rows = nrow(p),
+                                              segments = length(unique(p$linear_feature_id)),
+                                              picked = sum(p$pick & p$doy == 1L))
+  }
+  rm(x, p)
+  gc(verbose = FALSE)
+}
+stamp(length(day_files), " daily groups written")
 tally <- do.call(rbind, tally)
 
 sources <- list(
   list(source = "pcic_routed",
        description = paste("PCIC's routed streamflow (Raven routing over VIC-GL, hydromosaic, PNWNAmet forcing),",
-                           sprintf("monthly means %s placed on FWA segments by NewGraphEnvironment/fwapg#6;",
-                                   routed_run$period),
-                           "annual is the mean of the 12 monthly means."),
+                           sprintf("monthly and day-of-year means %s placed on FWA segments by", routed_run$period),
+                           "NewGraphEnvironment/fwapg#6 and #25; annual is the mean of the 12 monthly means.",
+                           "Each month and each day is routed and clamped at zero on its own, so a month's",
+                           "days can average above the month where a clamp applied; 29 February is folded",
+                           "into 28 February."),
        citation = "Pacific Climate Impacts Consortium, University of Victoria. Hydromosaic routed streamflow. https://services.pacificclimate.org/",
-       provenance = list(routed = sub("^routed: ", "", routed_line), routed_fingerprint = routed_fp)),
+       provenance = list(routed = sub("^routed: ", "", routed_line), routed_fingerprint = routed_fp,
+                    routed_daily_fingerprint = daily_fp)),
   list(source = "wet_balance",
        description = paste(c("wet's open water balance (#11): climr 1981-2010 precipitation and temperature,",
                              "CGIAR actual evapotranspiration floored by Fu-Budyko, fitted at HYDAT gauges,",
                              "accumulated upstream over FWA fundamental watersheds.",
                              # how the monthly shares are made (#102), and the snow predictors they use,
                              # when the fit ships them (#16)
+                             paste("Daily values lay each published month on a within-month shape, the",
+                                   "inverse-distance mean of the within-month shapes of the five most similar",
+                                   "calibration gauges (#70), so a calendar month's days average to its month."),
                              switch(fits$share_method,
                                     regression = if (identical(fits$share_spec, "snow")) {
                                       paste("Monthly shares also use ERA5-Land 1981-2010 snowmelt timing and peak",
@@ -332,7 +412,8 @@ sources <- list(
 f_pending <- file.path(root, "manifest.pending.json")
 wet_manifest_write(root, publish_id, drainage = drainage, sources = sources,
                    provenance = list(wet_version = as.character(utils::packageVersion("wet")),
-                                     wet_commit = wet_commit, segment_commit = seg_commit),
+                                     wet_commit = wet_commit, segment_commit = seg_commit,
+                                     segment_daily_commit = day_commit),
                    crate_version = crate_version, path = f_pending)
 cat_local <- wet_catalog(f_pending)
 v <- wet_catalog_verify(cat_local)
@@ -436,6 +517,106 @@ for (code in codes_ws) {
   names(out)[3] <- "q_m3s"
   vc_add("watershed parts = fit output", code, wet_values_compare(pw, out, "watershed_feature_id", tol = 0))
 }
+# ---- the daily parts (#99) -------------------------------------------------------------------------
+# Routed days are routed again here by another path than the build's (each
+# distinct upstream set summed once, by colSums), so they are compared after
+# rounding: equal, or one 1e-5 step apart where the raw value sits on a
+# rounding tie, counted on its own. The balance's days are made again from the
+# fit's output and shape, through the lut, and must be equal; their months
+# must be the segment parts' months (relative 1e-9). Four columns of every
+# daily part are checked against the daily table it was cut from.
+shape <- readRDS(file.path(fit_dir, "shape_daily.rds"))
+stopifnot(identical(shape$method, "donor"), identical(shape$code_md5, fits$code_md5))
+m_doy <- wet:::wet_doy_month()
+bal_days <- list()  # by drainage: watershed IDs and their 365 days
+for (code in codes_ws) {
+  out <- as.data.frame(arrow::read_parquet(file.path(fit_dir, "output", paste0(code, ".parquet")),
+                                           col_select = c("watershed_feature_id", "month", "discharge_m3s")))
+  up <- readRDS(file.path(key_dir, "upstream", paste0(code, ".rds")))
+  nws <- nrow(up)
+  stopifnot(identical(out$watershed_feature_id[seq_len(nws)], up$watershed_feature_id))
+  q_mon <- matrix(out$discharge_m3s[out$month > 0L], nws, 12)
+  ok <- which(!is.na(out$discharge_m3s[seq_len(nws)]))
+  bal_days[[code]] <- list(id = up$watershed_feature_id[ok],
+                           q = wet_shape_daily(q_mon[ok, , drop = FALSE],
+                                               wet_shape_predict(shape$fit, up[ok, shape$static])))
+  rm(out, up, q_mon)
+}
+bal_ws <- unlist(lapply(bal_days, `[[`, "id"), use.names = FALSE)
+bal_at <- cbind(rep(seq_along(bal_days), vapply(bal_days, function(b) length(b$id), 1L)),
+                unlist(lapply(bal_days, function(b) seq_along(b$id)), use.names = FALSE))
+stopifnot(!anyDuplicated(bal_ws))
+route_by_set <- function(fold, w) {
+  key <- vapply(w$upstream_subids, paste, "", collapse = ",")
+  u <- unique(key)
+  sums <- t(vapply(u, function(k) {
+    if (!nzchar(k)) return(numeric(365))
+    colSums(fold$q_acc[match(as.integer(strsplit(k, ",", fixed = TRUE)[[1]]), fold$subid), , drop = FALSE])
+  }, numeric(365), USE.NAMES = FALSE))
+  sums <- matrix(sums, ncol = 365)
+  sums[match(key, u), , drop = FALSE] + fold$q_local[match(w$subid, fold$subid), , drop = FALSE] * w$share
+}
+cols_dval <- c("linear_feature_id", "doy", "q_m3s", "runoff_mm", "coverage", "pick")
+# the balance's published months 1-12, read once
+seg_bal <- do.call(rbind, lapply(codes_seg, function(code) {
+  x <- read_part(part_path(ds_seg, "wet_balance", code), c("linear_feature_id", "month", "q_m3s"))
+  x[x$month > 0L, ]
+}))
+day_tie <- 0
+day_seen <- list()
+for (g in groups_day) {
+  pr <- read_part(part_path(ds_day, "pcic_routed", g), cols_dval)
+  pb <- read_part(part_path(ds_day, "wet_balance", g), cols_dval)
+  day_seen[[g]] <- rbind(data.frame(source = "pcic_routed", id = unique(pr$linear_feature_id)),
+                         data.frame(source = "wet_balance", id = unique(pb$linear_feature_id)))
+  if (nrow(pr)) {
+    ids <- unique(pr$linear_feature_id)
+    w <- day_inp$weights[match(ids, day_inp$weights$linear_feature_id), ]
+    stopifnot(!anyNA(w$linear_feature_id))
+    raw <- route_by_set(day_inp$fold, w)
+    mine <- data.frame(linear_feature_id = rep(ids, each = 365), doy = rep(1:365, length(ids)),
+                       q_m3s = wet:::wet_routed_round(pmax(as.vector(t(raw)), 0)), raw = as.vector(t(raw)))
+    r <- wet_values_compare(pr, mine, tol = 0, time = "doy")
+    # the one-step differences that sit on a tie, which two summation orders may round apart
+    j <- match(as.numeric(pr$linear_feature_id) * 512 + pr$doy, as.numeric(mine$linear_feature_id) * 512 + mine$doy)
+    f <- abs(mine$raw[j]) * 1e5
+    tie <- !is.na(j) & pr$q_m3s != mine$q_m3s[j] & abs(pr$q_m3s - mine$q_m3s[j]) <= 1.000001e-5 &
+      abs(f - floor(f) - 0.5) < 1e-6
+    day_tie <- day_tie + sum(tie)
+    vc_add("daily routed = routed again", g,
+           c(compared = r[["compared"]], differing = r[["differing"]] - sum(tie), max_abs_diff = r[["max_abs_diff"]]))
+    rm(raw, mine)
+  }
+  if (nrow(pb)) {
+    ids <- unique(pb$linear_feature_id)
+    ws <- lut$watershed_feature_id[match(ids, lut$linear_feature_id)]
+    at <- bal_at[match(ws, bal_ws), , drop = FALSE]
+    stopifnot(!anyNA(at))
+    q <- t(vapply(seq_along(ids), function(i) bal_days[[at[i, 1]]]$q[at[i, 2], ], numeric(365)))
+    expected <- data.frame(linear_feature_id = rep(ids, each = 365), doy = rep(1:365, length(ids)),
+                           q_m3s = as.vector(t(q)))
+    vc_add("daily balance = output x shape via lut", g, wet_values_compare(pb, expected, tol = 0, time = "doy"))
+    # the balance's months, as the segment parts publish them
+    mon <- stats::aggregate(q_m3s ~ linear_feature_id + month,
+                            data.frame(pb[c("linear_feature_id", "q_m3s")], month = m_doy[pb$doy]), mean)
+    vc_add("daily balance months = segment parts", g,
+           wet_values_compare(mon, seg_bal[seg_bal$linear_feature_id %in% ids, ]))
+    rm(q, expected, mon)
+  }
+  st <- as.data.frame(arrow::read_parquet(file.path(fit_dir, "segment_daily", paste0(g, ".parquet")),
+                                          col_select = c(cols_dval, "source")))
+  for (v in c("q_m3s", "runoff_mm", "coverage", "pick")) {
+    for (src in c("pcic_routed", "wet_balance")) {
+      vc_add(paste("daily parts = table:", v), g,
+             wet_values_compare(if (src == "pcic_routed") pr else pb, st[st$source == src, ], value = v, tol = 0,
+                                time = "doy"))
+    }
+  }
+  rm(pr, pb, st)
+  gc(verbose = FALSE)
+}
+stamp("daily values checked")
+
 # fwapg's routed rows on no published segment
 unpub <- sum(!rt_all$linear_feature_id %in% routed_seen)
 vc_add("routed months 1-12 = fwapg", "none", c(compared = unpub, differing = unpub, max_abs_diff = 0))
@@ -461,6 +642,34 @@ checks["parts_as_table"] <- length(tbl_checks) == 4L &&
 ws_t <- tally[tally$dataset == "watershed_monthly", ]
 checks["watershed_values"] <- n_vc("watershed parts = fit output", "differing") == 0 &&
   n_vc("watershed parts = fit output", "compared") == sum(ws_t$rows)
+# the daily parts: every monthly segment's 365 days, the same picks, and every value checked
+day_t <- tally[tally$dataset == "segment_daily", ]
+day_seen <- do.call(rbind, day_seen)
+seg_ids <- function(src) {
+  unlist(lapply(codes_seg, function(code) {
+    unique(read_part(part_path(ds_seg, src, code), c("linear_feature_id", "month"))$linear_feature_id)
+  }), use.names = FALSE)
+}
+checks["daily_segments"] <- all(vapply(names(publish_forcing), function(src) {
+  setequal(day_seen$id[day_seen$source == src], seg_ids(src)) && !anyDuplicated(day_seen$id[day_seen$source == src])
+}, TRUE)) && all(day_t$rows == 365 * day_t$segments)
+checks["daily_picked"] <- sum(day_t$picked[day_t$source == "pcic_routed"]) == picked_routed &&
+  sum(day_t$picked[day_t$source == "wet_balance"]) == picked_balance
+day_checks <- c("daily routed = routed again", "daily balance = output x shape via lut",
+                grep("^daily parts = table: ", vc_sum$check, value = TRUE))
+checks["daily_values"] <- length(day_checks) == 6L && all(vapply(day_checks, n_vc, 0, "differing") == 0) &&
+  all(vapply(day_checks, n_vc, 0, "compared") ==
+        c(sum(day_t$rows[day_t$source == "pcic_routed"]), sum(day_t$rows[day_t$source == "wet_balance"]),
+          rep(sum(day_t$rows), 4)))
+checks["daily_months"] <- n_vc("daily balance months = segment parts", "differing") == 0 &&
+  n_vc("daily balance months = segment parts", "compared") == 12 * sum(day_t$segments[day_t$source == "wet_balance"])
+duck <- DBI::dbConnect(duckdb::duckdb())
+hive_day <- DBI::dbGetQuery(duck, sprintf("
+  SELECT scenario, forcing, source, count(*)::DOUBLE AS rows, count(*) FILTER (WHERE doy = 1 AND pick)::DOUBLE AS picked
+  FROM read_parquet('%s/segment_daily/*/*/*/*.parquet', hive_partitioning = true)
+  GROUP BY ALL ORDER BY source", root))
+DBI::dbDisconnect(duck, shutdown = TRUE)
+checks["daily_hive_read"] <- sum(hive_day$rows) == sum(day_t$rows) && sum(hive_day$picked) == picked_routed + picked_balance
 stamp("value cross-checks: ", sum(vc_sum$compared), " values compared, ", sum(vc_sum$differing), " differing")
 
 # the parts against the live manifest's: a rebuild of the same inputs and code
@@ -498,15 +707,19 @@ writeLines(c(
   sprintf("%-30s %11.0f %10.0f %13.3g  %s", vc_sum$check, vc_sum$compared, vc_sum$differing, vc_sum$max_abs_diff,
           vc_sum$codes_differing),
   sprintf("routed months 1-12, total rounded to 1e-6 per value: %s m3/s; the table's fingerprint: %s m3/s",
-          routed_total, fp_total), "",
+          routed_total, fp_total),
+  sprintf("daily routed values one 1e-5 step apart at a rounding tie (not counted as differing): %.0f", day_tie),
+  sprintf("daily: table built at %s; routed days and weights: %s", day_commit, daily_fp), "",
   "## Against the published tree", pub_line, "",
   "## What a reader sees (duckdb, hive_partitioning = true, over the local tree)",
   sprintf("%-10s %-9s %-12s %11.0f rows %9.0f fresh-subquery rows", hive$scenario, hive$forcing, hive$source,
-          hive$rows, hive$fresh), "",
+          hive$rows, hive$fresh),
+  sprintf("segment_daily %-10s %-9s %-12s %11.0f rows %9.0f picked on day 1", hive_day$scenario, hive_day$forcing,
+          hive_day$source, hive_day$rows, hive_day$picked), "",
   sprintf("## Row-group pruning: a read for %s opens %d of %d row groups in %d segment parts",
           group_probe, rg[["read"]], rg[["total"]], rg[["files"]]), "",
   "## Parts",
-  "picked: for segments, annual rows picked; for watersheds, NA-flow watersheds dropped",
+  "picked: for segments, annual rows picked (daily: day-1 rows); for watersheds, NA-flow watersheds dropped",
   sprintf("%-18s %-12s %-4s %11s %9s %9s", "dataset", "source", "code", "rows", "features", "picked"),
   fmt_tally(tally), "",
   "## Drainage labels", sprintf("%-4s %s", names(drainage), drainage), "",

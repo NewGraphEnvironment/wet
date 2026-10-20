@@ -60,7 +60,8 @@ if (!identical(release, wb_shipped_release)) {
 }
 fit_dir <- wb_fit_dir(key_dir, release)
 # the old table goes first, so a refused run never leaves one to be read
-unlink(file.path(fit_dir, "segment"), recursive = TRUE)
+# and the daily table made from it (scripts/segment_daily_output.R, #99)
+unlink(file.path(fit_dir, c("segment", "segment_daily")), recursive = TRUE)
 source("scripts/wb_score_md5.R")  # score_code_md5
 
 # the balance as it ships: the fit wb_output.R would accept, and output made

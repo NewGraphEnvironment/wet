@@ -28,11 +28,13 @@ publish_schema_cols <- function(dataset) {
   vapply(y$canonical$cols, function(col) col$name, "")
 }
 
-# One part, ready to write: `x` holds one source's rows of one drainage code.
+# One part, ready to write: `x` holds one source's rows of one drainage code
+# (a monthly dataset) or one watershed group (a daily one).
 # Drops `source` (it is in the path), puts the columns in crate's order,
 # conforms them, and asserts what crate does not check. Conform is a check
 # here, not a repair: it must change no class and no NA.
 publish_part_prepare <- function(x, dataset, id_col) {
+  time <- wet:::wet_timebase(dataset)$col
   if ("source" %in% names(x)) {
     if (length(unique(x$source)) != 1L) stop("a part holds more than one source")
     x$source <- NULL
@@ -49,18 +51,21 @@ publish_part_prepare <- function(x, dataset, id_col) {
     stop(dataset, ": crt_schema_conform() changed a class or an NA count; fix the frame, not the schema")
   }
   stopifnot(
-    !anyNA(y[[id_col]]), !anyNA(y$watershed_group_code), !anyNA(y$month), all(y$month %in% 0:12),
+    !anyNA(y[[id_col]]), !anyNA(y$watershed_group_code), is.integer(y[[time]]),
+    all(y[[time]] %in% wet:::wet_timebase(dataset)$values),
     all(grepl("^[0-9]{4}-[0-9]{4}$", y$period)), all(is.na(y$q_m3s) | y$q_m3s >= 0),
-    !anyDuplicated(y[c(id_col, "month", "period")])
+    !anyDuplicated(y[c(id_col, time, "period")])
   )
   if ("pick" %in% cols) stopifnot(!anyNA(y$pick))
-  y[order(y$watershed_group_code, y[[id_col]], y$month), ]
+  y[order(y$watershed_group_code, y[[id_col]], y[[time]]), ]
 }
 
 # Write a prepared part with one row group per watershed group, so a read for
-# one group skips the rest on row-group statistics. Written to a temporary
-# file and moved.
-publish_part_write <- function(x, path) {
+# one group skips the rest on row-group statistics; a part of one group (a
+# daily part) in row groups of `rows_per_group`, so a read of a few segments
+# skips the rest on the segment ID's statistics. Written to a temporary file
+# and moved.
+publish_part_write <- function(x, path, rows_per_group = NULL) {
   dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
   tab <- arrow::Table$create(x)
   tmp <- paste0(path, ".tmp")
@@ -68,6 +73,10 @@ publish_part_write <- function(x, path) {
   props <- arrow::ParquetWriterProperties$create(names(x), compression = "zstd", write_statistics = TRUE)
   w <- arrow::ParquetFileWriter$create(tab$schema, sink, properties = props)
   runs <- rle(x$watershed_group_code)
+  if (!is.null(rows_per_group)) {
+    stopifnot(length(runs$lengths) == 1L)
+    runs$lengths <- diff(unique(c(seq(0, nrow(x), by = rows_per_group), nrow(x))))
+  }
   start <- c(0, cumsum(runs$lengths)[-length(runs$lengths)])
   for (i in seq_along(runs$lengths)) {
     w$WriteTable(tab$Slice(start[i], runs$lengths[i]), chunk_size = runs$lengths[i])
@@ -88,6 +97,14 @@ publish_row_groups <- function(paths, group) {
      FROM parquet_metadata([%s]) WHERE path_in_schema = 'watershed_group_code'",
     paste(sprintf("'%s'", paths), collapse = ", ")))
   c(read = sum(m$lo <= group & m$hi >= group), total = nrow(m), files = length(paths))
+}
+
+# A label per watershed group code: its name in the FWA.
+publish_group_labels <- function(conn, groups) {
+  g <- DBI::dbGetQuery(conn, "
+    SELECT watershed_group_code AS code, watershed_group_name AS name FROM whse_basemapping.fwa_watershed_groups_poly")
+  if (!all(groups %in% g$code)) stop("no FWA watershed group ", paste(setdiff(groups, g$code), collapse = ", "))
+  stats::setNames(g$name[match(groups, g$code)], groups)
 }
 
 # A label per FWA top-level drainage code: the GNIS name most of its mainstem

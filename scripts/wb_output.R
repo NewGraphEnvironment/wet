@@ -29,7 +29,8 @@ aet <- fits$aet
 # leaves the parquet or the map (scripts/wb_map.R) of an earlier one.
 # The per-segment table (scripts/segment_output.R, #57) is made from this
 # output, so it goes too.
-unlink(c(file.path(fit_dir, "runoff_annual.tif"), file.path(fit_dir, "output"), file.path(fit_dir, "segment")),
+unlink(c(file.path(fit_dir, "runoff_annual.tif"), file.path(fit_dir, "output"), file.path(fit_dir, "segment"),
+         file.path(fit_dir, "segment_daily")),
        recursive = TRUE)
 source("scripts/wb_score_md5.R")  # score_code_md5
 if (!identical(fits$code_md5, score_code_md5)) {
