@@ -44,6 +44,31 @@ Relates to #59, #65, #70, #101, #102, #103, NewGraphEnvironment/fwapg#25.
 
 
 
+## Routed days reproduce fwapg's months and weeks (Phase 1 probe, 2026-10-20)
+
+Produced by a probe run on m1 against m4's fwapg over the LAN (m1's `pcic.subbasin_daily` is empty);
+log `data/logs/99/probe_routed_days.log`, results `data/logs/99/probe_routed_days.rds`. 19.8 min.
+
+- Inputs: `pcic.subbasin_daily` PNWNAmet historical 1981-2010, 13,786,122 rows, 37,667 sub-basins,
+  total q_acc 636,284,197.301372 m3/s; `pcic.segment_weights` 3,377,037 rows, shares 558,010.174364980,
+  both equal to the run's `pcic.runs` row.
+- Months: routing the n_days-weighted mean of the raw days, clamping and rounding with
+  `wet_routed_round()`, gives `pcic.discharge_monthly` on all 40,524,444 rows (199 groups), 0 differing,
+  not even by one 1e-5 step. Routing the period mean and averaging the routed days agree to relative
+  1.2e-12 (linearity).
+- Weeks: BULK, LFRA, SQAM, FRAN, SETN, 8,467,940 rows of `pcic.discharge_weekly`, 0 differing.
+- Rounding: `wet_routed_round()` equals Postgres's `round(x::numeric, 5)::float8` on 200,006 values
+  (200,000 real flows and six constructed 15-digit ties); R's `round()` alone differs on 4 of the ties.
+- Weights: `upstream_subids` are the immediately upstream sub-basins (whose q_acc is accumulated), at
+  most 101 per segment, 489,610 in all, 35,023 distinct sets. No NA subid, share or upstream set; shares
+  0 to 1.
+- Per-day clamp (rule set before measuring: published whatever it is; above 0.1 % mid-network it is a
+  stated weakness): 1,232,618,505 segment-days, 13,456,319 clamped (1.092 %, against fwapg's 0.978 %
+  monthly and 0.977 % weekly), 10,581,629 more than 1 L/s below zero; mid-network 97,680,205 rows,
+  48,440 clamped (0.050 %, against 0.049 % monthly and 0.048 % weekly). Under the 0.1 % line. Worst
+  days mid-network: 16 May 874, 25 May 869, 11 May 867, 12 May 864, 15 May 860 (worst month May 774,
+  worst week 22 805). A daily step adds a little clamping overall and almost none mid-network.
+
 ## Errors Encountered
 
 | Error | Resolution |

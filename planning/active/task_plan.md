@@ -58,13 +58,13 @@ Mechanism choices I made (not questions):
       rows/`weights_share_sum` computed from the rows, refused unless equal to the run's `pcic.runs`
       row (as `routed_fingerprint()` does for months); `routed_daily_inputs(conn)` reads the run's
       days (filtered on `routed_where`) and the weights once
-- [ ] Acceptance probe (m4's fwapg over the LAN; m1's `pcic.subbasin_daily` is empty): n_days-weighted
+- [x] Acceptance probe (m4's fwapg over the LAN; m1's `pcic.subbasin_daily` is empty): n_days-weighted
       means of the raw (unclamped, unrounded) days over each month and week, clamped and rounded by
       `wet_routed_round()`, reproduce `pcic.discharge_monthly` and `pcic.discharge_weekly` on a few
       groups (BULK, a Fraser mainstem group, a coastal group); rows differing only by one 1e-5 step
       at a rounding tie are counted, not failed (review 2); `wet_routed_round()` checked against
       Postgres's own `round(q::numeric, 5)` on a large sample
-- [ ] Measure the per-day clamp: clamped rows per day, overall and mid-network (fwapg's
+- [x] Measure the per-day clamp: clamped rows per day, overall and mid-network (fwapg's
       `qa_report_clamped.sql` definition), against fwapg's monthly 0.978 % / weekly 0.977 %;
       record in `findings.md`. Rule set before measuring: the clamp is fwapg's rule and the
       daily is published whatever it measures; a mid-network share above 0.1 % (twice the
