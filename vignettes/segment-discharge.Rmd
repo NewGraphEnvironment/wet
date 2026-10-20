@@ -83,9 +83,12 @@ parts <- pub$parts
 ds <- function(x) paste0("discharge/fwa/v1/", x)
 seg_parts <- parts[parts$dataset == ds("segment_monthly"), ]
 ws_parts <- parts[parts$dataset == ds("watershed_monthly"), ]
+day_parts <- parts[parts$dataset == ds("segment_daily"), ]
 reader <- pub$reader
-# the two datasets, and only the balance in the watershed table
-stopifnot(nrow(seg_parts) + nrow(ws_parts) == nrow(parts), all(ws_parts$source == "wet_balance"),
+# the three datasets, only the balance in the watershed table, and every
+# daily part one watershed group's
+stopifnot(nrow(seg_parts) + nrow(ws_parts) + nrow(day_parts) == nrow(parts), all(ws_parts$source == "wet_balance"),
+          setequal(day_parts$source, c("pcic_routed", "wet_balance")), all(grepl("^[A-Z]{4}$", day_parts$code)),
           setequal(seg_parts$source, c("pcic_routed", "wet_balance")),
           sum(seg_parts$rows) == sum(reader$rows))
 # segments with each source (13 rows each), and with both: "most segments have both"
@@ -100,8 +103,8 @@ built_text <- paste(as.integer(format(built, "%d")), format(built, "%B %Y"))
 ## What it is
 
 wet publishes the mean flow of British Columbia's Freshwater Atlas stream
-segments, in cubic metres per second, for each calendar month and for the
-year. It is public at `s3://fresh-bc/discharge/fwa/v1/`. The bucket allows no
+segments, in cubic metres per second, for each calendar month, for the
+year, and for each day of the year. It is public at `s3://fresh-bc/discharge/fwa/v1/`. The bucket allows no
 listing, so a reader starts from the manifest, <`r pub$manifest`>, which lists
 every part with its rows, size and md5. The current build has
 `r nrow(parts)` parquet parts, `r format(round(sum(parts$bytes) / 1e9, 2), nsmall = 2)`
@@ -112,6 +115,12 @@ GB, built on `r built_text` at wet commit `r pub$wet_commit`.
   1–12 the calendar months.
 - **`watershed_monthly`**: the same per fundamental watershed, the small
   polygon each segment drains, from the water balance only.
+- **`segment_daily`**: one row per segment, day and source,
+  `r num(sum(day_parts$rows))` rows, on a 365-day year (`doy` 1–365, 29
+  February folded into 28 February), one part per source and watershed group.
+  The balance's days keep its months. Routed PCIC's days are routed and
+  clamped at zero one by one, so where the clamp applied a month's days can
+  average a little above its published month.
 
 Each row comes from one of two sources:
 
@@ -240,6 +249,25 @@ Or load it into Postgres beside the Freshwater Atlas:
 ```{r read-db, echo = TRUE, eval = FALSE}
 conn <- DBI::dbConnect(RPostgres::Postgres(), dbname = "fwapg")
 wet_db_load(conn, cat)   # discharge.fwa_v1_segment_monthly
+```
+
+For one segment, `wet_segment_daily()` reads its days from its watershed
+group's parts, and `wet_flow_window()` gives a window's flow from them:
+
+```{r read-daily, echo = TRUE, eval = FALSE}
+q <- wet_segment_daily(NULL, 17094080, groups = "BULK")
+wet_flow_window(q, data.frame(window = "spring", start = "04-15", end = "06-15"))
+```
+
+```{r read-daily-out}
+dl <- v$daily
+stopifnot(dl$segment == 17094080, identical(dl$group, "BULK"), all(dl$days$basis == "daily"),
+          all(dl$months$basis == "monthly"))
+win <- merge(dl$days, dl$months, by = c("linear_feature_id", "source", "window"), suffixes = c("_d", "_m"))
+knitr::kable(data.frame(Source = win$source, `From the days` = sprintf("%.2f", win$q_m3s_d),
+                        `From the months` = sprintf("%.2f", win$q_m3s_m), check.names = FALSE),
+             caption = paste("Mean flow (m³/s) at Buck Creek's mouth, 15 April to 15 June, from the published",
+                             "days and, by the same call on the monthly rows, from the months."))
 ```
 
 Besides flow (`q_m3s`) a row carries `runoff_mm`, the same water as a depth
