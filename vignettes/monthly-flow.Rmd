@@ -648,9 +648,9 @@ each with its issue:
   `r n003` of the years `r base_text`. Its windows rest on the years the window
   table gives.
 - A window's flow from monthly means is an approximation (the window table
-  measures it). `wet_flow_window()` labels it `basis = "monthly"`, and gives
-  `"daily"` from the same call once daily flow is published (#99; the balance's
-  shape within the month is fitted and scored in #70).
+  measures it). `wet_flow_window()` labels it `basis = "monthly"`. Given the
+  published daily flow, read with `wet_segment_daily()`, the same call gives
+  `basis = "daily"` (#99).
 - Routed PCIC's month 0 is a plain mean of its months, so its months converted
   to millimetres do not add up to its annual runoff exactly.
 
