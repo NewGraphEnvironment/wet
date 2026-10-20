@@ -22,11 +22,11 @@ Each source fills the twelve months its own way:
   mean of the twelve months, not weighted by their days. On the three
   segments below that moves it by at most 0.4%.
 - **The water balance** (`wet_balance`) is the annual flow over
-  1981–2010 split into months by a model of each month’s share of the
-  year, fitted to the gauges
-  ([`wet_share_fit()`](https://newgraphenvironment.github.io/wet/reference/wet_share_fit.md)).
-  Its months are volume shares of its month 0, so they add up to it
-  exactly.
+  1981–2010 split into months by the shares of the year that the five
+  calibration gauges most like it carry
+  ([`wet_share_fit()`](https://newgraphenvironment.github.io/wet/reference/wet_share_fit.md),
+  \#102). Its months are volume shares of its month 0, so they add up to
+  it exactly.
 
 Both sources cover 1981–2010, the period the gauges are scored over.
 Neither is the gauge record.
@@ -78,22 +78,20 @@ with 10 or more years of 20 days’ flow are drawn (May–October). The
 strips under each panel are the Chinook windows.
 
 At Buck Creek (08EE013), a snowmelt stream of 567 km², the gauge peaks
-in May and so does routed PCIC, which overshoots it. The water balance’s
-freshet is low and a month late: its May–June flow is 9.4 m³/s against
-16.4 observed and 23 routed, and its highest month, June, is 10.3 m³/s
-against the gauge’s May 22, under half of it. It carries more water than
-the gauge from July through March. On the Bulkley at Quick (08EE004), a
-basin of 7,341 km², both sources fall short of the gauge in May–June by
-about a quarter (338 m³/s observed, 259 routed, 261 balance). The
-balance is still high from January to March, and routed PCIC is high in
-July and August.
+in May and so does routed PCIC, which overshoots it: its May–June flow
+is 23 m³/s against 16.4 observed. On the Bulkley at Quick (08EE004), a
+basin of 7,341 km², routed PCIC falls short of the gauge in May–June by
+about a quarter (259 m³/s against 338) and is high in July and August.
 
 Both gauges are among those the balance is calibrated on, so on their
-segments its published values are in-sample. The scores further down use
-the balance held out instead. 08EE003 is not a calibration gauge: it is
-seasonal and has no complete years in 1981–2010, so on its segment the
-balance is a genuine estimate for an ungauged site, and the gauge can
-check it only in open water.
+segments its published values are in-sample. The gauge most like each of
+them is itself, so the balance there has the gauge’s own monthly pattern
+at the balance’s annual flow: about -12% at Buck Creek and -9% at Quick
+in every month. The scores further down use the balance held out
+instead. 08EE003 is not a calibration gauge: it is seasonal and has no
+complete years in 1981–2010, so on its segment the balance is a genuine
+estimate for an ungauged site, and the gauge can check it only in open
+water.
 
 ## Flow in the Chinook windows
 
@@ -106,18 +104,22 @@ and *Monthly, day-weighted* is the same years’ observed monthly means
 put through the day weighting. In migration and spawning they agree
 within 3%. In fry migration they differ by up to 27%, because that
 window takes half of July, when the flow is falling fast, at July’s
-mean. Even there the approximation is smaller than either source’s
-error, which in that window reaches +60% for routed PCIC and +237% for
-the balance.
+mean. Even there the approximation is smaller than routed PCIC’s error,
+which in that window reaches +60%. At Buck Creek the balance carries the
+gauge’s own months, so its window error is the approximation’s and its
+annual error’s. At 08EE003, which no fit uses, it is +379% to +470% in
+the two late-summer windows, while it is -24% in the migration window:
+its donor gauges put far more of the year into late summer than this
+gauge carries. That error is ours.
 
 | Gauge | Window | Years | Daily record | Monthly, day-weighted | Routed PCIC | Water balance |
 |:---|:---|---:|---:|---:|---:|---:|
-| Buck Creek at the Mouth (08EE013) | Migration (May 1 – Aug 1) | 30 | 11.7 | 11.7 | 16.4 (+40%) | 8.1 (-30%) |
-|  | Spawning (Aug 1 – Sep 15) | 29 | 0.9 | 0.9 | 0.9 (0%) | 2.7 (+194%) |
-|  | Fry migration (Jul 15 – Sep 7) | 29 | 1.3 | 1.6 | 1.8 (+39%) | 3.7 (+189%) |
-| Bulkley River near Houston (08EE003) | Migration (May 1 – Aug 1) | 18 | 36.8 | 36.8 | 39.8 (+8%) | 26.2 (-29%) |
-|  | Spawning (Aug 1 – Sep 15) | 18 | 2.1 | 2.1 | 2.7 (+29%) | 8.1 (+287%) |
-|  | Fry migration (Jul 15 – Sep 7) | 18 | 3.3 | 4.0 | 5.2 (+60%) | 11.0 (+237%) |
+| Buck Creek at the Mouth (08EE013) | Migration (May 1 – Aug 1) | 30 | 11.7 | 11.7 | 16.4 (+40%) | 10.4 (-11%) |
+|  | Spawning (Aug 1 – Sep 15) | 29 | 0.9 | 0.9 | 0.9 (0%) | 0.8 (-9%) |
+|  | Fry migration (Jul 15 – Sep 7) | 29 | 1.3 | 1.6 | 1.8 (+39%) | 1.4 (+12%) |
+| Bulkley River near Houston (08EE003) | Migration (May 1 – Aug 1) | 18 | 36.8 | 36.8 | 39.8 (+8%) | 27.8 (-24%) |
+|  | Spawning (Aug 1 – Sep 15) | 18 | 2.1 | 2.1 | 2.7 (+29%) | 12.0 (+470%) |
+|  | Fry migration (Jul 15 – Sep 7) | 18 | 3.3 | 4.0 | 5.2 (+60%) | 15.6 (+379%) |
 
 Mean flow (m³/s) in each Chinook window. Daily record: the gauge’s mean
 over the window, averaged over the years in 1981–2010 with enough of its
@@ -140,9 +142,8 @@ the annual routed comparison leaves them out, which attributes each one:
 to the outlet’s placement or the gauge’s snap, to PCIC’s runoff, or
 unresolved). That leaves 279 gauges. Each source is scored on every
 month of all its own gauges, as modelled over observed flow: the balance
-on 3,780 gauge-months, routed PCIC on 3,348. In 70 of the balance’s
-gauge-months the held-out share is zero, so it predicts no flow at all
-(14 of them in January). They count as errors of −100%.
+on 3,780 gauge-months, routed PCIC on 3,348. No held-out month of the
+balance is zero: each is a mean of five gauges’ observed shares.
 
 ![Error in mean monthly flow by month: the median (line) and the middle
 half of gauges (band), as a percentage of the gauge's 1981–2010 mean.
@@ -158,18 +159,18 @@ lines mark ±20%.
 
 | Month | Balance median | Balance within ±20% | Routed median | Routed within ±20% |
 |:------|---------------:|--------------------:|--------------:|-------------------:|
-| Jan   |             0% |                 27% |           -6% |                34% |
-| Feb   |            +5% |                 30% |            0% |                34% |
-| Mar   |            +3% |                 31% |          -11% |                33% |
-| Apr   |           +11% |                 28% |          -12% |                35% |
-| May   |            +7% |                 30% |          -17% |                39% |
-| Jun   |            -2% |                 40% |           +1% |                61% |
-| Jul   |            -3% |                 34% |          +20% |                38% |
-| Aug   |            +3% |                 25% |          +13% |                36% |
-| Sep   |             0% |                 33% |           +3% |                44% |
-| Oct   |            -2% |                 42% |           -3% |                44% |
-| Nov   |            -1% |                 44% |           -6% |                41% |
-| Dec   |            +2% |                 33% |           -2% |                38% |
+| Jan   |            +1% |                 43% |           -6% |                34% |
+| Feb   |            +2% |                 41% |            0% |                34% |
+| Mar   |            -1% |                 42% |          -11% |                33% |
+| Apr   |            +7% |                 35% |          -12% |                35% |
+| May   |            +4% |                 38% |          -17% |                39% |
+| Jun   |            -3% |                 45% |           +1% |                61% |
+| Jul   |             0% |                 40% |          +20% |                38% |
+| Aug   |            +2% |                 34% |          +13% |                36% |
+| Sep   |            -1% |                 36% |           +3% |                44% |
+| Oct   |             0% |                 45% |           -3% |                44% |
+| Nov   |            +1% |                 47% |           -6% |                41% |
+| Dec   |            +1% |                 44% |           -2% |                38% |
 
 Median error in mean monthly flow, and the share of gauges within ±20%
 of observed, each source on its own gauges as in the figure above.
@@ -177,27 +178,24 @@ of observed, each source on its own gauges as in the figure above.
 
 The two sources’ errors have different shapes.
 
-- **The water balance** reads high in April and May, by a median of +7%
-  to +11%, and within ±5% in the other months. At the 25 gauges routed
-  PCIC does not reach, 19 of them in WSC drainage area 10 (the Liard),
-  it reads low in winter instead, by a median of -16% in January and
-  -62% to -75% in February–March. Its spread is wide in every month:
+- **The water balance**’s median error is within ±10% in every month,
+  highest in April (+7%). At the 25 gauges routed PCIC does not reach,
+  19 of them in WSC drainage area 10 (the Liard), its winter months are
+  within ±10% too (-9% in January). Its spread is wide in every month:
   fewer than half of the gauges fall within ±20% in any month. Its
-  months are an annual flow times a share of the year modelled from
-  monthly precipitation, temperature and evapotranspiration, elevation,
-  location, and two snow terms from ERA5-Land: the day by which half the
-  snowpack has melted and the peak snow water equivalent
+  months are an annual flow times the shares of the year that the five
+  calibration gauges most like it carry, alike in elevation, location,
+  and two snow terms from ERA5-Land: the day by which half the snowpack
+  has melted and the peak snow water equivalent
   ([`wet_share_fit()`](https://newgraphenvironment.github.io/wet/reference/wet_share_fit.md),
-  \#16). The snow terms reduced the bias in winter and early spring
-  (`research/water_balance_method.md`), but the freshet is still
-  flattened: at the 243 gauges whose observed flow peaks in May or June,
-  the balance is below the gauge in that month at 65% of them, by a
-  median of -13%. Held out, its median Nash–Sutcliffe efficiency on the
-  monthly climatology is 0.73 over its 315 gauges. This error is ours.
+  \#16, \#102). At the 243 gauges whose observed flow peaks in May or
+  June, the balance is below the gauge in that month at 58% of them, by
+  a median of -6%. Held out, its median Nash–Sutcliffe efficiency on the
+  monthly climatology is 0.81 over its 315 gauges. This error is ours.
 - **Routed PCIC**, on the 279 gauges both sources are scored at, has
-  more of them within ±20% than the balance has in 10 of the twelve
-  months, May to September among them. It reads low in March and April
-  (median -11%) and high in July and August (+16%): as if its melt
+  more of them within ±20% than the balance has in 4 of the twelve
+  months (May, June, August and September). It reads low in March and
+  April (median -11%) and high in July and August (+16%): as if its melt
   starts late and runs on. Its median monthly efficiency is 0.82 over
   its 279 gauges.
 
@@ -213,21 +211,21 @@ here and in \#67.
 A second place was not needed to find these patterns, because the
 province-wide scores already span regimes. The table below splits them
 by basin size and by lake outlets, which a regime contrast would have
-sampled one at a time. Routed PCIC is the stronger source on every basin
-size but the smallest (under 100 km²), where it falls below the balance.
-The balance is weakest at lake outlets, whose flow a lake holds back and
-releases later in the year; its shares know nothing of the lake, and
-routing does.
+sampled one at a time. The balance is the stronger source on basins
+under 1,000 km², and routed PCIC on those over it. Routed PCIC is also
+the stronger at lake outlets, whose flow a lake holds back and releases
+later in the year: routing follows the lake, and the balance’s donor
+gauges are matched without regard to it.
 
 | Group             | Gauges | Balance | Routed |
 |:------------------|-------:|--------:|-------:|
-| All gauges        |    279 |    0.76 |   0.82 |
-| \<100 km²         |     74 |    0.55 |   0.43 |
-| 100-1000          |    105 |    0.76 |   0.80 |
-| 1000-10000        |     82 |    0.81 |   0.92 |
-| \>10000           |     18 |    0.88 |   0.95 |
-| Lake outlet       |     17 |    0.53 |   0.92 |
-| Not a lake outlet |    262 |    0.76 |   0.82 |
+| All gauges        |    279 |    0.82 |   0.82 |
+| \<100 km²         |     74 |    0.61 |   0.43 |
+| 100-1000          |    105 |    0.82 |   0.80 |
+| 1000-10000        |     82 |    0.87 |   0.92 |
+| \>10000           |     18 |    0.93 |   0.95 |
+| Lake outlet       |     17 |    0.73 |   0.92 |
+| Not a lake outlet |    262 |    0.82 |   0.82 |
 
 Median Nash–Sutcliffe efficiency of the monthly climatology per gauge,
 by basin size and lake outlets, on the 279 gauges both sources are
@@ -247,7 +245,11 @@ useful, each with its issue:
 ## Limits
 
 - On a calibration gauge’s own segment the published balance is
-  in-sample. The scores above use the held-out balance instead.
+  in-sample: its months are the gauge’s own monthly pattern at the
+  balance’s annual flow (two gauges on one watershed, 08NM240 and
+  08NM241, share the mean of theirs), and a watershed much like a gauge
+  in elevation, location and snow gets almost the same pattern. The
+  scores above use the held-out balance instead.
 - 08EE003 is seasonal: its monthly means cover May–October, from 19 of
   the years 1981–2010. Its windows rest on the years the window table
   gives.
@@ -262,8 +264,8 @@ useful, each with its issue:
 
 ## Validation
 
-`data-raw/monthly_vignette_data.R` built the data at wet 96f42d8 on
-2026-10-19, from the published build at wet 94deeb5
+`data-raw/monthly_vignette_data.R` built the data at wet 6ac469a on
+2026-10-19, from the published build at wet 8ca2dee
 (<https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json>)
 and the water balance fit on HYDAT 2026-07-17 (AET cfu). It checked the
 bundled published values against what they were built from, and refused

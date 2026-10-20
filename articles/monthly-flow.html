@@ -91,10 +91,10 @@ their days. On the three segments below that moves it by at most
 0.4%.</li>
 <li>
 <strong>The water balance</strong> (<code>wet_balance</code>) is the
-annual flow over 1981–2010 split into months by a model of each month’s
-share of the year, fitted to the gauges (<code><a href="../reference/wet_share_fit.html">wet_share_fit()</a></code>).
-Its months are volume shares of its month 0, so they add up to it
-exactly.</li>
+annual flow over 1981–2010 split into months by the shares of the year
+that the five calibration gauges most like it carry
+(<code><a href="../reference/wet_share_fit.html">wet_share_fit()</a></code>, #102). Its months are volume shares of
+its month 0, so they add up to it exactly.</li>
 </ul>
 <p>Both sources cover 1981–2010, the period the gauges are scored over.
 Neither is the gauge record.</p>
@@ -138,21 +138,20 @@ strips under each panel are the Chinook windows.
 </p>
 </div>
 <p>At Buck Creek (08EE013), a snowmelt stream of 567 km², the gauge
-peaks in May and so does routed PCIC, which overshoots it. The water
-balance’s freshet is low and a month late: its May–June flow is 9.4 m³/s
-against 16.4 observed and 23 routed, and its highest month, June, is
-10.3 m³/s against the gauge’s May 22, under half of it. It carries more
-water than the gauge from July through March. On the Bulkley at Quick
-(08EE004), a basin of 7,341 km², both sources fall short of the gauge in
-May–June by about a quarter (338 m³/s observed, 259 routed, 261
-balance). The balance is still high from January to March, and routed
-PCIC is high in July and August.</p>
+peaks in May and so does routed PCIC, which overshoots it: its May–June
+flow is 23 m³/s against 16.4 observed. On the Bulkley at Quick
+(08EE004), a basin of 7,341 km², routed PCIC falls short of the gauge in
+May–June by about a quarter (259 m³/s against 338) and is high in July
+and August.</p>
 <p>Both gauges are among those the balance is calibrated on, so on their
-segments its published values are in-sample. The scores further down use
-the balance held out instead. 08EE003 is not a calibration gauge: it is
-seasonal and has no complete years in 1981–2010, so on its segment the
-balance is a genuine estimate for an ungauged site, and the gauge can
-check it only in open water.</p>
+segments its published values are in-sample. The gauge most like each of
+them is itself, so the balance there has the gauge’s own monthly pattern
+at the balance’s annual flow: about -12% at Buck Creek and -9% at Quick
+in every month. The scores further down use the balance held out
+instead. 08EE003 is not a calibration gauge: it is seasonal and has no
+complete years in 1981–2010, so on its segment the balance is a genuine
+estimate for an ungauged site, and the gauge can check it only in open
+water.</p>
 </div>
 <div class="section level2">
 <h2 id="flow-in-the-chinook-windows">Flow in the Chinook windows<a class="anchor" aria-label="anchor" href="#flow-in-the-chinook-windows"></a>
@@ -167,8 +166,12 @@ observed monthly means put through the day weighting. In migration and
 spawning they agree within 3%. In fry migration they differ by up to
 27%, because that window takes half of July, when the flow is falling
 fast, at July’s mean. Even there the approximation is smaller than
-either source’s error, which in that window reaches +60% for routed PCIC
-and +237% for the balance.</p>
+routed PCIC’s error, which in that window reaches +60%. At Buck Creek
+the balance carries the gauge’s own months, so its window error is the
+approximation’s and its annual error’s. At 08EE003, which no fit uses,
+it is +379% to +470% in the two late-summer windows, while it is -24% in
+the migration window: its donor gauges put far more of the year into
+late summer than this gauge carries. That error is ours.</p>
 <table class="table">
 <caption>Mean flow (m³/s) in each Chinook window. Daily record: the
 gauge’s mean over the window, averaged over the years in 1981–2010 with
@@ -202,7 +205,7 @@ in brackets.</caption>
 <td align="right">11.7</td>
 <td align="right">11.7</td>
 <td align="right">16.4 (+40%)</td>
-<td align="right">8.1 (-30%)</td>
+<td align="right">10.4 (-11%)</td>
 </tr>
 <tr class="even">
 <td align="left"></td>
@@ -211,7 +214,7 @@ in brackets.</caption>
 <td align="right">0.9</td>
 <td align="right">0.9</td>
 <td align="right">0.9 (0%)</td>
-<td align="right">2.7 (+194%)</td>
+<td align="right">0.8 (-9%)</td>
 </tr>
 <tr class="odd">
 <td align="left"></td>
@@ -220,7 +223,7 @@ in brackets.</caption>
 <td align="right">1.3</td>
 <td align="right">1.6</td>
 <td align="right">1.8 (+39%)</td>
-<td align="right">3.7 (+189%)</td>
+<td align="right">1.4 (+12%)</td>
 </tr>
 <tr class="even">
 <td align="left">Bulkley River near Houston (08EE003)</td>
@@ -229,7 +232,7 @@ in brackets.</caption>
 <td align="right">36.8</td>
 <td align="right">36.8</td>
 <td align="right">39.8 (+8%)</td>
-<td align="right">26.2 (-29%)</td>
+<td align="right">27.8 (-24%)</td>
 </tr>
 <tr class="odd">
 <td align="left"></td>
@@ -238,7 +241,7 @@ in brackets.</caption>
 <td align="right">2.1</td>
 <td align="right">2.1</td>
 <td align="right">2.7 (+29%)</td>
-<td align="right">8.1 (+287%)</td>
+<td align="right">12.0 (+470%)</td>
 </tr>
 <tr class="even">
 <td align="left"></td>
@@ -247,7 +250,7 @@ in brackets.</caption>
 <td align="right">3.3</td>
 <td align="right">4.0</td>
 <td align="right">5.2 (+60%)</td>
-<td align="right">11.0 (+237%)</td>
+<td align="right">15.6 (+379%)</td>
 </tr>
 </tbody>
 </table>
@@ -268,9 +271,8 @@ annual routed comparison leaves them out, which attributes each one: to
 the outlet’s placement or the gauge’s snap, to PCIC’s runoff, or
 unresolved). That leaves 279 gauges. Each source is scored on every
 month of all its own gauges, as modelled over observed flow: the balance
-on 3,780 gauge-months, routed PCIC on 3,348. In 70 of the balance’s
-gauge-months the held-out share is zero, so it predicts no flow at all
-(14 of them in January). They count as errors of −100%.</p>
+on 3,780 gauge-months, routed PCIC on 3,348. No held-out month of the
+balance is zero: each is a mean of five gauges’ observed shares.</p>
 <div class="figure">
 <img src="monthly-flow_files/figure-html/error-month-1.png" class="r-plt" alt="Error in mean monthly flow by month: the median (line) and the middle half of gauges (band), as a percentage of the gauge's 1981–2010 mean. The water balance is held out (blocked cross-validation) at 315 calibration gauges; routed PCIC at the 279 of them it covers. Dashed lines mark ±20%." width="100%"><p class="caption">
 Error in mean monthly flow by month: the median (line) and the middle
@@ -301,85 +303,85 @@ above.</caption>
 <tbody>
 <tr class="odd">
 <td align="left">Jan</td>
-<td align="right">0%</td>
-<td align="right">27%</td>
+<td align="right">+1%</td>
+<td align="right">43%</td>
 <td align="right">-6%</td>
 <td align="right">34%</td>
 </tr>
 <tr class="even">
 <td align="left">Feb</td>
-<td align="right">+5%</td>
-<td align="right">30%</td>
+<td align="right">+2%</td>
+<td align="right">41%</td>
 <td align="right">0%</td>
 <td align="right">34%</td>
 </tr>
 <tr class="odd">
 <td align="left">Mar</td>
-<td align="right">+3%</td>
-<td align="right">31%</td>
+<td align="right">-1%</td>
+<td align="right">42%</td>
 <td align="right">-11%</td>
 <td align="right">33%</td>
 </tr>
 <tr class="even">
 <td align="left">Apr</td>
-<td align="right">+11%</td>
-<td align="right">28%</td>
+<td align="right">+7%</td>
+<td align="right">35%</td>
 <td align="right">-12%</td>
 <td align="right">35%</td>
 </tr>
 <tr class="odd">
 <td align="left">May</td>
-<td align="right">+7%</td>
-<td align="right">30%</td>
+<td align="right">+4%</td>
+<td align="right">38%</td>
 <td align="right">-17%</td>
 <td align="right">39%</td>
 </tr>
 <tr class="even">
 <td align="left">Jun</td>
-<td align="right">-2%</td>
-<td align="right">40%</td>
+<td align="right">-3%</td>
+<td align="right">45%</td>
 <td align="right">+1%</td>
 <td align="right">61%</td>
 </tr>
 <tr class="odd">
 <td align="left">Jul</td>
-<td align="right">-3%</td>
-<td align="right">34%</td>
+<td align="right">0%</td>
+<td align="right">40%</td>
 <td align="right">+20%</td>
 <td align="right">38%</td>
 </tr>
 <tr class="even">
 <td align="left">Aug</td>
-<td align="right">+3%</td>
-<td align="right">25%</td>
+<td align="right">+2%</td>
+<td align="right">34%</td>
 <td align="right">+13%</td>
 <td align="right">36%</td>
 </tr>
 <tr class="odd">
 <td align="left">Sep</td>
-<td align="right">0%</td>
-<td align="right">33%</td>
+<td align="right">-1%</td>
+<td align="right">36%</td>
 <td align="right">+3%</td>
 <td align="right">44%</td>
 </tr>
 <tr class="even">
 <td align="left">Oct</td>
-<td align="right">-2%</td>
-<td align="right">42%</td>
+<td align="right">0%</td>
+<td align="right">45%</td>
 <td align="right">-3%</td>
 <td align="right">44%</td>
 </tr>
 <tr class="odd">
 <td align="left">Nov</td>
-<td align="right">-1%</td>
-<td align="right">44%</td>
+<td align="right">+1%</td>
+<td align="right">47%</td>
 <td align="right">-6%</td>
 <td align="right">41%</td>
 </tr>
 <tr class="even">
 <td align="left">Dec</td>
-<td align="right">+2%</td>
-<td align="right">33%</td>
+<td align="right">+1%</td>
+<td align="right">44%</td>
 <td align="right">-2%</td>
 <td align="right">38%</td>
 </tr>
@@ -388,27 +390,23 @@ above.</caption>
 <p>The two sources’ errors have different shapes.</p>
 <ul>
 <li>
-<strong>The water balance</strong> reads high in April and May, by a
-median of +7% to +11%, and within ±5% in the other months. At the 25
-gauges routed PCIC does not reach, 19 of them in WSC drainage area 10
-(the Liard), it reads low in winter instead, by a median of -16% in
-January and -62% to -75% in February–March. Its spread is wide in every
+<strong>The water balance</strong>’s median error is within ±10% in
+every month, highest in April (+7%). At the 25 gauges routed PCIC does
+not reach, 19 of them in WSC drainage area 10 (the Liard), its winter
+months are within ±10% too (-9% in January). Its spread is wide in every
 month: fewer than half of the gauges fall within ±20% in any month. Its
-months are an annual flow times a share of the year modelled from
-monthly precipitation, temperature and evapotranspiration, elevation,
-location, and two snow terms from ERA5-Land: the day by which half the
-snowpack has melted and the peak snow water equivalent
-(<code><a href="../reference/wet_share_fit.html">wet_share_fit()</a></code>, #16). The snow terms reduced the bias in
-winter and early spring (<code>research/water_balance_method.md</code>),
-but the freshet is still flattened: at the 243 gauges whose observed
-flow peaks in May or June, the balance is below the gauge in that month
-at 65% of them, by a median of -13%. Held out, its median Nash–Sutcliffe
-efficiency on the monthly climatology is 0.73 over its 315 gauges. This
-error is ours.</li>
+months are an annual flow times the shares of the year that the five
+calibration gauges most like it carry, alike in elevation, location, and
+two snow terms from ERA5-Land: the day by which half the snowpack has
+melted and the peak snow water equivalent (<code><a href="../reference/wet_share_fit.html">wet_share_fit()</a></code>,
+#16, #102). At the 243 gauges whose observed flow peaks in May or June,
+the balance is below the gauge in that month at 58% of them, by a median
+of -6%. Held out, its median Nash–Sutcliffe efficiency on the monthly
+climatology is 0.81 over its 315 gauges. This error is ours.</li>
 <li>
 <strong>Routed PCIC</strong>, on the 279 gauges both sources are
-scored at, has more of them within ±20% than the balance has in 10 of
-the twelve months, May to September among them. It reads low in March
+scored at, has more of them within ±20% than the balance has in 4 of the
+twelve months (May, June, August and September). It reads low in March
 and April (median -11%) and high in July and August (+16%): as if its
 melt starts late and runs on. Its median monthly efficiency is 0.82 over
 its 279 gauges.</li>
@@ -424,11 +422,11 @@ here and in #67.</p>
 <p>A second place was not needed to find these patterns, because the
 province-wide scores already span regimes. The table below splits them
 by basin size and by lake outlets, which a regime contrast would have
-sampled one at a time. Routed PCIC is the stronger source on every basin
-size but the smallest (under 100 km²), where it falls below the balance.
-The balance is weakest at lake outlets, whose flow a lake holds back and
-releases later in the year; its shares know nothing of the lake, and
-routing does.</p>
+sampled one at a time. The balance is the stronger source on basins
+under 1,000 km², and routed PCIC on those over it. Routed PCIC is also
+the stronger at lake outlets, whose flow a lake holds back and releases
+later in the year: routing follows the lake, and the balance’s donor
+gauges are matched without regard to it.</p>
 <table class="table">
 <caption>Median Nash–Sutcliffe efficiency of the monthly climatology per
 gauge, by basin size and lake outlets, on the 279 gauges both sources
@@ -443,43 +441,43 @@ are scored at.</caption>
 <tr class="odd">
 <td align="left">All gauges</td>
 <td align="right">279</td>
-<td align="right">0.76</td>
+<td align="right">0.82</td>
 <td align="right">0.82</td>
 </tr>
 <tr class="even">
 <td align="left">&lt;100 km²</td>
 <td align="right">74</td>
-<td align="right">0.55</td>
+<td align="right">0.61</td>
 <td align="right">0.43</td>
 </tr>
 <tr class="odd">
 <td align="left">100-1000</td>
 <td align="right">105</td>
-<td align="right">0.76</td>
+<td align="right">0.82</td>
 <td align="right">0.80</td>
 </tr>
 <tr class="even">
 <td align="left">1000-10000</td>
 <td align="right">82</td>
-<td align="right">0.81</td>
+<td align="right">0.87</td>
 <td align="right">0.92</td>
 </tr>
 <tr class="odd">
 <td align="left">&gt;10000</td>
 <td align="right">18</td>
-<td align="right">0.88</td>
+<td align="right">0.93</td>
 <td align="right">0.95</td>
 </tr>
 <tr class="even">
 <td align="left">Lake outlet</td>
 <td align="right">17</td>
-<td align="right">0.53</td>
+<td align="right">0.73</td>
 <td align="right">0.92</td>
 </tr>
 <tr class="odd">
 <td align="left">Not a lake outlet</td>
 <td align="right">262</td>
-<td align="right">0.76</td>
+<td align="right">0.82</td>
 <td align="right">0.82</td>
 </tr>
 </tbody>
@@ -506,7 +504,11 @@ takes over the scoring this article starts.</li>
 </h2>
 <ul>
 <li>On a calibration gauge’s own segment the published balance is
-in-sample. The scores above use the held-out balance instead.</li>
+in-sample: its months are the gauge’s own monthly pattern at the
+balance’s annual flow (two gauges on one watershed, 08NM240 and 08NM241,
+share the mean of theirs), and a watershed much like a gauge in
+elevation, location and snow gets almost the same pattern. The scores
+above use the held-out balance instead.</li>
 <li>08EE003 is seasonal: its monthly means cover May–October, from 19 of
 the years 1981–2010. Its windows rest on the years the window table
 gives.</li>
@@ -524,7 +526,7 @@ exactly.</li>
 <h2 id="validation">Validation<a class="anchor" aria-label="anchor" href="#validation"></a>
 </h2>
 <p><code>data-raw/monthly_vignette_data.R</code> built the data at wet
-96f42d8 on 2026-10-19, from the published build at wet 94deeb5 (<a href="https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json" class="external-link uri">https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json</a>)
+6ac469a on 2026-10-19, from the published build at wet 8ca2dee (<a href="https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json" class="external-link uri">https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json</a>)
 and the water balance fit on HYDAT 2026-07-17 (AET cfu). It checked the
 bundled published values against what they were built from, and refused
 to write unless none differed:</p>

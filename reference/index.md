@@ -148,7 +148,7 @@ out.
 - [`wet_wb_pooled()`](https://newgraphenvironment.github.io/wet/reference/wet_wb_pooled.md)
   : Zones to pool in a water-balance fit
 - [`wet_share_fit()`](https://newgraphenvironment.github.io/wet/reference/wet_share_fit.md)
-  : Fit the monthly share-of-annual-runoff regressions
+  : Fit the monthly share-of-annual-runoff model
 - [`wet_share_predict()`](https://newgraphenvironment.github.io/wet/reference/wet_share_predict.md)
   : Predict monthly shares of annual runoff
 - [`wet_shape_fit()`](https://newgraphenvironment.github.io/wet/reference/wet_shape_fit.md)
