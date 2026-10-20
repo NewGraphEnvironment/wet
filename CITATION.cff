@@ -4,11 +4,12 @@
 # ------------------------------------------------
  
 cff-version: 1.2.0
-message: 'To cite package "wet" in publications use:'
+message: If you use wet, please cite it by its DOI, 10.5281/zenodo.23305781.
 type: software
 license: MIT
 title: 'wet: Stream Flow and Water Temperature for the BC Freshwater Atlas'
 version: 0.4.15
+doi: 10.5281/zenodo.23305781
 abstract: 'Mean monthly and annual stream flow for the British Columbia Freshwater
   Atlas (FWA), published openly per stream segment from two sources: the Pacific Climate
   Impacts Consortium''s (PCIC) routed hydrologic model, and an open water balance
@@ -34,6 +35,7 @@ preferred-citation:
   url: https://newgraphenvironment.github.io/wet/
   repository-code: https://github.com/NewGraphEnvironment/wet
   license: MIT
+  doi: 10.5281/zenodo.23305781
   type: software
   publisher:
     name: New Graph Environment Ltd.
