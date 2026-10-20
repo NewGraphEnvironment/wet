@@ -21,7 +21,6 @@ authors:
   email: al@newgraphenvironment.com
   orcid: https://orcid.org/0000-0002-3495-2128
   affiliation: New Graph Environment Ltd.
-- name: New Graph Environment Ltd.
 preferred-citation:
   title: 'wet: Stream Flow and Water Temperature for the BC Freshwater Atlas'
   authors:
@@ -30,7 +29,6 @@ preferred-citation:
     email: al@newgraphenvironment.com
     orcid: https://orcid.org/0000-0002-3495-2128
     affiliation: New Graph Environment Ltd.
-  - name: New Graph Environment Ltd.
   version: 0.4.15
   date-released: '2026-10-20'
   url: https://newgraphenvironment.github.io/wet/
