@@ -567,7 +567,7 @@ The donor scores 0.9389 here against #70's free curve at 0.9388. The two differ 
 - **Leak.** Removing related gauges costs donor 0.0036 (0.9389 to 0.9353); the regression reads 0.8735 in both pools, to four decimals.
 - **The daily shape on the new months (`wb_shape_daily.R` rerun).** The rule picks donor again: 0.9824 on observed months, unchanged, because that score does not use the held-out months. On the held-out months, which is what the product gives, the within-month donor now scores 0.909 (0.849 on the regression's months). That equals #70's free 365-day curve (0.9091). So the months-only choice loses nothing at the daily scale against the curve #99 was to weigh.
 - **What a donor publishes.** At a calibration gauge, the donor's nearest match is the gauge itself at distance 0, so the published months there are the gauge's own observed shares times the modelled annual. Watersheds near a gauge in predictor space get almost the same shape. The annual is unchanged everywhere: month 0 is byte-identical in all 24 basins, and `pick` does not move.
-- **Published:** BUILD at 8ca2dee, 20 of 67 parts identical to 94deeb5 (the routed ones), every value check passes. Upload: pending.
+- **Published** on 2026-10-19 as build 8ca2dee (manifest built 22:34Z): 20 of 67 parts identical to 94deeb5 (the routed ones), every value check passing, and the BUILD rerun after the upload 67 of 67 identical to it. The monthly-flow article was rewritten on it: the Bulkley calibration gauges now carry their own monthly pattern, and at 08EE003, which no fit uses, the balance is +379 % and +470 % in the two late-summer Chinook windows.
 
 ### What this says about the BC Water Tools
 

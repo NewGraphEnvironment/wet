@@ -15,3 +15,5 @@
 - m4 chain B (22:15-22:37 UTC): ship cfu with donor shares (b78d2a5), breakdowns + daily shape (565f6b0; within-month donor on held-out months 0.849 -> 0.909 = free curve 0.9091), output (613ba15; month 0 identical in 24 basins, 38.3 M of 38.9 M watershed-months moved), routed compare (2fe90c6), segment (8ca2dee), BUILD (941a87c; 20/67 identical to 94deeb5, all value checks 0 differing)
 - Research section + CLAUDE.md (57370c4); m1 reduced bundle replaced (old in data/wb/_pre102_m1/)
 - Next: user uploads from m4 wet-102; then BUILD again, vignette data + monthly article rewrite
+- User uploaded from m4 (live manifest wet 8ca2dee, built 22:34Z); BUILD rerun 67/67 identical (6ac469a)
+- Vignette data regenerated on m1 (monthly, segment values, segment map); monthly-flow.Rmd rewritten: 12 checks had failed on the donor bundle (Bulkley in-sample now the gauges' own pattern, -12 % / -9 %; 08EE003 +379/+470 % in late-summer windows; balance median within +-10 % every month; Liard winter within 10 %; groups: balance stronger under 1,000 km2); both articles render

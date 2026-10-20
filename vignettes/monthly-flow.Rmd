@@ -116,9 +116,9 @@ Each source fills the twelve months its own way:
   twelve months, not weighted by their days. On the three segments below that
   moves it by at most `r sprintf("%.1f%%", wtd_diff)`.
 - **The water balance** (`wet_balance`) is the annual flow over `r base_text`
-  split into months by a model of each month's share of the year, fitted to the
-  gauges (`wet_share_fit()`). Its months are volume shares of its month 0, so
-  they add up to it exactly.
+  split into months by the shares of the year that the five calibration gauges
+  most like it carry (`wet_share_fit()`, #102). Its months are volume shares of
+  its month 0, so they add up to it exactly.
 
 Both sources cover `r base_text`, the period the gauges are scored over.
 Neither is the gauge record.
@@ -223,7 +223,6 @@ peak_month <- function(src) {
   one(x$month[which.max(x$q_m3s)])
 }
 stopifnot(peak_month("observed") == 5, peak_month("pcic_routed") == 5)
-bal_peak <- month.name[peak_month("wet_balance")]
 
 cap_hyd <- paste0(
   "Mean monthly flow on the segments three Bulkley gauges sit on, from each source, beside the gauge's ",
@@ -259,40 +258,41 @@ hq <- function(s, src, mo) {
   stopifnot(nrow(x) == length(mo))
   x$q_m3s[match(mo, x$month)]
 }
-# the prose: at Buck Creek the balance is above the gauge from July to March;
-# at Quick it is above it January to March, and routed above it in July and August
-stopifnot(all(hq("08EE013", "wet_balance", c(7:12, 1:3)) > hq("08EE013", "observed", c(7:12, 1:3))),
-          all(hq("08EE004", "wet_balance", 1:3) > hq("08EE004", "observed", 1:3)),
+# the prose: at both calibration gauges the balance's months are the gauge's
+# own monthly pattern (its nearest donor is itself) at the balance's annual
+# flow, so every month is off by about the annual's error, and below the gauge;
+# routed overshoots Buck Creek's freshet, and at Quick is above the gauge in
+# July and August and short of it in May-June by a fifth to a third
+ratio_of <- function(s) hq(s, "wet_balance", 1:12) / hq(s, "observed", 1:12)
+wb_off <- vapply(c("08EE013", "08EE004"), function(s) 100 * (stats::median(ratio_of(s)) - 1), 0)
+stopifnot(identical(prov$share_method, "donor"),
+          all(vapply(c("08EE013", "08EE004"), function(s) diff(range(ratio_of(s))) < 0.02, NA)),
+          all(wb_off < 0), all(wb_off > -15),
+          peak_month("wet_balance") == peak_month("observed"),
           all(hq("08EE004", "pcic_routed", 7:8) > hq("08EE004", "observed", 7:8)),
-          fr[["pcic_routed"]] > fr[["observed"]], fr[["wet_balance"]] < fr[["observed"]],
-          max(hq("08EE013", "wet_balance", 1:12)) < max(hq("08EE013", "observed", 1:12)) / 2,
-          fr[["wet_balance"]] > fr[["observed"]] / 2)
-# at Quick, both sources are a fifth to a third low in May-June
-stopifnot(hq("08EE013", "pcic_routed", 5) > hq("08EE013", "observed", 5))
-q_short <- 100 * (fr_q[c("pcic_routed", "wet_balance")] / fr_q[["observed"]] - 1)
-stopifnot(all(q_short < -20), all(q_short > -33))
-bk_peak <- c(obs = max(hq("08EE013", "observed", 1:12)), wb = max(hq("08EE013", "wet_balance", 1:12)))
-stopifnot(peak_month("wet_balance") == peak_month("observed") + 1)
+          fr[["pcic_routed"]] > fr[["observed"]], hq("08EE013", "pcic_routed", 5) > hq("08EE013", "observed", 5))
+q_short <- 100 * (fr_q[["pcic_routed"]] / fr_q[["observed"]] - 1)
+stopifnot(q_short < -20, q_short > -33)
 ```
 
 At Buck Creek (08EE013), a snowmelt stream of `r round(unique(g$area_km2[g$station_number == "08EE013"]))`
-km², the gauge peaks in May and so does routed PCIC, which overshoots it. The
-water balance's freshet is low and a month late: its May–June flow is
-`r round(fr[["wet_balance"]], 1)` m³/s against `r round(fr[["observed"]], 1)`
-observed and `r round(fr[["pcic_routed"]], 1)` routed, and its highest month,
-`r bal_peak`, is `r round(bk_peak[["wb"]], 1)` m³/s against the gauge's May
-`r round(bk_peak[["obs"]], 1)`, under half of it. It carries more water than the gauge from July through March. On the Bulkley at Quick (08EE004),
-a basin of `r format(round(unique(g$area_km2[g$station_number == "08EE004"])), big.mark = ",")` km²,
-both sources fall short of the gauge in May–June by about a quarter
-(`r round(fr_q[["observed"]])` m³/s observed, `r round(fr_q[["pcic_routed"]])` routed,
-`r round(fr_q[["wet_balance"]])` balance). The balance is still high from January
-to March, and routed PCIC is high in July and August.
+km², the gauge peaks in May and so does routed PCIC, which overshoots it: its
+May–June flow is `r round(fr[["pcic_routed"]], 1)` m³/s against
+`r round(fr[["observed"]], 1)` observed. On the Bulkley at Quick (08EE004), a
+basin of `r format(round(unique(g$area_km2[g$station_number == "08EE004"])), big.mark = ",")` km²,
+routed PCIC falls short of the gauge in May–June by about a quarter
+(`r round(fr_q[["pcic_routed"]])` m³/s against `r round(fr_q[["observed"]])`)
+and is high in July and August.
 
 Both gauges are among those the balance is calibrated on, so on their segments
-its published values are in-sample. The scores further down use the balance
-held out instead. 08EE003 is not a calibration gauge: it is seasonal and has
-no complete years in `r base_text`, so on its segment the balance is a genuine estimate for an
-ungauged site, and the gauge can check it only in open water.
+its published values are in-sample. The gauge most like each of them is
+itself, so the balance there has the gauge's own monthly pattern at the
+balance's annual flow: about `r pct(wb_off[["08EE013"]])` at Buck Creek and
+`r pct(wb_off[["08EE004"]])` at Quick in every month. The scores
+further down use the balance held out instead. 08EE003 is not a calibration
+gauge: it is seasonal and has no complete years in `r base_text`, so on its
+segment the balance is a genuine estimate for an ungauged site, and the gauge
+can check it only in open water.
 
 ## Flow in the Chinook windows
 
@@ -331,10 +331,16 @@ err_of <- function(col) 100 * (win[[col]] / win$daily - 1)
 approx_w <- tapply(abs(approx_err), win$window, max)[windows$window]
 good_w <- names(approx_w)[approx_w < 5]
 poor_w <- names(approx_w)[approx_w >= 5]
-# the prose: where it is poor, both sources still miss by more
+# the prose: where it is poor, routed PCIC still misses by more; the balance
+# at Buck Creek carries the gauge's own months, and at 08EE003 is several
+# times the gauge in the late-summer windows
+late_w <- c("Spawning", "Fry migration")
+b003 <- err_of("balance")[win$station_number == "08EE003" & win$window %in% late_w]
 stopifnot(length(good_w) > 0, length(poor_w) > 0,
           all(abs(err_of("routed")[win$window %in% poor_w]) > abs(approx_err[win$window %in% poor_w])),
-          all(abs(err_of("balance")[win$window %in% poor_w]) > abs(approx_err[win$window %in% poor_w])))
+          all(abs(err_of("balance")[win$station_number == "08EE013"]) < 15),
+          length(b003) == 2, all(b003 > 200),
+          one(err_of("balance")[win$station_number == "08EE003" & win$window == "Migration"]) < 0)
 # and the reason it gives: the second half of July runs below July's mean
 late_july <- vapply(c("08EE013", "08EE003"), function(st) {
   x <- dh[dh$station_number == st & dh$month == 7, ]
@@ -359,9 +365,14 @@ same years' observed monthly means put through the day weighting. In
 `r sprintf("%.0f%%", max(approx_w[good_w]))`. In `r tolower(and_text(poor_w))`
 they differ by up to `r sprintf("%.0f%%", max(approx_w[poor_w]))`, because that
 window takes half of July, when the flow is falling fast, at July's mean. Even
-there the approximation is smaller than either source's error, which in that
-window reaches `r pct(worst("routed"))` for routed PCIC and
-`r pct(worst("balance"))` for the balance.
+there the approximation is smaller than routed PCIC's error, which in that
+window reaches `r pct(worst("routed"))`. At Buck Creek the balance carries the
+gauge's own months, so its window error is the approximation's and its annual
+error's. At 08EE003, which no fit uses, it is `r pct(min(b003))` to
+`r pct(max(b003))` in the two late-summer windows, while it is
+`r pct(err_of("balance")[win$station_number == "08EE003" & win$window == "Migration"])`
+in the migration window: its donor gauges put far more of the year into late
+summer than this gauge carries. That error is ours.
 
 ```{r window-table}
 tab <- data.frame(
@@ -407,9 +418,7 @@ both <- m[!is.na(m$routed_mm) & !m$station_number %in% far, ]
 n_bal_gauges <- length(unique(bal$station_number))
 n_both_gauges <- length(unique(both$station_number))
 n_zero_wb <- sum(bal$wb_mm <= 0)
-zero_months <- table(factor(bal$month[bal$wb_mm <= 0], 1:12))
-zero_top <- which.max(zero_months)
-stopifnot(12 * n_both_gauges == nrow(both), n_routed - length(far) == n_both_gauges,
+stopifnot(n_zero_wb == 0, 12 * n_both_gauges == nrow(both), n_routed - length(far) == n_both_gauges,
           12 * n_bal_gauges == nrow(bal), !anyNA(both$ratio_r))
 band <- 0.2
 summ <- function(d, col, src) {
@@ -470,10 +479,8 @@ outlet's placement or the gauge's snap, to PCIC's runoff, or unresolved). That
 leaves `r n_both_gauges` gauges. Each source is scored on every month of all its
 own gauges, as modelled over observed flow: the balance on
 `r format(nrow(bal), big.mark = ",")` gauge-months, routed PCIC on
-`r format(nrow(both), big.mark = ",")`. In `r n_zero_wb` of the balance's
-gauge-months the held-out share is zero, so it predicts no flow at all
-(`r zero_months[[zero_top]]` of them in `r month.name[zero_top]`). They count as
-errors of −100%.
+`r format(nrow(both), big.mark = ",")`. No held-out month of the balance is
+zero: each is a mean of five gauges' observed shares.
 
 ```{r error-month, fig.height = 4.2, fig.cap = cap_err}
 ggplot(sm, aes(date)) +
@@ -509,11 +516,10 @@ r_summer <- 7:8
 season_med <- function(col, mo) 100 * (stats::median(both[[col]][both$month %in% mo]) - 1)
 # head to head, on the same gauges
 r_closer <- which(shv("pcic_routed", 1:12, "within") > shv("wet_balance", 1:12, "within"))
-# the prose: the balance is high in April and May and within 5% in the other
-# months, within the band at fewer than half the gauges in every month; routed
-# is low in spring and high in summer
-wb_spring <- smv("wet_balance", 4:5, "median")
-wb_rest <- smv("wet_balance", c(1:3, 6:12), "median")
+# the prose: the balance's median is within 10% in every month, highest in
+# April, and within the band at fewer than half the gauges in every month;
+# routed is low in spring and high in summer
+wb_med <- smv("wet_balance", 1:12, "median")
 # the freshet at the gauges whose observed flow (not monthly volume) peaks in
 # May or June: the balance in the gauge's peak month, against the gauge
 bal$obs_q <- bal$obs_mm / days[bal$month + 1]
@@ -521,16 +527,15 @@ pk <- do.call(rbind, lapply(split(bal, bal$station_number), function(x) x[which.
 pk <- pk[pk$month %in% 5:6, ]
 pk_below <- 100 * mean(pk$ratio_wb < 1)
 pk_ratio <- 100 * (stats::median(pk$ratio_wb) - 1)
-# the prose names the snow terms: the fit must have shipped them (#16)
-stopifnot(identical(prov$share_spec, "snow"))
-# and as the regression: a bundle from a donor or blend fit (#102) needs this prose rewritten
-stopifnot(is.null(prov$share_method) || identical(prov$share_method, "regression"))
-stopifnot(min(wb_spring) > 5, max(abs(wb_rest)) < 5, pk_below > 50, pk_ratio < 0,
-          n_un + n_both_gauges + length(far) == n_bal_gauges, n_un_10 > n_un / 2, un_winter[1] < 0, all(un_winter[2:3] < -50),
+# the prose names the donor shares and the snow terms they are matched on:
+# the fit must have shipped both (#16, #102)
+stopifnot(identical(prov$share_spec, "snow"), identical(prov$share_method, "donor"))
+stopifnot(max(abs(wb_med)) < 10, which.max(wb_med) == 4, pk_below > 50, pk_ratio < 0,
+          n_un + n_both_gauges + length(far) == n_bal_gauges, n_un_10 > n_un / 2, all(abs(un_winter) < 10),
           max(smv("wet_balance", 1:12, "within")) < 50,
           all(smv("pcic_routed", r_spring, "median") < -10), all(smv("pcic_routed", r_summer, "median") > 10),
           season_med("ratio_r", r_spring) < -10, season_med("ratio_r", r_summer) > 10,
-          all(5:9 %in% r_closer))
+          length(r_closer) > 0, length(r_closer) < 6)
 # per gauge: routed low in spring, high in summer, both
 by_g <- function(mo) tapply(both$ratio_r[both$month %in% mo], both$station_number[both$month %in% mo], mean)
 g_low <- by_g(r_spring) < 1
@@ -543,26 +548,23 @@ stopifnot(shape_pct[["low"]] > 50, shape_pct[["high"]] > 50)
 
 The two sources' errors have different shapes.
 
-- **The water balance** reads high in April and May, by a median of
-  `r pct(min(wb_spring))` to `r pct(max(wb_spring))`, and within ±5% in the
-  other months. At the `r n_un` gauges routed PCIC does not reach,
-  `r n_un_10` of them in WSC drainage area 10 (the Liard), it reads low
-  in winter instead, by a median of `r pct(un_winter[1])` in January and
-  `r pct(max(un_winter[2:3]))` to `r pct(min(un_winter[2:3]))` in February–March.
-  Its spread is wide in every month: fewer than half of the gauges fall within
-  ±`r round(100 * band)`% in any month. Its months are an annual flow times a
-  share of the year modelled from monthly precipitation, temperature and
-  evapotranspiration, elevation, location, and two snow terms from ERA5-Land:
-  the day by which half the snowpack has melted and the peak snow water
-  equivalent (`wet_share_fit()`, #16). The snow terms reduced the bias in winter
-  and early spring (`research/water_balance_method.md`), but the freshet is still flattened: at the `r nrow(pk)` gauges whose observed
-  flow peaks in May or June, the balance is below the gauge in that month at
-  `r round(pk_below)`% of them, by a median of `r pct(pk_ratio)`. Held out, its median Nash–Sutcliffe efficiency on the monthly
-  climatology is `r sprintf("%.2f", nse(sk_wb, "nse_month"))` over its `r n_bal_gauges` gauges.
-  This error is ours.
+- **The water balance**'s median error is within ±10% in every month, highest
+  in April (`r pct(wb_med[4])`). At the `r n_un` gauges routed PCIC does not
+  reach, `r n_un_10` of them in WSC drainage area 10 (the Liard), its winter
+  months are within ±10% too (`r pct(un_winter[1])` in January). Its spread is
+  wide in every month: fewer than half of the gauges fall within
+  ±`r round(100 * band)`% in any month. Its months are an annual flow times the shares of the
+  year that the five calibration gauges most like it carry, alike in elevation,
+  location, and two snow terms from ERA5-Land: the day by which half the
+  snowpack has melted and the peak snow water equivalent (`wet_share_fit()`,
+  #16, #102). At the `r nrow(pk)` gauges whose observed flow peaks in May or June, the balance is
+  below the gauge in that month at `r round(pk_below)`% of them, by a median of
+  `r pct(pk_ratio)`. Held out, its median Nash–Sutcliffe efficiency on the
+  monthly climatology is `r sprintf("%.2f", nse(sk_wb, "nse_month"))` over its
+  `r n_bal_gauges` gauges. This error is ours.
 - **Routed PCIC**, on the `r n_both_gauges` gauges both sources are scored at,
   has more of them within ±`r round(100 * band)`% than the balance has in
-  `r length(r_closer)` of the twelve months, May to September among them. It reads low in March and April (median
+  `r length(r_closer)` of the twelve months (`r and_text(month.name[r_closer])`). It reads low in March and April (median
   `r pct(season_med("ratio_r", r_spring))`) and high in July and
   August (`r pct(season_med("ratio_r", r_summer))`): as if its melt
   starts late and runs on. Its median monthly efficiency is
@@ -597,23 +599,23 @@ gt <- gt[match(c("all all", paste("area_class", c("<100 km2", "100-1000", "1000-
                  "lake lake outlet", "lake not a lake outlet"), key(gw)), ]
 stopifnot(!anyNA(gt$Group))
 nse_g <- function(s, g, v) one(s$nse_month_median[s$group == g & s$value == v])
-# the prose: routed is weaker than the balance only on the smallest basins,
-# and the balance is weakest at lake outlets
-small <- "<100 km2"
-classes_a <- c("<100 km2", "100-1000", "1000-10000", ">10000")
-stopifnot(nse_g(gr, "area_class", small) < nse_g(gw, "area_class", small),
-          all(vapply(setdiff(classes_a, small), function(k) nse_g(gr, "area_class", k) > nse_g(gw, "area_class", k), NA)),
-          nse_g(gw, "lake", "lake outlet") < min(gw$nse_month_median[gw$group == "area_class"]),
-          nse_g(gr, "lake", "lake outlet") > nse_g(gw, "lake", "lake outlet"))
+# the prose: the balance is the stronger source on basins under 1,000 km2,
+# routed on those over it and at lake outlets
+small_a <- c("<100 km2", "100-1000")
+large_a <- c("1000-10000", ">10000")
+stopifnot(all(vapply(small_a, function(k) nse_g(gw, "area_class", k) > nse_g(gr, "area_class", k), NA)),
+          all(vapply(large_a, function(k) nse_g(gr, "area_class", k) > nse_g(gw, "area_class", k), NA)),
+          nse_g(gr, "lake", "lake outlet") > nse_g(gw, "lake", "lake outlet"),
+          nse_g(gw, "lake", "lake outlet") < nse_g(gw, "lake", "not a lake outlet"))
 ```
 
 A second place was not needed to find these patterns, because the province-wide
 scores already span regimes. The table below splits them by basin size and by
-lake outlets, which a regime contrast would have sampled one at a time. Routed
-PCIC is the stronger source on every basin size but the smallest (under
-100 km²), where it falls below the balance. The balance is weakest at lake
-outlets, whose flow a lake holds back and releases later in the year; its shares
-know nothing of the lake, and routing does.
+lake outlets, which a regime contrast would have sampled one at a time. The
+balance is the stronger source on basins under 1,000 km², and routed PCIC on
+those over it. Routed PCIC is also the stronger at lake outlets, whose flow a
+lake holds back and releases later in the year: routing follows the lake, and
+the balance's donor gauges are matched without regard to it.
 
 ```{r group-table}
 knitr::kable(gt, row.names = FALSE, align = "lrrr",
@@ -634,8 +636,10 @@ each with its issue:
 
 ## Limits
 
-- On a calibration gauge's own segment the published balance is in-sample. The
-  scores above use the held-out balance instead.
+- On a calibration gauge's own segment the published balance is in-sample:
+  its months are the gauge's own monthly pattern at the balance's annual flow,
+  and a watershed much like a gauge in elevation, location and snow gets almost
+  the same pattern. The scores above use the held-out balance instead.
 - 08EE003 is seasonal: its monthly means cover `r m003_text`, from
   `r n003` of the years `r base_text`. Its windows rest on the years the window
   table gives.
