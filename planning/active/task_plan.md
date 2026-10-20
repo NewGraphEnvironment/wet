@@ -71,15 +71,15 @@ Mechanism choices I made (not questions):
       weekly's) is stated as a weakness in the dataset description and research
 
 ## Phase 2: crate schema (NewGraphEnvironment/crate)
-- [ ] `inst/extdata/schemas/nge/discharge/fwa/v1/segment_daily.yaml` (columns
+- [x] `inst/extdata/schemas/nge/discharge/fwa/v1/segment_daily.yaml` (columns
       `linear_feature_id, watershed_group_code, doy, runoff_mm, q_m3s, coverage, period, pick`;
       the routed days' month-consistency, `runoff_mm` in mm/day (February's days summing to
       28/28.25 of the monthly mm), only `q_m3s` means matching the months, and no annual row
       stated in the description; review 13) and its registry row, as
       crate#31 added `segment_monthly`; fix `segment_monthly.yaml`'s stale "routed 1951-2012"
       period note (1981-2010 since wet#103) in a separate commit
-- [ ] crate tests and check pass; PR, `/code-check`, merge, release (tag + GitHub release)
-- [ ] `discharge_publish.R`'s crate release check covers `segment_daily`
+- [x] crate tests and check pass; PR, `/code-check`, merge, release (tag + GitHub release)
+- [x] `discharge_publish.R`'s crate release check covers `segment_daily`
 
 ## Phase 3: Readers over `doy` (`R/`)
 - [x] `wet_timebase()` gains `daily = list(col = "doy", values = 1:365)`
