@@ -567,8 +567,12 @@ day_seen <- list()
 for (g in groups_day) {
   pr <- read_part(part_path(ds_day, "pcic_routed", g), cols_dval)
   pb <- read_part(part_path(ds_day, "wet_balance", g), cols_dval)
-  day_seen[[g]] <- rbind(data.frame(source = "pcic_routed", id = unique(pr$linear_feature_id)),
-                         data.frame(source = "wet_balance", id = unique(pb$linear_feature_id)))
+  # a group with no routed segment (the Liard, the Yukon and Alsek headwaters,
+  # the Hay) has no routed part, so a side can be empty
+  ids_r <- unique(pr$linear_feature_id)
+  ids_b <- unique(pb$linear_feature_id)
+  day_seen[[g]] <- data.frame(source = rep(c("pcic_routed", "wet_balance"), c(length(ids_r), length(ids_b))),
+                              id = c(ids_r, ids_b))
   if (nrow(pr)) {
     ids <- unique(pr$linear_feature_id)
     w <- day_inp$weights[match(ids, day_inp$weights$linear_feature_id), ]

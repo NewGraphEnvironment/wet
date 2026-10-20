@@ -1,0 +1,42 @@
+# Code-check round 2: #99 segment_daily (diff 40560dc...HEAD, after 90d3c00)
+
+## Checklist read
+
+- code-check.md: the prose of all 14 H3s under `## Mechanisms`, in full (table rows and evidence blocks skipped). The 30 other H3s (Rules that stand alone, Security, Spreadsheets and PDFs): index only.
+- code-check-r.md: 17 of 111 sections in full: "`$` on a list partial-matches", "A database driver's value is not a base R type", "`paste()` with a zero-length argument", "`identical(-0, 0)`", "`vapply(..., USE.NAMES = FALSE)`", "`stats::aggregate()` has three separate silent behaviours", "`match()` treats NA", "`tolerance` in testthat is RELATIVE", "`data.frame()` recycles a scalar against a zero-length column", "Postgres row order is never fixed", "`sprintf(\"%g\", x)`", "Rscript reads a script as it runs", "A range total taken as the difference", "`bind_rows()` of all-`NULL`", "`system2(stdout = TRUE)`", "`ifelse()` with an all-NA test", and the `c()` dispatch index line. The other 94: index only.
+- code-check-shell.md: index only, 0 of 67 in full. The diff has no shell code; git runs through `system2()` with `shQuote()`.
+- code-check-spatial.md: index only, 0 of 92 in full. The diff does no spatial operations. The two FWA headings, on route measures and edge types, are about columns this diff does not use.
+
+## Findings
+
+- **[severity: bug]** scripts/discharge_publish.R:570-571. In the daily value check, `day_seen[[g]] <- rbind(data.frame(source = "pcic_routed", id = unique(pr$linear_feature_id)), data.frame(source = "wet_balance", id = unique(pb$linear_feature_id)))` raises `arguments imply differing number of rows: 1, 0` whenever a group has no part for one of the two sources. `read_part()` returns a 0-row frame for a missing part, and the build writes no part for a source with no rows in a group (`if (!nrow(p)) next`, line ~345). In the local fwapg, 47 watershed groups hold no row of `pcic.segment_weights` (ATLL BEAV BLUR COAL CRYL DEAL DEAR DUNE FONT FROG GATA GLAR HAYR JENR KAHN KCHL KUSR LFRT LIAR LKEC LMUS LPET LPRO LRAN LSIK MDEA MFRT MMUS MPRO SAHD SAHT SHEK SWIR TATR TESR TOAD TSEA TURN TUTR UFRT UJER UKEC ULRD UMUS UPET UPRO USIK: the Liard, the Yukon and Alsek headwaters, the Hay). Each of those has balance segments, so it has a daily file and no routed daily part. The province BUILD therefore stops at the first such group, after writing every part and before any check or report. The fixture tree has one group with both sources, so no test reaches this path. The R mechanism is confirmed: `data.frame(source = "pcic_routed", id = unique(numeric(0)))` raises that error. Fix: build each piece only when its side has rows (for example `id = unique(...)` with `source = rep("pcic_routed", length(id))`).
+
+- **[severity: fragile]** R/wet_segment_monthly.R:212 (`wet_segment_pg()`), round 1's fix 3. The exemption keys on any `"; subset "` in the table comment. `wet_db_load()` writes that marker for `pick_only`, a `months` or `doys` subset, or `groups`. So the rule that was meant for a groups subset also hides an absent source in a load that covers every group. Probe, in a copy against the local fwapg with a `wet_test_*` schema and a catalog without the routed parts:
+  - A full load still stops, as it should.
+  - `wet_db_load(doys = 1:31)` (daily) or `wet_db_load(months = 0)` (monthly), with no `groups`, returns `pcic_routed` as all NA (365 and 13 rows). The only signal is the subset warning ("a row outside it reads as missing"), which names the wrong cause.
+  - The parts reader still stops for the same catalog ("the catalog has no ... parts for source pcic_routed").
+
+  So the two stores again disagree, in the opposite direction from round 1, and a months-only load is a plausible shape for a fresh-style job. Fix: exempt only when the subset names `watershed_group_code IN` (the `groups` arm). Better still, exempt only when the named groups hold no part of that source.
+
+- **[severity: fragile]** data-raw/segment_vignette_data.R:179. `q_mon <- wet_segment_monthly(NULL, day_seg, groups = "BULK", catalog = cat_pub)` reads the monthly parts with no `vd_verify()` around the read, yet its values are bundled (`daily$months`, the article's "From the months" column). The script's header promises that the parts are checked before and after the read, so a read during a publish is refused. The routed `part-100` was verified at lines 115 and 127, before this later read. The balance `part-100` is never verified in this script, although line 184's months-against-days test covers the balance values of this one segment. A republish between line 127 and line 179 would put an unverified routed month into the article. Fix: `vd_verify()` the segment_monthly parts read here (both sources' `part-100`) before and after line 179.
+
+## Round 1 fixes, checked
+
+- Fix 2 (`wet_routed_round()`, half a unit of the 15th significant digit) is correct. I probed it against Postgres 17.5 itself: `round(v::float8::numeric, 5)` over 880,000 doubles from 1e-4 to 2e5 m3/s, built on and within ±2e-11 and ±3e-15 relative of 5-decimal half points, sent as `%.17g` text. That gave 0 mismatches with `wet_routed_round()`. Plain `round(x, 5)` gave 209,848 mismatches on the same set, so the probe can see a difference. The `log10` decade edge and values below 1e-5 behave correctly.
+- Fix 1 (the build's month guard) is correct and matches the publish test. A 15-digit tie for q in [1e4, 1e5) sits within 5e-6 (in 1e-5 units) of the half point. The window `1e-6 + 1e-10 * f` is at least 0.1 there, and it covers the summation-order difference with margin at every magnitude. Note, not a finding: at q ≥ 1e4 m3/s the window (0.1 to 0.3 of a step at 1e4 to 3e4) is wider than the 15-digit tie interval, so this guard cannot tell a regression of fix 2 from a summation tie there. Only `tie_steps` would grow. The publish check uses `wet_routed_round()` on both sides, so it cannot see one either. The unit test `wet_routed_round(12213.315444999958) == 12213.31545` is what pins it. A defect of relative size under 1e-10 (0.1 step at 1e4 m3/s) would be excused entirely. A larger sub-step defect would be excused only in part, and low flows, where the window is about 1e-6, would still catch one.
+- The publish tie test (scripts/discharge_publish.R:581-583): NA `j` rows evaluate FALSE, tie rows are counted in `wet_values_compare()`'s `differing` (tol 0) before the subtraction, and `f` comes from the colSums path's raw value. It is clean.
+- Tests run in the copy (`NOT_CRAN=true`, `testthat::test_file`): test-wet_routed_days 36 passed, test-wet_segment_daily 29, test-wet_values_compare 24, test-wet_catalog 37. All had 0 failures, 0 errors and 0 skips.
+
+## Also checked, clean
+
+- The segment-discharge article's assertions with three datasets: the three subsets of `parts` sum to `nrow(parts)`; `re_seen` is anchored at `^historical`, so the report's `segment_daily ...` reader lines do not count as segment_monthly reader rows; and `vd_published()`'s identical-parts count covers the daily parts.
+- `$` on provenance lists: `segment_commit` and `segment_daily_commit` both exist, so neither partial-matches the other. A missing `segment_daily_commit` gives NULL, a regex that matches nothing, and a stop.
+- The routed `runoff_mm` area in the daily table is the monthly row's (the lut watershed's `upstream_area_m2`, NA off its own line).
+- Every `stats::aggregate()` on the daily path sits behind a `nrow()` guard, and the daily balance has no NA (asserted at build).
+- `routed_daily_inputs()` orders on a unique key, and the `upstream_subids` order is carried through `array_to_string`.
+
+## Triage (main session)
+
+- Finding 1 (empty routed side crashes the BUILD's `day_seen`): reproduced (`data.frame(source = "x", id = integer())` errors "differing number of rows: 1, 0"); fixed with `rep()` per side. Mechanism enumerated: all 17 `data.frame()` calls the branch adds were walked; the others are scalar-only or inside a `nrow() > 0` guard.
+- Finding 2 (round 1 fix 3 exempted every subset, not only a groups subset): inside round 1's fix; fixed, the exemption needs `watershed_group_code IN` in the subset; test added (a `doys` subset with a source absent is an error). The `; subset ` marker has one other consumer, the warning, which is right for any subset.
+- Finding 3 (article data script read monthly parts unverified): fixed, every monthly part verified before and after the read.

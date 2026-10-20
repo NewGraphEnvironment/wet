@@ -100,6 +100,11 @@ test_that("the daily dataset loads into Postgres keyed by doy, for named groups,
     "subset")
   expect_true(all(is.na(out$q_m3s[out$source == "pcic_routed"])))
   expect_false(anyNA(out$q_m3s[out$source == "wet_balance"]))
+  # a subset of days holds every source it was loaded with, so one absent is an error
+  wet_db_load(conn, no_rt, ds, doys = 1:31, cache_dir = withr::local_tempdir())
+  expect_error(suppressWarnings(wet:::wet_segment_read(conn, ds, 701001, c("pcic_routed", "wet_balance"), "published",
+                                                       "historical", NULL, NULL)),
+               "no rows for scenario historical, source pcic_routed")
   wet_db_load(conn, no_rt, ds, cache_dir = withr::local_tempdir())
   expect_error(wet:::wet_segment_read(conn, ds, 701001, c("pcic_routed", "wet_balance"), "published", "historical",
                                       NULL, NULL),

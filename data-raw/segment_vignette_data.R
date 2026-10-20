@@ -176,7 +176,10 @@ vd_verify(day_parts)
 q <- wet_segment_daily(NULL, 17094080, groups = "BULK")
 day_read <- wet_flow_window(q, data.frame(window = "spring", start = "04-15", end = "06-15"))
 vd_verify(day_parts)
+mon_parts <- cat_pub[cat_pub$dataset == "discharge/fwa/v1/segment_monthly" & cat_pub$scenario == "historical", ]
+vd_verify(mon_parts)
 q_mon <- wet_segment_monthly(NULL, day_seg, groups = "BULK", catalog = cat_pub)
+vd_verify(mon_parts)
 # both sources have every day, and the balance's days keep its published months
 stopifnot(identical(unique(q$linear_feature_id), as.integer(day_seg)), !anyNA(q$q_m3s), nrow(q) == 730L, all(day_read$basis == "daily"), !anyNA(day_read$q_m3s))
 bal_d <- q[q$source == "wet_balance", ]
