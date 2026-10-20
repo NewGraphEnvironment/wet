@@ -13,7 +13,7 @@
 score_files_for <- function(rel) {
   f <- c("scripts/wb_score_md5.R", "scripts/wb_cv_lib.R", "scripts/wb_validate.R",
          "scripts/wb_aet_compare.R", wb_stations_path(rel),
-         "R/wet_wb_fit.R", "R/wet_wb_adjust.R", "R/wet_share_fit.R", "R/wet_share_predict.R",
+         "R/wet_wb_fit.R", "R/wet_wb_adjust.R", "R/wet_share_fit.R", "R/wet_share_predict.R", "R/wet_donor_mean.R",
          "R/wet_flow_validate.R", "R/wet_cv_folds.R", "R/wet_wb_raw.R", "R/wet_mm_to_m3s.R")
   if (!all(file.exists(f))) stop("missing: ", paste(f[!file.exists(f)], collapse = ", "))
   f

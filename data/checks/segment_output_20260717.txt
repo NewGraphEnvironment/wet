@@ -1,6 +1,6 @@
 # Per-segment flow from either source (#57)
 
-wet commit 5215906; fit 20260717, province run e675918817, scoring code a80b045ab7a74678d4dff01dddf77fcb
+wet commit 2fe90c6; fit 20260717, province run e675918817, scoring code 37d93d99ca657930d0e7c9c995e787a0
 routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 7c30f58
 table: 40524444 rows, 3377037 segments, 0 null flows, total 178918222.786650 m3/s
 pick: routed PCIC unless its annual flow is under 0.20 x the balance's, then the balance (wet_source_pick);

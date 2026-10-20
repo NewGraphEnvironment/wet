@@ -165,7 +165,7 @@ share_static <- list(base = c("elev", "e_km", "n_km"),
 # pooled-zone variant chosen by an inner blocked CV (plan decision 5). The
 # shares are held out for each specification in share_specs, in the same
 # folds (`shares`, by name); `share` is the first of them.
-predict_cv <- function(d, fold, variant = "nested", share_specs = names(share_static)) {
+predict_cv <- function(d, fold, variant = "nested", share_specs = names(share_static), share_method = "regression") {
   if (!length(share_specs) || !all(share_specs %in% names(share_static))) stop("unknown share_specs")
   # a station missing a share predictor would leave one specification's fit
   # on fewer stations than another's, and its comparison unfair
@@ -187,7 +187,7 @@ predict_cv <- function(d, fold, variant = "nested", share_specs = names(share_st
     ann[!tr] <- wet_wb_adjust(fit, d[!tr, ])
     raw_adj[!tr] <- wet_wb_adjust(fit, d[!tr, ], floor = FALSE)
     was_pooled[!tr] <- d$zone[!tr] %in% fit$pooled
-    sfs <- lapply(share_specs, function(k) wet_share_fit(d[tr, ], static = share_static[[k]]))
+    sfs <- lapply(share_specs, function(k) wet_share_fit(d[tr, ], static = share_static[[k]], method = share_method))
     if (length(unique(vapply(sfs, function(x) x$n, 1L))) != 1) {
       stop("the share specifications were fitted on different stations in fold ", f)
     }
@@ -196,6 +196,35 @@ predict_cv <- function(d, fold, variant = "nested", share_specs = names(share_st
   list(ann = ann, share = sh[[1]], shares = sh, n_floored = sum(raw_adj < 0), n_pooled = sum(was_pooled),
        was_pooled = was_pooled,
        chosen = table(factor(chosen, levels = variants)))
+}
+# How the shares are made (#102; the rule is in scripts/wb_validate.R's
+# header): every method's held-out shares on one static set. With `related`
+# (share_related()), each held-out gauge is predicted alone from its fold's
+# training gauges less those upstream or downstream of it, the leak-free pool.
+share_methods <- c("regression", "donor", "blend")
+cv_share_methods <- function(d, fold, static, methods = share_methods, related = NULL) {
+  sh <- lapply(stats::setNames(methods, methods), function(k) matrix(NA_real_, nrow(d), 12))
+  pools <- if (is.null(related)) {
+    lapply(unique(fold), function(f) list(te = which(fold == f), tr = fold != f))
+  } else {
+    lapply(seq_len(nrow(d)), function(i) list(te = i, tr = fold != fold[i] & !related[i, ]))
+  }
+  for (p in pools) {
+    fits <- lapply(methods, function(k) wet_share_fit(d[p$tr, ], static = static, method = k))
+    if (length(unique(vapply(fits, function(x) x$n, 1L))) != 1) {
+      stop("the share methods were fitted on different stations")
+    }
+    for (j in seq_along(methods)) sh[[methods[j]]][p$te, ] <- wet_share_predict(fits[[j]], d[p$te, , drop = FALSE])
+  }
+  sh
+}
+# related[i, j]: calibration gauge j is upstream or downstream of gauge i (as
+# scripts/wb_shape_daily.R builds it for #70's leak test)
+share_related <- function(d) {
+  up <- matrix(FALSE, nrow(d), nrow(d))
+  for (i in seq_len(nrow(d))) up[i, ] <- wet:::wet_fwa_upstream(d$wscode[i], d$localcode[i], d$wscode, d$localcode)
+  diag(up) <- FALSE
+  up | t(up)
 }
 long <- function(d, ann, share) {
   obs_m <- as.matrix(d[sprintf("share_%02d", 1:12)]) * d$obs

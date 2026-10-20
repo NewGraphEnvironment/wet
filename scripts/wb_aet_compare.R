@@ -246,7 +246,7 @@ writeLines(c(
         "tc (TerraClimate 1981-2010), fu (Fu-Budyko, climr P and Hargreaves PET, omega 2.6),",
         "cfu (max of CGIAR and fu); fu15/fu20/fu35 are fu at omega 1.5/2.0/3.5, transparency only;",
         "mod16 (MOD16A3GF v061, mean 2001-2020, gaps filled with cfu by area), cmod16 (max of CGIAR and mod16)."),
-  "Monthly shares use CGIAR monthly AET for every variant; differences here are annual only.",
+  "The monthly shares are the same for every variant (scripts/wb_validate.R); differences here are annual only.",
   "",
   sprintf("## Stage 1 (#15; incumbent since #89): %s against %s", incumbent1, paste(eligible, collapse = ", ")), "",
   sprintf("Rule (#15's thresholds; incumbent set by #89 on 2026-10-16): a variant replaces %s only if, under blocked CV and as shipped,",

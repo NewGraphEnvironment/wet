@@ -1,6 +1,6 @@
 # Monthly shares with and without the snow predictors (#16), held out under blocked CV
 
-province run: e675918817; HYDAT release: 20260717; annual AET: cfu; scores a80b045ab7a74678d4dff01dddf77fcb
+province run: e675918817; HYDAT release: 20260717; annual AET: cfu; scores 37d93d99ca657930d0e7c9c995e787a0
 calibration gauges: 315; held-out months read from fit_20260717/cv_aet-cfu.rds (#68), nothing refitted
 snow predictors: upstream means of ERA5-Land 1981-2010 snowmelt_doy_50 and swe_max (wet_snow_normals())
 

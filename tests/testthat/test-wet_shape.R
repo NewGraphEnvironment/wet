@@ -176,3 +176,23 @@ test_that("wet_flow_window() over a calendar month of daily flows equals the mon
   # the window that starts mid-month differs: late July runs below July's mean here
   expect_lt(from_days$q_m3s[2], from_months$q_m3s[2])
 })
+
+test_that("the donor shape is identical after #102 moved its weighting into wet_donor_mean()", {
+  g <- shape_gauges(20)
+  st <- c("elev", "e_km", "n_km", "snowmelt_doy_50", "swe_max")
+  fit <- wet_shape_fit(g$d[1:15, ], g$w[1:15, ], "donor", static = st, k = 5)
+  new <- g$d[c(16:20, 3), ]
+  # wet_shape_predict()'s donor branch before #102, written out
+  xs <- sweep(as.matrix(new[st]), 2, fit$sd, "/")
+  old <- t(apply(xs, 1, function(r) {
+    dist <- sqrt(colSums((t(fit$x) - r)^2))
+    o <- order(dist)[seq_len(fit$k)]
+    dd <- dist[o]
+    wt <- if (any(dd == 0)) as.numeric(dd == 0) else 1 / (dd + 1e-6 * stats::median(dist))
+    colSums(fit$w[o, , drop = FALSE] * wt) / sum(wt)
+  }))
+  old <- matrix(old, nrow = nrow(xs), ncol = 365)
+  w <- wet_shape_predict(fit, new)
+  expect_identical(unclass(w)[seq_len(nrow(w)), ], old)
+  expect_identical(dim(w), dim(old))
+})

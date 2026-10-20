@@ -1,0 +1,74 @@
+# How the monthly shares are made (#102): regression, donor gauges and their blend, held out under blocked CV
+
+province run: e675918817; HYDAT release: 20260717; annual AET: cfu; scores 37d93d99ca657930d0e7c9c995e787a0
+calibration gauges: 315; held-out months read from fit_20260717/cv_aet-cfu.rds, nothing refitted; static predictors: elev, e_km, n_km, snowmelt_doy_50, swe_max
+
+RULE (fixed in scripts/wb_validate.R's header before any candidate was coded or scored): donor or blend ships if its median share NSE beats the regression's by >= 0.01 under blocked CV and in the leak-free pool (each held-out gauge's upstream and downstream training gauges removed, every method refitted); if both pass, the higher blocked-CV median. Over 315 gauges:
+  blocked CV regression 0.8735, donor 0.9389, blend 0.9187
+  leak-free  regression 0.8735, donor 0.9353, blend 0.9209
+  gain over the regression (blocked CV / leak-free): donor +0.0654 / +0.0618 (passes), blend +0.0452 / +0.0474 (passes) -> donor SHIPS
+
+## Median share NSE and monthly-flow NSE (regression / donor / blend) per gauge, by group
+   (wet_flow_validate(); n excludes gauges with observed runoff under 10 mm)
+all                   315   share NSE regression 0.874  donor 0.939  blend 0.919   monthly NSE 0.727 / 0.813 / 0.810
+headwater             238   share NSE regression 0.864  donor 0.931  blend 0.914   monthly NSE 0.684 / 0.752 / 0.749
+nested                 77   share NSE regression 0.896  donor 0.956  blend 0.943   monthly NSE 0.817 / 0.877 / 0.883
+peak May-June         241   share NSE regression 0.901  donor 0.950  blend 0.940   monthly NSE 0.788 / 0.824 / 0.822
+peak other months      74   share NSE regression 0.725  donor 0.892  blend 0.860   monthly NSE 0.494 / 0.753 / 0.657
+lake outlet            19   share NSE regression 0.760  donor 0.867  blend 0.857   monthly NSE 0.525 / 0.639 / 0.641
+not lake outlet       296   share NSE regression 0.876  donor 0.943  blend 0.922   monthly NSE 0.742 / 0.819 / 0.813
+WSC area 10            19   share NSE regression 0.785  donor 0.911  blend 0.860   monthly NSE 0.666 / 0.794 / 0.732
+other areas           296   share NSE regression 0.875  donor 0.942  blend 0.921   monthly NSE 0.733 / 0.819 / 0.814
+zone 04                 5   share NSE regression 0.761  donor 0.911  blend 0.855   monthly NSE 0.639 / 0.686 / 0.732
+zone 11                 2   share NSE regression 0.649  donor 0.936  blend 0.866   monthly NSE 0.398 / 0.741 / 0.651
+zone 17                 4   share NSE regression 0.887  donor 0.824  blend 0.894   monthly NSE 0.802 / 0.432 / 0.692
+other zones           304   share NSE regression 0.876  donor 0.942  blend 0.922   monthly NSE 0.729 / 0.819 / 0.813
+# every zone
+zone 01                12   share NSE regression 0.914  donor 0.915  blend 0.924   monthly NSE 0.735 / 0.721 / 0.729
+zone 02                 5   share NSE regression 0.961  donor 0.965  blend 0.966   monthly NSE 0.764 / 0.714 / 0.742
+zone 03                21   share NSE regression 0.909  donor 0.949  blend 0.943   monthly NSE 0.875 / 0.879 / 0.884
+zone 04                 5   share NSE regression 0.761  donor 0.911  blend 0.855   monthly NSE 0.639 / 0.686 / 0.732
+zone 05                 7   share NSE regression 0.975  donor 0.991  blend 0.987   monthly NSE 0.954 / 0.934 / 0.936
+zone 06                 3   share NSE regression 0.937  donor 0.879  blend 0.940   monthly NSE 0.776 / 0.772 / 0.813
+zone 07                 9   share NSE regression 0.916  donor 0.929  blend 0.914   monthly NSE 0.865 / 0.855 / 0.890
+zone 08                23   share NSE regression 0.780  donor 0.903  blend 0.873   monthly NSE 0.614 / 0.639 / 0.654
+zone 09                 7   share NSE regression 0.901  donor 0.916  blend 0.939   monthly NSE 0.724 / 0.761 / 0.741
+zone 10                 9   share NSE regression 0.670  donor 0.783  blend 0.813   monthly NSE 0.447 / 0.654 / 0.671
+zone 11                 2   share NSE regression 0.649  donor 0.936  blend 0.866   monthly NSE 0.398 / 0.741 / 0.651
+zone 12                 3   share NSE regression 0.824  donor 0.937  blend 0.889   monthly NSE 0.619 / 0.789 / 0.714
+zone 13                10   share NSE regression 0.945  donor 0.956  blend 0.955   monthly NSE 0.867 / 0.880 / 0.888
+zone 14                22   share NSE regression 0.885  donor 0.959  blend 0.947   monthly NSE 0.802 / 0.824 / 0.832
+zone 15                19   share NSE regression 0.829  donor 0.876  blend 0.904   monthly NSE 0.584 / 0.696 / 0.590
+zone 16                 6   share NSE regression 0.933  donor 0.917  blend 0.923   monthly NSE 0.848 / 0.809 / 0.834
+zone 17                 4   share NSE regression 0.887  donor 0.824  blend 0.894   monthly NSE 0.802 / 0.432 / 0.692
+zone 18                12   share NSE regression 0.821  donor 0.963  blend 0.919   monthly NSE 0.826 / 0.916 / 0.883
+zone 19                11   share NSE regression 0.941  donor 0.969  blend 0.968   monthly NSE 0.913 / 0.921 / 0.933
+zone 20                10   share NSE regression 0.920  donor 0.961  blend 0.971   monthly NSE 0.739 / 0.811 / 0.778
+zone 21                13   share NSE regression 0.946  donor 0.964  blend 0.965   monthly NSE 0.902 / 0.946 / 0.946
+zone 22                15   share NSE regression 0.918  donor 0.978  blend 0.962   monthly NSE 0.840 / 0.856 / 0.866
+zone 23                 8   share NSE regression 0.918  donor 0.974  blend 0.962   monthly NSE 0.883 / 0.897 / 0.922
+zone 24                 9   share NSE regression 0.928  donor 0.972  blend 0.960   monthly NSE 0.720 / 0.717 / 0.822
+zone 25                16   share NSE regression 0.796  donor 0.931  blend 0.907   monthly NSE 0.492 / 0.619 / 0.622
+zone 26                13   share NSE regression 0.884  donor 0.882  blend 0.867   monthly NSE 0.640 / 0.617 / 0.666
+zone 27                12   share NSE regression 0.511  donor 0.942  blend 0.891   monthly NSE 0.393 / 0.800 / 0.739
+zone 28                16   share NSE regression 0.701  donor 0.881  blend 0.846   monthly NSE 0.452 / 0.669 / 0.617
+zone 29                13   share NSE regression 0.743  donor 0.881  blend 0.867   monthly NSE 0.550 / 0.669 / 0.652
+
+## Median error of the monthly flow, percent, by month (gauges with flow that month)
+month                 Jan   Feb   Mar   Apr   May   Jun   Jul   Aug   Sep   Oct   Nov   Dec
+regression            0.1   4.6   3.4  10.7   6.8  -2.2  -3.5   2.7   0.1  -2.4  -1.4   1.8
+donor                 0.7   2.1  -0.8   7.0   4.2  -3.1  -0.2   1.5  -1.1   0.4   0.7   1.2
+blend                 1.6   0.9  -0.5  11.1   6.8   0.4  -2.9   5.6   0.1  -2.2   0.4   0.6
+area 10 regression  -16.4 -73.6 -80.4  41.1  24.7  11.9  -6.8 -19.6 -19.8   1.4 -43.1  -8.1
+area 10 donor        -2.2  -2.3  -3.8  -5.6   6.4  13.6  -4.2 -15.0  -4.6   0.4   2.4   3.4
+area 10 blend        -3.2 -45.9 -49.7  14.1  14.1  12.7  -3.3 -18.5 -12.2  -2.9 -14.5  -4.6
+
+## Gauges whose observed flow peaks in May or June, in their peak month
+                   n  share below the gauge     median error %        same peak month
+regression       241                   66.4              -12.7                   75.9
+donor            241                   57.7               -6.2                   85.9
+blend            241                   61.0              -10.1                   85.5
+
+## Short-record test gauges (1-9 complete years; no fit uses them), reported only
+110 gauges with twelve observed months and observed runoff >= 10 mm, each predicted from the calibration gauges outside its sub-sub-drainage (55 of them); median share NSE over the 110 every method scores (their observed shares rest on 1-9 years):
+  regression 0.7724, donor 0.8365, blend 0.8122

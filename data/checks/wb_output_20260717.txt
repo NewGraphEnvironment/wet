@@ -2,7 +2,7 @@
 
 province run: e675918817; annual AET: cfu; adjustment applied
 watersheds: 3245453 in 24 top-level basins; rows: 42190889 (annual + 12 months)
-annual NA: 22041; coverage < 0.9: 39288; bc_fraction < 0.95: 76431
+annual NA: 22041; monthly shares NA: 22041 (donor); coverage < 0.9: 39288; bc_fraction < 0.95: 76431
 
 ## By basin (code, watersheds, annual NA, coverage < 0.9, bc_fraction < 0.95, zones with no fit)
 100    644710     12      702     2145   0

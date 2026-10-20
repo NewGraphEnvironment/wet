@@ -44,15 +44,7 @@ wet_shape_predict <- function(fit, d, shares = NULL) {
   n <- wet_doy_days()
   m <- wet_doy_month()
   if (fit$method == "donor") {
-    xs <- sweep(x, 2, fit$sd, "/")
-    w <- t(apply(xs, 1, function(r) {
-      dist <- sqrt(colSums((t(fit$x) - r)^2))
-      o <- order(dist)[seq_len(fit$k)]
-      dd <- dist[o]
-      wt <- if (any(dd == 0)) as.numeric(dd == 0) else 1 / (dd + 1e-6 * stats::median(dist))
-      colSums(fit$w[o, , drop = FALSE] * wt) / sum(wt)
-    }))
-    w <- matrix(w, nrow = nrow(x), ncol = 365)
+    w <- wet_donor_mean(sweep(x, 2, fit$sd, "/"), fit$x, fit$w, fit$k)
     flat <- matrix(FALSE, nrow(x), 12)
   } else {
     if (fit$uses_shares) {

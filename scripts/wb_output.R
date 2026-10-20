@@ -73,7 +73,7 @@ for (f in list.files(file.path(key_dir, "upstream"), "\\.rds$", full.names = TRU
   tmp <- tempfile(fileext = ".parquet", tmpdir = file.path(fit_dir, "output"))
   arrow::write_parquet(out, tmp)
   file.rename(tmp, file.path(fit_dir, "output", paste0(code, ".parquet")))
-  tally[[code]] <- data.frame(code = code, n = nrow(up), na_annual = sum(is.na(ann)),
+  tally[[code]] <- data.frame(code = code, n = nrow(up), na_annual = sum(is.na(ann)), na_share = sum(is.na(sh[, 1])),
                               low_cov = sum(up$coverage < 0.9, na.rm = TRUE),
                               out_bc = sum(up$bc_fraction < 0.95, na.rm = TRUE),
                               zones_unfitted = length(drop) / 2)
@@ -138,8 +138,8 @@ writeLines(c(
           if (fits$keep_adjust) "applied" else "not applied (gate failed)"),
   sprintf("watersheds: %d in %d top-level basins; rows: %d (annual + 12 months)",
           sum(tally$n), nrow(tally), 13 * sum(tally$n)),
-  sprintf("annual NA: %d; coverage < 0.9: %d; bc_fraction < 0.95: %d",
-          sum(tally$na_annual), sum(tally$low_cov), sum(tally$out_bc)),
+  sprintf("annual NA: %d; monthly shares NA: %d (%s); coverage < 0.9: %d; bc_fraction < 0.95: %d",
+          sum(tally$na_annual), sum(tally$na_share), fits$share_method, sum(tally$low_cov), sum(tally$out_bc)),
   "", "## By basin (code, watersheds, annual NA, coverage < 0.9, bc_fraction < 0.95, zones with no fit)",
   sprintf("%-4s %8d %6d %8d %8d %3d", tally$code, tally$n, tally$na_annual, tally$low_cov, tally$out_bc,
           as.integer(tally$zones_unfitted)),

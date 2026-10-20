@@ -54,10 +54,17 @@ fits <- ho$fits
 cvr <- readRDS(file.path(fit_dir, sprintf("cv_aet-%s.rds", fits$aet)))
 # what ships is the adjusted balance; raw P - AET has no months to score
 stopifnot(fits$keep_adjust, identical(cvr$station_number, cal$station_number))
+# the shipped shares: the regression on the specification #16's rule chose,
+# or the method #102's rule chose on it (cv_share_methods)
+shipped_cv_share <- if (is.null(cvr$share_method)) NULL else if (cvr$share_method == "regression") {
+  cvr$cv_shares[[fits$share_spec]]
+} else {
+  cvr$cv_share_methods[[cvr$share_method]]
+}
 if (is.null(cvr$cv_share) || !identical(dim(cvr$cv_share), c(nrow(cal), 12L)) || is.null(fits$share_spec) ||
-      !identical(cvr$share_spec, fits$share_spec) ||
-      !identical(cvr$cv_share, cvr$cv_shares[[fits$share_spec]])) {
-  stop("the fit stores no held-out months under its shipped share specification: rerun scripts/wb_validate.R")
+      !identical(cvr$share_spec, fits$share_spec) || !identical(cvr$share_method, fits$share_method) ||
+      !identical(cvr$cv_share, shipped_cv_share)) {
+  stop("the fit stores no held-out months under its shipped share specification and method: rerun scripts/wb_validate.R")
 }
 obs_share <- as.matrix(cal[sprintf("share_%02d", 1:12)])
 if (!identical(cvr$obs, cal$obs) || !identical(unname(cvr$obs_share), unname(obs_share))) {
@@ -268,6 +275,7 @@ provenance <- list(
   release = release,
   aet = fits$aet,
   share_spec = fits$share_spec,
+  share_method = fits$share_method,
   cv_variant = cvr$cv_variant,
   hydat_release = hydat_release,
   years = range(s$years),
