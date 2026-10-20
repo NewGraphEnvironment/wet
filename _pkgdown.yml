@@ -9,6 +9,7 @@ reference:
   - wet_catalog
   - wet_db_load
   - wet_segment_monthly
+  - wet_segment_daily
 - title: Station flow
   desc: Daily and monthly flow at hydrometric stations, and the gauges the water balance is fitted at.
   contents:

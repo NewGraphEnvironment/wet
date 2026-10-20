@@ -58,64 +58,88 @@ Mechanism choices I made (not questions):
       rows/`weights_share_sum` computed from the rows, refused unless equal to the run's `pcic.runs`
       row (as `routed_fingerprint()` does for months); `routed_daily_inputs(conn)` reads the run's
       days (filtered on `routed_where`) and the weights once
-- [ ] Acceptance probe on m1: n_days-weighted means of the unrounded routed days over each month
-      and week reproduce `pcic.discharge_monthly` and `pcic.discharge_weekly` (after clamp and
-      rounding) on every row of a few groups (BULK, a Fraser mainstem group, a coastal group);
-      the whole province on m4 in Phase 4
+- [ ] Acceptance probe (m4's fwapg over the LAN; m1's `pcic.subbasin_daily` is empty): n_days-weighted
+      means of the raw (unclamped, unrounded) days over each month and week, clamped and rounded by
+      `wet_routed_round()`, reproduce `pcic.discharge_monthly` and `pcic.discharge_weekly` on a few
+      groups (BULK, a Fraser mainstem group, a coastal group); rows differing only by one 1e-5 step
+      at a rounding tie are counted, not failed (review 2); `wet_routed_round()` checked against
+      Postgres's own `round(q::numeric, 5)` on a large sample
 - [ ] Measure the per-day clamp: clamped rows per day, overall and mid-network (fwapg's
       `qa_report_clamped.sql` definition), against fwapg's monthly 0.978 % / weekly 0.977 %;
-      record in `findings.md`
+      record in `findings.md`. Rule set before measuring: the clamp is fwapg's rule and the
+      daily is published whatever it measures; a mid-network share above 0.1 % (twice the
+      weekly's) is stated as a weakness in the dataset description and research
 
 ## Phase 2: crate schema (NewGraphEnvironment/crate)
 - [ ] `inst/extdata/schemas/nge/discharge/fwa/v1/segment_daily.yaml` (columns
       `linear_feature_id, watershed_group_code, doy, runoff_mm, q_m3s, coverage, period, pick`;
-      the routed days' month-consistency stated in the description) and its registry row, as
+      the routed days' month-consistency, `runoff_mm` in mm/day (February's days summing to
+      28/28.25 of the monthly mm), only `q_m3s` means matching the months, and no annual row
+      stated in the description; review 13) and its registry row, as
       crate#31 added `segment_monthly`; fix `segment_monthly.yaml`'s stale "routed 1951-2012"
       period note (1981-2010 since wet#103) in a separate commit
 - [ ] crate tests and check pass; PR, `/code-check`, merge, release (tag + GitHub release)
 - [ ] `discharge_publish.R`'s crate release check covers `segment_daily`
 
 ## Phase 3: Readers over `doy` (`R/`)
-- [ ] `wet_timebase()` gains `daily = list(col = "doy", values = 1:365)`
-- [ ] `wet_segment_pg()` and `wet_segment_parts()` select the timebase's column, not `month`;
-      for per-group parts, `wet_segment_parts()` opens only the parts whose code is in `groups`
-- [ ] Exported `wet_segment_daily(conn, segments, source, scenario, groups, catalog)`
+- [x] `wet_timebase()` gains `daily = list(col = "doy", values = 1:365)`
+- [x] `wet_segment_pg()` and `wet_segment_parts()` select the timebase's column, not `month`;
+      for per-group parts, `wet_segment_parts()` opens only the parts whose code is in `groups`,
+      and a daily read of parts requires `groups` (review 8)
+- [x] Exported `wet_segment_daily(conn, segments, source, scenario, groups, catalog)`
       (`from = "published"` only), returning `linear_feature_id, doy, q_m3s, source` with 365 NA
       rows for a missing segment, feeding `wet_flow_window()` with `basis = "daily"`; runnable
       `@examples` (`\dontrun{}` for the network read, as `wet_segment_monthly()`), pkgdown index
-- [ ] `wet_db_load()`: time column from the timebase (`months` for monthly, `doys` for daily),
-      a `groups` subset (recorded in the table comment as a subset), PK on the time column,
+- [x] `wet_db_load()`: time column from the timebase (`months` for monthly, `doys` for daily),
+      a `groups` subset filtered before any part is fetched (recorded in the table comment as a
+      subset; review 8), PK on the time column,
       `month = 0 AND pick` partial index for monthly only
-- [ ] `wet_values_compare()` keyed on a `time` column (`id * 512 + doy`, exact below 2^53)
-- [ ] `wet_catalog()` docs: a daily part's `code` is a watershed group
-- [ ] Tests for each against small local parquet trees and the existing helpers;
+- [x] `wet_values_compare()` keyed on a `time` column (`id * 512 + doy`, exact below 2^53)
+- [x] `wet_catalog()` docs: a daily part's `code` is a watershed group, labelled with its name
+- [x] Tests for each against small local parquet trees and the existing helpers;
       `devtools::document()`, `lintr`, `pkgdown::check_pkgdown()`
 
 ## Phase 4: The daily table (`scripts/segment_daily_output.R`)
-- [ ] Per watershed group: the balance's days, `wet_shape_daily(output months, wet_shape_predict(shape_daily.rds, upstream predictors))`
-      per watershed, through `fwa_streams_watersheds_lut`; routed days from Phase 1; `runoff_mm`,
-      `coverage` and `period` as the monthly rows (routed `runoff_mm` NA off its own line); `pick`
-      carried from the monthly segment table. Guards as `segment_output.R`: clean tree, shipped
-      fit and scoring md5, `shape_daily.rds` made on this fit, routed table = the tracked routed
-      report's, monthly segment table current
+- [ ] Loop over drainages (the inputs' unit, review 4): each watershed's 365 days computed once,
+      `wet_shape_daily(output months, wet_shape_predict(shape_daily.rds, upstream predictors))`, only
+      where the balance has months, asserted equal to the complete-predictor set and
+      `shape_daily.rds$method == "donor"` (review 5); through `fwa_streams_watersheds_lut` to
+      segments; routed days from Phase 1; `runoff_mm`, `coverage` and `period` as the monthly rows
+      (routed `runoff_mm` NA off its own line); `pick` carried from the monthly segment table;
+      (drainage, group) pieces assembled into one file per group. Guards as `segment_output.R`:
+      clean tree, shipped fit and scoring md5, `shape_daily.rds` made on this fit, routed table =
+      the tracked routed report's, the daily inputs' fingerprint, monthly segment table current,
+      routed segments in the weights = the monthly table's routed segments (review 15)
+- [ ] The province reproduction of `pcic.discharge_monthly` from the raw days is a guard in the
+      script, its counts in the report (review 15); `wb_output.R` and `segment_output.R` unlink
+      `segment_daily/` with `segment/` (review 6)
 - [ ] Writes `<fit>/segment_daily/<GROUP>.parquet` and report
       `data/checks/segment_daily_output_<release>.txt`: rows, the per-day clamp, the routed
-      segment-months whose day mean differs from the published month (count and largest), and
-      the balance identity (every calendar month's days average to its monthly row)
+      segment-months whose n_days-weighted day mean differs from the published month by more than
+      the rounding (count and largest), and the balance identity (every calendar month's days
+      average to its monthly row, relative 1e-9; review 14)
 - [ ] Run on m4 (worktree, `data/` symlinked), whole-province Phase-1 reproduction there, timing
       recorded; commit the report
 
 ## Phase 5: Publish (`scripts/discharge_publish.R`, `_lib.R`)
 - [ ] BUILD writes `segment_daily` parts per group, conformed to crate (`publish_part_prepare()`
-      generalised over the time column); manifest labels per group
-- [ ] Value checks (#64) for the daily: routed days recomputed independently (a sparse
-      segment × sub-basin product rather than the build's per-set sums) and required equal after
-      the 5-dp rounding, every difference counted; balance days recomputed from `output/` and the
+      generalised over the time column); manifest labels per group from
+      `fwa_watershed_groups_poly` (review 7); guards for the daily table: its report's commit and
+      its own git diff, the daily script left out of the monthly table's diff, mtime after the
+      segment table, report naming seg_commit, one part per group, 365 rows per segment and
+      source (reviews 6, 9); the daily hive line names its dataset and `vignette_data_lib.R`'s
+      `re_seen` is anchored to `segment_monthly` (review 3)
+- [ ] Value checks (#64) for the daily: routed days recomputed independently (per distinct
+      upstream set, not the build's per-segment `rowsum()`), unrounded within relative 1e-12 and
+      rounded equal except a 1e-5 step at a tie, tie flips counted on their own line (review 1); balance days recomputed from `output/` and the
       shape through the lut; `q_m3s`, `runoff_mm`, `coverage`, `pick` against the daily table;
       the balance's month identity against `segment_monthly`; inputs' fingerprints exact
-- [ ] PUBLISH skips parts identical to the live manifest's, then verifies every part
-- [ ] On m4: rerun `segment_output.R` (code changed), `segment_daily_output.R`, BUILD; commit the
-      report; hand the user the PUBLISH command; BUILD again and commit (all parts identical to live)
+- [ ] PUBLISH skips a part only when its HEAD ETag equals the local md5 (review 12), then
+      verifies every part
+- [ ] Every R/ and scripts/ edit (Phase 6's included) committed first (review 11). On m4:
+      `segment_output.R`, commit its report; `segment_daily_output.R`, commit its report; BUILD,
+      commit its report (review 10); hand the user the PUBLISH command; BUILD again and commit
+      (all parts identical to live)
 
 ## Phase 6: Docs and articles
 - [ ] `research/discharge_publish.md`: `segment_daily` built and published (layout, sizes, checks

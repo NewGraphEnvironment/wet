@@ -11,7 +11,9 @@ wet_db_load(
   scenario = "historical",
   months = 0:12,
   pick_only = FALSE,
-  cache_dir = tools::R_user_dir("wet", "cache")
+  cache_dir = tools::R_user_dir("wet", "cache"),
+  doys = 1:365,
+  groups = NULL
 )
 }
 \arguments{
@@ -23,13 +25,19 @@ wet_db_load(
 
 \item{scenario}{Scenario to load, e.g. \code{"historical"}.}
 
-\item{months}{Months to keep, from \code{0} (annual) to \code{12}.}
+\item{months}{Months to keep, from \code{0} (annual) to \code{12}, for a monthly
+dataset.}
 
 \item{pick_only}{Keep only the default source's rows (\code{pick}), about half
 the segment table. Datasets without \code{pick} refuse it.}
 
 \item{cache_dir}{Where fetched parts are kept between loads. A cached part
 is reused only while its md5 matches the manifest.}
+
+\item{doys}{Days of the common year to keep, \code{1} to \code{365}, for a daily
+dataset.}
+
+\item{groups}{\code{NULL}, or the watershed group codes to keep.}
 }
 \value{
 Invisibly, \code{data.frame(key, rows)}: the rows loaded from each part.
@@ -43,16 +51,21 @@ the table are replaced, in one transaction, so a reload never duplicates
 and a failed load leaves the table as it was.
 }
 \details{
-A load with \code{months} or \code{pick_only} set still replaces the whole
-scenario, so it leaves only that subset for every reader of the table; the
-table comment records it.
+A load with \code{months}, \code{doys}, \code{groups} or \code{pick_only} set still replaces
+the whole scenario, so it leaves only that subset for every reader of the
+table; the table comment records it. The daily dataset
+(\code{discharge/fwa/v1/segment_daily}, about 2.9 billion rows) is meant to be
+loaded for the groups a job needs: its parts hold one watershed group each,
+and only the named groups' parts are fetched.
 
 The table holds the files' columns plus \code{scenario}, \code{forcing} and
 \code{source}. Where the dataset has \code{pick}, the load is refused unless each
-feature and month has at most one picked row in the scenario. On the first load it is created with a primary key on
-\verb{(scenario, forcing, source, <id>, month, period)}, an index on the
-feature ID and, where the dataset has \code{pick}, a partial index on
-\verb{(scenario, <id>)} for the annual default, which fresh's join reads. fresh then joins the default annual flow per segment with
+feature and month (or day) has at most one picked row in the scenario. On
+the first load it is created with a primary key on
+\verb{(scenario, forcing, source, <id>, <month or doy>, period)}, an index on the
+feature ID and, where a monthly dataset has \code{pick}, a partial index on
+\verb{(scenario, <id>)} for the annual default, which fresh's join reads.
+fresh then joins the default annual flow per segment with
 \code{frs_col_join(from = "(select linear_feature_id, q_m3s as mad_m3s from discharge.fwa_v1_segment_monthly where scenario = 'historical' and month = 0 and pick)")}.
 }
 \examples{

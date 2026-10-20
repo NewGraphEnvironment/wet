@@ -53,3 +53,17 @@ test_that("a duplicated key or a bad month is refused", {
   expect_error(wet_values_compare(fr(1L, 13L, 1), fr(1L, 0L, 1)), "outside 0-12")
   expect_error(wet_values_compare(fr(1L, 0L, 1)[c("linear_feature_id", "month")], fr(1L, 0L, 1)), "needs columns")
 })
+
+test_that("a daily table is keyed on doy, every day 1-365 apart", {
+  d <- function(id, doy, q) data.frame(linear_feature_id = id, doy = doy, q_m3s = q)
+  a <- d(c(1L, 1L, 2L), c(1L, 365L, 365L), c(1, 2, 3))
+  expect_equal(wet_values_compare(a, a[3:1, ], time = "doy"), c(compared = 3, differing = 0, max_abs_diff = 0))
+  # the same days on another segment are other keys
+  b <- d(c(1L, 2L, 2L), c(1L, 1L, 365L), c(1, 2, 3))
+  expect_equal(wet_values_compare(a, b, time = "doy")[["differing"]], 2)
+  # day 17 of segment 1 and day 1 of segment 2 are different keys, which id * 16 + doy would merge
+  expect_equal(wet_values_compare(d(1L, 17L, 5), d(2L, 1L, 5), time = "doy")[["differing"]], 2)
+  expect_error(wet_values_compare(d(1L, 0L, 1), d(1L, 0L, 1), time = "doy"), "doy outside 1-365")
+  expect_error(wet_values_compare(a, a, time = "week"), "time")
+  expect_error(wet_values_compare(a, a), "needs columns linear_feature_id, month")
+})
