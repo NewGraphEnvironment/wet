@@ -1,6 +1,6 @@
 # Published discharge, build (#7)
 
-wet commit 45c6c12 (segment table built at 2fe90c6); fit 20260717, province run e675918817; crate 0.7.0
+wet commit 77585a8 (segment table built at d20a624); fit 20260717, province run e675918817; crate 0.8.0
 arrow 25.0.1, duckdb 1.4.3 (a part's bytes depend on the writer's version)
 routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 7c30f58
 table: 40524444 rows, 3377037 segments, 0 null flows, total 178918222.786650 m3/s
@@ -18,6 +18,11 @@ routed_total    ok
 balance_values  ok
 parts_as_table  ok
 watershed_values ok
+daily_segments  ok
+daily_picked    ok
+daily_values    ok
+daily_months    ok
+daily_hive_read ok
 
 ## Value cross-checks (#64): every published flow, and four segment columns, against their sources
 check                             compared  differing  largest diff  codes differing
@@ -29,19 +34,30 @@ segment parts = table: runoff_mm   102790688          0             0
 segment parts = table: coverage   102790688          0             0  
 segment parts = table: pick      102790688          0             0  
 watershed parts = fit output      41904356          0             0  
+daily routed = routed again     1232618505          0             0  
+daily balance = output x shape via lut  1653427735          0             0  
+daily balance months = segment parts    54359268          0      3.64e-12  
+daily parts = table: q_m3s      2886046240          0             0  
+daily parts = table: runoff_mm  2886046240          0             0  
+daily parts = table: coverage   2886046240          0             0  
+daily parts = table: pick       2886046240          0             0  
 routed months 1-12, total rounded to 1e-6 per value: 178918222.786650 m3/s; the table's fingerprint: 178918222.786650 m3/s
+daily routed values one 1e-5 step apart at a rounding tie (not counted as differing): 0
+daily: table built at 6bb261e; routed days and weights: 13786122 rows, 37667 sub-basins, total q_acc 636284197.301372 m3/s; weights 3377037 rows, shares 558010.174364980
 
 ## Against the published tree
-parts identical to the published build 8ca2dee: 67 of 67 here, 67 published (https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json)
+parts identical to the published build 8ca2dee: 67 of 512 here, 67 published (https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json)
 
 ## What a reader sees (duckdb, hive_partitioning = true, over the local tree)
 historical PNWNAmet  pcic_routed     43901481 rows   3154131 fresh-subquery rows
 historical climr     wet_balance     58889207 rows   1378712 fresh-subquery rows
+segment_daily historical PNWNAmet  pcic_routed   1232618505 rows   3154131 picked on day 1
+segment_daily historical climr     wet_balance   1653427735 rows   1378712 picked on day 1
 
 ## Row-group pruning: a read for BULK opens 2 of 507 row groups in 43 segment parts
 
 ## Parts
-picked: for segments, annual rows picked; for watersheds, NA-flow watersheds dropped
+picked: for segments, annual rows picked (daily: day-1 rows); for watersheds, NA-flow watersheds dropped
 dataset            source       code        rows  features    picked
 segment_monthly    pcic_routed  100     13140088   1010776    897172
 segment_monthly    wet_balance  100     13157092   1012084    114929
@@ -110,6 +126,451 @@ watershed_monthly  wet_balance  960       262730     20210         0
 watershed_monthly  wet_balance  970        84513      6501         0
 watershed_monthly  wet_balance  990       259545     19965         0
 watershed_monthly  wet_balance  999          780        60         0
+segment_daily      pcic_routed  ADMS     3808410     10434     10222
+segment_daily      wet_balance  ADMS     3813885     10449       227
+segment_daily      pcic_routed  ALBN     5049045     13833     13812
+segment_daily      wet_balance  ALBN     5789630     15862      2053
+segment_daily      wet_balance  ATLL    10018520     27448     27448
+segment_daily      pcic_routed  ATNA     6175435     16919     15535
+segment_daily      wet_balance  ATNA     6179085     16929      1394
+segment_daily      pcic_routed  BABL     8822780     24172     24059
+segment_daily      wet_balance  BABL     8822780     24172       113
+segment_daily      pcic_routed  BABR     8825700     24180     22922
+segment_daily      wet_balance  BABR     8825700     24180      1258
+segment_daily      pcic_routed  BARR     5445800     14920     14115
+segment_daily      wet_balance  BARR     5545080     15192      1077
+segment_daily      pcic_routed  BBAR     6706510     18374     18013
+segment_daily      wet_balance  BBAR     6711255     18387       374
+segment_daily      wet_balance  BEAV     8178920     22408     22408
+segment_daily      pcic_routed  BELA     4696455     12867     11937
+segment_daily      wet_balance  BELA     4821285     13209      1272
+segment_daily      pcic_routed  BIGC     2660120      7288      7002
+segment_daily      wet_balance  BIGC     2665230      7302       300
+segment_daily      pcic_routed  BLAR     5015465     13741     13317
+segment_daily      wet_balance  BLAR     5015465     13741       424
+segment_daily      wet_balance  BLUR     4417960     12104     12104
+segment_daily      pcic_routed  BONP     6484225     17765     14266
+segment_daily      wet_balance  BONP     6484225     17765      3499
+segment_daily      pcic_routed  BOWR     5275345     14453     12174
+segment_daily      wet_balance  BOWR     5275345     14453      2279
+segment_daily      pcic_routed  BRID     2214455      6067      6051
+segment_daily      wet_balance  BRID     2214455      6067        16
+segment_daily      pcic_routed  BRKS     3478085      9529      9345
+segment_daily      wet_balance  BRKS     4563960     12504      3159
+segment_daily      pcic_routed  BULK    10963505     30037     29224
+segment_daily      wet_balance  BULK    10963505     30037       813
+segment_daily      pcic_routed  BULL     4529650     12410     12221
+segment_daily      wet_balance  BULL     4641705     12717       496
+segment_daily      pcic_routed  CAMB     3094470      8478      8321
+segment_daily      wet_balance  CAMB     3097390      8486       165
+segment_daily      pcic_routed  CANO     3413480      9352      9042
+segment_daily      wet_balance  CANO     3413480      9352       310
+segment_daily      pcic_routed  CARP     5065105     13877     13877
+segment_daily      wet_balance  CARP     5065105     13877         0
+segment_daily      pcic_routed  CARR     4886985     13389     13301
+segment_daily      wet_balance  CARR     4886985     13389        88
+segment_daily      pcic_routed  CHES     2802105      7677      7612
+segment_daily      wet_balance  CHES     2802105      7677        65
+segment_daily      pcic_routed  CHIL     2852475      7815      7815
+segment_daily      wet_balance  CHIL     2852475      7815         0
+segment_daily      pcic_routed  CHIR     4821650     13210     12939
+segment_daily      wet_balance  CHIR     4821650     13210       271
+segment_daily      pcic_routed  CHUK     4539505     12437     10948
+segment_daily      wet_balance  CHUK     4539505     12437      1489
+segment_daily      pcic_routed  CHWK     2040350      5590      5519
+segment_daily      wet_balance  CHWK     2092910      5734       215
+segment_daily      pcic_routed  CLAY     4720910     12934     12923
+segment_daily      wet_balance  CLAY     5988920     16408      3485
+segment_daily      pcic_routed  CLRH     8857820     24268     23902
+segment_daily      wet_balance  CLRH     8857820     24268       366
+segment_daily      pcic_routed  CLWR     7779245     21313     21181
+segment_daily      wet_balance  CLWR     7779245     21313       132
+segment_daily      wet_balance  COAL    12551985     34389     34389
+segment_daily      pcic_routed  COLR     9814120     26888     25387
+segment_daily      wet_balance  COLR     9816675     26895      1508
+segment_daily      pcic_routed  COMX     2576170      7058      7056
+segment_daily      wet_balance  COMX     3029135      8299      1243
+segment_daily      pcic_routed  COTR     7475200     20480     20110
+segment_daily      wet_balance  COTR     7475200     20480       370
+segment_daily      pcic_routed  COWN     3416400      9360      9204
+segment_daily      wet_balance  COWN     3552910      9734       530
+segment_daily      pcic_routed  CRKD     6128715     16791     16791
+segment_daily      wet_balance  CRKD     6128715     16791         0
+segment_daily      wet_balance  CRYL     3256165      8921      8921
+segment_daily      pcic_routed  DEAD     3488670      9558      9557
+segment_daily      wet_balance  DEAD     3488670      9558         1
+segment_daily      wet_balance  DEAL     8005180     21932     21932
+segment_daily      wet_balance  DEAR     5254175     14395     14395
+segment_daily      pcic_routed  DOGC     3730665     10221     10153
+segment_daily      wet_balance  DOGC     3730665     10221        68
+segment_daily      pcic_routed  DRIR     3446330      9442      9150
+segment_daily      wet_balance  DRIR     3446330      9442       292
+segment_daily      pcic_routed  DUNC     8020875     21975     19281
+segment_daily      wet_balance  DUNC     8020875     21975      2694
+segment_daily      wet_balance  DUNE     7934735     21739     21739
+segment_daily      pcic_routed  ELKR     6572190     18006     16614
+segment_daily      wet_balance  ELKR     8620205     23617      7003
+segment_daily      pcic_routed  EUCH     2356805      6457      6435
+segment_daily      wet_balance  EUCH     2356805      6457        22
+segment_daily      pcic_routed  EUCL     4370510     11974     11829
+segment_daily      wet_balance  EUCL     4370510     11974       145
+segment_daily      pcic_routed  FINA     8258490     22626     21810
+segment_daily      wet_balance  FINA     8265425     22645       835
+segment_daily      pcic_routed  FINL    12428980     34052     32914
+segment_daily      wet_balance  FINL    12428980     34052      1138
+segment_daily      pcic_routed  FIRE     9913765     27161     24788
+segment_daily      wet_balance  FIRE     9944790     27246      2458
+segment_daily      wet_balance  FONT     6275810     17194     17194
+segment_daily      pcic_routed  FOXR     9375390     25686     19379
+segment_daily      wet_balance  FOXR     9375390     25686      6307
+segment_daily      pcic_routed  FRAN    10992705     30117     29346
+segment_daily      wet_balance  FRAN    10994165     30121       775
+segment_daily      pcic_routed  FRCN     7290145     19973     19933
+segment_daily      wet_balance  FRCN     7290145     19973        40
+segment_daily      wet_balance  FROG    10193355     27927     27927
+segment_daily      wet_balance  GATA     7903710     21654     21654
+segment_daily      wet_balance  GLAR     4818000     13200     13200
+segment_daily      pcic_routed  GOLD     3961345     10853     10853
+segment_daily      wet_balance  GOLD     4626010     12674      1821
+segment_daily      pcic_routed  GRAI     7587255     20787     20561
+segment_daily      wet_balance  GRAI    11633280     31872     11311
+segment_daily      pcic_routed  GRNL     2779840      7616      6298
+segment_daily      wet_balance  GRNL     2801740      7676      1378
+segment_daily      pcic_routed  GUIC     2285630      6262      1710
+segment_daily      wet_balance  GUIC     2285630      6262      4552
+segment_daily      pcic_routed  HARR     4038360     11064      9366
+segment_daily      wet_balance  HARR     4038360     11064      1698
+segment_daily      wet_balance  HAYR     2066265      5661      5661
+segment_daily      pcic_routed  HERR     5178985     14189     13133
+segment_daily      wet_balance  HERR     5188840     14216      1083
+segment_daily      pcic_routed  HOLB     1485915      4071      4068
+segment_daily      wet_balance  HOLB     2449880      6712      2644
+segment_daily      pcic_routed  HOMA    13501350     36990     33699
+segment_daily      wet_balance  HOMA    13590775     37235      3536
+segment_daily      pcic_routed  HORS     4030695     11043     10992
+segment_daily      wet_balance  HORS     4030695     11043        51
+segment_daily      pcic_routed  INGR     8288785     22709     21318
+segment_daily      wet_balance  INGR     8288785     22709      1391
+segment_daily      pcic_routed  INKR    12663675     34695     31977
+segment_daily      wet_balance  INKR    12858220     35228      3251
+segment_daily      pcic_routed  ISKR     7959920     21808     20921
+segment_daily      wet_balance  ISKR     7983280     21872       951
+segment_daily      wet_balance  JENR     3902215     10691     10691
+segment_daily      pcic_routed  JERV     4738065     12981     12981
+segment_daily      wet_balance  JERV     6390420     17508      4527
+segment_daily      wet_balance  KAHN     4091650     11210     11210
+segment_daily      pcic_routed  KAKC     3700370     10138      8865
+segment_daily      wet_balance  KAKC     3700370     10138      1273
+segment_daily      wet_balance  KCHL     5392510     14774     14774
+segment_daily      pcic_routed  KEEC     1376050      3770      3770
+segment_daily      wet_balance  KEEC     3889075     10655      7198
+segment_daily      pcic_routed  KETL     9575045     26233     25020
+segment_daily      wet_balance  KETL     9595485     26289      1269
+segment_daily      pcic_routed  KHOR     9306040     25496     23839
+segment_daily      wet_balance  KHOR     9306040     25496      1657
+segment_daily      pcic_routed  KHTZ     4661780     12772     12662
+segment_daily      wet_balance  KHTZ     7697120     21088      8426
+segment_daily      pcic_routed  KINR     5044665     13821     12609
+segment_daily      wet_balance  KINR     5044665     13821      1212
+segment_daily      pcic_routed  KISK     4645355     12727     12515
+segment_daily      wet_balance  KISK     4645355     12727       212
+segment_daily      pcic_routed  KISP     8566550     23470     22461
+segment_daily      wet_balance  KISP     8566550     23470      1009
+segment_daily      pcic_routed  KITL     9996255     27387     26020
+segment_daily      wet_balance  KITL    10587555     29007      2987
+segment_daily      pcic_routed  KITR     8136580     22292     21713
+segment_daily      wet_balance  KITR     8947245     24513      2800
+segment_daily      pcic_routed  KLAR     8138405     22297     21977
+segment_daily      wet_balance  KLAR     8138405     22297       320
+segment_daily      pcic_routed  KLIN    12010325     32905     29481
+segment_daily      wet_balance  KLIN    12259620     33588      4107
+segment_daily      pcic_routed  KLUM     9022070     24718     23211
+segment_daily      wet_balance  KLUM     9022070     24718      1507
+segment_daily      pcic_routed  KNIG     8325650     22810     22464
+segment_daily      wet_balance  KNIG    11367195     31143      8679
+segment_daily      pcic_routed  KOTL     7178455     19667     17798
+segment_daily      wet_balance  KOTL     9038860     24764      6966
+segment_daily      pcic_routed  KOTR    10486450     28730     28501
+segment_daily      wet_balance  KOTR    10486450     28730       229
+segment_daily      pcic_routed  KSHR     6282745     17213     16876
+segment_daily      wet_balance  KSHR     7956270     21798      4973
+segment_daily      pcic_routed  KTSU      783655      2147      2147
+segment_daily      wet_balance  KTSU     4793180     13132     10985
+segment_daily      pcic_routed  KUMR     3166740      8676      8676
+segment_daily      wet_balance  KUMR     8080370     22138     13462
+segment_daily      wet_balance  KUSR     6778050     18570     18570
+segment_daily      pcic_routed  LARL     8121250     22250     21219
+segment_daily      wet_balance  LARL     8253015     22611      1392
+segment_daily      pcic_routed  LBIR     7199625     19725     17741
+segment_daily      wet_balance  LBIR     7199625     19725      1984
+segment_daily      pcic_routed  LBTN     8161035     22359     22225
+segment_daily      wet_balance  LBTN     8162860     22364       139
+segment_daily      pcic_routed  LCHL     5337030     14622     14230
+segment_daily      wet_balance  LCHL     5337030     14622       392
+segment_daily      pcic_routed  LCHR     5996950     16430     10506
+segment_daily      wet_balance  LCHR     5997315     16431      5925
+segment_daily      pcic_routed  LDEN     7972695     21843     21125
+segment_daily      wet_balance  LDEN     7974520     21848       723
+segment_daily      pcic_routed  LEUT     2538575      6955       184
+segment_daily      wet_balance  LEUT     2538575      6955      6771
+segment_daily      pcic_routed  LFRA     5835985     15989     15142
+segment_daily      wet_balance  LFRA     6626210     18154      3012
+segment_daily      wet_balance  LFRT     4984440     13656     13656
+segment_daily      pcic_routed  LHAF     8813290     24146     22095
+segment_daily      wet_balance  LHAF     8813290     24146      2051
+segment_daily      wet_balance  LIAR    18732165     51321     51321
+segment_daily      pcic_routed  LILL     9840035     26959     25935
+segment_daily      wet_balance  LILL     9840035     26959      1024
+segment_daily      pcic_routed  LISR     6215950     17030     13874
+segment_daily      wet_balance  LISR     6283110     17214      3340
+segment_daily      wet_balance  LKEC     9282680     25432     25432
+segment_daily      pcic_routed  LKEL      807745      2213      2192
+segment_daily      wet_balance  LKEL      809570      2218        26
+segment_daily      wet_balance  LMUS     7510970     20578     20578
+segment_daily      pcic_routed  LNAR    10226570     28018     26627
+segment_daily      wet_balance  LNAR    10226570     28018      1391
+segment_daily      pcic_routed  LNIC     5471715     14991     11002
+segment_daily      wet_balance  LNIC     5472445     14993      3991
+segment_daily      pcic_routed  LNRS     3507650      9610       274
+segment_daily      wet_balance  LNRS     3507650      9610      9336
+segment_daily      pcic_routed  LNTH     8302655     22747     20327
+segment_daily      wet_balance  LNTH     8317620     22788      2461
+segment_daily      pcic_routed  LOMI     5736705     15717     15474
+segment_daily      wet_balance  LOMI     5736705     15717       243
+segment_daily      pcic_routed  LPCE     2991905      8197      7843
+segment_daily      wet_balance  LPCE     3114910      8534       691
+segment_daily      wet_balance  LPET     3168565      8681      8681
+segment_daily      wet_balance  LPRO     2327605      6377      6377
+segment_daily      wet_balance  LRAN     6128715     16791     16791
+segment_daily      pcic_routed  LRDO     2538210      6954      6954
+segment_daily      wet_balance  LRDO     6271795     17183     10229
+segment_daily      pcic_routed  LSAL     3389390      9286      9051
+segment_daily      wet_balance  LSAL     3389390      9286       235
+segment_daily      wet_balance  LSIK     6015200     16480     16480
+segment_daily      pcic_routed  LSKE    10670410     29234     24931
+segment_daily      wet_balance  LSKE    10669680     29232      4303
+segment_daily      pcic_routed  LSTR     6415240     17576     13124
+segment_daily      wet_balance  LSTR     6993035     19159      6035
+segment_daily      pcic_routed  LTRE     3033515      8311      8311
+segment_daily      wet_balance  LTRE     3095200      8480       169
+segment_daily      pcic_routed  MAHD     6826595     18703     18334
+segment_daily      wet_balance  MAHD     6829880     18712       378
+segment_daily      pcic_routed  MBNK     1134420      3108      3108
+segment_daily      wet_balance  MBNK      460630      1262       672
+segment_daily      pcic_routed  MCGR     7008365     19201     17829
+segment_daily      wet_balance  MCGR     7008365     19201      1372
+segment_daily      wet_balance  MDEA     7031725     19265     19265
+segment_daily      pcic_routed  MESC     4962175     13595     12863
+segment_daily      wet_balance  MESC     4962175     13595       732
+segment_daily      pcic_routed  MESI     5134455     14067     13771
+segment_daily      wet_balance  MESI     5134455     14067       296
+segment_daily      pcic_routed  MFRA     2570330      7042      6164
+segment_daily      wet_balance  MFRA     2570330      7042       878
+segment_daily      wet_balance  MFRT     3772640     10336     10336
+segment_daily      pcic_routed  MIDR     2745895      7523      7523
+segment_daily      wet_balance  MIDR     2745895      7523         0
+segment_daily      pcic_routed  MILL     1808940      4956      4853
+segment_daily      wet_balance  MILL     2675085      7329      2476
+segment_daily      wet_balance  MMUS    13505000     37000     37000
+segment_daily      pcic_routed  MORI     1594320      4368      4368
+segment_daily      wet_balance  MORI     6931350     18990     14622
+segment_daily      pcic_routed  MORK    14785785     40509     40167
+segment_daily      wet_balance  MORK    14785785     40509       342
+segment_daily      pcic_routed  MORR     8109570     22218     21667
+segment_daily      wet_balance  MORR     8109570     22218       551
+segment_daily      wet_balance  MPRO     3958790     10846     10846
+segment_daily      pcic_routed  MSKE     9304215     25491     25231
+segment_daily      wet_balance  MSKE     9304215     25491       260
+segment_daily      pcic_routed  MSTR    11408805     31257     29504
+segment_daily      wet_balance  MSTR    11410265     31261      1757
+segment_daily      pcic_routed  MURR    10022535     27459     26220
+segment_daily      wet_balance  MURR    10022535     27459      1239
+segment_daily      pcic_routed  MURT     5245780     14372     14039
+segment_daily      wet_balance  MURT     5245780     14372       333
+segment_daily      pcic_routed  MUSK     2430535      6659      6659
+segment_daily      wet_balance  MUSK     2433455      6667         8
+segment_daily      pcic_routed  NAHR     7504765     20561     20310
+segment_daily      wet_balance  NAHR     7508415     20571       261
+segment_daily      pcic_routed  NAKR     8812195     24143     23067
+segment_daily      wet_balance  NAKR     8812195     24143      1076
+segment_daily      pcic_routed  NARC     5281550     14470     14291
+segment_daily      wet_balance  NARC     5281550     14470       179
+segment_daily      pcic_routed  NASC     4761425     13045     12854
+segment_daily      wet_balance  NASC     9939315     27231     14377
+segment_daily      pcic_routed  NASR     6617085     18129     17345
+segment_daily      wet_balance  NASR     6617085     18129       784
+segment_daily      pcic_routed  NATR    10138605     27777     27621
+segment_daily      wet_balance  NATR    10138605     27777       156
+segment_daily      pcic_routed  NAZR     6643730     18202     17902
+segment_daily      wet_balance  NAZR     6643730     18202       300
+segment_daily      pcic_routed  NBNK      338355       927       927
+segment_daily      wet_balance  NBNK     1389920      3808      2881
+segment_daily      pcic_routed  NECL     2638220      7228      7224
+segment_daily      wet_balance  NECL     8290610     22714     15490
+segment_daily      pcic_routed  NECR     7737270     21198     20855
+segment_daily      wet_balance  NECR     7737270     21198       343
+segment_daily      pcic_routed  NEVI     1831935      5019      5019
+segment_daily      wet_balance  NEVI     3005045      8233      3214
+segment_daily      pcic_routed  NICL     3879950     10630     10371
+segment_daily      wet_balance  NICL     3879950     10630       259
+segment_daily      pcic_routed  NIEL     5506025     15085     14007
+segment_daily      wet_balance  NIEL     8719120     23888      9881
+segment_daily      pcic_routed  NIMP     4008065     10981     10886
+segment_daily      wet_balance  NIMP     4284735     11739       853
+segment_daily      pcic_routed  OKAN     6780240     18576     18156
+segment_daily      wet_balance  OKAN     6879520     18848       692
+segment_daily      pcic_routed  OSPK     7635435     20919     20082
+segment_daily      wet_balance  OSPK     7635435     20919       837
+segment_daily      pcic_routed  OWIK    15735880     43112     42217
+segment_daily      wet_balance  OWIK    17106455     46867      4650
+segment_daily      pcic_routed  PARA     4916550     13470     13372
+segment_daily      wet_balance  PARA     4923485     13489       117
+segment_daily      pcic_routed  PARK     1295020      3548      3548
+segment_daily      wet_balance  PARK     1434815      3931       383
+segment_daily      pcic_routed  PARS    12880850     35290     34605
+segment_daily      wet_balance  PARS    12880850     35290       685
+segment_daily      pcic_routed  PCEA    11405885     31249     31118
+segment_daily      wet_balance  PCEA    11405885     31249       131
+segment_daily      pcic_routed  PINE    13405720     36728     34993
+segment_daily      wet_balance  PINE    13405720     36728      1735
+segment_daily      pcic_routed  PITR     4818365     13201     12781
+segment_daily      wet_balance  PITR     4818365     13201       420
+segment_daily      pcic_routed  PORI      204765       561       561
+segment_daily      wet_balance  PORI     1842155      5047      4486
+segment_daily      pcic_routed  QUES     8629695     23643     23443
+segment_daily      wet_balance  QUES     8629695     23643       200
+segment_daily      pcic_routed  REVL     8038760     22024     21596
+segment_daily      wet_balance  REVL     8038760     22024       428
+segment_daily      wet_balance  SAHD     2164815      5931      5931
+segment_daily      wet_balance  SAHT     5264395     14423     14423
+segment_daily      pcic_routed  SAJR     2687495      7363      6453
+segment_daily      wet_balance  SAJR     2687495      7363       910
+segment_daily      pcic_routed  SALM     2493315      6831      6715
+segment_daily      wet_balance  SALM     2942630      8062      1347
+segment_daily      pcic_routed  SALR     3285000      9000      8983
+segment_daily      wet_balance  SALR     3285000      9000        17
+segment_daily      pcic_routed  SANJ     5285200     14480     14480
+segment_daily      wet_balance  SANJ     5696920     15608      1128
+segment_daily      pcic_routed  SETN    23827930     65282     64357
+segment_daily      wet_balance  SETN    23832675     65295       938
+segment_daily      pcic_routed  SEYM     4053690     11106     10917
+segment_daily      wet_balance  SEYM     7229190     19806      8889
+segment_daily      wet_balance  SHEK     2559015      7011      7011
+segment_daily      pcic_routed  SHER     8630060     23644     21052
+segment_daily      wet_balance  SHER     8630060     23644      2592
+segment_daily      pcic_routed  SHUL     4424895     12123     10996
+segment_daily      wet_balance  SHUL     4424895     12123      1127
+segment_daily      pcic_routed  SIML    10536455     28867     28589
+segment_daily      wet_balance  SIML    10625515     29111       522
+segment_daily      pcic_routed  SKGT         365         1         1
+segment_daily      wet_balance  SKGT     2523610      6914      6913
+segment_daily      pcic_routed  SLOC     5542160     15184     15110
+segment_daily      wet_balance  SLOC     5542525     15185        75
+segment_daily      pcic_routed  SMAR     8802340     24116     22441
+segment_daily      wet_balance  SMAR     8802340     24116      1675
+segment_daily      pcic_routed  SMOK    10491925     28745     28364
+segment_daily      wet_balance  SMOK    11055850     30290      1926
+segment_daily      pcic_routed  SPAT     6717460     18404     17645
+segment_daily      wet_balance  SPAT     6717460     18404       759
+segment_daily      pcic_routed  SQAM     7818300     21420     21038
+segment_daily      wet_balance  SQAM     8640280     23672      2634
+segment_daily      pcic_routed  STHM     4925310     13494     13025
+segment_daily      wet_balance  STHM     4925310     13494       469
+segment_daily      pcic_routed  STIR     5458575     14955     14207
+segment_daily      wet_balance  STIR     5466605     14977       770
+segment_daily      pcic_routed  STUL     4773835     13079     13079
+segment_daily      wet_balance  STUL     4773835     13079         0
+segment_daily      pcic_routed  STUR     4092380     11212     11128
+segment_daily      wet_balance  STUR     4092380     11212        84
+segment_daily      pcic_routed  SUST     6171420     16908     16493
+segment_daily      wet_balance  SUST     6171420     16908       415
+segment_daily      wet_balance  SWIR     5849125     16025     16025
+segment_daily      pcic_routed  TABR     3364935      9219      9178
+segment_daily      wet_balance  TABR     3364935      9219        41
+segment_daily      pcic_routed  TAHR     3387930      9282      8099
+segment_daily      wet_balance  TAHR     3397055      9307      1208
+segment_daily      pcic_routed  TAHS     1743605      4777      4777
+segment_daily      wet_balance  TAHS     2636760      7224      2447
+segment_daily      pcic_routed  TAKL     4579290     12546     12519
+segment_daily      wet_balance  TAKL     4579290     12546        27
+segment_daily      pcic_routed  TASR     4807415     13171     10812
+segment_daily      wet_balance  TASR     4809605     13177      2365
+segment_daily      wet_balance  TATR    11186520     30648     30648
+segment_daily      pcic_routed  TAYR     3802205     10417     10417
+segment_daily      wet_balance  TAYR     3802205     10417         0
+segment_daily      wet_balance  TESR     6510870     17838     17838
+segment_daily      pcic_routed  THOM     5908620     16188     15941
+segment_daily      wet_balance  THOM     5908620     16188       247
+segment_daily      wet_balance  TOAD    20289255     55587     55587
+segment_daily      pcic_routed  TOBA     9342175     25595     25089
+segment_daily      wet_balance  TOBA    11681825     32005      6916
+segment_daily      pcic_routed  TOOD    13486385     36949     35654
+segment_daily      wet_balance  TOOD    13505365     37001      1347
+segment_daily      pcic_routed  TSAY     6348445     17393     16145
+segment_daily      wet_balance  TSAY     7400010     20274      4129
+segment_daily      wet_balance  TSEA     3422970      9378      9378
+segment_daily      pcic_routed  TSIT     3185355      8727      8718
+segment_daily      wet_balance  TSIT     3563860      9764      1046
+segment_daily      wet_balance  TURN    10985770     30098     30098
+segment_daily      wet_balance  TUTR    11050010     30274     30274
+segment_daily      pcic_routed  TUYR     8125265     22261     21747
+segment_daily      wet_balance  TUYR     8125265     22261       514
+segment_daily      pcic_routed  TWAC     3420780      9372      9267
+segment_daily      wet_balance  TWAC     3420780      9372       105
+segment_daily      pcic_routed  UARL     8615095     23603     23037
+segment_daily      wet_balance  UARL     8615095     23603       566
+segment_daily      pcic_routed  UBIR     5069120     13888     13753
+segment_daily      wet_balance  UBIR     5069120     13888       135
+segment_daily      pcic_routed  UBTN     6989385     19149     19063
+segment_daily      wet_balance  UBTN     6989385     19149        86
+segment_daily      pcic_routed  UCHR     5579025     15285      8224
+segment_daily      wet_balance  UCHR     5583040     15296      7072
+segment_daily      pcic_routed  UDEN     6767465     18541     14593
+segment_daily      wet_balance  UDEN     6767465     18541      3948
+segment_daily      pcic_routed  UEUT     7415705     20317       188
+segment_daily      wet_balance  UEUT     7418260     20324     20136
+segment_daily      pcic_routed  UFRA    11140530     30522     29138
+segment_daily      wet_balance  UFRA    11134325     30505      1384
+segment_daily      wet_balance  UFRT     5898765     16161     16161
+segment_daily      pcic_routed  UHAF    10362715     28391     25774
+segment_daily      wet_balance  UHAF    10362715     28391      2617
+segment_daily      pcic_routed  UISR     9443280     25872     25647
+segment_daily      wet_balance  UISR     9443280     25872       225
+segment_daily      wet_balance  UJER     5014370     13738     13738
+segment_daily      wet_balance  UKEC     5032255     13787     13787
+segment_daily      wet_balance  ULRD    12639220     34628     34628
+segment_daily      wet_balance  UMUS    10052100     27540     27540
+segment_daily      pcic_routed  UNAR     9230850     25290     25175
+segment_daily      wet_balance  UNAR     9233405     25297       122
+segment_daily      pcic_routed  UNRS     8751970     23978       400
+segment_daily      wet_balance  UNRS     8751970     23978     23578
+segment_daily      pcic_routed  UNTH     8325650     22810     22378
+segment_daily      wet_balance  UNTH     8325650     22810       432
+segment_daily      pcic_routed  UNUR     4390220     12028     10913
+segment_daily      wet_balance  UNUR     4592430     12582      1669
+segment_daily      pcic_routed  UOMI     5443610     14914     14333
+segment_daily      wet_balance  UOMI     5443610     14914       581
+segment_daily      pcic_routed  UPCE     6527660     17884     16931
+segment_daily      wet_balance  UPCE     6529120     17888       957
+segment_daily      wet_balance  UPET     1731560      4744      4744
+segment_daily      wet_balance  UPRO     7749315     21231     21231
+segment_daily      pcic_routed  USHU     4904870     13438     12598
+segment_daily      wet_balance  USHU     4904870     13438       840
+segment_daily      wet_balance  USIK    11731830     32142     32142
+segment_daily      pcic_routed  USKE     7901885     21649     21364
+segment_daily      wet_balance  USKE     7901885     21649       285
+segment_daily      pcic_routed  USTK     7328470     20078     17887
+segment_daily      wet_balance  USTK     7328470     20078      2191
+segment_daily      pcic_routed  UTRE     2019180      5532      5532
+segment_daily      wet_balance  UTRE     2019180      5532         0
+segment_daily      pcic_routed  VICT      358795       983       983
+segment_daily      wet_balance  VICT      655905      1797       814
+segment_daily      pcic_routed  WILL     4846835     13279     13011
+segment_daily      wet_balance  WILL     4846835     13279       268
+segment_daily      pcic_routed  WORC     3576635      9799      9799
+segment_daily      wet_balance  WORC     7136480     19552      9753
+segment_daily      pcic_routed  ZYMO     6861635     18799     18323
+segment_daily      wet_balance  ZYMO     6861635     18799       476
 
 ## Drainage labels
 100  Fraser River
@@ -136,5 +597,251 @@ watershed_monthly  wet_balance  999          780        60         0
 970  watershed groups Skagit River, Lower Fraser, Chilliwack River
 990  Alsek River
 999  watershed groups Upper Dean River, Graham Island, Lower Beatton River
+ADMS Adams River
+ALBN Alberni Inlet
+ATLL Atlin Lake
+ATNA Atnarko River
+BABL Babine Lake
+BABR Babine River
+BARR Barrington River
+BBAR Big Bar Creek
+BEAV Beaver River
+BELA Bella Coola River
+BIGC Big Creek
+BLAR Blackwater River
+BLUR Blue River
+BONP Bonaparte River
+BOWR Bowron
+BRID Bridge Creek
+BRKS Brooks Peninsula
+BULK Bulkley River
+BULL Bull River
+CAMB Campbell River
+CANO Canoe Reach
+CARP Carp Lake
+CARR Cariboo River
+CHES Cheslatta River
+CHIL Chilako River
+CHIR Chilko River
+CHUK Chukachida River
+CHWK Chilliwack River
+CLAY Clayoquot
+CLRH Columbia Reach
+CLWR Clearwater River
+COAL Coal River
+COLR Columbia River
+COMX Comox
+COTR Cottonwood River
+COWN Cowichan
+CRKD Crooked River
+CRYL Cry Lake
+DEAD Deadman River
+DEAL Dease Lake
+DEAR Dease River
+DOGC Dog Creek
+DRIR Driftwood River
+DUNC Duncan Lake
+DUNE Dunedin River
+ELKR Elk River
+EUCH Euchiniko River
+EUCL Euchiniko Lake
+FINA Finlay Arm
+FINL Finlay River
+FIRE Firesteel River
+FONT Fontas River
+FOXR Fox River
+FRAN Francois Lake
+FRCN Fraser Canyon
+FROG Frog River
+GATA Gataga River
+GLAR Gladys River
+GOLD Gold River
+GRAI Graham Island
+GRNL Green Lake
+GUIC Guichon Creek
+HARR Harrison River
+HAYR Hay River
+HERR Herrick Creek
+HOLB Holberg
+HOMA Homathko River
+HORS Horsefly River
+INGR Ingenika River
+INKR Inklin River
+ISKR Iskut River
+JENR Jennings River
+JERV Jervis Inlet
+KAHN Kahntah River
+KAKC Kakiddi Creek
+KCHL Kotcho Lake
+KEEC Keecha Creek
+KETL Kettle River
+KHOR Kicking Horse River
+KHTZ Khutze River
+KINR Kinskuch River
+KISK Kiskatinaw River
+KISP Kispiox River
+KITL Kitlope River
+KITR Kitimat River
+KLAR Klappan River
+KLIN Klinaklini River
+KLUM Kalum River
+KNIG Knight Inlet
+KOTL Kootenay Lake
+KOTR Kootenay River
+KSHR Kshwan River
+KTSU Kitasu Bay
+KUMR Kumowdah River
+KUSR Kusawa River
+LARL Lower Arrow Lake
+LBIR Lower Bell -Irving River
+LBTN Lower Beatton River
+LCHL Lower Chilako River
+LCHR Lower Chilcotin River
+LDEN Lower Dean River
+LEUT Lower Eutsuk Lake
+LFRA Lower Fraser
+LFRT Lower Fort Nelson River
+LHAF Lower Halfway River
+LIAR Liard River
+LILL Lillooet
+LISR Lower Iskut River
+LKEC Lower Kechika River
+LKEL Lakelse
+LMUS Lower Muskwa River
+LNAR Lower Nass River
+LNIC Lower Nicola River
+LNRS Lower Nechako Reservoir
+LNTH Lower North Thompson River
+LOMI Lower Omineca River
+LPCE Lower Peace River
+LPET Lower Petitot River
+LPRO Lower Prophet River
+LRAN Little Rancheria River
+LRDO Laredo Inlet
+LSAL Lower Salmon River
+LSIK Lower Sikanni Chief River
+LSKE Lower Skeena River
+LSTR Lower Stikine River
+LTRE Lower Trembleur Lake
+MAHD Mahood Lake
+MBNK Middle Banks Island
+MCGR McGregor River
+MDEA Middle Dease River
+MESC Mess Creek
+MESI Mesilinka River
+MFRA Middle Fraser
+MFRT Middle Fort Nelson River
+MIDR Middle River
+MILL Milligan Creek
+MMUS Middle Muskwa River
+MORI Morsby Island
+MORK Morkill River
+MORR Morice River
+MPRO Middle Prophet River
+MSKE Middle Skeena River
+MSTR Middle Stikine River
+MURR Murray River
+MURT Murtle Lake
+MUSK Muskeg River
+NAHR Nahlin River
+NAKR Nakina River
+NARC Narcosli Creek
+NASC Nascall River
+NASR Nass River
+NATR Nation River
+NAZR Nazko River
+NBNK North Banks Island
+NECL Necleetsconnay River
+NECR Nechako River
+NEVI Northeast Vancouver Island
+NICL Nicola River
+NIEL Niel Creek
+NIMP Nimpkish River
+OKAN Okanagan River
+OSPK Ospika River
+OWIK Owikeno Lake
+PARA Parsnip Arm
+PARK Parksville
+PARS Parsnip River
+PCEA Peace Arm
+PINE Pine River
+PITR Pitman River
+PORI Porcher Island
+QUES Quesnel River
+REVL Revelstoke Lake
+SAHD Sahdoanah Creek
+SAHT Sahtaneh River
+SAJR San Jose River
+SALM Salmon River
+SALR Salmon River
+SANJ San Juan River
+SETN Seton Lake
+SEYM Seymour Inlet
+SHEK Shekilie River
+SHER Sheslay River
+SHUL Shuswap Lake
+SIML Similkameen River
+SKGT Skagit River
+SLOC Slocan River
+SMAR St. Mary River
+SMOK Smoky River
+SPAT Spatsizi River
+SQAM Squamish
+STHM South Thompson River
+STIR Stikine River
+STUL Stuart Lake
+STUR Stuart River
+SUST Sustut River
+SWIR Swift River
+TABR Tabor River
+TAHR Tahltan River
+TAHS Tahsis
+TAKL Takla Lake
+TASR Taseko River
+TATR Tatshenshini River
+TAYR Taylor River
+TESR Teslin River
+THOM Thompson River
+TOAD Toad River
+TOBA Toba Inlet
+TOOD Toodoggone River
+TSAY Tsaytis River
+TSEA Tsea River
+TSIT Tsitika River
+TURN Turnagain River
+TUTR Tutshi River
+TUYR Tuya River
+TWAC Twan Creek
+UARL Upper Arrow Lake
+UBIR Upper Bell -Irving River
+UBTN Upper Beatton River
+UCHR Upper Chilcotin River
+UDEN Upper Dean River
+UEUT Upper Eutsuk Lake
+UFRA Upper Fraser River
+UFRT Upper Fort Nelson River
+UHAF Upper Halfway River
+UISR Upper Iskut River
+UJER Upper Jennings River
+UKEC Upper Kechika River
+ULRD Upper Liard River
+UMUS Upper Muskwa River
+UNAR Upper Nass River
+UNRS Upper Nechako Reservoir
+UNTH Upper North Thompson River
+UNUR Unuk River
+UOMI Upper Omineca River
+UPCE Upper Peace River
+UPET Upper Petitot River
+UPRO Upper Prophet River
+USHU Upper Shuswap
+USIK Upper Sikanni Chief River
+USKE Upper Skeena River
+USTK Upper Stikine River
+UTRE Upper Trembleur Lake
+VICT Victoria
+WILL Willow River
+WORC Work Channel
+ZYMO Zymoetz River
 
-## Totals: 67 parts, 1.88 GB
+## Totals: 512 parts, 33.23 GB
