@@ -49,12 +49,12 @@ Mechanism choices I made (not questions):
   and no Postgres load of the daily in this run (the issue: partial and on request).
 
 ## Phase 1: Routed days from the weights (`scripts/pcic_routed_lib.R`, `R/`)
-- [ ] Internal `wet_routed_fold()` (366 bins → 365, n_days-weighted, on q_local and q_acc) and
+- [x] Internal `wet_routed_fold()` (366 bins → 365, n_days-weighted, on q_local and q_acc) and
       `wet_routed_days()` (segments × 365: `greatest(sum q_acc[upstream] + q_local[subid] * share, 0)`,
       returning raw and clamped, clamped rounded to 5 dp), in `R/`, with unit tests on a tiny
       hand-computed network (fold weights, an empty upstream set, a losing reach clamped, a
       shared upstream set computed once)
-- [ ] `routed_daily_fingerprint(conn)`: daily rows/sub-basins/`daily_q_sum` and weights
+- [x] `routed_daily_fingerprint(conn)`: daily rows/sub-basins/`daily_q_sum` and weights
       rows/`weights_share_sum` computed from the rows, refused unless equal to the run's `pcic.runs`
       row (as `routed_fingerprint()` does for months); `routed_daily_inputs(conn)` reads the run's
       days (filtered on `routed_where`) and the weights once
