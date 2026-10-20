@@ -155,8 +155,8 @@ Mechanism choices I made (not questions):
 - [ ] Remove the m4 worktree after moving its `data/logs/99/` into the main checkout
 
 ## Validation
-- [ ] Tests pass
-- [ ] `/code-check` clean (once over the branch with `/code-check branch`)
+- [x] Tests pass
+- [x] `/code-check` clean (once over the branch with `/code-check branch`)
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
