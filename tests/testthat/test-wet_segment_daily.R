@@ -100,6 +100,14 @@ test_that("the daily dataset loads into Postgres keyed by doy, for named groups,
     "subset")
   expect_true(all(is.na(out$q_m3s[out$source == "pcic_routed"])))
   expect_false(anyNA(out$q_m3s[out$source == "wet_balance"]))
+  # a named group the parts do not hold is refused, and the rows loaded before stay
+  n_before <- DBI::dbGetQuery(conn, paste("SELECT count(*)::int AS n FROM", tbl))$n
+  expect_error(wet_db_load(conn, cat, ds, groups = c("SALR", "SALT"), cache_dir = withr::local_tempdir()),
+               "no .*rows for groups SALT")
+  expect_identical(DBI::dbGetQuery(conn, paste("SELECT count(*)::int AS n FROM", tbl))$n, n_before)
+  mds <- sub("segment_daily$", "segment_monthly", ds)
+  expect_error(wet_db_load(conn, cat, mds, groups = "SALT", cache_dir = withr::local_tempdir()),
+               "no .*rows for groups SALT")
   # a subset of days holds every source it was loaded with, so one absent is an error
   wet_db_load(conn, no_rt, ds, doys = 1:31, cache_dir = withr::local_tempdir())
   expect_error(suppressWarnings(wet:::wet_segment_read(conn, ds, 701001, c("pcic_routed", "wet_balance"), "published",

@@ -128,6 +128,17 @@ wet_db_load <- function(conn, catalog, dataset = "discharge/fwa/v1/segment_month
     got <- DBI::dbGetQuery(conn, paste("SELECT count(*)::float8 AS n FROM", qid, "WHERE scenario = $1"),
                            params = list(scenario))$n
     if (got != sum(n)) stop("loaded ", got, " rows but read ", sum(n), call. = FALSE)
+    # a selected part is no proof a named group is in it (a drainage part holds
+    # many groups): every named group must have loaded rows, or the load is
+    # refused and the scenario's old rows stay
+    if (!is.null(groups)) {
+      have_g <- DBI::dbGetQuery(conn, paste("SELECT DISTINCT watershed_group_code AS g FROM", qid, "WHERE scenario = $1"),
+                                params = list(scenario))$g
+      if (length(setdiff(groups, have_g))) {
+        stop("the parts hold no ", dataset, " ", scenario, " rows for groups ",
+             paste(setdiff(groups, have_g), collapse = ", "), call. = FALSE)
+      }
+    }
     if ("pick" %in% names(cols)) {
       # the default is one source per feature and month (or day) within a scenario
       dup <- DBI::dbGetQuery(conn, sprintf(
