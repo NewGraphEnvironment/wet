@@ -107,6 +107,8 @@ test_that("rounding is Postgres's numeric rounding: half away from zero on the 1
   expect_identical(wet:::wet_routed_round(1234.123455), 1234.12346)
   expect_identical(wet:::wet_routed_round(0.1234549), 0.12345)
   expect_identical(wet:::wet_routed_round(0.99999951), 1)
+  # above 10,000 a double can sit a few 1e-11 below its 15-digit tie
+  expect_identical(wet:::wet_routed_round(12213.315444999958), 12213.31545)
   expect_identical(wet:::wet_routed_round(c(0, 5e-6, 4.9e-6, NA)), c(0, 1e-5, 0, NA))
   set.seed(1)
   v <- stats::runif(1e4, 0, 1e4)

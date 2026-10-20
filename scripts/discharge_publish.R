@@ -581,7 +581,7 @@ for (g in groups_day) {
     j <- match(as.numeric(pr$linear_feature_id) * 512 + pr$doy, as.numeric(mine$linear_feature_id) * 512 + mine$doy)
     f <- abs(mine$raw[j]) * 1e5
     tie <- !is.na(j) & pr$q_m3s != mine$q_m3s[j] & abs(pr$q_m3s - mine$q_m3s[j]) <= 1.000001e-5 &
-      abs(f - floor(f) - 0.5) < 1e-6
+      abs(f - floor(f) - 0.5) < 1e-6 + 1e-10 * f
     day_tie <- day_tie + sum(tie)
     vc_add("daily routed = routed again", g,
            c(compared = r[["compared"]], differing = r[["differing"]] - sum(tie), max_abs_diff = r[["max_abs_diff"]]))

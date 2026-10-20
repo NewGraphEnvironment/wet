@@ -223,7 +223,12 @@ for (code in codes_seg) {
                                     paste(rm_$linear_feature_id, rm_$month))], ncol = 12)
       stopifnot(!anyNA(pub))
       d <- abs(mine - pub)
-      vs_month <- vs_month + c(length(d), sum(d > 1.000001e-5), sum(d > 0 & d <= 1.000001e-5))
+      # one 1e-5 step is fwapg's rounding of a value on a tie only where the
+      # raw month sits on one, to within the two summation orders' relative
+      # difference; any other difference is a difference
+      f <- abs(wm) * 1e5
+      tie <- d > 0 & d <= 1.000001e-5 & abs(f - floor(f) - 0.5) < 1e-6 + 1e-10 * f
+      vs_month <- vs_month + c(length(d), sum(d > 0 & !tie), sum(tie))
       # how far a reader's plain mean of the published days sits from the month
       plain <- matrix(vapply(1:12, function(k) rowMeans(qd[, m == k, drop = FALSE]), numeric(nrow(qd))), ncol = 12)
       dd <- plain - pub

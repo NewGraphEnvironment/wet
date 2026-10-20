@@ -207,7 +207,10 @@ wet_segment_pg <- function(conn, dataset, ids, source, scenario, groups) {
     qid, DBI::dbQuoteString(conn, scenario)
   ))$source
   absent <- setdiff(source, have)
-  if (length(absent)) {
+  # a table loaded for some groups may hold no row of a source there: those
+  # read as missing, as the warning above says
+  subset <- length(comment) && !is.na(comment) && grepl("; subset ", comment, fixed = TRUE)
+  if (length(absent) && !subset) {
     stop(name, " has no rows for scenario ", scenario, ", source ", paste(absent, collapse = ", "),
          ": load it with wet_db_load(conn, wet_catalog(), \"", dataset, "\", scenario = \"", scenario, "\")",
          call. = FALSE)

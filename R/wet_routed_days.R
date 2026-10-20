@@ -86,8 +86,11 @@ wet_routed_raw <- function(fold, weights) {
 wet_routed_round <- function(x) {
   y <- round(x, 5)
   f <- abs(x) * 1e5
-  # f carries an error of a few ulps, so the window widens with it
-  near <- which(is.finite(x) & abs(f - floor(f) - 0.5) < 1e-6 + 8 * .Machine$double.eps * f)
+  # a 15-digit tie lies within half a unit of the 15th significant digit of
+  # the double, which from 10,000 m3/s up is wider than 1e-6 in these units,
+  # and f carries an error of a few ulps; the digits decide every candidate
+  half15 <- 0.5 * 10^(floor(log10(pmax(abs(x), 1e-300))) - 14) * 1e5
+  near <- which(is.finite(x) & abs(f - floor(f) - 0.5) < pmax(1e-6, half15) + 8 * .Machine$double.eps * f)
   if (length(near)) {
     s <- formatC(abs(x[near]), digits = 15, format = "fg", flag = "#")
     int <- sub("\\..*$", "", s)

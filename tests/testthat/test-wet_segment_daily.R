@@ -90,4 +90,18 @@ test_that("the daily dataset loads into Postgres keyed by doy, for named groups,
   expect_identical(DBI::dbGetQuery(conn, paste("SELECT count(*)::int AS n FROM", tbl))$n, 4L * 31L)
   expect_match(comment(), "subset doy IN \\(1, 2,.*31\\) AND watershed_group_code IN \\('SALR'\\)")
   expect_error(wet_db_load(conn, cat, ds, doys = 366), "doys")
+  # groups with no routed part: loaded as a subset, routed reads as missing;
+  # loaded whole, an absent source is an error
+  no_rt <- cat[!(cat$dataset == ds & cat$source == "pcic_routed"), ]
+  wet_db_load(conn, no_rt, ds, groups = "SALR", cache_dir = withr::local_tempdir())
+  expect_warning(
+    out <- wet:::wet_segment_read(conn, ds, 701001, c("pcic_routed", "wet_balance"), "published", "historical",
+                                  "SALR", NULL),
+    "subset")
+  expect_true(all(is.na(out$q_m3s[out$source == "pcic_routed"])))
+  expect_false(anyNA(out$q_m3s[out$source == "wet_balance"]))
+  wet_db_load(conn, no_rt, ds, cache_dir = withr::local_tempdir())
+  expect_error(wet:::wet_segment_read(conn, ds, 701001, c("pcic_routed", "wet_balance"), "published", "historical",
+                                      NULL, NULL),
+               "no rows for scenario historical, source pcic_routed")
 })
