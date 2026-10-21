@@ -66,7 +66,9 @@ and a failed load leaves the table as it was.</p>
 <span>  scenario <span class="op">=</span> <span class="st">"historical"</span>,</span>
 <span>  months <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">12</span>,</span>
 <span>  pick_only <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  cache_dir <span class="op">=</span> <span class="fu">tools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/tools/userdir.html" class="external-link">R_user_dir</a></span><span class="op">(</span><span class="st">"wet"</span>, <span class="st">"cache"</span><span class="op">)</span></span>
+<span>  cache_dir <span class="op">=</span> <span class="fu">tools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/tools/userdir.html" class="external-link">R_user_dir</a></span><span class="op">(</span><span class="st">"wet"</span>, <span class="st">"cache"</span><span class="op">)</span>,</span>
+<span>  doys <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">365</span>,</span>
+<span>  groups <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -91,7 +93,8 @@ and a failed load leaves the table as it was.</p>
 
 
 <dt id="arg-months">months<a class="anchor" aria-label="anchor" href="#arg-months"></a></dt>
-<dd><p>Months to keep, from <code>0</code> (annual) to <code>12</code>.</p></dd>
+<dd><p>Months to keep, from <code>0</code> (annual) to <code>12</code>, for a monthly
+dataset.</p></dd>
 
 
 <dt id="arg-pick-only">pick_only<a class="anchor" aria-label="anchor" href="#arg-pick-only"></a></dt>
@@ -103,6 +106,15 @@ the segment table. Datasets without <code>pick</code> refuse it.</p></dd>
 <dd><p>Where fetched parts are kept between loads. A cached part
 is reused only while its md5 matches the manifest.</p></dd>
 
+
+<dt id="arg-doys">doys<a class="anchor" aria-label="anchor" href="#arg-doys"></a></dt>
+<dd><p>Days of the common year to keep, <code>1</code> to <code>365</code>, for a daily
+dataset.</p></dd>
+
+
+<dt id="arg-groups">groups<a class="anchor" aria-label="anchor" href="#arg-groups"></a></dt>
+<dd><p><code>NULL</code>, or the watershed group codes to keep.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -110,15 +122,20 @@ is reused only while its md5 matches the manifest.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>A load with <code>months</code> or <code>pick_only</code> set still replaces the whole
-scenario, so it leaves only that subset for every reader of the table; the
-table comment records it.</p>
+    <p>A load with <code>months</code>, <code>doys</code>, <code>groups</code> or <code>pick_only</code> set still replaces
+the whole scenario, so it leaves only that subset for every reader of the
+table; the table comment records it. The daily dataset
+(<code>discharge/fwa/v1/segment_daily</code>, about 2.9 billion rows) is meant to be
+loaded for the groups a job needs: its parts hold one watershed group each,
+and only the named groups' parts are fetched.</p>
 <p>The table holds the files' columns plus <code>scenario</code>, <code>forcing</code> and
 <code>source</code>. Where the dataset has <code>pick</code>, the load is refused unless each
-feature and month has at most one picked row in the scenario. On the first load it is created with a primary key on
-<code>(scenario, forcing, source, &lt;id&gt;, month, period)</code>, an index on the
-feature ID and, where the dataset has <code>pick</code>, a partial index on
-<code>(scenario, &lt;id&gt;)</code> for the annual default, which fresh's join reads. fresh then joins the default annual flow per segment with
+feature and month (or day) has at most one picked row in the scenario. On
+the first load it is created with a primary key on
+<code>(scenario, forcing, source, &lt;id&gt;, &lt;month or doy&gt;, period)</code>, an index on the
+feature ID and, where a monthly dataset has <code>pick</code>, a partial index on
+<code>(scenario, &lt;id&gt;)</code> for the annual default, which fresh's join reads.
+fresh then joins the default annual flow per segment with
 <code>frs_col_join(from = "(select linear_feature_id, q_m3s as mad_m3s from discharge.fwa_v1_segment_monthly where scenario = 'historical' and month = 0 and pick)")</code>.</p>
     </div>
     <div class="section level2">

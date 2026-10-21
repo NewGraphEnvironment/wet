@@ -60,8 +60,10 @@ sit at `scenario=<s>/forcing=<f>/source=<src>/part-<code>.parquet`:
 
 - code:
 
-  The FWA top-level drainage the part holds: the first field of
-  `fwa_watershed_code`, e.g. `100` for the Fraser. `drainage` names it.
+  What the part holds. A monthly dataset's part holds one FWA top-level
+  drainage, the first field of `fwa_watershed_code` (`100` for the
+  Fraser); a daily dataset's holds one watershed group (`BULK`).
+  `drainage` names it.
 
 The three keys are in the path, not in the files: duckdb's
 `read_parquet(<hrefs>, hive_partitioning = true)` reads them back from
@@ -83,9 +85,11 @@ cat <- wet_catalog(system.file("extdata", "discharge_manifest.json",
                                package = "wet"))
 cat[c("dataset", "scenario", "forcing", "source", "code", "rows")]
 #>                              dataset   scenario  forcing      source code rows
-#> 1   discharge/fwa/v1/segment_monthly historical    climr wet_balance  100   26
-#> 2   discharge/fwa/v1/segment_monthly historical PNWNAmet pcic_routed  100   26
-#> 3 discharge/fwa/v1/watershed_monthly historical    climr wet_balance  100   13
+#> 1     discharge/fwa/v1/segment_daily historical    climr wet_balance SALR  730
+#> 2     discharge/fwa/v1/segment_daily historical PNWNAmet pcic_routed SALR  730
+#> 3   discharge/fwa/v1/segment_monthly historical    climr wet_balance  100   26
+#> 4   discharge/fwa/v1/segment_monthly historical PNWNAmet pcic_routed  100   26
+#> 5 discharge/fwa/v1/watershed_monthly historical    climr wet_balance  100   13
 attr(cat, "sources")[c("source", "description")]
 #>        source             description
 #> 1 pcic_routed  Made-up routed values.

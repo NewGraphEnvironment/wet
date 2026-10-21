@@ -131,6 +131,8 @@ Read the per-segment and per-watershed discharge wet publishes.
   : Load one scenario of published discharge into Postgres
 - [`wet_segment_monthly()`](https://newgraphenvironment.github.io/wet/reference/wet_segment_monthly.md)
   : Monthly and annual flow on FWA segments
+- [`wet_segment_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_segment_daily.md)
+  : Daily flow on FWA segments, by day of a common year
 
 ## Station flow
 

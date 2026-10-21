@@ -101,9 +101,10 @@ water balance's 1981-2010 normals), or <code>ensemble</code>.</p></dd>
 (wet's open water balance).</p></dd>
 
 <dt>code</dt>
-<dd><p>The FWA top-level drainage the part holds: the first field
-of <code>fwa_watershed_code</code>, e.g. <code>100</code> for the Fraser. <code>drainage</code> names
-it.</p></dd>
+<dd><p>What the part holds. A monthly dataset's part holds one FWA
+top-level drainage, the first field of <code>fwa_watershed_code</code> (<code>100</code> for
+the Fraser); a daily dataset's holds one watershed group (<code>BULK</code>).
+<code>drainage</code> names it.</p></dd>
 
 
 </dl><p>The three keys are in the path, not in the files: duckdb's
@@ -125,9 +126,11 @@ Each publish rewrites the whole manifest from one local tree.</p>
 <span class="r-in"><span>                               package <span class="op">=</span> <span class="st">"wet"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">cat</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"dataset"</span>, <span class="st">"scenario"</span>, <span class="st">"forcing"</span>, <span class="st">"source"</span>, <span class="st">"code"</span>, <span class="st">"rows"</span><span class="op">)</span><span class="op">]</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                              dataset   scenario  forcing      source code rows</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1   discharge/fwa/v1/segment_monthly historical    climr wet_balance  100   26</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2   discharge/fwa/v1/segment_monthly historical PNWNAmet pcic_routed  100   26</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 discharge/fwa/v1/watershed_monthly historical    climr wet_balance  100   13</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1     discharge/fwa/v1/segment_daily historical    climr wet_balance SALR  730</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2     discharge/fwa/v1/segment_daily historical PNWNAmet pcic_routed SALR  730</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3   discharge/fwa/v1/segment_monthly historical    climr wet_balance  100   26</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4   discharge/fwa/v1/segment_monthly historical PNWNAmet pcic_routed  100   26</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 discharge/fwa/v1/watershed_monthly historical    climr wet_balance  100   13</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">cat</span>, <span class="st">"sources"</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"source"</span>, <span class="st">"description"</span><span class="op">)</span><span class="op">]</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        source             description</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1 pcic_routed  Made-up routed values.</span>

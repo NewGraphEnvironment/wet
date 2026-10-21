@@ -70,13 +70,13 @@
 <h2 id="what-it-is">What it is<a class="anchor" aria-label="anchor" href="#what-it-is"></a>
 </h2>
 <p>wet publishes the mean flow of British Columbia’s Freshwater Atlas
-stream segments, in cubic metres per second, for each calendar month and
-for the year. It is public at
+stream segments, in cubic metres per second, for the year, each month
+and each day. It is public at
 <code>s3://fresh-bc/discharge/fwa/v1/</code>. The bucket allows no
 listing, so a reader starts from the manifest, <a href="https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json" class="external-link uri">https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json</a>,
 which lists every part with its rows, size and md5. The current build
-has 67 parquet parts, 1.88 GB, built on 19 October 2026 at wet commit
-8ca2dee.</p>
+has 512 parquet parts, 33.23 GB, built on 20 October 2026 at wet commit
+77585a8.</p>
 <ul>
 <li>
 <strong><code>segment_monthly</code></strong>: one row per segment,
@@ -86,6 +86,11 @@ mean and months 1–12 the calendar months.</li>
 <strong><code>watershed_monthly</code></strong>: the same per
 fundamental watershed, the small polygon each segment drains, from the
 water balance only.</li>
+<li>
+<strong><code>segment_daily</code></strong>:
+<code>segment_monthly</code> per day, 2,886,046,240 rows (29 February
+folded into 28), one part per source and watershed group. Clamped daily
+and folded, routed PCIC’s days need not average to their month.</li>
 </ul>
 <p>Each row comes from one of two sources:</p>
 <p><strong>Routed PCIC</strong> (<code>pcic_routed</code>, 1981–2010).
@@ -166,6 +171,33 @@ opens a few row groups:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">conn</span> <span class="op">&lt;-</span> <span class="fu">DBI</span><span class="fu">::</span><span class="fu"><a href="https://dbi.r-dbi.org/reference/dbConnect.html" class="external-link">dbConnect</a></span><span class="op">(</span><span class="fu">RPostgres</span><span class="fu">::</span><span class="fu"><a href="https://rpostgres.r-dbi.org/reference/Postgres.html" class="external-link">Postgres</a></span><span class="op">(</span><span class="op">)</span>, dbname <span class="op">=</span> <span class="st">"fwapg"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/wet_db_load.html">wet_db_load</a></span><span class="op">(</span><span class="va">conn</span>, <span class="va">cat</span><span class="op">)</span>   <span class="co"># discharge.fwa_v1_segment_monthly</span></span></code></pre></div>
+<p><code><a href="../reference/wet_segment_daily.html">wet_segment_daily()</a></code> reads a segment’s days, and
+<code><a href="../reference/wet_flow_window.html">wet_flow_window()</a></code> a window’s flow:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">q</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/wet_segment_daily.html">wet_segment_daily</a></span><span class="op">(</span><span class="cn">NULL</span>, <span class="fl">17094080</span>, groups <span class="op">=</span> <span class="st">"BULK"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/wet_flow_window.html">wet_flow_window</a></span><span class="op">(</span><span class="va">q</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>window <span class="op">=</span> <span class="st">"spring"</span>, start <span class="op">=</span> <span class="st">"04-15"</span>, end <span class="op">=</span> <span class="st">"06-15"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Mean flow (m³/s) at Buck Creek’s mouth, 15 April to 15 June,
+from the published days and, by the same call on the monthly rows, from
+the months.</caption>
+<thead><tr class="header">
+<th align="left">Source</th>
+<th align="left">From the days</th>
+<th align="left">From the months</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">pcic_routed</td>
+<td align="left">22.20</td>
+<td align="left">19.74</td>
+</tr>
+<tr class="even">
+<td align="left">wet_balance</td>
+<td align="left">15.40</td>
+<td align="left">13.61</td>
+</tr>
+</tbody>
+</table>
 <p>Besides flow (<code>q_m3s</code>) a row carries
 <code>runoff_mm</code>, the same water as a depth over the area upstream
 (NA for a routed row off its watershed’s own line),
@@ -262,7 +294,7 @@ with too few gauges for their own adjustment get none.</li>
 have no watershed in the lookup through which the balance reaches a
 segment.</li>
 </ul>
-<p>How the balance is built, and how each of its choices was tested: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/research/water_balance_method.md" class="external-link">research/water_balance_method.md</a>.</p>
+<p>How the balance is built, and each of its choices tested: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/research/water_balance_method.md" class="external-link">research/water_balance_method.md</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="validation">Validation<a class="anchor" aria-label="anchor" href="#validation"></a>

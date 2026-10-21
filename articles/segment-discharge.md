@@ -3,19 +3,23 @@
 ## What it is
 
 wet publishes the mean flow of British Columbia’s Freshwater Atlas
-stream segments, in cubic metres per second, for each calendar month and
-for the year. It is public at `s3://fresh-bc/discharge/fwa/v1/`. The
+stream segments, in cubic metres per second, for the year, each month
+and each day. It is public at `s3://fresh-bc/discharge/fwa/v1/`. The
 bucket allows no listing, so a reader starts from the manifest,
 <https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json>,
 which lists every part with its rows, size and md5. The current build
-has 67 parquet parts, 1.88 GB, built on 19 October 2026 at wet commit
-8ca2dee.
+has 512 parquet parts, 33.23 GB, built on 20 October 2026 at wet commit
+77585a8.
 
 - **`segment_monthly`**: one row per segment, month and source with a
   value, 102,790,688 rows. Month 0 is the annual mean and months 1–12
   the calendar months.
 - **`watershed_monthly`**: the same per fundamental watershed, the small
   polygon each segment drains, from the water balance only.
+- **`segment_daily`**: `segment_monthly` per day, 2,886,046,240 rows (29
+  February folded into 28), one part per source and watershed group.
+  Clamped daily and folded, routed PCIC’s days need not average to their
+  month.
 
 Each row comes from one of two sources:
 
@@ -104,6 +108,26 @@ conn <- DBI::dbConnect(RPostgres::Postgres(), dbname = "fwapg")
 wet_db_load(conn, cat)   # discharge.fwa_v1_segment_monthly
 ```
 
+[`wet_segment_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_segment_daily.md)
+reads a segment’s days, and
+[`wet_flow_window()`](https://newgraphenvironment.github.io/wet/reference/wet_flow_window.md)
+a window’s flow:
+
+``` r
+
+q <- wet_segment_daily(NULL, 17094080, groups = "BULK")
+wet_flow_window(q, data.frame(window = "spring", start = "04-15", end = "06-15"))
+```
+
+| Source      | From the days | From the months |
+|:------------|:--------------|:----------------|
+| pcic_routed | 22.20         | 19.74           |
+| wet_balance | 15.40         | 13.61           |
+
+Mean flow (m³/s) at Buck Creek’s mouth, 15 April to 15 June, from the
+published days and, by the same call on the monthly rows, from the
+months. {.table}
+
 Besides flow (`q_m3s`) a row carries `runoff_mm`, the same water as a
 depth over the area upstream (NA for a routed row off its watershed’s
 own line), `coverage`, the share of that area the balance’s inputs
@@ -155,7 +179,7 @@ both cover. Where each is weak:
 - **Segments without a value.** Of the 374,598, 369,217 have no
   watershed in the lookup through which the balance reaches a segment.
 
-How the balance is built, and how each of its choices was tested:
+How the balance is built, and each of its choices tested:
 [research/water_balance_method.md](https://github.com/NewGraphEnvironment/wet/blob/main/research/water_balance_method.md).
 
 ## Validation

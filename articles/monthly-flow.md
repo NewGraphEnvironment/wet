@@ -256,16 +256,17 @@ useful, each with its issue:
 - A window’s flow from monthly means is an approximation (the window
   table measures it).
   [`wet_flow_window()`](https://newgraphenvironment.github.io/wet/reference/wet_flow_window.md)
-  labels it `basis = "monthly"`, and gives `"daily"` from the same call
-  once daily flow is published (#99; the balance’s shape within the
-  month is fitted and scored in \#70).
+  labels it `basis = "monthly"`. Given the published daily flow, read
+  with
+  [`wet_segment_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_segment_daily.md),
+  the same call gives `basis = "daily"` (#99).
 - Routed PCIC’s month 0 is a plain mean of its months, so its months
   converted to millimetres do not add up to its annual runoff exactly.
 
 ## Validation
 
-`data-raw/monthly_vignette_data.R` built the data at wet 6ac469a on
-2026-10-19, from the published build at wet 8ca2dee
+`data-raw/monthly_vignette_data.R` built the data at wet a4ea0a1 on
+2026-10-20, from the published build at wet 77585a8
 (<https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json>)
 and the water balance fit on HYDAT 2026-07-17 (AET cfu). It checked the
 bundled published values against what they were built from, and refused

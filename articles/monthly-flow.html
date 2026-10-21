@@ -514,9 +514,9 @@ the years 1981–2010. Its windows rest on the years the window table
 gives.</li>
 <li>A window’s flow from monthly means is an approximation (the window
 table measures it). <code><a href="../reference/wet_flow_window.html">wet_flow_window()</a></code> labels it
-<code>basis = "monthly"</code>, and gives <code>"daily"</code> from the
-same call once daily flow is published (#99; the balance’s shape within
-the month is fitted and scored in #70).</li>
+<code>basis = "monthly"</code>. Given the published daily flow, read
+with <code><a href="../reference/wet_segment_daily.html">wet_segment_daily()</a></code>, the same call gives
+<code>basis = "daily"</code> (#99).</li>
 <li>Routed PCIC’s month 0 is a plain mean of its months, so its months
 converted to millimetres do not add up to its annual runoff
 exactly.</li>
@@ -526,7 +526,7 @@ exactly.</li>
 <h2 id="validation">Validation<a class="anchor" aria-label="anchor" href="#validation"></a>
 </h2>
 <p><code>data-raw/monthly_vignette_data.R</code> built the data at wet
-6ac469a on 2026-10-19, from the published build at wet 8ca2dee (<a href="https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json" class="external-link uri">https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json</a>)
+a4ea0a1 on 2026-10-20, from the published build at wet 77585a8 (<a href="https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json" class="external-link uri">https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json</a>)
 and the water balance fit on HYDAT 2026-07-17 (AET cfu). It checked the
 bundled published values against what they were built from, and refused
 to write unless none differed:</p>
