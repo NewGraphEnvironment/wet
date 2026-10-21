@@ -22,9 +22,10 @@
 #'   \item{source}{Who made the estimate and how, `<group>_<method>`:
 #'     `pcic_routed` (PCIC's routed flow placed on the FWA) or `wet_balance`
 #'     (wet's open water balance).}
-#'   \item{code}{The FWA top-level drainage the part holds: the first field
-#'     of `fwa_watershed_code`, e.g. `100` for the Fraser. `drainage` names
-#'     it.}
+#'   \item{code}{What the part holds. A monthly dataset's part holds one FWA
+#'     top-level drainage, the first field of `fwa_watershed_code` (`100` for
+#'     the Fraser); a daily dataset's holds one watershed group (`BULK`).
+#'     `drainage` names it.}
 #' }
 #' The three keys are in the path, not in the files: duckdb's
 #' `read_parquet(<hrefs>, hive_partitioning = true)` reads them back from

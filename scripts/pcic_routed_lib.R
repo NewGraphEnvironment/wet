@@ -133,3 +133,66 @@ routed_scores <- function(err, cut = 20) {
   c(n = length(err), mae = mean(abs(err)), median_ae = stats::median(abs(err)),
     within = 100 * mean(abs(err) <= cut), bias = mean(err))
 }
+
+# ---- routed days (#99) ---------------------------------------------------------------------------
+# fwapg keeps no per-segment days. It keeps each sub-basin's day-of-year
+# climatology (pcic.subbasin_daily, one row per run, sub-basin and calendar
+# bin) and each segment's weights (pcic.segment_weights, shared by every run),
+# from which wet:::wet_routed_days() gives any segment's 365 days, on the
+# same footing as the run's monthly and weekly tables.
+routed_daily_table <- "pcic.subbasin_daily"
+routed_weights_table <- "pcic.segment_weights"
+
+# The daily rows and the weights as pcic.runs describes them: rows,
+# sub-basins and q_acc summed over values rounded to 1e-6 (numeric, so exact
+# in any order), and weights rows and shares rounded to 1e-9, which is how
+# fwapg's export wrote those columns. Refused unless equal.
+routed_daily_fingerprint <- function(conn) {
+  fp <- DBI::dbGetQuery(conn, sprintf("
+    SELECT count(*)::text AS rows, count(DISTINCT subid)::text AS subbasins,
+           sum(round(q_acc::numeric, 6))::text AS sum_q
+    FROM %s WHERE %s", routed_daily_table, routed_where))
+  fw <- DBI::dbGetQuery(conn, sprintf("
+    SELECT count(*)::text AS rows, sum(round(share::numeric, 9))::text AS sum_share FROM %s",
+    routed_weights_table))
+  run <- DBI::dbGetQuery(conn, sprintf("
+    SELECT daily_rows::text AS rows, daily_subbasins::text AS subbasins, daily_q_sum = $1::numeric AS same_q,
+           weights_rows::text AS w_rows, weights_share_sum = $2::numeric AS same_share
+    FROM pcic.runs WHERE %s", routed_where), params = list(fp$sum_q, fw$sum_share))
+  if (nrow(run) != 1L || fp$rows != run$rows || fp$subbasins != run$subbasins || !isTRUE(run$same_q) ||
+        fw$rows != run$w_rows || !isTRUE(run$same_share)) {
+    stop(routed_daily_table, " ", routed_where, " (", fp$rows, " rows, ", fp$subbasins, " sub-basins, total ",
+         fp$sum_q, ") or ", routed_weights_table, " (", fw$rows, " rows, shares ", fw$sum_share,
+         ") is not what pcic.runs describes", call. = FALSE)
+  }
+  sprintf("%s rows, %s sub-basins, total q_acc %s m3/s; weights %s rows, shares %s",
+          fp$rows, fp$subbasins, fp$sum_q, fw$rows, fw$sum_share)
+}
+
+# The run's days folded onto the common year (wet:::wet_routed_fold()), and
+# every segment's weights, upstream_subids as a list of integers in the order
+# fwapg stored them. Read once per run; about 1 GB in memory.
+routed_daily_inputs <- function(conn) {
+  d <- DBI::dbGetQuery(conn, sprintf("
+    SELECT subid, month, day, n_days, q_local, q_acc FROM %s WHERE %s ORDER BY subid, month, day",
+    routed_daily_table, routed_where))
+  fold <- wet:::wet_routed_fold(d)
+  rm(d)
+  w <- DBI::dbGetQuery(conn, sprintf("
+    SELECT linear_feature_id::int AS linear_feature_id, watershed_group_code, subid, share,
+           array_to_string(upstream_subids, ',') AS up
+    FROM %s ORDER BY linear_feature_id", routed_weights_table))
+  stopifnot(!anyDuplicated(w$linear_feature_id), !anyNA(w$up))
+  w$upstream_subids <- lapply(strsplit(w$up, ",", fixed = TRUE), as.integer)
+  w$up <- NULL
+  list(fold = fold, weights = w)
+}
+
+# Mid-network segments, as fwapg's qa_report_clamped.sql counts them: placed
+# outlets above, and not an outlet's own segment. There the clamp hides flow
+# passing through rather than a losing headwater.
+routed_mid_network <- function(conn, weights) {
+  own <- DBI::dbGetQuery(conn, "
+    SELECT DISTINCT linear_feature_id::int AS linear_feature_id FROM pcic.fwa_crosswalk WHERE flag IS NULL")
+  lengths(weights$upstream_subids) > 0 & !weights$linear_feature_id %in% own$linear_feature_id
+}

@@ -26,6 +26,16 @@
   ],
   "datasets": [
     {
+      "dataset": "discharge/fwa/v1/segment_daily",
+      "schema": {
+        "package": "crate",
+        "version": "0.0.0",
+        "source": "nge",
+        "file_name": "discharge/fwa/v1/segment_daily",
+        "url": "https://github.com/NewGraphEnvironment/crate/blob/v0.0.0/inst/extdata/schemas/nge/discharge/fwa/v1/segment_daily.yaml"
+      }
+    },
+    {
       "dataset": "discharge/fwa/v1/segment_monthly",
       "schema": {
         "package": "crate",
@@ -47,6 +57,30 @@
     }
   ],
   "parts": [
+    {
+      "key": "segment_daily/scenario=historical/forcing=climr/source=wet_balance/part-SALR.parquet",
+      "dataset": "discharge/fwa/v1/segment_daily",
+      "scenario": "historical",
+      "forcing": "climr",
+      "source": "wet_balance",
+      "code": "SALR",
+      "drainage": "Salmon River",
+      "rows": 730,
+      "bytes": 12214,
+      "md5": "42bab5c6e0b42619fb0975a8a2bd44f9"
+    },
+    {
+      "key": "segment_daily/scenario=historical/forcing=PNWNAmet/source=pcic_routed/part-SALR.parquet",
+      "dataset": "discharge/fwa/v1/segment_daily",
+      "scenario": "historical",
+      "forcing": "PNWNAmet",
+      "source": "pcic_routed",
+      "code": "SALR",
+      "drainage": "Salmon River",
+      "rows": 730,
+      "bytes": 12138,
+      "md5": "e2d74aadebb2fd83a7c666ee46149787"
+    },
     {
       "key": "segment_monthly/scenario=historical/forcing=climr/source=wet_balance/part-100.parquet",
       "dataset": "discharge/fwa/v1/segment_monthly",

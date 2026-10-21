@@ -7,16 +7,21 @@
 #' the table are replaced, in one transaction, so a reload never duplicates
 #' and a failed load leaves the table as it was.
 #'
-#' A load with `months` or `pick_only` set still replaces the whole
-#' scenario, so it leaves only that subset for every reader of the table; the
-#' table comment records it.
+#' A load with `months`, `doys`, `groups` or `pick_only` set still replaces
+#' the whole scenario, so it leaves only that subset for every reader of the
+#' table; the table comment records it. The daily dataset
+#' (`discharge/fwa/v1/segment_daily`, about 2.9 billion rows) is meant to be
+#' loaded for the groups a job needs: its parts hold one watershed group each,
+#' and only the named groups' parts are fetched.
 #'
 #' The table holds the files' columns plus `scenario`, `forcing` and
 #' `source`. Where the dataset has `pick`, the load is refused unless each
-#' feature and month has at most one picked row in the scenario. On the first load it is created with a primary key on
-#' `(scenario, forcing, source, <id>, month, period)`, an index on the
-#' feature ID and, where the dataset has `pick`, a partial index on
-#' `(scenario, <id>)` for the annual default, which fresh's join reads. fresh then joins the default annual flow per segment with
+#' feature and month (or day) has at most one picked row in the scenario. On
+#' the first load it is created with a primary key on
+#' `(scenario, forcing, source, <id>, <month or doy>, period)`, an index on the
+#' feature ID and, where a monthly dataset has `pick`, a partial index on
+#' `(scenario, <id>)` for the annual default, which fresh's join reads.
+#' fresh then joins the default annual flow per segment with
 #' `frs_col_join(from = "(select linear_feature_id, q_m3s as mad_m3s from
 #' discharge.fwa_v1_segment_monthly where scenario = 'historical' and
 #' month = 0 and pick)")`.
@@ -25,7 +30,11 @@
 #' @param catalog The parts, from [wet_catalog()].
 #' @param dataset Dataset ID, e.g. `"discharge/fwa/v1/segment_monthly"`.
 #' @param scenario Scenario to load, e.g. `"historical"`.
-#' @param months Months to keep, from `0` (annual) to `12`.
+#' @param months Months to keep, from `0` (annual) to `12`, for a monthly
+#'   dataset.
+#' @param doys Days of the common year to keep, `1` to `365`, for a daily
+#'   dataset.
+#' @param groups `NULL`, or the watershed group codes to keep.
 #' @param pick_only Keep only the default source's rows (`pick`), about half
 #'   the segment table. Datasets without `pick` refuse it.
 #' @param cache_dir Where fetched parts are kept between loads. A cached part
@@ -45,19 +54,29 @@
 #' @export
 wet_db_load <- function(conn, catalog, dataset = "discharge/fwa/v1/segment_monthly",
                         scenario = "historical", months = 0:12, pick_only = FALSE,
-                        cache_dir = tools::R_user_dir("wet", "cache")) {
+                        cache_dir = tools::R_user_dir("wet", "cache"), doys = 1:365, groups = NULL) {
   if (!requireNamespace("duckdb", quietly = TRUE)) {
     stop("install duckdb to read the parquet parts", call. = FALSE)
   }
   stopifnot(is.character(dataset), length(dataset) == 1L, is.character(scenario), length(scenario) == 1L,
             is.numeric(months), length(months) > 0L, all(months %in% 0:12), !anyNA(months),
-            isTRUE(pick_only) || isFALSE(pick_only))
+            is.numeric(doys), length(doys) > 0L, all(doys %in% 1:365), !anyNA(doys),
+            isTRUE(pick_only) || isFALSE(pick_only),
+            is.null(groups) || (is.character(groups) && length(groups) > 0L && !anyNA(groups)))
   tbl <- wet_dataset_table(dataset)
+  tb <- wet_timebase(dataset)
+  keep <- if (tb$col == "month") months else doys
   parts <- catalog[catalog$dataset == dataset & catalog$scenario == scenario, , drop = FALSE]
   if (!nrow(parts)) {
     have <- unique(paste(catalog$dataset, catalog$scenario))
     stop("the catalog has no parts for ", dataset, " ", scenario, "; it has: ",
          paste(have, collapse = "; "), call. = FALSE)
+  }
+  # only the parts that can hold the groups are fetched
+  parts <- wet_parts_groups(parts, groups)
+  if (!nrow(parts)) {
+    stop("the catalog has no ", dataset, " ", scenario, " parts for groups ", paste(groups, collapse = ", "),
+         call. = FALSE)
   }
   paths <- vapply(seq_len(nrow(parts)), function(i) wet_part_fetch(parts[i, ], cache_dir), "")
 
@@ -72,8 +91,10 @@ wet_db_load <- function(conn, catalog, dataset = "discharge/fwa/v1/segment_month
   if (length(id_col) != 1L) stop(dataset, ": expected one *_feature_id column", call. = FALSE)
   template <- cbind(data.frame(scenario = character(), forcing = character(), source = character()), cols)
 
-  where <- sprintf("month IN (%s)%s", paste(as.integer(months), collapse = ", "),
-                   if (pick_only) " AND pick" else "")
+  where <- sprintf("%s IN (%s)%s%s", tb$col, paste(as.integer(keep), collapse = ", "),
+                   if (pick_only) " AND pick" else "",
+                   if (is.null(groups)) "" else sprintf(" AND watershed_group_code IN (%s)",
+                                                        paste0("'", gsub("'", "''", groups), "'", collapse = ", ")))
   id <- DBI::Id(schema = tbl[["schema"]], table = tbl[["table"]])
   qid <- DBI::dbQuoteIdentifier(conn, id)
   loaded <- DBI::dbWithTransaction(conn, {
@@ -107,23 +128,34 @@ wet_db_load <- function(conn, catalog, dataset = "discharge/fwa/v1/segment_month
     got <- DBI::dbGetQuery(conn, paste("SELECT count(*)::float8 AS n FROM", qid, "WHERE scenario = $1"),
                            params = list(scenario))$n
     if (got != sum(n)) stop("loaded ", got, " rows but read ", sum(n), call. = FALSE)
+    # a selected part is no proof a named group is in it (a drainage part holds
+    # many groups): every named group must have loaded rows, or the load is
+    # refused and the scenario's old rows stay
+    if (!is.null(groups)) {
+      have_g <- DBI::dbGetQuery(conn, paste("SELECT DISTINCT watershed_group_code AS g FROM", qid, "WHERE scenario = $1"),
+                                params = list(scenario))$g
+      if (length(setdiff(groups, have_g))) {
+        stop("the parts hold no ", dataset, " ", scenario, " rows for groups ",
+             paste(setdiff(groups, have_g), collapse = ", "), call. = FALSE)
+      }
+    }
     if ("pick" %in% names(cols)) {
-      # the default is one source per feature and month within a scenario
+      # the default is one source per feature and month (or day) within a scenario
       dup <- DBI::dbGetQuery(conn, sprintf(
-        "SELECT %s AS id, month FROM %s WHERE scenario = $1 AND pick GROUP BY 1, 2 HAVING count(*) > 1 LIMIT 1",
-        DBI::dbQuoteIdentifier(conn, id_col), qid), params = list(scenario))
+        "SELECT %s AS id, %s AS t FROM %s WHERE scenario = $1 AND pick GROUP BY 1, 2 HAVING count(*) > 1 LIMIT 1",
+        DBI::dbQuoteIdentifier(conn, id_col), tb$col, qid), params = list(scenario))
       if (nrow(dup)) {
-        stop(id_col, " ", dup$id, " month ", dup$month, " has more than one picked row", call. = FALSE)
+        stop(id_col, " ", dup$id, " ", tb$col, " ", dup$t, " has more than one picked row", call. = FALSE)
       }
     }
     if (created) {
-      key_cols <- c("scenario", "forcing", "source", id_col, "month", "period")
+      key_cols <- c("scenario", "forcing", "source", id_col, tb$col, "period")
       DBI::dbExecute(conn, sprintf("ALTER TABLE %s ADD PRIMARY KEY (%s)", qid,
                                    paste(DBI::dbQuoteIdentifier(conn, key_cols), collapse = ", ")))
       DBI::dbExecute(conn, sprintf("CREATE INDEX ON %s (%s)", qid, DBI::dbQuoteIdentifier(conn, id_col)))
       # fresh's join reads the annual default per feature: without this it
       # scans every row (measured 197 s against 6.7 s on the province table)
-      if ("pick" %in% names(cols)) {
+      if ("pick" %in% names(cols) && tb$col == "month") {
         DBI::dbExecute(conn, sprintf("CREATE INDEX ON %s (scenario, %s) WHERE month = 0 AND pick", qid,
                                      DBI::dbQuoteIdentifier(conn, id_col)))
       }
@@ -135,7 +167,11 @@ wet_db_load <- function(conn, catalog, dataset = "discharge/fwa/v1/segment_month
         "wet_db_load(): %s, scenario %s last loaded from %s (built %s, wet %s)%s",
         dataset, scenario, attr(catalog, "manifest") %||% "?", attr(catalog, "built") %||% "?",
         attr(catalog, "provenance")$wet_commit %||% "?",
-        if (pick_only || !setequal(months, 0:12)) paste0("; subset ", where) else ""
+        if (pick_only || !setequal(keep, tb$values) || !is.null(groups)) {
+          paste0("; subset ", where)
+        } else {
+          ""
+        }
       ))
     ))
     data.frame(key = parts$key, rows = n, stringsAsFactors = FALSE)

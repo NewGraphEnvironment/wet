@@ -101,6 +101,7 @@ wet_timebase <- function(dataset) {
   tb <- sub("^.*_", "", wet_dataset_table(dataset)[["table"]])
   switch(tb,
          monthly = list(col = "month", values = 0:12),
+         daily = list(col = "doy", values = 1:365),
          stop("no reader for the ", tb, " timebase of ", dataset, call. = FALSE))
 }
 
@@ -117,6 +118,12 @@ wet_segment_read <- function(conn, dataset, segments, source, from, scenario, gr
   }
   if (from == "fwapg" && is.null(conn)) stop("from = \"fwapg\" needs `conn`, a connection to fwapg", call. = FALSE)
   tb <- wet_timebase(dataset)
+  # a daily part holds one watershed group, and segment IDs do not sort by
+  # group, so without groups a read of the parts would fetch all of them
+  if (tb$col == "doy" && is.null(conn) && from == "published" && is.null(groups)) {
+    stop("reading ", dataset, " from its parts needs `groups`, the watershed groups that hold the segments",
+         call. = FALSE)
+  }
   lk <- wet_segment_sources(dataset)
   lk <- lk[lk$from == from, , drop = FALSE]
   if (is.null(source)) source <- lk$source
@@ -200,16 +207,20 @@ wet_segment_pg <- function(conn, dataset, ids, source, scenario, groups) {
     qid, DBI::dbQuoteString(conn, scenario)
   ))$source
   absent <- setdiff(source, have)
-  if (length(absent)) {
+  # a table loaded for some watershed groups may hold no row of a source
+  # there (no routed segment in the Liard): those read as missing, as the
+  # warning above says. A subset of months, days or picks holds every source
+  by_groups <- length(comment) && !is.na(comment) && grepl("; subset .*watershed_group_code IN", comment)
+  if (length(absent) && !by_groups) {
     stop(name, " has no rows for scenario ", scenario, ", source ", paste(absent, collapse = ", "),
          ": load it with wet_db_load(conn, wet_catalog(), \"", dataset, "\", scenario = \"", scenario, "\")",
          call. = FALSE)
   }
   sql <- sprintf(
-    "SELECT linear_feature_id, month, q_m3s, source FROM %s
+    "SELECT linear_feature_id, %s, q_m3s, source FROM %s
      WHERE scenario = %s AND source IN (%s) AND linear_feature_id IN (%s)%s",
-    qid, DBI::dbQuoteString(conn, scenario), wet_sql_in(conn, source), wet_sql_in(conn, ids),
-    wet_sql_groups(conn, groups)
+    wet_timebase(dataset)$col, qid, DBI::dbQuoteString(conn, scenario), wet_sql_in(conn, source),
+    wet_sql_in(conn, ids), wet_sql_groups(conn, groups)
   )
   DBI::dbGetQuery(conn, sql)
 }
@@ -230,22 +241,38 @@ wet_segment_parts <- function(dataset, ids, source, scenario, groups, catalog) {
     stop("the catalog has no ", dataset, " ", scenario, " parts for source ", paste(absent, collapse = ", "),
          call. = FALSE)
   }
+  parts <- wet_parts_groups(parts, groups)
+  col <- wet_timebase(dataset)$col
   duck <- DBI::dbConnect(duckdb::duckdb())
   on.exit(DBI::dbDisconnect(duck, shutdown = TRUE), add = TRUE)
   if (any(grepl("^https?://", parts$href))) DBI::dbExecute(duck, "INSTALL httpfs; LOAD httpfs;")
   out <- lapply(source, function(s) {
     href <- parts$href[parts$source == s]
+    # a source whose groups hold no part has no rows there
+    if (!length(href)) {
+      return(stats::setNames(data.frame(integer(), integer(), numeric(), character()),
+                             c("linear_feature_id", col, "q_m3s", "source")))
+    }
     # the keys come from the catalog, as in wet_db_load()
     sql <- sprintf(
-      "SELECT linear_feature_id, month, q_m3s FROM read_parquet([%s], hive_partitioning = false)
+      "SELECT linear_feature_id, %s, q_m3s FROM read_parquet([%s], hive_partitioning = false)
        WHERE linear_feature_id IN (%s)%s",
-      wet_sql_in(duck, href), wet_sql_in(duck, ids), wet_sql_groups(duck, groups)
+      col, wet_sql_in(duck, href), wet_sql_in(duck, ids), wet_sql_groups(duck, groups)
     )
     d <- DBI::dbGetQuery(duck, sql)
     if (nrow(d)) d$source <- s else d$source <- character()
     d
   })
   do.call(rbind, out)
+}
+
+# The parts that can hold `groups`: a part keyed by watershed group (a daily
+# dataset's) only where its group is named; a part keyed by drainage code
+# holds many groups, so all of those.
+wet_parts_groups <- function(parts, groups) {
+  by_group <- grepl("^[A-Z]{4}$", parts$code)
+  if (is.null(groups)) return(parts)
+  parts[!by_group | parts$code %in% groups, , drop = FALSE]
 }
 
 # pcic_routed from fwapg's routed table, the run wet_segment_sources() names,

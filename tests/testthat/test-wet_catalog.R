@@ -9,7 +9,7 @@ edit_manifest <- function(root, f) {
 
 test_that("the shipped manifest reads without its parts present", {
   cat <- wet_catalog(shipped_manifest())
-  expect_identical(nrow(cat), 3L)
+  expect_identical(nrow(cat), 5L)
   expect_identical(attr(cat, "id"), "discharge/fwa/v1")
 })
 
@@ -18,9 +18,10 @@ test_that("a manifest reads as one row per part, fields from the path", {
   cat <- wet_catalog(file.path(root, "manifest.json"))
   expect_identical(names(cat), c("dataset", "scenario", "forcing", "source", "code", "drainage",
                                  "key", "href", "rows", "bytes", "md5"))
-  expect_identical(nrow(cat), 3L)
-  expect_setequal(cat$dataset, c("discharge/fwa/v1/segment_monthly", "discharge/fwa/v1/watershed_monthly"))
-  r <- cat[cat$source == "pcic_routed", ]
+  expect_identical(nrow(cat), 5L)
+  expect_setequal(cat$dataset, c("discharge/fwa/v1/segment_monthly", "discharge/fwa/v1/watershed_monthly",
+                                 "discharge/fwa/v1/segment_daily"))
+  r <- cat[cat$source == "pcic_routed" & cat$dataset == "discharge/fwa/v1/segment_monthly", ]
   expect_identical(c(r$scenario, r$forcing, r$code, r$drainage), c("historical", "PNWNAmet", "100", "Fraser River"))
   expect_identical(r$rows, 26)
   expect_true(all(file.exists(cat$href)))
@@ -105,12 +106,18 @@ test_that("the writer refuses a tree it cannot describe", {
   srcs <- discharge_fixture_sources()
   w <- function(...) {
     # replaced, not merged: modifyList() would merge a shorter `sources` into the default
-    args <- list(root = root, id = "discharge/fwa/v1", drainage = c("100" = "x"),
+    args <- list(root = root, id = "discharge/fwa/v1", drainage = c("100" = "x", SALR = "y"),
                  sources = srcs, provenance = list(), crate_version = "0.0.0")
     args[names(list(...))] <- list(...)
     do.call(wet_manifest_write, args)
   }
-  expect_error(w(drainage = c("200" = "x")), "no drainage label for code 100")
+  expect_error(w(drainage = c("200" = "x", SALR = "y")), "no drainage label for code 100")
+  # a daily part's code is its watershed group, which needs a label too
+  expect_error(w(drainage = c("100" = "x")), "no drainage label for code SALR")
+  d <- wet_catalog(file.path(root, "manifest.json"))
+  d <- d[d$dataset == "discharge/fwa/v1/segment_daily", ]
+  expect_identical(unique(c(d$code, d$drainage)), c("SALR", "Salmon River"))
+  expect_identical(d$rows, c(730, 730))
   expect_error(w(sources = srcs[1]), "describe each source")
   expect_error(w(id = "discharge/fwa"), "tree ID")
   file.create(file.path(root, "segment_monthly", "stray.parquet"))
@@ -124,7 +131,7 @@ test_that("verify passes a matching tree and names what differs", {
   cat$md5[1] <- strrep("0", 32)
   cat$bytes[2] <- 1
   unlink(cat$href[3])
-  expect_identical(wet_catalog_verify(cat)$reason, c("md5 differs", "size differs", "missing"))
+  expect_identical(wet_catalog_verify(cat)$reason, c("md5 differs", "size differs", "missing", "", ""))
 })
 
 test_that("verify reads a URL part's size and ETag from an anonymous HEAD", {

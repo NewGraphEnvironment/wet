@@ -22,6 +22,9 @@
 #     from the tracked segment report, which must be the one the tracked
 #     publish report's build was cut from, checked against the live build's
 #     reader counts and fwapg's
+#   - daily: the article's daily read (#99) as it prints it, run on the live
+#     build: one segment's days and a window's flow from them, beside the same
+#     window from its months; refused unless the balance's days keep its months
 #   - provenance: the runs, reports and published build these came from, and
 #     the value check against the published parts
 #
@@ -161,6 +164,32 @@ if (any(pub_check$differing > 0) || !identical(pub_check$compared, as.numeric(nr
   stop("the published values differ from what they were built from: see the table above")
 }
 
+# ---- the daily read the article shows (#99) --------------------------------------------------------
+# Buck Creek at its mouth, the article's recipe as written, on the live build;
+# its group's parts must match the manifest before and after
+day_seg <- 17094080
+day_win <- data.frame(window = "spring", start = "04-15", end = "06-15")
+day_parts <- cat_pub[cat_pub$dataset == "discharge/fwa/v1/segment_daily" & cat_pub$scenario == "historical" &
+                       cat_pub$code == "BULK", ]
+stopifnot(setequal(day_parts$source, c("pcic_routed", "wet_balance")))
+vd_verify(day_parts)
+q <- wet_segment_daily(NULL, 17094080, groups = "BULK")
+day_read <- wet_flow_window(q, data.frame(window = "spring", start = "04-15", end = "06-15"))
+vd_verify(day_parts)
+mon_parts <- cat_pub[cat_pub$dataset == "discharge/fwa/v1/segment_monthly" & cat_pub$scenario == "historical", ]
+vd_verify(mon_parts)
+q_mon <- wet_segment_monthly(NULL, day_seg, groups = "BULK", catalog = cat_pub)
+vd_verify(mon_parts)
+# both sources have every day, and the balance's days keep its published months
+stopifnot(identical(unique(q$linear_feature_id), as.integer(day_seg)), !anyNA(q$q_m3s), nrow(q) == 730L, all(day_read$basis == "daily"), !anyNA(day_read$q_m3s))
+bal_d <- q[q$source == "wet_balance", ]
+bal_m <- q_mon[q_mon$source == "wet_balance" & q_mon$month > 0L, ]
+stopifnot(isTRUE(all.equal(unname(as.vector(tapply(bal_d$q_m3s, wet:::wet_doy_month()[bal_d$doy], mean))),
+                           bal_m$q_m3s, tolerance = 1e-9)))
+daily <- list(segment = day_seg, group = "BULK", window = day_win, days = day_read,
+              months = wet_flow_window(q_mon, day_win), parts = day_parts[c("source", "key", "md5")])
+print(daily[c("days", "months")])
+
 # ---- what pick gives the province ---------------------------------------------------------------
 # from the tracked segment report (scripts/segment_output.R), which the
 # publish report's build was cut from: its picks must be the live build's
@@ -232,7 +261,7 @@ provenance <- list(
 # as raw bits, so a join in the vignette would match nothing: the SQL casts them
 no64 <- function(x) !any(vapply(x, inherits, NA, "integer64"))
 stopifnot(no64(sk))
-values <- list(skill = sk, segments = segments, provenance = provenance)
+values <- list(skill = sk, segments = segments, daily = daily, provenance = provenance)
 saveRDS(values, out, compress = "xz")
 message("segment_values.rds: ", round(file.size(out) / 1024), " KB")
 files <- file.path("inst", "vignette-data", c("segment_values.rds", "segment_map.rds"))
