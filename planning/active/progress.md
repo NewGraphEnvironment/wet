@@ -26,3 +26,6 @@
 - Monthly table rerun on m4 at d20a624 started 14:46 UTC; full test suite on m1 started
 - Final province daily run on m4 at 6bb261e: exit 0, 132.0 min, every guard passed; report committed from m4 (77585a8). Figures in `findings.md`
 - BUILD (`discharge_publish.R`) started on m4 17:07 UTC
+- BUILD at 77585a8 on m4 (17:06–20:36 UTC, 3 h 29 min): 512 parts, 15,040,448,264 values compared, 0 differing; 67 monthly parts identical to live 8ca2dee (608147e)
+- PUBLISH run by the user on m4: the live manifest named 77585a8 by 21:46 UTC; all 512 parts verify anonymously from m1
+- BUILD again at 608147e (21:47–01:22 UTC): 512 of 512 parts identical to live, 0 differing (258618b)

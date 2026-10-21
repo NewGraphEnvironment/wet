@@ -122,21 +122,21 @@ Mechanism choices I made (not questions):
       recorded; commit the report
 
 ## Phase 5: Publish (`scripts/discharge_publish.R`, `_lib.R`)
-- [ ] BUILD writes `segment_daily` parts per group, conformed to crate (`publish_part_prepare()`
+- [x] BUILD writes `segment_daily` parts per group, conformed to crate (`publish_part_prepare()`
       generalised over the time column); manifest labels per group from
       `fwa_watershed_groups_poly` (review 7); guards for the daily table: its report's commit and
       its own git diff, the daily script left out of the monthly table's diff, mtime after the
       segment table, report naming seg_commit, one part per group, 365 rows per segment and
       source (reviews 6, 9); the daily hive line names its dataset and `vignette_data_lib.R`'s
       `re_seen` is anchored to `segment_monthly` (review 3)
-- [ ] Value checks (#64) for the daily: routed days recomputed independently (per distinct
+- [x] Value checks (#64) for the daily: routed days recomputed independently (per distinct
       upstream set, not the build's per-segment `rowsum()`), unrounded within relative 1e-12 and
       rounded equal except a 1e-5 step at a tie, tie flips counted on their own line (review 1); balance days recomputed from `output/` and the
       shape through the lut; `q_m3s`, `runoff_mm`, `coverage`, `pick` against the daily table;
       the balance's month identity against `segment_monthly`; inputs' fingerprints exact
-- [ ] PUBLISH skips a part only when its HEAD ETag equals the local md5 (review 12), then
+- [x] PUBLISH skips a part only when its HEAD ETag equals the local md5 (review 12), then
       verifies every part
-- [ ] Every R/ and scripts/ edit (Phase 6's included) committed first (review 11). On m4:
+- [x] Every R/ and scripts/ edit (Phase 6's included) committed first (review 11). On m4:
       `segment_output.R`, commit its report; `segment_daily_output.R`, commit its report; BUILD,
       commit its report (review 10); hand the user the PUBLISH command; BUILD again and commit
       (all parts identical to live)
