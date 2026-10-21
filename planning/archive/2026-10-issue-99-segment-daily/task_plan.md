@@ -158,7 +158,7 @@ Mechanism choices I made (not questions):
 - [x] Tests pass
 - [x] `/code-check` clean (once over the branch with `/code-check branch`)
 - [x] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] `/planning-archive` on completion
 
 How each change is proved: unit tests on hand-computed fixtures for the fold, routing, readers,
 loader and comparer (each guard restored to the bug once, `code-check.md`); the Phase-1
