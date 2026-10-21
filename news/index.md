@@ -1,5 +1,27 @@
 # Changelog
 
+## wet 0.4.16
+
+- Per-segment daily flow is published as
+  `discharge/fwa/v1/segment_daily`
+  ([\#99](https://github.com/NewGraphEnvironment/wet/issues/99)): every
+  FWA segment’s mean flow on each day of a 365-day year (29 February
+  folded into 28), for both sources, one parquet part per source and
+  watershed group (2,886,046,240 rows in build 77585a8). The balance’s
+  days are its published months laid on the fit’s daily shape
+  ([\#70](https://github.com/NewGraphEnvironment/wet/issues/70)), so
+  each month’s days average to it. Routed PCIC’s days are routed from
+  fwapg’s sub-basin climatology and segment weights, clamped at zero and
+  rounded as fwapg makes its months; the months rebuilt from them equal
+  fwapg’s on every segment, and their plain mean need not equal the
+  published month (the clamp, and February’s fold).
+  [`wet_segment_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_segment_daily.md)
+  reads them for named groups, `wet_db_load(doys =, groups =)` loads a
+  subset, and `wet_values_compare(time = "doy")` compares them. The
+  segment-discharge article shows the read.
+- The package is cited by its Zenodo concept DOI (`Config/DOI`, read by
+  `citation("wet")`).
+
 ## wet 0.4.15
 
 - The water balance’s monthly shares come from donor gauges

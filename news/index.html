@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.15</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.16</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,9 +34,14 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/v0.4.16/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.16" id="wet-0416">wet 0.4.16<a class="anchor" aria-label="anchor" href="#wet-0416"></a></h2>
+<ul><li>Per-segment daily flow is published as <code>discharge/fwa/v1/segment_daily</code> (<a href="https://github.com/NewGraphEnvironment/wet/issues/99" class="external-link">#99</a>): every FWA segment’s mean flow on each day of a 365-day year (29 February folded into 28), for both sources, one parquet part per source and watershed group (2,886,046,240 rows in build 77585a8). The balance’s days are its published months laid on the fit’s daily shape (<a href="https://github.com/NewGraphEnvironment/wet/issues/70" class="external-link">#70</a>), so each month’s days average to it. Routed PCIC’s days are routed from fwapg’s sub-basin climatology and segment weights, clamped at zero and rounded as fwapg makes its months; the months rebuilt from them equal fwapg’s on every segment, and their plain mean need not equal the published month (the clamp, and February’s fold). <code><a href="../reference/wet_segment_daily.html">wet_segment_daily()</a></code> reads them for named groups, <code>wet_db_load(doys =, groups =)</code> loads a subset, and <code>wet_values_compare(time = "doy")</code> compares them. The segment-discharge article shows the read.</li>
+<li>The package is cited by its Zenodo concept DOI (<code>Config/DOI</code>, read by <code>citation("wet")</code>).</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.15" id="wet-0415">wet 0.4.15<a class="anchor" aria-label="anchor" href="#wet-0415"></a></h2>
 <ul><li>The water balance’s monthly shares come from donor gauges (<a href="https://github.com/NewGraphEnvironment/wet/issues/102" class="external-link">#102</a>): each watershed takes the inverse-distance mean of the observed monthly shares of the five calibration gauges most like it in elevation, location, snowmelt timing and peak snow water equivalent (<code>wet_share_fit(method = "donor")</code>; <code>"blend"</code> and the twelve regressions remain as methods). A rule registered in <code>scripts/wb_validate.R</code> before any candidate was coded chose it: held out, the median per-gauge share NSE rises from 0.874 to 0.939 (0.935 with each gauge’s upstream and downstream neighbours removed), and on 110 short-record gauges no fit uses from 0.772 to 0.837. The freshet, the Liard’s winter and non-snowmelt regimes gain most; four zones (17, 06, 16 and 26) score lower under the donor. The annual flow and every segment’s default source are unchanged. The published product at <code>s3://fresh-bc/discharge/fwa/v1/</code> was rebuilt and republished with the new months (build 8ca2dee), and on a calibration gauge’s segment the balance now carries that gauge’s own monthly pattern. The monthly-flow article is rewritten on it, including the balance’s late-summer overshoot at 08EE003. <code><a href="../reference/wet_shape_predict.html">wet_shape_predict()</a></code>’s donor shares its weighting with the shares (<code>wet_donor_mean()</code>); its output is unchanged.</li>
