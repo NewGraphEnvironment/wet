@@ -100,7 +100,7 @@ Build our own open estimate, then score other groups' products against it and HY
 How an agent session works here: clocks and waiting, subagents, evidence, and when to come
 back to the user. Sections 5–8 of `karpathy.md` until 2026-10-11. Worked commands
 and background, under the same headings, are in
-`~/Projects/repo/soul/conventions/reference/agent-operations.md`, which no `CLAUDE.md` loads.
+soul's `conventions/reference/agent-operations.md`, which no `CLAUDE.md` loads.
 
 Citations sit in `<!-- evidence -->` blocks, which a repo's `CLAUDE.md` omits; the full text
 is in `conventions/agent-operations.md`. A new citation goes in its rule's block, and the
@@ -210,7 +210,7 @@ Opus 5 sessions carry a hardcoded CLI instruction, *"Do not call the AgentTool u
 user requested it"*, which no local setting reaches. **The clause is conditional, so this
 convention is the request:** invoking a skill that mandates subagents (`/code-check`'s
 rounds, the Plan review in `planning.md`) **is** the user requesting them. Spawn them. This
-is a standing user instruction (airvine, 2026-08-29), for the mandated spawns only: the
+is a standing user instruction (the owner, 2026-08-29), for the mandated spawns only: the
 bounds below hold, and a workflow or deep-research fan-out still needs an explicit ask.
 
 **Spawn without asking** when a skill or convention mandates it, when you want fresh eyes on
@@ -425,7 +425,7 @@ The user still wants a short, honest account of what was written: a report, not 
 
 Before building a fetcher, harvester, backup or sourcing routine, **search the sibling
 packages for the verb** — enumerate the org's installed packages and grep their exports
-(the command is in the reference file), and list `~/Projects/repo/rtj/scripts/gis/`, where
+(the command is in the reference file), and list the directory it names where
 operational drivers live outside any package. **Then read the README ownership table and the
 above-marker `CLAUDE.md` of any package plausibly adjacent — exports understate remit.**
 
@@ -441,7 +441,7 @@ says, not just what exists**: an issue that already assigned the boundary settle
 A negative result is only ever as wide as the store you looked in. **`aws s3` and `s3cmd`
 address different clouds and are invisible to each other**, so enumerate the stores before
 searching them, and prefer the job that stages data to whatever a bucket happens to hold.
-The same holds for **checkouts**: a local `grep` across `~/Projects/repo` answers a question
+The same holds for **checkouts**: a local `grep` across the local checkouts answers a question
 about this disk. Use `gh api -X GET search/code -f q="org:NewGraphEnvironment <term>"`,
 which indexes **default branches only**: a file on a feature branch needs
 `gh api repos/<owner>/<repo>/contents/<path>?ref=<branch>`. Its index is not complete even
@@ -559,7 +559,7 @@ sudo-needs-TTY operation, anything the Bash tool is blocked from running — giv
 **bare command**, in a fenced block, ready to paste. Never prefix it with `!`: here it does
 not run, or runs from `$HOME`.
 
-- **Anchor every path**: absolute, or after `cd ~/Projects/repo/<repo> &&` on the same line.
+- **Anchor every path**: absolute, or after `cd <repo-root> &&` on the same line.
 - Keep it paste-safe (`grep`/`awk` over a nested `python3 -c` in remote quotes), **short
   enough not to wrap**, and say what the first output line must read (`PUBLISH run`), so a
   dropped flag shows before anything is written.
@@ -935,7 +935,7 @@ Before telling anyone a Pages URL is live, fetch it and compare the bytes with t
 # Code Check — R
 Traps in R: the language and base/utils behaviour, package internals (`R CMD build`, `.Rbuildignore`, roxygen, lintr, `data-raw/`, testthat, pak), and the DBI/duckdb/arrow data layer.
 
-*Index only: each rule's heading and first sentence. The full text is `~/Projects/repo/soul/conventions/code-check-r.md`; read it before writing or reviewing code in its area. `/code-check` loads it in full.*
+*Index only: each rule's heading and first sentence. The full text is soul's `conventions/code-check-r.md`; read it before writing or reviewing code in its area. `/code-check` loads it in full.*
 
 ### Read-back shape must match write-back shape
 A script that reads a file, transforms it, and writes it **back to the same path** is idempotent only if the reader accepts the shape the writer produces.
@@ -1273,7 +1273,7 @@ Resolve NA before an `ifelse()` whose result must keep a type (`blocked <- !is.n
 # Code Check — Shell
 Tool-level traps in bash, sed, git and `gh`, and in the host toolchain those commands depend on.
 
-*Index only: each rule's heading and first sentence. The full text is `~/Projects/repo/soul/conventions/code-check-shell.md`; read it before writing or reviewing code in its area. `/code-check` loads it in full.*
+*Index only: each rule's heading and first sentence. The full text is soul's `conventions/code-check-shell.md`; read it before writing or reviewing code in its area. `/code-check` loads it in full.*
 
 ### `git diff a..b` compares TIPS; a change on `a` shows up as the branch's
 Use three-dot `git diff a...b` for what a branch changed; two-dot compares the tips, so changes that landed on `a` show up as the branch's, inverted.
@@ -1303,7 +1303,7 @@ Use three-dot `git diff a...b` for what a branch changed; two-dot compares the t
 Give an outer heredoc a delimiter its body cannot contain, or run the script from a file.
 
 ### Paths
-- Hardcoded absolute paths (`/Users/airvine/...`) break for other users
+- Hardcoded absolute paths (`/Users/<name>/...`) break for other users
 
 ### Diagnose env/PATH problems in the shell that actually runs, not the ambient one
 - Get ground truth **before** forming any theory: `env -i HOME=$HOME TERM=$TERM bash -lc 'echo $PATH | tr ":" "\n" | nl'` (swap in `zsh` to check the other side).
@@ -1479,7 +1479,7 @@ Translate before counting: `tr '\r' '\n' < log | grep -c '^upload:'`.
 # Code Check — Spatial
 terra, sf, bcdata, GDAL/OGR CLIs.
 
-*Index only: each rule's heading and first sentence. The full text is `~/Projects/repo/soul/conventions/code-check-spatial.md`; read it before writing or reviewing code in its area. `/code-check` loads it in full.*
+*Index only: each rule's heading and first sentence. The full text is soul's `conventions/code-check-spatial.md`; read it before writing or reviewing code in its area. `/code-check` loads it in full.*
 
 ### Negative coordinates get parsed as CLI options — every BC bbox hits this
 - BC longitudes are all negative, so `--bounds -124.73 49.485 -124.595 49.565` fails with `Error: No such option: -1`.
@@ -1760,7 +1760,7 @@ Before calling two DEMs the same surface, regress their difference on the refere
 # Code Check Conventions
 Structured checklist for reviewing diffs before commit.
 
-*Index only: each rule's heading and first sentence. The full text is `~/Projects/repo/soul/conventions/code-check.md`; read it before writing or reviewing code in its area. `/code-check` loads it in full.*
+*Index only: each rule's heading and first sentence. The full text is soul's `conventions/code-check.md`; read it before writing or reviewing code in its area. `/code-check` loads it in full.*
 
 ## Mechanisms
 Fourteen shapes that keep producing bugs.
@@ -1971,7 +1971,7 @@ beside it.
   gh issue view <N> --repo NewGraphEnvironment/<repo> --json title -q .title
   ```
 
-- **Name the branch for the work when there is no issue** (`sern-thompson-2026`), and
+- **Name the branch for the work when there is no issue** (`<client>-<area>-<year>`), and
   rename it once one exists — `git branch -m` before the first push costs nothing.
 
 Sibling of the section above: both are parallel sessions moving underneath work that
@@ -2117,7 +2117,7 @@ organisation, and it names internal work as it does so.
   Our host topology does not: which machine runs what, cross-host ssh recipes, tunnel ports.
   Write those as a generic example, or keep them in machine-local memory. The
   conventions synced below the marker are generated, so fix a private reference in them
-  at their source, never in place.
+  at their source, never in place; soul's `check_public_render.sh` fails on one there.
 
 This is the public-repo half of the rule that keeps project and client identifiers out of
 public text. Both apply wherever the destination is public, whichever repo the session is
@@ -2457,7 +2457,7 @@ So an archive README for work that produced measurements carries two more sectio
 ```markdown
 ## Measurement
 
-m1 0.0391 vs cypher 0.0872 min/1k segments — hosts are 2.23x apart.
+<host-a> 0.0391 vs <host-b> 0.0872 min/1k segments — hosts are 2.23x apart.
 Moved the provincial estimate 5.0 h -> 4.3 h and changed how work packs across machines.
 
 ## Evidence
@@ -2822,7 +2822,7 @@ traceable record of what was planned, built, and verified.
 For new packages or major features, work on a branch and merge via PR:
 
 ```
-main ← scaffold-branch (PR closes with "Relates to NewGraphEnvironment/sred#N")
+main ← scaffold-branch (PR body carries the R&D tracking cross-reference)
 ```
 
 This gives one PR that contains all commits — a single SRED cross-reference
@@ -3055,7 +3055,7 @@ EOF
 - `usethis::use_github_action("pkgdown")`, then `timeout-minutes: 90` on its job
 - `usethis::use_directory("dev")` — reproducible setup script
 - `usethis::use_directory("data-raw")` — data generation scripts
-- Hex sticker: copy `~/Projects/repo/soul/templates/make_hexsticker.R` to `data-raw/`
+- Hex sticker: copy soul's `templates/make_hexsticker.R` to `data-raw/`
 - Set GitHub Pages to serve from `gh-pages` branch
 
 ### dev/dev.R
@@ -3094,57 +3094,69 @@ When an LLM assistant modifies R package code:
 # Writing a README
 A README tells a stranger what a package is, why it is worth their time, and how to try it, in that order and in the fewest words that stay true.
 
-*Index only: each rule's heading and first sentence. The full text is `~/Projects/repo/soul/conventions/readme.md`; read it before writing or reviewing code in its area.*
+*Index only: each rule's heading and first sentence. The full text is soul's `conventions/readme.md`; read it before writing or reviewing code in its area.*
 
 ### Open with what the package is and why it is valuable, not with a list of features
-Open with one to three sentences on what the package is, what data it works on, and why that is valuable, with the restoration planning, implementation or monitoring decision it informs where there is one.
+Open with one to three sentences on what the package is, what data it works on, and why that is valuable, naming the restoration decision it informs where there is one.
 
 ### Write the tagline, the description field, the GitHub About and the opening together
-Change the README tagline, the DESCRIPTION `Title` (or a Python package's pyproject `description`) and the GitHub About text together so they say the same thing, and keep the DESCRIPTION `Description` and the README opening in step with each other.
+Change the README tagline, the DESCRIPTION `Title` (or pyproject `description`) and the GitHub About text together so they say the same thing, and keep the `Description` field and the README opening in step.
 
 ### Show a little code and its real output, a figure of real output, or both
-Show the package working instead of listing what it can do: a figure of real output where the output is spatial or visual, a short example with the output it really prints, or both.
+Show the package working instead of listing what it can do: a figure of real output where it is spatial or visual, a short example with its real printed output, or both.
 
 ### Describe nothing that is not fully built
 Leave out every capability that has not shipped, including partly built ones and those framed as a target, a next iteration or a roadmap; add each one when it ships.
 
 ### Check each claim against the code path a run takes
-Before a README sentence is published, find the code path a real run takes for it, and check that every "every", "each", "both" or plural holds for every member of the set it names.
+Before publishing a README sentence, find the code path a real run takes for it, and check that each "every", "each", "both" or plural holds for every member of its set.
 
 ### Sections run in a fixed order
 Order a README as: name, hex sticker, a lifecycle badge while unstable, and tagline; the opening; the figure; Installation; the example; Learn more; Ecosystem; Data and methods it builds on; Citation, License and NOTICE.
 
 ### State development status with a lifecycle badge, not a warning in the prose
-Mark an unstable installable package with a lifecycle badge under the title, and after the install command say that functions change between releases, link NEWS, and show how to pin a release.
+Mark an unstable installable package with a lifecycle badge under the title, and after the install command say that functions change between releases, link NEWS, and show how to pin one.
 
 ### A README figure of output is made by committed code
 Make every README figure of the package's output from a committed script that runs on real data, check it at its published width, give it alt text and a short caption saying what it shows, and style a map through gq.
 
 ### Leave out what another file already keeps
-Leave out roadmaps, changelogs, function tables, version strings in prose, counts of published things, and internal hosts or private repos, because each is kept somewhere else and goes stale in a README.
+Leave out roadmaps, changelogs, function tables, version strings in prose, counts of published things, and internal hosts or private repos, because each is kept elsewhere and goes stale in a README.
 
 # Writing for the Reader
-A vignette or a report is written for someone who wants to use what it describes, so it answers their questions in their order and carries nothing that served only its authors.
+A vignette or report answers its reader's questions in their order and carries nothing that served only its authors.
 
-*Index only: each rule's heading and first sentence. The full text is `~/Projects/repo/soul/conventions/writing.md`; read it before writing or reviewing code in its area.*
+*Index only: each rule's heading and first sentence. The full text is soul's `conventions/writing.md`; read it before writing or reviewing code in its area.*
 
 ### Headings are the reader's questions, in the order they ask them
-Make each heading a question the reader brings, in the order they ask it, within whatever sections a report template fixes; in a data product's article, limits and validation go last.
+Make each heading a question the reader brings, in their order, within any sections a report template fixes; in a data product's article, limits and validation go last.
+
+### Open with the answer
+State the finding, with its numbers, in a sentence or two before any method, so a reader who stops there has the right answer.
 
 ### Define a term in its own place, before it is used
-Give a term the article depends on its own short section, ahead of its first use, with its rule, why it exists, and how many cases fall each way.
+Give a term the article depends on its own short section before its first use, with its rule, why it exists, and how many cases fall each way.
 
-### A figure must say something a sentence can't
-Keep a figure only when a sentence cannot carry its point; otherwise keep the sentence and drop the figure.
+### Prefer a plain phrase to a term
+Name a quantity by what it does for the reader ("the score; lower is better"), and keep a term only if the article reuses it, giving it its own place.
+
+### A figure or table must say something a sentence can't
+Keep a figure only when a sentence cannot carry its point, and a table only when its rows are parallel items compared on shared columns; otherwise write the sentence.
 
 ### Cut what serves the authors
-Remove what the authors needed and the reader does not: parity with superseded products, paths to internal research, and the history of how a decision was reached.
+Remove what the authors needed and the reader does not: parity with superseded products, paths to internal research, and how a decision was reached.
 
 ### State a weakness as what the product does, not what the reader should do
-Describe each of the product's weaknesses in one sentence about what it does, and attach no advice on working around it beyond the product's own rule.
+Describe each weakness in one sentence about what the product does, with no advice on working around it beyond the product's own rule.
 
 ### State each claim by the code's definition
-Describe a set the code defines by that definition, never by its most familiar member or by a nearby proxy, because the sentence, and any guard written for it, then covers the proxy, not the set.
+Describe a set the code defines by that definition, never by its best-known member or a nearby proxy, or the sentence and its guard cover the proxy, not the set.
+
+### When explaining a decision, list every check and the way it points
+Count the checks from the data, not the conclusion, give each its direction, and call a choice the evidence did not make a decision.
+
+### Name, link and cite the software
+Set a software name in code font, link its first mention and say what it is, and end an article with a "Software and citation" section.
 
 ### Measure the simplification
-Report word and line counts before and after a rewrite, against what was forecast, and name what set the floor.
+Report word and line counts before and after a rewrite, against the forecast, and name what set the floor.
