@@ -31,3 +31,4 @@
 - BUILD again at 608147e (21:47–01:22 UTC): 512 of 512 parts identical to live, 0 differing (258618b)
 - Article data regenerated on m1 against live 77585a8 (segment, map, monthly; 4 min, every guard passed); against the committed bundles only provenance moved, plus the segment bundle's new `daily`. The segment article's prose cap (900 words) refused the daily additions at 949; tightened to 899. Both articles render
 - Issue #99's body: outcome line, the measured clamp, consistency and size; follow-up #107 filed
+- Review round 4 (one reviewer, prose since dabbfa1; `review-round4.md`): 5 findings, all fixed (largest part's source, a check described as n-weighted that takes a plain mean, the tie guard's scope, an unrecorded upload duration, the article's routed-days reason). The live manifest's routed description gives the clamp but not the fold's February weighting: filed as a follow-up

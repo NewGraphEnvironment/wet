@@ -117,7 +117,7 @@ GB, built on `r built_text` at wet commit `r pub$wet_commit`.
   polygon each segment drains, from the water balance only.
 - **`segment_daily`**: `segment_monthly` per day, `r num(sum(day_parts$rows))` rows
   (29 February folded into 28), one part per source and watershed group.
-  Routed PCIC's days, each clamped at zero, need not average to their month.
+  Clamped daily and folded, routed PCIC's days need not average to their month.
 
 Each row comes from one of two sources:
 
