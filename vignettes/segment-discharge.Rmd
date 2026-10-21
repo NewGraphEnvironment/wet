@@ -103,8 +103,8 @@ built_text <- paste(as.integer(format(built, "%d")), format(built, "%B %Y"))
 ## What it is
 
 wet publishes the mean flow of British Columbia's Freshwater Atlas stream
-segments, in cubic metres per second, for each calendar month, for the
-year, and for each day of the year. It is public at `s3://fresh-bc/discharge/fwa/v1/`. The bucket allows no
+segments, in cubic metres per second, for the year, each month and each
+day. It is public at `s3://fresh-bc/discharge/fwa/v1/`. The bucket allows no
 listing, so a reader starts from the manifest, <`r pub$manifest`>, which lists
 every part with its rows, size and md5. The current build has
 `r nrow(parts)` parquet parts, `r format(round(sum(parts$bytes) / 1e9, 2), nsmall = 2)`
@@ -115,12 +115,9 @@ GB, built on `r built_text` at wet commit `r pub$wet_commit`.
   1–12 the calendar months.
 - **`watershed_monthly`**: the same per fundamental watershed, the small
   polygon each segment drains, from the water balance only.
-- **`segment_daily`**: one row per segment, day and source,
-  `r num(sum(day_parts$rows))` rows, on a 365-day year (`doy` 1–365, 29
-  February folded into 28 February), one part per source and watershed group.
-  The balance's days keep its months. Routed PCIC's days are routed and
-  clamped at zero one by one, so where the clamp applied a month's days can
-  average a little above its published month.
+- **`segment_daily`**: `segment_monthly` per day, `r num(sum(day_parts$rows))` rows
+  (29 February folded into 28), one part per source and watershed group.
+  Routed PCIC's days, each clamped at zero, need not average to their month.
 
 Each row comes from one of two sources:
 
@@ -251,8 +248,8 @@ conn <- DBI::dbConnect(RPostgres::Postgres(), dbname = "fwapg")
 wet_db_load(conn, cat)   # discharge.fwa_v1_segment_monthly
 ```
 
-For one segment, `wet_segment_daily()` reads its days from its watershed
-group's parts, and `wet_flow_window()` gives a window's flow from them:
+`wet_segment_daily()` reads a segment's days, and `wet_flow_window()` a
+window's flow:
 
 ```{r read-daily, echo = TRUE, eval = FALSE}
 q <- wet_segment_daily(NULL, 17094080, groups = "BULK")
@@ -375,7 +372,7 @@ stopifnot(isTRUE(prov$keep_adjust), isFALSE(prov$gate_pass), identical(prov$pool
   `r num(sg[["no_lut"]])` have no watershed in the lookup through which the
   balance reaches a segment.
 
-How the balance is built, and how each of its choices was tested:
+How the balance is built, and each of its choices tested:
 [research/water_balance_method.md](`r gh("research/water_balance_method.md")`).
 
 ## Validation

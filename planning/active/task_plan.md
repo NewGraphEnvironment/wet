@@ -142,13 +142,13 @@ Mechanism choices I made (not questions):
       (all parts identical to live)
 
 ## Phase 6: Docs and articles
-- [ ] `research/discharge_publish.md`: `segment_daily` built and published (layout, sizes, checks
+- [x] `research/discharge_publish.md`: `segment_daily` built and published (layout, sizes, checks
       table, the clamp and month-consistency figures); `CLAUDE.md` architecture paragraph
-- [ ] `vignettes/segment-discharge.Rmd`: the daily read (`wet_segment_daily()` and a window with
+- [x] `vignettes/segment-discharge.Rmd`: the daily read (`wet_segment_daily()` and a window with
       `basis = "daily"`), its recipe run and checked by `data-raw/segment_vignette_data.R` against
       the live build under the existing guards; regenerate on m1
-- [ ] `vignettes/monthly-flow.Rmd`: the limits line points to the published daily, not a plan
-- [ ] Fix the issue body where the work corrected it (the check's equality is after rounding;
+- [x] `vignettes/monthly-flow.Rmd`: the limits line points to the published daily, not a plan
+- [x] Fix the issue body where the work corrected it (the check's equality is after rounding;
       the separate script); file the follow-up for daily-basis windows in the monthly-flow table
 
 ## Owed at the end (reported, done after merge)

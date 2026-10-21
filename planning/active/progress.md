@@ -29,3 +29,5 @@
 - BUILD at 77585a8 on m4 (17:06–20:36 UTC, 3 h 29 min): 512 parts, 15,040,448,264 values compared, 0 differing; 67 monthly parts identical to live 8ca2dee (608147e)
 - PUBLISH run by the user on m4: the live manifest named 77585a8 by 21:46 UTC; all 512 parts verify anonymously from m1
 - BUILD again at 608147e (21:47–01:22 UTC): 512 of 512 parts identical to live, 0 differing (258618b)
+- Article data regenerated on m1 against live 77585a8 (segment, map, monthly; 4 min, every guard passed); against the committed bundles only provenance moved, plus the segment bundle's new `daily`. The segment article's prose cap (900 words) refused the daily additions at 949; tightened to 899. Both articles render
+- Issue #99's body: outcome line, the measured clamp, consistency and size; follow-up #107 filed
