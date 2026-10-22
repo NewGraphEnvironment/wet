@@ -88,6 +88,18 @@ fwapg in PostgreSQL, for example fresh's Docker setup (`fresh/docker/`, db `fwap
 
 `data/` holds PCIC downloads and pipeline outputs. Regenerate them with `scripts/`. The exceptions are the small text reports and run logs that `research/` cites (`data/checks/*.txt`, `data/basin/*_report.txt`, `data/basin/*_run.log`), which are tracked.
 
+Pipeline run logs go under `data/logs/<issue>/` in the main checkout, and archive READMEs cite them by prefix. A worktree that ran pipeline steps holds its own gitignored `data/logs/<issue>/`, so before `git worktree remove`, check `find <worktree>/data/logs -type f | head` and move that directory into the main checkout's `data/logs/` (2026-10-15: removing three worktrees after #81 deleted the #16, #77 and #81 run logs their archive READMEs cited; the citations were corrected at 4067355, the logs are gone).
+
+## Working Conventions
+
+### README is plain language, big picture
+
+The README, and the website copy taken from it, say in plain language what wet tells you about stream flow and water temperature and why that matters; counts, rules and method go to the articles and `research/`.
+
+**Why:** the steer at #75 (2026-10-16): plain language, discharge and temperature, not too much detail, big picture. The website copies the README.
+
+**How to apply:** when drafting README text, an opening paragraph, a figure caption or the GitHub About, cut method detail and qualifiers, and aim for the previous README's word count or less. The section order and what stays out are soul's `readme.md`.
+
 ## Own estimates first; other groups' products are references
 
 Build our own open estimate, then score other groups' products against it and HYDAT. Do not adopt a product whose model code does not ship in place of our own. The BC Water Tools are yardsticks, not inputs to publish. PCIC's routed flow is published, cited and labelled by source, as each segment's default where it beats the balance at the gauges (#57, 2026-10-11). The open balance stays the independent estimate everything is scored against, and both stay scored at the same gauges (`scripts/pcic_routed_compare.R`). The reason for building our own: without the code we cannot tell whether a product is right, and building our own surfaces inconsistencies and errors on either side (2026-09-26; #5, #11). When you find a disagreement, attribute it: ours, theirs or unresolved. Use NGE's internal snapshot tool for pinned input snapshots, `crate` for shape-shifting source schemas, and `cd` for ERA5-Land variables.
