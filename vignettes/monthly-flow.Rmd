@@ -625,7 +625,24 @@ stopifnot(all(vapply(small_a, function(k) nse_g(gw, "area_class", k) > nse_g(gr,
           all(vapply(large_a, function(k) nse_g(gr, "area_class", k) > nse_g(gw, "area_class", k), NA)),
           nse_g(gr, "lake", "lake outlet") > nse_g(gw, "lake", "lake outlet"),
           nse_g(gw, "lake", "lake outlet") < nse_g(gw, "lake", "not a lake outlet"))
+# the prose: the score is taken over one gauge's twelve months, is 1 at a
+# perfect match and 0 at the gauge's annual mean in every month
+x <- both$obs_mm[both$station_number == both$station_number[1]]
+stopifnot(length(x) == 12, wet:::wet_nse(x, x) == 1, abs(wet:::wet_nse(x, rep(mean(x), 12))) < 1e-12)
 ```
+
+The table scores each source with the Nash–Sutcliffe efficiency (Nash and
+Sutcliffe 1970), per gauge over its twelve monthly means, and reports the
+median across gauges. It asks how much closer a source's twelve months come to
+the gauge's than a flat line at the gauge's annual mean would:
+
+- 1 is a perfect match, month for month;
+- 0 means the source's seasonal shape is no closer than no shape at all, the
+  annual mean in every month;
+- below 0, the flat line would have been closer.
+
+Moriasi and others (2007) read a monthly score above 0.75 as very good, 0.65 to
+0.75 as good and 0.50 to 0.65 as satisfactory.
 
 By basin size, the balance is the stronger source under 1,000 km² and routed
 PCIC above it. Routed PCIC is also the stronger at lake outlets, whose flow a
@@ -634,7 +651,7 @@ the balance's donor gauges are matched without regard to it.
 
 ```{r group-table}
 knitr::kable(gt, row.names = FALSE, align = "lrrr",
-             caption = paste("Median Nash–Sutcliffe efficiency of the monthly climatology per gauge,",
+             caption = paste("Median Nash–Sutcliffe efficiency of the twelve monthly means per gauge,",
                              "by basin size and lake outlets, on the", n_both_gauges, "gauges both sources are scored at."))
 ```
 
@@ -872,3 +889,11 @@ Freshwater Atlas*, <https://github.com/smnorris/fwapg>; gauge records from the
 Water Survey of Canada's HYDAT, release `r substr(prov$hydat_release, 1, 10)`;
 the Chinook windows from Gottesfeld, A. and Rabnett, K. (2007), *Skeena Fish
 Populations and their Habitat*, Skeena Fisheries Commission.
+
+Scores: Nash, J.E. and Sutcliffe, J.V. (1970), River flow forecasting through
+conceptual models part I: a discussion of principles, *Journal of Hydrology*
+10(3), 282–290, [doi:10.1016/0022-1694(70)90255-6](https://doi.org/10.1016/0022-1694(70)90255-6);
+Moriasi, D.N., Arnold, J.G., Van Liew, M.W., Bingner, R.L., Harmel, R.D. and
+Veith, T.L. (2007), Model evaluation guidelines for systematic quantification of
+accuracy in watershed simulations, *Transactions of the ASABE* 50(3), 885–900,
+[doi:10.13031/2013.23153](https://doi.org/10.13031/2013.23153).
