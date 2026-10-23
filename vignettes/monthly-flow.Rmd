@@ -499,16 +499,6 @@ n_un_10 <- sum(startsWith(unique(un$station_number), "10"))
 un_winter <- vapply(1:3, function(k) 100 * (stats::median(un$ratio_wb[un$month == k]) - 1), 0)
 sm$date <- mid(sm$month)
 sm$source <- factor(sm$source, names(pal_src$values))
-
-# per-gauge skill on the monthly climatology (wet_flow_validate(), as the
-# water-balance report scores it)
-sk_wb <- wet_flow_validate(data.frame(station_number = g$station_number, month = g$month,
-                                      obs = g$obs_mm, mod = g$wb_mm))
-r_ok <- !is.na(g$routed_mm) & !g$station_number %in% far
-sk_r <- wet_flow_validate(data.frame(station_number = g$station_number[r_ok], month = g$month[r_ok],
-                                     obs = g$obs_mm[r_ok], mod = g$routed_mm[r_ok]))
-# each source over its own gauges
-nse <- function(sk, col) stats::median(sk$stations[[col]], na.rm = TRUE)
 cap_err <- paste0(
   "Error in mean monthly flow by month: the median (line) and the middle half of gauges (band), as a ",
   "percentage of the gauge's ", base_text, " mean. The water balance is held out (blocked cross-validation) at ",
@@ -560,9 +550,9 @@ r_summer <- 7:8
 season_med <- function(col, mo) 100 * (stats::median(both[[col]][both$month %in% mo]) - 1)
 # head to head, on the same gauges
 r_closer <- which(shv("pcic_routed", 1:12, "within") > shv("wet_balance", 1:12, "within"))
-# the prose: the balance's median is within 10% in every month, highest in
-# April, and within the band at fewer than half the gauges in every month;
-# routed is low in spring and high in summer
+# the prose: the balance's median is within 10% in every month, and within
+# the band at fewer than half the gauges in every month; routed is low in
+# spring and high in summer
 wb_med <- smv("wet_balance", 1:12, "median")
 # the freshet at the gauges whose observed flow (not monthly volume) peaks in
 # May or June: the balance in the gauge's peak month, against the gauge
@@ -574,7 +564,7 @@ pk_ratio <- 100 * (stats::median(pk$ratio_wb) - 1)
 # the prose names the donor shares and the snow terms they are matched on:
 # the fit must have shipped both
 stopifnot(identical(prov$share_spec, "snow"), identical(prov$share_method, "donor"))
-stopifnot(max(abs(wb_med)) < 10, which.max(wb_med) == 4, pk_below > 50, pk_ratio < 0,
+stopifnot(max(abs(wb_med)) < 10, pk_below > 50, pk_ratio < 0,
           n_un + n_both_gauges + length(far) == n_bal_gauges, n_un_10 > n_un / 2, all(abs(un_winter) < 10),
           max(smv("wet_balance", 1:12, "within")) < 50,
           all(smv("pcic_routed", r_spring, "median") < -10), all(smv("pcic_routed", r_summer, "median") > 10),
@@ -590,32 +580,22 @@ shape_pct <- 100 * c(low = mean(g_low), high = mean(g_high), both = mean(g_low &
 stopifnot(shape_pct[["low"]] > 50, shape_pct[["high"]] > 50)
 ```
 
-The two sources' errors have different shapes.
+The two sources err in different ways, and the figure shows both.
 
 - **The water balance** is unbiased but imprecise. Its median error is within
-  ±10% in every month, highest in April (`r pct(wb_med[4])`), and within ±10%
-  in winter too at the `r n_un` gauges routed PCIC does not reach, most of them
-  in the Liard. But fewer than half of the gauges fall within
-  ±`r round(100 * band)`% in any month. Its months are an annual flow times the
-  shares of the year carried by the five gauges most like the place, matched on
-  elevation, location and two snow terms (the day half the snowpack has melted
-  by, and the peak snow water equivalent). Where the gauge's flow peaks in May
-  or June, the balance is below the gauge in that month at `r round(pk_below)`%
-  of `r nrow(pk)` gauges, by a median of `r pct(pk_ratio)`. Its median
-  Nash–Sutcliffe efficiency, held out, is `r sprintf("%.2f", nse(sk_wb, "nse_month"))`.
-  This error is ours.
-- **Routed PCIC** has a seasonal shape to its error. It reads low in March and
-  April (median `r pct(season_med("ratio_r", r_spring))`) and high in July and
-  August (`r pct(season_med("ratio_r", r_summer))`), as if its melt started late
-  and ran on; gauge by gauge, low in spring at `r round(shape_pct[["low"]])`%
-  of its `r n_both_gauges` gauges and high in summer at
-  `r round(shape_pct[["high"]])`%. On the gauges both sources are scored at it
-  has more within ±`r round(100 * band)`% than the balance in
-  `r length(r_closer)` months of twelve (`r and_text(month.name[r_closer])`).
-  Its median efficiency is `r sprintf("%.2f", nse(sk_r, "nse_month"))`. The
-  shape is the model's, not the placement's: a misplaced outlet changes one
-  gauge's size, and would not move the median of `r n_both_gauges` gauges
-  toward a late melt.
+  ±10% in every month, in winter too at the gauges routed PCIC does not reach,
+  most of them in the Liard; but in no month are half the gauges within
+  ±`r round(100 * band)`%. Its months are an annual flow split by the shares
+  of the year at the five gauges most like the place, matched on elevation,
+  location and snow, and where a gauge's flow peaks in May or June the balance
+  more often falls short in that month than overshoots. This error is ours.
+- **Routed PCIC** errs with the season: low in March and April, high in July
+  and August, as if its melt started late and ran on. The shape holds at most
+  of its gauges, not only at the median, so it is the model's, not the
+  placement's: a misplaced outlet changes one gauge's size, not the season at
+  all of them. On the gauges both sources are scored at, it still has more
+  within ±`r round(100 * band)`% than the balance in `r length(r_closer)` of
+  the twelve months.
 
 ```{r groups}
 grp <- unique(g[c("station_number", "area_class", "lake")])
