@@ -1,5 +1,24 @@
 # Changelog
 
+## wet 0.4.17
+
+- The monthly-flow article gives each Chinook window’s flow from the
+  published days as well as from monthly means
+  ([\#107](https://github.com/NewGraphEnvironment/wet/issues/107)), with
+  the gauge’s own monthly means against its daily record as the cost of
+  reading a window from months; its data bundle carries the three
+  Bulkley segments’ days, checked as the publish checks them (routed
+  PCIC routed again from fwapg’s sub-basin days, the balance made again
+  from its months and the fit’s daily shape). The article is rewritten
+  for its reader: a locator map of the three gauges and their nested
+  catchments, the months and their scoring before the windows, `fwapg`
+  (Norris 2026) and the windows’ source (Gottesfeld and Rabnett 2007)
+  cited, the Nash–Sutcliffe score defined and rated (Moriasi and
+  others 2007) under the group table through `kableExtra` (now in
+  Suggests), and the build checks out of the article, which run in the
+  data script. `scripts/vignette_map_lib.R` makes the map layers for
+  both station articles; the gq registry gains the `bulkley_map` layer.
+
 ## wet 0.4.16
 
 - Per-segment daily flow is published as

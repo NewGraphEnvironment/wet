@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.16</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.17</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,9 +34,13 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/v0.4.17/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.17" id="wet-0417">wet 0.4.17<a class="anchor" aria-label="anchor" href="#wet-0417"></a></h2>
+<ul><li>The monthly-flow article gives each Chinook window’s flow from the published days as well as from monthly means (<a href="https://github.com/NewGraphEnvironment/wet/issues/107" class="external-link">#107</a>), with the gauge’s own monthly means against its daily record as the cost of reading a window from months; its data bundle carries the three Bulkley segments’ days, checked as the publish checks them (routed PCIC routed again from fwapg’s sub-basin days, the balance made again from its months and the fit’s daily shape). The article is rewritten for its reader: a locator map of the three gauges and their nested catchments, the months and their scoring before the windows, <code>fwapg</code> (Norris 2026) and the windows’ source (Gottesfeld and Rabnett 2007) cited, the Nash–Sutcliffe score defined and rated (Moriasi and others 2007) under the group table through <code>kableExtra</code> (now in Suggests), and the build checks out of the article, which run in the data script. <code>scripts/vignette_map_lib.R</code> makes the map layers for both station articles; the gq registry gains the <code>bulkley_map</code> layer.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.16" id="wet-0416">wet 0.4.16<a class="anchor" aria-label="anchor" href="#wet-0416"></a></h2>
 <ul><li>Per-segment daily flow is published as <code>discharge/fwa/v1/segment_daily</code> (<a href="https://github.com/NewGraphEnvironment/wet/issues/99" class="external-link">#99</a>): every FWA segment’s mean flow on each day of a 365-day year (29 February folded into 28), for both sources, one parquet part per source and watershed group (2,886,046,240 rows in build 77585a8). The balance’s days are its published months laid on the fit’s daily shape (<a href="https://github.com/NewGraphEnvironment/wet/issues/70" class="external-link">#70</a>), so each month’s days average to it. Routed PCIC’s days are routed from fwapg’s sub-basin climatology and segment weights, clamped at zero and rounded as fwapg makes its months; the months rebuilt from them equal fwapg’s on every segment, and their plain mean need not equal the published month (the clamp, and February’s fold). <code><a href="../reference/wet_segment_daily.html">wet_segment_daily()</a></code> reads them for named groups, <code>wet_db_load(doys =, groups =)</code> loads a subset, and <code>wet_values_compare(time = "doy")</code> compares them. The segment-discharge article shows the read.</li>

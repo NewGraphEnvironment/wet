@@ -288,12 +288,12 @@ before writing them. The build’s own check of every published value is
 [its
 report](https://github.com/NewGraphEnvironment/wet/blob/main/data/checks/discharge_publish_20260717.txt).
 
-- `wet` 0.4.16,
+- `wet` 0.4.17,
   [doi:10.5281/zenodo.23305781](https://doi.org/10.5281/zenodo.23305781).
   Irvine A (2026). *wet: Stream Flow and Water Temperature for the BC
   Freshwater Atlas*. New Graph Environment Ltd.
   <doi:10.5281/zenodo.23305781>
-  <https://doi.org/10.5281/zenodo.23305781>. Version 0.4.16,
+  <https://doi.org/10.5281/zenodo.23305781>. Version 0.4.17,
   <https://github.com/NewGraphEnvironment/wet>.
 - `duckdb` 1.5.6. Mühleisen H, Raasveldt M (2026). *duckdb: DBI Package
   for the DuckDB Database Management System*. R package version 1.5.6,
