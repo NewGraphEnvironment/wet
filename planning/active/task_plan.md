@@ -39,11 +39,11 @@ Approved by the user at the plan gate, 2026-10-23 (recommended option 1 in each 
 
 ## Phase 3: `station-flow.Rmd`
 
-- [ ] Read the article line by line for software names. This was not done in the audit. Expect `wet`, `cd` (the departure statistics), `tidyhydat` (the HYDAT read), `fwapg` and `gq`. Each gets code font and a first-mention link saying what it is.
-- [ ] Remove the prose paths `data-raw/station_vignette_data.R` and `data-raw/station_vignette_map.R`. "Cached inputs" becomes the opening of a `## Software and citation` section, in two sentences: HYDAT release, provisional and real-time retrieval date, life-history table commit, and map layers from the Freshwater Atlas and BC Geographic Names. Update "(see Cached inputs, below)" to point at the new section.
-- [ ] Trends: name the test behind "significant at p <". `cd_trend()`'s `mk_pvalue` points to Mann–Kendall; confirm it, and Sen's slope, in `cd`'s code first. Give each its reference on the Scores line, plus a plain reading of the test where the article reads the p-value.
-- [ ] `## Software and citation`: the helper over `wet`, `cd`, `tidyhydat`, `ggplot2`, `gq` and `sf`, with Data and Scores lines. Gottesfeld and Rabnett (2007) goes on the Data line, and the trend references go on the Scores line.
-- [ ] Grep for dated words and issue pointers (none found in prose in the audit), apply decision 1 to the guard, and confirm the count is within 600.
+- [x] Read the article line by line for software names. This was not done in the audit. Expect `wet`, `cd` (the departure statistics), `tidyhydat` (the HYDAT read), `fwapg` and `gq`. Each gets code font and a first-mention link saying what it is.
+- [x] Remove the prose paths `data-raw/station_vignette_data.R` and `data-raw/station_vignette_map.R`. "Cached inputs" becomes the opening of a `## Software and citation` section, in two sentences: HYDAT release, provisional and real-time retrieval date, life-history table commit, and map layers from the Freshwater Atlas and BC Geographic Names. Update "(see Cached inputs, below)" to point at the new section.
+- [x] Trends: name the test behind "significant at p <". `cd_trend()`'s `mk_pvalue` points to Mann–Kendall; confirm it, and Sen's slope, in `cd`'s code first. Give each its reference on the Scores line, plus a plain reading of the test where the article reads the p-value.
+- [x] `## Software and citation`: the helper over `wet`, `cd`, `tidyhydat`, `ggplot2`, `gq` and `sf`, with Data and Scores lines. Gottesfeld and Rabnett (2007) goes on the Data line, and the trend references go on the Scores line.
+- [x] Grep for dated words and issue pointers (none found in prose in the audit), apply decision 1 to the guard, and confirm the count is within 600.
 
 ## Phase 4: Verify and document
 
