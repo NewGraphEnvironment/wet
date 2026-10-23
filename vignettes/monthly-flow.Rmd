@@ -90,11 +90,9 @@ question of another period or a climate model's future.
 
 This article is about the months. It shows how to read them for one stream,
 draws them against the gauge record on the Bulkley River, and scores them at
-the gauges the water balance is built on. One section asks a narrower question
-on the way: a life stage's window starts and ends mid-month, so is a monthly
-mean fine enough to read its flow from, or are the published days needed?
-"Flow in the Chinook windows" answers that; the rest of the article is about
-how good the months are.
+the gauges the water balance is built on. It ends with a narrower question: a
+life stage's window starts and ends mid-month, so is a monthly mean fine enough
+to read its flow from, or are the published days needed?
 
 ## What a month holds
 
@@ -133,8 +131,12 @@ Each source fills the twelve months its own way:
   hydrologic model over BC on observed climate and routes the runoff down the
   river network with the Raven model
   ([hydromosaic](https://beehive.pacificclimate.org/chyp/)).
-  [`fwapg`](https://github.com/NewGraphEnvironment/fwapg) places PCIC's river
-  points on Freshwater Atlas segments. The published value is the mean of each
+  [`fwapg`](https://github.com/smnorris/fwapg) (Norris 2026), PostgreSQL
+  tools for the Freshwater Atlas, holds the Atlas's stream network in a
+  database; [New Graph's fork](https://github.com/NewGraphEnvironment/fwapg)
+  of it places PCIC's river points on that network and gives each segment the
+  flow accumulated in the sub-basins draining to it, plus a share of its own
+  sub-basin's runoff. The published value is the mean of each
   month's daily flow over `r base_text`. Its annual value is the plain mean of
   the twelve months; weighting them by their days would move it by at most
   `r sprintf("%.1f%%", wtd_diff)` on the segments below.
@@ -177,6 +179,11 @@ stopifnot(nrow(ch) == 3, all(ch$end > ch$start))  # none crosses the new year
 stage <- sub("_", " ", ch$life_stage)
 windows <- data.frame(window = paste0(toupper(substring(stage, 1, 1)), substring(stage, 2)),
                       start = ch$start, end = ch$end)
+# the prose: a window is a row of (window, start, end), the shape both
+# wet_flow_window() and wet_window_stats() document for `windows`
+stopifnot(identical(names(windows), c("window", "start", "end")),
+          identical(names(formals(wet_flow_window))[2], "windows"),
+          identical(names(formals(wet_window_stats))[2], "windows"))
 md_text <- function(md) {
   d <- as.Date(paste0("2001-", md))
   paste(format(d, "%b"), as.integer(format(d, "%d")))
@@ -325,7 +332,12 @@ The Chinook windows are the weeks each life stage spends in these rivers, as
 Gottesfeld and Rabnett (2007) give them for the Skeena: adults migrating
 upstream from `r span_of("Migration")`, spawning from `r span_of("Spawning")`,
 and fry moving downstream from `r span_of("Fry migration")`. The flow in a
-window is the flow that life stage meets.
+window is the flow that life stage meets. The dates are a starting point from
+the literature, not a fixed definition: timing differs between streams and
+years, and the people who know a river may place a stage differently. A window
+is a row in a table, a name with a start and an end as month and day, and
+`wet_flow_window()` and `wet_window_stats()` take any such table, so the same
+reading runs for other dates, stages or species.
 
 ```{r map, fig.width = map_w, fig.height = map_h, fig.cap = cap_map}
 ggplot() +
@@ -430,143 +442,6 @@ own monthly pattern at the balance's annual flow, about `r pct(wb_off[["08EE013"
 and `r pct(wb_off[["08EE004"]])` in every month. The scores further down hold
 each gauge out instead. At Houston the balance is a true estimate for an
 ungauged site, and the gauge can check it only in open water.
-
-## Flow in the Chinook windows
-
-```{r windows}
-# the gauge's daily record, as the station-flow article reads it: the mean
-# over each window, in each 1981-2010 year with enough of the window's days
-ws <- wet_window_stats(dh[dh$station_number %in% c("08EE013", "08EE003"), c("station_number", "date", "q_m3s")],
-                       windows, stats = "mean")
-# a window's mean from monthly means, wet_flow_window(): each day takes its
-# month's mean. The sources' months once per gauge; the observed months per
-# window, since each window has its own years
-src_w <- wet_flow_window(sg[sg$station_number %in% c("08EE013", "08EE003"), c("station_number", "source", "month", "q_m3s")],
-                         windows, by = c("station_number", "source"))
-stopifnot(all(src_w$basis == "monthly"))
-src_q <- function(s, src, w) src_w$q_m3s[src_w$station_number == s & src_w$source == src & src_w$window == w]
-# the same windows from the published days (segment_daily), the same call
-sd <- v$segments_daily
-sd <- sd[sd$station_number %in% c("08EE013", "08EE003"), c("station_number", "source", "doy", "q_m3s")]
-src_d <- wet_flow_window(sd, windows, by = c("station_number", "source"))
-stopifnot(all(src_d$basis == "daily"))
-src_qd <- function(s, src, w) src_d$q_m3s[src_d$station_number == s & src_d$source == src & src_d$window == w]
-win <- do.call(rbind, lapply(c("08EE013", "08EE003"), function(s) {
-  do.call(rbind, lapply(seq_len(nrow(windows)), function(k) {
-    w <- windows[k, ]
-    yrs <- ws$year[ws$station_number == s & ws$period == w$window]
-    # the observed months over the same years as the daily means
-    mo <- my[my$station_number == s & my$year %in% yrs, ]
-    om <- stats::aggregate(q ~ month, mo, mean)
-    obs_w <- wet_flow_window(data.frame(month = om$month, q_m3s = om$q), w, by = character())
-    data.frame(station_number = s, window = w$window, span = paste(md_text(w$start), "–", md_text(w$end)),
-               years = length(yrs),
-               daily = mean(ws$value[ws$station_number == s & ws$period == w$window]),
-               obs_months = obs_w$q_m3s,
-               routed = src_q(s, "pcic_routed", w$window),
-               balance = src_q(s, "wet_balance", w$window),
-               routed_daily = src_qd(s, "pcic_routed", w$window),
-               balance_daily = src_qd(s, "wet_balance", w$window))
-  }))
-}))
-stopifnot(!anyNA(win), all(win$years >= min_years))
-approx_err <- 100 * (win$obs_months / win$daily - 1)
-err_of <- function(col) 100 * (win[[col]] / win$daily - 1)
-# what the days do to a window: each source's move from its months to its
-# days, beside the gauge's own move from its monthly means to its daily record
-move_of <- function(src) 100 * (win[[paste0(src, "_daily")]] / win[[src]] - 1)
-win$move_obs <- 100 * (win$daily / win$obs_months - 1)
-win$move_routed <- move_of("routed")
-win$move_balance <- move_of("balance")
-# the approximation per window, at its worse gauge
-approx_w <- tapply(abs(approx_err), win$window, max)[windows$window]
-good_w <- names(approx_w)[approx_w < 5]
-poor_w <- names(approx_w)[approx_w >= 5]
-in_poor <- win$window %in% poor_w
-at <- function(s, w = poor_w) win$station_number == s & win$window %in% w
-wp <- function(col, s) one(win[[col]][at(s)])
-ep <- function(col, s) one(err_of(col)[at(s)])
-# a move the prose calls a fall is printed unsigned, and must be negative
-drop_of <- function(col, s) {
-  x <- wp(col, s)
-  stopifnot(x < 0)
-  sprintf("%.0f%%", -x)
-}
-# the reason the prose gives for the poor window: the second half of July
-# runs well below July's mean
-late_july <- vapply(c("08EE013", "08EE003"), function(st) {
-  x <- dh[dh$station_number == st & dh$month == 7, ]
-  mean(x$q_m3s[as.integer(format(x$date, "%d")) >= 15]) / mean(x$q_m3s)
-}, 0)
-# the prose, sentence by sentence. Good windows: the gauge's daily record and
-# its monthly means agree within 5%, and the days move no source's window by
-# more than a tenth. The poor window is fry migration alone, and there the
-# monthly means overstate the gauge by about a quarter at both gauges. Routed
-# PCIC's days fall faster than the gauge's, and its error shrinks at both. The
-# balance's days at Buck Creek fall as the gauge's do (its donor is itself),
-# leaving its annual error; at Houston they fall less than half as far, and
-# the balance stays several times the gauge in both late-summer windows
-late_w <- c("Spawning", "Fry migration")
-b003 <- err_of("balance_daily")[win$station_number == "08EE003" & win$window %in% late_w]
-stopifnot(identical(poor_w, "Fry migration"), all(late_july < 0.9),
-          max(approx_w[good_w]) < 5, all(abs(c(win$move_routed, win$move_balance)[!in_poor]) < 10),
-          all(approx_err[in_poor] > 20), all(approx_err[in_poor] < 30),
-          all(win$move_routed[in_poor] < win$move_obs[in_poor]),
-          all(abs(err_of("routed_daily")[in_poor]) < abs(err_of("routed")[in_poor])),
-          abs(wp("move_balance", "08EE013") - wp("move_obs", "08EE013")) < 1,
-          abs(ep("balance_daily", "08EE013") - wb_off[["08EE013"]]) < 2,
-          wp("move_balance", "08EE003") < 0,
-          abs(wp("move_balance", "08EE003")) < abs(wp("move_obs", "08EE003")) / 2,
-          length(b003) == 2, all(b003 > 200))
-```
-
-The windows start and end mid-month, and a window taken from monthly means
-gives every day its month's mean. How much that costs is the table's "Months
-vs days" column, the gauge's own monthly means against its own daily record,
-with no model involved. Where flow changes slowly within the month the cost is
-small: in `r tolower(and_text(good_w))` the two agree within
-`r sprintf("%.0f%%", max(approx_w[good_w]))`. `r and_text(poor_w)` takes the
-second half of July, when the freshet is receding, and there the monthly means
-overstate the gauge by about a quarter. The other columns ask whether each
-source's published days recover that.
-
-They do wherever a source's daily pattern is right. Routed
-PCIC's days fall through late July faster than the gauge's, and its
-fry-migration error shrinks at both gauges. The balance's days follow a pattern
-borrowed from the gauges most like the place. At Buck Creek that is Buck Creek
-itself, so its days fall with the gauge's (`r drop_of("move_balance", "08EE013")`,
-against the gauge's `r drop_of("move_obs", "08EE013")`) and only its annual
-error remains. At Houston the borrowed pattern keeps more water into late
-summer: its days fall only `r drop_of("move_balance", "08EE003")`, and the
-balance stays several times the gauge in both late-summer windows. That error
-is ours. The table has the numbers.
-
-```{r window-table}
-tab <- data.frame(
-  Gauge = st_label[win$station_number], Window = paste0(win$window, " (", win$span, ")"),
-  Years = win$years,
-  `Daily record` = sprintf("%.1f", win$daily),
-  `Monthly, day-weighted` = sprintf("%.1f", win$obs_months),
-  `Months vs days` = pct(approx_err),
-  `Routed PCIC (months)` = sprintf("%.1f (%s)", win$routed, pct(err_of("routed"))),
-  `Routed PCIC (days)` = sprintf("%.1f (%s)", win$routed_daily, pct(err_of("routed_daily"))),
-  `Water balance (months)` = sprintf("%.1f (%s)", win$balance, pct(err_of("balance"))),
-  `Water balance (days)` = sprintf("%.1f (%s)", win$balance_daily, pct(err_of("balance_daily"))),
-  check.names = FALSE
-)
-tab$Gauge[duplicated(tab$Gauge)] <- ""
-# the prose names this column and says what it holds
-stopifnot("Months vs days" %in% names(tab),
-          identical(tab$`Months vs days`, pct(100 * (win$obs_months / win$daily - 1))))
-knitr::kable(tab, row.names = FALSE, align = "llrrrrrrrr",
-             caption = paste0("Mean flow (m³/s) in each Chinook window, ", base_text, ". Daily record: the gauge's ",
-                              "own daily flow, averaged over the window in each year with enough of its days. Monthly, ",
-                              "day-weighted: the same years' observed monthly means with every day given its month's ",
-                              "mean, which is how a window is read from monthly values. Months vs days: the second ",
-                              "against the first, the cost of reading the window from months. Each source twice: ",
-                              "from its published months, read the same way, and from its published days. In ",
-                              "brackets, the difference from the daily record."))
-```
 
 ## Monthly error at the gauges
 
@@ -781,6 +656,143 @@ knitr::kable(gt, row.names = FALSE, align = "lrrr",
                              "by basin size and lake outlets, on the", n_both_gauges, "gauges both sources are scored at."))
 ```
 
+## Flow in the Chinook windows
+
+```{r windows}
+# the gauge's daily record, as the station-flow article reads it: the mean
+# over each window, in each 1981-2010 year with enough of the window's days
+ws <- wet_window_stats(dh[dh$station_number %in% c("08EE013", "08EE003"), c("station_number", "date", "q_m3s")],
+                       windows, stats = "mean")
+# a window's mean from monthly means, wet_flow_window(): each day takes its
+# month's mean. The sources' months once per gauge; the observed months per
+# window, since each window has its own years
+src_w <- wet_flow_window(sg[sg$station_number %in% c("08EE013", "08EE003"), c("station_number", "source", "month", "q_m3s")],
+                         windows, by = c("station_number", "source"))
+stopifnot(all(src_w$basis == "monthly"))
+src_q <- function(s, src, w) src_w$q_m3s[src_w$station_number == s & src_w$source == src & src_w$window == w]
+# the same windows from the published days (segment_daily), the same call
+sd <- v$segments_daily
+sd <- sd[sd$station_number %in% c("08EE013", "08EE003"), c("station_number", "source", "doy", "q_m3s")]
+src_d <- wet_flow_window(sd, windows, by = c("station_number", "source"))
+stopifnot(all(src_d$basis == "daily"))
+src_qd <- function(s, src, w) src_d$q_m3s[src_d$station_number == s & src_d$source == src & src_d$window == w]
+win <- do.call(rbind, lapply(c("08EE013", "08EE003"), function(s) {
+  do.call(rbind, lapply(seq_len(nrow(windows)), function(k) {
+    w <- windows[k, ]
+    yrs <- ws$year[ws$station_number == s & ws$period == w$window]
+    # the observed months over the same years as the daily means
+    mo <- my[my$station_number == s & my$year %in% yrs, ]
+    om <- stats::aggregate(q ~ month, mo, mean)
+    obs_w <- wet_flow_window(data.frame(month = om$month, q_m3s = om$q), w, by = character())
+    data.frame(station_number = s, window = w$window, span = paste(md_text(w$start), "–", md_text(w$end)),
+               years = length(yrs),
+               daily = mean(ws$value[ws$station_number == s & ws$period == w$window]),
+               obs_months = obs_w$q_m3s,
+               routed = src_q(s, "pcic_routed", w$window),
+               balance = src_q(s, "wet_balance", w$window),
+               routed_daily = src_qd(s, "pcic_routed", w$window),
+               balance_daily = src_qd(s, "wet_balance", w$window))
+  }))
+}))
+stopifnot(!anyNA(win), all(win$years >= min_years))
+approx_err <- 100 * (win$obs_months / win$daily - 1)
+err_of <- function(col) 100 * (win[[col]] / win$daily - 1)
+# what the days do to a window: each source's move from its months to its
+# days, beside the gauge's own move from its monthly means to its daily record
+move_of <- function(src) 100 * (win[[paste0(src, "_daily")]] / win[[src]] - 1)
+win$move_obs <- 100 * (win$daily / win$obs_months - 1)
+win$move_routed <- move_of("routed")
+win$move_balance <- move_of("balance")
+# the approximation per window, at its worse gauge
+approx_w <- tapply(abs(approx_err), win$window, max)[windows$window]
+good_w <- names(approx_w)[approx_w < 5]
+poor_w <- names(approx_w)[approx_w >= 5]
+in_poor <- win$window %in% poor_w
+at <- function(s, w = poor_w) win$station_number == s & win$window %in% w
+wp <- function(col, s) one(win[[col]][at(s)])
+ep <- function(col, s) one(err_of(col)[at(s)])
+# a move the prose calls a fall is printed unsigned, and must be negative
+drop_of <- function(col, s) {
+  x <- wp(col, s)
+  stopifnot(x < 0)
+  sprintf("%.0f%%", -x)
+}
+# the reason the prose gives for the poor window: the second half of July
+# runs well below July's mean
+late_july <- vapply(c("08EE013", "08EE003"), function(st) {
+  x <- dh[dh$station_number == st & dh$month == 7, ]
+  mean(x$q_m3s[as.integer(format(x$date, "%d")) >= 15]) / mean(x$q_m3s)
+}, 0)
+# the prose, sentence by sentence. Good windows: the gauge's daily record and
+# its monthly means agree within 5%, and the days move no source's window by
+# more than a tenth. The poor window is fry migration alone, and there the
+# monthly means overstate the gauge by about a quarter at both gauges. Routed
+# PCIC's days fall faster than the gauge's, and its error shrinks at both. The
+# balance's days at Buck Creek fall as the gauge's do (its donor is itself),
+# leaving its annual error; at Houston they fall less than half as far, and
+# the balance stays several times the gauge in both late-summer windows
+late_w <- c("Spawning", "Fry migration")
+b003 <- err_of("balance_daily")[win$station_number == "08EE003" & win$window %in% late_w]
+stopifnot(identical(poor_w, "Fry migration"), all(late_july < 0.9),
+          max(approx_w[good_w]) < 5, all(abs(c(win$move_routed, win$move_balance)[!in_poor]) < 10),
+          all(approx_err[in_poor] > 20), all(approx_err[in_poor] < 30),
+          all(win$move_routed[in_poor] < win$move_obs[in_poor]),
+          all(abs(err_of("routed_daily")[in_poor]) < abs(err_of("routed")[in_poor])),
+          abs(wp("move_balance", "08EE013") - wp("move_obs", "08EE013")) < 1,
+          abs(ep("balance_daily", "08EE013") - wb_off[["08EE013"]]) < 2,
+          wp("move_balance", "08EE003") < 0,
+          abs(wp("move_balance", "08EE003")) < abs(wp("move_obs", "08EE003")) / 2,
+          length(b003) == 2, all(b003 > 200))
+```
+
+The windows start and end mid-month, and a window taken from monthly means
+gives every day its month's mean. How much that costs is the table's "Months
+vs days" column, the gauge's own monthly means against its own daily record,
+with no model involved. Where flow changes slowly within the month the cost is
+small: in `r tolower(and_text(good_w))` the two agree within
+`r sprintf("%.0f%%", max(approx_w[good_w]))`. `r and_text(poor_w)` takes the
+second half of July, when the freshet is receding, and there the monthly means
+overstate the gauge by about a quarter. The other columns ask whether each
+source's published days recover that.
+
+They do wherever a source's daily pattern is right. Routed
+PCIC's days fall through late July faster than the gauge's, and its
+fry-migration error shrinks at both gauges. The balance's days follow a pattern
+borrowed from the gauges most like the place. At Buck Creek that is Buck Creek
+itself, so its days fall with the gauge's (`r drop_of("move_balance", "08EE013")`,
+against the gauge's `r drop_of("move_obs", "08EE013")`) and only its annual
+error remains. At Houston the borrowed pattern keeps more water into late
+summer: its days fall only `r drop_of("move_balance", "08EE003")`, and the
+balance stays several times the gauge in both late-summer windows. That error
+is ours. The table has the numbers.
+
+```{r window-table}
+tab <- data.frame(
+  Gauge = st_label[win$station_number], Window = paste0(win$window, " (", win$span, ")"),
+  Years = win$years,
+  `Daily record` = sprintf("%.1f", win$daily),
+  `Monthly, day-weighted` = sprintf("%.1f", win$obs_months),
+  `Months vs days` = pct(approx_err),
+  `Routed PCIC (months)` = sprintf("%.1f (%s)", win$routed, pct(err_of("routed"))),
+  `Routed PCIC (days)` = sprintf("%.1f (%s)", win$routed_daily, pct(err_of("routed_daily"))),
+  `Water balance (months)` = sprintf("%.1f (%s)", win$balance, pct(err_of("balance"))),
+  `Water balance (days)` = sprintf("%.1f (%s)", win$balance_daily, pct(err_of("balance_daily"))),
+  check.names = FALSE
+)
+tab$Gauge[duplicated(tab$Gauge)] <- ""
+# the prose names this column and says what it holds
+stopifnot("Months vs days" %in% names(tab),
+          identical(tab$`Months vs days`, pct(100 * (win$obs_months / win$daily - 1))))
+knitr::kable(tab, row.names = FALSE, align = "llrrrrrrrr",
+             caption = paste0("Mean flow (m³/s) in each Chinook window, ", base_text, ". Daily record: the gauge's ",
+                              "own daily flow, averaged over the window in each year with enough of its days. Monthly, ",
+                              "day-weighted: the same years' observed monthly means with every day given its month's ",
+                              "mean, which is how a window is read from monthly values. Months vs days: the second ",
+                              "against the first, the cost of reading the window from months. Each source twice: ",
+                              "from its published months, read the same way, and from its published days. In ",
+                              "brackets, the difference from the daily record."))
+```
+
 ## Limits
 
 - On a calibration gauge's own segment the published balance is in-sample: the
@@ -870,8 +882,11 @@ balance is built:
 
 Data: routed flow from the Pacific Climate Impacts Consortium, University of
 Victoria ([hydromosaic](https://beehive.pacificclimate.org/chyp/): VIC-GL
-hydrologic model output routed with Raven, PNWNAmet forcing); gauge records
-from the Water Survey of Canada's HYDAT, release
-`r substr(prov$hydat_release, 1, 10)`; the Chinook windows from Gottesfeld, A.
-and Rabnett, K. (2007), *Skeena Fish Populations and their Habitat*, Skeena
-Fisheries Commission.
+hydrologic model output routed with Raven, PNWNAmet forcing), placed on the
+Freshwater Atlas by New Graph's fork of `fwapg` at commit
+`r prov$routed_commit`; the stream network from the BC Freshwater Atlas through
+Norris, S. (2026), *fwapg: PostgreSQL tools for working with British Columbia's
+Freshwater Atlas*, <https://github.com/smnorris/fwapg>; gauge records from the
+Water Survey of Canada's HYDAT, release `r substr(prov$hydat_release, 1, 10)`;
+the Chinook windows from Gottesfeld, A. and Rabnett, K. (2007), *Skeena Fish
+Populations and their Habitat*, Skeena Fisheries Commission.
