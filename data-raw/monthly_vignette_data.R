@@ -53,8 +53,11 @@
 # again from its published months 1-12 laid on the fit's daily shape
 # (shape_daily.rds, scripts/wb_shape_daily.R; wet_shape_predict() on the
 # bundle's upstream predictors, wet_shape_daily()), equal within the default
-# tolerance of wet_values_compare() (another machine's last bits), and each
-# calendar month's day mean must equal the published month within 1e-9.
+# tolerance of wet_values_compare() (another machine's last bits), on the
+# segments whose watershed predictors the copy holds (a reduced bundle keeps
+# the calibration gauges' only), the rest resting on the publish report's
+# daily check; and on every segment each calendar month's day mean must equal
+# the published month within 1e-9.
 
 source("scripts/vignette_data_lib.R")
 wet_commit <- vd_commit()
@@ -290,8 +293,11 @@ day_tie <- sum(tie)
 cmp_rd <- wet_values_compare(pr_d, src_rd[c("linear_feature_id", "doy", "q_m3s")], tol = 0, time = "doy")
 cmp_rd[["differing"]] <- cmp_rd[["differing"]] - day_tie
 # the balance's days made again from its published months 1-12 and the fit's
-# daily shape on the segments' watersheds (the bundle holds their predictors),
-# and each calendar month's day mean against the published month
+# daily shape, on the segments whose watershed predictors this copy of the
+# fit holds (a reduced bundle: the calibration gauges' watersheds, so not
+# 08EE003's); the rest of the days rest on the publish report's daily check.
+# Then each calendar month's day mean against the published month, on every
+# segment
 shape <- readRDS(file.path(fit_dir, "shape_daily.rds"))
 if (!identical(shape$method, "donor") || !inherits(shape$fit, "wet_shape_fit") ||
       !identical(shape$code_md5, fits$code_md5) || !identical(shape$release, release) ||
@@ -299,14 +305,17 @@ if (!identical(shape$method, "donor") || !inherits(shape$fit, "wet_shape_fit") |
   stop("shape_daily.rds is not a donor shape made on this fit: rerun scripts/wb_shape_daily.R")
 }
 up_b <- up[match(seg_bulk$watershed_feature_id, up$watershed_feature_id), ]
-stopifnot(!anyNA(up_b$watershed_feature_id), all(stats::complete.cases(up_b[shape$static])))
-q_mon <- t(vapply(seg_bulk$linear_feature_id, function(id) {
+held <- !is.na(up_b$watershed_feature_id)
+seg_h <- seg_bulk[held, ]
+up_b <- up_b[held, ]
+stopifnot(any(held), all(stats::complete.cases(up_b[shape$static])))
+q_mon <- t(vapply(seg_h$linear_feature_id, function(id) {
   x <- pb_b[pb_b$linear_feature_id == id & pb_b$month > 0, ]
   stopifnot(nrow(x) == 12)
   x$q_m3s[match(1:12, x$month)]
 }, numeric(12)))
 q_day <- wet_shape_daily(q_mon, wet_shape_predict(shape$fit, up_b[shape$static]))
-src_bd <- data.frame(linear_feature_id = rep(seg_bulk$linear_feature_id, each = 365), doy = rep(1:365, nrow(seg_bulk)),
+src_bd <- data.frame(linear_feature_id = rep(seg_h$linear_feature_id, each = 365), doy = rep(1:365, nrow(seg_h)),
                      q_m3s = as.vector(t(q_day)))
 pb_d <- pub_day[pub_day$source == "wet_balance", c("linear_feature_id", "doy", "q_m3s")]
 m_doy <- wet:::wet_doy_month()
@@ -315,8 +324,8 @@ mon_d <- stats::aggregate(q_m3s ~ linear_feature_id + month,
 pb_b12 <- pb_b[pb_b$month > 0, c("linear_feature_id", "month", "q_m3s")]
 cmp <- c(cmp, list(
   "routed days (Bulkley segments) = routed again from the run's sub-basin days" = cmp_rd,
-  "balance days (Bulkley segments) = published months x the fit's shape" =
-    wet_values_compare(pb_d, src_bd, time = "doy"),
+  "balance days (Bulkley segments whose watershed the bundle holds) = published months x the fit's shape" =
+    wet_values_compare(pb_d[pb_d$linear_feature_id %in% seg_h$linear_feature_id, ], src_bd, time = "doy"),
   "balance months from the days (Bulkley segments) = published months" = wet_values_compare(mon_d, pb_b12)
 ))
 pub_check <- data.frame(check = names(cmp), do.call(rbind, cmp), row.names = NULL)
@@ -420,6 +429,7 @@ provenance <- list(
   daily_report = f_day,
   shape_method = shape$method,
   shape_code_md5 = shape$shape_code_md5,
+  shape_stations = seg_h$station_number,
   day_tie = day_tie,
   snap = snap[c("station_number", "linear_feature_id", "distance_m", "area_ratio")],
   output_months = output_months,
