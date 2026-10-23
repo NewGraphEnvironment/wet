@@ -376,12 +376,13 @@ stopifnot(isTRUE(prov$keep_adjust), isFALSE(prov$gate_pass), identical(prov$pool
 
 ## Software and citation
 
-The numbers in this article are the published product's. Its routed values
-at the gauges and the picks on its map were read on `r format(prov$built)`
-from the build at `wet` commit `r pub$wet_commit`, and the routed values were
-held equal to `fwapg`'s before they were written. Its scores come from the
-water balance fit on HYDAT `r substr(prov$hydat_release, 1, 10)`. The build's
-own check of every published value is [its report](`r gh(pub$report)`).
+The routed values at the gauges and the picks on the map are the published
+product's, read on `r format(prov$built)` from the build at `wet` commit
+`r pub$wet_commit`; the routed values were held equal to `fwapg`'s before they
+were written. The province counts are from the segment table that build was cut
+from. The balance's scores are its held-out predictions from the fit on HYDAT
+`r substr(prov$hydat_release, 1, 10)`, against HYDAT's observed runoff. The
+build's own check of every published value is [its report](`r gh(pub$report)`).
 
 ```{r provenance}
 # Provenance. Gauge values were read on prov$built from the published build
@@ -421,8 +422,10 @@ Water Survey of Canada's HYDAT, release `r substr(prov$hydat_release, 1, 10)`;
 1981–2010 climate normals from the R package [`climr`](https://github.com/bcgov/climr);
 actual evapotranspiration from CGIAR-CSI's Global High-Resolution Soil-Water
 Balance v3 ([figshare 7707605](https://figshare.com/articles/dataset/Global_High-Resolution_Soil-Water_Balance/7707605)),
-held no lower than a Fu–Budyko estimate; hydrologic zones from the province's
-BC Hydrologic Zones.
+held no lower than a Fu–Budyko estimate; elevation from the Copernicus GLO-90
+DEM; for the monthly shares, ERA5-Land snow normals (Copernicus Climate Change
+Service) through the R package [`cd`](https://newgraphenvironment.github.io/cd/);
+hydrologic zones from the province's BC Hydrologic Zones.
 
 Method: Chapman, A.R., Kerr, B. and Wilford, D. (2018), A water allocation
 decision-support model and tool for predictions in ungauged basins in

@@ -649,7 +649,7 @@ The numbers in this article come from flows cached from HYDAT release
 `r prov$hydat`, with provisional and real-time flows retrieved
 `r day_text(prov$retrieved)`, and from NGE's life-history table at commit
 `r substr(prov$knowledge_sha, 1, 7)`. The map's layers come from the
-Freshwater Atlas and BC Geographic Names.
+Freshwater Atlas, BC Geographic Names and HYDAT's station locations.
 
 ```{r citation, results = "asis"}
 # the citation record each package ships (inst/CITATION, or its DESCRIPTION):
