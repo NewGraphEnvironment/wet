@@ -31,8 +31,9 @@ daily <- readRDS(vd("station_daily.rds"))
 lh <- utils::read.csv(vd("life_history_bulk.csv"), stringsAsFactors = FALSE, na.strings = "")
 map <- readRDS(vd("monthly_map.rds"))
 
-# every value below is the published product's, each checked against what it
-# was built from by data-raw/monthly_vignette_data.R: none may differ
+# the routed values below, and the balance's at prov$shape_stations, were each
+# checked against what they were built from by data-raw/monthly_vignette_data.R
+# (the rest rest on the publish report): none may differ
 stopifnot(identical(prov$published$manifest, wet:::wet_catalog_url), all(prov$published_check$compared > 0),
           all(prov$published_check$differing == 0))
 
@@ -166,7 +167,7 @@ reshape(q[q$month > 0, c("source", "month", "q_m3s")], idvar = "month",
 ```
 
 `wet_segment_monthly()` reads those files through `duckdb`, or the
-[PostgreSQL](https://www.postgresql.org/) table `wet_db_load()` writes when it
+[`PostgreSQL`](https://www.postgresql.org/) table `wet_db_load()` writes when it
 is given a connection. It returns `linear_feature_id, month, q_m3s, source`,
 the shape of `wet_station_monthly()`'s gauge record, so a comparison is a join
 on `month`. A segment a source lacks comes back with `NA` months, not missing
@@ -823,14 +824,17 @@ knitr::kable(tab, row.names = FALSE, align = "llrrrrrrrr",
 
 ## Software and citation
 
-The flows in this article are the published product's.
-`data-raw/monthly_vignette_data.R` bundled them on `r format(prov$built)` from
-the published build at wet `r prov$published$wet_commit`, and checked every one
-against what it was built from before writing them. The scores compare them,
-and the water balance held out by its fit on HYDAT
-`r substr(prov$hydat_release, 1, 10)`, with HYDAT's observed runoff. The
-build's own check of its published flows is
-[its report](`r paste0("https://github.com/NewGraphEnvironment/wet/blob/main/", prov$published$report)`).
+Routed PCIC's and the balance's flows in this article are the published
+product's, read on `r format(prov$built)` from the build at `wet` commit
+`r prov$published$wet_commit`. Before they were written, routed PCIC's months were
+held equal to the routed table in `fwapg` and its days were routed again from
+the sub-basin days there, and the balance's months and days were made again from the
+fit at `r paste(prov$shape_stations, collapse = " and ")`; the build's own check of its
+published flows,
+[its report](`r paste0("https://github.com/NewGraphEnvironment/wet/blob/main/", prov$published$report)`),
+covers the rest. The gauges' daily flows are HYDAT's. The scores compare routed
+PCIC as published, and the water balance held out by its fit on HYDAT
+`r substr(prov$hydat_release, 1, 10)`, with HYDAT's observed runoff.
 
 ```{r citation, results = "asis"}
 # the citation record each package ships (inst/CITATION, or its DESCRIPTION):
@@ -862,7 +866,8 @@ held no lower than a Fu–Budyko estimate, elevation from the Copernicus GLO-90
 DEM, ERA5-Land snow normals (Copernicus Climate Change Service) through the R
 package [`cd`](https://newgraphenvironment.github.io/cd/) for its monthly
 shares, and the province's BC Hydrologic Zones; the Chinook windows from Gottesfeld, A. and Rabnett, K. (2007), *Skeena Fish
-Populations and their Habitat*, Skeena Fisheries Commission.
+Populations and their Habitat*, Skeena Fisheries Commission; place names from
+BC Geographic Names.
 
 Scores: Nash, J.E. and Sutcliffe, J.V. (1970), River flow forecasting through
 conceptual models part I: a discussion of principles, *Journal of Hydrology*

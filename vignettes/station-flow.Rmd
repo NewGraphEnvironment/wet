@@ -305,7 +305,7 @@ ggplot() +
 
 ## The recipe
 
-These are the calls that produced the flow statistics. Baseline, departure and trend
+These are the calls that produced the window statistics. Baseline, departure and trend
 come from the R package [`cd`](https://newgraphenvironment.github.io/cd/), and
 the real-time feed is read with the R package
 [`tidyhydat`](https://docs.ropensci.org/tidyhydat/). The calls need HYDAT, the
