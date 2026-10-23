@@ -1,0 +1,56 @@
+## Outcome
+
+The monthly-flow article's Chinook window table gives each source twice, from its published months (day-weighted) and from its published days (`segment_daily`, #99), each against the gauge's daily record, so a reader sees what the days add. In the fry-migration window, the one where a window from monthly means is poor, the gauge's own days run 21 % (Buck Creek, 08EE013) and 20 % (08EE003) below its monthly means. Routed PCIC's days fall further (33 %, 24 %), and its error against the daily record goes from +39 % to −7 % at Buck Creek and +60 % to +21 % at 08EE003. The balance's days fall 21 % at Buck Creek, as the gauge's do (its donor shape there is the gauge's own), leaving its annual error of −12 %; at 08EE003 they fall only 5 % and the error stays +356 %. In migration the days move no window by over 1 %; in spawning by up to 9 %. The data script (`data-raw/monthly_vignette_data.R`) reads the three segments' days from the live build (77585a8) and checks them as the publish does: routed PCIC routed again from the run's sub-basin days on only the sub-basins the three weights name (the publish's tie rule; 0 ties), the balance made again from its published months and the fit's daily shape where the fit copy holds the watershed's predictors (two of three on m1's reduced bundle), and every segment's day means held to the published months. The article also took #110's writing items for itself alone: software in code font and linked, no issue pointers, "What's next" cut, a computed "Software and citation" section. What we learned: the days do not "close the gap" by themselves; each source's days move a window by that source's own within-month shape, so where the balance's donor shape is not the gauge's (08EE003) the days barely move it. Closed by: PR (opened from branch `107-monthly-flow-article-chinook-windows-fro`).
+
+## Measurement
+
+Fry-migration window, two gauges: gauge's days vs its monthly means −21 % / −20 %; routed PCIC's days vs its months −33 % / −24 % (error +39 % → −7 %, +60 % → +21 %); balance's days vs its months −21 % / −5 % (error +12 % → −12 %, +379 % → +356 %). Migration: every move under 1 %; spawning: under 10 %. Bundle checks: 8 rows, 0 differing (routed days 1,095 compared at `tol = 0`, balance days 730 at the default tolerance, months-from-days 36 within 1e-9); 0 routed days at a rounding tie. Bundle 134 KB. Article text 2,413 → 2,992 words.
+
+## Evidence
+
+- `data/logs/107/monthly_vignette_data.log` (the passing run; the first run's refusal is in `findings.md`), `data/logs/107/devtools_test.log`
+- `review-plan.md` (12 findings, 7 covered, 5 taken), `review-round1.md` to `review-round3.md`
+- The rendered before/after text diff: scratch only; its hunks are listed in `findings.md`
+
+## Readability pass and the map (after the PR opened, 2026-10-23)
+
+The first version met the convention's items and the user found it dense. Rewritten for the reader: numbers out of the prose into the window table, one idea per sentence, Validation cut to what was checked, every guard kept. Rendered text 2,413 words on `main` → 2,992 after the first version → 2,352 after the pass, with a map and a wider table added. A locator map of the three gauges and their nested catchments (567, 2,315, 7,342 km²) from `data-raw/monthly_vignette_map.R` on `scripts/vignette_map_lib.R`, extracted from `data-raw/station_vignette_map.R`, which now calls it; main's script and the refactored one, run to temp paths, give identical layers in every layer (the committed `station_map.rds` differs from both only in `lakes`, fwapg's lakes having moved since 15 October; not regenerated). The gq registry gains `bulkley_map`. Found on the way: `[` on an sf object read from an rds drops its geometry class until sf's methods are registered (`loadNamespace("sf")` opens the map chunk), and a merged stream layer mixes LINESTRING and MULTILINESTRING, which `st_coordinates()` refuses as a whole.
+
+| Round | Findings | Fixed | Accepted | Inside previous fix? |
+|-------|----------|-------|----------|----------------------|
+| 4 (the rewrite and the map) | 1 | 1 | 0 | n |
+
+Round 4's finding was the same mechanism as rounds 1–3: the rewrite compressed the far-low gauges' three-way attribution into one cause, false for 5 of 11 and unguardable from the bundle; the claim is removed. Its file walks every count, sign, direction and which-set sentence of the rewritten prose with what ties it, which ends the loop. Five reviewer agents in all.
+
+## Owed
+
+- #110's body: the monthly-flow bullets confirmed done under #107 at merge (its body already says they are taken here).
+- m1's `pcic.subbasin_daily` now holds the 1981–2010 run only; the 1951–2012 run's days were never loaded there (nothing reads them).
+
+## Code-check (branch, three rounds)
+
+| Round | Findings | Fixed | Accepted | Inside previous fix? |
+|-------|----------|-------|----------|----------------------|
+| 1 | 1 | 1 | 0 | — |
+| 2 | 1 (+1 wording note taken) | 1 | 0 | n |
+| 3 | 1 | 1 | 0 | n |
+
+Ended by enumeration: round 3 named the mechanism (prose stating a fact the data or layout holds, with no guard tying the sentence to it) and listed every changed sentence stating a count, direction, sign, position or set with what ties it; after the round-3 fix the only untied ones describe the file's layout or a declared contract, which another build of the bundle cannot move.
+
+## Framing for the biologist (2026-10-23, after the readability pass)
+
+At the user's ask: the article opens with why flow timing matters to a fish and what a flow for every stream is for (suitability, comparison between streams, the same question of another period or a climate model's future); PCIC is spelled out with its product linked; the Chinook windows are defined with their dates (from the bundled life-history table, guarded to one source) and cited to Gottesfeld and Rabnett (2007), resolved in Zotero (`gottesfeld_rabnett2007SkeenaFish`); a data line closes the citation section. 2,352 → 2,616 words.
+
+## Reframing (2026-10-23)
+
+The user read the article as being about days versus months and found the monthly-error tables unrelated. The branch's new opening had said the article was about "whether a month is fine enough to read a life stage's window from", which only one section answers. The intro now says the article is about the months and names that section as the one asking the narrower question. The window table gains a "Months vs days" column, the gauge's own monthly means against its own daily record (0% to +3% in migration and spawning, +27% and +24% in fry migration), so the cost of reading a window from months is a printed number rather than a subtraction; a `stopifnot()` ties the column to its definition. 2,616 → 2,554 words.
+
+## Order, fwapg and the windows' standing (2026-10-23, same day)
+
+The user asked whether a table showing error from the days before the months had been scored was a logical progression. It was not: "Flow in the Chinook windows" now follows "Monthly error at the gauges", so the article runs months, their quality, then the finer question (its table is Table 3); nothing after the section used what it computes, so the code moved unchanged. `fwapg` is now said and cited: Norris (2026), PostgreSQL tools for the Freshwater Atlas, linked at smnorris/fwapg, with New Graph's fork named for placing PCIC's points and the segment rule stated as the code has it (accumulated sub-basin flow plus a share of the own sub-basin's runoff); the data line carries the reference and the fork's commit. The windows paragraph says the dates are a starting point from the literature, not a fixed definition, and that `wet_flow_window()` and `wet_window_stats()` take any `(window, start, end)` table, guarded on the table's names and both functions' second formal. 2,554 → 2,682 words.
+
+## Reader passes (2026-10-23, after 97ae425)
+
+The user read the article at 97ae425 and asked, in turn: what a "manifest" is (3b574ea: the read section says the months are public files on the web that `wet` finds, sorted by watershed group); whether the error prose needed the numbers the figure and tables hold (f23316a: the bullets say the pattern, the per-source NSE and its code go); for a definition and reference of the Nash–Sutcliffe score (7d3e3fb: defined before the group table, Nash and Sutcliffe 1970 and Moriasi and others 2007 cited and added to the Zotero group library's `hydrology` collection); and why Validation was in the article at all. The section was cut: it printed the data script's build checks, which serve the authors and still run at every build. Two sentences at the top of "Software and citation" say when and from what the numbers were bundled and link the publish report. Word count 2,682 → about 2,480 rendered.
+
+The score's definition and Moriasi's ratings then moved from the prose into the group table: a `Rating` column beside each score and a two-line note under the table through `kableExtra::footnote()` (`kableExtra` added to Suggests). A footnote on a bare `knitr::kable()` in a bookdown document numbers the caption twice and writes `NA` into the table's style attribute (kableExtra 1.4.0); `format = "html"` with `kable_styling()` before `footnote()` gives one caption and a clean table, measured on a four-variant test render. The session's writing lessons are filed as a soul issue.

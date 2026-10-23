@@ -6,3 +6,8 @@ flow_source,line,,source,wet_balance,Water balance,#d55e00,1,,,,,,,,,,,,,,,,Okab
 pick_source,line,,class,pcic_routed,Routed PCIC,#0072b2,1,,,,,,,,,,,,,,,,"Okabe-Ito blue, as flow_source: the source pick takes"
 pick_source,line,,class,wet_balance,Water balance,#d55e00,1,,,,,,,,,,,,,,,,"Okabe-Ito vermillion, as flow_source"
 gauge,point,,part,calibration,Calibration gauge,#000000,1,,,,,,,,,,,,,,,,Black: plain dots over the coloured rivers
+bulkley_map,polygon,,part,catchment_quick,Drains to the Bulkley at Quick (08EE004),#f0f0f0,1,,,,,,,,,,,,,,,,ColorBrewer Greys lightest: the whole basin
+bulkley_map,polygon,,part,catchment_houston,Drains to the Bulkley at Houston (08EE003),#d9d9d9,1,,,,,,,,,,,,,,,,ColorBrewer Greys light: nested inside Quick's
+bulkley_map,polygon,,part,catchment_buck,Drains to Buck Creek (08EE013),#bdbdbd,1,,,,,,,,,,,,,,,,ColorBrewer Greys mid: nested inside Houston's
+bulkley_map,line,,part,stream_main,Bulkley River and Buck Creek,#1f78b4,1,,,,,,,,,,,,,,,,gq lake stroke blue: the gauged streams
+bulkley_map,point,,part,station,Hydrometric gauge,#d55e00,1,,,,,,,,,,,,,,,,"Okabe-Ito vermillion, as wet_station.csv's station"

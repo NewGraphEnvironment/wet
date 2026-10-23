@@ -34,6 +34,7 @@ Suggests:
     ggplot2,
     gsdd,
     gq,
+    kableExtra,
     Kendall,
     knitr,
     ncdf4,
