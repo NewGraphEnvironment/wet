@@ -12,6 +12,16 @@ Fry-migration window, two gauges: gauge's days vs its monthly means −21 % / �
 - `review-plan.md` (12 findings, 7 covered, 5 taken), `review-round1.md` to `review-round3.md`
 - The rendered before/after text diff: scratch only; its hunks are listed in `findings.md`
 
+## Readability pass and the map (after the PR opened, 2026-10-23)
+
+The first version met the convention's items and the user found it dense. Rewritten for the reader: numbers out of the prose into the window table, one idea per sentence, Validation cut to what was checked, every guard kept. Rendered text 2,413 words on `main` → 2,992 after the first version → 2,346 after the pass, with a map and a wider table added. A locator map of the three gauges and their nested catchments (567, 2,315, 7,342 km²) from `data-raw/monthly_vignette_map.R` on `scripts/vignette_map_lib.R`, extracted from `data-raw/station_vignette_map.R`, which now calls it; main's script and the refactored one, run to temp paths, give identical layers in every layer (the committed `station_map.rds` differs from both only in `lakes`, fwapg's lakes having moved since 15 October; not regenerated). The gq registry gains `bulkley_map`. Found on the way: `[` on an sf object read from an rds drops its geometry class until sf's methods are registered (`loadNamespace("sf")` opens the map chunk), and a merged stream layer mixes LINESTRING and MULTILINESTRING, which `st_coordinates()` refuses as a whole.
+
+| Round | Findings | Fixed | Accepted | Inside previous fix? |
+|-------|----------|-------|----------|----------------------|
+| 4 (the rewrite and the map) | 1 | 1 | 0 | n |
+
+Round 4's finding was the same mechanism as rounds 1–3: the rewrite compressed the far-low gauges' three-way attribution into one cause, false for 5 of 11 and unguardable from the bundle; the claim is removed. Its file walks every count, sign, direction and which-set sentence of the rewritten prose with what ties it, which ends the loop. Five reviewer agents in all.
+
 ## Owed
 
 - #110's body: the monthly-flow bullets confirmed done under #107 at merge (its body already says they are taken here).

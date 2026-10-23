@@ -275,7 +275,7 @@ sb_km <- max(gq::gq_scale_breaks(bb))
 sb <- data.frame(x = lim_x[2] - 0.05 * dx - sb_km * 1000, y = lim_y[1] + 0.05 * dy)
 sb$xend <- sb$x + sb_km * 1000
 
-# keymap: BC with the map extent, in the upper right
+# keymap: BC with the map extent, in the upper left
 key <- ggplot() +
   geom_sf(data = map$bc, fill = "white", colour = pal_hydro$values[["median"]], linewidth = 0.2) +
   geom_sf(data = sf::st_as_sfc(bb), fill = NA, colour = pal_map$values[["station"]], linewidth = 0.6) +
@@ -608,8 +608,8 @@ built on, against each gauge's monthly means over its complete years in
 from a fit that never saw it or its neighbours. Routed PCIC is scored on the
 segment each gauge snapped to, at the `r n_routed` gauges whose segment has
 routed flow, less `r length(far)` where the segment carries under
-`r round(100 * far_low)`% of the gauge's flow (a misplaced outlet or snap),
-so `r n_both_gauges` gauges.
+`r round(100 * far_low)`% of the gauge's flow, which the annual comparison
+leaves out and attributes one by one; so `r n_both_gauges` gauges.
 
 ```{r error-month, fig.height = 4.2, fig.cap = cap_err}
 ggplot(sm, aes(date)) +
