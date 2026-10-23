@@ -31,7 +31,7 @@ Added today from the code (mechanism, no fork): the routed-days check also holds
 - [x] The daily-basis windows run here too, as the recipe check does: `wet_flow_window()` on the days with the article's three Chinook windows (`life_history_bulk.csv`, CH migration/spawning/fry_migration) must give `basis = "daily"` and no NA.
 - [x] Bundle `segments_daily` (`station_number, linear_feature_id, source, doy, q_m3s`), ordered as `segments`; provenance gains the daily parts used (`cat_pub` already carries all 512), `shape_code_md5`, the daily fingerprint, and `shape_daily.rds` in `md5`; `no64()` on it; budget stays 500 KB.
 - [x] Header comment: the new element and the daily checks, in the header's own words.
-- [ ] Commit the script, then run it (`WET_FWAPG_COMMIT=7c30f58 Rscript data-raw/monthly_vignette_data.R`; `vd_commit()` refuses a dirty tree); commit the bundle. Each prose number of Phase 3 is read from this bundle.
+- [x] Commit the script, then run it (`WET_FWAPG_COMMIT=7c30f58 Rscript data-raw/monthly_vignette_data.R`; `vd_commit()` refuses a dirty tree); commit the bundle. Each prose number of Phase 3 is read from this bundle.
 
 ## Phase 2: the bundle's test
 
@@ -74,6 +74,6 @@ Added today from the code (mechanism, no fork): the routed-days check also holds
 
 - The data script refuses unless every `pub_check` row has `differing == 0` and `compared` equal to its source's row count, the parts verify before and after each read, and `vd_published()`, `vd_routed_check()` and `vd_commit()` pass; the bundle is under 500 KB.
 - The Phase 2 test fails on the old bundle (no `segments_daily`) and passes on the new.
-- The rendered article: the window table has the daily columns; the fry-migration row's daily-basis difference from the daily record is smaller than its monthly-basis one for the gauge's own record (the days close the approximation), and the prose number equals the table's; no `#N` in the rendered prose; a "Software and citation" section with wet's DOI, version and commit.
+- The rendered article: the window table has the daily columns; the fry-migration row's daily-basis difference from the daily record is smaller than its monthly-basis one for the gauge's own record (the days close the approximation), and the prose number equals the table's; no `#N` in the rendered prose; a "Software and citation" section with wet's DOI and version, and the commit when the install recorded a 40-character hash (a build from a checkout, pkgdown's included, records none; plan review finding 8).
 - Text diff of the render before and after shows only the windows section, Limits, the cut "What's next", the citation section and the #110 wording changes.
 
