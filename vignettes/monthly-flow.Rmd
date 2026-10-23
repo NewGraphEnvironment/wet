@@ -68,15 +68,17 @@ stopifnot(identical(period_of("wet_balance"), paste0(min(base), "-", max(base)))
           identical(period_of("pcic_routed"), period_of("wet_balance")))
 ```
 
-The published discharge table (`vignette("segment-discharge")`) gives an
-FWA segment thirteen values per source it covers (routed PCIC covers fewer
-segments than the balance): the mean annual flow (month 0) and the
-mean flow of each calendar month (months 1–12). This article is about the
-twelve months. It shows how to read them for one stream, sets them against
-observed flow and Chinook life-stage windows on the Bulkley River, and scores
-both sources month by month at the gauges the water balance is calibrated on.
-The scores are where the monthly values are right and where they are not, and
-the article ends with the list of what to fix.
+The discharge table the R package
+[`wet`](https://github.com/NewGraphEnvironment/wet) publishes
+(`vignette("segment-discharge")`) gives an FWA segment thirteen values per
+source it covers (routed PCIC covers fewer segments than the balance): the
+mean annual flow (month 0) and the mean flow of each calendar month (months
+1–12). This article is about the twelve months. It shows how to read them for
+one stream, sets them against observed flow and Chinook life-stage windows on
+the Bulkley River, takes the same windows from the published days to show what
+the days add, and scores both sources month by month at the gauges the water
+balance is calibrated on. The scores are where the monthly values are right
+and where they are not.
 
 ## What a month holds
 
@@ -112,13 +114,15 @@ Each source fills the twelve months its own way:
 
 - **Routed PCIC** (`pcic_routed`) is the mean of each month's daily flow over
   `r base_text` from PCIC's Raven routing of VIC-GL runoff, placed on FWA
-  segments by NewGraphEnvironment/fwapg#6. Its month 0 is the plain mean of the
+  segments by [`fwapg`](https://github.com/NewGraphEnvironment/fwapg), the
+  Freshwater Atlas in PostgreSQL. Its month 0 is the plain mean of the
   twelve months, not weighted by their days. On the three segments below that
   moves it by at most `r sprintf("%.1f%%", wtd_diff)`.
 - **The water balance** (`wet_balance`) is the annual flow over `r base_text`
   split into months by the shares of the year that the five calibration gauges
-  most like it carry (`wet_share_fit()`, #102). Its months are volume shares of
-  its month 0, so they add up to it exactly.
+  most like it carry (`wet_share_fit()`, a method chosen by a rule set before
+  it was tried). Its months are volume shares of its month 0, so they add up
+  to it exactly.
 
 Both sources cover `r base_text`, the period the gauges are scored over.
 Neither is the gauge record.
@@ -127,8 +131,8 @@ Neither is the gauge record.
 
 The parts are public and the bucket allows no listing, so the manifest names
 them. One stream is one `linear_feature_id`. Naming its watershed group as well
-lets duckdb skip the row groups that cannot hold it, which keeps the read to
-seconds.
+lets [`duckdb`](https://duckdb.org/) skip the row groups that cannot hold it,
+which keeps the read to seconds.
 
 ```{r read, echo = TRUE, eval = FALSE}
 library(wet)
@@ -140,8 +144,9 @@ reshape(q[q$month > 0, c("source", "month", "q_m3s")], idvar = "month",
         timevar = "source", direction = "wide")
 ```
 
-`wet_segment_monthly()` reads the parts through duckdb when it is given no
-database connection, and the table `wet_db_load()` writes when it is. It
+`wet_segment_monthly()` reads the parts through `duckdb` when it is given no
+database connection, and the [PostgreSQL](https://www.postgresql.org/) table
+`wet_db_load()` writes when it is. It
 returns `linear_feature_id, month, q_m3s, source`, in the shape of
 `wet_station_monthly()`'s `station_number, month, q_m3s` for a gauge, so a
 gauge comparison is a join on `month`. A segment with no value for a source comes back with its months as
@@ -308,6 +313,12 @@ src_w <- wet_flow_window(sg[sg$station_number %in% c("08EE013", "08EE003"), c("s
                          windows, by = c("station_number", "source"))
 stopifnot(all(src_w$basis == "monthly"))
 src_q <- function(s, src, w) src_w$q_m3s[src_w$station_number == s & src_w$source == src & src_w$window == w]
+# the same windows from the published days (segment_daily), the same call
+sd <- v$segments_daily
+src_d <- wet_flow_window(sd[sd$station_number %in% c("08EE013", "08EE003"), c("station_number", "source", "doy", "q_m3s")],
+                         windows, by = c("station_number", "source"))
+stopifnot(all(src_d$basis == "daily"))
+src_qd <- function(s, src, w) src_d$q_m3s[src_d$station_number == s & src_d$source == src & src_d$window == w]
 win <- do.call(rbind, lapply(c("08EE013", "08EE003"), function(s) {
   do.call(rbind, lapply(seq_len(nrow(windows)), function(k) {
     w <- windows[k, ]
@@ -321,12 +332,20 @@ win <- do.call(rbind, lapply(c("08EE013", "08EE003"), function(s) {
                daily = mean(ws$value[ws$station_number == s & ws$period == w$window]),
                obs_months = obs_w$q_m3s,
                routed = src_q(s, "pcic_routed", w$window),
-               balance = src_q(s, "wet_balance", w$window))
+               balance = src_q(s, "wet_balance", w$window),
+               routed_daily = src_qd(s, "pcic_routed", w$window),
+               balance_daily = src_qd(s, "wet_balance", w$window))
   }))
 }))
 stopifnot(!anyNA(win), all(win$years >= min_years))
 approx_err <- 100 * (win$obs_months / win$daily - 1)
 err_of <- function(col) 100 * (win[[col]] / win$daily - 1)
+# what the days do to a window: each source's move from its months to its
+# days, beside the gauge's own move from its monthly means to its daily record
+move_of <- function(src) 100 * (win[[paste0(src, "_daily")]] / win[[src]] - 1)
+win$move_obs <- 100 * (win$daily / win$obs_months - 1)
+win$move_routed <- move_of("routed")
+win$move_balance <- move_of("balance")
 # the approximation per window, at its worse gauge
 approx_w <- tapply(abs(approx_err), win$window, max)[windows$window]
 good_w <- names(approx_w)[approx_w < 5]
@@ -356,23 +375,66 @@ worst <- function(col) {
   e <- err_of(col)[in_poor]
   e[which.max(abs(e))]
 }
+# what the days do (#107), which the prose states window by window. In the
+# poor window: the gauge's days run below its monthly means at both gauges;
+# routed PCIC's days fall further than the gauge's, and its error from the
+# days is smaller than from the months at both; the balance's days at Buck
+# Creek fall as the gauge's do (its shape there is the gauge's own), so its
+# window error from the days is its annual error, while at 08EE003 its days
+# move it less than half as far as the gauge's, and it stays several times
+# the gauge. In the other windows the days move no window by more than a
+# tenth, and in migration by under 1%
+at <- function(s, w = poor_w) win$station_number == s & win$window %in% w
+wp <- function(col, s) one(win[[col]][at(s)])
+ep <- function(col, s) one(err_of(col)[at(s)])
+stopifnot(all(win$move_obs[in_poor] < -15),
+          all(win$move_routed[in_poor] < win$move_obs[in_poor]),
+          all(abs(err_of("routed_daily")[in_poor]) < abs(err_of("routed")[in_poor])),
+          ep("routed", "08EE013") > 0, ep("routed_daily", "08EE013") < 0,
+          abs(wp("move_balance", "08EE013") - wp("move_obs", "08EE013")) < 1,
+          abs(ep("balance_daily", "08EE013") - wb_off[["08EE013"]]) < 2,
+          abs(wp("move_balance", "08EE003")) < abs(wp("move_obs", "08EE003")) / 2,
+          ep("balance_daily", "08EE003") > 300,
+          all(abs(c(win$move_routed, win$move_balance)[!in_poor]) < 10),
+          all(abs(c(win$move_routed, win$move_balance)[win$window == "Migration"]) < 1))
 ```
 
-The windows start and end mid-month, and the product holds monthly means. A
-window's flow from the product is therefore a day-weighted mean: each day of
-the window takes its month's mean. Two columns of the table below separate
-that approximation from model error. *Daily record* is the gauge's own daily
-flow, averaged over the window in each year, and *Monthly, day-weighted* is the
-same years' observed monthly means put through the day weighting. In
-`r tolower(and_text(good_w))` they agree within
-`r sprintf("%.0f%%", max(approx_w[good_w]))`. In `r tolower(and_text(poor_w))`
-they differ by up to `r sprintf("%.0f%%", max(approx_w[poor_w]))`, because that
-window takes half of July, when the flow is falling fast, at July's mean. Even
-there the approximation is smaller than routed PCIC's error, which in that
-window reaches `r pct(worst("routed"))`. At Buck Creek the balance carries the
-gauge's own months, so its window error is the approximation's and its annual
-error's. At 08EE003, which no fit uses, it is `r pct(min(b003))` to
-`r pct(max(b003))` in the two late-summer windows, while it is
+The product holds monthly means and, since the days were published, daily
+means. The windows start and end mid-month, so a window's flow from the months
+is a day-weighted mean, each day taking its month's mean, and that is an
+approximation where the flow moves within a month. The days remove it only as
+far as each source's own within-month shape is right. In
+`r tolower(and_text(poor_w))`, the one window where the approximation is
+large, the gauge's own days run `r pct(wp("move_obs", "08EE013"))` below its
+monthly means at Buck Creek and `r pct(wp("move_obs", "08EE003"))` at 08EE003.
+Routed PCIC's days fall further (`r pct(wp("move_routed", "08EE013"))` and
+`r pct(wp("move_routed", "08EE003"))`), and its error from the days is
+smaller than from the months at both: `r pct(ep("routed_daily", "08EE013"))`
+against `r pct(ep("routed", "08EE013"))` at Buck Creek,
+`r pct(ep("routed_daily", "08EE003"))` against `r pct(ep("routed", "08EE003"))`
+at 08EE003. The balance's days at Buck Creek fall as the gauge's do
+(`r pct(wp("move_balance", "08EE013"))`), because the shape they are laid on is
+fitted at the gauges and this one's nearest is itself, so its window error from
+the days is its annual error, `r pct(ep("balance_daily", "08EE013"))`. At
+08EE003 the balance's days fall only `r pct(wp("move_balance", "08EE003"))`:
+the shape its donor gauges give holds more of late summer than this gauge
+carries, and its error stays `r pct(ep("balance_daily", "08EE003"))`.
+
+Two columns of the table below separate the approximation from model error.
+*Daily record* is the gauge's own daily flow, averaged over the window in each
+year, and *Monthly, day-weighted* is the same years' observed monthly means put
+through the day weighting. In `r tolower(and_text(good_w))` they agree within
+`r sprintf("%.0f%%", max(approx_w[good_w]))`, and the days move no source's
+window by more than 1% in migration or a tenth in spawning. In
+`r tolower(and_text(poor_w))` they differ by up to
+`r sprintf("%.0f%%", max(approx_w[poor_w]))`, because that window takes half
+of July, when the flow is falling fast, at July's mean. Even there the
+approximation is smaller than routed PCIC's error from the months, which in
+that window reaches `r pct(worst("routed"))`. At Buck Creek the balance
+carries the gauge's own months, so its window error from the months is the
+approximation's and its annual error's. At 08EE003, which no fit uses, it is
+`r pct(min(b003))` to `r pct(max(b003))` in the two late-summer windows, while
+it is
 `r pct(err_of("balance")[win$station_number == "08EE003" & win$window == "Migration"])`
 in the migration window: its donor gauges put far more of the year into late
 summer than this gauge carries. That error is ours.
@@ -383,17 +445,21 @@ tab <- data.frame(
   Years = win$years,
   `Daily record` = sprintf("%.1f", win$daily),
   `Monthly, day-weighted` = sprintf("%.1f", win$obs_months),
-  `Routed PCIC` = sprintf("%.1f (%s)", win$routed, pct(err_of("routed"))),
-  `Water balance` = sprintf("%.1f (%s)", win$balance, pct(err_of("balance"))),
+  `Routed PCIC (months)` = sprintf("%.1f (%s)", win$routed, pct(err_of("routed"))),
+  `Routed PCIC (days)` = sprintf("%.1f (%s)", win$routed_daily, pct(err_of("routed_daily"))),
+  `Water balance (months)` = sprintf("%.1f (%s)", win$balance, pct(err_of("balance"))),
+  `Water balance (days)` = sprintf("%.1f (%s)", win$balance_daily, pct(err_of("balance_daily"))),
   check.names = FALSE
 )
 tab$Gauge[duplicated(tab$Gauge)] <- ""
-knitr::kable(tab, row.names = FALSE, align = "llrrrrr",
+knitr::kable(tab, row.names = FALSE, align = "llrrrrrrr",
              caption = paste0("Mean flow (m³/s) in each Chinook window. Daily record: the gauge's mean over the window, ",
                               "averaged over the years in ", base_text, " with enough of its days. ",
                               "Monthly, day-weighted: the same years' observed monthly means, each day taking its ",
-                              "month's mean. The two sources are day-weighted the same way, ",
-                              "with their difference from the daily record in brackets."))
+                              "month's mean. Each source twice: from its published months, day-weighted the same way, ",
+                              "and from its published days (`segment_daily`: the balance's months laid on the fit's ",
+                              "within-month shape, routed PCIC routed day by day). ",
+                              "In brackets, the difference from the daily record."))
 ```
 
 ## Monthly error at the gauges
@@ -472,8 +538,7 @@ Monthly flow is scored at the `r length(unique(g$station_number))` gauges the
 water balance is calibrated on, against each gauge's monthly means over its
 complete years in `r base_text`. The balance is scored **held out**: each gauge's
 months come from a fit that never saw it or its neighbours (blocked
-cross-validation, as `research/water_balance_method.md` describes), as the fit
-stored them.
+cross-validation), as the fit stored them.
 Routed PCIC is scored on the segment each gauge snapped to, at the
 `r n_routed` gauges whose segment carries routed flow, less `r length(far)` whose segment carries
 under `r round(100 * far_low)`% of the observed annual flow (left out as the
@@ -559,8 +624,9 @@ The two sources' errors have different shapes.
   ±`r round(100 * band)`% in any month. Its months are an annual flow times the shares of the
   year that the five calibration gauges most like it carry, alike in elevation,
   location, and two snow terms from ERA5-Land: the day by which half the
-  snowpack has melted and the peak snow water equivalent (`wet_share_fit()`,
-  #16, #102). At the `r nrow(pk)` gauges whose observed flow peaks in May or June, the balance is
+  snowpack has melted and the peak snow water equivalent (`wet_share_fit()`;
+  the snow terms and the donor method were each kept by a rule set before
+  they were tried). At the `r nrow(pk)` gauges whose observed flow peaks in May or June, the balance is
   below the gauge in that month at `r round(pk_below)`% of them, by a median of
   `r pct(pk_ratio)`. Held out, its median Nash–Sutcliffe efficiency on the
   monthly climatology is `r sprintf("%.2f", nse(sk_wb, "nse_month"))` over its
@@ -579,8 +645,8 @@ difference of period. Gauge by gauge, routed PCIC is low in March–April at
 `r round(shape_pct[["high"]])`% (both at `r round(shape_pct[["both"]])`%). A
 misplaced outlet changes one gauge's hydrograph, mostly in size; it would not
 move the median of `r n_both_gauges` gauges toward a late melt. So the median shape
-comes from the routed model, not from the placement. That attributes it to PCIC's model, which wet does not run; it is
-recorded here and in #67.
+comes from the routed model, not from the placement. That attributes it to PCIC's model, which `wet` does not run; it is
+recorded here.
 
 ```{r groups}
 grp <- unique(g[c("station_number", "area_class", "lake")])
@@ -626,17 +692,6 @@ knitr::kable(gt, row.names = FALSE, align = "lrrr",
                              "by basin size and lake outlets, on the", n_both_gauges, "gauges both sources are scored at."))
 ```
 
-## What's next
-
-What this exploration found that would make the monthly values more useful,
-each with its issue:
-
-- **Routed PCIC's seasonal shape** (#67): low in early spring, high in late
-  summer, over the gauges' own period. Attributed to PCIC's model. The
-  issue records the evidence and a draft report to PCIC.
-- **Monthly scoring by region and season** (#6), which takes over the scoring
-  this article starts.
-
 ## Limits
 
 - On a calibration gauge's own segment the published balance is in-sample:
@@ -647,10 +702,14 @@ each with its issue:
 - 08EE003 is seasonal: its monthly means cover `r m003_text`, from
   `r n003` of the years `r base_text`. Its windows rest on the years the window
   table gives.
-- A window's flow from monthly means is an approximation (the window table
-  measures it). `wet_flow_window()` labels it `basis = "monthly"`. Given the
-  published daily flow, read with `wet_segment_daily()`, the same call gives
-  `basis = "daily"` (#99).
+- A window's flow from monthly means is an approximation, and the window table
+  measures it against the published days: the balance's days carry a
+  within-month shape fitted at gauges, not the gauge's own, and routed PCIC's
+  days carry its model's shape, so a window from the days closes the
+  approximation only as far as that shape is right. The scores below are of
+  the months; the days' shape is scored where it was fitted, not here.
+- The scores are medians over the province by month, split by basin size and
+  lake outlets; they are not split by region or season.
 - Routed PCIC's month 0 is a plain mean of its months, so its months converted
   to millimetres do not add up to its annual runoff exactly.
 
@@ -687,4 +746,48 @@ knitr::kable(data.frame(Check = pc$check, Compared = format(pc$compared, big.mar
 passed for the live build. The held-out monthly balance is the one the fit
 stored, under the share specification it shipped, and scored again it gives
 the fit's stored per-gauge scores.
-Routed flow is fwapg `r prov$routed_commit`'s table (`r prov$routed_fingerprint`).
+Routed flow is `fwapg` `r prov$routed_commit`'s table (`r prov$routed_fingerprint`).
+
+```{r provenance-days}
+stopifnot(identical(prov$shape_method, "donor"), grepl("^[0-9a-f]{32}$", prov$shape_code_md5),
+          is.numeric(prov$day_tie), prov$day_tie >= 0)
+tie_text <- if (prov$day_tie == 0) "none sat" else paste(prov$day_tie, "sat")
+```
+
+The published days were checked the same way. Routed PCIC's days on the three
+segments were routed again from the run's sub-basin days and the segments'
+weights (`r prov$daily_fingerprint`), equal after rounding to the published
+values; `r tie_text` one rounding step apart at a tie, where two summation
+orders may round apart. The balance's days were made again from its published
+months laid on the fit's daily shape (`r prov$shape_method`, shape code
+`r prov$shape_code_md5`) at `r and_text(st_label[prov$shape_stations])`, the
+gauges whose watershed predictors the copy of the fit held; the third segment's
+days rest on the publish report's daily check. On all three, each calendar
+month's days average to the published month.
+
+## Software and citation
+
+```{r citation, results = "asis"}
+pkgs <- c("wet", "duckdb", "ggplot2", "gq")
+stopifnot(all(vapply(pkgs, requireNamespace, NA, quietly = TRUE)))
+# the citation record each package ships (inst/CITATION, or its DESCRIPTION),
+# written as BibTeX and read back for the line below: the concept DOI where
+# the package has one, the version, and the commit when the install recorded
+# a full git hash (a build from a checkout records none)
+bib <- tempfile(fileext = ".bib")
+knitr::write_bib(pkgs, file = bib)
+stopifnot(length(readLines(bib)) > 0)
+cite_line <- function(p) {
+  d <- utils::packageDescription(p)
+  ct <- utils::citation(p)
+  doi <- unlist(lapply(seq_along(ct), function(i) ct[[i]]$doi))
+  doi_text <- if (length(doi)) sprintf(", [doi:%s](https://doi.org/%s)", doi[1], doi[1]) else ""
+  sha <- d$RemoteSha
+  commit <- if (is.character(sha) && grepl("^[0-9a-f]{40}$", sha)) sprintf(", commit `%s`", substr(sha, 1, 7)) else ""
+  sprintf("- `%s` %s%s%s. %s", p, d$Version, doi_text, commit, paste(format(ct[[1]], style = "text"), collapse = " "))
+}
+cat(vapply(pkgs, cite_line, ""), sep = "\n")
+```
+
+`wet`'s DOI is its concept DOI, which resolves to the latest release. How the
+balance is built: [how the water balance is made](https://github.com/NewGraphEnvironment/wet/blob/main/research/water_balance_method.md).

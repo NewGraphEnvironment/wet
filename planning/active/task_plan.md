@@ -43,19 +43,19 @@ Added today from the code (mechanism, no fork): the routed-days check also holds
 
 `vignettes/monthly-flow.Rmd`
 
-- [ ] `windows` chunk: `src_d <- wet_flow_window(v$segments_daily[…], windows, by = c("station_number", "source"))`, `stopifnot(all(src_d$basis == "daily"))`; `win` gains `routed_daily`, `balance_daily` (the table's two gauges, 08EE013 and 08EE003, the ones with a daily record); `err_of()` serves both bases.
-- [ ] `window-table` chunk: the columns of decision 2; caption says the days are the published `segment_daily`, laid on the fit's daily shape for the balance and routed day by day for PCIC.
-- [ ] Prose in "Flow in the Chinook windows": open with the answer (how much of the fry-migration gap the days close, per source, from the bundle's numbers), each claim held by a `stopifnot()` in the chunk, as the section's claims are now. Where the days close less of the gap for one source than the other, say so as what the product does.
-- [ ] Intro paragraph: one sentence that the windows are also taken from the published days.
-- [ ] Limits: replace the `basis = "monthly"` bullet (it names #99) with what the table shows, no issue pointer.
-- [ ] Validation: the new `pub_check` rows appear in the table by construction; one sentence on what the routed and balance days were checked against; `shape_code_md5` printed with the fit's provenance.
-- [ ] #110 items (decision 1): "the R package `wet`" with a link on first mention; `duckdb`, `fwapg`, Postgres in code font and linked; remove `#67`, `#6`, `#16`, `#102`, `fwapg#6` from prose (the scores prose keeps "`wet_share_fit()`" and the snow terms, and says the donor shares were chosen by a pre-set rule, no issue number); cut "What's next" (decision 3); the method link to `research/water_balance_method.md` as plain link text ("how the balance is built"), the GitHub URL, not a path.
-- [ ] "Software and citation" section (decision 6): a chunk writing `knitr::write_bib(c("wet", "duckdb", "ggplot2", "gq"), tmp)` and printing each entry with DOI, version, commit-if-hash.
-- [ ] `CLAUDE.md`'s monthly-flow paragraph: the windows have both bases, the daily checks, and that the article carries #110's convention. `README.md:43` unchanged unless its one-line description reads false.
+- [x] `windows` chunk: `src_d <- wet_flow_window(v$segments_daily[…], windows, by = c("station_number", "source"))`, `stopifnot(all(src_d$basis == "daily"))`; `win` gains `routed_daily`, `balance_daily` (the table's two gauges, 08EE013 and 08EE003, the ones with a daily record); `err_of()` serves both bases.
+- [x] `window-table` chunk: the columns of decision 2; caption says the days are the published `segment_daily`, laid on the fit's daily shape for the balance and routed day by day for PCIC.
+- [x] Prose in "Flow in the Chinook windows": open with the answer (how much of the fry-migration gap the days close, per source, from the bundle's numbers), each claim held by a `stopifnot()` in the chunk, as the section's claims are now. Where the days close less of the gap for one source than the other, say so as what the product does.
+- [x] Intro paragraph: one sentence that the windows are also taken from the published days.
+- [x] Limits: replace the `basis = "monthly"` bullet (it names #99) with what the table shows, no issue pointer.
+- [x] Validation: the new `pub_check` rows appear in the table by construction; one sentence on what the routed and balance days were checked against; `shape_code_md5` printed with the fit's provenance.
+- [x] #110 items (decision 1): "the R package `wet`" with a link on first mention; `duckdb`, `fwapg`, Postgres in code font and linked; remove `#67`, `#6`, `#16`, `#102`, `fwapg#6` from prose (the scores prose keeps "`wet_share_fit()`" and the snow terms, and says the donor shares were chosen by a pre-set rule, no issue number); cut "What's next" (decision 3); the method link to `research/water_balance_method.md` as plain link text ("how the balance is built"), the GitHub URL, not a path.
+- [x] "Software and citation" section (decision 6): a chunk writing `knitr::write_bib(c("wet", "duckdb", "ggplot2", "gq"), tmp)` and printing each entry with DOI, version, commit-if-hash.
+- [x] `CLAUDE.md`'s monthly-flow paragraph: the windows have both bases, the daily checks, and that the article carries #110's convention. `README.md:43` unchanged unless its one-line description reads false.
 
 ## Phase 4: render, check, archive
 
-- [ ] Render before (main) and after; strip both to text and diff: only the intended prose differs, every number the prose quotes is held by a `stopifnot()`.
+- [x] Render before (main) and after; strip both to text and diff: only the intended prose differs, every number the prose quotes is held by a `stopifnot()`.
 - [ ] `devtools::test()` (the vignette-data test), `lintr::lint_package()`, `pkgdown::check_pkgdown()` (no new export, so a pass is expected).
 - [ ] `/code-check branch` (three-round floor); PWF checkboxes; `/planning-archive`; `/gh-pr-push`.
 

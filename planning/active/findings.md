@@ -89,7 +89,22 @@ Parked 2026-10-20 after plan-mode exploration; `/planning-init 107` presents the
 
 | Error | Resolution |
 |-------|------------|
+| `pcic.subbasin_daily … (0 rows …) is not what pcic.runs describes` (data script, m1) | load the run's days: `curl … pcic.subbasin_daily.<run>.csv.gz \| gunzip \| psql -v table=subbasin_daily -f load/pcic_run.sql` |
 
 ## Pre-existing test failure on main (found 2026-10-23)
 
 `test-vignette_data.R:59` expected `segment_values.rds` to have names `skill, segments, provenance`; #99 added `daily` to the bundle (`data-raw/segment_vignette_data.R`) and did not update the test. CI runs pkgdown only, so it never showed. Fixed here in the same file Phase 2 edits (one line).
+
+## m1's `pcic.subbasin_daily` was empty (2026-10-23)
+
+The first data-script run refused: `pcic.subbasin_daily … (0 rows, 0 sub-basins, total NA) … is not what pcic.runs describes`. m1's `pcic` schema (loaded 2026-10-18) had the weights, crosswalk, runs and both monthly runs, but no sub-basin days for either run. Loaded the 1981-2010 run with fwapg's `load/pcic_run.sql` from `fresh-bc/fwapg/extras/pcic.subbasin_daily.pnwnamet_historical_1981-2010.csv.gz` (13,786,122 rows, 37,667 sub-basins, 90 s; checked against `pcic.runs` by the load itself). The 1951-2012 run's days are still not on m1; nothing reads them.
+
+## Plan review
+
+`planning/active/review-plan.md`: 12 findings, 7 already covered by the code as written, 5 taken (citation chunk guards, prose written after the bundle, a Limits sentence for To do 3, daily parts in provenance, the CLAUDE.md gaps sentence).
+
+## The article, rendered before and after (2026-10-23)
+
+Both renders with `devtools::load_all()` (the before from `main`'s Rmd and bundle, a4ea0a1), stripped to text: 2,413 → 2,992 words. `/usr/bin/diff` (the shell's `diff` is a git wrapper that prints nothing here) shows 175 changed lines, all intended: the intro, the two source bullets, software names in code font with links, the windows prose and the table's four source columns, the scores prose (issue numbers out), the cut "What's next", Limits, Validation's day checks, the citation section, and the bundle's commit and date. No `#N` remains in the rendered prose.
+
+What the days do in the fry-migration window (the bundle's numbers): the gauge's days run 21 % (Buck Creek) and 20 % (08EE003) below its monthly means. Routed PCIC's days fall further, 33 % and 24 %, so its error goes +39 % → −7 % at Buck Creek and +60 % → +21 % at 08EE003. The balance's days fall 21 % at Buck Creek (its donor shape there is the gauge's own), leaving its annual error, −12 %; at 08EE003 they fall only 5 % and the error stays +356 %. In migration the days move no window by over 1 %; in spawning by up to 9 % (routed at Buck Creek). The reviewer's finding 9 was right: the days do not "close the gap" for the balance at 08EE003, and the prose says so.

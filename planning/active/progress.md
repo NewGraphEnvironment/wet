@@ -6,3 +6,8 @@
 - Created branch `107-monthly-flow-article-chinook-windows-fro` off main (5bc6cc2, v0.4.16)
 - Scaffolded PWF baseline from issue #107 with approved phases
 - Next: start Phase 1
+- Phase 1: script committed (fa5e5a1), first run refused (m1's `pcic.subbasin_daily` empty), loaded the run's days (90 s), balance-days check narrowed to the watersheds the bundle holds (cd4c3c4), bundle rebuilt (7c0b4e2): 8 checks, 0 differing, 0 ties, 134 KB
+- Phase 2: the bundle test, failing on the old bundle and passing on the new (fa5e5a1); also fixed the segment-values test for #99's `daily`
+- Plan review (background, unnamed): 12 findings in `review-plan.md`; 7 already covered, 5 taken
+- Phase 3: the article, `CLAUDE.md` paragraph; rendered before and after and diffed (findings.md)
+- Next: full `devtools::test()` (running), `/code-check branch`, archive, PR
