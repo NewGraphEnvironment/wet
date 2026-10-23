@@ -47,12 +47,12 @@ Approved by the user at the plan gate, 2026-10-23 (recommended option 1 in each 
 
 ## Phase 4: Verify and document
 
-- [ ] Install the branch (`pak::local_install()`) so pkgdown and `system.file()` read the branch's helper.
-- [ ] Render all three articles on main and on the branch, strip the HTML to text, and diff. Only the prose meant to change may differ. monthly-flow must show no difference.
-- [ ] Check each built page: the footnote renders once, the caption is not numbered twice, and no `NA` appears in a table `style` attribute.
-- [ ] Record word and line counts before and after for each article, as writing.md's "Measure the simplification" asks.
-- [ ] `devtools::document()`, `devtools::test()`, `lintr::lint_package()` and `pkgdown::check_pkgdown()`. The helper is internal, so it needs no reference-index entry.
-- [ ] CLAUDE.md: one clause for the shared citation helper in the vignette paragraphs. NEWS goes at release.
+- [x] Install the branch (`pak::local_install()`) so pkgdown and `system.file()` read the branch's helper.
+- [x] Render all three articles on main and on the branch, strip the HTML to text, and diff. Only the prose meant to change may differ. monthly-flow must show no difference.
+- [x] Check each built page: the footnote renders once, the caption is not numbered twice, and no `NA` appears in a table `style` attribute.
+- [x] Record word and line counts before and after for each article, as writing.md's "Measure the simplification" asks.
+- [x] `devtools::document()`, `devtools::test()`, `lintr::lint_package()` and `pkgdown::check_pkgdown()`. The helper is internal, so it needs no reference-index entry.
+- [x] CLAUDE.md: one clause for the shared citation helper in the vignette paragraphs. NEWS goes at release.
 
 ## Owed at the end (reported, done after merge)
 
@@ -60,9 +60,9 @@ Approved by the user at the plan gate, 2026-10-23 (recommended option 1 in each 
 
 ## Validation
 
-- [ ] Tests pass
+- [x] Tests pass
 - [ ] `/code-check` clean (once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
 How each change is proved:

@@ -331,7 +331,8 @@ river cannot vouch for it.
 knitr::kable(score_tab, format = "html", align = "lrrr", row.names = FALSE,
              caption = "Error in mean annual runoff at the calibration gauges.") |>
   kableExtra::kable_styling(full_width = FALSE) |>
-  kableExtra::footnote(general = "PCIC does not list the gauges it calibrated to, so its errors may be partly in sample.",
+  kableExtra::footnote(general = paste("PCIC does not list the gauges it calibrated to, so its errors may be",
+                                       "partly in sample."),
                        general_title = "")
 ```
 

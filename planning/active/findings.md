@@ -61,3 +61,15 @@ Installed `wet` is 0.4.15 and main is 0.4.17. pkgdown renders against the instal
 
 | Error | Resolution |
 |-------|------------|
+
+## Accepted limit: the version printed need not name a release
+
+writing.md says a version names a release only when that release's tag is at or before the commit. `wet_software_cite()` prints `packageDescription()$Version` without checking tags. pkgdown CI installs `local::.`, which records no `RemoteSha`, so the site prints the version alone; after a merge and release on main the version and its tag agree. A branch render after an unreleased version bump would name a release that does not hold the code. Recorded rather than fixed (plan review finding 5).
+
+## The rendered `wet` line carries no commit
+
+A local install (`pak::local_install()`, as pkgdown CI does) records no 40-character `RemoteSha`, so the articles print `wet 0.4.17` with no commit. A GitHub install would record one.
+
+## Zotero MCP was not configured in this session
+
+`mcp__zotero__zotero_search_items` failed for lack of `ZOTERO_LIBRARY_ID` and `ZOTERO_API_KEY`. Chapman et al. (2018) was taken from `research/water_balance_method.md` §0's citation; the four trend references (Mann 1945, Kendall 1975, Theil 1950, Sen 1968) were written from the standard citations and are not yet checked against the Zotero group library.
