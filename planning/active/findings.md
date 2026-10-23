@@ -89,3 +89,7 @@ Parked 2026-10-20 after plan-mode exploration; `/planning-init 107` presents the
 
 | Error | Resolution |
 |-------|------------|
+
+## Pre-existing test failure on main (found 2026-10-23)
+
+`test-vignette_data.R:59` expected `segment_values.rds` to have names `skill, segments, provenance`; #99 added `daily` to the bundle (`data-raw/segment_vignette_data.R`) and did not update the test. CI runs pkgdown only, so it never showed. Fixed here in the same file Phase 2 edits (one line).

@@ -5,14 +5,19 @@
 #
 # The monthly half of the published product (months 1-12 of
 # s3://fresh-bc/discharge/fwa/v1/, read through wet_catalog()), on the Bulkley
-# gauges' segments and at the shipped fit's calibration gauges. Every published
-# value bundled is checked against what it was built from, under the guards
+# gauges' segments and at the shipped fit's calibration gauges, and the same
+# segments' published days (segment_daily, #99), from which the article takes
+# the Chinook windows a second time (#107). Every published value bundled is
+# checked against what it was built from, under the guards
 # data-raw/segment_vignette_data.R uses (scripts/vignette_data_lib.R).
 #
 # Writes inst/vignette-data/monthly_values.rds, a list:
 #   - segments: months 0-12 of both sources as published, on the segments
 #     the Bulkley gauges 08EE013, 08EE003 and 08EE004 snap to
 #     (wet_station_snap()), with period, coverage and pick
+#   - segments_daily: the same segments' 365 days of each source as
+#     published (a common year, 29 February folded into 28), which
+#     wet_flow_window() turns into a window's flow with basis = "daily"
 #   - gauges: per calibration gauge and month (0-12), observed runoff (the
 #     fit's complete years, 1981-2010), the balance held out by the fit's
 #     blocked CV, and routed PCIC on the gauge's segment as published, all in
@@ -37,6 +42,19 @@
 # (the recomputed month 0 must equal output/ exactly); the rest of the months
 # rest on the publish report's value-by-value check, which vd_published()
 # requires to have passed for the live build.
+#
+# The published days are checked as scripts/discharge_publish.R checks them.
+# Routed PCIC's are routed again from the run's sub-basin days
+# (pcic.subbasin_daily) and the three segments' weights (pcic.segment_weights),
+# on only the sub-basins those weights name, through wet:::wet_routed_fold()
+# and wet:::wet_routed_days(): equal after rounding, or one 1e-5 step apart
+# where the raw value sits on a rounding tie, which two summation orders may
+# round apart (counted on its own, never as differing). The balance's are made
+# again from its published months 1-12 laid on the fit's daily shape
+# (shape_daily.rds, scripts/wb_shape_daily.R; wet_shape_predict() on the
+# bundle's upstream predictors, wet_shape_daily()), equal within the default
+# tolerance of wet_values_compare() (another machine's last bits), and each
+# calendar month's day mean must equal the published month within 1e-9.
 
 source("scripts/vignette_data_lib.R")
 wet_commit <- vd_commit()
@@ -121,6 +139,27 @@ src_routed <- DBI::dbGetQuery(conn, sprintf("
   FROM %s WHERE %s AND linear_feature_id IN (%s) ORDER BY 1, 2", routed_table, routed_where,
   paste(ids_used, collapse = ", ")))
 stopifnot(identical(routed_fingerprint(conn), rc$fingerprint))
+# the run's sub-basin days and the Bulkley segments' weights, from which their
+# published routed days are routed again: the run the tracked daily report
+# (scripts/segment_daily_output.R) was built from, held as the publish holds it
+f_day <- wb_report("segment_daily_output", release)
+daily_fp <- sub("^daily: ", "", grep("^daily: ", readLines(f_day), value = TRUE))
+stopifnot(length(daily_fp) == 1L)
+if (!identical(routed_daily_fingerprint(conn), daily_fp)) {
+  stop("fwapg's routed days or weights are not those ", f_day, " was built from (", daily_fp, ")")
+}
+w_bulk <- DBI::dbGetQuery(conn, sprintf("
+  SELECT linear_feature_id::int AS linear_feature_id, subid, share, array_to_string(upstream_subids, ',') AS up
+  FROM %s WHERE linear_feature_id IN (%s) ORDER BY linear_feature_id",
+  routed_weights_table, paste(seg_bulk$linear_feature_id, collapse = ", ")))
+stopifnot(setequal(w_bulk$linear_feature_id, seg_bulk$linear_feature_id), !anyNA(w_bulk$up))
+w_bulk$upstream_subids <- lapply(strsplit(w_bulk$up, ",", fixed = TRUE), as.integer)
+w_bulk$up <- NULL
+subids <- sort(unique(c(w_bulk$subid, unlist(w_bulk$upstream_subids))))
+sb_days <- DBI::dbGetQuery(conn, sprintf("
+  SELECT subid, month, day, n_days, q_local, q_acc FROM %s WHERE %s AND subid IN (%s) ORDER BY subid, month, day",
+  routed_daily_table, routed_where, paste(subids, collapse = ", ")))
+stopifnot(setequal(sb_days$subid, subids))
 DBI::dbDisconnect(conn)
 
 # ---- the published product ------------------------------------------------------------------------
@@ -158,6 +197,23 @@ for (p in c("pub_bulk", "pub_gauge")) {
 stopifnot(setequal(unique(pub_bulk$source), c("pcic_routed", "wet_balance")),
           !anyDuplicated(pub_bulk[c("source", "linear_feature_id", "month")]),
           !anyDuplicated(pub_gauge[c("linear_feature_id", "month")]))
+
+# ---- the published days (#107) ----------------------------------------------------------------------
+# the same segments' 365 days of each source, from segment_daily's BULK parts
+# (one group per part), verified before and after the read
+day_parts <- cat_pub[cat_pub$dataset == "discharge/fwa/v1/segment_daily" & cat_pub$scenario == "historical" &
+                       cat_pub$code == "BULK", ]
+stopifnot(setequal(day_parts$source, c("pcic_routed", "wet_balance")))
+vd_verify(day_parts)
+t_read <- Sys.time()
+pub_day <- wet_segment_daily(NULL, seg_bulk$linear_feature_id, groups = "BULK", catalog = cat_pub)
+message("published daily read: ", round(as.numeric(difftime(Sys.time(), t_read, units = "secs"))), " s")
+vd_verify(day_parts)
+pub_day$linear_feature_id <- as.integer(pub_day$linear_feature_id)
+pub_day$doy <- as.integer(pub_day$doy)
+stopifnot(nrow(pub_day) == 2 * 365 * nrow(seg_bulk), !anyNA(pub_day$q_m3s),
+          setequal(unique(pub_day$source), c("pcic_routed", "wet_balance")),
+          !anyDuplicated(pub_day[c("source", "linear_feature_id", "doy")]))
 
 # ---- the published values against what they were built from ---------------------------------------
 days <- c(365.25, wet_month_days())
@@ -212,11 +268,64 @@ cmp <- list(
     wet_values_compare(pb_b[pb_b$linear_feature_id %in% src_b$linear_feature_id, c("linear_feature_id", "month", "q_m3s")],
                        src_b[c("linear_feature_id", "month", "q_m3s")])
 )
+
+# the published days (#107). Routed days routed again from the run's sub-basin
+# days, on only the sub-basins the three segments' weights name, as
+# scripts/discharge_publish.R routes them again: equal after rounding, or one
+# 1e-5 step apart where the raw value sits on a rounding tie, which two
+# summation orders may round apart (its tie rule, counted on its own)
+fold <- wet:::wet_routed_fold(sb_days)
+raw_r <- wet:::wet_routed_raw(fold, w_bulk)
+rd <- wet:::wet_routed_days(fold, w_bulk)
+src_rd <- data.frame(linear_feature_id = rep(w_bulk$linear_feature_id, each = 365), doy = rep(1:365, nrow(w_bulk)),
+                     q_m3s = as.vector(t(unclass(rd))), raw = as.vector(t(raw_r)))
+pr_d <- pub_day[pub_day$source == "pcic_routed", c("linear_feature_id", "doy", "q_m3s")]
+# exact in a double: an id times 512 stays below 2^40, as wet_values_compare() keys it
+j <- match(as.numeric(pr_d$linear_feature_id) * 512 + pr_d$doy, as.numeric(src_rd$linear_feature_id) * 512 + src_rd$doy)
+stopifnot(!anyNA(j))
+f <- abs(src_rd$raw[j]) * 1e5
+tie <- pr_d$q_m3s != src_rd$q_m3s[j] & abs(pr_d$q_m3s - src_rd$q_m3s[j]) <= 1.000001e-5 &
+  abs(f - floor(f) - 0.5) < 1e-6 + 1e-10 * f
+day_tie <- sum(tie)
+cmp_rd <- wet_values_compare(pr_d, src_rd[c("linear_feature_id", "doy", "q_m3s")], tol = 0, time = "doy")
+cmp_rd[["differing"]] <- cmp_rd[["differing"]] - day_tie
+# the balance's days made again from its published months 1-12 and the fit's
+# daily shape on the segments' watersheds (the bundle holds their predictors),
+# and each calendar month's day mean against the published month
+shape <- readRDS(file.path(fit_dir, "shape_daily.rds"))
+if (!identical(shape$method, "donor") || !inherits(shape$fit, "wet_shape_fit") ||
+      !identical(shape$code_md5, fits$code_md5) || !identical(shape$release, release) ||
+      !identical(shape$aet, fits$aet)) {
+  stop("shape_daily.rds is not a donor shape made on this fit: rerun scripts/wb_shape_daily.R")
+}
+up_b <- up[match(seg_bulk$watershed_feature_id, up$watershed_feature_id), ]
+stopifnot(!anyNA(up_b$watershed_feature_id), all(stats::complete.cases(up_b[shape$static])))
+q_mon <- t(vapply(seg_bulk$linear_feature_id, function(id) {
+  x <- pb_b[pb_b$linear_feature_id == id & pb_b$month > 0, ]
+  stopifnot(nrow(x) == 12)
+  x$q_m3s[match(1:12, x$month)]
+}, numeric(12)))
+q_day <- wet_shape_daily(q_mon, wet_shape_predict(shape$fit, up_b[shape$static]))
+src_bd <- data.frame(linear_feature_id = rep(seg_bulk$linear_feature_id, each = 365), doy = rep(1:365, nrow(seg_bulk)),
+                     q_m3s = as.vector(t(q_day)))
+pb_d <- pub_day[pub_day$source == "wet_balance", c("linear_feature_id", "doy", "q_m3s")]
+m_doy <- wet:::wet_doy_month()
+mon_d <- stats::aggregate(q_m3s ~ linear_feature_id + month,
+                          data.frame(pb_d[c("linear_feature_id", "q_m3s")], month = m_doy[pb_d$doy]), mean)
+pb_b12 <- pb_b[pb_b$month > 0, c("linear_feature_id", "month", "q_m3s")]
+cmp <- c(cmp, list(
+  "routed days (Bulkley segments) = routed again from the run's sub-basin days" = cmp_rd,
+  "balance days (Bulkley segments) = published months x the fit's shape" =
+    wet_values_compare(pb_d, src_bd, time = "doy"),
+  "balance months from the days (Bulkley segments) = published months" = wet_values_compare(mon_d, pb_b12)
+))
 pub_check <- data.frame(check = names(cmp), do.call(rbind, cmp), row.names = NULL)
 print(pub_check)
+message("daily routed values one 1e-5 step apart at a rounding tie (not counted as differing): ", day_tie)
 # no value differs, and every source value was compared
-if (any(pub_check$differing > 0) || any(pub_check$compared == 0) ||
-      !identical(pub_check$compared, as.numeric(c(nrow(src_routed), nrow(src_r0), nrow(up), nrow(src_b0), nrow(src_b))))) {
+n_src <- c(nrow(src_routed), nrow(src_r0), nrow(up), nrow(src_b0), nrow(src_b),
+           nrow(src_rd), nrow(src_bd), nrow(pb_b12))
+if (any(pub_check$differing > 0) || any(pub_check$compared == 0) || !identical(pub_check$compared, as.numeric(n_src))) {
   stop("the published values differ from what they were built from: see the table above")
 }
 
@@ -227,6 +336,12 @@ segments <- merge(seg_bulk[c("station_number", "linear_feature_id", "gnis_name",
 segments <- segments[order(segments$station_number, segments$source, segments$month), ]
 rownames(segments) <- NULL
 stopifnot(nrow(segments) == 2 * 13 * length(stations_bulk))
+segments_daily <- merge(seg_bulk[c("station_number", "linear_feature_id")],
+                        pub_day[c("source", "linear_feature_id", "doy", "q_m3s")], by = "linear_feature_id")
+segments_daily <- segments_daily[order(segments_daily$station_number, segments_daily$source, segments_daily$doy),
+                                 c("station_number", "linear_feature_id", "source", "doy", "q_m3s")]
+rownames(segments_daily) <- NULL
+stopifnot(nrow(segments_daily) == 2 * 365 * length(stations_bulk))
 
 # routed PCIC in mm over wet's accumulated area: months by their days, as
 # observed runoff is (scripts/wb_cv_lib.R), and month 0 from the published
@@ -263,6 +378,16 @@ mine <- segments[segments$linear_feature_id == lfid_recipe, c("linear_feature_id
 mine <- mine[order(match(mine$source, recipe$source), mine$month), ]
 rownames(mine) <- NULL
 if (!identical(recipe, mine)) stop("the recipe's read differs from the bundle")
+# and the article's windows from the days (#107): the three Chinook windows on
+# every gauge and source, the same call as on the months, must come back as
+# basis = "daily" with a value
+lh <- utils::read.csv(file.path("inst", "vignette-data", "life_history_bulk.csv"), stringsAsFactors = FALSE,
+                      na.strings = "")
+ch <- lh[lh$species_code == "CH" & lh$life_stage %in% c("migration", "spawning", "fry_migration"), ]
+stopifnot(nrow(ch) == 3)
+win_d <- wet_flow_window(segments_daily, data.frame(window = ch$life_stage, start = ch$start, end = ch$end),
+                         by = c("station_number", "source"))
+stopifnot(nrow(win_d) == 3 * 2 * length(stations_bulk), all(win_d$basis == "daily"), !anyNA(win_d$q_m3s))
 
 # ---- provenance -------------------------------------------------------------------------------------
 hydat_release <- sub("^HYDAT release: ", "", grep("^HYDAT release:", readLines(wb_report("stations_wb", release)),
@@ -282,23 +407,31 @@ provenance <- list(
   published = list(manifest = attr(cat_pub, "manifest"), built = attr(cat_pub, "built"),
                    wet_commit = attr(cat_pub, "provenance")$wet_commit,
                    parts = cat_pub[c("dataset", "source", "code", "key", "rows", "bytes", "md5")],
+                   daily_parts = day_parts[c("source", "key", "md5")],
                    reader = pb$reader, report = pb$report),
   published_check = pub_check,
   routed = sub("^routed: ", "", routed_report_line(rc$commit)),
   routed_commit = rc$commit,
   routed_fingerprint = rc$fingerprint,
   routed_report = rc$report,
+  # the days (#107): the run's sub-basin days and weights, the fit's daily
+  # shape, and the routed days one step apart at a rounding tie
+  daily_fingerprint = daily_fp,
+  daily_report = f_day,
+  shape_method = shape$method,
+  shape_code_md5 = shape$shape_code_md5,
+  day_tie = day_tie,
   snap = snap[c("station_number", "linear_feature_id", "distance_m", "area_ratio")],
   output_months = output_months,
   # inputs outside the tracked tree
-  md5 = tools::md5sum(c(file.path(fit_dir, c("fits.rds", sprintf("cv_aet-%s.rds", fits$aet))),
+  md5 = tools::md5sum(c(file.path(fit_dir, c("fits.rds", sprintf("cv_aet-%s.rds", fits$aet), "shape_daily.rds")),
                         file.path(key_dir, "upstream", "400.rds"), wb_stations_path(release)))
 )
 names(provenance$md5) <- basename(names(provenance$md5))
 
 no64 <- function(x) !any(vapply(x, inherits, NA, "integer64"))
-stopifnot(no64(segments), no64(gauges), no64(provenance$snap))
-values <- list(segments = segments, gauges = gauges, provenance = provenance)
+stopifnot(no64(segments), no64(segments_daily), no64(gauges), no64(provenance$snap))
+values <- list(segments = segments, segments_daily = segments_daily, gauges = gauges, provenance = provenance)
 saveRDS(values, out, compress = "xz")
 kb <- file.size(out) / 1024
 message("monthly_values.rds: ", round(kb), " KB of ", budget_kb)

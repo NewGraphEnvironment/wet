@@ -56,7 +56,7 @@ test_that("the map layers are sf in BC Albers, with both stations and their catc
 
 test_that("the segment values carry plain ids, the calibration gauges and their provenance", {
   v <- readRDS(vignette_data("segment_values.rds"))
-  expect_named(v, c("skill", "segments", "provenance"))
+  expect_named(v, c("skill", "segments", "daily", "provenance"))
   # fwapg's bigint ids would arrive as integer64, which a session without bit64
   # reads as raw bits: every table must hold plain types
   expect_false(any(vapply(v$skill, inherits, NA, "integer64")))
@@ -125,9 +125,9 @@ test_that("the segment map holds the picked source on the rivers, from the same 
   expect_false(anyNA(m$zones$name))
 })
 
-test_that("the monthly values hold both sources' months, checked against their sources", {
+test_that("the monthly values hold both sources' months and days, checked against their sources", {
   v <- readRDS(vignette_data("monthly_values.rds"))
-  expect_named(v, c("segments", "gauges", "provenance"))
+  expect_named(v, c("segments", "segments_daily", "gauges", "provenance"))
   for (nm in setdiff(names(v), "provenance")) {
     expect_false(any(vapply(v[[nm]], inherits, NA, "integer64")), info = nm)
   }
@@ -141,10 +141,32 @@ test_that("the monthly values hold both sources' months, checked against their s
   expect_setequal(sg$period[sg$source == "wet_balance"], "1981-2010")
   # one source picked per segment and month
   expect_true(all(tapply(sg$pick, paste(sg$linear_feature_id, sg$month), sum) == 1))
-  # every published value checked against its source, none differing, none empty
+  # the same segments' 365 days of each source (#107), from the published
+  # segment_daily; the balance's days average to its published months
+  sd <- v$segments_daily
+  expect_named(sd, c("station_number", "linear_feature_id", "source", "doy", "q_m3s"))
+  expect_equal(nrow(sd), 3 * 2 * 365)
+  expect_setequal(sd$linear_feature_id, sg$linear_feature_id)
+  expect_setequal(sd$source, c("pcic_routed", "wet_balance"))
+  expect_setequal(sd$doy, 1:365)
+  expect_false(anyDuplicated(sd[c("linear_feature_id", "source", "doy")]) > 0)
+  expect_false(anyNA(sd$q_m3s))
+  bd <- sd[sd$source == "wet_balance", ]
+  bm <- sg[sg$source == "wet_balance" & sg$month > 0, ]
+  bd$month <- wet:::wet_doy_month()[bd$doy]
+  from_days <- stats::aggregate(q_m3s ~ linear_feature_id + month, bd, mean)
+  key <- function(d) paste(d$linear_feature_id, d$month)
+  expect_equal(from_days$q_m3s, bm$q_m3s[match(key(from_days), key(bm))], tolerance = 1e-9)
+  # every published value checked against its source, none differing, none
+  # empty; the days by routing them again and by making them again from the
+  # published months and the fit's shape
   chk <- v$provenance$published_check
   expect_true(all(chk$compared > 0))
   expect_true(all(chk$differing == 0))
+  expect_equal(sum(grepl("^routed days", chk$check)), 1L)
+  expect_equal(sum(grepl("^balance (days|months from the days)", chk$check)), 2L)
+  expect_match(v$provenance$shape_code_md5, "^[0-9a-f]{32}$")
+  expect_true("shape_daily.rds" %in% names(v$provenance$md5))
   expect_identical(v$provenance$published$manifest, wet:::wet_catalog_url)
   # the calibration gauges: 13 months each, observed and held-out balance at
   # all of them, routed where its segment has flow, its months all or none
