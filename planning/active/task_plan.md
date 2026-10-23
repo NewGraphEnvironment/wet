@@ -19,11 +19,11 @@ Approved by the user at the plan gate, 2026-10-23 (recommended option 1 in each 
 
 ## Phase 1: Shared citation helper
 
-- [ ] `R/wet_software_cite.R`: lift monthly-flow's `cite_line()` into an internal function. It runs `knitr::write_bib()` over `pkgs` and checks the result is non-empty. It returns one markdown bullet per package, holding the code-font name, version, concept DOI link when `citation()` has one, `commit <7>` only when `RemoteSha` is a 40-hex hash, and the text citation. It stops if `knitr` or any of `pkgs` is not installed.
-- [ ] Split out a pure formatter, an internal `wet_software_line(pkg, version, doi, sha, text)`, so the tests need no mocking of `utils`.
-- [ ] `tests/testthat/test-wet_software_cite.R`: test that no DOI gives no DOI text; that a 40-hex SHA prints its first 7; that a version string in `RemoteSha` (CRAN `1.5.2`) prints no commit; that `wet` itself returns its concept DOI 10.5281/zenodo.23305781; and that a missing package errors.
-- [ ] File an issue in `NewGraphEnvironment/xciter`. It proposes `xciter` as the home for the software-citation line (concept DOI, version, commit-if-hash, from `knitr::write_bib()`) once a second repo needs it. It links wet's helper and soul's `writing.md` rule, with nothing moved now.
-- [ ] `vignettes/monthly-flow.Rmd`: replace the inline `cite_line()` with `cat(wet:::wet_software_cite(pkgs), sep = "\n")`. Its rendered text must not change, which the Phase 4 diff checks.
+- [x] `R/wet_software_cite.R`: lift monthly-flow's `cite_line()` into an internal function. It runs `knitr::write_bib()` over `pkgs` and checks the result is non-empty. It returns one markdown bullet per package, holding the code-font name, version, concept DOI link when `citation()` has one, `commit <7>` only when `RemoteSha` is a 40-hex hash, and the text citation. It stops if `knitr` or any of `pkgs` is not installed.
+- [x] Split out a pure formatter, an internal `wet_software_line(pkg, version, doi, sha, text)`, so the tests need no mocking of `utils`.
+- [x] `tests/testthat/test-wet_software_cite.R`: test that no DOI gives no DOI text; that a 40-hex SHA prints its first 7; that a version string in `RemoteSha` (CRAN `1.5.2`) prints no commit; that `wet` itself returns its concept DOI 10.5281/zenodo.23305781; and that a missing package errors.
+- [x] File an issue in `NewGraphEnvironment/xciter` (filed as xciter#6). It proposes `xciter` as the home for the software-citation line (concept DOI, version, commit-if-hash, from `knitr::write_bib()`) once a second repo needs it. It links wet's helper and soul's `writing.md` rule, with nothing moved now.
+- [x] `vignettes/monthly-flow.Rmd`: replace the inline `cite_line()` with `cat(wet:::wet_software_cite(pkgs), sep = "\n")`. Its rendered text must not change, which the Phase 4 diff checks.
 
 ## Phase 2: `segment-discharge.Rmd`
 

@@ -832,25 +832,10 @@ every published value is
 [its report](`r paste0("https://github.com/NewGraphEnvironment/wet/blob/main/", prov$published$report)`).
 
 ```{r citation, results = "asis"}
-pkgs <- c("wet", "duckdb", "ggplot2", "gq")
-stopifnot(all(vapply(pkgs, requireNamespace, NA, quietly = TRUE)))
-# the citation record each package ships (inst/CITATION, or its DESCRIPTION),
-# written as BibTeX and read back for the line below: the concept DOI where
-# the package has one, the version, and the commit when the install recorded
-# a full git hash (a build from a checkout records none)
-bib <- tempfile(fileext = ".bib")
-knitr::write_bib(pkgs, file = bib)
-stopifnot(length(readLines(bib)) > 0)
-cite_line <- function(p) {
-  d <- utils::packageDescription(p)
-  ct <- utils::citation(p)
-  doi <- unlist(lapply(seq_along(ct), function(i) ct[[i]]$doi))
-  doi_text <- if (length(doi)) sprintf(", [doi:%s](https://doi.org/%s)", doi[1], doi[1]) else ""
-  sha <- d$RemoteSha
-  commit <- if (is.character(sha) && grepl("^[0-9a-f]{40}$", sha)) sprintf(", commit `%s`", substr(sha, 1, 7)) else ""
-  sprintf("- `%s` %s%s%s. %s", p, d$Version, doi_text, commit, paste(format(ct[[1]], style = "text"), collapse = " "))
-}
-cat(vapply(pkgs, cite_line, ""), sep = "\n")
+# the citation record each package ships (inst/CITATION, or its DESCRIPTION):
+# the concept DOI where the package has one, the version, and the commit when
+# the install recorded a full git hash (a build from a checkout records none)
+cat(wet:::wet_software_cite(c("wet", "duckdb", "ggplot2", "gq")), sep = "\n")
 ```
 
 Cite `wet` by the DOI above, which resolves to its latest release. How the

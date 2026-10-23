@@ -7,3 +7,5 @@
 - Created branch `110-articles-bring-the-three-vignettes-to-so` off main
 - Scaffolded PWF baseline from issue #110 with approved phases
 - Next: start Phase 1
+- Rendered all three articles on main (wet 0.4.17 installed) into the session scratchpad as the before copy for the text diff
+- Phase 1: `wet_software_cite()` and `wet_software_line()` (internal) with tests; mutation check (any `RemoteSha` printed as a commit) fails 4 expectations; monthly-flow calls the helper; filed NewGraphEnvironment/xciter#6 for the later move
