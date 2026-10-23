@@ -11,3 +11,6 @@
 - Plan review (background, unnamed): 12 findings in `review-plan.md`; 7 already covered, 5 taken
 - Phase 3: the article, `CLAUDE.md` paragraph; rendered before and after and diffed (findings.md)
 - Next: full `devtools::test()` (running), `/code-check branch`, archive, PR
+- `devtools::test()`: FAIL 0, WARN 0, PASS 1318 (`data/logs/107/devtools_test.log`); `lintr::lint_package()` only pre-existing lints; `pkgdown::check_pkgdown()` clean
+- `/code-check branch` round 1 spawned 03:27 UTC
+- Round 1 (03:27-03:34 UTC): 1 finding (fragile), fixed: the Validation sentence on which segments' balance days were made again now branches on `shape_stations`

@@ -752,6 +752,18 @@ Routed flow is `fwapg` `r prov$routed_commit`'s table (`r prov$routed_fingerprin
 stopifnot(identical(prov$shape_method, "donor"), grepl("^[0-9a-f]{32}$", prov$shape_code_md5),
           is.numeric(prov$day_tie), prov$day_tie >= 0)
 tie_text <- if (prov$day_tie == 0) "none sat" else paste(prov$day_tie, "sat")
+# the segments whose balance days were made again: those whose watershed
+# predictors the copy of the fit held where the data were built (a reduced
+# bundle holds the calibration gauges' only; the full run holds every one)
+stopifnot(length(prov$shape_stations) > 0, all(prov$shape_stations %in% stations))
+not_held <- setdiff(stations, prov$shape_stations)
+held_text <- if (length(not_held) == 0) {
+  "on all three segments"
+} else {
+  paste0("at ", and_text(st_label[prov$shape_stations]), ", the gauge", if (length(prov$shape_stations) > 1) "s",
+         " whose watershed predictors the copy of the fit held; the other segment", if (length(not_held) > 1) "s'" else "'s",
+         " days rest on the publish report's daily check")
+}
 ```
 
 The published days were checked the same way. Routed PCIC's days on the three
@@ -760,9 +772,7 @@ weights (`r prov$daily_fingerprint`), equal after rounding to the published
 values; `r tie_text` one rounding step apart at a tie, where two summation
 orders may round apart. The balance's days were made again from its published
 months laid on the fit's daily shape (`r prov$shape_method`, shape code
-`r prov$shape_code_md5`) at `r and_text(st_label[prov$shape_stations])`, the
-gauges whose watershed predictors the copy of the fit held; the third segment's
-days rest on the publish report's daily check. On all three, each calendar
+`r prov$shape_code_md5`) `r held_text`. On all three, each calendar
 month's days average to the published month.
 
 ## Software and citation
