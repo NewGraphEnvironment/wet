@@ -44,4 +44,4 @@ The plan review is in `review-plan.md`, the rounds in `review-round*.md` and the
 
 - pkgdown deploy: confirm the three articles on the live site carry their "Software and citation" sections, by checking the gh-pages provenance.
 
-Closed by: the PR from branch `110-articles-bring-the-three-vignettes-to-so`.
+Closed by: PR #114.
