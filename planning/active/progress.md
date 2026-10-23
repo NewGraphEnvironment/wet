@@ -15,3 +15,4 @@
 - `/code-check branch` round 1 spawned 03:27 UTC
 - Round 1 (03:27-03:34 UTC): 1 finding (fragile), fixed: the Validation sentence on which segments' balance days were made again now branches on `shape_stations`
 - Round 2 (03:34-03:40 UTC): 1 finding (fragile), fixed: Limits said "the scores below" for a section above; also took its wording note, a fall printed signed, now `drop_of()` (unsigned, sign asserted)
+- Round 3 (03:42-03:50 UTC): 1 finding (fragile), fixed: the Limits bullet said the balance's shape is "not the gauge's own", false on a calibration gauge's segment. The reviewer named the mechanism (prose stating a fact with no guard tying it to the data) and enumerated every changed sentence stating a count, direction, sign, position or set (`review-round3.md`): all tied except that one and the layout/contract sentences the data cannot move. Loop ended by enumeration after three rounds; no round found a defect inside an earlier fix.

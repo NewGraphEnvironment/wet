@@ -294,8 +294,10 @@ cmp_rd <- wet_values_compare(pr_d, src_rd[c("linear_feature_id", "doy", "q_m3s")
 cmp_rd[["differing"]] <- cmp_rd[["differing"]] - day_tie
 # the balance's days made again from its published months 1-12 and the fit's
 # daily shape, on the segments whose watershed predictors this copy of the
-# fit holds (a reduced bundle: the calibration gauges' watersheds, so not
-# 08EE003's); the rest of the days rest on the publish report's daily check.
+# fit holds (a reduced bundle keeps the calibration gauges' watersheds only,
+# so a gauge outside the fit may have none; the full run holds every one);
+# the rest of the days rest on the publish report's daily check. Which
+# segments were held is recorded as shape_stations.
 # Then each calendar month's day mean against the published month, on every
 # segment
 shape <- readRDS(file.path(fit_dir, "shape_daily.rds"))

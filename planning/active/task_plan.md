@@ -57,7 +57,7 @@ Added today from the code (mechanism, no fork): the routed-days check also holds
 
 - [x] Render before (main) and after; strip both to text and diff: only the intended prose differs, every number the prose quotes is held by a `stopifnot()`.
 - [x] `devtools::test()` (the vignette-data test), `lintr::lint_package()`, `pkgdown::check_pkgdown()` (no new export, so a pass is expected).
-- [ ] `/code-check branch` (three-round floor); PWF checkboxes; `/planning-archive`; `/gh-pr-push`.
+- [x] `/code-check branch` (three-round floor); PWF checkboxes; `/planning-archive`; `/gh-pr-push`.
 
 ## Owed at the end (reported, done after merge)
 
@@ -66,8 +66,8 @@ Added today from the code (mechanism, no fork): the routed-days check also holds
 ## Validation
 
 - [x] Tests pass
-- [ ] `/code-check branch` clean
-- [ ] PWF checkboxes match landed work
+- [x] `/code-check branch` clean
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
 ### Verification

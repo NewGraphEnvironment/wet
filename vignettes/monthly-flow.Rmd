@@ -711,9 +711,10 @@ knitr::kable(gt, row.names = FALSE, align = "lrrr",
   table gives.
 - A window's flow from monthly means is an approximation, and the window table
   measures it against the published days: the balance's days carry a
-  within-month shape fitted at gauges, not the gauge's own, and routed PCIC's
-  days carry its model's shape, so a window from the days closes the
-  approximation only as far as that shape is right. The scores above are of
+  within-month shape fitted at gauges (on a calibration gauge's own segment,
+  that gauge's own, as the months are), and routed PCIC's days carry its
+  model's shape, so a window from the days closes the approximation only as
+  far as that shape is right. The scores above are of
   the months; the days' shape is scored where it was fitted, not here.
 - The scores are medians over the province by month, split by basin size and
   lake outlets; they are not split by region or season.
