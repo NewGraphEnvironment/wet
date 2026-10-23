@@ -77,12 +77,22 @@ stopifnot(identical(period_of("wet_balance"), paste0(min(base), "-", max(base)))
           identical(period_of("pcic_routed"), period_of("wet_balance")))
 ```
 
-The R package [`wet`](https://github.com/NewGraphEnvironment/wet) publishes a
-mean flow for every stream segment in BC's Freshwater Atlas: one for the year
-and one for each month, from two sources (`vignette("segment-discharge")`).
-This article is about the months. It shows how to read them for one stream,
-sets them against the gauge record and the Chinook windows on the Bulkley
-River, and scores them at the gauges the water balance is built on.
+Whether a stream suits a fish depends on how much water runs through it when
+the fish needs it: enough for adults to reach the spawning grounds, to keep the
+redds covered through incubation, to carry the fry out. Few streams in BC have
+a gauge to say. The R package
+[`wet`](https://github.com/NewGraphEnvironment/wet) publishes an estimate for
+all of them: a mean flow for every stream segment in the Freshwater Atlas, for
+the year and for each month, from two sources
+(`vignette("segment-discharge")`). The point is to let a biologist ask of any
+stream what flow a life stage meets, compare streams on it, and ask the same
+question of another period or a climate model's future.
+
+This article is about the months, and about one detail of that question:
+whether a month is fine enough to read a life stage's window from, or the days
+are needed. It shows how to read the months for one stream, sets them against
+the gauge record and the Chinook windows on the Bulkley River, and scores them
+at the gauges the water balance is built on.
 
 ## What a month holds
 
@@ -116,11 +126,16 @@ stopifnot(isTRUE(all.equal(unname(bal_sum), bal$q_m3s[bal$month == 0][match(stat
 
 Each source fills the twelve months its own way:
 
-- **Routed PCIC** (`pcic_routed`) is the mean of each month's daily flow over
-  `r base_text` in PCIC's routed model, placed on FWA segments by
-  [`fwapg`](https://github.com/NewGraphEnvironment/fwapg). Its annual value is
-  the plain mean of the twelve months; weighting them by their days would move
-  it by at most `r sprintf("%.1f%%", wtd_diff)` on the segments below.
+- **Routed PCIC** (`pcic_routed`) comes from the Pacific Climate Impacts
+  Consortium (PCIC) at the University of Victoria, which runs the VIC-GL
+  hydrologic model over BC on observed climate and routes the runoff down the
+  river network with the Raven model
+  ([hydromosaic](https://beehive.pacificclimate.org/chyp/)).
+  [`fwapg`](https://github.com/NewGraphEnvironment/fwapg) places PCIC's river
+  points on Freshwater Atlas segments. The published value is the mean of each
+  month's daily flow over `r base_text`. Its annual value is the plain mean of
+  the twelve months; weighting them by their days would move it by at most
+  `r sprintf("%.1f%%", wtd_diff)` on the segments below.
 - **The water balance** (`wet_balance`) is the annual flow over `r base_text`,
   split into months by the shares of the year carried by the five gauges most
   like the place (`wet_share_fit()`). Its months add up to its annual value
@@ -219,6 +234,13 @@ peak_month <- function(src) {
   one(x$month[which.max(x$q_m3s)])
 }
 stopifnot(peak_month("observed") == 5, peak_month("pcic_routed") == 5)
+
+# the windows the prose defines, with their dates and one source for all three
+stopifnot(identical(unique(ch$source), "gottesfeld_rabnett2007SkeenaFish"))
+span_of <- function(w) {
+  k <- one(which(windows$window == w))
+  paste(md_text(windows$start[k]), "to", md_text(windows$end[k]))
+}
 ```
 
 ```{r map-data}
@@ -234,7 +256,7 @@ stopifnot(!anyNA(catch$part))
 catch <- catch[match(names(part_of), catch$station_number), ]
 inside <- function(a, b) {
   as.numeric(sf::st_area(sf::st_intersection(sf::st_geometry(catch[catch$part == a, ]),
-                                            sf::st_geometry(catch[catch$part == b, ])))) /
+                                             sf::st_geometry(catch[catch$part == b, ])))) /
     as.numeric(sf::st_area(catch[catch$part == a, ]))
 }
 stopifnot(inside("catchment_buck", "catchment_houston") > 0.99, inside("catchment_houston", "catchment_quick") > 0.99)
@@ -296,6 +318,12 @@ Houston gauge sits just downstream and measures it too, and the Quick gauge,
 further down, drains the whole basin above. Buck Creek and Quick are among the
 gauges the water balance is built on. Houston is not: it reads only in open
 water and has no complete year in `r base_text`.
+
+The Chinook windows are the weeks each life stage spends in these rivers, as
+Gottesfeld and Rabnett (2007) give them for the Skeena: adults migrating
+upstream from `r span_of("Migration")`, spawning from `r span_of("Spawning")`,
+and fry moving downstream from `r span_of("Fry migration")`. The flow in a
+window is the flow that life stage meets.
 
 ```{r map, fig.width = map_w, fig.height = map_h, fig.cap = cap_map}
 ggplot() +
@@ -417,8 +445,8 @@ stopifnot(all(src_w$basis == "monthly"))
 src_q <- function(s, src, w) src_w$q_m3s[src_w$station_number == s & src_w$source == src & src_w$window == w]
 # the same windows from the published days (segment_daily), the same call
 sd <- v$segments_daily
-src_d <- wet_flow_window(sd[sd$station_number %in% c("08EE013", "08EE003"), c("station_number", "source", "doy", "q_m3s")],
-                         windows, by = c("station_number", "source"))
+sd <- sd[sd$station_number %in% c("08EE013", "08EE003"), c("station_number", "source", "doy", "q_m3s")]
+src_d <- wet_flow_window(sd, windows, by = c("station_number", "source"))
 stopifnot(all(src_d$basis == "daily"))
 src_qd <- function(s, src, w) src_d$q_m3s[src_d$station_number == s & src_d$source == src & src_d$window == w]
 win <- do.call(rbind, lapply(c("08EE013", "08EE003"), function(s) {
@@ -829,3 +857,11 @@ cat(vapply(pkgs, cite_line, ""), sep = "\n")
 Cite `wet` by the DOI above, which resolves to its latest release. How the
 balance is built:
 [the water balance method](https://github.com/NewGraphEnvironment/wet/blob/main/research/water_balance_method.md).
+
+Data: routed flow from the Pacific Climate Impacts Consortium, University of
+Victoria ([hydromosaic](https://beehive.pacificclimate.org/chyp/): VIC-GL
+hydrologic model output routed with Raven, PNWNAmet forcing); gauge records
+from the Water Survey of Canada's HYDAT, release
+`r substr(prov$hydat_release, 1, 10)`; the Chinook windows from Gottesfeld, A.
+and Rabnett, K. (2007), *Skeena Fish Populations and their Habitat*, Skeena
+Fisheries Commission.

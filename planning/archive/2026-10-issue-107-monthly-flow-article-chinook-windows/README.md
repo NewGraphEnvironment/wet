@@ -36,3 +36,7 @@ Round 4's finding was the same mechanism as rounds 1–3: the rewrite compressed
 | 3 | 1 | 1 | 0 | n |
 
 Ended by enumeration: round 3 named the mechanism (prose stating a fact the data or layout holds, with no guard tying the sentence to it) and listed every changed sentence stating a count, direction, sign, position or set with what ties it; after the round-3 fix the only untied ones describe the file's layout or a declared contract, which another build of the bundle cannot move.
+
+## Framing for the biologist (2026-10-23, after the readability pass)
+
+At the user's ask: the article opens with why flow timing matters to a fish and what a flow for every stream is for (suitability, comparison between streams, the same question of another period or a climate model's future); PCIC is spelled out with its product linked; the Chinook windows are defined with their dates (from the bundled life-history table, guarded to one source) and cited to Gottesfeld and Rabnett (2007), resolved in Zotero (`gottesfeld_rabnett2007SkeenaFish`); a data line closes the citation section. 2,352 → 2,616 words.
