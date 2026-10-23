@@ -149,9 +149,11 @@ Neither is the gauge record.
 
 ## Reading a segment's twelve months
 
-The parts are public and the manifest names them. One stream is one
-`linear_feature_id`; naming its watershed group as well lets
-[`duckdb`](https://duckdb.org/) skip the rest, so the read takes seconds.
+The months are public files on the web, and `wet` knows where they are, so
+reading a stream takes its number and nothing else: one stream is one
+`linear_feature_id`. The files are sorted by watershed group, so naming the
+stream's group as well lets [`duckdb`](https://duckdb.org/) skip everything
+outside it, and the read takes seconds.
 
 ```{r read, echo = TRUE, eval = FALSE}
 library(wet)
@@ -163,7 +165,7 @@ reshape(q[q$month > 0, c("source", "month", "q_m3s")], idvar = "month",
         timevar = "source", direction = "wide")
 ```
 
-`wet_segment_monthly()` reads the parts through `duckdb`, or the
+`wet_segment_monthly()` reads those files through `duckdb`, or the
 [PostgreSQL](https://www.postgresql.org/) table `wet_db_load()` writes when it
 is given a connection. It returns `linear_feature_id, month, q_m3s, source`,
 the shape of `wet_station_monthly()`'s gauge record, so a comparison is a join
