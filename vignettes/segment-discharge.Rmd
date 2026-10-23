@@ -41,7 +41,9 @@ bc <- readRDS(vd("station_map.rds"))$bc
 stopifnot(identical(pub$manifest, wet:::wet_catalog_url), all(prov$published_check$compared > 0),
           all(prov$published_check$differing == 0),
           identical(map$provenance$published$wet_commit, pub$wet_commit),
-          identical(map$provenance$published$built, pub$built))
+          identical(map$provenance$published$built, pub$built),
+          # the closing section gives one read date for the gauge values and the map
+          identical(map$provenance$built, prov$built))
 # the prose gives routed's period from the published rows; the balance's is 1981-2010
 stopifnot(length(prov$routed_period) == 1, grepl(prov$routed_period, prov$routed, fixed = TRUE))
 
@@ -376,10 +378,10 @@ stopifnot(isTRUE(prov$keep_adjust), isFALSE(prov$gate_pass), identical(prov$pool
 
 The numbers in this article are the published product's. Its routed values
 at the gauges and the picks on its map were read on `r format(prov$built)`
-from the build at `wet` commit `r pub$wet_commit`, its scores come from the
-water balance fit on HYDAT `r substr(prov$hydat_release, 1, 10)`, and every
-value was checked against what it was built from before it was written. The
-build's own check of every published value is [its report](`r gh(pub$report)`).
+from the build at `wet` commit `r pub$wet_commit`, and the routed values were
+held equal to `fwapg`'s before they were written. Its scores come from the
+water balance fit on HYDAT `r substr(prov$hydat_release, 1, 10)`. The build's
+own check of every published value is [its report](`r gh(pub$report)`).
 
 ```{r provenance}
 # Provenance. Gauge values were read on prov$built from the published build
