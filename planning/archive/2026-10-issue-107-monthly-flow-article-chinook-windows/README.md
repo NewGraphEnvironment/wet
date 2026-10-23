@@ -40,3 +40,7 @@ Ended by enumeration: round 3 named the mechanism (prose stating a fact the data
 ## Framing for the biologist (2026-10-23, after the readability pass)
 
 At the user's ask: the article opens with why flow timing matters to a fish and what a flow for every stream is for (suitability, comparison between streams, the same question of another period or a climate model's future); PCIC is spelled out with its product linked; the Chinook windows are defined with their dates (from the bundled life-history table, guarded to one source) and cited to Gottesfeld and Rabnett (2007), resolved in Zotero (`gottesfeld_rabnett2007SkeenaFish`); a data line closes the citation section. 2,352 → 2,616 words.
+
+## Reframing (2026-10-23)
+
+The user read the article as being about days versus months and found the monthly-error tables unrelated. The branch's new opening had said the article was about "whether a month is fine enough to read a life stage's window from", which only one section answers. The intro now says the article is about the months and names that section as the one asking the narrower question. The window table gains a "Months vs days" column, the gauge's own monthly means against its own daily record (0% to +3% in migration and spawning, +27% and +24% in fry migration), so the cost of reading a window from months is a printed number rather than a subtraction; a `stopifnot()` ties the column to its definition. 2,616 → 2,554 words.

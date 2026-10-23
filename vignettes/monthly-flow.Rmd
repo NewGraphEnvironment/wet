@@ -88,11 +88,13 @@ the year and for each month, from two sources
 stream what flow a life stage meets, compare streams on it, and ask the same
 question of another period or a climate model's future.
 
-This article is about the months, and about one detail of that question:
-whether a month is fine enough to read a life stage's window from, or the days
-are needed. It shows how to read the months for one stream, sets them against
-the gauge record and the Chinook windows on the Bulkley River, and scores them
-at the gauges the water balance is built on.
+This article is about the months. It shows how to read them for one stream,
+draws them against the gauge record on the Bulkley River, and scores them at
+the gauges the water balance is built on. One section asks a narrower question
+on the way: a life stage's window starts and ends mid-month, so is a monthly
+mean fine enough to read its flow from, or are the published days needed?
+"Flow in the Chinook windows" answers that; the rest of the article is about
+how good the months are.
 
 ## What a month holds
 
@@ -519,13 +521,16 @@ stopifnot(identical(poor_w, "Fry migration"), all(late_july < 0.9),
 ```
 
 The windows start and end mid-month, and a window taken from monthly means
-gives every day its month's mean. Where flow changes slowly within the month
-that is fine: in `r tolower(and_text(good_w))` the gauge's daily record and its
-own monthly means agree within `r sprintf("%.0f%%", max(approx_w[good_w]))`.
-`r and_text(poor_w)` takes the second half of July, when the freshet is
-receding, and there the monthly means overstate the gauge by about a quarter.
+gives every day its month's mean. How much that costs is the table's "Months
+vs days" column, the gauge's own monthly means against its own daily record,
+with no model involved. Where flow changes slowly within the month the cost is
+small: in `r tolower(and_text(good_w))` the two agree within
+`r sprintf("%.0f%%", max(approx_w[good_w]))`. `r and_text(poor_w)` takes the
+second half of July, when the freshet is receding, and there the monthly means
+overstate the gauge by about a quarter. The other columns ask whether each
+source's published days recover that.
 
-The published days fix that wherever a source's daily pattern is right. Routed
+They do wherever a source's daily pattern is right. Routed
 PCIC's days fall through late July faster than the gauge's, and its
 fry-migration error shrinks at both gauges. The balance's days follow a pattern
 borrowed from the gauges most like the place. At Buck Creek that is Buck Creek
@@ -542,6 +547,7 @@ tab <- data.frame(
   Years = win$years,
   `Daily record` = sprintf("%.1f", win$daily),
   `Monthly, day-weighted` = sprintf("%.1f", win$obs_months),
+  `Months vs days` = pct(approx_err),
   `Routed PCIC (months)` = sprintf("%.1f (%s)", win$routed, pct(err_of("routed"))),
   `Routed PCIC (days)` = sprintf("%.1f (%s)", win$routed_daily, pct(err_of("routed_daily"))),
   `Water balance (months)` = sprintf("%.1f (%s)", win$balance, pct(err_of("balance"))),
@@ -549,13 +555,17 @@ tab <- data.frame(
   check.names = FALSE
 )
 tab$Gauge[duplicated(tab$Gauge)] <- ""
-knitr::kable(tab, row.names = FALSE, align = "llrrrrrrr",
+# the prose names this column and says what it holds
+stopifnot("Months vs days" %in% names(tab),
+          identical(tab$`Months vs days`, pct(100 * (win$obs_months / win$daily - 1))))
+knitr::kable(tab, row.names = FALSE, align = "llrrrrrrrr",
              caption = paste0("Mean flow (m³/s) in each Chinook window, ", base_text, ". Daily record: the gauge's ",
                               "own daily flow, averaged over the window in each year with enough of its days. Monthly, ",
                               "day-weighted: the same years' observed monthly means with every day given its month's ",
-                              "mean, which is how a window is read from monthly values. Each source twice: from its ",
-                              "published months, read the same way, and from its published days. In brackets, the ",
-                              "difference from the daily record."))
+                              "mean, which is how a window is read from monthly values. Months vs days: the second ",
+                              "against the first, the cost of reading the window from months. Each source twice: ",
+                              "from its published months, read the same way, and from its published days. In ",
+                              "brackets, the difference from the daily record."))
 ```
 
 ## Monthly error at the gauges
