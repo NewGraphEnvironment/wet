@@ -387,8 +387,15 @@ worst <- function(col) {
 at <- function(s, w = poor_w) win$station_number == s & win$window %in% w
 wp <- function(col, s) one(win[[col]][at(s)])
 ep <- function(col, s) one(err_of(col)[at(s)])
+# a move the prose calls a fall is printed unsigned, and must be negative
+drop_of <- function(col, s) {
+  x <- wp(col, s)
+  stopifnot(x < 0)
+  sprintf("%.0f%%", -x)
+}
 stopifnot(all(win$move_obs[in_poor] < -15),
           all(win$move_routed[in_poor] < win$move_obs[in_poor]),
+          wp("move_balance", "08EE003") < 0,
           all(abs(err_of("routed_daily")[in_poor]) < abs(err_of("routed")[in_poor])),
           ep("routed", "08EE013") > 0, ep("routed_daily", "08EE013") < 0,
           abs(wp("move_balance", "08EE013") - wp("move_obs", "08EE013")) < 1,
@@ -405,18 +412,18 @@ is a day-weighted mean, each day taking its month's mean, and that is an
 approximation where the flow moves within a month. The days remove it only as
 far as each source's own within-month shape is right. In
 `r tolower(and_text(poor_w))`, the one window where the approximation is
-large, the gauge's own days run `r pct(wp("move_obs", "08EE013"))` below its
-monthly means at Buck Creek and `r pct(wp("move_obs", "08EE003"))` at 08EE003.
-Routed PCIC's days fall further (`r pct(wp("move_routed", "08EE013"))` and
-`r pct(wp("move_routed", "08EE003"))`), and its error from the days is
+large, the gauge's own days run `r drop_of("move_obs", "08EE013")` below its
+monthly means at Buck Creek and `r drop_of("move_obs", "08EE003")` at 08EE003.
+Routed PCIC's days fall further (`r drop_of("move_routed", "08EE013")` and
+`r drop_of("move_routed", "08EE003")`), and its error from the days is
 smaller than from the months at both: `r pct(ep("routed_daily", "08EE013"))`
 against `r pct(ep("routed", "08EE013"))` at Buck Creek,
 `r pct(ep("routed_daily", "08EE003"))` against `r pct(ep("routed", "08EE003"))`
 at 08EE003. The balance's days at Buck Creek fall as the gauge's do
-(`r pct(wp("move_balance", "08EE013"))`), because the shape they are laid on is
+(`r drop_of("move_balance", "08EE013")`), because the shape they are laid on is
 fitted at the gauges and this one's nearest is itself, so its window error from
 the days is its annual error, `r pct(ep("balance_daily", "08EE013"))`. At
-08EE003 the balance's days fall only `r pct(wp("move_balance", "08EE003"))`:
+08EE003 the balance's days fall only `r drop_of("move_balance", "08EE003")`:
 the shape its donor gauges give holds more of late summer than this gauge
 carries, and its error stays `r pct(ep("balance_daily", "08EE003"))`.
 
@@ -706,7 +713,7 @@ knitr::kable(gt, row.names = FALSE, align = "lrrr",
   measures it against the published days: the balance's days carry a
   within-month shape fitted at gauges, not the gauge's own, and routed PCIC's
   days carry its model's shape, so a window from the days closes the
-  approximation only as far as that shape is right. The scores below are of
+  approximation only as far as that shape is right. The scores above are of
   the months; the days' shape is scored where it was fitted, not here.
 - The scores are medians over the province by month, split by basin size and
   lake outlets; they are not split by region or season.

@@ -14,3 +14,4 @@
 - `devtools::test()`: FAIL 0, WARN 0, PASS 1318 (`data/logs/107/devtools_test.log`); `lintr::lint_package()` only pre-existing lints; `pkgdown::check_pkgdown()` clean
 - `/code-check branch` round 1 spawned 03:27 UTC
 - Round 1 (03:27-03:34 UTC): 1 finding (fragile), fixed: the Validation sentence on which segments' balance days were made again now branches on `shape_stations`
+- Round 2 (03:34-03:40 UTC): 1 finding (fragile), fixed: Limits said "the scores below" for a section above; also took its wording note, a fall printed signed, now `drop_of()` (unsigned, sign asserted)
