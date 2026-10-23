@@ -611,11 +611,30 @@ gt <- data.frame(Group = ifelse(gw$group == "all", "All gauges",
                                                                   substring(gw$value, 2)),
                                        sub("km2", "km²", gw$value))),
                  Gauges = gw$n,
-                 Balance = sprintf("%.2f", gw$nse_month_median),
-                 Routed = sprintf("%.2f", gr$nse_month_median[match(key(gw), key(gr))]))
+                 Balance = gw$nse_month_median,
+                 Routed = gr$nse_month_median[match(key(gw), key(gr))])
 gt <- gt[match(c("all all", paste("area_class", c("<100 km2", "100-1000", "1000-10000", ">10000")),
                  "lake lake outlet", "lake not a lake outlet"), key(gw)), ]
-stopifnot(!anyNA(gt$Group))
+stopifnot(!anyNA(gt$Group), !anyNA(gt$Balance), !anyNA(gt$Routed))
+# the caption: Moriasi and others' (2007) reading of a monthly score, each
+# band open below and closed above (0.75 is "good"), unsatisfactory under 0.50
+nse_bands <- c(satisfactory = 0.50, good = 0.65, `very good` = 0.75)
+nse_rating <- function(x) c("unsatisfactory", names(nse_bands))[findInterval(x, nse_bands, left.open = TRUE) + 1]
+stopifnot(identical(nse_rating(c(0.5, 0.65, 0.75, 0.76)), c("unsatisfactory", "satisfactory", "good", "very good")))
+gt <- data.frame(Group = gt$Group, Gauges = gt$Gauges,
+                 Balance = sprintf("%.2f", gt$Balance), Rating = nse_rating(gt$Balance),
+                 Routed = sprintf("%.2f", gt$Routed), Rating = nse_rating(gt$Routed), check.names = FALSE)
+cap_nse <- paste0("Median Nash–Sutcliffe efficiency of the twelve monthly means per gauge, by basin size and ",
+                  "lake outlets, on the ", n_both_gauges, " gauges both sources are scored at.")
+# the table's footnote: what the score is, and how the ratings read it
+note_nse <- c(
+  paste0("Nash–Sutcliffe efficiency (Nash and Sutcliffe 1970): how much closer a source's twelve months come to ",
+         "the gauge's than a flat line at the gauge's annual mean. 1 is a perfect match; 0 is no closer than ",
+         "the flat line; below 0 the flat line would have been closer."),
+  sprintf("Ratings follow Moriasi and others (2007): very good above %.2f, good %.2f to %.2f, satisfactory %.2f to %.2f, unsatisfactory below %.2f.",
+          nse_bands[["very good"]], nse_bands[["good"]], nse_bands[["very good"]], nse_bands[["satisfactory"]],
+          nse_bands[["good"]], nse_bands[["satisfactory"]])
+)
 nse_g <- function(s, g, v) one(s$nse_month_median[s$group == g & s$value == v])
 # the prose: the balance is the stronger source on basins under 1,000 km2,
 # routed on those over it and at lake outlets
@@ -631,28 +650,19 @@ x <- both$obs_mm[both$station_number == both$station_number[1]]
 stopifnot(length(x) == 12, wet:::wet_nse(x, x) == 1, abs(wet:::wet_nse(x, rep(mean(x), 12))) < 1e-12)
 ```
 
-The table scores each source with the Nash–Sutcliffe efficiency (Nash and
-Sutcliffe 1970), per gauge over its twelve monthly means, and reports the
-median across gauges. It asks how much closer a source's twelve months come to
-the gauge's than a flat line at the gauge's annual mean would:
-
-- 1 is a perfect match, month for month;
-- 0 means the source's seasonal shape is no closer than no shape at all, the
-  annual mean in every month;
-- below 0, the flat line would have been closer.
-
-Moriasi and others (2007) read a monthly score above 0.75 as very good, 0.65 to
-0.75 as good and 0.50 to 0.65 as satisfactory.
-
-By basin size, the balance is the stronger source under 1,000 km² and routed
+The table scores each source per gauge over its twelve monthly means and
+reports the median; its note says how to read the score. By basin size, the balance is the stronger source under 1,000 km² and routed
 PCIC above it. Routed PCIC is also the stronger at lake outlets, whose flow a
 lake holds back and releases later in the year: routing follows the lake, and
 the balance's donor gauges are matched without regard to it.
 
 ```{r group-table}
-knitr::kable(gt, row.names = FALSE, align = "lrrr",
-             caption = paste("Median Nash–Sutcliffe efficiency of the twelve monthly means per gauge,",
-                             "by basin size and lake outlets, on the", n_both_gauges, "gauges both sources are scored at."))
+# format = "html" and kable_styling() before footnote(): a footnote on a bare
+# kable in a bookdown document numbers the caption twice and writes "NA" into
+# the table's style attribute (kableExtra 1.4.0)
+knitr::kable(gt, row.names = FALSE, align = "lrrlrl", caption = cap_nse, format = "html") |>
+  kableExtra::kable_styling(full_width = FALSE) |>
+  kableExtra::footnote(general = note_nse, general_title = "")
 ```
 
 ## Flow in the Chinook windows
