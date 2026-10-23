@@ -776,8 +776,8 @@ not_held <- setdiff(stations, prov$shape_stations)
 held_text <- if (length(not_held) == 0) {
   "on all three segments"
 } else {
-  paste0("at ", and_text(st_label[prov$shape_stations]), "; the other segment", if (length(not_held) > 1) "s'" else "'s",
-         " days rest on the publish report's own check of every day")
+  paste0("at ", and_text(st_label[prov$shape_stations]), "; the other segment",
+         if (length(not_held) > 1) "s'" else "'s", " days rest on the publish report's own check of every day")
 }
 ```
 
