@@ -382,7 +382,7 @@ product's, read on `r format(prov$built)` from the build at `wet` commit
 were written. The province counts are from the segment table that build was cut
 from. The balance's scores are its held-out predictions from the fit on HYDAT
 `r substr(prov$hydat_release, 1, 10)`, against HYDAT's observed runoff. The
-build's own check of every published value is [its report](`r gh(pub$report)`).
+build's own check of its published flows is [its report](`r gh(pub$report)`).
 
 ```{r provenance}
 # Provenance. Gauge values were read on prov$built from the published build
@@ -400,7 +400,7 @@ stopifnot(nzchar(prov$wet_commit), nzchar(map$provenance$wet_commit), nzchar(pro
 
 ```{r citation, results = "asis"}
 # the citation record each package ships (inst/CITATION, or its DESCRIPTION):
-# the concept DOI where the package has one, the version, and the commit when
+# the first DOI it carries (wet's is its concept DOI), the version, and the commit when
 # the install recorded a full git hash (a build from a checkout records none)
 cat(wet:::wet_software_cite(c("wet", "duckdb", "ggplot2", "gq", "sf")), sep = "\n")
 # the Data line names the shipped annual AET: CGIAR floored by Fu-Budyko

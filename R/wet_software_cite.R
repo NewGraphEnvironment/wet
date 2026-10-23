@@ -1,7 +1,7 @@
 #' The "Software and citation" lines of an article
 #'
 #' One markdown bullet per package: its name in code font, the installed
-#' version, the concept DOI where its citation carries one, the commit where
+#' version, the first DOI its citation carries (for wet, its concept DOI), the commit where
 #' the install recorded a full git hash, and its text citation. The articles
 #' call it in their closing section, so the citations are computed at render
 #' and never drift from what ran.

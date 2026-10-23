@@ -305,7 +305,7 @@ ggplot() +
 
 ## The recipe
 
-These are the calls that produced the numbers. Baseline, departure and trend
+These are the calls that produced the flow statistics. Baseline, departure and trend
 come from the R package [`cd`](https://newgraphenvironment.github.io/cd/), and
 the real-time feed is read with the R package
 [`tidyhydat`](https://docs.ropensci.org/tidyhydat/). The calls need HYDAT, the
@@ -645,15 +645,16 @@ stopifnot(identical(borrowed, "Fry migration"))
 
 ## Software and citation
 
-The numbers in this article come from flows cached from HYDAT release
-`r prov$hydat`, with provisional and real-time flows retrieved
-`r day_text(prov$retrieved)`, and from NGE's life-history table at commit
-`r substr(prov$knowledge_sha, 1, 7)`. The map's layers come from the
+The flows in this article are cached from HYDAT release `r prov$hydat`,
+with provisional and real-time flows retrieved `r day_text(prov$retrieved)`;
+the windows are NGE's life-history table at commit
+`r substr(prov$knowledge_sha, 1, 7)`, and the catchment areas are the
+Freshwater Atlas's, through `fwapg`. The map's layers come from the
 Freshwater Atlas, BC Geographic Names and HYDAT's station locations.
 
 ```{r citation, results = "asis"}
 # the citation record each package ships (inst/CITATION, or its DESCRIPTION):
-# the concept DOI where the package has one, the version, and the commit when
+# the first DOI it carries (wet's is its concept DOI), the version, and the commit when
 # the install recorded a full git hash (a build from a checkout records none);
 # Kendall and zyp are the trend tests cd_trend() runs
 cat(wet:::wet_software_cite(c("wet", "cd", "tidyhydat", "Kendall", "zyp", "ggplot2", "gq", "sf")),

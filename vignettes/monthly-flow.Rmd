@@ -823,19 +823,23 @@ knitr::kable(tab, row.names = FALSE, align = "llrrrrrrrr",
 
 ## Software and citation
 
-The numbers in this article are the published product's.
+The flows in this article are the published product's.
 `data-raw/monthly_vignette_data.R` bundled them on `r format(prov$built)` from
-the published build at wet `r prov$published$wet_commit` and the water balance
-fit on HYDAT `r substr(prov$hydat_release, 1, 10)`, and checked every value
-against what it was built from before writing them. The build's own check of
-every published value is
+the published build at wet `r prov$published$wet_commit`, and checked every one
+against what it was built from before writing them. The scores compare them,
+and the water balance held out by its fit on HYDAT
+`r substr(prov$hydat_release, 1, 10)`, with HYDAT's observed runoff. The
+build's own check of its published flows is
 [its report](`r paste0("https://github.com/NewGraphEnvironment/wet/blob/main/", prov$published$report)`).
 
 ```{r citation, results = "asis"}
 # the citation record each package ships (inst/CITATION, or its DESCRIPTION):
-# the concept DOI where the package has one, the version, and the commit when
+# the first DOI it carries (wet's is its concept DOI), the version, and the commit when
 # the install recorded a full git hash (a build from a checkout records none)
 cat(wet:::wet_software_cite(c("wet", "duckdb", "ggplot2", "gq")), sep = "\n")
+# the Data line names the shipped annual AET (CGIAR floored by Fu-Budyko) and
+# the snow predictors in the monthly shares
+stopifnot(identical(prov$aet, "cfu"), identical(prov$share_spec, "snow"))
 ```
 
 Cite `wet` by the DOI above, which resolves to its latest release. How the
@@ -850,7 +854,14 @@ Freshwater Atlas by New Graph's fork of `fwapg` at commit
 Norris, S. (2026), *fwapg: PostgreSQL tools for working with British Columbia's
 Freshwater Atlas*, <https://github.com/smnorris/fwapg>; gauge records from the
 Water Survey of Canada's HYDAT, release `r substr(prov$hydat_release, 1, 10)`;
-the Chinook windows from Gottesfeld, A. and Rabnett, K. (2007), *Skeena Fish
+for the balance, 1981–2010 climate normals from the R package
+[`climr`](https://github.com/bcgov/climr), actual evapotranspiration from
+CGIAR-CSI's Global High-Resolution Soil-Water Balance v3
+([figshare 7707605](https://figshare.com/articles/dataset/Global_High-Resolution_Soil-Water_Balance/7707605))
+held no lower than a Fu–Budyko estimate, elevation from the Copernicus GLO-90
+DEM, ERA5-Land snow normals (Copernicus Climate Change Service) through the R
+package [`cd`](https://newgraphenvironment.github.io/cd/) for its monthly
+shares, and the province's BC Hydrologic Zones; the Chinook windows from Gottesfeld, A. and Rabnett, K. (2007), *Skeena Fish
 Populations and their Habitat*, Skeena Fisheries Commission.
 
 Scores: Nash, J.E. and Sutcliffe, J.V. (1970), River flow forecasting through
