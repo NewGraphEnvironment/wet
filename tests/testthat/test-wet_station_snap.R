@@ -60,3 +60,12 @@ test_that("real stations snap to the right stream: mainstem, headwater, confluen
   expect_identical(class(out$linear_feature_id), "numeric")
   expect_type(out$watershed_feature_id, "integer")
 })
+
+test_that("a tie in score and distance goes to the lower segment id, in any order", {
+  st <- data.frame(station_number = "A", lon = 0, lat = 0, drainage_area_gross_km2 = 100)
+  # two segments meeting at the node nearest the station, in one watershed
+  cd <- cand(station_number = "A", linear_feature_id = c(7, 3), distance_m = c(25, 25),
+             watershed_feature_id = c(10L, 10L), upstream_area_km2 = c(101, 101))
+  expect_equal(wet:::wet_snap_pick(st, cd, 0.1)$linear_feature_id, 3)
+  expect_equal(wet:::wet_snap_pick(st, cd[2:1, ], 0.1)$linear_feature_id, 3)
+})
