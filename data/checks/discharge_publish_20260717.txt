@@ -1,6 +1,6 @@
 # Published discharge, build (#7)
 
-wet commit 608147e (segment table built at d20a624); fit 20260717, province run e675918817; crate 0.8.0
+wet commit b4bbc50 (segment table built at 28105a3); fit 20260717, province run 92b893c4da; crate 0.8.0
 arrow 25.0.1, duckdb 1.4.3 (a part's bytes depend on the writer's version)
 routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 7c30f58
 table: 40524444 rows, 3377037 segments, 0 null flows, total 178918222.786650 m3/s
@@ -43,10 +43,10 @@ daily parts = table: coverage   2886046240          0             0
 daily parts = table: pick       2886046240          0             0  
 routed months 1-12, total rounded to 1e-6 per value: 178918222.786650 m3/s; the table's fingerprint: 178918222.786650 m3/s
 daily routed values one 1e-5 step apart at a rounding tie (not counted as differing): 0
-daily: table built at 6bb261e; routed days and weights: 13786122 rows, 37667 sub-basins, total q_acc 636284197.301372 m3/s; weights 3377037 rows, shares 558010.174364980
+daily: table built at f99df25; routed days and weights: 13786122 rows, 37667 sub-basins, total q_acc 636284197.301372 m3/s; weights 3377037 rows, shares 558010.174364980
 
 ## Against the published tree
-parts identical to the published build 77585a8: 512 of 512 here, 512 published (https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json)
+parts identical to the published build 77585a8: 6 of 512 here, 512 published (https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json)
 
 ## What a reader sees (duckdb, hive_partitioning = true, over the local tree)
 historical PNWNAmet  pcic_routed     43901481 rows   3154131 fresh-subquery rows
