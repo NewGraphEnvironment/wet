@@ -52,17 +52,23 @@ No province run on this branch: it is m4's, and it lands with the next release r
 - [x] live check on m1's fwapg: `wet_ws_fetch()` twice and a basin's sums twice `identical()`
 
 ## Phase 4: Docs
-- [ ] `scripts/wb_upstream_identity.R` header: runs made since #76 reproduce to the bit;
+- [x] `scripts/wb_upstream_identity.R` header: runs made since #76 reproduce to the bit;
       a comparison with a run made before it still needs the tolerance (kept at 1e-10)
-- [ ] `CLAUDE.md` "A rerun agrees with the last only to rounding … (#76)": rewrite the same way
-- [ ] grep `research/` for the rounding sentence and revise where found
-- [ ] `NEWS.md` line
+- [x] `CLAUDE.md` "A rerun agrees with the last only to rounding … (#76)": rewrite the same way
+- [x] grep `research/` for the rounding sentence and revise where found
+- [x] ~~`NEWS.md` line~~: left to `/gh-pr-merge`, whose release commit writes NEWS in this repo (the last four NEWS commits are all `Release vX`)
 
 ## Owed at the end (reported, done after merge)
 
 - [ ] The next province run on m4 (`scripts/wb_province.R 4`, new key) carries the change; set
-      the current run aside first, and run `wb_upstream_identity.R` against it (to rounding,
-      since the old run was summed in the old order)
+      the current run `e675918817` aside first, never delete it (tag `aet-15-record`'s recipe
+      reads it, `research/water_balance_method.md`), and run `wb_upstream_identity.R` against
+      it (to rounding, since the old run was summed in the old order)
+- [ ] Until that run, `discharge_publish.R` refuses a build: `R/` changed since the segment
+      report's commit. A republish needs the province run, `wb_output.R` and
+      `segment_output.R` first (the chain the next release runs anyway)
+- [ ] After that run, confirm the claim the docs now make as "should": a second run (or one
+      basin accumulated again from the run's samples) `identical()` to it
 - [ ] Issue body: edit to say what landed and that the run is pending
 
 ## Validation

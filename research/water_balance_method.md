@@ -584,7 +584,7 @@ Their accuracy figures are in-sample, and after the undocumented "final adjustme
 - #16: snow predictors for the monthly shares. Done; kept. See "Snow predictors for the monthly shares (#16)" above. Zone 27 is worse with them. Published with #77: build acb820f, uploaded 2026-10-15.
 - #70: the balance's daily shape within the month. Done; donor ships. See "Daily shape within the month (#70)" above. Published in `segment_daily` (#99).
 - #102: how the monthly shares are made. Done; the donor gauges' shares ship. See "Monthly shares from donor gauges (#102)" above.
-- #76: the province run reproduces only to rounding across database states (unordered fetch).
+- #76: the province run should reproduce to the bit. Done in code: the fetches return polygons in id order and the upstream sums add them in id order, so shuffled Fraser and Columbia fetches sum to identical values. It lands with the next province run; that run agrees with `e675918817` (summed in the old order) only to rounding.
 - An upstream note to climr on the ClimateNA coastal gap: drafted, not posted.
 - rspatial/terra#2195: `rasterize(filename = )` with an integer datatype writes NA as 0 (worked around in `scripts/wb_inputs.R`).
 
