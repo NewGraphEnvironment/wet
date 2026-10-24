@@ -1,13 +1,13 @@
 # Monthly shares with and without the snow predictors (#16), held out under blocked CV
 
-province run: e675918817; HYDAT release: 20260717; annual AET: cfu; scores 37d93d99ca657930d0e7c9c995e787a0
+province run: 92b893c4da; HYDAT release: 20260717; annual AET: cfu; scores 37d93d99ca657930d0e7c9c995e787a0
 calibration gauges: 315; held-out months read from fit_20260717/cv_aet-cfu.rds (#68), nothing refitted
 snow predictors: upstream means of ERA5-Land 1981-2010 snowmelt_doy_50 and swe_max (wet_snow_normals())
 
 RULE (fixed before the snow predictors were scored, scripts/wb_validate.R): keep them if the blocked-CV median share NSE (12 held-out shares against the observed, per gauge) rises by >= 0.01, over the gauges where both give one.
   base 0.8558, snow 0.8735, gain +0.0177 over 315 gauges -> KEPT (the fit ships the snow predictors)
   not deciding: snowmelt_doy_50 alone 0.8593
-held-out annual, raw P - AET and gate the same as in the fit set aside before #16 (data/wb/_pre16/962a9cc2c4/fit_20260717), worst relative difference 4.67e-15 (#76), for: cfu
+held-out annual, raw P - AET and gate the same as in the fit set aside before #16 (data/wb/_pre16/962a9cc2c4/fit_20260717), worst relative difference 8.4e-15 (#76), for: cfu
 
 ## Median share NSE and monthly-flow NSE per gauge, base -> snow (wet_flow_validate(); n excludes low gauges)
 all                     315   share NSE 0.856 -> 0.874 (+0.018)   monthly NSE 0.708 -> 0.727
