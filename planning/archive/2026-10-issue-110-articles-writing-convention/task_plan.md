@@ -32,9 +32,9 @@ Approved by the user at the plan gate, 2026-10-23 (recommended option 1 in each 
 - [x] Remove the open-issue pointer: drop the fwapg#24 link from the Nechako Reservoir sentence. State what the build shows instead: routed flow is far below the balance's there. The existing `nech_bal > 90` guard already fails if that stops being true.
 - [x] Limits: rewrite the zone-adjustment bullet as decision 4, in one sentence about what the product does.
 - [x] Method link: plain text "how the balance is built" instead of the path `research/water_balance_method.md`, placed at the end as the article's one "how it's built" link.
-- [x] Cut the `## Validation` section (soul#519 item 4). Its content becomes the opening paragraph of a new `## Software and citation` section: two sentences on when and from what build the numbers were bundled, plus a link to the build report. The `provenance` guard chunk stays.
+- [x] Cut the `## Validation` section (the reader-pass rules, item 4). Its content becomes the opening paragraph of a new `## Software and citation` section: two sentences on when and from what build the numbers were bundled, plus a link to the build report. The `provenance` guard chunk stays.
 - [x] Add a `## Software and citation` section with the helper over `wet`, `duckdb`, `ggplot2`, `gq` and `sf`. Then a Data line, following monthly-flow: PCIC hydromosaic, the `fwapg` fork at `prov$routed_commit`, the Freshwater Atlas through Norris (2026) `fwapg`, HYDAT release, and Chapman et al. (2018) for the method.
-- [x] Score table: move the "PCIC does not list the gauges it calibrated to…" caption note into `kableExtra::footnote()`, using soul#519's measured form: `kable(format = "html")`, then `kable_styling(full_width = FALSE)`, then `footnote(general_title = "")`.
+- [x] Score table: move the "PCIC does not list the gauges it calibrated to…" caption note into `kableExtra::footnote()`, using the reader-pass rules' measured form: `kable(format = "html")`, then `kable_styling(full_width = FALSE)`, then `footnote(general_title = "")`.
 - [x] Word guard: apply decision 1, then render and confirm the count is within the cap.
 
 ## Phase 3: `station-flow.Rmd`

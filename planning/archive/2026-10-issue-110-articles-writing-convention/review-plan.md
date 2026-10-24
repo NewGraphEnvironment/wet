@@ -13,5 +13,5 @@ No blockers. Findings, most severe first, with what was done:
 11. `gh()` stays in use (build-report and method links).
 12. research/water_balance_method.md:86 cites fwapg#24 as the cause of the Nechako share; still true (issue open) and research may cite issues, so left. CLAUDE.md:50 updated in Phase 4.
 13. `fwapg` first mention: now links the repository, with the fork's placement PR beside it.
-14. soul#519 items 1–3 per article: added a read step at render (terms from sibling articles, prose repeating a table, statistics defined).
+14. The reader-pass rules' items 1–3, per article: added a read step at render (terms from sibling articles, prose repeating a table, statistics defined).
 15. "The latest years are provisional": relative to the five years shown, computed; kept as a judgement call.
