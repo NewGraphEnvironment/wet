@@ -12,7 +12,7 @@ wet_upstream_irregular(conn, wscode)
 \item{wscode}{Character. FWA watershed code of the basin root.}
 }
 \value{
-\code{data.frame(watershed_feature_id, id_up)}.
+\code{data.frame(watershed_feature_id, id_up)}, ordered by both.
 }
 \description{
 A polygon whose \code{localcode} neither equals nor lies under its \code{wscode} is

@@ -89,3 +89,16 @@ test_that("several layers are averaged over the cells where every layer has a va
   expect_equal(lin$lin, 2 * out$a - out$b, tolerance = 1e-6)
 })
 
+
+test_that("area means per polygon do not depend on the polygons' order", {
+  wkt <- c("POLYGON((0.5 1.2,1.5 1.2,1.5 1.8,0.5 1.8,0.5 1.2))",
+           "POLYGON((0.3 0.2,1.7 0.2,1.7 1.9,0.3 1.9,0.3 0.2))",
+           "POLYGON((0.1 0.6,1.3 0.1,1.9 1.4,0.6 1.95,0.1 0.6))")
+  r <- grid()
+  terra::values(r) <- c(1e16, 1, -1e16, 3)
+  ref <- wet_ws_sample(r, polys(wkt, 1:3), "area")
+  for (p in list(3:1, c(2L, 3L, 1L))) {
+    got <- wet_ws_sample(r, polys(wkt[p], p), "area")
+    expect_identical(got[match(1:3, got$watershed_feature_id), ], ref, ignore_attr = "row.names")
+  }
+})

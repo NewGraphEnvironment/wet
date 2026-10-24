@@ -282,7 +282,7 @@ It reads, besides the code at the tag:
 - province run `e675918817` (`upstream/`, `ex_filled_cells.txt`);
 - `fit_20251014/`, which stays on m4.
 
-HYDAT 2025-10-14 (`s3://fresh-bc/hydat/20251014/`, md5 `da00052022aa1533b80f9fab7cb8b4d0`) is needed only to rebuild the stations file with `scripts/wb_stations.R`. Copy it by hand to `tools::R_user_dir("wet", "cache")/hydat/20251014/Hydat.sqlite3`, which `wet:::wet_hydat()` reads. That rebuild also snaps against the live fwapg (#76), so it is not guaranteed to reproduce the stations file's bytes. When the province run is re-keyed, set `e675918817` aside rather than deleting it, or the recipe has nothing to read.
+HYDAT 2025-10-14 (`s3://fresh-bc/hydat/20251014/`, md5 `da00052022aa1533b80f9fab7cb8b4d0`) is needed only to rebuild the stations file with `scripts/wb_stations.R`. Copy it by hand to `tools::R_user_dir("wet", "cache")/hydat/20251014/Hydat.sqlite3`, which `wet:::wet_hydat()` reads. That rebuild also snaps against the live fwapg, whose segments may have changed since, so it is not guaranteed to reproduce the stations file's bytes (since #76 an exact tie between two candidates goes to the lower `linear_feature_id`, but fwapg's `fwa_indexpoint()` returns one segment per stream and breaks a tie within a stream by row order: 08EC013 and 08KD006 each sit exactly as far from two segments of one stream in different watersheds, NewGraphEnvironment/fwapg#39). When the province run is re-keyed, set `e675918817` aside rather than deleting it, or the recipe has nothing to read.
 
 ### The AET re-decided on HYDAT 2026-07-17 (#81)
 
@@ -584,7 +584,7 @@ Their accuracy figures are in-sample, and after the undocumented "final adjustme
 - #16: snow predictors for the monthly shares. Done; kept. See "Snow predictors for the monthly shares (#16)" above. Zone 27 is worse with them. Published with #77: build acb820f, uploaded 2026-10-15.
 - #70: the balance's daily shape within the month. Done; donor ships. See "Daily shape within the month (#70)" above. Published in `segment_daily` (#99).
 - #102: how the monthly shares are made. Done; the donor gauges' shares ship. See "Monthly shares from donor gauges (#102)" above.
-- #76: the province run reproduces only to rounding across database states (unordered fetch).
+- #76: the province run should reproduce to the bit. Done in code: the fetches return polygons in id order and the upstream sums add them in id order, so shuffled Fraser and Columbia fetches sum to identical values (on the same software; PostGIS, GEOS, PROJ, terra and GDAL each set last bits too). `scripts/wb_upstream_order.R` replays two runs' stored row orders through the sums. It lands with the next province run; that run agrees with `e675918817` (summed in the old order) only to rounding.
 - An upstream note to climr on the ClimateNA coastal gap: drafted, not posted.
 - rspatial/terra#2195: `rasterize(filename = )` with an integer datatype writes NA as 0 (worked around in `scripts/wb_inputs.R`).
 

@@ -114,7 +114,8 @@ ref <- DBI::dbGetQuery(conn, "
   FROM whse_basemapping.fwa_stream_networks_sp s
   JOIN whse_basemapping.fwa_streams_watersheds_lut l USING (linear_feature_id)
   LEFT JOIN whse_basemapping.fwa_stream_networks_discharge d USING (linear_feature_id)
-  WHERE s.watershed_group_code = $1", params = list(wsg))
+  WHERE s.watershed_group_code = $1
+  ORDER BY s.linear_feature_id", params = list(wsg))
 
 # coverage always from the live build: the stored upstream area can be stale
 parity$coverage <- live$coverage[match(parity$watershed_feature_id, live$watershed_feature_id)]

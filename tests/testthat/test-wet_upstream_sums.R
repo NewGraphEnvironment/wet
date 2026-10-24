@@ -103,3 +103,72 @@ test_that("incomplete or duplicated irregular pairs are refused", {
   expect_no_warning(wet_upstream_sums(clean, "area",
     irregular_pairs = data.frame(watershed_feature_id = integer(), id_up = integer())))
 })
+
+# Three polygons at one FWA position (rows 7, 8 and a ninth), with values whose
+# double sum depends on the order they are added in: 1e16 + 1 is 1e16.
+order_ws <- function() {
+  ws <- salr_like()
+  ws <- rbind(ws, ws[8, ])
+  ws$watershed_feature_id[9] <- 9L
+  ws$area[7:9] <- c(1e16, 1, -1e16)
+  ws
+}
+
+test_that("sums do not depend on the row order of ws", {
+  ws <- order_ws()
+  # the fixture reaches the failure mode: the order changes the double. Reduce()
+  # adds in plain double as rowsum() does; sum() may use long double.
+  expect_false(identical(Reduce(`+`, ws$area[7:9]), Reduce(`+`, ws$area[c(7, 9, 8)])))
+  ref <- wet_upstream_sums(ws, "area")
+  perms <- list(c(1:6, 7, 9, 8), c(1:6, 8, 7, 9), c(1:6, 9, 8, 7), rev(1:9), c(9, 3, 7, 1, 8, 2, 6, 4, 5))
+  for (p in perms) {
+    got <- wet_upstream_sums(ws[p, ], "area")
+    expect_identical(got$area[match(ref$watershed_feature_id, got$watershed_feature_id)], ref$area,
+                     info = paste(p, collapse = " "))
+  }
+})
+
+test_that("sums do not depend on the row order of irregular_pairs", {
+  # rows 2-4 are irregular (localcode beside, not under, wscode) and upstream of
+  # the mouth, so the mouth's sum adds all three from the pairs
+  ws <- data.frame(watershed_feature_id = 1:4,
+                   wscode = c("100", rep("100.000500", 3)),
+                   localcode = c("100", rep("100.000400", 3)),
+                   area = c(0, 1e16, 1, -1e16))
+  pairs <- brute_upstream(ws)$pairs
+  expect_equal(sort(pairs$id_up[pairs$watershed_feature_id == 1L]), 2:4)
+  ref <- wet_upstream_sums(ws, "area", irregular_pairs = pairs)
+  # the mouth's pairs come first (2, 3, 4); adding them as 2, 4, 3 changes the double
+  expect_identical(pairs$id_up[1:3], 2:4)
+  n <- nrow(pairs)
+  for (p in list(c(1, 3, 2, 4:n), rev(seq_len(n)), c(3, 1, 2, 4:n))) {
+    got <- wet_upstream_sums(ws, "area", irregular_pairs = pairs[p, ])
+    expect_identical(got$area, ref$area, info = paste(p, collapse = " "))
+  }
+  # and of ws, which numbers the pairs' rows: summing by position in ws would
+  # add the mouth's pairs as 2, 4, 3 here
+  for (p in list(c(1, 2, 4, 3), 4:1)) {
+    got <- wet_upstream_sums(ws[p, ], "area", irregular_pairs = pairs)
+    expect_identical(got$area[match(1:4, got$watershed_feature_id)], ref$area,
+                     info = paste(p, collapse = " "))
+  }
+})
+
+test_that("a basin from fwapg sums the same in any row order", {
+  conn <- local_fwapg()
+  ws <- wet_ws_fetch(conn, "925")
+  irr <- wet_upstream_irregular(conn, "925")
+  # the fetches come back in id order, so two runs see the same rows
+  expect_identical(ws$watershed_feature_id, sort(ws$watershed_feature_id))
+  expect_identical(irr, irr[order(irr$watershed_feature_id, irr$id_up), , drop = FALSE])
+  ws$one <- 1
+  ref <- wet_upstream_sums(ws, c("area_m2", "one"), irregular_pairs = irr)
+  set.seed(76)
+  p <- sample(nrow(ws))
+  q <- sample(nrow(irr))
+  got <- wet_upstream_sums(ws[p, ], c("area_m2", "one"), irregular_pairs = irr[q, ])
+  got <- got[match(ref$watershed_feature_id, got$watershed_feature_id), ]
+  rownames(got) <- NULL
+  attr(got, "irregular") <- attr(ref, "irregular") <- NULL
+  expect_identical(got, ref)
+})

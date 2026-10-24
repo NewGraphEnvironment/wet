@@ -12,7 +12,8 @@ wet_ws_geom(conn, wsg)
 \item{wsg}{Watershed group code, e.g. \code{"SALR"}.}
 }
 \value{
-\code{terra::SpatVector} (BC Albers) with \code{watershed_feature_id}.
+\code{terra::SpatVector} (BC Albers) with \code{watershed_feature_id}, in
+\code{watershed_feature_id} order.
 }
 \description{
 Geometry for area-weighted sampling (\code{\link[=wet_ws_sample]{wet_ws_sample()}} with

@@ -32,6 +32,9 @@
 #'
 #' Range sums use a segment tree rather than differences of prefix sums, so a
 #' 1,000 m2 headwater is not the small difference of two 1e11 m2 totals.
+#' Polygons that share `(wscode, localcode)`, and each watershed's irregular
+#' pairs, are added in `watershed_feature_id` order, so the sums are the same
+#' to the bit whatever the row order of `ws` and `irregular_pairs`.
 #'
 #' @param ws `data.frame` with `watershed_feature_id`, `wscode`, `localcode`
 #'   (FWA ltree codes as text) and the numeric columns named in `cols`.
@@ -58,9 +61,12 @@ wet_upstream_sums <- function(ws, cols, irregular_pairs = NULL) {
 
   # Positions of valid polygons, sorted by (wscode, localcode). A space sorts
   # before "." and "/", so "W L" keys order exactly as (W, L) does.
+  # Polygons sharing a key are added in watershed_feature_id order, so the
+  # doubles do not depend on the row order of ws.
   kb <- paste(W[valid], L[valid])
-  uk <- unique(kb[order(kb, method = "radix")])
-  pos <- rowsum(vals[valid, , drop = FALSE], match(kb, uk), reorder = TRUE)
+  o <- order(kb, ws$watershed_feature_id[valid], method = "radix")
+  uk <- unique(kb[o])
+  pos <- rowsum(vals[which(valid)[o], , drop = FALSE], match(kb[o], uk), reorder = TRUE)
   trees <- lapply(seq_len(ncol(pos)), function(j) wet_seg_build(pos[, j]))
 
   # Query each distinct (W, L) once.
@@ -116,8 +122,10 @@ wet_upstream_sums <- function(ws, cols, irregular_pairs = NULL) {
     }
     ia <- match(irregular_pairs$watershed_feature_id, ws$watershed_feature_id)
     ib <- match(irregular_pairs$id_up, ws$watershed_feature_id)
-    keep <- !is.na(ia)
-    if (any(keep)) {
+    keep <- which(!is.na(ia))
+    if (length(keep)) {
+      # each watershed's irregular polygons added in id order, as above
+      keep <- keep[order(ia[keep], irregular_pairs$id_up[keep], method = "radix")]
       add <- rowsum(vals[ib[keep], , drop = FALSE], ia[keep])
       rows <- as.integer(rownames(add))
       res[rows, ] <- res[rows, , drop = FALSE] + add

@@ -10,10 +10,13 @@
 # choice to the new key: the annual balance,
 # and everything that chose them, reads the same numbers.
 #
-# "The same" is to rounding, not to the bit: wet_ws_fetch() takes the basin's
-# polygons in whatever order PostgreSQL returns them, which follows the
-# table's physical layout, so polygons sharing FWA codes are summed in another
-# order once the database has changed (#76). Rows are matched on
+# "The same" is to rounding, not to the bit: before #76, wet_ws_fetch() took
+# the basin's polygons in whatever order PostgreSQL returned them, and
+# wet_upstream_sums() added polygons sharing FWA codes in that order, so a run
+# made before #76 differs from a later one in the last bits. The sums no longer
+# depend on row order, so two runs made since #76 on the same FWA polygons and
+# the same software should be identical; the tolerance stays for a set-aside
+# run that predates it. Rows are matched on
 # watershed_feature_id and every numeric column must agree to a relative
 # 1e-10, with NA, NaN and infinite values in the same places and equal; the
 # worst difference is reported. NA patterns, codes and the

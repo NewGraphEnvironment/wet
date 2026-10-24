@@ -12,7 +12,8 @@ wet_ws_fetch(conn, wscode)
 \item{wscode}{Character. FWA watershed code of the basin root.}
 }
 \value{
-\code{data.frame(watershed_feature_id, watershed_group_code, wscode, localcode, area_m2, lon, lat)}.
+\code{data.frame(watershed_feature_id, watershed_group_code, wscode, localcode, area_m2, lon, lat)}, ordered by \code{watershed_feature_id}, so the
+same polygons always come back in the same order.
 }
 \description{
 Everything \code{\link[=wet_upstream_sums]{wet_upstream_sums()}} and centroid sampling need, with no

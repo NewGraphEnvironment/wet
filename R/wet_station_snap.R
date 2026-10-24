@@ -123,7 +123,10 @@ wet_snap_pick <- function(stations, cand, max_dev) {
   usable <- !is.na(cand$watershed_feature_id) & !is.na(cand$upstream_area_km2)
   cand$score <- ifelse(is.na(cand$gross), cand$distance_m, abs(log(cand$area_ratio)))
   cand <- cand[usable, ]
-  cand <- cand[order(cand$station_number, cand$score, cand$distance_m), ]
+  # linear_feature_id last, so a tie between two candidates does not fall to
+  # their fetch order. fwa_indexpoint() returns one segment per stream and
+  # breaks an exact tie within a stream itself (NewGraphEnvironment/fwapg#39).
+  cand <- cand[order(cand$station_number, cand$score, cand$distance_m, cand$linear_feature_id), ]
   best <- cand[!duplicated(cand$station_number), ]
   i <- match(stations$station_number, best$station_number)
   out <- data.frame(
