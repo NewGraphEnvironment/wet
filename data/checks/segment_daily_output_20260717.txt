@@ -1,11 +1,11 @@
 # Per-segment daily flow from either source (#99)
 
-wet commit 6bb261e (segment table built at d20a624); fit 20260717, province run e675918817, scoring code 37d93d99ca657930d0e7c9c995e787a0
+wet commit f99df25 (segment table built at 28105a3); fit 20260717, province run 92b893c4da, scoring code 37d93d99ca657930d0e7c9c995e787a0
 routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 7c30f58
 table: 40524444 rows, 3377037 segments, 0 null flows, total 178918222.786650 m3/s
 daily: 13786122 rows, 37667 sub-basins, total q_acc 636284197.301372 m3/s; weights 3377037 rows, shares 558010.174364980
 balance shape: donor, k = 5, shape code b679de3967973bc7081dbaf7a3fcb782
-elapsed: 132.0 min
+elapsed: 118.5 min
 
 ## Rows
 segments: 3377037 routed, 4529939 balance; rows: 2886046240 (246 groups)
@@ -13,7 +13,7 @@ weighted segments without routed days: 0 (the monthly report's routed segments l
 
 ## The balance's days average to its months
 watershed-months: 38680224; largest relative difference: 1.17e-15 (limit 1e-9)
-daily runoff_mm summed over each month against its monthly runoff_mm (x 28/28.25 in February): largest relative 1.25e-15
+daily runoff_mm summed over each month against its monthly runoff_mm (x 28/28.25 in February): largest relative 1.29e-15
 
 ## Routed months rebuilt from the raw days (n_days-weighted, clamped, rounded) against fwapg's months
 segment-months: 40524444; differing by more than one 1e-5 step: 0; by one step at a rounding tie: 0
