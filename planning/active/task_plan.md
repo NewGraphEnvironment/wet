@@ -18,7 +18,7 @@ Two layers, each for its own reason:
    `(key, watershed_feature_id)` before the group `rowsum()`, and the irregular pairs by
    `(ia, id_up)` before theirs (`(ia, ib)` at the gate; corrected in Phase 2). The sums then no longer depend on any caller's row order
    (`mad_basin.R`, `mad_parity.R`, the province run), and the property is testable offline.
-   Cost: one radix order over ~3.2 M rows per basin.
+   Cost: one radix order per basin (3.2 M watersheds over the province; the Fraser 644,710).
 2. **`ORDER BY` on a unique key in the fetches** (`wet_ws_fetch()`: `watershed_feature_id`;
    `wet_upstream_irregular()`: `a.watershed_feature_id, b.watershed_feature_id`;
    `wet_ws_geom()`: `watershed_feature_id`; `wet_upstream_pairs()`: `a.watershed_feature_id,
@@ -47,9 +47,15 @@ No province run on this branch: it is m4's, and it lands with the next release r
 ## Phase 3: ORDER BY in the fetches
 - [x] `ORDER BY` on a unique key in `wet_ws_fetch()`, `wet_upstream_irregular()`,
       `wet_ws_geom()`, `wet_upstream_pairs()`; `@return` says rows come in id order
-- [ ] sweep `R/` and `scripts/` for other DB fetches whose rows are summed; add `ORDER BY` on a
+- [x] sweep `R/` and `scripts/` for other DB fetches whose rows are summed; add `ORDER BY` on a
       unique key where found, list each verdict in findings
 - [x] live check on m1's fwapg: `wet_ws_fetch()` twice and a basin's sums twice `identical()`
+
+## Phase 3b: Plan review and sweep fixes (added 2026-10-24)
+- [x] `wet_upstream_sums()`: one copy (`vals[which(valid)[o], ]`); fixture guard with `Reduce()`
+- [x] `wet_station_snap()`: `linear_feature_id` breaks exact ties; test
+- [x] `ORDER BY` in `wb_province.R`'s boundary fetch, `mad_basin.R`, `mad_parity.R`; zone columns from sorted groups
+- [x] `scripts/wb_upstream_order.R`: replay two runs' stored row orders through the current sums
 
 ## Phase 4: Docs
 - [x] `scripts/wb_upstream_identity.R` header: runs made since #76 reproduce to the bit;
@@ -60,10 +66,14 @@ No province run on this branch: it is m4's, and it lands with the next release r
 
 ## Owed at the end (reported, done after merge)
 
-- [ ] The next province run on m4 (`scripts/wb_province.R 4`, new key) carries the change; set
-      the current run `e675918817` aside first, never delete it (tag `aet-15-record`'s recipe
-      reads it, `research/water_balance_method.md`), and run `wb_upstream_identity.R` against
-      it (to rounding, since the old run was summed in the old order)
+- [ ] On m4: `Rscript scripts/wb_upstream_order.R data/wb/_pre16/962a9cc2c4 data/wb/e675918817`
+      (the two stored orders that differed, through the new sums; must print "identical")
+- [ ] The next province run on m4 (`scripts/wb_province.R 4`, new key) carries the change. It
+      happens only inside a release chain: `wb_key_dir()` then sees only the new key, and
+      `fit_20260717` lives under `e675918817`, so the fit is refit or carried over, then
+      `wb_output.R`, `segment_output.R` and the vignette data (their `province_run` and
+      `upstream/400.rds` md5) follow. Set `e675918817` aside, never delete it (tag
+      `aet-15-record`'s recipe reads it)
 - [ ] Until that run, `discharge_publish.R` refuses a build: `R/` changed since the segment
       report's commit. A republish needs the province run, `wb_output.R` and
       `segment_output.R` first (the chain the next release runs anyway)
@@ -79,6 +89,7 @@ No province run on this branch: it is m4's, and it lands with the next release r
 - [ ] `/planning-archive` on completion
 
 Verification: the permutation tests fail on main and pass on the branch (shown by running them
-on both); the live test reruns a real basin's fetch and sums with `identical()`; `lintr` clean;
+on both); the live test pins the fetch order only; the evidence on real data is the Fraser and
+Columbia shuffles and the replay script's two-way test (findings); `lintr` clean;
 `pkgdown::check_pkgdown()` (no exports change, so a formality).
 

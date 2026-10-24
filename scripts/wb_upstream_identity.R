@@ -14,9 +14,9 @@
 # the basin's polygons in whatever order PostgreSQL returned them, and
 # wet_upstream_sums() added polygons sharing FWA codes in that order, so a run
 # made before #76 differs from a later one in the last bits. The sums no longer
-# depend on row order, so two runs made since #76 on the same FWA polygons
-# should be identical; the tolerance stays for a set-aside run that predates
-# it. Rows are matched on
+# depend on row order, so two runs made since #76 on the same FWA polygons and
+# the same software should be identical; the tolerance stays for a set-aside
+# run that predates it. Rows are matched on
 # watershed_feature_id and every numeric column must agree to a relative
 # 1e-10, with NA, NaN and infinite values in the same places and equal; the
 # worst difference is reported. NA patterns, codes and the

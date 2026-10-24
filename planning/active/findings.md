@@ -72,7 +72,43 @@ Scratchpad script `live_check.R`: each basin fetched twice (`wet_ws_fetch()`, `w
 
 The shuffled differences are smaller than #16's 6.6e-14 because those were upstream *means*, a ratio of two sums each carrying the error, over every layer and all 24 basins.
 
+## Fetch sweep: verdicts (2026-10-24 UTC)
+
+An Explore agent classified the 52 fetch sites the detector listed (one, `R/wet_segment_monthly.R:301`, has `ORDER BY 1, 2` after all). Each flagged site was read before acting:
+
+| site | verdict | action |
+|---|---|---|
+| `scripts/wb_province.R:72` (`fwa_bcboundary`, ~28,000 pieces dissolved into `in_bc.tif`) | the dissolve's last bits can follow input order, and `in_bc` reaches every upstream file as `bc_fraction` | `ORDER BY bcboundary_id` (its primary key) |
+| `scripts/mad_basin.R:94` | `tapply(seg$mad_mm, seg$watershed_feature_id, `[`, 1)` keeps the first segment's fwapg value, which drives the flip search and cause attribution; the parquet at :283 is written in fetch order | `ORDER BY s.linear_feature_id` |
+| `scripts/mad_parity.R:112` | `merge()` keeps fetch order among a watershed's segments into the written csv | `ORDER BY s.linear_feature_id` |
+| `R/wet_station_snap.R:126-127` | `order(station, score, distance)` then `!duplicated()`: an exact tie (two segments meeting at the nearest node, one watershed) falls to fetch order | `linear_feature_id` as last sort key; test |
+| `R/wet_station_daily.R:179` (duckdb over the provisional archive) | safe only if the archive never repeats a station and day; not checked | left: outside #76, reported |
+| every other site | safe: single row, joined or compared on a unique key, sorted before use, counts or set membership, or SQLite on a fixed file | none |
+
+## Plan review: verdicts (2026-10-24 UTC)
+
+Review in `review-plan.md`. Each claim checked before acting:
+
+| finding | verdict | action |
+|---|---|---|
+| B1 identity script cannot run the owed check | **confirmed** (:51, :75 are #16-specific; :90 is #16's tracked report) | not generalised: it stays #16's record. The owed check is now the new `scripts/wb_upstream_order.R` (replays two runs' stored orders) and, after the next run, `identical()` of a rerun's files |
+| B2 `(ia, ib)` in the plan | already corrected in Phase 2 | none |
+| G1 `sum()` may use long double | **confirmed** by reading (m1 has none, so it passed here) | fixture guard uses `Reduce(`+`, …)` |
+| G2 double copy; "3.2 M per basin" | **confirmed** | `vals[which(valid)[o], ]`; plan text fixed (province total; Fraser 644,710) |
+| G3 snap tie, mad_parity csv | **confirmed** | see sweep table |
+| G4 stale wording | `wb_share_snow.R:18-19, :143`, identity :86 and research :519 describe #16's pre-#76 runs and stay true as written; research :285 revised (snap) | :285 only |
+| S1 re-keying cascades | **confirmed** (`wb_key_dir()` sees one complete run; `fit_20260717` lives under `e675918817`) | owed list says the run happens only inside a release chain |
+| A1 same software | **confirmed** | CLAUDE.md, identity header, research say "same software" |
+| A2 the 6.6e-14 vs 4e-16 explanation | plausible; not measured | Phase 3 note revised below |
+| AC1 replay basin 200 on m1 | **not possible on m1**: its runs are the reduced bundle (basin 100 stores 94 of 644,710 watersheds, 925 none) | `scripts/wb_upstream_order.R`; owed on m4. Tested on two scratch runs built from m1's fwapg (basins 100 and 999, the second shuffled): branch "identical: 2 basins (2 stored in another order), 644770 watersheds"; a scratch copy on main's sums stops "100: the sums differ" |
+| AC2/AC3 | agreed: the 925 test pins only the `ORDER BY`, fetching twice in one state is trivial | Verification wording revised; `live_check.R` and the replay stay recorded here |
+| `wb_province.R:256` column order | **confirmed** | `need <- sort(unique(...))` |
+| `wb_cv_lib.R:37` same pattern | real, but `wb_cv_lib.R` is hashed into the fit scores (`wb_score_md5.R:14`), so changing it stales the shipped fit | left, reported |
+
+Note on Phase 3's live check: its columns all have one sign, so it cannot show cancellation; #16's larger 6.6e-14 was probably signed layers near zero (`tave_10` in October), not the means being ratios. The replay script adds a signed column for that reason.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
+| replay of the two stored runs on m1: `irregular_pairs$id_up must be irregular polygons in ws` | m1's runs are the reduced bundle; replay moved to a script for m4 |
