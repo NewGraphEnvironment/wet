@@ -53,7 +53,7 @@
 
 
 
-
+<script src="segment-discharge_files/kePrint-0.0.1/kePrint.js"></script><link href="segment-discharge_files/lightable-0.0.1/lightable.css" rel="stylesheet">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Stream Discharge per Segment</h1>
@@ -68,14 +68,14 @@
 <div class="section level2">
 <h2 id="what-it-is">What it is<a class="anchor" aria-label="anchor" href="#what-it-is"></a>
 </h2>
-<p>wet publishes the mean flow of British Columbia’s Freshwater Atlas
-stream segments, in cubic metres per second, for the year, each month
-and each day. It is public at
-<code>s3://fresh-bc/discharge/fwa/v1/</code>. The bucket allows no
-listing, so a reader starts from the manifest, <a href="https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json" class="external-link uri">https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json</a>,
-which lists every part with its rows, size and md5. The current build
-has 512 parquet parts, 33.23 GB, built on 20 October 2026 at wet commit
-77585a8.</p>
+<p>The R package <a href="https://newgraphenvironment.github.io/wet/"><code>wet</code></a>
+publishes the mean flow of British Columbia’s Freshwater Atlas stream
+segments, in cubic metres per second, for the year, each month and each
+day. It is public at <code>s3://fresh-bc/discharge/fwa/v1/</code>. The
+bucket allows no listing, so a reader starts from the manifest, <a href="https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json" class="external-link uri">https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json</a>,
+which lists every part with its rows, size and md5. The build this
+article reads has 512 parquet parts, 33.23 GB, built on 20 October 2026
+at <code>wet</code> commit 77585a8.</p>
 <ul>
 <li>
 <strong><code>segment_monthly</code></strong>: one row per segment,
@@ -96,12 +96,13 @@ and folded, routed PCIC’s days need not average to their month.</li>
 The Pacific Climate Impacts Consortium runs the VIC-GL hydrologic model
 on a 0.0625° grid, driven by observed climate, and routes its runoff
 with the Raven model (<a href="https://beehive.pacificclimate.org/chyp/" class="external-link">hydromosaic</a>). New
-Graph’s <a href="https://github.com/NewGraphEnvironment/fwapg/pull/6" class="external-link">fork of
-fwapg</a> places PCIC’s outlets on Freshwater Atlas segments and spreads
-flow between them by drainage area. The annual value is the mean of the
-twelve months.</p>
+Graph’s <a href="https://github.com/NewGraphEnvironment/fwapg/pull/6" class="external-link">fork</a> of
+<a href="https://github.com/smnorris/fwapg" class="external-link"><code>fwapg</code></a>,
+PostgreSQL tools for the Freshwater Atlas, places PCIC’s outlets on
+Freshwater Atlas segments and spreads flow between them by drainage
+area. The annual value is the mean of the twelve months.</p>
 <p><strong>Open water balance</strong> (<code>wet_balance</code>,
-1981–2010). wet’s own estimate, after <a href="https://www2.gov.bc.ca/assets/gov/environment/air-land-water/water/northeast-water-strategy/chapman_et_al-2018-jawra.pdf" class="external-link">Chapman
+1981–2010). <code>wet</code>’s own estimate, after <a href="https://www2.gov.bc.ca/assets/gov/environment/air-land-water/water/northeast-water-strategy/chapman_et_al-2018-jawra.pdf" class="external-link">Chapman
 et al. (2018)</a>: precipitation less actual evapotranspiration from
 climate normals, averaged over each watershed’s upstream area and
 adjusted per <a href="https://catalogue.data.gov.bc.ca/dataset/bc-hydrologic-zones" class="external-link">hydrologic
@@ -135,7 +136,7 @@ neither, almost all of them connection lines and secondary channels with
 no watershed polygon of their own. The balance takes every segment with
 a value in the Liard, where routed PCIC has none, and 98% of those in
 the four Nechako Reservoir groups, where routed flow is far below the
-balance’s (<a href="https://github.com/NewGraphEnvironment/fwapg/issues/24" class="external-link">fwapg#24</a>).</p>
+balance’s.</p>
 <div class="figure">
 <img src="segment-discharge_files/figure-html/map-pick-1.png" class="r-plt" alt="The source `pick` takes on main-flow rivers of stream order 5 and up (wider for higher orders), 6% of BC's segments, and the 315 calibration gauges. Smaller streams are not drawn, nor the 1,557 segments of that order with neither." width="100%"><p class="caption">
 The source <code>pick</code> takes on main-flow rivers of stream order 5
@@ -148,11 +149,12 @@ segments of that order with neither.
 <div class="section level2">
 <h2 id="how-to-read-it">How to read it<a class="anchor" aria-label="anchor" href="#how-to-read-it"></a>
 </h2>
-<p>Read the parts from the bucket with duckdb. <code>scenario</code>,
-<code>forcing</code> and <code>source</code> are in each part’s path,
-not the file, so read with <code>hive_partitioning</code>. Parts are
-sorted by <code>watershed_group_code</code>, so a read for one group
-opens a few row groups:</p>
+<p>Read the parts from the bucket with the R package <a href="https://r.duckdb.org/" class="external-link"><code>duckdb</code></a>.
+<code>scenario</code>, <code>forcing</code> and <code>source</code> are
+in each part’s path, not the file, so read with
+<code>hive_partitioning</code>. Parts are sorted by
+<code>watershed_group_code</code>, so a read for one group opens a few
+row groups:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/NewGraphEnvironment/wet" class="external-link">wet</a></span><span class="op">)</span></span>
 <span><span class="va">cat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/wet_catalog.html">wet_catalog</a></span><span class="op">(</span><span class="op">)</span>   <span class="co"># the manifest: one row per part, with its href</span></span>
@@ -166,7 +168,8 @@ opens a few row groups:</p>
 <span><span class="st">  FROM read_parquet([%s], hive_partitioning = true)</span></span>
 <span><span class="st">  WHERE scenario = 'historical' AND watershed_group_code = 'BULK' AND month = 0 AND pick"</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"'"</span>, <span class="va">segs</span>, <span class="st">"'"</span>, collapse <span class="op">=</span> <span class="st">", "</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>Or load it into Postgres beside the Freshwater Atlas:</p>
+<p>Or load it into <a href="https://www.postgresql.org/" class="external-link"><code>PostgreSQL</code></a> beside
+the Freshwater Atlas:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">conn</span> <span class="op">&lt;-</span> <span class="fu">DBI</span><span class="fu">::</span><span class="fu"><a href="https://dbi.r-dbi.org/reference/dbConnect.html" class="external-link">dbConnect</a></span><span class="op">(</span><span class="fu">RPostgres</span><span class="fu">::</span><span class="fu"><a href="https://rpostgres.r-dbi.org/reference/Postgres.html" class="external-link">Postgres</a></span><span class="op">(</span><span class="op">)</span>, dbname <span class="op">=</span> <span class="st">"fwapg"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/wet_db_load.html">wet_db_load</a></span><span class="op">(</span><span class="va">conn</span>, <span class="va">cat</span><span class="op">)</span>   <span class="co"># discharge.fwa_v1_segment_monthly</span></span></code></pre></div>
@@ -212,48 +215,87 @@ minus observed, as a percentage of observed. The balance is scored
 <em>held out</em>: each Water Survey sub-sub-drainage (such as 08EE) is
 left out of the fit in turn and predicted from the rest, so a gauge’s
 neighbours on the same river cannot vouch for it.</p>
-<table class="table">
-<caption>Error in mean annual runoff at the calibration gauges. PCIC
-does not list the gauges it calibrated to, so its errors may be partly
-in sample.</caption>
-<colgroup>
-<col width="16%">
-<col width="17%">
-<col width="31%">
-<col width="34%">
-</colgroup>
-<thead><tr class="header">
-<th align="left"></th>
-<th align="right">Routed PCIC, 290 gauges</th>
-<th align="right">Open water balance (held out), 290 gauges</th>
-<th align="right">Open water balance (held out), all 315 gauges</th>
+<table class="table table" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+<caption>
+Error in mean annual runoff at the calibration gauges.
+</caption>
+<thead><tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Routed PCIC, 290 gauges
+</th>
+<th style="text-align:right;">
+Open water balance (held out), 290 gauges
+</th>
+<th style="text-align:right;">
+Open water balance (held out), all 315 gauges
+</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
-<td align="left">Mean absolute error</td>
-<td align="right">24.2%</td>
-<td align="right">27.6%</td>
-<td align="right">27.5%</td>
+<tr>
+<td style="text-align:left;">
+Mean absolute error
+</td>
+<td style="text-align:right;">
+24.2%
+</td>
+<td style="text-align:right;">
+27.6%
+</td>
+<td style="text-align:right;">
+27.5%
+</td>
 </tr>
-<tr class="even">
-<td align="left">Bias (mean error)</td>
-<td align="right">+1.4%</td>
-<td align="right">+9.0%</td>
-<td align="right">+8.5%</td>
+<tr>
+<td style="text-align:left;">
+Bias (mean error)
+</td>
+<td style="text-align:right;">
++1.4%
+</td>
+<td style="text-align:right;">
++9.0%
+</td>
+<td style="text-align:right;">
++8.5%
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Middle half of errors</td>
-<td align="right">−14% to +12%</td>
-<td align="right">−15% to +24%</td>
-<td align="right">−16% to +24%</td>
+<tr>
+<td style="text-align:left;">
+Middle half of errors
+</td>
+<td style="text-align:right;">
+−14% to +12%
+</td>
+<td style="text-align:right;">
+−15% to +24%
+</td>
+<td style="text-align:right;">
+−16% to +24%
+</td>
 </tr>
-<tr class="even">
-<td align="left">Within ±20%</td>
-<td align="right">63%</td>
-<td align="right">54%</td>
-<td align="right">53%</td>
+<tr>
+<td style="text-align:left;">
+Within ±20%
+</td>
+<td style="text-align:right;">
+63%
+</td>
+<td style="text-align:right;">
+54%
+</td>
+<td style="text-align:right;">
+53%
+</td>
 </tr>
 </tbody>
+<tfoot><tr>
+<td style="padding: 0; " colspan="100%">
+<sup></sup> PCIC does not list the gauges it calibrated to, so its
+errors may be partly in sample.
+</td>
+</tr></tfoot>
 </table>
 <p>Routed PCIC is closer than the held-out balance at 169 of the 290
 gauges both cover. Where each is weak:</p>
@@ -284,26 +326,74 @@ most of them in the Liard, where the balance is the only estimate.</li>
 value in a few northern and border basins, and only some on the outer
 coast’s islands.</li>
 <li>
-<strong>The zone adjustment is a close call on headwater
-basins.</strong> There it does not beat raw precipitation less
-evapotranspiration; it is kept for what it does on larger rivers. Zones
-with too few gauges for their own adjustment get none.</li>
+<strong>The zone adjustment is kept by decision.</strong> On
+headwater basins it does not beat raw precipitation less
+evapotranspiration, and zones with too few gauges for their own
+adjustment get none.</li>
 <li>
 <strong>Segments without a value.</strong> Of the 374,598, 369,217
 have no watershed in the lookup through which the balance reaches a
 segment.</li>
 </ul>
-<p>How the balance is built, and each of its choices tested: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/research/water_balance_method.md" class="external-link">research/water_balance_method.md</a>.</p>
 </div>
 <div class="section level2">
-<h2 id="validation">Validation<a class="anchor" aria-label="anchor" href="#validation"></a>
+<h2 id="software-and-citation">Software and citation<a class="anchor" aria-label="anchor" href="#software-and-citation"></a>
 </h2>
-<p>Every published value is checked against what it was built from when
-the product is built; the counts compared and differing are in the build
-report, <a href="https://github.com/NewGraphEnvironment/wet/blob/main/data/checks/discharge_publish_20260717.txt" class="external-link">discharge_publish_20260717.txt</a>.
-This article’s routed values at the gauges and the picks on its map are
-read from that build’s published parts, and its data are not written
-unless the gauge values equal fwapg’s.</p>
+<p>The routed values at the gauges and the picks on the map are the
+published product’s, read on 2026-10-20 from the build at
+<code>wet</code> commit 77585a8; the routed values were held equal to
+<code>fwapg</code>’s before they were written. The province counts are
+from the segment table that build was cut from. The balance’s scores are
+its held-out predictions from the fit on HYDAT 2026-07-17, against
+HYDAT’s observed runoff. The build’s own check of its published flows is
+<a href="https://github.com/NewGraphEnvironment/wet/blob/main/data/checks/discharge_publish_20260717.txt" class="external-link">its
+report</a>.</p>
+<ul>
+<li>
+<code>wet</code> 0.4.17, <a href="https://doi.org/10.5281/zenodo.23305781" class="external-link">doi:10.5281/zenodo.23305781</a>.
+Irvine A (2026). <em>wet: Stream Flow and Water Temperature for the BC
+Freshwater Atlas</em>. New Graph Environment Ltd. <a href="doi:10.5281/zenodo.23305781" class="uri">doi:10.5281/zenodo.23305781</a> <a href="https://doi.org/10.5281/zenodo.23305781" class="external-link uri">https://doi.org/10.5281/zenodo.23305781</a>. Version 0.4.17,
+<a href="https://github.com/NewGraphEnvironment/wet" class="external-link uri">https://github.com/NewGraphEnvironment/wet</a>.</li>
+<li>
+<code>duckdb</code> 1.5.6. Mühleisen H, Raasveldt M (2026).
+<em>duckdb: DBI Package for the DuckDB Database Management System</em>.
+R package version 1.5.6, <a href="https://r.duckdb.org/" class="external-link uri">https://r.duckdb.org/</a>.</li>
+<li>
+<code>ggplot2</code> 4.0.3. Wickham H (2016). <em>ggplot2: Elegant
+Graphics for Data Analysis</em>. Springer-Verlag New York. ISBN
+978-3-319-24277-4. <a href="https://ggplot2.tidyverse.org" class="external-link uri">https://ggplot2.tidyverse.org</a>.</li>
+<li>
+<code>gq</code> 0.16.1, <a href="https://doi.org/10.5281/zenodo.23524719" class="external-link">doi:10.5281/zenodo.23524719</a>,
+commit <code>367b562</code>. Irvine A (2026). <em>gq: Cartographic Style
+Management Across Rendering Targets</em>. New Graph Environment Ltd. <a href="doi:10.5281/zenodo.23524719" class="uri">doi:10.5281/zenodo.23524719</a> <a href="https://doi.org/10.5281/zenodo.23524719" class="external-link uri">https://doi.org/10.5281/zenodo.23524719</a>. Version 0.16.1,
+<a href="https://github.com/NewGraphEnvironment/gq" class="external-link uri">https://github.com/NewGraphEnvironment/gq</a>.</li>
+<li>
+<code>sf</code> 1.1-3, <a href="https://doi.org/10.1201/9780429459016" class="external-link">doi:10.1201/9780429459016</a>.
+Pebesma E, Bivand R (2023). <em>Spatial Data Science: With applications
+in R</em>. Chapman and Hall/CRC. <a href="doi:10.1201/9780429459016" class="uri">doi:10.1201/9780429459016</a> <a href="https://doi.org/10.1201/9780429459016" class="external-link uri">https://doi.org/10.1201/9780429459016</a>. <a href="https://r-spatial.org/book/" class="external-link uri">https://r-spatial.org/book/</a>.</li>
+</ul>
+<p>Cite <code>wet</code> by the DOI above, which resolves to its latest
+release. How the balance is built, and each of its choices tested: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/research/water_balance_method.md" class="external-link">the
+water balance method</a>.</p>
+<p>Data: routed flow from the Pacific Climate Impacts Consortium,
+University of Victoria (<a href="https://beehive.pacificclimate.org/chyp/" class="external-link">hydromosaic</a>: VIC-GL
+hydrologic model output routed with Raven, PNWNAmet forcing), placed on
+the Freshwater Atlas by New Graph’s fork of <code>fwapg</code> at commit
+7c30f58; the stream network from the BC Freshwater Atlas through Norris,
+S. (2026), <em>fwapg: PostgreSQL tools for working with British
+Columbia’s Freshwater Atlas</em>, <a href="https://github.com/smnorris/fwapg" class="external-link uri">https://github.com/smnorris/fwapg</a>; gauge records from
+the Water Survey of Canada’s HYDAT, release 2026-07-17; 1981–2010
+climate normals from the R package <a href="https://github.com/bcgov/climr" class="external-link"><code>climr</code></a>; actual
+evapotranspiration from CGIAR-CSI’s Global High-Resolution Soil-Water
+Balance v3 (<a href="https://figshare.com/articles/dataset/Global_High-Resolution_Soil-Water_Balance/7707605" class="external-link">figshare
+7707605</a>), held no lower than a Fu–Budyko estimate; elevation from
+the Copernicus GLO-90 DEM; for the monthly shares, ERA5-Land snow
+normals (Copernicus Climate Change Service) through the R package <a href="https://newgraphenvironment.github.io/cd/" class="external-link"><code>cd</code></a>;
+hydrologic zones from the province’s BC Hydrologic Zones.</p>
+<p>Method: Chapman, A.R., Kerr, B. and Wilford, D. (2018), A water
+allocation decision-support model and tool for predictions in ungauged
+basins in Northeast British Columbia, Canada, <em>Journal of the
+American Water Resources Association</em> 54(3), 676–693, <a href="https://doi.org/10.1111/1752-1688.12643" class="external-link">doi:10.1111/1752-1688.12643</a>.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

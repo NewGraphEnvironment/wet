@@ -67,7 +67,7 @@ reshape(q[q$month > 0, c("source", "month", "q_m3s")], idvar = "month",
 
 [`wet_segment_monthly()`](https://newgraphenvironment.github.io/wet/reference/wet_segment_monthly.md)
 reads those files through `duckdb`, or the
-[PostgreSQL](https://www.postgresql.org/) table
+[`PostgreSQL`](https://www.postgresql.org/) table
 [`wet_db_load()`](https://newgraphenvironment.github.io/wet/reference/wet_db_load.md)
 writes when it is given a connection. It returns
 `linear_feature_id, month, q_m3s, source`, the shape of
@@ -280,13 +280,17 @@ published days. In brackets, the difference from the daily record.
 
 ## Software and citation
 
-The numbers in this article are the published product’s.
-`data-raw/monthly_vignette_data.R` bundled them on 2026-10-22 from the
-published build at wet 77585a8 and the water balance fit on HYDAT
-2026-07-17, and checked every value against what it was built from
-before writing them. The build’s own check of every published value is
-[its
-report](https://github.com/NewGraphEnvironment/wet/blob/main/data/checks/discharge_publish_20260717.txt).
+Routed PCIC’s and the balance’s flows in this article are the published
+product’s, read on 2026-10-22 from the build at `wet` commit 77585a8.
+Before they were written, routed PCIC’s months were held equal to the
+routed table in `fwapg` and its days were routed again from the
+sub-basin days there, and the balance’s months and days were made again
+from the fit at 08EE004 and 08EE013; the build’s own check of its
+published flows, [its
+report](https://github.com/NewGraphEnvironment/wet/blob/main/data/checks/discharge_publish_20260717.txt),
+covers the rest. The gauges’ daily flows are HYDAT’s. The scores compare
+routed PCIC as published, and the water balance held out by its fit on
+HYDAT 2026-07-17, with HYDAT’s observed runoff.
 
 - `wet` 0.4.17,
   [doi:10.5281/zenodo.23305781](https://doi.org/10.5281/zenodo.23305781).
@@ -321,9 +325,18 @@ the Freshwater Atlas by New Graph’s fork of `fwapg` at commit 7c30f58;
 the stream network from the BC Freshwater Atlas through Norris, S.
 (2026), *fwapg: PostgreSQL tools for working with British Columbia’s
 Freshwater Atlas*, <https://github.com/smnorris/fwapg>; gauge records
-from the Water Survey of Canada’s HYDAT, release 2026-07-17; the Chinook
-windows from Gottesfeld, A. and Rabnett, K. (2007), *Skeena Fish
-Populations and their Habitat*, Skeena Fisheries Commission.
+from the Water Survey of Canada’s HYDAT, release 2026-07-17; for the
+balance, 1981–2010 climate normals from the R package
+[`climr`](https://github.com/bcgov/climr), actual evapotranspiration
+from CGIAR-CSI’s Global High-Resolution Soil-Water Balance v3 ([figshare
+7707605](https://figshare.com/articles/dataset/Global_High-Resolution_Soil-Water_Balance/7707605))
+held no lower than a Fu–Budyko estimate, elevation from the Copernicus
+GLO-90 DEM, ERA5-Land snow normals (Copernicus Climate Change Service)
+through the R package [`cd`](https://newgraphenvironment.github.io/cd/)
+for its monthly shares, and the province’s BC Hydrologic Zones; the
+Chinook windows from Gottesfeld, A. and Rabnett, K. (2007), *Skeena Fish
+Populations and their Habitat*, Skeena Fisheries Commission; place names
+from BC Geographic Names.
 
 Scores: Nash, J.E. and Sutcliffe, J.V. (1970), River flow forecasting
 through conceptual models part I: a discussion of principles, *Journal

@@ -126,7 +126,7 @@ outside it, and the read takes seconds.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/reshape.html" class="external-link">reshape</a></span><span class="op">(</span><span class="va">q</span><span class="op">[</span><span class="va">q</span><span class="op">$</span><span class="va">month</span> <span class="op">&gt;</span> <span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"source"</span>, <span class="st">"month"</span>, <span class="st">"q_m3s"</span><span class="op">)</span><span class="op">]</span>, idvar <span class="op">=</span> <span class="st">"month"</span>,</span>
 <span>        timevar <span class="op">=</span> <span class="st">"source"</span>, direction <span class="op">=</span> <span class="st">"wide"</span><span class="op">)</span></span></code></pre></div>
 <p><code><a href="../reference/wet_segment_monthly.html">wet_segment_monthly()</a></code> reads those files through
-<code>duckdb</code>, or the <a href="https://www.postgresql.org/" class="external-link">PostgreSQL</a> table
+<code>duckdb</code>, or the <a href="https://www.postgresql.org/" class="external-link"><code>PostgreSQL</code></a> table
 <code><a href="../reference/wet_db_load.html">wet_db_load()</a></code> writes when it is given a connection. It
 returns <code>linear_feature_id, month, q_m3s, source</code>, the shape
 of <code><a href="../reference/wet_station_monthly.html">wet_station_monthly()</a></code>’s gauge record, so a comparison is
@@ -677,13 +677,16 @@ months in millimetres do not add up to its annual runoff exactly.</li>
 <div class="section level2">
 <h2 id="software-and-citation">Software and citation<a class="anchor" aria-label="anchor" href="#software-and-citation"></a>
 </h2>
-<p>The numbers in this article are the published product’s.
-<code>data-raw/monthly_vignette_data.R</code> bundled them on 2026-10-22
-from the published build at wet 77585a8 and the water balance fit on
-HYDAT 2026-07-17, and checked every value against what it was built from
-before writing them. The build’s own check of every published value is
-<a href="https://github.com/NewGraphEnvironment/wet/blob/main/data/checks/discharge_publish_20260717.txt" class="external-link">its
-report</a>.</p>
+<p>Routed PCIC’s and the balance’s flows in this article are the
+published product’s, read on 2026-10-22 from the build at
+<code>wet</code> commit 77585a8. Before they were written, routed PCIC’s
+months were held equal to the routed table in <code>fwapg</code> and its
+days were routed again from the sub-basin days there, and the balance’s
+months and days were made again from the fit at 08EE004 and 08EE013; the
+build’s own check of its published flows, <a href="https://github.com/NewGraphEnvironment/wet/blob/main/data/checks/discharge_publish_20260717.txt" class="external-link">its
+report</a>, covers the rest. The gauges’ daily flows are HYDAT’s. The
+scores compare routed PCIC as published, and the water balance held out
+by its fit on HYDAT 2026-07-17, with HYDAT’s observed runoff.</p>
 <ul>
 <li>
 <code>wet</code> 0.4.17, <a href="https://doi.org/10.5281/zenodo.23305781" class="external-link">doi:10.5281/zenodo.23305781</a>.
@@ -714,9 +717,17 @@ the Freshwater Atlas by New Graph’s fork of <code>fwapg</code> at commit
 7c30f58; the stream network from the BC Freshwater Atlas through Norris,
 S. (2026), <em>fwapg: PostgreSQL tools for working with British
 Columbia’s Freshwater Atlas</em>, <a href="https://github.com/smnorris/fwapg" class="external-link uri">https://github.com/smnorris/fwapg</a>; gauge records from
-the Water Survey of Canada’s HYDAT, release 2026-07-17; the Chinook
+the Water Survey of Canada’s HYDAT, release 2026-07-17; for the balance,
+1981–2010 climate normals from the R package <a href="https://github.com/bcgov/climr" class="external-link"><code>climr</code></a>, actual
+evapotranspiration from CGIAR-CSI’s Global High-Resolution Soil-Water
+Balance v3 (<a href="https://figshare.com/articles/dataset/Global_High-Resolution_Soil-Water_Balance/7707605" class="external-link">figshare
+7707605</a>) held no lower than a Fu–Budyko estimate, elevation from the
+Copernicus GLO-90 DEM, ERA5-Land snow normals (Copernicus Climate Change
+Service) through the R package <a href="https://newgraphenvironment.github.io/cd/" class="external-link"><code>cd</code></a> for
+its monthly shares, and the province’s BC Hydrologic Zones; the Chinook
 windows from Gottesfeld, A. and Rabnett, K. (2007), <em>Skeena Fish
-Populations and their Habitat</em>, Skeena Fisheries Commission.</p>
+Populations and their Habitat</em>, Skeena Fisheries Commission; place
+names from BC Geographic Names.</p>
 <p>Scores: Nash, J.E. and Sutcliffe, J.V. (1970), River flow forecasting
 through conceptual models part I: a discussion of principles,
 <em>Journal of Hydrology</em> 10(3), 282–290, <a href="https://doi.org/10.1016/0022-1694(70)90255-6" class="external-link">doi:10.1016/0022-1694(70)90255-6</a>;
