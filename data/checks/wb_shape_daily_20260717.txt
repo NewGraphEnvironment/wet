@@ -1,6 +1,6 @@
 # The balance's daily shape within the month (#70), held out under blocked CV
 
-province run: e675918817; HYDAT release: 20260717; annual AET: cfu; fit scores 37d93d99ca657930d0e7c9c995e787a0; shape code b679de3967973bc7081dbaf7a3fcb782
+province run: 92b893c4da; HYDAT release: 20260717; annual AET: cfu; fit scores 37d93d99ca657930d0e7c9c995e787a0; shape code b679de3967973bc7081dbaf7a3fcb782
 calibration gauges: 315, scored 315 (observed runoff >= 10 mm, every candidate scored); folds: 94
 day-of-year record: 0 gauge-days interpolated (wet_station_doy()); 0 observed gauge-months with no flow
 
