@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.18</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.19</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,9 +34,13 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/v0.4.19/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.19" id="wet-0419">wet 0.4.19<a class="anchor" aria-label="anchor" href="#wet-0419"></a></h2>
+<ul><li>Upstream sums no longer depend on the order rows arrive in (<a href="https://github.com/NewGraphEnvironment/wet/issues/76" class="external-link">#76</a>). <code><a href="../reference/wet_upstream_sums.html">wet_upstream_sums()</a></code> adds polygons that share <code>(wscode, localcode)</code>, and each watershed’s irregular pairs, in <code>watershed_feature_id</code> order; shuffled Fraser and Columbia inputs moved the old sums by up to 4.4e-16 relative and leave the new ones <code><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical()</a></code>. The fetches on the province path (<code><a href="../reference/wet_ws_fetch.html">wet_ws_fetch()</a></code>, <code><a href="../reference/wet_upstream_irregular.html">wet_upstream_irregular()</a></code>, <code><a href="../reference/wet_ws_geom.html">wet_ws_geom()</a></code>, <code><a href="../reference/wet_upstream_pairs.html">wet_upstream_pairs()</a></code>) order on a unique key, so a run’s stored files come out in one row order, and <code><a href="../reference/wet_station_snap.html">wet_station_snap()</a></code> breaks an exact score-and-distance tie on <code>linear_feature_id</code>. <code>scripts/wb_upstream_order.R</code> replays two province runs’ stored row orders through the current sums. The change alters the province run key, so it reaches the published balance with the next province run.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.18" id="wet-0418">wet 0.4.18<a class="anchor" aria-label="anchor" href="#wet-0418"></a></h2>
 <ul><li>The three articles name, link and cite the software they run on (<a href="https://github.com/NewGraphEnvironment/wet/issues/110" class="external-link">#110</a>). Each ends in a “Software and citation” section computed at render from every package’s own citation, through the internal <code>wet_software_cite()</code>: the version, the first DOI its citation carries (wet’s concept DOI) and the commit when the install recorded one. Their closing provenance now says which numbers were checked against what: routed PCIC against fwapg’s tables, the balance remade from its fit where the bundle holds it, the scores held out against HYDAT, and the rest on the build report. The monthly-flow article’s Data line gains the balance’s inputs. The segment-discharge article drops its Validation section and its pointer to an open fwapg issue, states the zone adjustment as kept by decision, and puts the score table’s note in a footnote. The station-flow article defines its Theil–Sen and Mann–Kendall trend tests and cites them, with <code>Kendall</code> and <code>zyp</code>. The word caps of those two articles count body prose up to the citation section.</li>

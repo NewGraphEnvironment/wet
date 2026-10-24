@@ -1,5 +1,27 @@
 # Changelog
 
+## wet 0.4.19
+
+- Upstream sums no longer depend on the order rows arrive in
+  ([\#76](https://github.com/NewGraphEnvironment/wet/issues/76)).
+  [`wet_upstream_sums()`](https://newgraphenvironment.github.io/wet/reference/wet_upstream_sums.md)
+  adds polygons that share `(wscode, localcode)`, and each watershed’s
+  irregular pairs, in `watershed_feature_id` order; shuffled Fraser and
+  Columbia inputs moved the old sums by up to 4.4e-16 relative and leave
+  the new ones [`identical()`](https://rdrr.io/r/base/identical.html).
+  The fetches on the province path
+  ([`wet_ws_fetch()`](https://newgraphenvironment.github.io/wet/reference/wet_ws_fetch.md),
+  [`wet_upstream_irregular()`](https://newgraphenvironment.github.io/wet/reference/wet_upstream_irregular.md),
+  [`wet_ws_geom()`](https://newgraphenvironment.github.io/wet/reference/wet_ws_geom.md),
+  [`wet_upstream_pairs()`](https://newgraphenvironment.github.io/wet/reference/wet_upstream_pairs.md))
+  order on a unique key, so a run’s stored files come out in one row
+  order, and
+  [`wet_station_snap()`](https://newgraphenvironment.github.io/wet/reference/wet_station_snap.md)
+  breaks an exact score-and-distance tie on `linear_feature_id`.
+  `scripts/wb_upstream_order.R` replays two province runs’ stored row
+  orders through the current sums. The change alters the province run
+  key, so it reaches the published balance with the next province run.
+
 ## wet 0.4.18
 
 - The three articles name, link and cite the software they run on
