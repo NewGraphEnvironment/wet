@@ -24,4 +24,5 @@ wet_ws_geom(conn, wsg)
 ## Value
 
 [`terra::SpatVector`](https://rspatial.github.io/terra/reference/SpatVector-class.html)
-(BC Albers) with `watershed_feature_id`.
+(BC Albers) with `watershed_feature_id`, in `watershed_feature_id`
+order.

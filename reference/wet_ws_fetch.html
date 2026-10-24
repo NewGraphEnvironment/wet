@@ -40,7 +40,7 @@ then reprojected to lon/lat (as fwapg's discharge02_load.sql does)."><meta prope
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Fundamental watersheds of one basin, with codes, area and centroid</h1>
-      <small class="dont-index">Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/v0.4.18/R/wet_ws_fetch.R" class="external-link"><code>R/wet_ws_fetch.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/R/wet_ws_fetch.R" class="external-link"><code>R/wet_ws_fetch.R</code></a></small>
       <div class="d-none name"><code>wet_ws_fetch.Rd</code></div>
     </div>
 
@@ -70,7 +70,8 @@ then reprojected to lon/lat (as fwapg's <code>discharge02_load.sql</code> does).
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p><code>data.frame(watershed_feature_id, watershed_group_code, wscode, localcode, area_m2, lon, lat)</code>.</p>
+    <p><code>data.frame(watershed_feature_id, watershed_group_code, wscode, localcode, area_m2, lon, lat)</code>, ordered by <code>watershed_feature_id</code>, so the
+same polygons always come back in the same order.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

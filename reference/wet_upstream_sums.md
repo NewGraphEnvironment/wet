@@ -66,3 +66,7 @@ enough; missing upstream polygons simply drop out of the sums.
 
 Range sums use a segment tree rather than differences of prefix sums, so
 a 1,000 m2 headwater is not the small difference of two 1e11 m2 totals.
+Polygons that share `(wscode, localcode)`, and each watershed's
+irregular pairs, are added in `watershed_feature_id` order, so the sums
+are the same to the bit whatever the row order of `ws` and
+`irregular_pairs`.

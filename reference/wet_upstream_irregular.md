@@ -27,4 +27,4 @@ wet_upstream_irregular(conn, wscode)
 
 ## Value
 
-`data.frame(watershed_feature_id, id_up)`.
+`data.frame(watershed_feature_id, id_up)`, ordered by both.

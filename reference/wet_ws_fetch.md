@@ -25,7 +25,9 @@ wet_ws_fetch(conn, wscode)
 
 ## Value
 
-`data.frame(watershed_feature_id, watershed_group_code, wscode, localcode, area_m2, lon, lat)`.
+`data.frame(watershed_feature_id, watershed_group_code, wscode, localcode, area_m2, lon, lat)`,
+ordered by `watershed_feature_id`, so the same polygons always come back
+in the same order.
 
 ## Details
 

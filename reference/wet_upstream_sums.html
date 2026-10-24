@@ -40,7 +40,7 @@ materialising (watershed, upstream polygon) pairs."><meta property="og:image" co
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Upstream sums of additive quantities for every fundamental watershed</h1>
-      <small class="dont-index">Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/v0.4.18/R/wet_upstream_sums.R" class="external-link"><code>R/wet_upstream_sums.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/R/wet_upstream_sums.R" class="external-link"><code>R/wet_upstream_sums.R</code></a></small>
       <div class="d-none name"><code>wet_upstream_sums.Rd</code></div>
     </div>
 
@@ -102,7 +102,10 @@ it (e.g. <code><a href="wet_ws_fetch.html">wet_ws_fetch()</a></code> for a basin
 watershed group is not enough; missing upstream polygons simply drop out
 of the sums.</p>
 <p>Range sums use a segment tree rather than differences of prefix sums, so a
-1,000 m2 headwater is not the small difference of two 1e11 m2 totals.</p>
+1,000 m2 headwater is not the small difference of two 1e11 m2 totals.
+Polygons that share <code>(wscode, localcode)</code>, and each watershed's irregular
+pairs, are added in <code>watershed_feature_id</code> order, so the sums are the same
+to the bit whatever the row order of <code>ws</code> and <code>irregular_pairs</code>.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -28,4 +28,5 @@ wet_upstream_pairs(conn, wsg)
 
 ## Value
 
-`data.frame(watershed_feature_id, id_up, area_up_m2, upstream_area_m2)`.
+`data.frame(watershed_feature_id, id_up, area_up_m2, upstream_area_m2)`,
+ordered by `watershed_feature_id` and `id_up`.
