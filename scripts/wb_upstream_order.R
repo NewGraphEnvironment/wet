@@ -4,11 +4,13 @@
 #
 # Runs made before #76 stored each basin's polygons in whatever order
 # PostgreSQL returned them, and two of them agree only to rounding
-# (scripts/wb_upstream_identity.R). This takes each basin's polygons in the
-# order each run stored them (watershed_feature_id, wscode, localcode and
-# area_m2 from upstream/<CODE>.rds), sums area and a signed value per polygon
-# upstream with the current wet_upstream_sums(), and requires the two results
-# to be identical(): the orders that differed, replayed without a province run.
+# (scripts/wb_upstream_identity.R). This takes each basin's polygons
+# (watershed_feature_id, wscode, localcode and area_m2 from the first run's
+# upstream/<CODE>.rds) in the order each run stored them, sums area and a
+# signed value per polygon upstream with the current wet_upstream_sums(), and
+# requires the two results to be identical(): the orders that differed,
+# replayed without a province run. Only the order comes from the second run,
+# so a difference in codes or area between the runs cannot read as one of order.
 # Needs whole basins (the machine with the full runs, not a reduced bundle) and
 # fwapg for the irregular pairs. Prints its result and writes nothing.
 
@@ -39,10 +41,11 @@ n_other <- 0L
 n_rows <- 0
 for (code in codes) {
   a <- polys(runs[1], code)
-  b <- polys(runs[2], code)
-  if (nrow(a) != nrow(b) || !setequal(a$watershed_feature_id, b$watershed_feature_id)) {
+  id_b <- readRDS(file.path(runs[2], "upstream", paste0(code, ".rds")))$watershed_feature_id
+  if (length(id_b) != nrow(a) || !setequal(a$watershed_feature_id, id_b)) {
     stop(code, ": the two runs hold different watersheds")
   }
+  b <- a[match(id_b, a$watershed_feature_id), ]
   irr <- wet_upstream_irregular(conn, code)
   x <- wet_upstream_sums(a, cols, irregular_pairs = irr)
   y <- wet_upstream_sums(b, cols, irregular_pairs = irr)
