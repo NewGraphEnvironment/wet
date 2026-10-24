@@ -1,8 +1,8 @@
 ## Outcome
 
-Province runs on the same FWA polygons should now give upstream means that are `identical()`, not equal only to rounding. `wet_upstream_sums()` adds the polygons that share `(wscode, localcode)`, and each watershed's irregular pairs, in `watershed_feature_id` order. Its sums therefore no longer depend on the row order of either input. Ordering the pairs by their position in `ws`, as first planned, would still have followed row order, so they are ordered by `id_up`. The fetches on the province path (`wet_ws_fetch()`, `wet_upstream_irregular()`, `wet_ws_geom()`, `wet_upstream_pairs()`, the BC boundary in `wb_province.R`) order on a primary key, so the run's files come out in one row order.
+Province runs on the same FWA polygons now give upstream means that are `identical()`, not equal only to rounding (two runs from scratch on 2026-10-24, below). `wet_upstream_sums()` adds the polygons that share `(wscode, localcode)`, and each watershed's irregular pairs, in `watershed_feature_id` order. Its sums therefore no longer depend on the row order of either input. Ordering the pairs by their position in `ws`, as first planned, would still have followed row order, so they are ordered by `id_up`. The fetches on the province path (`wet_ws_fetch()`, `wet_upstream_irregular()`, `wet_ws_geom()`, `wet_upstream_pairs()`, the BC boundary in `wb_province.R`) order on a primary key, so the run's files come out in one row order.
 
-A sweep of 52 other database fetches found three more where fetch order reached a result: a tie in `wet_station_snap()`'s pick, and the first-segment pick and written row order in `mad_basin.R` and `mad_parity.R`. Code-check round 3 then showed that the snap tie the new tie-break was written for never reaches wet. fwapg's `fwa_indexpoint()` keeps one segment per stream by row order, and two calibration gauges sit on such a tie (NewGraphEnvironment/fwapg#39, drafted for upstream and not posted). `scripts/wb_upstream_order.R` replays two runs' stored row orders through the current sums. The change lands with the next province run, which belongs to a release chain. No two runs under the new code exist yet, so the docs say "should".
+A sweep of 52 other database fetches found three more where fetch order reached a result: a tie in `wet_station_snap()`'s pick, and the first-segment pick and written row order in `mad_basin.R` and `mad_parity.R`. Code-check round 3 then showed that the snap tie the new tie-break was written for never reaches wet. fwapg's `fwa_indexpoint()` keeps one segment per stream by row order, and two calibration gauges sit on such a tie (NewGraphEnvironment/fwapg#39, drafted for upstream and not posted). `scripts/wb_upstream_order.R` replays two runs' stored row orders through the current sums. The change lands with the next province run, which belongs to a release chain. Two runs under the new code, made after the merge, were identical, so the docs no longer say "should".
 
 ## Measurement
 
@@ -13,20 +13,23 @@ A sweep of 52 other database fetches found three more where fetch order reached 
 - **`wb_upstream_order.R` on two scratch runs** (Fraser and basin 999, the second shuffled): branch "identical: 2 basins (2 stored in another order), 644770 watersheds"; main's sums stop on basin 100.
 - **The real stored orders could not be replayed on m1.** Its runs are the reduced bundle (basin 100 keeps 94 of 644,710 watersheds), so that check was run on m4.
 - **The real stored orders, replayed on m4** (2026-10-24, main at 212f184): `wb_upstream_order.R data/wb/_pre16/962a9cc2c4 data/wb/e675918817` printed "identical: 24 basins (17 stored in another order), 3245453 watersheds" in 80 s. The counts are #16's: the 17 basins whose rows came back in another order now sum to the same bits in both orders.
+- **Two province runs under the new code, on m4** (2026-10-24, main at 212f184, `wb_province.R 4`, each about 15 min): the first in the main checkout, the second from scratch in a worktree of the same commit with its own `data/wb` and the same inputs. Both took key `92b893c4da`. Of 276 files, 275 are byte-identical; the other is `sample_times.txt` (wall-clock timings). All 270 rds (246 sample groups, 24 upstream basins, 3,245,453 watersheds) are `identical()`, and both rasters' values. So "should" is now measured: a rerun on the same FWA polygons and software gives the same upstream means to the bit.
 - **The sample stage was already order-free**: each polygon's cells are summed alone.
 - **#16's 6.6e-14** was larger than the 4e-16 seen here, probably from signed layers near zero (`tave_10`), not measured.
 - **Snap ties:** 08EC013 sits 39.330232870264837 m from two segments of one stream, and 08KD006 67.563694090612884 m. Each pair is in different watersheds.
 
 ## Evidence
 
-Measurements are in `findings.md` (Phase 1, Phase 3, sweep, plan review and round 3 tables). The probes were scratch scripts, not committed. The m4 replay's log is `data/logs/76/20261024T0641*` on m4. Reviews: `review-plan.md`, `review-round1.md` to `review-round3.md`.
+Measurements are in `findings.md` (Phase 1, Phase 3, sweep, plan review and round 3 tables). The probes were scratch scripts, not committed. The m4 logs are `data/logs/76/20261024T*` on m4: the replay (`T0641`), the two province runs (`T0735`, `T0751`) and the comparison (`T0807`, from `data/logs/76/run_compare.R`). Reviews: `review-plan.md`, `review-round1.md` to `review-round3.md`.
 
 ## Owed
 
 - [x] On m4: `Rscript scripts/wb_upstream_order.R data/wb/_pre16/962a9cc2c4 data/wb/e675918817`
       (the two stored orders that differed, through the new sums; must print "identical").
       Done 2026-10-24: "identical: 24 basins (17 stored in another order), 3245453 watersheds"
-- [ ] The next province run on m4 (`scripts/wb_province.R 4`, new key) carries the change. It
+- [ ] The next province run on m4 (`scripts/wb_province.R 4`, new key) carries the change.
+      Run 2026-10-24: key `92b893c4da`, beside `e675918817`, so `wb_key_dir()` on m4 now finds two
+      complete runs. Still owed: setting `e675918817` aside (the user's word) and the chain below. It
       happens only inside a release chain: `wb_key_dir()` then sees only the new key, and
       `fit_20260717` lives under `e675918817`, so the fit is refit or carried over, then
       `wb_output.R`, `segment_output.R` and the vignette data (their `province_run` and
@@ -35,8 +38,9 @@ Measurements are in `findings.md` (Phase 1, Phase 3, sweep, plan review and roun
 - [ ] Until that run, `discharge_publish.R` refuses a build: `R/` changed since the segment
       report's commit. A republish needs the province run, `wb_output.R` and
       `segment_output.R` first (the chain the next release runs anyway)
-- [ ] After that run, confirm the claim the docs now make as "should": a second run (or one
-      basin accumulated again from the run's samples) `identical()` to it
+- [x] After that run, confirm the claim the docs now make as "should": a second run (or one
+      basin accumulated again from the run's samples) `identical()` to it. Done 2026-10-24: a
+      second run from scratch, 270 of 270 rds `identical()`
 - [x] Issue body: edit to say what landed and that the run is pending
 - [ ] NewGraphEnvironment/fwapg#39: fix on the fork (end both orderings on `linear_feature_id`); post the draft upstream only on the user's word
 
