@@ -1,6 +1,6 @@
 # Open water balance (Chapman et al. 2018 method) validated at HYDAT stations (#11)
 
-province run: e675918817; annual AET: mod16 (monthly shares from the donor gauges' observed shares)
+province run: 92b893c4da; annual AET: mod16 (monthly shares from the donor gauges' observed shares)
 HYDAT release: 2026-07-17 08:08:08.000
 stations: 336 accepted snaps, 336 with predictors; 315 calibrated on (basin >= 95 % in BC and on the grid)
 pooled zones in the shipped fit (fewer than 8 stations with their largest share): 16 17 12 09 04 02 05 06 11
@@ -280,18 +280,18 @@ lake       not lake outlet     296     0      7.5     -1.0    23.5    58.4   -0.
 14    -141.06    0.1777
 15     195.95   -0.5317
 16       0.00    0.0000  (pooled: none)
-13     -74.54    0.1658
 17       0.00    0.0000  (pooled: none)
 25     -17.70    0.1598
-26     359.02    0.0119
 08    -207.82    0.2563
 12       0.00    0.0000  (pooled: none)
+13     -74.54    0.1658
+26     359.02    0.0119
 27    -103.38    0.0903
 28     194.31   -0.1125
 03    -859.31    1.3210
 09       0.00    0.0000  (pooled: none)
-07      33.58   -0.1293
 24    -228.57    0.0035
+07      33.58   -0.1293
 10    -543.85    0.3328
 22    -971.14    0.7398
 23    -102.48   -0.0103
@@ -299,10 +299,10 @@ lake       not lake outlet     296     0      7.5     -1.0    23.5    58.4   -0.
 02       0.00    0.0000  (pooled: none)
 05       0.00    0.0000  (pooled: none)
 06       0.00    0.0000  (pooled: none)
-21     729.19   -0.6634
-18    -118.10    0.1670
 19   -1473.69    1.7464
 20    -704.69    0.8139
+18    -118.10    0.1670
+21     729.19   -0.6634
 01     550.43   -0.1868
 29   -1638.44    0.5101
 11       0.00    0.0000  (pooled: none)
