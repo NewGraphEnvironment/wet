@@ -38,4 +38,4 @@ Measurements are in `findings.md` (Phase 1, Phase 3, sweep, plan review and roun
 - [x] Issue body: edit to say what landed and that the run is pending
 - [ ] NewGraphEnvironment/fwapg#39: fix on the fork (end both orderings on `linear_feature_id`); post the draft upstream only on the user's word
 
-Closed by: PR (see `progress.md`)
+Closed by: PR #115 (relates to #76, left open for the owed runs)
