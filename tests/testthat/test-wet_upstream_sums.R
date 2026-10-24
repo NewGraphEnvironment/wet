@@ -144,9 +144,13 @@ test_that("sums do not depend on the row order of irregular_pairs", {
     got <- wet_upstream_sums(ws, "area", irregular_pairs = pairs[p, ])
     expect_identical(got$area, ref$area, info = paste(p, collapse = " "))
   }
-  # and of ws, which numbers the pairs' rows
-  got <- wet_upstream_sums(ws[4:1, ], "area", irregular_pairs = pairs)
-  expect_identical(got$area[match(1:4, got$watershed_feature_id)], ref$area)
+  # and of ws, which numbers the pairs' rows: summing by position in ws would
+  # add the mouth's pairs as 2, 4, 3 here
+  for (p in list(c(1, 2, 4, 3), 4:1)) {
+    got <- wet_upstream_sums(ws[p, ], "area", irregular_pairs = pairs)
+    expect_identical(got$area[match(1:4, got$watershed_feature_id)], ref$area,
+                     info = paste(p, collapse = " "))
+  }
 })
 
 test_that("a basin from fwapg sums the same in any row order", {

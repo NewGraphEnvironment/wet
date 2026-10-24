@@ -16,7 +16,7 @@ Plan approved by the user 2026-10-23 (PDT) via /planning-init 76; the mechanism 
 Two layers, each for its own reason:
 1. **Canonical order inside `wet_upstream_sums()`**: sort the valid rows by
    `(key, watershed_feature_id)` before the group `rowsum()`, and the irregular pairs by
-   `(ia, ib)` before theirs. The sums then no longer depend on any caller's row order
+   `(ia, id_up)` before theirs (`(ia, ib)` at the gate; corrected in Phase 2). The sums then no longer depend on any caller's row order
    (`mad_basin.R`, `mad_parity.R`, the province run), and the property is testable offline.
    Cost: one radix order over ~3.2 M rows per basin.
 2. **`ORDER BY` on a unique key in the fetches** (`wet_ws_fetch()`: `watershed_feature_id`;
@@ -39,10 +39,10 @@ No province run on this branch: it is m4's, and it lands with the next release r
 - [x] run them against the current code and record which fail (restore-the-bug, in findings)
 
 ## Phase 2: Canonical order in wet_upstream_sums()
-- [ ] order valid rows by `(kb, watershed_feature_id)` (radix) before the group `rowsum()`;
-      order irregular pairs by `(ia, ib)` before theirs
-- [ ] roxygen: one sentence that the sums do not depend on row order; `devtools::document()`
-- [ ] Phase 1 tests pass; existing oracle tests pass
+- [x] order valid rows by `(kb, watershed_feature_id)` (radix) before the group `rowsum()`;
+      order irregular pairs by `(ia, id_up)` before theirs (corrected from `(ia, ib)`: `ib` is a position in `ws`, see findings)
+- [x] roxygen: one sentence that the sums do not depend on row order; `devtools::document()`
+- [x] Phase 1 tests pass; existing oracle tests pass
 
 ## Phase 3: ORDER BY in the fetches
 - [ ] `ORDER BY` on a unique key in `wet_ws_fetch()`, `wet_upstream_irregular()`,

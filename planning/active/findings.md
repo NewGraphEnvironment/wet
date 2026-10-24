@@ -57,6 +57,10 @@ at worst, #16). Exploration found two more places where order reaches the sums o
 
 A first draft of the pairs fixture passed on main: reversing the pairs gave the order -1e16, 1, 1e16, which also sums to 0. The permutation must put the 1 last (2, 4, 3); the test now asserts the pairs' order before permuting.
 
+## Phase 2: the pairs' order is by id, not by position (2026-10-23)
+
+The plan said to order the irregular pairs by `(ia, ib)`. `ib` is the upstream polygon's row in `ws`, so that order still follows `ws`'s row order. They are ordered by `(ia, id_up)` instead (grouping by `ia` is fine: it only says which watershed a pair adds to). The pairs test gained a `ws` permutation, `c(1, 2, 4, 3)`, that puts the mouth's pairs in position order 2, 4, 3. A mutant copy of `R/wet_upstream_sums.R` with `order(ia[keep], ib[keep])`, loaded into the namespace from the scratchpad, fails that loop (`test-wet_upstream_sums.R:151`); the committed code passes it.
+
 ## Errors Encountered
 
 | Error | Resolution |
