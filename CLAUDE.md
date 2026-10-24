@@ -84,6 +84,8 @@ wet owns hydrology data, observed and modelled (decided 2026-09-28, sred#26), wa
 
 fwapg in PostgreSQL, for example fresh's Docker setup (`fresh/docker/`, db `fwapg`). Scripts connect with `DBI::dbConnect(RPostgres::Postgres(), ...)` using `PG*` env vars; never hardcode hosts.
 
+wet reads three of fwapg's schemas only: `whse_basemapping` (the FWA), `pcic` (routed PCIC) and `postgisftw` (fwapg's functions). Other packages' province runs written into the same database (link's, in `fresh_default`) feed nothing here, so a "province run" there is not `scripts/wb_province.R` and changes no wet output.
+
 ## Gitignored
 
 `data/` holds PCIC downloads and pipeline outputs. Regenerate them with `scripts/`. The exceptions are the small text reports and run logs that `research/` cites (`data/checks/*.txt`, `data/basin/*_report.txt`, `data/basin/*_run.log`), which are tracked.
