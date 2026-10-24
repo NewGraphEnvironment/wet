@@ -282,7 +282,7 @@ It reads, besides the code at the tag:
 - province run `e675918817` (`upstream/`, `ex_filled_cells.txt`);
 - `fit_20251014/`, which stays on m4.
 
-HYDAT 2025-10-14 (`s3://fresh-bc/hydat/20251014/`, md5 `da00052022aa1533b80f9fab7cb8b4d0`) is needed only to rebuild the stations file with `scripts/wb_stations.R`. Copy it by hand to `tools::R_user_dir("wet", "cache")/hydat/20251014/Hydat.sqlite3`, which `wet:::wet_hydat()` reads. That rebuild also snaps against the live fwapg, whose segments may have changed since, so it is not guaranteed to reproduce the stations file's bytes (an exact tie between two candidate segments goes to the lower `linear_feature_id` since #76, no longer to the database's row order). When the province run is re-keyed, set `e675918817` aside rather than deleting it, or the recipe has nothing to read.
+HYDAT 2025-10-14 (`s3://fresh-bc/hydat/20251014/`, md5 `da00052022aa1533b80f9fab7cb8b4d0`) is needed only to rebuild the stations file with `scripts/wb_stations.R`. Copy it by hand to `tools::R_user_dir("wet", "cache")/hydat/20251014/Hydat.sqlite3`, which `wet:::wet_hydat()` reads. That rebuild also snaps against the live fwapg, whose segments may have changed since, so it is not guaranteed to reproduce the stations file's bytes (since #76 an exact tie between two candidates goes to the lower `linear_feature_id`, but fwapg's `fwa_indexpoint()` returns one segment per stream and breaks a tie within a stream by row order: 08EC013 and 08KD006 each sit exactly as far from two segments of one stream in different watersheds, NewGraphEnvironment/fwapg#39). When the province run is re-keyed, set `e675918817` aside rather than deleting it, or the recipe has nothing to read.
 
 ### The AET re-decided on HYDAT 2026-07-17 (#81)
 

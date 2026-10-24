@@ -80,6 +80,7 @@ No province run on this branch: it is m4's, and it lands with the next release r
 - [ ] After that run, confirm the claim the docs now make as "should": a second run (or one
       basin accumulated again from the run's samples) `identical()` to it
 - [ ] Issue body: edit to say what landed and that the run is pending
+- [ ] NewGraphEnvironment/fwapg#39: fix on the fork (end both orderings on `linear_feature_id`); post the draft upstream only on the user's word
 
 ## Validation
 

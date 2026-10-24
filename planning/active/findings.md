@@ -107,6 +107,27 @@ Review in `review-plan.md`. Each claim checked before acting:
 
 Note on Phase 3's live check: its columns all have one sign, so it cannot show cancellation; #16's larger 6.6e-14 was probably signed layers near zero (`tave_10` in October), not the means being ratios. The replay script adds a signed column for that reason.
 
+## Code-check round 3: the snap tie never reaches wet (2026-10-24 UTC)
+
+Round 3 (`review-round3.md`) found a defect inside the plan-review fix: the `linear_feature_id` tie-break in `wet_snap_pick()` cannot see the tie its comment named. fwapg's `fwa_indexpoint()` keeps one segment per stream with `DISTINCT ON (blue_line_key) ... ORDER BY blue_line_key, distance_to_stream` (fork `db/schema.sql:2409`, `:2442` at ae8f7c7), so of two segments of one stream at the same distance, the plan's first row is the only one returned. Reproduced on m1's fwapg:
+
+| gauge | segments (one stream) | distance, m | watersheds | shipped snap |
+|---|---|---|---|---|
+| 08EC013 | 5086038, 5086970 | 39.330232870264837 both | 7660731, 7660693 | 5086970 |
+| 08KD006 | 703862843, 703862887 | 67.563694090612884 both | 8483126, 7713002 | 703862843 |
+
+The defect is fwapg's: filed on our fork as NewGraphEnvironment/fwapg#39 (`upstream-draft`, with a draft for upstream, not posted). wet's tie-break stays for ties between candidates it does receive (other streams); its comment and research `water_balance_method.md` (stations rebuild) were narrowed to say so.
+
+**Enumeration that ends the loop.** The mechanism behind rounds 2 and 3: assuming the rows a function receives are the whole candidate set, when something upstream of it already chose among them by row order (round 2: two runs' codes and areas; round 3: fwapg's own pick). In this diff it can reach wet only through SQL functions that pick rows. Every fwapg function wet's SQL calls (`git grep` over `R/`, `scripts/`, `data-raw/`), with its definition read from m1's fwapg:
+
+| function | calls | picks rows? | verdict |
+|---|---|---|---|
+| `fwa_upstream` | 7 | no (`DISTINCT ON`, `LIMIT`, `ORDER BY` absent) | order-free |
+| `fwa_indexpoint` | 4 (`wet_station_snap.R`, `wb_gauge_diversion.R`, `vignette_map_lib.R`, `mad_basin.R`) | yes | fwapg#39 |
+| `fwa_watershedatmeasure` | 1 (`vignette_map_lib.R`, map layers only) | yes (`LIMIT 1` picks, ordered on measures and area; ties not measured) | fwapg's; cartography only |
+
+Every wet-side `ORDER BY` in the diff ends on a primary key (rounds 1-3), and every in-R pick on the province path is ordered (round 3 mutated each ordering line alone; each turns a test red).
+
 ## Errors Encountered
 
 | Error | Resolution |
