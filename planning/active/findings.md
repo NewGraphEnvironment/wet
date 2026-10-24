@@ -44,6 +44,19 @@ at worst, #16). Exploration found two more places where order reaches the sums o
   is set aside then, as with `_pre16`. `wb_term_diagnose.R`'s `pcic_key` hashes both files too,
   so its PCIC cache rebuilds on its next run.
 
+## Phase 1: the tests against the code on main (2026-10-23)
+
+`NOT_CRAN=true`, `testthat::test_file()` after `load_all()`, at c681044:
+
+| test | on main |
+|---|---|
+| sums do not depend on the row order of ws | 2 of 5 permutations fail: the (W, L) group 1e16, 1, -1e16 sums to 1 instead of 0 when the 1 is added last |
+| sums do not depend on the row order of irregular_pairs | 2 of 3 permutations fail the same way (the mouth's three irregular pairs) |
+| a basin from fwapg sums the same in any row order (basin 925, 1,049 polygons) | fails on `wet_ws_fetch()` returning rows out of id order; the sums of a shuffled 925 were identical even on main (its groups are too small or too tame to show it), so the offline tests are the ones that reach the defect |
+| area means per polygon do not depend on the polygons' order (`wet_ws_sample()`) | passes: each polygon's cells are summed alone, so the sample stage was already order-free; only its file row order follows the fetch |
+
+A first draft of the pairs fixture passed on main: reversing the pairs gave the order -1e16, 1, 1e16, which also sums to 0. The permutation must put the 1 last (2, 4, 3); the test now asserts the pairs' order before permuting.
+
 ## Errors Encountered
 
 | Error | Resolution |

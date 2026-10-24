@@ -28,15 +28,15 @@ Two layers, each for its own reason:
 No province run on this branch: it is m4's, and it lands with the next release run (owed below).
 
 ## Phase 1: Tests that fail on the current code
-- [ ] `test-wet_upstream_sums.R`: polygons sharing one `(W, L)` with values chosen so summation
+- [x] `test-wet_upstream_sums.R`: polygons sharing one `(W, L)` with values chosen so summation
       order changes the double (e.g. `1e16, 1, -1e16`); permuting `ws` rows gives `identical()`
       sums once matched on `watershed_feature_id`
-- [ ] same for `irregular_pairs`: permuting the pairs' rows gives `identical()` sums
-- [ ] `test-wet_ws_sample.R`: `method = "area"` on permuted polygons gives `identical()` values
+- [x] same for `irregular_pairs`: permuting the pairs' rows gives `identical()` sums
+- [x] `test-wet_ws_sample.R`: `method = "area"` on permuted polygons gives `identical()` values
       per id (pins that the sample stage is order-free; expected to pass already)
-- [ ] live test (`local_fwapg()`, skips without a database): on one small basin, sums from the
+- [x] live test (`local_fwapg()`, skips without a database): on one small basin, sums from the
       fetch and from its rows reversed are `identical()`
-- [ ] run them against the current code and record which fail (restore-the-bug, in findings)
+- [x] run them against the current code and record which fail (restore-the-bug, in findings)
 
 ## Phase 2: Canonical order in wet_upstream_sums()
 - [ ] order valid rows by `(kb, watershed_feature_id)` (radix) before the group `rowsum()`;
