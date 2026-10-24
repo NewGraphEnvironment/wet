@@ -11,19 +11,21 @@ A sweep of 52 other database fetches found three more where fetch order reached 
   - Fraser: 644,710 polygons, 676,496 pairs. Main's sums move by up to 4.41e-16 relative; the branch's are `identical()`.
   - Columbia: 307,101 polygons, 38,649 pairs. Main's move by up to 3.83e-16; the branch's are identical.
 - **`wb_upstream_order.R` on two scratch runs** (Fraser and basin 999, the second shuffled): branch "identical: 2 basins (2 stored in another order), 644770 watersheds"; main's sums stop on basin 100.
-- **The real stored orders could not be replayed on m1.** Its runs are the reduced bundle (basin 100 keeps 94 of 644,710 watersheds), so that check is owed on m4.
+- **The real stored orders could not be replayed on m1.** Its runs are the reduced bundle (basin 100 keeps 94 of 644,710 watersheds), so that check was run on m4.
+- **The real stored orders, replayed on m4** (2026-10-24, main at 212f184): `wb_upstream_order.R data/wb/_pre16/962a9cc2c4 data/wb/e675918817` printed "identical: 24 basins (17 stored in another order), 3245453 watersheds" in 80 s. The counts are #16's: the 17 basins whose rows came back in another order now sum to the same bits in both orders.
 - **The sample stage was already order-free**: each polygon's cells are summed alone.
 - **#16's 6.6e-14** was larger than the 4e-16 seen here, probably from signed layers near zero (`tave_10`), not measured.
 - **Snap ties:** 08EC013 sits 39.330232870264837 m from two segments of one stream, and 08KD006 67.563694090612884 m. Each pair is in different watersheds.
 
 ## Evidence
 
-Measurements are in `findings.md` (Phase 1, Phase 3, sweep, plan review and round 3 tables). The probes were scratch scripts, not committed. Reviews: `review-plan.md`, `review-round1.md` to `review-round3.md`.
+Measurements are in `findings.md` (Phase 1, Phase 3, sweep, plan review and round 3 tables). The probes were scratch scripts, not committed. The m4 replay's log is `data/logs/76/20261024T0641*` on m4. Reviews: `review-plan.md`, `review-round1.md` to `review-round3.md`.
 
 ## Owed
 
-- [ ] On m4: `Rscript scripts/wb_upstream_order.R data/wb/_pre16/962a9cc2c4 data/wb/e675918817`
-      (the two stored orders that differed, through the new sums; must print "identical")
+- [x] On m4: `Rscript scripts/wb_upstream_order.R data/wb/_pre16/962a9cc2c4 data/wb/e675918817`
+      (the two stored orders that differed, through the new sums; must print "identical").
+      Done 2026-10-24: "identical: 24 basins (17 stored in another order), 3245453 watersheds"
 - [ ] The next province run on m4 (`scripts/wb_province.R 4`, new key) carries the change. It
       happens only inside a release chain: `wb_key_dir()` then sees only the new key, and
       `fit_20260717` lives under `e675918817`, so the fit is refit or carried over, then
