@@ -31,8 +31,9 @@ daily <- readRDS(vd("station_daily.rds"))
 lh <- utils::read.csv(vd("life_history_bulk.csv"), stringsAsFactors = FALSE, na.strings = "")
 map <- readRDS(vd("monthly_map.rds"))
 
-# every value below is the published product's, each checked against what it
-# was built from by data-raw/monthly_vignette_data.R: none may differ
+# the routed values below, and the balance's at prov$shape_stations, were each
+# checked against what they were built from by data-raw/monthly_vignette_data.R
+# (the rest rest on the publish report): none may differ
 stopifnot(identical(prov$published$manifest, wet:::wet_catalog_url), all(prov$published_check$compared > 0),
           all(prov$published_check$differing == 0))
 
@@ -166,7 +167,7 @@ reshape(q[q$month > 0, c("source", "month", "q_m3s")], idvar = "month",
 ```
 
 `wet_segment_monthly()` reads those files through `duckdb`, or the
-[PostgreSQL](https://www.postgresql.org/) table `wet_db_load()` writes when it
+[`PostgreSQL`](https://www.postgresql.org/) table `wet_db_load()` writes when it
 is given a connection. It returns `linear_feature_id, month, q_m3s, source`,
 the shape of `wet_station_monthly()`'s gauge record, so a comparison is a join
 on `month`. A segment a source lacks comes back with `NA` months, not missing
@@ -823,34 +824,26 @@ knitr::kable(tab, row.names = FALSE, align = "llrrrrrrrr",
 
 ## Software and citation
 
-The numbers in this article are the published product's.
-`data-raw/monthly_vignette_data.R` bundled them on `r format(prov$built)` from
-the published build at wet `r prov$published$wet_commit` and the water balance
-fit on HYDAT `r substr(prov$hydat_release, 1, 10)`, and checked every value
-against what it was built from before writing them. The build's own check of
-every published value is
-[its report](`r paste0("https://github.com/NewGraphEnvironment/wet/blob/main/", prov$published$report)`).
+Routed PCIC's and the balance's flows in this article are the published
+product's, read on `r format(prov$built)` from the build at `wet` commit
+`r prov$published$wet_commit`. Before they were written, routed PCIC's months were
+held equal to the routed table in `fwapg` and its days were routed again from
+the sub-basin days there, and the balance's months and days were made again from the
+fit at `r paste(prov$shape_stations, collapse = " and ")`; the build's own check of its
+published flows,
+[its report](`r paste0("https://github.com/NewGraphEnvironment/wet/blob/main/", prov$published$report)`),
+covers the rest. The gauges' daily flows are HYDAT's. The scores compare routed
+PCIC as published, and the water balance held out by its fit on HYDAT
+`r substr(prov$hydat_release, 1, 10)`, with HYDAT's observed runoff.
 
 ```{r citation, results = "asis"}
-pkgs <- c("wet", "duckdb", "ggplot2", "gq")
-stopifnot(all(vapply(pkgs, requireNamespace, NA, quietly = TRUE)))
-# the citation record each package ships (inst/CITATION, or its DESCRIPTION),
-# written as BibTeX and read back for the line below: the concept DOI where
-# the package has one, the version, and the commit when the install recorded
-# a full git hash (a build from a checkout records none)
-bib <- tempfile(fileext = ".bib")
-knitr::write_bib(pkgs, file = bib)
-stopifnot(length(readLines(bib)) > 0)
-cite_line <- function(p) {
-  d <- utils::packageDescription(p)
-  ct <- utils::citation(p)
-  doi <- unlist(lapply(seq_along(ct), function(i) ct[[i]]$doi))
-  doi_text <- if (length(doi)) sprintf(", [doi:%s](https://doi.org/%s)", doi[1], doi[1]) else ""
-  sha <- d$RemoteSha
-  commit <- if (is.character(sha) && grepl("^[0-9a-f]{40}$", sha)) sprintf(", commit `%s`", substr(sha, 1, 7)) else ""
-  sprintf("- `%s` %s%s%s. %s", p, d$Version, doi_text, commit, paste(format(ct[[1]], style = "text"), collapse = " "))
-}
-cat(vapply(pkgs, cite_line, ""), sep = "\n")
+# the citation record each package ships (inst/CITATION, or its DESCRIPTION):
+# the first DOI it carries (wet's is its concept DOI), the version, and the commit when
+# the install recorded a full git hash (a build from a checkout records none)
+cat(wet:::wet_software_cite(c("wet", "duckdb", "ggplot2", "gq")), sep = "\n")
+# the Data line names the shipped annual AET (CGIAR floored by Fu-Budyko) and
+# the snow predictors in the monthly shares
+stopifnot(identical(prov$aet, "cfu"), identical(prov$share_spec, "snow"))
 ```
 
 Cite `wet` by the DOI above, which resolves to its latest release. How the
@@ -865,8 +858,16 @@ Freshwater Atlas by New Graph's fork of `fwapg` at commit
 Norris, S. (2026), *fwapg: PostgreSQL tools for working with British Columbia's
 Freshwater Atlas*, <https://github.com/smnorris/fwapg>; gauge records from the
 Water Survey of Canada's HYDAT, release `r substr(prov$hydat_release, 1, 10)`;
-the Chinook windows from Gottesfeld, A. and Rabnett, K. (2007), *Skeena Fish
-Populations and their Habitat*, Skeena Fisheries Commission.
+for the balance, 1981–2010 climate normals from the R package
+[`climr`](https://github.com/bcgov/climr), actual evapotranspiration from
+CGIAR-CSI's Global High-Resolution Soil-Water Balance v3
+([figshare 7707605](https://figshare.com/articles/dataset/Global_High-Resolution_Soil-Water_Balance/7707605))
+held no lower than a Fu–Budyko estimate, elevation from the Copernicus GLO-90
+DEM, ERA5-Land snow normals (Copernicus Climate Change Service) through the R
+package [`cd`](https://newgraphenvironment.github.io/cd/) for its monthly
+shares, and the province's BC Hydrologic Zones; the Chinook windows from Gottesfeld, A. and Rabnett, K. (2007), *Skeena Fish
+Populations and their Habitat*, Skeena Fisheries Commission; place names from
+BC Geographic Names.
 
 Scores: Nash, J.E. and Sutcliffe, J.V. (1970), River flow forecasting through
 conceptual models part I: a discussion of principles, *Journal of Hydrology*

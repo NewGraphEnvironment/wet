@@ -1,0 +1,18 @@
+# Progress — Articles: bring the three vignettes to soul's current writing convention (#110)
+
+## Session 2026-10-23
+
+- Plan-mode exploration — phases approved by user
+- The user asked whether the citation helper belongs in `xciter`, then judged it probably not worth the dependency yet; recorded as gate decision 2
+- Created branch `110-articles-bring-the-three-vignettes-to-so` off main
+- Scaffolded PWF baseline from issue #110 with approved phases
+- Next: start Phase 1
+- Rendered all three articles on main (wet 0.4.17 installed) into the session scratchpad as the before copy for the text diff
+- Phase 1: `wet_software_cite()` and `wet_software_line()` (internal) with tests; mutation check (any `RemoteSha` printed as a commit) fails 4 expectations; monthly-flow calls the helper; filed NewGraphEnvironment/xciter#6 for the later move
+- Plan review (Plan agent) landed with no blockers: `planning/active/review-plan.md`, each finding with what was done. Folded in: install the branch before every render, `Kendall` and `zyp` for station-flow, the balance's inputs on segment's Data line
+- Phase 2: segment-discharge edited and rendered against the installed branch; every guard passes. Body prose 899 → 829 words (cap 900, counted to the `## Software and citation` heading); 1,068 with the closing section; file 414 → 447 lines. Rendered-text diff against main read change by change: only the planned prose moved. Score table: one "Table 2" caption, its note in the footer, no `NA` style
+- Phase 3: station-flow edited and rendered; every guard passes. Software in prose: `wet`, `cd`, `tidyhydat` (it reads only the real-time feed; HYDAT is read with SQL), water-temp-bc linked as the archive. Trends define Theil–Sen and Mann–Kendall in two sentences, with Mann (1945), Kendall (1975), Theil (1950) and Sen (1968) on a Trends line; `Kendall` and `zyp` cited as the code `cd_trend()` runs. Body prose 535 → 580 words (cap 600, counted to the closing section; the old "Cached inputs" paragraph counted before); 773 with it; file 659 → 702 lines. "The latest years are provisional" kept: relative to the five years shown and computed. NGE's life-history table stays unlinked (its repo is private)
+- Phase 4: monthly-flow's rendered text is identical to main's after the helper swap. No `NA` table style in any article; captions numbered once. `devtools::test()` [ FAIL 0 | WARN 0 | SKIP 0 | PASS 1361 ]; `pkgdown::check_pkgdown()` clean; lintr: 110 lints, all pre-existing style lints in the vignettes but one on a changed line (a 122-character footnote line, wrapped; re-render byte-identical in text). CLAUDE.md's monthly-flow sentence now covers all three articles
+- Measurement (writing.md "Measure the simplification"): segment-discharge body 899 → 829 words, file 414 → 447 lines; station-flow body 535 → 580, file 659 → 702; monthly-flow unchanged (1,762), file 877 → 862. No forecast was set; the floor was the sections kept and the new software wording
+- `/code-check branch`: four rounds plus a closing enumeration. Every round found sentences in the closing sections that claimed more than the bundle scripts check, twice inside the previous round's fix. That reached monthly-flow's closing paragraph from #107, which this branch then corrected, with its Data line given the balance's inputs. Round 4 enumerated all 47 claim sentences the branch added; its 4 failures were fixed and the 7 changed sentences checked in `review-enumeration.md`. Six agents in all on this task (the plan review and four rounds), past the usual bound of five
+- Final: body prose segment-discharge 829 / 900, station-flow 581 / 600; files 453 (segment-discharge), 703 (station-flow) and 878 (monthly-flow) lines; 1,361 tests pass; no lint on changed lines
