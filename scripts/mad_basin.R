@@ -97,7 +97,8 @@ seg <- DBI::dbGetQuery(conn, "
   FROM whse_basemapping.fwa_stream_networks_sp s
   JOIN whse_basemapping.fwa_streams_watersheds_lut l USING (linear_feature_id)
   LEFT JOIN whse_basemapping.fwa_stream_networks_discharge d USING (linear_feature_id)
-  WHERE s.wscode_ltree <@ $1::ltree", params = list(wscode))
+  WHERE s.wscode_ltree <@ $1::ltree
+  ORDER BY s.linear_feature_id", params = list(wscode))
 k <- match(seg$watershed_feature_id, ws$watershed_feature_id)
 seg$wet_mm <- fwapg_mode$mad_mm[k]
 seg$wet_m3s <- fwapg_mode$mad_m3s[k]

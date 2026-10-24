@@ -69,7 +69,9 @@ stamp("run key ", key)
 bc_file <- file.path(out_dir, "in_bc.tif")
 if (!file.exists(bc_file)) {
   conn <- pg()
-  wkt <- DBI::dbGetQuery(conn, "SELECT ST_AsText(geom) wkt FROM whse_basemapping.fwa_bcboundary")$wkt
+  # in id order: the dissolve's last bits can follow the pieces' order (#76)
+  wkt <- DBI::dbGetQuery(conn, "SELECT ST_AsText(geom) wkt FROM whse_basemapping.fwa_bcboundary
+                                ORDER BY bcboundary_id")$wkt
   DBI::dbDisconnect(conn)
   g <- terra::rast(f_in[["aet"]])[[1]]
   # stored as ~28,000 subdivided pieces: dissolve first, so a cell split
@@ -251,7 +253,8 @@ for (code in codes) {
   t0 <- Sys.time()
   ws <- wet_ws_fetch(conn, code)
   irr <- wet_upstream_irregular(conn, code)
-  need <- unique(ws$watershed_group_code)
+  # sorted, so the zone columns come in one order whatever the rows' order
+  need <- sort(unique(ws$watershed_group_code))
   vals <- lapply(need, function(g) readRDS(file.path(out_dir, "sample", paste0(g, ".rds"))))
   cols <- unique(unlist(lapply(vals, names)))
   vals <- do.call(rbind, lapply(vals, function(v) {
