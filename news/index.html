@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.17</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.18</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,9 +34,13 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/v0.4.18/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.18" id="wet-0418">wet 0.4.18<a class="anchor" aria-label="anchor" href="#wet-0418"></a></h2>
+<ul><li>The three articles name, link and cite the software they run on (<a href="https://github.com/NewGraphEnvironment/wet/issues/110" class="external-link">#110</a>). Each ends in a “Software and citation” section computed at render from every package’s own citation, through the internal <code>wet_software_cite()</code>: the version, the first DOI its citation carries (wet’s concept DOI) and the commit when the install recorded one. Their closing provenance now says which numbers were checked against what: routed PCIC against fwapg’s tables, the balance remade from its fit where the bundle holds it, the scores held out against HYDAT, and the rest on the build report. The monthly-flow article’s Data line gains the balance’s inputs. The segment-discharge article drops its Validation section and its pointer to an open fwapg issue, states the zone adjustment as kept by decision, and puts the score table’s note in a footnote. The station-flow article defines its Theil–Sen and Mann–Kendall trend tests and cites them, with <code>Kendall</code> and <code>zyp</code>. The word caps of those two articles count body prose up to the citation section.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.17" id="wet-0417">wet 0.4.17<a class="anchor" aria-label="anchor" href="#wet-0417"></a></h2>
 <ul><li>The monthly-flow article gives each Chinook window’s flow from the published days as well as from monthly means (<a href="https://github.com/NewGraphEnvironment/wet/issues/107" class="external-link">#107</a>), with the gauge’s own monthly means against its daily record as the cost of reading a window from months; its data bundle carries the three Bulkley segments’ days, checked as the publish checks them (routed PCIC routed again from fwapg’s sub-basin days, the balance made again from its months and the fit’s daily shape). The article is rewritten for its reader: a locator map of the three gauges and their nested catchments, the months and their scoring before the windows, <code>fwapg</code> (Norris 2026) and the windows’ source (Gottesfeld and Rabnett 2007) cited, the Nash–Sutcliffe score defined and rated (Moriasi and others 2007) under the group table through <code>kableExtra</code> (now in Suggests), and the build checks out of the article, which run in the data script. <code>scripts/vignette_map_lib.R</code> makes the map layers for both station articles; the gq registry gains the <code>bulkley_map</code> layer.</li>

@@ -1,5 +1,25 @@
 # Changelog
 
+## wet 0.4.18
+
+- The three articles name, link and cite the software they run on
+  ([\#110](https://github.com/NewGraphEnvironment/wet/issues/110)). Each
+  ends in a “Software and citation” section computed at render from
+  every package’s own citation, through the internal
+  `wet_software_cite()`: the version, the first DOI its citation carries
+  (wet’s concept DOI) and the commit when the install recorded one.
+  Their closing provenance now says which numbers were checked against
+  what: routed PCIC against fwapg’s tables, the balance remade from its
+  fit where the bundle holds it, the scores held out against HYDAT, and
+  the rest on the build report. The monthly-flow article’s Data line
+  gains the balance’s inputs. The segment-discharge article drops its
+  Validation section and its pointer to an open fwapg issue, states the
+  zone adjustment as kept by decision, and puts the score table’s note
+  in a footnote. The station-flow article defines its Theil–Sen and
+  Mann–Kendall trend tests and cites them, with `Kendall` and `zyp`. The
+  word caps of those two articles count body prose up to the citation
+  section.
+
 ## wet 0.4.17
 
 - The monthly-flow article gives each Chinook window’s flow from the
