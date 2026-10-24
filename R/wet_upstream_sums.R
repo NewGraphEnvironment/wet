@@ -66,7 +66,7 @@ wet_upstream_sums <- function(ws, cols, irregular_pairs = NULL) {
   kb <- paste(W[valid], L[valid])
   o <- order(kb, ws$watershed_feature_id[valid], method = "radix")
   uk <- unique(kb[o])
-  pos <- rowsum(vals[valid, , drop = FALSE][o, , drop = FALSE], match(kb[o], uk), reorder = TRUE)
+  pos <- rowsum(vals[which(valid)[o], , drop = FALSE], match(kb[o], uk), reorder = TRUE)
   trees <- lapply(seq_len(ncol(pos)), function(j) wet_seg_build(pos[, j]))
 
   # Query each distinct (W, L) once.

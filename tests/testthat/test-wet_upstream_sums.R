@@ -116,8 +116,9 @@ order_ws <- function() {
 
 test_that("sums do not depend on the row order of ws", {
   ws <- order_ws()
-  # the fixture reaches the failure mode: the order changes the double
-  expect_false(identical(sum(ws$area[7:9]), sum(ws$area[c(7, 9, 8)])))
+  # the fixture reaches the failure mode: the order changes the double. Reduce()
+  # adds in plain double as rowsum() does; sum() may use long double.
+  expect_false(identical(Reduce(`+`, ws$area[7:9]), Reduce(`+`, ws$area[c(7, 9, 8)])))
   ref <- wet_upstream_sums(ws, "area")
   perms <- list(c(1:6, 7, 9, 8), c(1:6, 8, 7, 9), c(1:6, 9, 8, 7), rev(1:9), c(9, 3, 7, 1, 8, 2, 6, 4, 5))
   for (p in perms) {
