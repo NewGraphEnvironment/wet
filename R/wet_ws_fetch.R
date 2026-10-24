@@ -13,7 +13,8 @@
 #' @param conn A DBI connection to an fwapg database.
 #' @param wscode Character. FWA watershed code of the basin root.
 #' @return `data.frame(watershed_feature_id, watershed_group_code, wscode,
-#'   localcode, area_m2, lon, lat)`.
+#'   localcode, area_m2, lon, lat)`, ordered by `watershed_feature_id`, so the
+#'   same polygons always come back in the same order.
 #' @export
 wet_ws_fetch <- function(conn, wscode) {
   wet_check_wscode(wscode)
@@ -26,7 +27,8 @@ wet_ws_fetch <- function(conn, wscode) {
                  localcode_ltree, geom,
                  ST_Transform(ST_Centroid(geom), 4326) AS c
           FROM whse_basemapping.fwa_watersheds_poly
-          WHERE wscode_ltree <@ $1::ltree) x"
+          WHERE wscode_ltree <@ $1::ltree) x
+    ORDER BY watershed_feature_id"
   ws <- DBI::dbGetQuery(conn, sql, params = list(wscode))
   bad <- is.na(ws$wscode) | is.na(ws$localcode)
   if (any(bad)) {
@@ -47,7 +49,7 @@ wet_ws_fetch <- function(conn, wscode) {
 #' prefix of `b`'s, via the gist index.
 #'
 #' @inheritParams wet_ws_fetch
-#' @return `data.frame(watershed_feature_id, id_up)`.
+#' @return `data.frame(watershed_feature_id, id_up)`, ordered by both.
 #' @export
 wet_upstream_irregular <- function(conn, wscode) {
   wet_check_wscode(wscode)
@@ -59,7 +61,8 @@ wet_upstream_irregular <- function(conn, wscode) {
      AND whse_basemapping.FWA_Upstream(a.wscode_ltree, a.localcode_ltree,
                                        b.wscode_ltree, b.localcode_ltree)
     WHERE b.wscode_ltree <@ $1::ltree
-      AND NOT b.localcode_ltree <@ b.wscode_ltree"
+      AND NOT b.localcode_ltree <@ b.wscode_ltree
+    ORDER BY a.watershed_feature_id, b.watershed_feature_id"
   DBI::dbGetQuery(conn, sql, params = list(wscode))
 }
 
@@ -79,14 +82,16 @@ wet_check_wscode <- function(wscode) {
 #'
 #' @inheritParams wet_ws_fetch
 #' @param wsg Watershed group code, e.g. `"SALR"`.
-#' @return `terra::SpatVector` (BC Albers) with `watershed_feature_id`.
+#' @return `terra::SpatVector` (BC Albers) with `watershed_feature_id`, in
+#'   `watershed_feature_id` order.
 #' @export
 wet_ws_geom <- function(conn, wsg) {
   stopifnot(is.character(wsg), length(wsg) == 1L, !is.na(wsg), grepl("^[A-Z]{4}$", wsg))
   d <- DBI::dbGetQuery(conn, "
     SELECT watershed_feature_id, ST_AsText(geom) AS wkt
     FROM whse_basemapping.fwa_watersheds_poly
-    WHERE watershed_group_code = $1", params = list(wsg))
+    WHERE watershed_group_code = $1
+    ORDER BY watershed_feature_id", params = list(wsg))
   v <- terra::vect(d$wkt, crs = "EPSG:3005")
   v$watershed_feature_id <- d$watershed_feature_id
   v

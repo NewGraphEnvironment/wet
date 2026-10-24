@@ -9,7 +9,7 @@
 #' @param conn A DBI connection to an fwapg database.
 #' @param wsg Watershed group code, e.g. `"SALR"`.
 #' @return `data.frame(watershed_feature_id, id_up, area_up_m2,
-#'   upstream_area_m2)`.
+#'   upstream_area_m2)`, ordered by `watershed_feature_id` and `id_up`.
 #' @export
 wet_upstream_pairs <- function(conn, wsg) {
   stopifnot(is.character(wsg), length(wsg) == 1L, grepl("^[A-Z]{4}$", wsg))
@@ -24,6 +24,7 @@ wet_upstream_pairs <- function(conn, wsg) {
     INNER JOIN whse_basemapping.fwa_watersheds_poly uw
       ON whse_basemapping.FWA_Upstream(a.wscode_ltree, a.localcode_ltree,
                                        uw.wscode_ltree, uw.localcode_ltree)
-    WHERE a.watershed_group_code = $1"
+    WHERE a.watershed_group_code = $1
+    ORDER BY a.watershed_feature_id, uw.watershed_feature_id"
   DBI::dbGetQuery(conn, sql, params = list(wsg))
 }

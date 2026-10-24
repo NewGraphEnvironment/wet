@@ -45,11 +45,11 @@ No province run on this branch: it is m4's, and it lands with the next release r
 - [x] Phase 1 tests pass; existing oracle tests pass
 
 ## Phase 3: ORDER BY in the fetches
-- [ ] `ORDER BY` on a unique key in `wet_ws_fetch()`, `wet_upstream_irregular()`,
+- [x] `ORDER BY` on a unique key in `wet_ws_fetch()`, `wet_upstream_irregular()`,
       `wet_ws_geom()`, `wet_upstream_pairs()`; `@return` says rows come in id order
 - [ ] sweep `R/` and `scripts/` for other DB fetches whose rows are summed; add `ORDER BY` on a
       unique key where found, list each verdict in findings
-- [ ] live check on m1's fwapg: `wet_ws_fetch()` twice and a basin's sums twice `identical()`
+- [x] live check on m1's fwapg: `wet_ws_fetch()` twice and a basin's sums twice `identical()`
 
 ## Phase 4: Docs
 - [ ] `scripts/wb_upstream_identity.R` header: runs made since #76 reproduce to the bit;

@@ -12,7 +12,7 @@ wet_upstream_pairs(conn, wsg)
 \item{wsg}{Watershed group code, e.g. \code{"SALR"}.}
 }
 \value{
-\code{data.frame(watershed_feature_id, id_up, area_up_m2, upstream_area_m2)}.
+\code{data.frame(watershed_feature_id, id_up, area_up_m2, upstream_area_m2)}, ordered by \code{watershed_feature_id} and \code{id_up}.
 }
 \description{
 The slow oracle: the pairwise \code{FWA_Upstream()} join fwapg's own builds use,
