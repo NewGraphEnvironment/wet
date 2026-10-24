@@ -79,15 +79,15 @@ No province run on this branch: it is m4's, and it lands with the next release r
       `segment_output.R` first (the chain the next release runs anyway)
 - [ ] After that run, confirm the claim the docs now make as "should": a second run (or one
       basin accumulated again from the run's samples) `identical()` to it
-- [ ] Issue body: edit to say what landed and that the run is pending
+- [x] Issue body: edit to say what landed and that the run is pending
 - [ ] NewGraphEnvironment/fwapg#39: fix on the fork (end both orderings on `linear_feature_id`); post the draft upstream only on the user's word
 
 ## Validation
 
-- [ ] Tests pass (`devtools::test()`, with `NOT_CRAN=true` for any single-file rerun)
-- [ ] `/code-check` clean (once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] Tests pass (`devtools::test()`, with `NOT_CRAN=true` for any single-file rerun)
+- [x] `/code-check` clean (once over the branch with `/code-check branch`)
+- [x] PWF checkboxes match landed work
+- [x] `/planning-archive` on completion
 
 Verification: the permutation tests fail on main and pass on the branch (shown by running them
 on both); the live test pins the fetch order only; the evidence on real data is the Fraser and
