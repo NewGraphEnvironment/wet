@@ -201,3 +201,113 @@
 # from the issue's table (08EE018 5, 08EE013 51, 08EE003 43 or 44, the report
 # fixing which). The report carries no timestamp, so a rerun reproduces it
 # byte for byte.
+
+
+devtools::load_all(quiet = TRUE)
+source("scripts/wb_fit_lib.R")  # wb_release(), wb_hydat()
+
+release <- wb_release()
+if (release != "20260717") stop("the pilot's rule names HYDAT 20260717, not ", release, call. = FALSE)
+hydat <- wb_hydat(release)
+report <- file.path("data", "checks", sprintf("departure_pilot_%s.txt", release))
+baseline <- 1981:2010
+box <- c(lon_min = -128.8, lon_max = -125.0, lat_min = 53.6, lat_max = 55.8)
+k_main <- 5
+k_sens <- c(3, 8)
+level <- 0.9
+margin <- 0.01
+usable_nse <- 0.5
+min_pseudo_gauges <- 15
+pilot <- c(maxan = "08EE018", houston = "08EE003", buck = "08EE013")
+
+lh <- utils::read.csv("inst/vignette-data/life_history_bulk.csv")
+lh <- lh[lh$species_code == "CH" & lh$life_stage %in% c("migration", "spawning"), ]
+windows <- data.frame(window = lh$life_stage, start = lh$start, end = lh$end)
+stopifnot(identical(windows$window, c("migration", "spawning")),
+          identical(windows$start, c("05-01", "08-01")), identical(windows$end, c("08-01", "09-15")))
+
+fmt <- function(x, d = 2) ifelse(is.na(x), "-", formatC(x, format = "f", digits = d))
+out <- character()
+say <- function(...) out <<- c(out, ...)
+
+# ---- the pool ----------------------------------------------------------------------------------
+con <- wet:::wet_hydat_connect(hydat)
+st_all <- DBI::dbGetQuery(con, sprintf("
+  SELECT s.STATION_NUMBER station_number, s.STATION_NAME station_name, s.LONGITUDE lon,
+         s.LATITUDE lat, s.DRAINAGE_AREA_GROSS drainage_area_gross_km2
+  FROM STATIONS s JOIN STN_REGULATION r USING (STATION_NUMBER)
+  WHERE r.REGULATED = 0 AND s.PROV_TERR_STATE_LOC = 'BC'
+    AND s.LONGITUDE BETWEEN %f AND %f AND s.LATITUDE BETWEEN %f AND %f
+  ORDER BY s.STATION_NUMBER", box[["lon_min"]], box[["lon_max"]], box[["lat_min"]], box[["lat_max"]]))
+DBI::dbDisconnect(con)
+no_meta <- st_all$station_number[is.na(st_all$drainage_area_gross_km2) | is.na(st_all$lon) | is.na(st_all$lat)]
+st_all <- st_all[!st_all$station_number %in% no_meta, ]
+
+daily <- suppressWarnings(wet_station_daily(st_all$station_number, hydat, to = NULL, sources = "hydat"))
+ws <- wet_window_stats(daily, windows, stats = c("mean", "min7", "max", "cov_day"))
+ws <- ws[c("station_number", "variable", "period", "year", "value", "anomaly_type", "unit")]
+
+years_of <- function(st, w = "migration", v = "q_mean") {
+  sort(ws$year[ws$station_number == st & ws$period == w & ws$variable == v])
+}
+n_mig <- vapply(st_all$station_number, function(s) length(years_of(s)), 0L)
+pool <- st_all[n_mig >= 3, ]
+rownames(pool) <- NULL
+xy <- sf::st_coordinates(sf::st_transform(sf::st_as_sf(pool, coords = c("lon", "lat"), crs = 4326), 3005))
+pool$e_km <- xy[, 1] / 1000
+pool$n_km <- xy[, 2] / 1000
+ws <- ws[ws$station_number %in% pool$station_number, ]
+
+# the longest run of consecutive years in y, and the tiled 5-year blocks
+runs_of <- function(y) if (length(y)) split(y, cumsum(c(1, diff(y) != 1))) else list()
+blocks_of <- function(y, len = 5) {
+  b <- list()
+  for (r in runs_of(y)) {
+    nb <- length(r) %/% len
+    for (i in seq_len(nb)) b[[length(b) + 1]] <- r[(i - 1) * len + seq_len(len)]
+  }
+  b
+}
+pool$n_mig <- vapply(pool$station_number, function(s) length(years_of(s)), 0L)
+pool$n_spw <- vapply(pool$station_number, function(s) length(years_of(s, "spawning")), 0L)
+pool$first <- vapply(pool$station_number, function(s) min(years_of(s)), 0)
+pool$last <- vapply(pool$station_number, function(s) max(years_of(s)), 0)
+pool$pre1981 <- vapply(pool$station_number, function(s) sum(years_of(s) < 1981), 0L)
+pool$base <- vapply(pool$station_number, function(s) sum(years_of(s) %in% baseline), 0L)
+pool$recent <- vapply(pool$station_number, function(s) sum(years_of(s) %in% 2011:2025), 0L)
+pool$n_blocks <- vapply(pool$station_number, function(s) length(blocks_of(years_of(s))), 0L)
+pool$ext <- pool$n_mig >= 30 & pool$n_blocks >= 1
+pool$dep <- pool$base >= 10
+pool$short <- pool$n_mig <= 10
+
+# the issue's table: 08EE018 5, 08EE013 51, 08EE003 43 (the issue) or 44 (the plan's probe)
+cnt <- stats::setNames(stats::setNames(pool$n_mig, pool$station_number)[pilot], names(pilot))
+if (!identical(unname(cnt[c("maxan", "buck")]), c(5L, 51L)) || !cnt[["houston"]] %in% c(43L, 44L)) {
+  stop("pilot-gauge counts differ from the issue's table: ", paste(pilot, cnt, collapse = ", "), call. = FALSE)
+}
+
+say("# Maxan Creek Chinook pilot: extended window flows and donor-carried departures (#120)", "",
+    sprintf("HYDAT %s, approved daily flows only. Rule registered in scripts/departure_pilot.R's header at 6894c27, before any candidate.", release),
+    sprintf("Windows (CH, inst/vignette-data/life_history_bulk.csv): %s.",
+            paste(sprintf("%s %s..%s", windows$window, windows$start, windows$end), collapse = ", ")),
+    sprintf("Box: natural (REGULATED = 0) BC gauges, lon %s..%s, lat %s..%s. Baseline %d-%d.",
+            box[["lon_min"]], box[["lon_max"]], box[["lat_min"]], box[["lat_max"]], min(baseline), max(baseline)),
+    "A complete window-year: at least 80 % of the window's days present, inside the record (wet_window_stats(), min_frac = 0.8).",
+    "", "## 1. The pool", "",
+    sprintf("Natural box gauges in STATIONS: %d; excluded for no drainage area or coordinates: %d%s.",
+            length(n_mig) + length(no_meta), length(no_meta),
+            if (length(no_meta)) paste0(" (", paste(no_meta, collapse = ", "), ")") else ""),
+    sprintf("Box pool (>= 3 complete migration years): %d. Extension pool (>= 30 and a 5-year run): %d. Departure pool (>= 10 baseline migration years): %d. Short-record (3..10 years): %d.",
+            nrow(pool), sum(pool$ext), sum(pool$dep), sum(pool$short)),
+    sprintf("Pilot gauges, complete migration-window years by this definition: %s.",
+            paste(sprintf("%s %d", pilot, cnt), collapse = ", ")),
+    "", sprintf("  %-8s %-42s %8s %4s %4s %5s %5s %4s %4s %5s %s", "station", "name", "km2", "mig", "spw",
+                "first", "last", "<81", "base", "11-25", "pool"))
+o <- order(-pool$n_mig, pool$station_number)
+say(sprintf("  %-8s %-42s %8s %4d %4d %5d %5d %4d %4d %5d %s", pool$station_number[o],
+            substr(tools::toTitleCase(tolower(pool$station_name[o])), 1, 42),
+            fmt(pool$drainage_area_gross_km2[o], 1), pool$n_mig[o], pool$n_spw[o], as.integer(pool$first[o]),
+            as.integer(pool$last[o]), pool$pre1981[o], pool$base[o], pool$recent[o],
+            trimws(paste(ifelse(pool$ext[o], "ext", ""), ifelse(pool$dep[o], "dep", ""),
+                         ifelse(pool$short[o], "SHORT", "")))),
+    "", "mig, spw: complete years in the migration and spawning windows; first, last, <81, base (1981-2010) and 11-25 count migration years.", "")

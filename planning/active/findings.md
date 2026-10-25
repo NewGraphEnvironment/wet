@@ -117,3 +117,7 @@ Box lon −128.8…−125.0, lat 53.6…55.8. 94 BC gauges; 58 with ≥3 complet
 - **Predictor SD** is taken over the box pool (natural, ≥3 complete migration years), one scaling for both questions.
 - **Short-record set** is defined as box-pool gauges with 3–10 complete migration years. The findings table's 13 includes one regulated gauge (08EC002), so the natural count should be 12; Phase 2 measures it.
 - **Scope calls kept as planned:** day-by-day extension is a reported-only sensitivity; the pseudo-record refusal floor is 15.
+
+## The pool as the script measures it (Phase 2)
+
+`wet_window_stats()` complete window-years on HYDAT 20260717: 81 natural box gauges in STATIONS, one excluded for missing metadata (08EE007), box pool 53, extension pool 21, departure pool 31, short-record 13. 08EE003 counts 44 (the issue's 43 came from a different count); the script fixes 44 and asserts 43 or 44. The 13 short-record gauges differ from the findings table's 13: 08EC002 (regulated) is out, and 08EE028 is in at 10 years; it is also in the departure pool (10 baseline years), so it is scored in both sets. 08EE003 has only 18 baseline years.

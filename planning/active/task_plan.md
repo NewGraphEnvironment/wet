@@ -47,9 +47,9 @@ What the script refuses: a target or donor with fewer than 3 complete window yea
 
 ## Phase 2: Window series and the pool
 
-- [ ] In the script: read the pool from HYDAT 20260717 (`wet_station_select()`-style regulation and province filters, distance to the target from `STATIONS` lat/lon), `wet_station_daily(sources = "hydat")`, `wet_window_stats()` on the two windows with `stats = c("mean", "min7", "max", "cov_day")`.
-- [ ] Report section 1: the pool table (station, name, km², complete years per window, first, last, pre-1981, 2011–2025), and the 13 short-record gauges flagged.
-- [ ] Assert the three pilot gauges' counts against the issue's table (5 / 43 or 44 / 51; the issue counted 43 for 08EE003 and this probe 44 — the report states which definition each count uses and fixes one).
+- [x] In the script: read the pool from HYDAT 20260717 (`wet_station_select()`-style regulation and province filters, distance to the target from `STATIONS` lat/lon), `wet_station_daily(sources = "hydat")`, `wet_window_stats()` on the two windows with `stats = c("mean", "min7", "max", "cov_day")`.
+- [x] Report section 1: the pool table (station, name, km², complete years per window, first, last, pre-1981, 2011–2025), and the 13 short-record gauges flagged.
+- [x] Assert the three pilot gauges' counts against the issue's table (5 / 43 or 44 / 51; the issue counted 43 for 08EE003 and this probe 44 — the report states which definition each count uses and fixes one).
 
 ## Phase 3: Record extension, `wet_window_extend()`
 
