@@ -76,6 +76,18 @@ script would trip the BUILD's daily guard (from f99df25, excluding only `publish
 The cost is that a lone rerun of `segment_daily_output.R` asks for `segment_output.R` first, which fails safe.
 No scoring-code hash (`scripts/wb_score_md5.R`) covers a file this branch changed.
 
+## Code-check round 3: one report check, run before the upload
+
+Round 3 named the mechanism behind the plan review's blocker and round 2's finding: an artifact is identified
+by something other artifacts can share, and each guard keeps its own copy of what that covers. It walked 22
+places (`review-round3.md`), and all held except the accepted `segment_daily_output.R` `own` list and one fragile
+spot. The report's heading was a literal in BUILD and another in the lib, and only the rewrite, which runs after
+the upload, checked the layout. PUBLISH's pre-upload check also took any `tree parts md5` line, while the rewrite
+demanded exactly one, so a report could upload and then be refused. Fixed with `publish_live_heading` (written by
+BUILD) and `publish_report_check()` (commit, one tree line, no FAIL, one live-build line under the heading), which
+PUBLISH runs on HEAD's report before the upload and `publish_report_live()` runs again. Mutations: "any tree line"
+and "no layout check" each turn the new test red.
+
 ## Errors Encountered
 
 | Error | Resolution |

@@ -63,9 +63,9 @@ test_that("PUBLISH refuses a report of another build, a failed one, or one with 
   f <- local_report(line)
   other <- cat
   attr(other, "provenance")$wet_commit <- "abc123"
-  expect_error(e$publish_report_live(f, other, other, ok_verify(other)), "not a passing report")
+  expect_error(e$publish_report_live(f, other, other, ok_verify(other)), "must name build")
   writeLines(sub("segment_rows    ok", "segment_rows    FAIL", readLines(f)), f)
-  expect_error(e$publish_report_live(f, cat, cat, ok_verify(cat)), "not a passing report")
+  expect_error(e$publish_report_live(f, cat, cat, ok_verify(cat)), "must name build")
   f <- local_report("something else")
   expect_error(e$publish_report_live(f, cat, cat, ok_verify(cat)), "no single live-build line")
   # #94 through PUBLISH: a tree rebuilt at the report's commit from other
@@ -74,11 +74,24 @@ test_that("PUBLISH refuses a report of another build, a failed one, or one with 
   rebuilt$md5[1] <- sprintf("%032d", 0)
   f <- local_report(line)
   before <- unname(tools::md5sum(f))
-  expect_error(e$publish_report_live(f, rebuilt, rebuilt, ok_verify(rebuilt)), "not a passing report")
+  expect_error(e$publish_report_live(f, rebuilt, rebuilt, ok_verify(rebuilt)), "must name build")
   expect_identical(unname(tools::md5sum(f)), before)
   f <- local_report(line)
   writeLines(c(readLines(f), "## Against the published tree", line), f)
   expect_error(e$publish_report_live(f, cat, cat, ok_verify(cat)), "no single live-build line")
+})
+
+test_that("PUBLISH's check before the upload is the rewrite's, so a report it could not rewrite never uploads", {
+  e <- publish_libs()
+  cat <- live_catalog()
+  line <- "parts identical to the published build 0000000: 0 of 5 here, 5 published (u)"
+  lines <- readLines(local_report(line))
+  expect_identical(e$publish_report_check(lines, cat, "r"), which(lines == line))
+  tree <- sprintf("tree parts md5 %s", wet_catalog_digest(cat))
+  expect_error(e$publish_report_check(c(lines, tree), cat, "r"), "must name build")
+  expect_error(e$publish_report_check(setdiff(lines, tree), cat, "r"), "must name build")
+  expect_error(e$publish_report_check(c(lines, e$publish_live_heading, line), cat, "r"), "no single live-build line")
+  expect_error(e$publish_report_check(sub("^## Against", "## Versus", lines), cat, "r"), "no single live-build line")
 })
 
 test_that("a verified upload rewrites only the live-build line, and vd_published() takes it", {

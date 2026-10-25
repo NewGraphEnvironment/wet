@@ -31,12 +31,36 @@ publish_live_line <- function(cat_local, cat_pub) {
 # report is never certified for parts another build wrote
 publish_tree_line <- function(cat_local) sprintf("tree parts md5 %s", wet:::wet_catalog_digest(cat_local))
 
+# The report's section holding the live-build line; BUILD writes it
+publish_live_heading <- "## Against the published tree"
+
+# Whether `lines` (the report at `f_report`) may carry the upload of the tree
+# `cat_local`: it names that build's commit and its tree's digest once, failed
+# no check, and has one live-build line under publish_live_heading. PUBLISH
+# asks it of the committed report before the upload, so a report it could not
+# rewrite is refused while nothing has moved, and publish_report_live() asks
+# it again. Returns the live-build line's index
+publish_report_check <- function(lines, cat_local, f_report) {
+  built_at <- attr(cat_local, "provenance")$wet_commit
+  if (!any(startsWith(lines, paste0("wet commit ", built_at, " "))) ||
+        sum(lines == publish_tree_line(cat_local)) != 1L || any(grepl("FAIL", lines))) {
+    stop("commit the build's report ", f_report, " first; it must name build ", built_at,
+         " and this tree's parts (", publish_tree_line(cat_local), ") and fail no check")
+  }
+  h <- which(lines == publish_live_heading)
+  if (length(h) != 1L || h == length(lines) ||
+        !grepl("^(parts identical to the published build |could not read )", lines[h + 1L])) {
+    stop(f_report, " has no single live-build line under its \"", publish_live_heading, "\"")
+  }
+  h + 1L
+}
+
 # After an upload, the build's report gets the live-build line the upload
 # proved, so no second BUILD is needed to write it (#117). Refuses unless
 # `verified` (wet_catalog_verify() of `cat_pub`) passed for every published
 # part, the published parts are the local ones byte for byte, and the report
 # is this build's (its commit and its tree's digest) and failed no check.
-# Only the line under "## Against the published tree" changes; the file is
+# Only the line under publish_live_heading changes; the file is
 # left for a commit, as after a BUILD. A refusal comes after the upload, so
 # the live tree has moved and the report has not: rerun PUBLISH, which skips
 # every part already live
@@ -48,21 +72,12 @@ publish_report_live <- function(f_report, cat_local, cat_pub, verified) {
     stop("the published parts are not the local ones; ", f_report, " is left as it was")
   }
   lines <- readLines(f_report)
-  built_at <- attr(cat_local, "provenance")$wet_commit
-  if (!any(startsWith(lines, paste0("wet commit ", built_at, " "))) ||
-        sum(lines == publish_tree_line(cat_local)) != 1L || any(grepl("FAIL", lines))) {
-    stop(f_report, " is not a passing report of build ", built_at)
-  }
-  h <- which(lines == "## Against the published tree")
-  if (length(h) != 1L || h == length(lines) ||
-        !grepl("^(parts identical to the published build |could not read )", lines[h + 1L])) {
-    stop(f_report, " has no single live-build line under its \"## Against the published tree\"")
-  }
+  i <- publish_report_check(lines, cat_local, f_report)
   out <- lines
-  out[h + 1L] <- publish_live_line(cat_local, cat_pub)
-  stopifnot(identical(out[-(h + 1L)], lines[-(h + 1L)]))
+  out[i] <- publish_live_line(cat_local, cat_pub)
+  stopifnot(identical(out[-i], lines[-i]))
   writeLines(out, f_report)
-  invisible(out[h + 1L])
+  invisible(out[i])
 }
 
 # md5 of bytes held in memory, as tools::md5sum() gives a file's

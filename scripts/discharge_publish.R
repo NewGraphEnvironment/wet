@@ -91,11 +91,7 @@ if (publish) {
   rep_head <- tryCatch(git("show", paste0("HEAD:", f_report)), error = function(e) character())
   # the tree's digest too, so a tree rebuilt at the same commit from other
   # inputs is not uploaded under this report (#94)
-  if (!any(grepl(paste0("^wet commit ", built_at, " "), rep_head)) ||
-        !any(rep_head == publish_tree_line(cat_local)) || any(grepl("FAIL", rep_head))) {
-    stop("commit the build's report ", f_report, " first; it must name build ", built_at,
-         " and this tree's parts (", publish_tree_line(cat_local), ") and fail no check")
-  }
+  publish_report_check(rep_head, cat_local, f_report)
   v <- wet_catalog_verify(cat_local)
   if (!all(v$ok)) stop("the local tree no longer matches its manifest: ", paste(v$key[!v$ok], collapse = ", "))
   aws <- function(...) {
@@ -718,7 +714,7 @@ writeLines(c(
           routed_total, fp_total),
   sprintf("daily routed values one 1e-5 step apart at a rounding tie (not counted as differing): %.0f", day_tie),
   sprintf("daily: table built at %s; routed days and weights: %s", day_commit, daily_fp), "",
-  "## Against the published tree", pub_line, "",
+  publish_live_heading, pub_line, "",
   "## What a reader sees (duckdb, hive_partitioning = true, over the local tree)",
   sprintf("%-10s %-9s %-12s %11.0f rows %9.0f fresh-subquery rows", hive$scenario, hive$forcing, hive$source,
           hive$rows, hive$fresh),
