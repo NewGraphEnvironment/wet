@@ -4,8 +4,8 @@
 # devtools::test() only.
 
 publish_libs <- function() {
-  scripts <- test_path("..", "..", "scripts")
-  skip_if_not(dir.exists(scripts), "scripts/ is not in the installed package")
+  scripts <- testthat::test_path("..", "..", "scripts")
+  testthat::skip_if_not(dir.exists(scripts), "scripts/ is not in the installed package")
   e <- new.env()
   sys.source(file.path(scripts, "discharge_publish_lib.R"), envir = e)
   sys.source(file.path(scripts, "vignette_data_lib.R"), envir = e)
@@ -91,9 +91,9 @@ test_that("a verified upload rewrites only the live-build line, and vd_published
   i <- which(before != after)
   expect_identical(i, which(before == "## Against the published tree") + 1L)
   expect_identical(after[i], line)
-  expect_identical(line, sprintf(
-    "parts identical to the published build abc1234: 5 of 5 here, 5 published (%s); live parts md5 %s",
-    wet_catalog_url, wet_catalog_digest(cat)))
+  want <- sprintf("parts identical to the published build abc1234: 5 of 5 here, 5 published (%s); live parts md5 %s",
+                  wet_catalog_url, wet_catalog_digest(cat))
+  expect_identical(line, want)
   e$wet_catalog <- function(...) cat
   e$wb_report <- function(stem, release) f
   pb <- e$vd_published("20260717")

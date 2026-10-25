@@ -81,7 +81,7 @@ build by commit and part count only, so a rebuild at the old commit from changed
 
 ## Validation
 
-- [ ] Tests pass (`devtools::test()`), lintr clean
+- [x] Tests pass (`devtools::test()`: 1411 pass, 0 fail), lintr clean on changed lines (the one left is `wet_catalog_digest` unseen in the installed package)
 - [ ] `/code-check branch` clean
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
