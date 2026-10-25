@@ -171,7 +171,8 @@ wet_extend_fit <- function(x, y, x0, method, days, level, resid) {
     if (method == "move1") {
       sx <- stats::sd(lx)
       if (!(sx > 0)) stop("the donor's values do not vary over the target's years", call. = FALSE)
-      r <- stats::cor(lx, ly)
+      # a target with no variation has slope 0 whatever r is, and cor() would warn
+      r <- if (stats::sd(ly) > 0) stats::cor(lx, ly) else 0
       sgn <- if (is.na(r) || r == 0) 1 else sign(r)
       fit <- mean(ly) + sgn * stats::sd(ly) / sx * (l0 - mean(lx))
     } else {

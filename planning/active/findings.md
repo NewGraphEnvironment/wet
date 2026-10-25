@@ -131,3 +131,13 @@ Box lon −128.8…−125.0, lat 53.6…55.8. 94 BC gauges; 58 with ≥3 complet
 | MOVE.1 slope multiplied by r (ols's) | 2 failures |
 
 Each restored and `cmp`-checked against the saved copy. The predictor space projects with `terra` (already imported), not `sf`.
+
+## Question 1 decided by the registered rule (Phase 3, run 2026-10-25)
+
+Migration-window mean, k = 5, 21 extension-pool gauges, 218 scored blocks: median per-gauge NSE ols 0.50, move1 0.47, ratio 0.42. **OLS ships for Maxan** (beats ratio by 0.09 against a 0.01 margin). Coverage of the nominal 90 % interval: ols 85 %, move1 90 %, ratio 89 %; OLS's own interval is a little narrow, the leave-gauge-out quantiles are on target. Every sensitivity of the migration mean (k = 3, 8, leak-free) keeps OLS first. The rule would pick ratio on migration min7 (all three negative) and migration cov_day (ratio 0.63), which decide nothing. Multi-donor OLS (0.30 against 0.56 for ols on the same years) and day-by-day (0.36 against 0.52) both lose. At 08EE018 leave-one-year-out every year comes from Buck (08EE013).
+
+| Error | Resolution |
+|-------|------------|
+| pilot-count guard fired on a correct count | the counts were named by station, not role; named by role |
+| `cor()` warned on a target with constant `cov_day` | MOVE.1 takes r = 0 when the target does not vary; test added |
+| leave-one-year-out RMSE squared the mean | `sqrt(mean(x^2))` |

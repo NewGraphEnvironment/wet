@@ -311,3 +311,274 @@ say(sprintf("  %-8s %-42s %8s %4d %4d %5d %5d %4d %4d %5d %s", pool$station_numb
             trimws(paste(ifelse(pool$ext[o], "ext", ""), ifelse(pool$dep[o], "dep", ""),
                          ifelse(pool$short[o], "SHORT", "")))),
     "", "mig, spw: complete years in the migration and spawning windows; first, last, <81, base (1981-2010) and 11-25 count migration years.", "")
+
+# ---- leak-free relations (fwapg, when reachable) -------------------------------------------------
+# related[[g]]: the box-pool gauges upstream or downstream of g. NULL when no
+# database is reachable; a gauge whose snap is not accepted relates to none.
+related <- NULL
+snap_note <- "not run: no fwapg database reachable through the PG* env vars"
+conn <- tryCatch(DBI::dbConnect(RPostgres::Postgres()), error = function(e) NULL)
+if (!is.null(conn)) {
+  sn <- wet_station_snap(conn, pool[c("station_number", "lon", "lat", "drainage_area_gross_km2")])
+  DBI::dbDisconnect(conn)
+  sn <- sn[match(pool$station_number, sn$station_number), ]
+  ok <- sn$accepted %in% TRUE
+  up <- matrix(FALSE, nrow(sn), nrow(sn), dimnames = list(sn$station_number, sn$station_number))
+  for (i in which(ok)) up[i, ok] <- wet:::wet_fwa_upstream(sn$wscode[i], sn$localcode[i], sn$wscode[ok], sn$localcode[ok])
+  diag(up) <- FALSE
+  rel <- up | t(up)
+  related <- lapply(stats::setNames(rownames(rel), rownames(rel)), function(g) colnames(rel)[rel[g, ]])
+  snap_note <- sprintf("run: %d of %d box-pool gauges snapped and accepted (wet_station_snap()); %d unaccepted keep every donor%s.",
+                       sum(ok), nrow(sn), sum(!ok),
+                       if (any(!ok)) paste0(" (", paste(sn$station_number[!ok], collapse = ", "), ")") else "")
+}
+
+# ---- question 1: the pseudo-short-record test ------------------------------------------------
+methods <- c("ols", "move1", "ratio")
+ext_pool <- pool$station_number[pool$ext]
+stations <- pool[c("station_number", "lon", "lat", "drainage_area_gross_km2")]
+is_days <- function(v) grepl("_cov_day$", v)
+tr_of <- function(v) if (is_days(v)) identity else log
+wsel <- function(v, p) {
+  g <- ws[ws$variable == v & ws$period == p & !is.na(ws$value), ]
+  if (!is_days(v)) g <- g[g$value > 0, ]
+  g
+}
+
+# Every extension-pool gauge's 5-year blocks, each extended from the other
+# extension-pool gauges (less `drop[[g]]`) by each method, kept on held-out years.
+pseudo_run <- function(v, p, k = k_main, drop = NULL) {
+  g_all <- wsel(v, p)
+  tr <- tr_of(v)
+  rows <- list()
+  n <- c(gauges = 0, no_block = 0, blocks = 0, no_donor = 0, few_held = 0,
+         dropped_le0 = sum(ws$variable == v & ws$period == p & ws$station_number %in% ext_pool &
+                           !is.na(ws$value) & ws$value <= 0 & !is_days(v)))
+  for (g in ext_pool) {
+    tg <- g_all[g_all$station_number == g, ]
+    bl <- blocks_of(sort(tg$year))
+    if (!length(bl)) {
+      n[["no_block"]] <- n[["no_block"]] + 1
+      next
+    }
+    n[["gauges"]] <- n[["gauges"]] + 1
+    dx <- g_all[g_all$station_number %in% setdiff(ext_pool, c(g, drop[[g]])), ]
+    for (b in seq_along(bl)) {
+      n[["blocks"]] <- n[["blocks"]] + 1
+      xb <- rbind(tg[tg$year %in% bl[[b]], ], dx)
+      e <- lapply(stats::setNames(methods, methods), function(m) {
+        tryCatch(wet_window_extend(xb, stations, g, m, k = k, level = level), error = function(err) NULL)
+      })
+      if (is.null(e$ols)) {
+        n[["no_donor"]] <- n[["no_donor"]] + 1
+        next
+      }
+      held <- tg[!tg$year %in% bl[[b]], c("year", "value")]
+      m <- held
+      for (mt in methods) {
+        ex <- e[[mt]][e[[mt]]$source == "extended", ]
+        i <- match(m$year, ex$year)
+        m[[mt]] <- ex$value[i]
+        if (mt == "ols") {
+          m$lo_ols <- ex$lower[i]
+          m$hi_ols <- ex$upper[i]
+          m$donor <- ex$donor[i]
+        }
+      }
+      m <- m[stats::complete.cases(m[methods]), ]
+      if (nrow(m) < 3) {
+        n[["few_held"]] <- n[["few_held"]] + 1
+        next
+      }
+      for (mt in methods) m[[paste0("r_", mt)]] <- tr(m$value) - tr(m[[mt]])
+      rows[[length(rows) + 1]] <- data.frame(gauge = g, block = min(bl[[b]]), m,
+                                             chain = paste(attr(e$ols, "donors")[[1]], collapse = " "))
+    }
+  }
+  r <- do.call(rbind, rows)
+  list(r = r, n = n, v = v, p = p, k = k)
+}
+
+# Per gauge: the median over its blocks of each method's NSE on held-out years.
+pseudo_score <- function(run, cols = methods) {
+  r <- run$r
+  tr <- tr_of(run$v)
+  nse <- do.call(rbind, lapply(split(r, list(r$gauge, r$block), drop = TRUE), function(d) {
+    data.frame(gauge = d$gauge[1], block = d$block[1],
+               t(vapply(cols, function(mt) wet:::wet_nse(tr(d$value), tr(d[[mt]])), 0)))
+  }))
+  per_gauge <- do.call(rbind, lapply(split(nse, nse$gauge), function(d) {
+    data.frame(gauge = d$gauge[1], n_blocks = nrow(d),
+               t(vapply(cols, function(mt) stats::median(d[[mt]], na.rm = TRUE), 0)))
+  }))
+  rownames(per_gauge) <- NULL
+  per_gauge
+}
+
+# Coverage of each method's 90 % interval on held-out years: ols its own
+# interval, move1 and ratio the quantiles of the other gauges' residuals.
+q_lo <- (1 - level) / 2
+q_hi <- (1 + level) / 2
+pseudo_coverage <- function(run) {
+  r <- run$r
+  tr <- tr_of(run$v)
+  cov <- c(ols = mean(tr(r$value) >= tr(r$lo_ols) & tr(r$value) <= tr(r$hi_ols)))
+  for (mt in c("move1", "ratio")) {
+    hit <- unlist(lapply(split(r, r$gauge), function(d) {
+      oth <- r[[paste0("r_", mt)]][r$gauge != d$gauge[1]]
+      qq <- stats::quantile(oth, c(q_lo, q_hi), names = FALSE)
+      d[[paste0("r_", mt)]] >= qq[1] & d[[paste0("r_", mt)]] <= qq[2]
+    }))
+    cov[[mt]] <- mean(hit)
+  }
+  cov
+}
+
+decide <- function(per_gauge) {
+  med <- vapply(methods, function(mt) stats::median(per_gauge[[mt]], na.rm = TRUE), 0)
+  best <- methods[which.max(med)]
+  ship <- if (best != "ratio" && med[[best]] - med[["ratio"]] >= margin - 1e-9) best else "ratio"
+  list(med = med, best = best, ship = ship)
+}
+
+main <- pseudo_run("q_mean", "migration")
+if (main$n[["gauges"]] < min_pseudo_gauges) {
+  stop(sprintf("the extension pool has %d gauges with a pseudo-record; the rule needs at least %d",
+               main$n[["gauges"]], min_pseudo_gauges), call. = FALSE)
+}
+main_pg <- pseudo_score(main)
+dec <- decide(main_pg)
+ship <- dec$ship
+qs <- function(v) fmt(stats::quantile(v, c(0.25, 0.5, 0.75), na.rm = TRUE, names = FALSE))
+
+say("## 2. Record extension (question 1)", "",
+    sprintf("Extension pool: %d gauges; %d hold at least one 5-year block (%d without one). Blocks: %d; dropped for no covering donor %d, for fewer than 3 held-out years %d. Window-years <= 0 dropped from the log score: %d.",
+            length(ext_pool), main$n[["gauges"]], main$n[["no_block"]], main$n[["blocks"]],
+            main$n[["no_donor"]], main$n[["few_held"]], main$n[["dropped_le0"]]),
+    sprintf("Scored: %d blocks at %d gauges, %d held-out years in all.", nrow(unique(main$r[c("gauge", "block")])),
+            length(unique(main$r$gauge)), nrow(main$r)),
+    "", "Migration-window mean, log NSE on held-out years, k = 5. Per gauge the median over its blocks; across gauges:", "",
+    sprintf("  %-6s %8s %8s %8s", "method", "q25", "median", "q75"))
+for (mt in methods) say(sprintf("  %-6s %8s %8s %8s", mt, qs(main_pg[[mt]])[1], qs(main_pg[[mt]])[2], qs(main_pg[[mt]])[3]))
+say("", sprintf("The rule: the highest median is %s (%s); ratio's is %s; margin %s. SHIPS FOR MAXAN: %s.",
+                dec$best, fmt(dec$med[[dec$best]], 3), fmt(dec$med[["ratio"]], 3), margin, ship),
+    "", sprintf("Coverage of the nominal 90 %% interval on held-out years: %s.",
+                paste(sprintf("%s %s", methods, fmt(100 * pseudo_coverage(main), 1)), collapse = ", ")),
+    "(ols: its own prediction interval; move1 and ratio: 5th-95th percentiles of the other gauges' held-out residuals.)",
+    "", "Per gauge (median NSE over its blocks):", "",
+    sprintf("  %-8s %6s %7s %7s %7s", "gauge", "blocks", methods[1], methods[2], methods[3]),
+    sprintf("  %-8s %6d %7s %7s %7s", main_pg$gauge, main_pg$n_blocks, fmt(main_pg$ols), fmt(main_pg$move1),
+            fmt(main_pg$ratio)), "")
+
+# ---- question 1: sensitivities, reported and unable to ship ----------------------------------
+sens <- list(
+  list(label = "k = 3", v = "q_mean", p = "migration", k = 3),
+  list(label = "k = 8", v = "q_mean", p = "migration", k = 8),
+  list(label = "spawning mean", v = "q_mean", p = "spawning", k = k_main),
+  list(label = "migration min7", v = "q_min7", p = "migration", k = k_main),
+  list(label = "spawning min7", v = "q_min7", p = "spawning", k = k_main),
+  list(label = "migration cov_day (days)", v = "q_cov_day", p = "migration", k = k_main),
+  list(label = "spawning cov_day (days)", v = "q_cov_day", p = "spawning", k = k_main))
+if (!is.null(related)) {
+  sens[[length(sens) + 1]] <- list(label = "leak-free", v = "q_mean", p = "migration", k = k_main, drop = related)
+}
+runs <- list(main = main)
+for (s in sens) runs[[s$label]] <- pseudo_run(s$v, s$p, s$k, s$drop)
+sens_line <- function(label, run) {
+  pg <- pseudo_score(run)
+  d <- decide(pg)
+  sprintf("  %-26s %6d %6d %7s %7s %7s  %-6s %s", label, nrow(pg), nrow(unique(run$r[c("gauge", "block")])),
+          fmt(d$med[["ols"]]), fmt(d$med[["move1"]]), fmt(d$med[["ratio"]]), d$ship,
+          paste(sprintf("%s %s", methods, fmt(100 * pseudo_coverage(run), 0)), collapse = " "))
+}
+say("Sensitivities (median over gauges of per-gauge median NSE; 'rule' is what the rule would pick there; coverage %):", "",
+    sprintf("  %-26s %6s %6s %7s %7s %7s  %-6s %s", "setting", "gauges", "blocks", methods[1], methods[2], methods[3],
+            "rule", "coverage"),
+    sens_line("migration mean, k = 5", main))
+for (s in sens) say(sens_line(s$label, runs[[s$label]]))
+if (is.null(related)) say(sprintf("  %-26s %s", "leak-free", snap_note))
+say("", sprintf("Leak-free: %s", snap_note), "")
+
+# multi-donor OLS on the min(k, n - 2) nearest covering donors, and (d) day by
+# day on the nearest: each scored over its own held-out years, beside ols on
+# the same years. Blocks are 5 consecutive years from `block`.
+g_mean <- wsel("q_mean", "migration")
+val_of <- function(st, yrs) {
+  d <- g_mean[g_mean$station_number == st, ]
+  d$value[match(yrs, d$year)]
+}
+in_window <- function(date, w) {
+  md <- format(date, "%m-%d")
+  md >= windows$start[windows$window == w] & md <= windows$end[windows$window == w]
+}
+dmig <- daily[in_window(daily$date, "migration"), c("station_number", "date", "q_m3s")]
+dmig$year <- as.integer(format(dmig$date, "%Y"))
+dmig <- split(dmig, dmig$station_number)
+blk <- split(main$r, list(main$r$gauge, main$r$block), drop = TRUE)
+multi <- list()
+dbd <- list()
+for (d in blk) {
+  g <- d$gauge[1]
+  by <- d$block[1] + 0:4
+  chain <- strsplit(d$chain[1], " ")[[1]]
+  # multi-donor
+  use <- chain[seq_len(min(k_main, length(by) - 2, length(chain)))]
+  X <- vapply(use, function(s) log(val_of(s, by)), numeric(length(by)))
+  y <- log(val_of(g, by))
+  fit <- stats::lm(y ~ X)
+  X0 <- vapply(use, function(s) log(val_of(s, d$year)), numeric(nrow(d)))
+  pr <- drop(cbind(1, matrix(X0, nrow(d))) %*% stats::coef(fit))
+  ok <- !is.na(pr)
+  if (sum(ok) >= 3) {
+    multi[[length(multi) + 1]] <- data.frame(gauge = g, block = d$block[1],
+      nse = wet:::wet_nse(log(d$value[ok]), pr[ok]), nse_ols = wet:::wet_nse(log(d$value[ok]), log(d$ols[ok])))
+  }
+  # day by day on the nearest covering donor
+  dn <- chain[1]
+  tq <- dmig[[g]]
+  dq <- dmig[[dn]]
+  pair <- merge(tq[tq$year %in% by, c("date", "q_m3s")], dq[dq$year %in% by, c("date", "q_m3s")], by = "date")
+  pair <- pair[pair$q_m3s.x > 0 & pair$q_m3s.y > 0, ]
+  if (nrow(pair) < 10) next
+  cf <- stats::coef(stats::lm(log(q_m3s.x) ~ log(q_m3s.y), pair))
+  dd <- dq[dq$year %in% d$year & dq$q_m3s > 0, ]
+  if (!nrow(dd)) next
+  ext <- data.frame(station_number = g, date = dd$date, q_m3s = exp(cf[[1]] + cf[[2]] * log(dd$q_m3s)))
+  wsx <- wet_window_stats(ext, windows[windows$window == "migration", ], stats = "mean")
+  i <- match(d$year, wsx$year)
+  ok <- !is.na(i)
+  if (sum(ok) >= 3) {
+    dbd[[length(dbd) + 1]] <- data.frame(gauge = g, block = d$block[1],
+      nse = wet:::wet_nse(log(d$value[ok]), log(wsx$value[i[ok]])),
+      nse_ols = wet:::wet_nse(log(d$value[ok]), log(d$ols[ok])))
+  }
+}
+alt_line <- function(label, r) {
+  pg <- do.call(rbind, lapply(split(r, r$gauge), function(z) {
+    data.frame(nse = stats::median(z$nse), nse_ols = stats::median(z$nse_ols))
+  }))
+  sprintf("  %-26s %6d %6d  median NSE %s; ols on the same years %s", label, nrow(pg), nrow(r),
+          fmt(stats::median(pg$nse)), fmt(stats::median(pg$nse_ols)))
+}
+say("Other candidates, each over its own held-out years (migration mean, k = 5):", "",
+    alt_line(sprintf("multi-donor ols (%d donors)", min(k_main, 3)), do.call(rbind, multi)),
+    alt_line("(d) day by day", do.call(rbind, dbd)), "")
+
+# leave-one-year-out at 08EE018, from the extension pool
+mx <- g_mean[g_mean$station_number == pilot[["maxan"]], ]
+loyo <- do.call(rbind, lapply(mx$year, function(y) {
+  xb <- rbind(mx[mx$year != y, ], g_mean[g_mean$station_number %in% ext_pool, ])
+  p <- vapply(methods, function(mt) {
+    e <- wet_window_extend(xb, stations, pilot[["maxan"]], mt, k = k_main, level = level)
+    e$value[e$year == y]
+  }, 0)
+  e <- wet_window_extend(xb, stations, pilot[["maxan"]], "ols", k = k_main, level = level)
+  data.frame(year = y, obs = mx$value[mx$year == y], t(p), donor = e$donor[e$year == y])
+}))
+say(sprintf("Leave-one-year-out at %s (migration mean, m3/s; fit on the other four years):", pilot[["maxan"]]), "",
+    sprintf("  %4s %8s %8s %8s %8s  %s", "year", "obs", methods[1], methods[2], methods[3], "donor"),
+    sprintf("  %4d %8s %8s %8s %8s  %s", loyo$year, fmt(loyo$obs, 3), fmt(loyo$ols, 3), fmt(loyo$move1, 3),
+            fmt(loyo$ratio, 3), loyo$donor),
+    sprintf("  %-4s %8s %8s %8s %8s", "RMSE", "log", fmt(sqrt(mean(log(loyo$ols / loyo$obs)^2)), 3),
+            fmt(sqrt(mean(log(loyo$move1 / loyo$obs)^2)), 3), fmt(sqrt(mean(log(loyo$ratio / loyo$obs)^2)), 3)),
+    "")

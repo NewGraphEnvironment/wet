@@ -154,3 +154,10 @@ test_that("a station absent from the station table is refused", {
   x <- ext_x(d1, d1, 1961:1963, c(1, 2, 3))
   expect_error(wet_window_extend(x, ext_stations()[1:2, ], "T"), "no row for: T")
 })
+
+test_that("move1 on a target that does not vary returns its mean, silently", {
+  d1 <- c(30, 40, 50, 35, 45, 38, 42)
+  x <- ext_x(d1, d1 + 1, 1961:1963, c(40, 40, 40), variable = "q_cov_day")
+  expect_no_warning(e <- wet_window_extend(x, ext_stations(), "T", method = "move1"))
+  expect_equal(unique(e$value), 40)
+})
