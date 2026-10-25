@@ -187,7 +187,15 @@ Years supplied per donor, migration mean:
   08EE004 31 years: 1931-1960, 1972
   08EE008 12 years: 1961-1971, 2016
   08EE013 46 years: 1973-1974, 1980-2015, 2017-2024
-Limit: each extended year rests on one donor. Of the 50 years before 1981, 31 from 08EE004, 11 from 08EE008, 3 from 08EE013, 5 from observed. Before 1961, the chain donors with any value are 08EE004 and 08ED001; 08EE004 supplies those years, being nearer in the chain.
+Limit: each extended year rests on one donor. Per series, the years before 1981 by source, and the earliest years:
+  migration mean: 31 08EE004, 11 08EE008, 3 08EE013, 5 observed; before 1961, 08EE004 supplies every year (chain donors with a value then: 08EE004, 08ED001).
+  spawning mean: 30 08EE004, 12 08EE008, 3 08EE013, 5 observed; before 1960, 08EE004 supplies every year (chain donors with a value then: 08EE004, 08ED001).
+  migration min7: 31 08EE004, 11 08EE008, 3 08EE013, 5 observed; before 1961, 08EE004 supplies every year (chain donors with a value then: 08EE004, 08ED001).
+  spawning min7: 30 08EE004, 12 08EE008, 3 08EE013, 5 observed; before 1960, 08EE004 supplies every year (chain donors with a value then: 08EE004, 08ED001).
+  migration cov_day: 31 08EE004, 11 08EE008, 3 08EE013, 5 observed; before 1961, 08EE004 supplies every year (chain donors with a value then: 08EE004, 08ED001).
+  spawning cov_day: 30 08EE004, 12 08EE008, 3 08EE013, 5 observed; before 1960, 08EE004 supplies every year (chain donors with a value then: 08EE004, 08ED001).
+  migration max: 31 08EE004, 11 08EE008, 3 08EE013, 5 observed; before 1961, 08EE004 supplies every year (chain donors with a value then: 08EE004, 08ED001).
+  spawning max: 30 08EE004, 12 08EE008, 3 08EE013, 5 observed; before 1960, 08EE004 supplies every year (chain donors with a value then: 08EE004, 08ED001).
 
 Before/after: mean departure 2011-2025 minus mean departure before 1981 (log, or days for cov_day);
 90 % interval from 2000 draws resampling years in each period and adding a held-out residual to each extended year; set.seed(120).
@@ -202,19 +210,19 @@ Before/after: mean departure 2011-2025 minus mean departure before 1981 (log, or
   max       migration   50   14    -0.323     -27.6                  -      -0.037   29   14
   max       spawning    50   14    -0.413     -33.9                  -      -0.610   30   14
 
-(% normal: 100 (exp(change) - 1). carried: the same change from the donor-carried departures, which need no Maxan baseline. max is reported, never scored, so it has no interval.)
+(% normal: 100 (exp(change) - 1). carried: the same change from the donor-carried departures, which need no Maxan baseline. max is reported, never scored, so its change has no interval; its per-year values below carry the extension's.)
 
 The two routes as centred departures: NSE of the carried against the extension's over Maxan's observed years; over the record, correlation and mean absolute difference:
 
-  statistic window       obs NSE  years      r  mean |d|
-  mean      migration       0.92     73   0.93     0.109
-  mean      spawning        0.59     74   0.78     0.400
-  min7      migration       0.55     73   0.78     0.476
-  min7      spawning        0.56     74   0.79     0.468
-  cov_day   migration       0.56     72   0.70     3.229
-  cov_day   spawning        0.92     74   0.77     2.041
-  max       migration       0.63     73   0.79     0.336
-  max       spawning        0.38     74   0.72     0.381
+  statistic window     obs yrs  obs NSE   rec yrs      r  mean |d|
+  mean      migration        5     0.92        73   0.93     0.109
+  mean      spawning         5     0.59        74   0.78     0.400
+  min7      migration        5     0.55        73   0.78     0.476
+  min7      spawning         5     0.56        74   0.79     0.468
+  cov_day   migration        5     0.56        72   0.70     3.229
+  cov_day   spawning         5     0.92        74   0.77     2.041
+  max       migration        5     0.63        73   0.79     0.336
+  max       spawning         5     0.38        74   0.72     0.381
 
 Trend in cd's anomaly of the extended series (cd_trend(): Theil-Sen slope per year, Mann-Kendall p; % of normal capped at 200, or days):
 

@@ -689,7 +689,8 @@ for (cb in combos) {
   v <- cb[1]
   p <- cb[2]
   tr <- tr_of(v)
-  # max is reported, never scored, so it has no held-out residuals and no interval
+  # max is reported, never scored, so it has no held-out residuals: its before/after change gets no
+  # interval (its per-year values still carry OLS's prediction interval when OLS ships)
   res <- if (v == "q_max") NULL else run_for(v, p)$r[[paste0("r_", ship)]]
   g <- wsel(v, p)
   e <- wet_window_extend(g[g$station_number %in% c(mx_id, ext_pool), ], stations, mx_id, ship, k = k_main,
@@ -723,7 +724,7 @@ for (cb in combos) {
                             n_post = length(i_post), carried = mean(a_post) - mean(a_pre),
                             n_pre_c = length(a_pre), n_post_c = length(a_post),
                             obs_nse = if (length(ov) >= 3) wet:::wet_nse(oe - mean(oe), oa - mean(oa)) else NA_real_,
-                            rec_r = stats::cor(re, ra), rec_n = length(rec),
+                            rec_r = stats::cor(re, ra), rec_n = length(rec), obs_n = length(ov),
                             rec_mad = mean(abs((re - mean(re)) - (ra - mean(ra)))))
 }
 
@@ -738,18 +739,20 @@ say("## 4. The Maxan answer", "",
     paste0("  ", vapply(names(table(e1$donor)), function(d) {
       sprintf("%s %d years: %s", d, sum(e1$donor %in% d), year_runs(e1$year[e1$donor %in% d]))
     }, "")),
-    {
-      tp <- table(ifelse(is.na(e1$donor[pre(e1$year)]), "observed", e1$donor[pre(e1$year)]))
-      first_use <- sort(vapply(split(e1$year[!is.na(e1$donor)], e1$donor[!is.na(e1$donor)]), min, 0))
+    "Limit: each extended year rests on one donor. Per series, the years before 1981 by source, and the earliest years:",
+    vapply(mx, function(m) {
+      e <- m$e
+      tp <- table(ifelse(is.na(e$donor[pre(e$year)]), "observed", e$donor[pre(e$year)]))
+      first_use <- sort(vapply(split(e$year[!is.na(e$donor)], e$donor[!is.na(e$donor)]), min, 0))
       cut <- first_use[[2]]
-      # the chain donors with any value before the cut, whichever of them supplied it
-      g1 <- wsel("q_mean", "migration")
-      chain1 <- attr(e1, "donors")[[1]]
-      reach <- chain1[vapply(chain1, function(d) any(g1$year[g1$station_number == d] < cut), TRUE)]
-      sprintf("Limit: each extended year rests on one donor. Of the %d years before 1981, %s. Before %d, the chain donors with any value are %s; %s supplies those years, being nearer in the chain.",
-              sum(pre(e1$year)), paste(sprintf("%d from %s", as.integer(tp), names(tp)), collapse = ", "),
-              as.integer(cut), paste(reach, collapse = " and "), names(first_use)[1])
-    },
+      # the chain donors with any value of this series before the cut, whichever of them supplied it
+      g <- wsel(m$v, m$p)
+      ch <- attr(e, "donors")[[1]]
+      reach <- ch[vapply(ch, function(d) any(g$year[g$station_number == d] < cut), TRUE)]
+      sprintf("  %s %s: %s; before %d, %s supplies every year (chain donors with a value then: %s).",
+              m$p, sub("^q_", "", m$v), paste(sprintf("%d %s", as.integer(tp), names(tp)), collapse = ", "),
+              as.integer(cut), names(first_use)[1], paste(reach, collapse = ", "))
+    }, ""),
     "", "Before/after: mean departure 2011-2025 minus mean departure before 1981 (log, or days for cov_day);",
     sprintf("90 %% interval from %d draws resampling years in each period and adding a held-out residual to each extended year; set.seed(120).", n_boot),
     "", sprintf("  %-9s %-9s %4s %4s %9s %9s %18s   %9s %4s %4s", "statistic", "window", "pre", "post", "change",
@@ -763,12 +766,12 @@ for (m in mx) {
               else sprintf("%s..%s %%", pc(m$ci[1]), pc(m$ci[2])),
               fmt(m$carried, 3), m$n_pre_c, m$n_post_c))
 }
-say("", "(% normal: 100 (exp(change) - 1). carried: the same change from the donor-carried departures, which need no Maxan baseline. max is reported, never scored, so it has no interval.)",
+say("", "(% normal: 100 (exp(change) - 1). carried: the same change from the donor-carried departures, which need no Maxan baseline. max is reported, never scored, so its change has no interval; its per-year values below carry the extension's.)",
     "", "The two routes as centred departures: NSE of the carried against the extension's over Maxan's observed years; over the record, correlation and mean absolute difference:", "",
-    sprintf("  %-9s %-9s %10s %6s %6s %9s", "statistic", "window", "obs NSE", "years", "r", "mean |d|"))
+    sprintf("  %-9s %-9s %8s %8s  %8s %6s %9s", "statistic", "window", "obs yrs", "obs NSE", "rec yrs", "r", "mean |d|"))
 for (m in mx) {
-  say(sprintf("  %-9s %-9s %10s %6d %6s %9s", sub("^q_", "", m$v), m$p, fmt(m$obs_nse), m$rec_n, fmt(m$rec_r),
-              fmt(m$rec_mad, 3)))
+  say(sprintf("  %-9s %-9s %8d %8s  %8d %6s %9s", sub("^q_", "", m$v), m$p, m$obs_n, fmt(m$obs_nse), m$rec_n,
+              fmt(m$rec_r), fmt(m$rec_mad, 3)))
 }
 
 # cd's departure and trend on the extended series
