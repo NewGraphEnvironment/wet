@@ -46,11 +46,11 @@ build by commit and part count only, so a rebuild at the old commit from changed
 
 ## Phase 2: PUBLISH rewrites the line
 
-- [ ] `publish_report_live(f_report, cat_local, cat_pub, verified)` in `discharge_publish_lib.R`: refuses
+- [x] `publish_report_live(f_report, cat_local, cat_pub, verified)` in `discharge_publish_lib.R`: refuses
       unless every `verified$ok` and `identical(cat_pub$md5, cat_local$md5)`; finds the one line after the
       single `## Against the published tree` heading (refuses on 0 or 2+); replaces it with
       `publish_live_line(cat_local, cat_pub)`; writes the file; changes no other line (asserted).
-- [ ] Call it at the end of PUBLISH after the verify, and stamp that the report is left modified for a commit.
+- [x] Call it at the end of PUBLISH after the verify, and stamp that the report is left modified for a commit.
       Header comment of `discharge_publish.R` updated: no BUILD follows an upload.
 
 ## Phase 3: the guards fire (tests)

@@ -21,9 +21,11 @@
 # the manifest, then deletes keys under the prefix the manifest
 # no longer names. It then reads the public manifest anonymously and checks
 # every part's size and ETag (wet_catalog_verify()), which also proves the
-# bucket policy opens the prefix. The bucket has no versioning: an overwrite
-# is final, and a reader during the upload can see a part that no longer
-# matches the old manifest.
+# bucket policy opens the prefix. Once that passes it rewrites the report's
+# live-build line (publish_report_live(), #117) and leaves the report for a
+# commit, so the vignette data scripts can run without a BUILD after the
+# upload. The bucket has no versioning: an overwrite is final, and a reader
+# during the upload can see a part that no longer matches the old manifest.
 #
 # Run where the full province run is: the segment table is built there, and
 # BUILD refuses a reduced bundle. Needs arrow, duckdb, crate (with crate#31's
@@ -134,6 +136,8 @@ if (publish) {
   if (!all(v$ok)) stop("published parts do not verify: ", paste(v$key[!v$ok], v$reason[!v$ok], collapse = "; "))
   stamp("published ", nrow(cat_pub), " parts (", sum(!same), " uploaded), ", length(stale),
         " stale keys deleted; all verify at ", publish_url)
+  stamp(publish_report_live(f_report, cat_local, cat_pub, v))
+  message("commit ", f_report, ": its live-build line now names this upload, so no BUILD needs to follow it")
   quit(save = "no")
 }
 

@@ -25,6 +25,36 @@ publish_live_line <- function(cat_local, cat_pub) {
           wet:::wet_catalog_digest(cat_pub))
 }
 
+# After an upload, the build's report gets the live-build line the upload
+# proved, so no second BUILD is needed to write it (#117). Refuses unless
+# `verified` (wet_catalog_verify() of `cat_pub`) passed for every published
+# part, the published parts are the local ones byte for byte, and the report
+# is this build's and failed no check. Only the line under "## Against the
+# published tree" changes; the file is left for a commit, as after a BUILD
+publish_report_live <- function(f_report, cat_local, cat_pub, verified) {
+  if (!nrow(verified) || !all(verified$ok) || !setequal(verified$key, cat_pub$key)) {
+    stop("the published parts did not all verify; ", f_report, " is left as it was")
+  }
+  if (!identical(cat_pub$key, cat_local$key) || !identical(cat_pub$md5, cat_local$md5)) {
+    stop("the published parts are not the local ones; ", f_report, " is left as it was")
+  }
+  lines <- readLines(f_report)
+  built_at <- attr(cat_local, "provenance")$wet_commit
+  if (!any(startsWith(lines, paste0("wet commit ", built_at, " "))) || any(grepl("FAIL", lines))) {
+    stop(f_report, " is not a passing report of build ", built_at)
+  }
+  h <- which(lines == "## Against the published tree")
+  if (length(h) != 1L || h == length(lines) ||
+        !grepl("^(parts identical to the published build |could not read )", lines[h + 1L])) {
+    stop(f_report, " has no single live-build line under its \"## Against the published tree\"")
+  }
+  out <- lines
+  out[h + 1L] <- publish_live_line(cat_local, cat_pub)
+  stopifnot(identical(out[-(h + 1L)], lines[-(h + 1L)]))
+  writeLines(out, f_report)
+  invisible(out[h + 1L])
+}
+
 # md5 of bytes held in memory, as tools::md5sum() gives a file's
 digest_raw_md5 <- function(bytes) {
   f <- tempfile()
