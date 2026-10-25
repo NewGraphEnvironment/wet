@@ -223,3 +223,9 @@ Every sentence in the research section that carries a number, its noun against t
 | 1961 / 1960, 31 / 30 | per window | Limit rows | yes |
 
 No numbered sentence speaks for a set other than the one that computes it.
+
+## Validation (2026-10-25)
+
+- `devtools::check()`: 0 errors, 0 warnings, 1 note (Rd line width in `wet_share_fit.Rd`, which this branch does not touch). Its test run passed; the full suite earlier gave 359 tests, 0 failed, 7 skipped.
+- `lintr::lint_package()` on the new files: two "no visible global function" lints in `wet_departure_carry.R`, for `wet_station_space()` and `wet_donor_mean()`. Both are internals defined in the source tree; the installed `wet` is 0.0.0.9000 and lacks them, which is what lintr resolved against. Not a code change.
+- `/code-check branch`: five rounds, ended by the noun-against-object enumeration above.

@@ -68,7 +68,7 @@ What the script refuses: a target or donor with fewer than 3 complete window yea
 - [x] Script: Maxan's extended series from the nearest covering donor's first year (Houston or Quick, 1931) to 2025 for each statistic and window with intervals; the carried route as departure only, and the two routes compared as departures at 1975–1979 and over the record; pre-1981 against 2011–2025 mean departure with a difference and an interval that resamples years and, through the extension interval, each year's residual (the limit stated: pre-1981 rests on two donors); `cd_trend()` from the record start and from 1981. Report section 4, `data/checks/departure_pilot_20260717.txt`, tracked, byte-identical on rerun.
 - [x] `research/station_flow_departure.md`: a dated section "Departures at an ungauged site: the Maxan pilot (#120)" with the rule, the pool, the three medians, what shipped and the Maxan numbers; the README row updated.
 - [x] `_pkgdown.yml` reference index gains both functions; `pkgdown::check_pkgdown()` clean.
-- [ ] Issue #120 body: an `## Outcome` section with the numbers, as #102's has.
+- [x] Issue #120 body: an `## Outcome` section with the numbers, as #102's has.
 
 ## Owed at the end (reported, done after merge)
 
@@ -76,10 +76,10 @@ What the script refuses: a target or donor with fewer than 3 complete window yea
 
 ## Validation
 
-- [ ] Tests pass (`devtools::test()`, grep for FAIL/ERROR in the same call)
-- [ ] `lintr::lint_package()` clean on the new files
-- [ ] `/code-check branch` clean before the PR
-- [ ] PWF checkboxes match landed work
+- [x] Tests pass (`devtools::test()`, grep for FAIL/ERROR in the same call)
+- [x] `lintr::lint_package()` clean on the new files
+- [x] `/code-check branch` clean before the PR
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion, with Measurement and Evidence sections
 
 How each change is proved:

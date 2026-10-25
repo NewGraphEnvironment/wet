@@ -27,3 +27,5 @@ cd /Users/airvine/Projects/repo/wet && git fetch -q origin && git checkout 120-m
 - Phase 5: Maxan extended to 1931, before/after, research section, report tracked at d0ea448; reruns byte-identical.
 - Full suite 359 tests, 0 failed, 7 skipped.
 - `/code-check branch` round 1 spawned 16:37Z.
+- `/code-check branch`: five rounds (findings 3, 1, 4, 4, 5; rounds 2, 4 and 5 found defects inside earlier fixes); ended by enumeration. Commits 781e892, 2bc9022, f4168c5, 6c5ab5b, acaf757. Every fix regenerated the report twice, byte-identical, with no value moving.
+- `devtools::check()` 0/0/1 (pre-existing note). Issue #120's body gained its Outcome.
