@@ -43,7 +43,7 @@ What the script refuses: a target or donor with fewer than 3 complete window yea
 ## Phase 1: Register the rule
 
 - [x] Write `scripts/departure_pilot.R` as header only: usage, the gate decisions, the two pools and k, the per-year donor availability rule, both candidate sets with their sensitivities, both rules as written above (held-out years, centred overlap, 90 % intervals from other gauges, cov_day in days, ≤ 0 dropped), what it refuses, outputs. No candidate code in the file. Review items 1–6 and 9 are all settled in this header, not after (item 13).
-- [ ] Commit it alone (`Register the departure pilot's rule before any candidate (#120)`), and record its SHA in `findings.md`.
+- [x] Commit it alone (`Register the departure pilot's rule before any candidate (#120)`), and record its SHA in `findings.md`.
 
 ## Phase 2: Window series and the pool
 

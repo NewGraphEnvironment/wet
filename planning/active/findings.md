@@ -107,3 +107,13 @@ Box lon −128.8…−125.0, lat 53.6…55.8. 94 BC gauges; 58 with ≥3 complet
 
 | Error | Resolution |
 |-------|------------|
+
+## Rule registered (Phase 1, 2026-10-25)
+
+`scripts/departure_pilot.R` header committed alone at 6894c27 and pushed before any candidate code; `grep -c "<-"` on it is 0. Settled in the header beyond the plan's wording:
+
+- **Donor chain for extension.** The plan expected Maxan's series from 1931 (Houston or Quick), but review item 1 places Buck (from 1973) nearest. The header resolves it: the extension donors are the k nearest extension-pool gauges covering every observed year, and each year takes the nearest of them with a value. So k bounds the chain, and the years before 1961 rest on one or two donors.
+- **Question 1's donors** are extension-pool gauges (a donor must be long to extend); question 2's are departure-pool gauges (a donor needs its own baseline).
+- **Predictor SD** is taken over the box pool (natural, ≥3 complete migration years), one scaling for both questions.
+- **Short-record set** is defined as box-pool gauges with 3–10 complete migration years. The findings table's 13 includes one regulated gauge (08EC002), so the natural count should be 12; Phase 2 measures it.
+- **Scope calls kept as planned:** day-by-day extension is a reported-only sensitivity; the pseudo-record refusal floor is 15.
