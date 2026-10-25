@@ -36,9 +36,11 @@ Measurements are in `findings.md` (Phase 1, Phase 3, sweep, plan review and roun
       identical to the live build, not uploaded
 - [x] The upload: 2026-10-24, 506 of 512 parts sent (about 40 min), all verify; live build b4bbc50.
       BUILD rerun after it (34f38a9): 512 of 512 identical to live. Logs `data/logs/76/20261024T2033*`, `T2114*`
-- [ ] Then the vignette data (`data-raw/segment_vignette_data.R`, `monthly_vignette_data.R`,
-      which record `province_run` and the `upstream/400.rds` md5) from a reduced bundle of
-      `92b893c4da` copied to m1
+- [x] Then the vignette data (`data-raw/segment_vignette_data.R`, `segment_vignette_map.R`,
+      `monthly_vignette_data.R`) on m1, from a reduced bundle of `92b893c4da` cut to the same 335
+      watersheds as the old one (m1's old bundle set aside at `data/wb/_pre76_m1/`). Every value is
+      equal to the old bundles' within 1e-9; only provenance differs. The rendered articles' text
+      differs only in the build commit and the date read. Logs `data/logs/76/20261025T*` on m1
 - [x] After that run, confirm the claim the docs now make as "should": a second run (or one
       basin accumulated again from the run's samples) `identical()` to it. Done 2026-10-24: a
       second run from scratch, 270 of 270 rds `identical()`
