@@ -1,3 +1,7 @@
+# wet 0.4.21
+
+* After an upload, `scripts/discharge_publish.R` (`WET_PUBLISH=1`) rewrites the publish report's live-build line itself once its anonymous verify passes, so no second BUILD follows a republish (#117). The report now records the md5 of its own tree's parts and of the live parts (`wet:::wet_catalog_digest()`). PUBLISH uploads a tree only under a committed report naming that tree's md5, and the vignette data scripts refuse a report that names the live commit and part count but describes other parts (#94).
+
 # wet 0.4.20
 
 * The published discharge is rebuilt on the first province run under #76's order-free sums (`92b893c4da`), with the fit refit on it: every decision is unchanged and every value moved by rounding only (at most 7.2e-11 relative). The articles' data bundles are rebuilt from that build; no number in them changes.
