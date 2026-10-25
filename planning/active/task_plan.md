@@ -70,7 +70,7 @@ build by commit and part count only, so a rebuild at the old commit from changed
 
 ## Phase 4: docs
 
-- [ ] `CLAUDE.md` publishing and segment-vignette paragraphs, `research/discharge_publish.md` (Status, line 84:
+- [x] `CLAUDE.md` publishing and segment-vignette paragraphs, `research/discharge_publish.md` (Status, line 84:
       the report after an upload is PUBLISH's line, the digest), so neither says a BUILD follows an upload.
 
 ## Owed at the end (reported, done after merge)
