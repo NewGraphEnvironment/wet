@@ -141,3 +141,13 @@ Migration-window mean, k = 5, 21 extension-pool gauges, 218 scored blocks: media
 | pilot-count guard fired on a correct count | the counts were named by station, not role; named by role |
 | `cor()` warned on a target with constant `cov_day` | MOVE.1 takes r = 0 when the target does not vary; test added |
 | leave-one-year-out RMSE squared the mean | `sqrt(mean(x^2))` |
+
+## `wet_departure_carry()` guards proved (Phase 4)
+
+| planted defect | test result |
+|---|---|
+| weights not renormalised per year | 1 failure |
+| baseline floor removed | 1 failure |
+| a guard dropping years whose present weights sum to 0 | stayed green: unreachable, since the years come only from donors with positive weight; removed |
+
+Weights come from `wet_donor_mean()` called on the identity matrix, so the weighting is #70's and #102's with its contract unchanged.

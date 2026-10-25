@@ -59,8 +59,8 @@ What the script refuses: a target or donor with fewer than 3 complete window yea
 
 ## Phase 4: Donor-carried departures, `wet_departure_carry()`
 
-- [ ] `R/wet_departure_carry.R`: per target, the log departures of the k nearest donors from their own 1981–2010 baselines, `wet_donor_mean()`'s weights renormalised per year over the donors present; returns per-year `anomaly` (log, and % of normal for cd), the donors and weights used that year, and `value` only where the target has its own baseline (≥10 baseline years). Exported, roxygen, `@examples`.
-- [ ] `tests/testthat/test-wet_departure_carry.R`: a year where only some donors exist uses the present ones with renormalised weights; a year no donor has is NA; a target without a baseline gets `anomaly` and no `value`; refuses a donor with fewer than 10 baseline years; the % of normal equals `exp(anomaly) − 1` times 100.
+- [x] `R/wet_departure_carry.R`: per target, the log departures of the k nearest donors from their own 1981–2010 baselines, `wet_donor_mean()`'s weights renormalised per year over the donors present; returns per-year `anomaly` (log, and % of normal for cd), the donors and weights used that year, and `value` only where the target has its own baseline (≥10 baseline years). Exported, roxygen, `@examples`.
+- [x] `tests/testthat/test-wet_departure_carry.R`: a year where only some donors exist uses the present ones with renormalised weights; a year no donor has is NA; a target without a baseline gets `anomaly` and no `value`; refuses a donor with fewer than 10 baseline years; the % of normal equals `exp(anomaly) − 1` times 100.
 - [ ] Script: leave-one-gauge-out at the departure pool, centred on the overlap; the short-record set scored from the full pool; the leak-free sensitivity when a database is reachable; medians and quartiles by window and statistic. Report section 3.
 
 ## Phase 5: The Maxan answer, report and research

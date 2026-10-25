@@ -11,7 +11,7 @@ reference:
   - wet_segment_monthly
   - wet_segment_daily
 - title: Station flow
-  desc: Daily and monthly flow at hydrometric stations, the gauges the water balance is fitted at, and a short record extended from its neighbours.
+  desc: Daily and monthly flow at hydrometric stations, the gauges the water balance is fitted at, a short record extended from its neighbours, and departures carried to an ungauged site.
   contents:
   - wet_station_daily
   - wet_station_monthly
@@ -19,6 +19,7 @@ reference:
   - wet_station_select
   - wet_station_snap
   - wet_window_extend
+  - wet_departure_carry
 - title: Water temperature
   desc: Daily water temperature at stations, gap filling and growing season degree days.
   contents:
