@@ -662,7 +662,8 @@ say("", "Per gauge, migration mean, k = 5 (years scored, NSE):", "",
 # ---- the Maxan answer ------------------------------------------------------------------------
 mx_id <- pilot[["maxan"]]
 combos <- list(c("q_mean", "migration"), c("q_mean", "spawning"), c("q_min7", "migration"),
-               c("q_min7", "spawning"), c("q_cov_day", "migration"), c("q_cov_day", "spawning"))
+               c("q_min7", "spawning"), c("q_cov_day", "migration"), c("q_cov_day", "spawning"),
+               c("q_max", "migration"), c("q_max", "spawning"))
 # the pseudo-record run behind each statistic and window (k = 5)
 run_for <- function(v, p) {
   for (r in runs) if (r$v == v && r$p == p && r$k == k_main && !identical(r, runs[["leak-free"]])) return(r)
@@ -677,8 +678,8 @@ for (cb in combos) {
   v <- cb[1]
   p <- cb[2]
   tr <- tr_of(v)
-  run <- run_for(v, p)
-  res <- run$r[[paste0("r_", ship)]]
+  # max is reported, never scored, so it has no held-out residuals and no interval
+  res <- if (v == "q_max") NULL else run_for(v, p)$r[[paste0("r_", ship)]]
   g <- wsel(v, p)
   e <- wet_window_extend(g[g$station_number %in% c(mx_id, ext_pool), ], stations, mx_id, ship, k = k_main,
                          level = level, resid = if (ship == "ols") NULL else res)
@@ -691,13 +692,13 @@ for (cb in combos) {
   i_pre <- which(pre(e$year))
   i_post <- which(post(e$year))
   diff <- mean(lv[i_post]) - mean(lv[i_pre])
-  boot <- vapply(seq_len(n_boot), function(b) {
+  boot <- if (is.null(res)) NA_real_ else vapply(seq_len(n_boot), function(b) {
     ip <- i_pre[sample.int(length(i_pre), replace = TRUE)]
     iq <- i_post[sample.int(length(i_post), replace = TRUE)]
     z <- lv + ifelse(ext_yr, sample(res, length(lv), replace = TRUE), 0)
     mean(z[iq]) - mean(z[ip])
   }, 0)
-  ci <- stats::quantile(boot, c(q_lo, q_hi), names = FALSE)
+  ci <- stats::quantile(boot, c(q_lo, q_hi), names = FALSE, na.rm = TRUE)
   a_pre <- a$anomaly[pre(a$year)]
   a_post <- a$anomaly[post(a$year)]
   # the two routes as centred departures, over Maxan's observed years and over the record
@@ -743,10 +744,11 @@ for (m in mx) {
   pc <- function(z) if (days) "-" else fmt(100 * (exp(z) - 1), 1)
   say(sprintf("  %-9s %-9s %4d %4d %9s %9s %18s   %9s %4d %4d", sub("^q_", "", m$v), m$p, m$n_pre, m$n_post,
               fmt(m$diff, 3), pc(m$diff),
-              if (days) sprintf("%s..%s", fmt(m$ci[1], 1), fmt(m$ci[2], 1)) else sprintf("%s..%s %%", pc(m$ci[1]), pc(m$ci[2])),
+              if (is.na(m$ci[1])) "-" else if (days) sprintf("%s..%s", fmt(m$ci[1], 1), fmt(m$ci[2], 1))
+              else sprintf("%s..%s %%", pc(m$ci[1]), pc(m$ci[2])),
               fmt(m$carried, 3), m$n_pre_c, m$n_post_c))
 }
-say("", "(% normal: 100 (exp(change) - 1). carried: the same change from the donor-carried departures, which need no Maxan baseline.)",
+say("", "(% normal: 100 (exp(change) - 1). carried: the same change from the donor-carried departures, which need no Maxan baseline. max is reported, never scored, so it has no interval.)",
     "", "The two routes as centred departures: NSE of the carried against the extension's over Maxan's observed years; over the record, correlation and mean absolute difference:", "",
     sprintf("  %-9s %-9s %10s %6s %6s %9s", "statistic", "window", "obs NSE", "years", "r", "mean |d|"))
 for (m in mx) {

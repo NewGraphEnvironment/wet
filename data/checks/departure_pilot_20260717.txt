@@ -196,8 +196,10 @@ Before/after: mean departure 2011-2025 minus mean departure before 1981 (log, or
   min7      spawning    50   14    -1.042     -64.7     -77.7..-43.1 %      -0.538   30   14
   cov_day   migration   50   14    -1.235         -          -5.0..2.6      -3.035   28   14
   cov_day   spawning    50   14    -2.422         -          -5.0..0.2       0.220   30   14
+  max       migration   50   14    -0.323     -27.6                  -      -0.037   29   14
+  max       spawning    50   14    -0.413     -33.9                  -      -0.610   30   14
 
-(% normal: 100 (exp(change) - 1). carried: the same change from the donor-carried departures, which need no Maxan baseline.)
+(% normal: 100 (exp(change) - 1). carried: the same change from the donor-carried departures, which need no Maxan baseline. max is reported, never scored, so it has no interval.)
 
 The two routes as centred departures: NSE of the carried against the extension's over Maxan's observed years; over the record, correlation and mean absolute difference:
 
@@ -208,6 +210,8 @@ The two routes as centred departures: NSE of the carried against the extension's
   min7      spawning        0.56     74   0.79     0.468
   cov_day   migration       0.56     72   0.70     3.229
   cov_day   spawning        0.92     74   0.77     2.041
+  max       migration       0.63     73   0.79     0.336
+  max       spawning        0.38     74   0.72     0.381
 
 Trend in cd's anomaly of the extended series (cd_trend(): Theil-Sen slope per year, Mann-Kendall p; % of normal capped at 200, or days):
 
@@ -224,6 +228,10 @@ Trend in cd's anomaly of the extended series (cd_trend(): Theil-Sen slope per ye
   cov_day   migration  1981    -0.054   0.297   44
   cov_day   spawning   1931    -0.032   0.000   94
   cov_day   spawning   1981     0.035   0.361   44
+  max       migration  1931    -0.471   0.040   94
+  max       migration  1981     0.411   0.473   44
+  max       spawning   1931    -0.259   0.094   94
+  max       spawning   1981    -0.620   0.137   44
 
 08EE018 per year: migration and spawning mean (m3/s) with the 90 % interval, the donor, and the carried departure (% of normal):
 

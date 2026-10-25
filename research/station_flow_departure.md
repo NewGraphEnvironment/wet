@@ -79,7 +79,7 @@ Maxan Creek (08EE018, 363 km²) was gauged for five complete Chinook migration w
 - 31 have at least 10 baseline years; they are the departure donors.
 - 13 have 3–10 complete windows: the short-record test set, Maxan among them.
 
-**Question 1: extending a record (`wet_window_extend()`).** Each long gauge was cut into 5-year blocks, 218 in all. Each block was extended from the other long gauges, and scored only on the years it held out (log NSE of the window mean).
+**Question 1: extending a record (`wet_window_extend()`).** Each long gauge was cut into 5-year blocks, 220 in all, of which 218 had a donor covering them. Each block was extended from the other long gauges, and scored only on the years it held out (log NSE of the window mean).
 
 | method | median NSE over 21 gauges | 90 % interval coverage |
 |---|---|---|
@@ -112,4 +112,4 @@ Every extended year rests on one donor, each relation fitted on Maxan's five yea
 
 The interval resamples years within each period and adds a held-out residual to each extended year. The donor-carried route needs no Maxan baseline. It gives a smaller drop in both means, −3 % for migration and −46 % for spawning. The two routes agree closely on the migration mean (correlation 0.93) and less on spawning (0.78). Spawning-window flows at Maxan rest on small numbers: most years' mean is under 0.5 m³/s.
 
-**Limits.** The years before 1961 come from one large mainstem gauge that contains Maxan. Every pre-1981 departure therefore carries the Bulkley's own history, through a relation fitted on five years. Only the migration mean was used to choose a method. The other statistics, windows and the before/after are reported, and decide nothing.
+**Limits.** Each extended year rests on one donor, through a relation fitted on five years. The 30 years before 1961 come from one large mainstem gauge that contains Maxan, so they carry the Bulkley's own history. Of the 50 years before 1981, 31 come from that gauge. Only the migration mean was used to choose a method. The other statistics, windows and the before/after are reported, and decide nothing.
