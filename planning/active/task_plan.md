@@ -82,8 +82,8 @@ build by commit and part count only, so a rebuild at the old commit from changed
 ## Validation
 
 - [x] Tests pass (`devtools::test()`: 1411 pass, 0 fail), lintr clean on changed lines (the one left is `wet_catalog_digest` unseen in the installed package)
-- [ ] `/code-check branch` clean
-- [ ] PWF checkboxes match landed work
+- [x] `/code-check branch` clean
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
 Verification: the unit tests above with the mutation table; `vd_published("20260717")` run once on this

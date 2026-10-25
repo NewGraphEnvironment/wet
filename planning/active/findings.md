@@ -88,6 +88,26 @@ BUILD) and `publish_report_check()` (commit, one tree line, no FAIL, one live-bu
 PUBLISH runs on HEAD's report before the upload and `publish_report_live()` runs again. Mutations: "any tree line"
 and "no layout check" each turn the new test red.
 
+## Code-check summary (`/code-check branch`)
+
+| Round | Findings | Fixed | Accepted | Inside previous fix? |
+|-------|----------|-------|----------|----------------------|
+| 1 | 0 | 0 | 0 | — |
+| 2 | 1 bug (BUILD would refuse the branch's own `vignette_data_lib.R` edit) | 1 | 0 | n |
+| 3 | 1 fragile (report layout checked only after the upload; pre-upload tree-line check looser than the rewrite's) | 1 | 0 | y (the "any tree line" check came from the plan review's fix) |
+| 4 | 0 | 0 | 0 | — |
+
+Ended by enumeration, not by the clean round alone. The set was every refusal in PUBLISH after its first `put`
+(`scripts/discharge_publish.R` :116-141, and inside `publish_report_live()`, `publish_report_check()` and
+`publish_live_line()`), 11 in all:
+- Seven depend on the live bucket and can only run after the upload: `aws` list and delete, the stale-prefix
+  `stopifnot`, `wet_catalog(publish_url)`, the md5 `stopifnot`, verify, and the rewrite's verified and digest checks.
+- Two are the report checks, run first at :94 on HEAD's copy, which equals the working copy because the clean-tree
+  check covers `data/checks`.
+- The last `stopifnot` cannot fail by construction.
+
+Reviewer agents for the task: the plan review plus four rounds, five in all, at the bound.
+
 ## Errors Encountered
 
 | Error | Resolution |
