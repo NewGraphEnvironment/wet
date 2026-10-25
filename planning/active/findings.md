@@ -1,0 +1,41 @@
+# Findings — Have PUBLISH update the publish report's live-build line (#117)
+
+## Issue context
+
+**If we do it:** after an upload, the tracked publish report already names the live build, so the vignette data scripts can run straight away. **If we never do:** every republish is followed by a full BUILD, about 3.5 hours on the machine with the full runs, only to rewrite one line that the upload already proved.
+
+## Problem
+
+`scripts/vignette_data_lib.R` `vd_published()` reads one line of `data/checks/discharge_publish_<release>.txt`:
+
+```
+parts identical to the published build <commit>: N of N here, N published (<manifest url>)
+```
+
+and refuses unless it names the live build with every part identical. Only a BUILD writes that line (`scripts/discharge_publish.R`, near `pub_line`), and it writes it before the upload, against whatever was live at the time. A republish therefore leaves the tracked report saying "6 of 512" (#76's republish on 2026-10-24) or "0 of N". The fix so far has been a second full BUILD after the upload (after #99, at 608147e, and again for #76). It rebuilds the whole tree and redoes every value check on bytes that have not changed since the first BUILD.
+
+The upload already holds the fact that line needs: it compares each part's md5 with the local manifest, uploads, then reads every part back anonymously. #76's log: `published 512 parts (506 uploaded), 0 stale keys deleted; all verify at <manifest url>`.
+
+## Proposed Solution
+
+Once PUBLISH's anonymous verify passes, have PUBLISH rewrite the `parts identical to the published build` line of the tracked report itself, using the same `sprintf()` the BUILD uses, against the manifest it just wrote. PUBLISH already refuses unless the committed report names the build and fails no check, so the only change it makes is that line. The report is then left modified for a commit, the same as after a BUILD.
+
+- Keep every value check in the BUILD. This removes only the second BUILD.
+- The line should still come from code, never from a hand edit, so `vd_published()` keeps checking the bucket rather than our typing.
+- While touching it, record the live manifest's `built` time, or the md5 of its parts, in the same place, which is #94's fix. Both edits are to the same line, which is also the one `vd_published()` reads.
+- Test that the guard fires: with that line written by a PUBLISH whose verify failed, `vd_published()` must still refuse.
+
+Relates to #94, #76, #93
+
+## Exploration (2026-10-24)
+
+- BUILD writes `pub_line` at `scripts/discharge_publish.R:683`, against the manifest live at build time; PUBLISH (`:66-138`) verifies every part anonymously (`:133`) then quits without touching the report.
+- `vd_published()` (`scripts/vignette_data_lib.R:62`) parses the line with a start-anchored regex, so a suffix parses.
+- The tracked report (`data/checks/discharge_publish_20260717.txt:49`) names live b4bbc50, 512 of 512, from the BUILD rerun at 34f38a9 (dd525f0).
+- No testthat test reaches `scripts/`; `.Rbuildignore` excludes it, so a test that sources it must skip under R CMD check.
+- PUBLISH refuses when `R/` or `scripts/` changed since the build commit, so this branch itself makes the current local tree unpublishable: the first report with a digest comes from the next BUILD.
+
+## Errors Encountered
+
+| Error | Resolution |
+|-------|------------|
