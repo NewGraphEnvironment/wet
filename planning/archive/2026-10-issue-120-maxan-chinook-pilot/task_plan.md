@@ -80,7 +80,7 @@ What the script refuses: a target or donor with fewer than 3 complete window yea
 - [x] `lintr::lint_package()` clean on the new files
 - [x] `/code-check branch` clean before the PR
 - [x] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion, with Measurement and Evidence sections
+- [x] `/planning-archive` on completion, with Measurement and Evidence sections
 
 How each change is proved:
 
