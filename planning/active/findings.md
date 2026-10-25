@@ -154,4 +154,19 @@ Weights come from `wet_donor_mean()` called on the identity matrix, so the weigh
 
 ## Question 2: carried departures are usable (Phase 4, run 2026-10-25)
 
-Migration-window mean, k = 5, leave-one-gauge-out over the 31-gauge departure pool, centred overlap: median per-gauge NSE 0.63 (quartiles 0.34 to 0.75). That clears the header's 0.5, so the method is **usable** for #122. Short-record gauges from the full pool: median 0.69 over 12 scored; 08EE018 scores 0.92 over its 5 years. Leak-free drops the median to 0.57; k = 3 and 8 give 0.62 and 0.65. Spawning mean 0.49, migration min7 0.23, migration cov_day 0.63. The worst gauges are 08EE028 (−1.62, 10 years, a diverted creek "above diversions"), 08EB006 (−0.40) and 08JA015 (−0.37).
+Migration-window mean, k = 5, leave-one-gauge-out over the 31-gauge departure pool, centred overlap: median per-gauge NSE 0.63 (quartiles 0.34 to 0.75). That clears the header's 0.5, so the method is **usable** for #122. Short-record gauges from the full pool: median 0.69 over 12 scored; 08EE018 scores 0.92 over its 5 years. Leak-free drops the median to 0.57; k = 3 and 8 give 0.62 and 0.65. Spawning mean 0.49, migration min7 0.23, migration cov_day 0.63. The worst gauges are 08EE028 (−1.62, 10 years), 08EB006 (−0.40) and 08JA015 (−0.37).
+
+## The script's refusals proved (Phase 5)
+
+| condition restored | result |
+|---|---|
+| `WET_HYDAT_RELEASE=20251014` | stops: "the pilot's rule names HYDAT 20260717, not 20251014" |
+| 08EE018 expected at 6 years | stops: "pilot-gauge counts differ from the issue's table" |
+| pseudo-record floor raised to 22 | stops: "the extension pool has 21 gauges with a pseudo-record; the rule needs at least 22" |
+| a target with 2 years, a donor short of the target's years, a donor with 9 baseline years | the functions' tests (`at least 3 are needed`, `no donor has`, `baseline years`) |
+
+Each mutation ran on a copy of the script in the session scratchpad, never the tracked file.
+
+## The Maxan answer and reproducibility (Phase 5, 2026-10-25)
+
+The script ran twice from a frozen copy with the tracked report removed before each run; the two reports are byte-identical (`cmp`), and the tracked script was unchanged against the copy. A first full run's "Limit" line counted from the wrong donor; corrected before the identity runs. Migration mean at Maxan, 2011–2025 against before 1981: −14 % (90 % interval −33 % to +9 %); spawning mean −56 % (−73 % to −28 %); the carried route gives −3 % and −46 %. Pre-1981: 31 years from 08EE004, 11 from 08EE008, 3 from 08EE013, 5 observed. 80 of 94 years' spawning mean is under 0.5 m³/s.

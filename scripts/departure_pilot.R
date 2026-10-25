@@ -658,3 +658,130 @@ say("", "Per gauge, migration mean, k = 5 (years scored, NSE):", "",
     paste0("  ", vapply(split(seq_len(nrow(cm$short)), ceiling(seq_len(nrow(cm$short)) / 4)), function(i) {
       paste(sprintf("%s %3d %6s", cm$short$gauge[i], cm$short$n[i], fmt(cm$short$nse[i])), collapse = "   ")
     }, "")), "")
+
+# ---- the Maxan answer ------------------------------------------------------------------------
+mx_id <- pilot[["maxan"]]
+combos <- list(c("q_mean", "migration"), c("q_mean", "spawning"), c("q_min7", "migration"),
+               c("q_min7", "spawning"), c("q_cov_day", "migration"), c("q_cov_day", "spawning"))
+# the pseudo-record run behind each statistic and window (k = 5)
+run_for <- function(v, p) {
+  for (r in runs) if (r$v == v && r$p == p && r$k == k_main && !identical(r, runs[["leak-free"]])) return(r)
+  stop("no pseudo-record run for ", v, " ", p, call. = FALSE)
+}
+pre <- function(y) y < 1981
+post <- function(y) y %in% 2011:2025
+set.seed(120)
+n_boot <- 2000
+mx <- list()
+for (cb in combos) {
+  v <- cb[1]
+  p <- cb[2]
+  tr <- tr_of(v)
+  run <- run_for(v, p)
+  res <- run$r[[paste0("r_", ship)]]
+  g <- wsel(v, p)
+  e <- wet_window_extend(g[g$station_number %in% c(mx_id, ext_pool), ], stations, mx_id, ship, k = k_main,
+                         level = level, resid = if (ship == "ols") NULL else res)
+  e$dep <- tr(e$value) - tr(mean(e$value[e$year %in% baseline]))
+  a <- wet_departure_carry(g[g$station_number %in% setdiff(dep_pool_of(v, p), mx_id), ], stations, mx_id,
+                           k = k_main, baseline = baseline)
+  # before/after on the extension route: the baseline cancels in a difference of mean log values
+  lv <- tr(e$value)
+  ext_yr <- e$source == "extended"
+  i_pre <- which(pre(e$year))
+  i_post <- which(post(e$year))
+  diff <- mean(lv[i_post]) - mean(lv[i_pre])
+  boot <- vapply(seq_len(n_boot), function(b) {
+    ip <- i_pre[sample.int(length(i_pre), replace = TRUE)]
+    iq <- i_post[sample.int(length(i_post), replace = TRUE)]
+    z <- lv + ifelse(ext_yr, sample(res, length(lv), replace = TRUE), 0)
+    mean(z[iq]) - mean(z[ip])
+  }, 0)
+  ci <- stats::quantile(boot, c(q_lo, q_hi), names = FALSE)
+  a_pre <- a$anomaly[pre(a$year)]
+  a_post <- a$anomaly[post(a$year)]
+  # the two routes as centred departures, over Maxan's observed years and over the record
+  ov <- intersect(e$year[!ext_yr], a$year)
+  oe <- e$dep[match(ov, e$year)]
+  oa <- a$anomaly[match(ov, a$year)]
+  rec <- intersect(e$year, a$year)
+  re <- e$dep[match(rec, e$year)]
+  ra <- a$anomaly[match(rec, a$year)]
+  mx[[paste(v, p)]] <- list(v = v, p = p, e = e, a = a, diff = diff, ci = ci, n_pre = length(i_pre),
+                            n_post = length(i_post), carried = mean(a_post) - mean(a_pre),
+                            n_pre_c = length(a_pre), n_post_c = length(a_post),
+                            obs_nse = if (length(ov) >= 3) wet:::wet_nse(oe - mean(oe), oa - mean(oa)) else NA_real_,
+                            rec_r = stats::cor(re, ra), rec_n = length(rec),
+                            rec_mad = mean(abs((re - mean(re)) - (ra - mean(ra)))))
+}
+
+m1 <- mx[["q_mean migration"]]
+e1 <- m1$e
+say("## 4. The Maxan answer", "",
+    sprintf("%s extended by %s (the rule's pick), k = 5 covering donors from the extension pool, %d-%d; 90 %% intervals%s.",
+            mx_id, ship, min(e1$year), max(e1$year),
+            if (ship == "ols") " are OLS's prediction interval" else " from the pseudo-record residuals"),
+    sprintf("Donor chain (nearest first): %s.", paste(attr(e1, "donors")[[1]], collapse = ", ")),
+    "Years supplied per donor, migration mean:",
+    paste0("  ", paste(sprintf("%s %d (%d-%d)", names(table(e1$donor)), as.integer(table(e1$donor)),
+                               vapply(names(table(e1$donor)), function(d) min(e1$year[e1$donor %in% d]), 0),
+                               vapply(names(table(e1$donor)), function(d) max(e1$year[e1$donor %in% d]), 0)),
+                       collapse = ", ")),
+    sprintf("Limit: each extended year rests on one donor. Of the %d years before 1981, %s; the years before %d come from %s, the only donor reaching them.",
+            sum(pre(e1$year)), {
+              tp <- table(ifelse(is.na(e1$donor[pre(e1$year)]), "observed", e1$donor[pre(e1$year)]))
+              paste(sprintf("%d from %s", as.integer(tp), names(tp)), collapse = ", ")
+            },
+            sort(vapply(split(e1$year[!is.na(e1$donor)], e1$donor[!is.na(e1$donor)]), min, 0))[2],
+            names(sort(vapply(split(e1$year[!is.na(e1$donor)], e1$donor[!is.na(e1$donor)]), min, 0)))[1]),
+    "", "Before/after: mean departure 2011-2025 minus mean departure before 1981 (log, or days for cov_day);",
+    sprintf("90 %% interval from %d draws resampling years in each period and adding a held-out residual to each extended year; set.seed(120).", n_boot),
+    "", sprintf("  %-9s %-9s %4s %4s %9s %9s %18s   %9s %4s %4s", "statistic", "window", "pre", "post", "change",
+                "% normal", "90 % interval", "carried", "pre", "post"))
+for (m in mx) {
+  days <- is_days(m$v)
+  pc <- function(z) if (days) "-" else fmt(100 * (exp(z) - 1), 1)
+  say(sprintf("  %-9s %-9s %4d %4d %9s %9s %18s   %9s %4d %4d", sub("^q_", "", m$v), m$p, m$n_pre, m$n_post,
+              fmt(m$diff, 3), pc(m$diff),
+              if (days) sprintf("%s..%s", fmt(m$ci[1], 1), fmt(m$ci[2], 1)) else sprintf("%s..%s %%", pc(m$ci[1]), pc(m$ci[2])),
+              fmt(m$carried, 3), m$n_pre_c, m$n_post_c))
+}
+say("", "(% normal: 100 (exp(change) - 1). carried: the same change from the donor-carried departures, which need no Maxan baseline.)",
+    "", "The two routes as centred departures: NSE of the carried against the extension's over Maxan's observed years; over the record, correlation and mean absolute difference:", "",
+    sprintf("  %-9s %-9s %10s %6s %6s %9s", "statistic", "window", "obs NSE", "years", "r", "mean |d|"))
+for (m in mx) {
+  say(sprintf("  %-9s %-9s %10s %6d %6s %9s", sub("^q_", "", m$v), m$p, fmt(m$obs_nse), m$rec_n, fmt(m$rec_r),
+              fmt(m$rec_mad, 3)))
+}
+
+# cd's departure and trend on the extended series
+tr_rows <- list()
+for (m in mx) {
+  s <- data.frame(variable = m$v, period = m$p, year = m$e$year, value = m$e$value,
+                  anomaly_type = if (is_days(m$v)) "absolute" else "pct_normal",
+                  unit = if (is_days(m$v)) "days" else "%")
+  an <- cd::cd_anomaly(s, suppressWarnings(cd::cd_baseline(s, baseline)))
+  tr_rows[[length(tr_rows) + 1]] <- cd::cd_trend(an, trend_start = c(min(s$year), 1981))
+}
+trd <- do.call(rbind, tr_rows)
+say("", "Trend in cd's anomaly of the extended series (cd_trend(): Theil-Sen slope per year, Mann-Kendall p; % of normal capped at 200, or days):", "",
+    sprintf("  %-9s %-9s %5s %9s %7s %4s", "statistic", "window", "from", "slope/yr", "p", "n"),
+    sprintf("  %-9s %-9s %5d %9s %7s %4d", sub("^q_", "", trd$variable), trd$period, as.integer(trd$trend_start),
+            fmt(trd$slope, 3), fmt(trd$mk_pvalue, 3), as.integer(trd$n_years)))
+
+say("", sprintf("%s per year: migration and spawning mean (m3/s) with the 90 %% interval, the donor, and the carried departure (%% of normal):", mx_id), "",
+    sprintf("  %4s %8s %8s %8s %-8s  %8s %8s %8s  %8s %8s", "year", "mig", "lo", "hi", "donor", "spw", "lo", "hi",
+            "mig car", "spw car"))
+e2 <- mx[["q_mean spawning"]]$e
+a1 <- m1$a
+a2 <- mx[["q_mean spawning"]]$a
+for (y in sort(union(e1$year, e2$year))) {
+  i <- match(y, e1$year)
+  j <- match(y, e2$year)
+  say(sprintf("  %4d %8s %8s %8s %-8s  %8s %8s %8s  %8s %8s", y, fmt(e1$value[i], 2), fmt(e1$lower[i], 2),
+              fmt(e1$upper[i], 2), if (is.na(i)) "-" else if (is.na(e1$donor[i])) "observed" else e1$donor[i],
+              fmt(e2$value[j], 2), fmt(e2$lower[j], 2), fmt(e2$upper[j], 2),
+              fmt(a1$pct_normal[match(y, a1$year)], 1), fmt(a2$pct_normal[match(y, a2$year)], 1)))
+}
+
+writeLines(out, report)
