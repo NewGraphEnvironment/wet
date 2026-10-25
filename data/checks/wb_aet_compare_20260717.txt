@@ -1,6 +1,6 @@
 # ET experiments (#15, #18): annual AET variants scored as shipped under blocked CV
 
-province run: e675918817; stations: 315 (headwater 238, nested 77); folds: 94
+province run: 92b893c4da; stations: 315 (headwater 238, nested 77); folds: 94
 HYDAT release: 20260717; pooled zones: fixed to 'none' (pooled_variant.txt); headwater gate: kept within 0.10 point (adjust_override.txt)
 Variants: cgiar (CGIAR SWB v3), lc (CGIAR x Chapman Table 3 land-cover ratio, NRCan 2020), tc (TerraClimate 1981-2010), fu (Fu-Budyko, climr P and Hargreaves PET, omega 2.6), cfu (max of CGIAR and fu); fu15/fu20/fu35 are fu at omega 1.5/2.0/3.5, transparency only; mod16 (MOD16A3GF v061, mean 2001-2020, gaps filled with cfu by area), cmod16 (max of CGIAR and mod16).
 The monthly shares are the same for every variant (scripts/wb_validate.R); differences here are annual only.

@@ -1,6 +1,6 @@
 # How the monthly shares are made (#102): regression, donor gauges and their blend, held out under blocked CV
 
-province run: e675918817; HYDAT release: 20260717; annual AET: cfu; scores 37d93d99ca657930d0e7c9c995e787a0
+province run: 92b893c4da; HYDAT release: 20260717; annual AET: cfu; scores 37d93d99ca657930d0e7c9c995e787a0
 calibration gauges: 315; held-out months read from fit_20260717/cv_aet-cfu.rds, nothing refitted; static predictors: elev, e_km, n_km, snowmelt_doy_50, swe_max
 
 RULE (fixed in scripts/wb_validate.R's header before any candidate was coded or scored): donor or blend ships if its median share NSE beats the regression's by >= 0.01 under blocked CV and in the leak-free pool (each held-out gauge's upstream and downstream training gauges removed, every method refitted); if both pass, the higher blocked-CV median. Over 315 gauges:
