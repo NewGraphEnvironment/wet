@@ -74,8 +74,8 @@ segments, in cubic metres per second, for the year, each month and each
 day. It is public at <code>s3://fresh-bc/discharge/fwa/v1/</code>. The
 bucket allows no listing, so a reader starts from the manifest, <a href="https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json" class="external-link uri">https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json</a>,
 which lists every part with its rows, size and md5. The build this
-article reads has 512 parquet parts, 33.23 GB, built on 20 October 2026
-at <code>wet</code> commit 77585a8.</p>
+article reads has 512 parquet parts, 33.23 GB, built on 24 October 2026
+at <code>wet</code> commit b4bbc50.</p>
 <ul>
 <li>
 <strong><code>segment_monthly</code></strong>: one row per segment,
@@ -340,8 +340,8 @@ segment.</li>
 <h2 id="software-and-citation">Software and citation<a class="anchor" aria-label="anchor" href="#software-and-citation"></a>
 </h2>
 <p>The routed values at the gauges and the picks on the map are the
-published product’s, read on 2026-10-20 from the build at
-<code>wet</code> commit 77585a8; the routed values were held equal to
+published product’s, read on 2026-10-24 from the build at
+<code>wet</code> commit b4bbc50; the routed values were held equal to
 <code>fwapg</code>’s before they were written. The province counts are
 from the segment table that build was cut from. The balance’s scores are
 its held-out predictions from the fit on HYDAT 2026-07-17, against
@@ -355,9 +355,9 @@ Irvine A (2026). <em>wet: Stream Flow and Water Temperature for the BC
 Freshwater Atlas</em>. New Graph Environment Ltd. <a href="doi:10.5281/zenodo.23305781" class="uri">doi:10.5281/zenodo.23305781</a> <a href="https://doi.org/10.5281/zenodo.23305781" class="external-link uri">https://doi.org/10.5281/zenodo.23305781</a>. Version 0.4.19,
 <a href="https://github.com/NewGraphEnvironment/wet" class="external-link uri">https://github.com/NewGraphEnvironment/wet</a>.</li>
 <li>
-<code>duckdb</code> 1.5.6. Mühleisen H, Raasveldt M (2026).
+<code>duckdb</code> 2.0.0. Mühleisen H, Raasveldt M (2026).
 <em>duckdb: DBI Package for the DuckDB Database Management System</em>.
-R package version 1.5.6, <a href="https://r.duckdb.org/" class="external-link uri">https://r.duckdb.org/</a>.</li>
+R package version 2.0.0, <a href="https://r.duckdb.org/" class="external-link uri">https://r.duckdb.org/</a>.</li>
 <li>
 <code>ggplot2</code> 4.0.3. Wickham H (2016). <em>ggplot2: Elegant
 Graphics for Data Analysis</em>. Springer-Verlag New York. ISBN

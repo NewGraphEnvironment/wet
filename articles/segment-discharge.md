@@ -9,8 +9,8 @@ day. It is public at `s3://fresh-bc/discharge/fwa/v1/`. The bucket
 allows no listing, so a reader starts from the manifest,
 <https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json>,
 which lists every part with its rows, size and md5. The build this
-article reads has 512 parquet parts, 33.23 GB, built on 20 October 2026
-at `wet` commit 77585a8.
+article reads has 512 parquet parts, 33.23 GB, built on 24 October 2026
+at `wet` commit b4bbc50.
 
 - **`segment_monthly`**: one row per segment, month and source with a
   value, 102,790,688 rows. Month 0 is the annual mean and months 1–12
@@ -184,8 +184,8 @@ both cover. Where each is weak:
 ## Software and citation
 
 The routed values at the gauges and the picks on the map are the
-published product’s, read on 2026-10-20 from the build at `wet` commit
-77585a8; the routed values were held equal to `fwapg`’s before they were
+published product’s, read on 2026-10-24 from the build at `wet` commit
+b4bbc50; the routed values were held equal to `fwapg`’s before they were
 written. The province counts are from the segment table that build was
 cut from. The balance’s scores are its held-out predictions from the fit
 on HYDAT 2026-07-17, against HYDAT’s observed runoff. The build’s own
@@ -199,8 +199,8 @@ report](https://github.com/NewGraphEnvironment/wet/blob/main/data/checks/dischar
   <doi:10.5281/zenodo.23305781>
   <https://doi.org/10.5281/zenodo.23305781>. Version 0.4.19,
   <https://github.com/NewGraphEnvironment/wet>.
-- `duckdb` 1.5.6. Mühleisen H, Raasveldt M (2026). *duckdb: DBI Package
-  for the DuckDB Database Management System*. R package version 1.5.6,
+- `duckdb` 2.0.0. Mühleisen H, Raasveldt M (2026). *duckdb: DBI Package
+  for the DuckDB Database Management System*. R package version 2.0.0,
   <https://r.duckdb.org/>.
 - `ggplot2` 4.0.3. Wickham H (2016). *ggplot2: Elegant Graphics for Data
   Analysis*. Springer-Verlag New York. ISBN 978-3-319-24277-4.

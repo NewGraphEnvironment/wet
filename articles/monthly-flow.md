@@ -281,7 +281,7 @@ published days. In brackets, the difference from the daily record.
 ## Software and citation
 
 Routed PCIC’s and the balance’s flows in this article are the published
-product’s, read on 2026-10-22 from the build at `wet` commit 77585a8.
+product’s, read on 2026-10-24 from the build at `wet` commit b4bbc50.
 Before they were written, routed PCIC’s months were held equal to the
 routed table in `fwapg` and its days were routed again from the
 sub-basin days there, and the balance’s months and days were made again
@@ -299,8 +299,8 @@ HYDAT 2026-07-17, with HYDAT’s observed runoff.
   <doi:10.5281/zenodo.23305781>
   <https://doi.org/10.5281/zenodo.23305781>. Version 0.4.19,
   <https://github.com/NewGraphEnvironment/wet>.
-- `duckdb` 1.5.6. Mühleisen H, Raasveldt M (2026). *duckdb: DBI Package
-  for the DuckDB Database Management System*. R package version 1.5.6,
+- `duckdb` 2.0.0. Mühleisen H, Raasveldt M (2026). *duckdb: DBI Package
+  for the DuckDB Database Management System*. R package version 2.0.0,
   <https://r.duckdb.org/>.
 - `ggplot2` 4.0.3. Wickham H (2016). *ggplot2: Elegant Graphics for Data
   Analysis*. Springer-Verlag New York. ISBN 978-3-319-24277-4.
