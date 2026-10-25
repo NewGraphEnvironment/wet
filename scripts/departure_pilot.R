@@ -766,7 +766,8 @@ for (m in mx) {
               else sprintf("%s..%s %%", pc(m$ci[1]), pc(m$ci[2])),
               fmt(m$carried, 3), m$n_pre_c, m$n_post_c))
 }
-say("", "(% normal: 100 (exp(change) - 1). carried: the same change from the donor-carried departures, which need no Maxan baseline. max is reported, never scored, so its change has no interval; its per-year values below carry the extension's.)",
+say("", paste0("(% normal: 100 (exp(change) - 1). carried: the same change from the donor-carried departures, which need no Maxan baseline. max is reported, never scored, so its change has no interval",
+           if (ship == "ols") "; its per-year values below carry OLS's prediction interval.)" else "; nor do its per-year values below.)"),
     "", "The two routes as centred departures: NSE of the carried against the extension's over Maxan's observed years; over the record, correlation and mean absolute difference:", "",
     sprintf("  %-9s %-9s %8s %8s  %8s %6s %9s", "statistic", "window", "obs yrs", "obs NSE", "rec yrs", "r", "mean |d|"))
 for (m in mx) {

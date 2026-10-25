@@ -210,7 +210,7 @@ Before/after: mean departure 2011-2025 minus mean departure before 1981 (log, or
   max       migration   50   14    -0.323     -27.6                  -      -0.037   29   14
   max       spawning    50   14    -0.413     -33.9                  -      -0.610   30   14
 
-(% normal: 100 (exp(change) - 1). carried: the same change from the donor-carried departures, which need no Maxan baseline. max is reported, never scored, so its change has no interval; its per-year values below carry the extension's.)
+(% normal: 100 (exp(change) - 1). carried: the same change from the donor-carried departures, which need no Maxan baseline. max is reported, never scored, so its change has no interval; its per-year values below carry OLS's prediction interval.)
 
 The two routes as centred departures: NSE of the carried against the extension's over Maxan's observed years; over the record, correlation and mean absolute difference:
 

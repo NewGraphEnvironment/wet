@@ -191,3 +191,35 @@ Enumeration, every label printed beside a count (sections 1-4, 31 labels) walked
 Round 4 found the same mechanism one axis over: the Limit line and the research Limits paragraph computed from the migration mean but spoke for every series (in the spawning window 08EE008 supplies 1960, so the cut is 1960 and the split 30/12), and round 3's per-year tables made "max ... has no interval" false (only its before/after change lacks one). Fixed: the Limit line is now one row per series, the max sentence names the change, the routes table gives observed and record years in their own columns, and research names both windows.
 
 Enumeration by scope, every section 4 and research sentence that quantifies over the extension or a span: the 1931-2024 span and the donor chain are the same in all 8 series (round 4 measured); "Years supplied per donor" is labelled migration mean; the Limit rows, before/after rows, route rows, trend rows and per-year tables are per series; research's donor bullets are labelled migration-window mean; "every extended year rests on one donor" holds in all 8 by construction; the before/after table, carried figures, route correlations and "80 of 94" spawning means name their series. No sentence speaks for more series than it was computed from.
+
+## Code-check round 5 and the terminal enumeration (noun against object)
+
+Round 5 found the mechanism in the research paragraphs: numbers checked in earlier rounds, the nouns beside them not ("the 12 with three or more years" was 12 with three overlap years; "spawning-window departures" was the spawning mean; every Q1/Q2 headline was the migration mean, unlabelled; "a donor chain" listed only the three supplying donors), and one fixed string ("its per-year values below carry the extension's") true only because OLS ships. All fixed; the max note is now conditioned on the shipped method.
+
+Every sentence in the research section that carries a number, its noun against the object the code computes it from:
+
+| research sentence | noun | object in code / report | match |
+|---|---|---|---|
+| 53 in the box | gauges with ≥3 complete migration windows | `nrow(pool)`, `n_mig >= 3` | yes |
+| 21 | ≥30 complete migration windows | `pool$ext` (≥30 and a 5-year run; all 21 have one) | yes |
+| 31 | ≥10 complete migration windows in 1981–2010 | `pool$dep` = `dep_pool_of("q_mean","migration")` | yes |
+| 13 | 3–10 complete migration windows | `pool$short` | yes |
+| 220 / 218 | migration-window blocks, cut / covered | `main$n` blocks, minus no_donor | yes |
+| 0.50 / 0.47 / 0.42, 85/90/89 % | migration-window mean, 21 gauges | `main_pg`, `pseudo_coverage(main)` | yes |
+| k = 3, 8, leak-free stay first | migration-window mean | sensitivity rows of q_mean migration | yes |
+| 0.30 vs 0.56, 0.36 vs 0.52 | each over its own held-out years | `multi`, `dbd` on main's blocks | yes |
+| every method below 0 | migration-window 7-day minimum | migration min7 row | yes |
+| 0.63, 0.34–0.75, 31 | migration-window mean, departure pool | `cruns[[1]]$held` | yes |
+| 0.69 over 12 of 13; 08JB006 two years | short-record, overlap ≥3 | `cm$short`, n = 2 for 08JB006 | yes |
+| 0.92, five years | Maxan, migration mean | `cm$short` 08EE018, n = 5 | yes |
+| 0.57 | leak-free, migration mean | leak-free carry row | yes |
+| 0.49 | spawning-window mean | spawning mean carry row | yes |
+| 0.23 | migration-window 7-day minimum | migration min7 carry row | yes |
+| Buck / Goathorn / Quick years; Morice, Nanika none; Nanika from 1950 | migration-window mean chain | Years supplied rows; chain line; pool table first year | yes |
+| −14 %, −56 %, −65 % and intervals | per named statistic and window | before/after rows | yes |
+| −3 %, −46 % | carried, both means | carried column | yes |
+| 0.93, 0.78 | record correlation, migration and spawning mean | routes table `r` | yes |
+| 80 of 94 | spawning-window mean under 0.5 m³/s | spawning mean per-year table | yes |
+| 1961 / 1960, 31 / 30 | per window | Limit rows | yes |
+
+No numbered sentence speaks for a set other than the one that computes it.

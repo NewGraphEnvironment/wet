@@ -73,36 +73,36 @@ The revised vignette keeps only the Chinook windows that stay in open water: mig
 
 Maxan Creek (08EE018, 363 km²) was gauged for five complete Chinook migration windows, 1975–1979. The pilot asks two questions of the CH migration (05-01–08-01) and spawning (08-01–09-15) windows. Can a short record be extended across the long record from its neighbours, with an error per year? And do donor gauges' year-to-year departures carry onto a site that has no record of its own?
 
-**The pool.** Natural HYDAT gauges in a box over the Bulkley and its neighbours (lon −128.8 to −125.0, lat 53.6 to 55.8): 53 with at least 3 complete migration windows. Donors are the k = 5 nearest in easting, northing and log drainage area.
+**The pool.** Natural HYDAT gauges in a box over the Bulkley and its neighbours (lon −128.8 to −125.0, lat 53.6 to 55.8): 53 with at least 3 complete migration windows. Donors are the k = 5 nearest in easting, northing and log drainage area. Every count and score below is for the migration-window mean, the statistic the rules decide on, unless it names another; the report gives the rest.
 
-- 21 have at least 30 complete windows; they are the extension donors and test gauges.
-- 31 have at least 10 baseline years; they are the departure donors.
-- 13 have 3–10 complete windows: the short-record test set, Maxan among them.
+- 21 have at least 30 complete migration windows; they are the extension donors and test gauges.
+- 31 have at least 10 complete migration windows in 1981–2010; they are the departure donors. Each other statistic and window has its own such set.
+- 13 have 3–10 complete migration windows: the short-record test set, Maxan among them.
 
-**Question 1: extending a record (`wet_window_extend()`).** Each long gauge was cut into 5-year blocks, 220 in all, of which 218 had a donor covering them. Each block was extended from the other long gauges, and scored only on the years it held out (log NSE of the window mean).
+**Question 1: extending a record (`wet_window_extend()`).** Each long gauge's migration-window record was cut into 5-year blocks, 220 in all, of which 218 had a donor covering them. Each block was extended from the other long gauges, and scored only on the years it held out (log NSE of the migration-window mean).
 
-| method | median NSE over 21 gauges | 90 % interval coverage |
+| method | median NSE over 21 gauges, migration-window mean | 90 % interval coverage |
 |---|---|---|
 | OLS on the nearest covering donor | 0.50 | 85 % |
 | line of organic correlation (MOVE.1) | 0.47 | 90 % |
 | ratio of means (incumbent) | 0.42 | 89 % |
 
-OLS beats the ratio by more than the 0.01 margin, so it is what extends Maxan. It stays first with k = 3, 8 and with nested gauges removed as donors. Its own prediction interval is a little narrow, at 85 % against 90 %. Two other candidates lose on their own years against OLS on the same years. A regression on up to three donors scores 0.30 against 0.56. Regressing day by day scores 0.36 against 0.52. The 7-day minimum extends badly in the migration window: every method's median is below 0.
+OLS beats the ratio by more than the 0.01 margin, so it is what extends Maxan. On the migration-window mean it stays first with k = 3, 8 and with nested gauges removed as donors. Its own prediction interval is a little narrow, at 85 % against 90 %. Two other candidates lose on their own years against OLS on the same years. A regression on up to three donors scores 0.30 against 0.56. Regressing day by day scores 0.36 against 0.52. The migration-window 7-day minimum extends badly: every method's median is below 0.
 
 **Question 2: carrying departures (`wet_departure_carry()`).** Each departure-pool gauge was held out in turn and given its five nearest donors' log departures, each from the donor's own 1981–2010 mean. The score is NSE on the years both series have, each centred on its own mean there, so 0 means "no better than no departure".
 
-- **Median NSE 0.63** over the 31 gauges, quartiles 0.34 to 0.75. That clears the 0.5 set in advance, so the method is usable for #122.
-- The short-record gauges score a median of 0.69 over the 12 with three or more years. Maxan scores 0.92 over its five years.
+- **Median NSE 0.63** on the migration-window mean over the 31 gauges, quartiles 0.34 to 0.75. That clears the 0.5 set in advance, so the method is usable for #122.
+- The short-record gauges score a median of 0.69. That is over 12 of the 13: 08JB006 shares only two years with its carried series, and a score needs three. Maxan scores 0.92 over its five years.
 - Removing donors upstream or downstream of the held-out gauge lowers the median to 0.57.
-- Spawning-window departures carry less well (0.49), and the migration 7-day minimum worst (0.23).
+- The spawning-window mean carries less well (0.49). The migration-window 7-day minimum carries worst (0.23).
 
-**Maxan, 1931–2024.** Maxan's migration-window mean is extended by OLS from a donor chain:
+**Maxan, 1931–2024.** Maxan's migration-window mean is extended by OLS through a chain of its five nearest covering donors. Three of them supply years:
 
 - Buck Creek (08EE013) for 1973–1974, 1980–2015 and 2017–2024, around Maxan's own 1975–1979;
 - Goathorn Creek (08EE008) for 1961–1971 and 2016;
 - the Bulkley at Quick (08EE004), which contains Maxan, for 1931–1960 and 1972.
 
-Every extended year rests on one donor, each relation fitted on Maxan's five years.
+The other two, the Morice and the Nanika, supply none, being farther: the Nanika reaches back to 1950, but Quick comes first in the chain. Every extended year rests on one donor, each relation fitted on Maxan's five years.
 
 | window statistic | change, 2011–2025 against before 1981 | 90 % interval |
 |---|---|---|
@@ -110,6 +110,6 @@ Every extended year rests on one donor, each relation fitted on Maxan's five yea
 | spawning mean | −56 % | −73 % to −28 % |
 | spawning 7-day minimum | −65 % | −78 % to −43 % |
 
-The interval resamples years within each period and adds a held-out residual to each extended year. The donor-carried route needs no Maxan baseline. It gives a smaller drop in both means, −3 % for migration and −46 % for spawning. The two routes agree closely on the migration mean (correlation 0.93) and less on spawning (0.78). Spawning-window flows at Maxan rest on small numbers: most years' mean is under 0.5 m³/s.
+The interval resamples years within each period and adds a held-out residual to each extended year. The donor-carried route needs no Maxan baseline. It gives a smaller drop in both means, −3 % for migration and −46 % for spawning. Over the record, the two routes agree closely on the migration-window mean (correlation 0.93) and less on the spawning-window mean (0.78). Spawning-window flows at Maxan rest on small numbers: in 80 of 94 years the spawning-window mean is under 0.5 m³/s.
 
-**Limits.** Each extended year rests on one donor, through a relation fitted on five years. The earliest three decades come from one large mainstem gauge that contains Maxan, so they carry the Bulkley's own history: the years before 1961 in the migration window, and before 1960 in the spawning window. Of the 50 years before 1981, that gauge supplies 31 in the migration window and 30 in the spawning window. Only the migration mean was used to choose a method. The other statistics, windows and the before/after are reported, and decide nothing.
+**Limits.** Each extended year rests on one donor, through a relation fitted on five years. The earliest three decades come from one large mainstem gauge that contains Maxan, so they carry the Bulkley's own history: the years before 1961 in the migration window, and before 1960 in the spawning window. Of the 50 years before 1981, that gauge supplies 31 in the migration window and 30 in the spawning window. Only the migration-window mean was used to choose a method. The other statistics, windows and the before/after are reported, and decide nothing.
