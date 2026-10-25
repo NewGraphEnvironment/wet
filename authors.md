@@ -11,7 +11,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/NewGraphEnvironment/wet/blob/v0.4.20/inst/CITATION)
+[`inst/CITATION`](https://github.com/NewGraphEnvironment/wet/blob/main/inst/CITATION)
 
 Irvine A (2026). *wet: Stream Flow and Water Temperature for the BC
 Freshwater Atlas*. New Graph Environment Ltd.
