@@ -199,9 +199,11 @@ seg_commit <- sub("^wet commit ([0-9a-f]+);.*", "\\1", grep("^wet commit ", sr, 
 if (length(seg_commit) != 1L) stop(f_seg_report, " names no wet commit")
 # Every file under R/ and scripts/ but this publish code's own, rather than a
 # list of what the tables depend on: a list misses a dependency and passes,
-# while a file left off the exclusions only forces a rebuild.
+# while a file left off the exclusions only forces a rebuild. The vignette
+# data guards read the published tree and this report, and only data-raw/
+# sources them.
 publish_own <- c("R/wet_catalog.R", "R/wet_db_load.R", "R/wet_values_compare.R", "scripts/discharge_publish.R",
-                 "scripts/discharge_publish_lib.R")
+                 "scripts/discharge_publish_lib.R", "scripts/vignette_data_lib.R")
 # the daily table is made after the monthly one and from it, so its script is
 # no input of the monthly table
 daily_own <- "scripts/segment_daily_output.R"

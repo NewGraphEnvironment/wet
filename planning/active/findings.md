@@ -64,6 +64,18 @@ Expected; the next BUILD writes both lines.
 Each restored after its run. PUBLISH's own pre-upload tree check (`discharge_publish.R`) is not reachable from
 testthat (S3); it calls the same `publish_tree_line()` the tested function does.
 
+## Code-check round 2: the BUILD would have refused this branch
+
+`scripts/vignette_data_lib.R` was on neither of the BUILD's code-changed exclusion lists, so the BUILD the owed
+item names would have stopped with "code changed since ...segment_output_20260717.txt was built at 28105a3
+(scripts/vignette_data_lib.R)". That would have meant rerunning `wb_output.R`, `segment_output.R` and
+`segment_daily_output.R` first. Only `data-raw/` sources the file, so it feeds no table, and it is now in
+`publish_own`. With it there, both guards replayed empty (`git diff --name-only 28105a3|f99df25 -- R scripts` with
+the exclusions). `segment_daily_output.R`'s own list (`own`, :80) is left without it on purpose: editing that
+script would trip the BUILD's daily guard (from f99df25, excluding only `publish_own`) and force a daily rerun.
+The cost is that a lone rerun of `segment_daily_output.R` asks for `segment_output.R` first, which fails safe.
+No scoring-code hash (`scripts/wb_score_md5.R`) covers a file this branch changed.
+
 ## Errors Encountered
 
 | Error | Resolution |
