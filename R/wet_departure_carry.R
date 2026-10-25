@@ -92,21 +92,21 @@ wet_departure_carry <- function(x, stations, target, k = 5, baseline = 1981:2010
       stats::setNames(if (days) d$value - mean(b) else log(d$value / mean(b)), d$year)
     })
     yrs <- sort(unique(as.integer(unlist(lapply(dep, names)))))
-    A <- vapply(dep, function(a) unname(a[as.character(yrs)]), numeric(length(yrs)))
-    A <- matrix(A, nrow = length(yrs), dimnames = list(yrs, use))
-    W <- matrix(wt[use], nrow(A), ncol(A), byrow = TRUE) * !is.na(A)
+    dep_mat <- vapply(dep, function(a) unname(a[as.character(yrs)]), numeric(length(yrs)))
+    dep_mat <- matrix(dep_mat, nrow = length(yrs), dimnames = list(yrs, use))
+    wt_mat <- matrix(wt[use], nrow(dep_mat), ncol(dep_mat), byrow = TRUE) * !is.na(dep_mat)
     # every year comes from a donor with positive weight, so no row sums to 0
-    W <- W / rowSums(W)
-    an <- rowSums(W * ifelse(is.na(A), 0, A))
-    used <- vapply(seq_len(nrow(W)), function(r) {
-      j <- which(W[r, ] > 0)
-      paste(sprintf("%s:%.4f", use[j], W[r, j]), collapse = " ")
+    wt_mat <- wt_mat / rowSums(wt_mat)
+    an <- rowSums(wt_mat * ifelse(is.na(dep_mat), 0, dep_mat))
+    used <- vapply(seq_len(nrow(wt_mat)), function(r) {
+      j <- which(wt_mat[r, ] > 0)
+      paste(sprintf("%s:%.4f", use[j], wt_mat[r, j]), collapse = " ")
     }, "")
     tb <- g$value[g$station_number == target & g$year %in% baseline]
     tmean <- if (length(tb) >= min_baseline) mean(tb) else NA_real_
     data.frame(station_number = target, variable = v, period = p, year = yrs, anomaly = unname(an),
                pct_normal = if (days) NA_real_ else 100 * (exp(unname(an)) - 1),
-               n_donors = unname(rowSums(W > 0)), donors = used,
+               n_donors = unname(rowSums(wt_mat > 0)), donors = used,
                value = if (days) tmean + unname(an) else tmean * exp(unname(an)))
   })
   out <- do.call(rbind, res)

@@ -151,3 +151,7 @@ Migration-window mean, k = 5, 21 extension-pool gauges, 218 scored blocks: media
 | a guard dropping years whose present weights sum to 0 | stayed green: unreachable, since the years come only from donors with positive weight; removed |
 
 Weights come from `wet_donor_mean()` called on the identity matrix, so the weighting is #70's and #102's with its contract unchanged.
+
+## Question 2: carried departures are usable (Phase 4, run 2026-10-25)
+
+Migration-window mean, k = 5, leave-one-gauge-out over the 31-gauge departure pool, centred overlap: median per-gauge NSE 0.63 (quartiles 0.34 to 0.75). That clears the header's 0.5, so the method is **usable** for #122. Short-record gauges from the full pool: median 0.69 over 12 scored; 08EE018 scores 0.92 over its 5 years. Leak-free drops the median to 0.57; k = 3 and 8 give 0.62 and 0.65. Spawning mean 0.49, migration min7 0.23, migration cov_day 0.63. The worst gauges are 08EE028 (−1.62, 10 years, a diverted creek "above diversions"), 08EB006 (−0.40) and 08JA015 (−0.37).

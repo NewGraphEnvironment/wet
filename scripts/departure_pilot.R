@@ -582,3 +582,79 @@ say(sprintf("Leave-one-year-out at %s (migration mean, m3/s; fit on the other fo
     sprintf("  %-4s %8s %8s %8s %8s", "RMSE", "log", fmt(sqrt(mean(log(loyo$ols / loyo$obs)^2)), 3),
             fmt(sqrt(mean(log(loyo$move1 / loyo$obs)^2)), 3), fmt(sqrt(mean(log(loyo$ratio / loyo$obs)^2)), 3)),
     "")
+
+# ---- question 2: donor-carried departures, held out ------------------------------------------
+# The departure pool per statistic and window: >= 10 baseline years of it.
+dep_pool_of <- function(v, p) {
+  g <- wsel(v, p)
+  nb <- table(g$station_number[g$year %in% baseline])
+  sort(names(nb)[nb >= 10])
+}
+short_set <- pool$station_number[pool$short]
+
+# One target's carried departures against its observed record, both centred
+# on their mean over the years both have.
+carry_score <- function(target, v, p, donors, k) {
+  g <- wsel(v, p)
+  a <- wet_departure_carry(g[g$station_number %in% setdiff(donors, target), ], stations, target, k = k,
+                           baseline = baseline)
+  o <- g[g$station_number == target, ]
+  yrs <- intersect(o$year, a$year)
+  if (length(yrs) < 3) return(data.frame(gauge = target, n = length(yrs), nse = NA_real_))
+  obs <- tr_of(v)(o$value[match(yrs, o$year)])
+  car <- a$anomaly[match(yrs, a$year)]
+  data.frame(gauge = target, n = length(yrs), nse = wet:::wet_nse(obs - mean(obs), car - mean(car)))
+}
+carry_run <- function(v, p, k = k_main, drop = NULL) {
+  dp <- dep_pool_of(v, p)
+  held <- do.call(rbind, lapply(dp, function(g) carry_score(g, v, p, setdiff(dp, drop[[g]]), k)))
+  sh <- do.call(rbind, lapply(short_set, function(g) {
+    if (!any(wsel(v, p)$station_number == g)) return(data.frame(gauge = g, n = 0L, nse = NA_real_))
+    carry_score(g, v, p, setdiff(dp, drop[[g]]), k)
+  }))
+  list(held = held, short = sh, v = v, p = p, k = k)
+}
+carry_sets <- list(
+  list(label = "migration mean, k = 5", v = "q_mean", p = "migration", k = k_main),
+  list(label = "k = 3", v = "q_mean", p = "migration", k = 3),
+  list(label = "k = 8", v = "q_mean", p = "migration", k = 8),
+  list(label = "spawning mean", v = "q_mean", p = "spawning", k = k_main),
+  list(label = "migration min7", v = "q_min7", p = "migration", k = k_main),
+  list(label = "spawning min7", v = "q_min7", p = "spawning", k = k_main),
+  list(label = "migration cov_day (days)", v = "q_cov_day", p = "migration", k = k_main),
+  list(label = "spawning cov_day (days)", v = "q_cov_day", p = "spawning", k = k_main))
+if (!is.null(related)) {
+  carry_sets[[length(carry_sets) + 1]] <- list(label = "leak-free", v = "q_mean", p = "migration", k = k_main,
+                                               drop = related)
+}
+cruns <- lapply(carry_sets, function(s) carry_run(s$v, s$p, s$k, s$drop))
+names(cruns) <- vapply(carry_sets, `[[`, "", "label")
+cm <- cruns[[1]]
+head_q <- stats::quantile(cm$held$nse, c(0.25, 0.5, 0.75), na.rm = TRUE, names = FALSE)
+usable <- head_q[2] >= usable_nse - 1e-9
+
+say("## 3. Donor-carried departures (question 2)", "",
+    sprintf("Leave-one-gauge-out at the departure pool (%d gauges on the migration mean), k = 5 donors from the rest; scored on the years both series have, each centred on its mean over them (log NSE; 0 is no departure).",
+            length(dep_pool_of("q_mean", "migration"))),
+    sprintf("HEADLINE: median per-gauge NSE %s (quartiles %s to %s) over %d gauges scored; %d not scored (fewer than 3 years).",
+            fmt(head_q[2]), fmt(head_q[1]), fmt(head_q[3]), sum(!is.na(cm$held$nse)), sum(is.na(cm$held$nse))),
+    sprintf("USABLE for #122 (departure-pool median >= %s, set in the header): %s.", usable_nse, if (usable) "YES" else "NO"),
+    sprintf("Short-record gauges, scored from the full departure pool: median NSE %s over %d scored (%d not scored).",
+            fmt(stats::median(cm$short$nse, na.rm = TRUE)), sum(!is.na(cm$short$nse)), sum(is.na(cm$short$nse))),
+    "", "By setting (median and quartiles over gauges; short-record median):", "",
+    sprintf("  %-26s %5s %7s %7s %7s  %5s %7s", "setting", "n", "q25", "median", "q75", "short", "median"))
+for (nm in names(cruns)) {
+  r <- cruns[[nm]]
+  q <- stats::quantile(r$held$nse, c(0.25, 0.5, 0.75), na.rm = TRUE, names = FALSE)
+  say(sprintf("  %-26s %5d %7s %7s %7s  %5d %7s", nm, sum(!is.na(r$held$nse)), fmt(q[1]), fmt(q[2]), fmt(q[3]),
+              sum(!is.na(r$short$nse)), fmt(stats::median(r$short$nse, na.rm = TRUE))))
+}
+if (is.null(related)) say(sprintf("  %-26s %s", "leak-free", snap_note))
+say("", "Per gauge, migration mean, k = 5 (years scored, NSE):", "",
+    paste0("  ", vapply(split(seq_len(nrow(cm$held)), ceiling(seq_len(nrow(cm$held)) / 4)), function(i) {
+      paste(sprintf("%s %3d %6s", cm$held$gauge[i], cm$held$n[i], fmt(cm$held$nse[i])), collapse = "   ")
+    }, "")),
+    "", "Short-record gauges, migration mean, k = 5:", "",
+    paste0("  ", vapply(split(seq_len(nrow(cm$short)), ceiling(seq_len(nrow(cm$short)) / 4)), function(i) {
+      paste(sprintf("%s %3d %6s", cm$short$gauge[i], cm$short$n[i], fmt(cm$short$nse[i])), collapse = "   ")
+    }, "")), "")
