@@ -55,15 +55,18 @@ build by commit and part count only, so a rebuild at the old commit from changed
 
 ## Phase 3: the guards fire (tests)
 
-- [ ] `tests/testthat/test-publish_report_live.R`, sourcing both libs from the source tree into an env
+- [x] `tests/testthat/test-publish_report_live.R`, sourcing both libs from the source tree into an env
       (skipped when `scripts/` is absent, i.e. under R CMD check, which excludes it), with `wet_catalog` and
       `wb_report` stubbed in that env:
   - a failed verify, or `cat_pub` md5s differing from `cat_local`, refuses and leaves the report byte-identical;
   - a passing call rewrites only that line, to N of N and the live digest;
   - `vd_published()` accepts that report; refuses one whose digest differs from the live catalog's (#94's
     sequence: same commit, same count, other parts); refuses the old-format line; refuses a FAIL.
-- [ ] Mutation table in `findings.md`: drop the digest compare in `vd_published()`, drop the `verified`
+- [x] Mutation table in `findings.md`: drop the digest compare in `vd_published()`, drop the `verified`
       check in `publish_report_live()`; each test named goes red, then restored.
+
+- [x] Plan review's blocker: BUILD writes `tree parts md5` of its own tree; PUBLISH, `publish_report_live()`
+      and `vd_published()` require it (`review-plan.md`)
 
 ## Phase 4: docs
 

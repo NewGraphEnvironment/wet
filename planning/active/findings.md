@@ -35,6 +35,35 @@ Relates to #94, #76, #93
 - No testthat test reaches `scripts/`; `.Rbuildignore` excludes it, so a test that sources it must skip under R CMD check.
 - PUBLISH refuses when `R/` or `scripts/` changed since the build commit, so this branch itself makes the current local tree unpublishable: the first report with a digest comes from the next BUILD.
 
+## Tree digest (from the plan review)
+
+The plan as approved let PUBLISH certify a committed report for whatever tree sat on disk at the report's commit
+(`review-plan.md`). The report now also carries `tree parts md5 <digest>` of the BUILD's own tree, required by
+PUBLISH before the upload, by `publish_report_live()` before the rewrite and by `vd_published()` against the
+live parts.
+
+## Real report against the live manifest (2026-10-25)
+
+`vd_published("20260717")` on m1: live b4bbc50, 512 parts, digest 0f4f8caa89691c2196a551c11b345918; the tracked
+report is refused ("not a passing value check of the live build b4bbc50"), because its line predates the digest.
+Expected; the next BUILD writes both lines.
+
+## Mutation table (scratch copy of the tree, `tests/testthat/test-publish_report_live.R`)
+
+| guard removed | test that goes red |
+|---|---|
+| `vd_published()`: live-line digest | refuses a line naming the live commit and count over other parts (#94) |
+| `vd_published()`: tree digest | same |
+| `publish_report_live()`: `verified` all ok | leaves the report as it was unless its upload verified |
+| `publish_report_live()`: published digest = local | same |
+| `publish_report_live()`: tree digest in report | refuses a report of another build, a failed one, or one with no single live line |
+| `publish_report_live()`: build commit in report | same |
+| `publish_report_live()`: no FAIL | same |
+| line writer: digest left out | rewrites only the live-build line, and vd_published() takes it; and the #94 test |
+
+Each restored after its run. PUBLISH's own pre-upload tree check (`discharge_publish.R`) is not reachable from
+testthat (S3); it calls the same `publish_tree_line()` the tested function does.
+
 ## Errors Encountered
 
 | Error | Resolution |

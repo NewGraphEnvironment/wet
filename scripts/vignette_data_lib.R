@@ -54,9 +54,9 @@ vd_routed_check <- function(release = wb_release()) {
 
 # The live manifest must be the build the tracked publish report checked value
 # by value (scripts/discharge_publish.R, #64): that report failed no check, and
-# its parts were byte-identical to the live ones, the live parts' digest
-# included (#94), so a report naming the live commit and part count over other
-# parts is refused. The line is written by publish_live_line()
+# its parts were byte-identical to the live ones: the report's own tree and its
+# live-build line both carry the live parts' digest (#94), so a report naming
+# the live commit and part count over other parts is refused. The line is written by publish_live_line()
 # (scripts/discharge_publish_lib.R), by a BUILD or after an upload verifies.
 # Returns the catalog, the report's path, the commit the build ran at and the
 # one its segment table was built at (vd_segment_report()), and what a reader
@@ -73,7 +73,8 @@ vd_published <- function(release) {
   same <- Filter(length, regmatches(lines, regexec(re_same, lines)))
   if (any(grepl("FAIL", lines)) || length(same) != 1L || same[[1]][2] != pub_commit ||
         length(unique(c(same[[1]][3:5], nrow(cat_pub)))) != 1L ||
-        same[[1]][6] != wet:::wet_catalog_digest(cat_pub)) {
+        same[[1]][6] != wet:::wet_catalog_digest(cat_pub) ||
+        sum(lines == sprintf("tree parts md5 %s", wet:::wet_catalog_digest(cat_pub))) != 1L) {
     stop(f, " is not a passing value check of the live build ", pub_commit, ": rerun scripts/discharge_publish.R")
   }
   re_seg <- "^wet commit ([0-9a-f]+) \\(segment table built at ([0-9a-f]+)\\);"

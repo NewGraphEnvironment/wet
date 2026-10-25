@@ -25,22 +25,32 @@ publish_live_line <- function(cat_local, cat_pub) {
           wet:::wet_catalog_digest(cat_pub))
 }
 
+# The report's line naming the build's own parts by their digest (#94): PUBLISH
+# uploads a tree only when its committed report carries this line, and
+# vd_published() takes a report only when the live parts carry it too, so a
+# report is never certified for parts another build wrote
+publish_tree_line <- function(cat_local) sprintf("tree parts md5 %s", wet:::wet_catalog_digest(cat_local))
+
 # After an upload, the build's report gets the live-build line the upload
 # proved, so no second BUILD is needed to write it (#117). Refuses unless
 # `verified` (wet_catalog_verify() of `cat_pub`) passed for every published
 # part, the published parts are the local ones byte for byte, and the report
-# is this build's and failed no check. Only the line under "## Against the
-# published tree" changes; the file is left for a commit, as after a BUILD
+# is this build's (its commit and its tree's digest) and failed no check.
+# Only the line under "## Against the published tree" changes; the file is
+# left for a commit, as after a BUILD. A refusal comes after the upload, so
+# the live tree has moved and the report has not: rerun PUBLISH, which skips
+# every part already live
 publish_report_live <- function(f_report, cat_local, cat_pub, verified) {
   if (!nrow(verified) || !all(verified$ok) || !setequal(verified$key, cat_pub$key)) {
     stop("the published parts did not all verify; ", f_report, " is left as it was")
   }
-  if (!identical(cat_pub$key, cat_local$key) || !identical(cat_pub$md5, cat_local$md5)) {
+  if (wet:::wet_catalog_digest(cat_pub) != wet:::wet_catalog_digest(cat_local)) {
     stop("the published parts are not the local ones; ", f_report, " is left as it was")
   }
   lines <- readLines(f_report)
   built_at <- attr(cat_local, "provenance")$wet_commit
-  if (!any(startsWith(lines, paste0("wet commit ", built_at, " "))) || any(grepl("FAIL", lines))) {
+  if (!any(startsWith(lines, paste0("wet commit ", built_at, " "))) ||
+        sum(lines == publish_tree_line(cat_local)) != 1L || any(grepl("FAIL", lines))) {
     stop(f_report, " is not a passing report of build ", built_at)
   }
   h <- which(lines == "## Against the published tree")

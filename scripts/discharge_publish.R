@@ -89,8 +89,12 @@ if (publish) {
   }
   f_report <- wb_report("discharge_publish", release)
   rep_head <- tryCatch(git("show", paste0("HEAD:", f_report)), error = function(e) character())
-  if (!any(grepl(paste0("^wet commit ", built_at, " "), rep_head)) || any(grepl("FAIL", rep_head))) {
-    stop("commit the build's report ", f_report, " first; it must name build ", built_at, " and fail no check")
+  # the tree's digest too, so a tree rebuilt at the same commit from other
+  # inputs is not uploaded under this report (#94)
+  if (!any(grepl(paste0("^wet commit ", built_at, " "), rep_head)) ||
+        !any(rep_head == publish_tree_line(cat_local)) || any(grepl("FAIL", rep_head))) {
+    stop("commit the build's report ", f_report, " first; it must name build ", built_at,
+         " and this tree's parts (", publish_tree_line(cat_local), ") and fail no check")
   }
   v <- wet_catalog_verify(cat_local)
   if (!all(v$ok)) stop("the local tree no longer matches its manifest: ", paste(v$key[!v$ok], collapse = ", "))
@@ -682,7 +686,7 @@ stamp("value cross-checks: ", sum(vc_sum$compared), " values compared, ", sum(vc
 
 # the parts against the live manifest's: a rebuild of the same inputs and code
 # writes the same bytes, and a new release is meant to differ, so this is
-# reported, not checked
+# reported, not checked. PUBLISH writes the line again after its upload
 cat_pub <- tryCatch(wet_catalog(publish_url), error = function(e) NULL)
 pub_line <- publish_live_line(cat_local, cat_pub)
 stamp(pub_line)
@@ -701,7 +705,7 @@ writeLines(c(
   sprintf("arrow %s, duckdb %s (a part's bytes depend on the writer's version)",
           utils::packageVersion("arrow"), utils::packageVersion("duckdb")),
   routed_line, sprintf("table: %s", routed_fp),
-  sprintf("tree: %s -> s3://%s/%s/", root, publish_bucket, publish_id), "",
+  sprintf("tree: %s -> s3://%s/%s/", root, publish_bucket, publish_id), publish_tree_line(cat_local), "",
   "## Cross-checks against the segment report, and value by value",
   sprintf("%-15s %s", names(checks), ifelse(checks, "ok", "FAIL")), "",
   "## Value cross-checks (#64): every published flow, and four segment columns, against their sources",
