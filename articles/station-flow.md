@@ -157,12 +157,12 @@ are NGE’s life-history table at commit c97c4d0, and the catchment areas
 are the Freshwater Atlas’s, through `fwapg`. The map’s layers come from
 the Freshwater Atlas, BC Geographic Names and HYDAT’s station locations.
 
-- `wet` 0.4.20,
+- `wet` 0.4.21,
   [doi:10.5281/zenodo.23305781](https://doi.org/10.5281/zenodo.23305781).
   Irvine A (2026). *wet: Stream Flow and Water Temperature for the BC
   Freshwater Atlas*. New Graph Environment Ltd.
   <doi:10.5281/zenodo.23305781>
-  <https://doi.org/10.5281/zenodo.23305781>. Version 0.4.20,
+  <https://doi.org/10.5281/zenodo.23305781>. Version 0.4.21,
   <https://github.com/NewGraphEnvironment/wet>.
 - `cd` 0.6.13,
   [doi:10.5281/zenodo.23264994](https://doi.org/10.5281/zenodo.23264994),
