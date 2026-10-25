@@ -150,3 +150,21 @@ test_that("verify reads a URL part's size and ETag from an anonymous HEAD", {
   expect_identical(v$ok, c(TRUE, FALSE))
   expect_match(v$reason[2], "is not the md5")
 })
+
+test_that("the digest names the parts and their bytes, not their order", {
+  cat <- wet_catalog(shipped_manifest())
+  d <- wet_catalog_digest(cat)
+  expect_match(d, "^[0-9a-f]{32}$")
+  expect_identical(wet_catalog_digest(cat[rev(seq_len(nrow(cat))), ]), d)
+  # the lines it hashes, so the value is pinned to its definition
+  f <- withr::local_tempfile()
+  writeBin(charToRaw(paste0(sort(paste(cat$key, cat$md5), method = "radix"), "\n", collapse = "")), f)
+  expect_identical(d, unname(tools::md5sum(f)))
+  other <- cat
+  other$md5[2] <- sprintf("%032d", 0)
+  expect_false(wet_catalog_digest(other) == d)
+  other <- cat
+  other$key[2] <- sub("part-", "part-x", other$key[2])
+  expect_false(wet_catalog_digest(other) == d)
+  expect_false(wet_catalog_digest(cat[-1, ]) == d)
+})

@@ -35,13 +35,13 @@ build by commit and part count only, so a rebuild at the old commit from changed
 
 ## Phase 1: one line writer, one digest, one parser
 
-- [ ] `wet_catalog_digest(cat)` internal in `R/wet_catalog.R`: md5 of `paste(key, md5)` sorted with
+- [x] `wet_catalog_digest(cat)` internal in `R/wet_catalog.R`: md5 of `paste(key, md5)` sorted with
       `method = "radix"` (locale-free), via a tempfile and `tools::md5sum()` as `digest_raw_md5()` does.
       Tests in `tests/testthat/test-wet_catalog.R`: stable under row order, changes when one md5 changes.
-- [ ] `publish_live_line(cat_local, cat_pub)` in `scripts/discharge_publish_lib.R`: the existing `sprintf()`
+- [x] `publish_live_line(cat_local, cat_pub)` in `scripts/discharge_publish_lib.R`: the existing `sprintf()`
       moved here, with `; live parts md5 <digest of cat_pub>` appended (the `could not read` branch kept).
       BUILD's `pub_line` calls it.
-- [ ] `vd_published()`: parse the digest from the same line and refuse unless it equals
+- [x] `vd_published()`: parse the digest from the same line and refuse unless it equals
       `wet:::wet_catalog_digest(wet_catalog())`, alongside the existing commit and count checks.
 
 ## Phase 2: PUBLISH rewrites the line

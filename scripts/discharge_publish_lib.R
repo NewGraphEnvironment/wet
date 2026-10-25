@@ -11,6 +11,20 @@ stopifnot(identical(publish_url, wet:::wet_catalog_url))
 # what drove each source, the `forcing` key (research/discharge_publish.md)
 publish_forcing <- c(pcic_routed = "PNWNAmet", wet_balance = "climr")
 
+# The report's line on the live build, which vd_published()
+# (scripts/vignette_data_lib.R) parses: how many of the local parts are
+# byte-identical to the live manifest's, and the live parts' digest (#94).
+# BUILD writes it against whatever is live; PUBLISH writes it again once its
+# upload verifies (publish_report_live()). `cat_pub` NULL: the manifest could
+# not be read
+publish_live_line <- function(cat_local, cat_pub) {
+  if (is.null(cat_pub)) return(sprintf("could not read %s", publish_url))
+  same <- sum(cat_local$md5 == cat_pub$md5[match(cat_local$key, cat_pub$key)], na.rm = TRUE)
+  sprintf("parts identical to the published build %s: %d of %d here, %d published (%s); live parts md5 %s",
+          attr(cat_pub, "provenance")$wet_commit, same, nrow(cat_local), nrow(cat_pub), publish_url,
+          wet:::wet_catalog_digest(cat_pub))
+}
+
 # md5 of bytes held in memory, as tools::md5sum() gives a file's
 digest_raw_md5 <- function(bytes) {
   f <- tempfile()

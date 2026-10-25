@@ -680,13 +680,7 @@ stamp("value cross-checks: ", sum(vc_sum$compared), " values compared, ", sum(vc
 # writes the same bytes, and a new release is meant to differ, so this is
 # reported, not checked
 cat_pub <- tryCatch(wet_catalog(publish_url), error = function(e) NULL)
-pub_line <- if (is.null(cat_pub)) {
-  sprintf("could not read %s", publish_url)
-} else {
-  same <- sum(cat_local$md5 == cat_pub$md5[match(cat_local$key, cat_pub$key)], na.rm = TRUE)
-  sprintf("parts identical to the published build %s: %d of %d here, %d published (%s)",
-          attr(cat_pub, "provenance")$wet_commit, same, nrow(cat_local), nrow(cat_pub), publish_url)
-}
+pub_line <- publish_live_line(cat_local, cat_pub)
 stamp(pub_line)
 
 seg_paths <- cat_local$href[cat_local$dataset == ds_seg]

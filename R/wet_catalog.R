@@ -242,3 +242,16 @@ wet_catalog_verify <- function(catalog) {
   reason <- vapply(seq_len(nrow(catalog)), check, "")
   data.frame(key = catalog$key, ok = reason == "", reason = reason, stringsAsFactors = FALSE)
 }
+
+# One md5 for the parts a catalog lists, which names them and their bytes
+# together: md5 of the lines `<key> <md5>`, sorted bytewise (radix, so no
+# locale), each ending in a newline. The publish report records it for the
+# live build (#94), so a report that names the live commit and part count
+# but other parts is refused.
+wet_catalog_digest <- function(catalog) {
+  lines <- sort(paste(catalog$key, catalog$md5), method = "radix")
+  f <- tempfile()
+  on.exit(unlink(f), add = TRUE)
+  writeBin(charToRaw(paste0(lines, "\n", collapse = "")), f)
+  unname(tools::md5sum(f))
+}
