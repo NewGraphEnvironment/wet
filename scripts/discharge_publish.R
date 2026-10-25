@@ -21,9 +21,11 @@
 # the manifest, then deletes keys under the prefix the manifest
 # no longer names. It then reads the public manifest anonymously and checks
 # every part's size and ETag (wet_catalog_verify()), which also proves the
-# bucket policy opens the prefix. The bucket has no versioning: an overwrite
-# is final, and a reader during the upload can see a part that no longer
-# matches the old manifest.
+# bucket policy opens the prefix. Once that passes it rewrites the report's
+# live-build line (publish_report_live(), #117) and leaves the report for a
+# commit, so the vignette data scripts can run without a BUILD after the
+# upload. The bucket has no versioning: an overwrite is final, and a reader
+# during the upload can see a part that no longer matches the old manifest.
 #
 # Run where the full province run is: the segment table is built there, and
 # BUILD refuses a reduced bundle. Needs arrow, duckdb, crate (with crate#31's
@@ -87,9 +89,9 @@ if (publish) {
   }
   f_report <- wb_report("discharge_publish", release)
   rep_head <- tryCatch(git("show", paste0("HEAD:", f_report)), error = function(e) character())
-  if (!any(grepl(paste0("^wet commit ", built_at, " "), rep_head)) || any(grepl("FAIL", rep_head))) {
-    stop("commit the build's report ", f_report, " first; it must name build ", built_at, " and fail no check")
-  }
+  # the tree's digest too, so a tree rebuilt at the same commit from other
+  # inputs is not uploaded under this report (#94)
+  publish_report_check(rep_head, cat_local, f_report)
   v <- wet_catalog_verify(cat_local)
   if (!all(v$ok)) stop("the local tree no longer matches its manifest: ", paste(v$key[!v$ok], collapse = ", "))
   aws <- function(...) {
@@ -134,6 +136,8 @@ if (publish) {
   if (!all(v$ok)) stop("published parts do not verify: ", paste(v$key[!v$ok], v$reason[!v$ok], collapse = "; "))
   stamp("published ", nrow(cat_pub), " parts (", sum(!same), " uploaded), ", length(stale),
         " stale keys deleted; all verify at ", publish_url)
+  stamp(publish_report_live(f_report, cat_local, cat_pub, v))
+  message("commit ", f_report, ": its live-build line now names this upload, so no BUILD needs to follow it")
   quit(save = "no")
 }
 
@@ -191,9 +195,11 @@ seg_commit <- sub("^wet commit ([0-9a-f]+);.*", "\\1", grep("^wet commit ", sr, 
 if (length(seg_commit) != 1L) stop(f_seg_report, " names no wet commit")
 # Every file under R/ and scripts/ but this publish code's own, rather than a
 # list of what the tables depend on: a list misses a dependency and passes,
-# while a file left off the exclusions only forces a rebuild.
+# while a file left off the exclusions only forces a rebuild. The vignette
+# data guards read the published tree and this report, and only data-raw/
+# sources them.
 publish_own <- c("R/wet_catalog.R", "R/wet_db_load.R", "R/wet_values_compare.R", "scripts/discharge_publish.R",
-                 "scripts/discharge_publish_lib.R")
+                 "scripts/discharge_publish_lib.R", "scripts/vignette_data_lib.R")
 # the daily table is made after the monthly one and from it, so its script is
 # no input of the monthly table
 daily_own <- "scripts/segment_daily_output.R"
@@ -678,15 +684,9 @@ stamp("value cross-checks: ", sum(vc_sum$compared), " values compared, ", sum(vc
 
 # the parts against the live manifest's: a rebuild of the same inputs and code
 # writes the same bytes, and a new release is meant to differ, so this is
-# reported, not checked
+# reported, not checked. PUBLISH writes the line again after its upload
 cat_pub <- tryCatch(wet_catalog(publish_url), error = function(e) NULL)
-pub_line <- if (is.null(cat_pub)) {
-  sprintf("could not read %s", publish_url)
-} else {
-  same <- sum(cat_local$md5 == cat_pub$md5[match(cat_local$key, cat_pub$key)], na.rm = TRUE)
-  sprintf("parts identical to the published build %s: %d of %d here, %d published (%s)",
-          attr(cat_pub, "provenance")$wet_commit, same, nrow(cat_local), nrow(cat_pub), publish_url)
-}
+pub_line <- publish_live_line(cat_local, cat_pub)
 stamp(pub_line)
 
 seg_paths <- cat_local$href[cat_local$dataset == ds_seg]
@@ -703,7 +703,7 @@ writeLines(c(
   sprintf("arrow %s, duckdb %s (a part's bytes depend on the writer's version)",
           utils::packageVersion("arrow"), utils::packageVersion("duckdb")),
   routed_line, sprintf("table: %s", routed_fp),
-  sprintf("tree: %s -> s3://%s/%s/", root, publish_bucket, publish_id), "",
+  sprintf("tree: %s -> s3://%s/%s/", root, publish_bucket, publish_id), publish_tree_line(cat_local), "",
   "## Cross-checks against the segment report, and value by value",
   sprintf("%-15s %s", names(checks), ifelse(checks, "ok", "FAIL")), "",
   "## Value cross-checks (#64): every published flow, and four segment columns, against their sources",
@@ -714,7 +714,7 @@ writeLines(c(
           routed_total, fp_total),
   sprintf("daily routed values one 1e-5 step apart at a rounding tie (not counted as differing): %.0f", day_tie),
   sprintf("daily: table built at %s; routed days and weights: %s", day_commit, daily_fp), "",
-  "## Against the published tree", pub_line, "",
+  publish_live_heading, pub_line, "",
   "## What a reader sees (duckdb, hive_partitioning = true, over the local tree)",
   sprintf("%-10s %-9s %-12s %11.0f rows %9.0f fresh-subquery rows", hive$scenario, hive$forcing, hive$source,
           hive$rows, hive$fresh),
