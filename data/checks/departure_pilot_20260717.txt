@@ -184,7 +184,7 @@ Short-record gauges, migration mean, k = 5:
 Donor chain (nearest first): 08EE013, 08EE008, 08EE004, 08ED002, 08ED001.
 Years supplied per donor, migration mean:
   08EE004 31 (1931-1972), 08EE008 12 (1961-2016), 08EE013 46 (1973-2024)
-Limit: each extended year rests on one donor. Of the 50 years before 1981, 31 from 08EE004, 11 from 08EE008, 3 from 08EE013, 5 from observed; the years before 1961 come from 08EE004, the only donor reaching them.
+Limit: each extended year rests on one donor. Of the 50 years before 1981, 31 from 08EE004, 11 from 08EE008, 3 from 08EE013, 5 from observed. Before 1961, the chain donors with any value are 08EE004 and 08ED001; 08EE004 supplies those years, being nearer in the chain.
 
 Before/after: mean departure 2011-2025 minus mean departure before 1981 (log, or days for cov_day);
 90 % interval from 2000 draws resampling years in each period and adding a held-out residual to each extended year; set.seed(120).

@@ -728,13 +728,18 @@ say("## 4. The Maxan answer", "",
                                vapply(names(table(e1$donor)), function(d) min(e1$year[e1$donor %in% d]), 0),
                                vapply(names(table(e1$donor)), function(d) max(e1$year[e1$donor %in% d]), 0)),
                        collapse = ", ")),
-    sprintf("Limit: each extended year rests on one donor. Of the %d years before 1981, %s; the years before %d come from %s, the only donor reaching them.",
-            sum(pre(e1$year)), {
-              tp <- table(ifelse(is.na(e1$donor[pre(e1$year)]), "observed", e1$donor[pre(e1$year)]))
-              paste(sprintf("%d from %s", as.integer(tp), names(tp)), collapse = ", ")
-            },
-            sort(vapply(split(e1$year[!is.na(e1$donor)], e1$donor[!is.na(e1$donor)]), min, 0))[2],
-            names(sort(vapply(split(e1$year[!is.na(e1$donor)], e1$donor[!is.na(e1$donor)]), min, 0)))[1]),
+    {
+      tp <- table(ifelse(is.na(e1$donor[pre(e1$year)]), "observed", e1$donor[pre(e1$year)]))
+      first_use <- sort(vapply(split(e1$year[!is.na(e1$donor)], e1$donor[!is.na(e1$donor)]), min, 0))
+      cut <- first_use[[2]]
+      # the chain donors with any value before the cut, whichever of them supplied it
+      g1 <- wsel("q_mean", "migration")
+      chain1 <- attr(e1, "donors")[[1]]
+      reach <- chain1[vapply(chain1, function(d) any(g1$year[g1$station_number == d] < cut), TRUE)]
+      sprintf("Limit: each extended year rests on one donor. Of the %d years before 1981, %s. Before %d, the chain donors with any value are %s; %s supplies those years, being nearer in the chain.",
+              sum(pre(e1$year)), paste(sprintf("%d from %s", as.integer(tp), names(tp)), collapse = ", "),
+              as.integer(cut), paste(reach, collapse = " and "), names(first_use)[1])
+    },
     "", "Before/after: mean departure 2011-2025 minus mean departure before 1981 (log, or days for cov_day);",
     sprintf("90 %% interval from %d draws resampling years in each period and adding a held-out residual to each extended year; set.seed(120).", n_boot),
     "", sprintf("  %-9s %-9s %4s %4s %9s %9s %18s   %9s %4s %4s", "statistic", "window", "pre", "post", "change",

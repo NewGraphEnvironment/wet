@@ -170,3 +170,7 @@ Each mutation ran on a copy of the script in the session scratchpad, never the t
 ## The Maxan answer and reproducibility (Phase 5, 2026-10-25)
 
 The script ran twice from a frozen copy with the tracked report removed before each run; the two reports are byte-identical (`cmp`), and the tracked script was unchanged against the copy. A first full run's "Limit" line counted from the wrong donor; corrected before the identity runs. Migration mean at Maxan, 2011–2025 against before 1981: −14 % (90 % interval −33 % to +9 %); spawning mean −56 % (−73 % to −28 %); the carried route gives −3 % and −46 %. Pre-1981: 31 years from 08EE004, 11 from 08EE008, 3 from 08EE013, 5 observed. 80 of 94 years' spawning mean is under 0.5 m³/s.
+
+## Code-check enumeration after round 2
+
+Round 2 found a defect inside a fix: the report's "Limit" line, rewritten after the first full run, said 08EE004 was "the only donor reaching" the years before 1961, but 08ED001 (Nanika, from 1950) also reaches 1950–52. The mechanism: report prose stating a quantified claim built from the donors that supplied years, while the claim is about the donors that reach them. The fix computes the reaching donors from the chain's own records. Every other quantified claim in the script's report text (9) and the research section (10) was walked against the code path or report line that produces it; all hold.
