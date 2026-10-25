@@ -87,7 +87,7 @@ Maxan Creek (08EE018, 363 km²) was gauged for five complete Chinook migration w
 | line of organic correlation (MOVE.1) | 0.47 | 90 % |
 | ratio of means (incumbent) | 0.42 | 89 % |
 
-OLS beats the ratio by more than the 0.01 margin, so it is what extends Maxan. It stays first with k = 3, 8 and with nested gauges removed as donors. Its own prediction interval is a little narrow, at 85 % against 90 %. Two other candidates lose on their own years against OLS on the same years. A three-donor regression scores 0.30 against 0.56. Regressing day by day scores 0.36 against 0.52. The 7-day minimum extends badly in the migration window: every method's median is below 0.
+OLS beats the ratio by more than the 0.01 margin, so it is what extends Maxan. It stays first with k = 3, 8 and with nested gauges removed as donors. Its own prediction interval is a little narrow, at 85 % against 90 %. Two other candidates lose on their own years against OLS on the same years. A regression on up to three donors scores 0.30 against 0.56. Regressing day by day scores 0.36 against 0.52. The 7-day minimum extends badly in the migration window: every method's median is below 0.
 
 **Question 2: carrying departures (`wet_departure_carry()`).** Each departure-pool gauge was held out in turn and given its five nearest donors' log departures, each from the donor's own 1981–2010 mean. The score is NSE on the years both series have, each centred on its own mean there, so 0 means "no better than no departure".
 
@@ -98,7 +98,7 @@ OLS beats the ratio by more than the 0.01 margin, so it is what extends Maxan. I
 
 **Maxan, 1931–2024.** Maxan's migration-window mean is extended by OLS from a donor chain:
 
-- Buck Creek (08EE013) for 1973–2024, except 2016;
+- Buck Creek (08EE013) for 1973–1974, 1980–2015 and 2017–2024, around Maxan's own 1975–1979;
 - Goathorn Creek (08EE008) for 1961–1971 and 2016;
 - the Bulkley at Quick (08EE004), which contains Maxan, for 1931–1960 and 1972.
 

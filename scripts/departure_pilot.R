@@ -268,6 +268,11 @@ blocks_of <- function(y, len = 5) {
   }
   b
 }
+# years as runs: 1973-1974, 1980-2015, 2017-2024
+year_runs <- function(y) {
+  paste(vapply(runs_of(sort(y)), function(r) if (length(r) > 1) sprintf("%d-%d", min(r), max(r)) else
+    as.character(r), ""), collapse = ", ")
+}
 pool$n_mig <- vapply(pool$station_number, function(s) length(years_of(s)), 0L)
 pool$n_spw <- vapply(pool$station_number, function(s) length(years_of(s, "spawning")), 0L)
 pool$first <- vapply(pool$station_number, function(s) min(years_of(s)), 0)
@@ -455,8 +460,9 @@ say("## 2. Record extension (question 1)", "",
     sprintf("Extension pool: %d gauges; %d hold at least one 5-year block (%d without one). Blocks: %d; dropped for no covering donor %d, for fewer than 3 held-out years %d. Window-years <= 0 dropped from the log score: %d.",
             length(ext_pool), main$n[["gauges"]], main$n[["no_block"]], main$n[["blocks"]],
             main$n[["no_donor"]], main$n[["few_held"]], main$n[["dropped_le0"]]),
-    sprintf("Scored: %d blocks at %d gauges, %d held-out years in all.", nrow(unique(main$r[c("gauge", "block")])),
-            length(unique(main$r$gauge)), nrow(main$r)),
+    sprintf("Scored: %d blocks at %d gauges; %d held-out block-years, %d distinct gauge-years.",
+            nrow(unique(main$r[c("gauge", "block")])), length(unique(main$r$gauge)), nrow(main$r),
+            nrow(unique(main$r[c("gauge", "year")]))),
     "", "Migration-window mean, log NSE on held-out years, k = 5. Per gauge the median over its blocks; across gauges:", "",
     sprintf("  %-6s %8s %8s %8s", "method", "q25", "median", "q75"))
 for (mt in methods) say(sprintf("  %-6s %8s %8s %8s", mt, qs(main_pg[[mt]])[1], qs(main_pg[[mt]])[2], qs(main_pg[[mt]])[3]))
@@ -530,7 +536,7 @@ for (d in blk) {
   pr <- drop(cbind(1, matrix(X0, nrow(d))) %*% stats::coef(fit))
   ok <- !is.na(pr)
   if (sum(ok) >= 3) {
-    multi[[length(multi) + 1]] <- data.frame(gauge = g, block = d$block[1],
+    multi[[length(multi) + 1]] <- data.frame(gauge = g, block = d$block[1], n_donors = length(use),
       nse = wet:::wet_nse(log(d$value[ok]), pr[ok]), nse_ols = wet:::wet_nse(log(d$value[ok]), log(d$ols[ok])))
   }
   # day by day on the nearest covering donor
@@ -561,7 +567,12 @@ alt_line <- function(label, r) {
           fmt(stats::median(pg$nse)), fmt(stats::median(pg$nse_ols)))
 }
 say("Other candidates, each over its own held-out years (migration mean, k = 5):", "",
-    alt_line(sprintf("multi-donor ols (%d donors)", min(k_main, 3)), do.call(rbind, multi)),
+    alt_line("multi-donor ols", do.call(rbind, multi)),
+    sprintf("  (multi-donor: min(k, n - 2) = %d donors where the chain has them; blocks by donors used: %s)",
+            min(k_main, 3), {
+              nd <- table(do.call(rbind, multi)$n_donors)
+              paste(sprintf("%s: %d", names(nd), as.integer(nd)), collapse = ", ")
+            }),
     alt_line("(d) day by day", do.call(rbind, dbd)), "")
 
 # leave-one-year-out at 08EE018, from the extension pool
@@ -724,10 +735,9 @@ say("## 4. The Maxan answer", "",
             if (ship == "ols") " are OLS's prediction interval" else " from the pseudo-record residuals"),
     sprintf("Donor chain (nearest first): %s.", paste(attr(e1, "donors")[[1]], collapse = ", ")),
     "Years supplied per donor, migration mean:",
-    paste0("  ", paste(sprintf("%s %d (%d-%d)", names(table(e1$donor)), as.integer(table(e1$donor)),
-                               vapply(names(table(e1$donor)), function(d) min(e1$year[e1$donor %in% d]), 0),
-                               vapply(names(table(e1$donor)), function(d) max(e1$year[e1$donor %in% d]), 0)),
-                       collapse = ", ")),
+    paste0("  ", vapply(names(table(e1$donor)), function(d) {
+      sprintf("%s %d years: %s", d, sum(e1$donor %in% d), year_runs(e1$year[e1$donor %in% d]))
+    }, "")),
     {
       tp <- table(ifelse(is.na(e1$donor[pre(e1$year)]), "observed", e1$donor[pre(e1$year)]))
       first_use <- sort(vapply(split(e1$year[!is.na(e1$donor)], e1$donor[!is.na(e1$donor)]), min, 0))
@@ -776,19 +786,21 @@ say("", "Trend in cd's anomaly of the extended series (cd_trend(): Theil-Sen slo
     sprintf("  %-9s %-9s %5d %9s %7s %4d", sub("^q_", "", trd$variable), trd$period, as.integer(trd$trend_start),
             fmt(trd$slope, 3), fmt(trd$mk_pvalue, 3), as.integer(trd$n_years)))
 
-say("", sprintf("%s per year: migration and spawning mean (m3/s) with the 90 %% interval, the donor, and the carried departure (%% of normal):", mx_id), "",
-    sprintf("  %4s %8s %8s %8s %-8s  %8s %8s %8s  %8s %8s", "year", "mig", "lo", "hi", "donor", "spw", "lo", "hi",
-            "mig car", "spw car"))
-e2 <- mx[["q_mean spawning"]]$e
-a1 <- m1$a
-a2 <- mx[["q_mean spawning"]]$a
-for (y in sort(union(e1$year, e2$year))) {
-  i <- match(y, e1$year)
-  j <- match(y, e2$year)
-  say(sprintf("  %4d %8s %8s %8s %-8s  %8s %8s %8s  %8s %8s", y, fmt(e1$value[i], 2), fmt(e1$lower[i], 2),
-              fmt(e1$upper[i], 2), if (is.na(i)) "-" else if (is.na(e1$donor[i])) "observed" else e1$donor[i],
-              fmt(e2$value[j], 2), fmt(e2$lower[j], 2), fmt(e2$upper[j], 2),
-              fmt(a1$pct_normal[match(y, a1$year)], 1), fmt(a2$pct_normal[match(y, a2$year)], 1)))
+for (m in mx) {
+  days <- is_days(m$v)
+  dep_txt <- function(z) if (days) fmt(z, 1) else fmt(100 * (exp(z) - 1), 1)
+  say("", sprintf("%s per year, %s %s (%s): value with the 90 %% interval and the donor; its departure from the extended series' own 1981-2010 mean, and the carried departure (%s):",
+                  mx_id, m$p, sub("^q_", "", m$v), if (days) "day of the window" else "m3/s",
+                  if (days) "days" else "% of normal"), "",
+      sprintf("  %4s %8s %8s %8s %-8s %9s %9s", "year", "value", "lo", "hi", "donor", "departure", "carried"))
+  e <- m$e
+  for (y in sort(union(e$year, m$a$year))) {
+    i <- match(y, e$year)
+    k <- match(y, m$a$year)
+    say(sprintf("  %4d %8s %8s %8s %-8s %9s %9s", y, fmt(e$value[i], 2), fmt(e$lower[i], 2), fmt(e$upper[i], 2),
+                if (is.na(i)) "-" else if (is.na(e$donor[i])) "observed" else e$donor[i],
+                if (is.na(i)) "-" else dep_txt(e$dep[i]), if (is.na(k)) "-" else dep_txt(m$a$anomaly[k])))
+  }
 }
 
 writeLines(out, report)

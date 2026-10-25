@@ -174,3 +174,14 @@ The script ran twice from a frozen copy with the tracked report removed before e
 ## Code-check enumeration after round 2
 
 Round 2 found a defect inside a fix: the report's "Limit" line, rewritten after the first full run, said 08EE004 was "the only donor reaching" the years before 1961, but 08ED001 (Nanika, from 1950) also reaches 1950–52. The mechanism: report prose stating a quantified claim built from the donors that supplied years, while the claim is about the donors that reach them. The fix computes the reaching donors from the chain's own records. Every other quantified claim in the script's report text (9) and the research section (10) was walked against the code path or report line that produces it; all hold.
+
+## Code-check round 3 and the label enumeration
+
+Round 3 named the mechanism behind all three rounds: a label worded from the intended set beside a number computed from another object (scored rows for "cut", supplying donors for "reaching", a first-to-last span for continuous years, a constant for the donors used). It found four more:
+
+- "multi-donor ols (3 donors)" was a constant; 7 of 218 blocks used 1 or 2 donors. The medians did not move.
+- "11773 held-out years" counted block-years; there are 1,182 distinct gauge-years.
+- Buck's "1973-2024" span hid Maxan's own 1975-79; the research copied it.
+- The header promised per-year series, intervals, donors and departures for every statistic; the report gave the mean only.
+
+Enumeration, every label printed beside a count (sections 1-4, 31 labels) walked against its computation. Section 1: natural box gauges, excluded, box/extension/departure/short pools, pilot counts and every table column count what they say. Section 2: gauges with blocks, blocks cut, dropped by reason (both no-donor drops are that reason), window-years <= 0, scored blocks, per-gauge blocks, sensitivity gauges and blocks. Section 3: departure-pool size, scored and unscored gauges, short-record scored, years per gauge. Section 4: the 1931-2024 span is continuous (94 rows, cd's n 94), pre/post year counts for both routes, route years, trend n. The research section's pool counts (53, 21, 31, 13) match section 1. Every label now names what its number counts.
