@@ -1,5 +1,14 @@
 # Changelog
 
+## wet 0.4.20
+
+- The published discharge is rebuilt on the first province run under
+  [\#76](https://github.com/NewGraphEnvironment/wet/issues/76)’s
+  order-free sums (`92b893c4da`), with the fit refit on it: every
+  decision is unchanged and every value moved by rounding only (at most
+  7.2e-11 relative). The articles’ data bundles are rebuilt from that
+  build; no number in them changes.
+
 ## wet 0.4.19
 
 - Upstream sums no longer depend on the order rows arrive in
