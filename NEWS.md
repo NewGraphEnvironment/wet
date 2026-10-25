@@ -1,3 +1,7 @@
+# wet 0.4.20
+
+* The published discharge is rebuilt on the first province run under #76's order-free sums (`92b893c4da`), with the fit refit on it: every decision is unchanged and every value moved by rounding only (at most 7.2e-11 relative). The articles' data bundles are rebuilt from that build; no number in them changes.
+
 # wet 0.4.19
 
 * Upstream sums no longer depend on the order rows arrive in (#76). `wet_upstream_sums()` adds polygons that share `(wscode, localcode)`, and each watershed's irregular pairs, in `watershed_feature_id` order; shuffled Fraser and Columbia inputs moved the old sums by up to 4.4e-16 relative and leave the new ones `identical()`. The fetches on the province path (`wet_ws_fetch()`, `wet_upstream_irregular()`, `wet_ws_geom()`, `wet_upstream_pairs()`) order on a unique key, so a run's stored files come out in one row order, and `wet_station_snap()` breaks an exact score-and-distance tie on `linear_feature_id`. `scripts/wb_upstream_order.R` replays two province runs' stored row orders through the current sums. The change alters the province run key, so it reaches the published balance with the next province run.
