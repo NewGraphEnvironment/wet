@@ -53,8 +53,8 @@ What the script refuses: a target or donor with fewer than 3 complete window yea
 
 ## Phase 3: Record extension, `wet_window_extend()`
 
-- [ ] `R/wet_window_extend.R`: takes `wet_window_stats()` output for a target and donors plus a station table, `method = c("ols", "move1", "ratio")`, `k`, `level = 0.9`; picks donors among those covering the target's observed years; returns the target's per-year value, lower and upper bound, `donor` and `source` (`observed` / `extended`) in the same long format. Exported, roxygen, runnable `@examples` on synthetic series.
-- [ ] `tests/testthat/test-wet_window_extend.R`: recovers a known log-linear relation exactly; MOVE.1 preserves the target's variance where OLS shrinks it; ratio of means on a fixture where it differs from the mean of ratios; refuses < 3 overlapping years; a donor not covering the observed years is not chosen; an observed year is returned as observed, not extended; the OLS interval half-width doubles when the residual SD doubles.
+- [x] `R/wet_window_extend.R`: takes `wet_window_stats()` output for a target and donors plus a station table, `method = c("ols", "move1", "ratio")`, `k`, `level = 0.9`; picks donors among those covering the target's observed years; returns the target's per-year value, lower and upper bound, `donor` and `source` (`observed` / `extended`) in the same long format. Exported, roxygen, runnable `@examples` on synthetic series.
+- [x] `tests/testthat/test-wet_window_extend.R`: recovers a known log-linear relation exactly; MOVE.1 preserves the target's variance where OLS shrinks it; ratio of means on a fixture where it differs from the mean of ratios; refuses < 3 overlapping years; a donor not covering the observed years is not chosen; an observed year is returned as observed, not extended; the OLS interval half-width doubles when the residual SD doubles.
 - [ ] Script: the pseudo-short-record test over the pool, the rule applied, sensitivities (k = 3, 8; the spawning window; `min7`, `cov_day`), interval coverage. Report section 2.
 
 ## Phase 4: Donor-carried departures, `wet_departure_carry()`

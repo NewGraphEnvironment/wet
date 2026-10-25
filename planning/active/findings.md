@@ -121,3 +121,13 @@ Box lon −128.8…−125.0, lat 53.6…55.8. 94 BC gauges; 58 with ≥3 complet
 ## The pool as the script measures it (Phase 2)
 
 `wet_window_stats()` complete window-years on HYDAT 20260717: 81 natural box gauges in STATIONS, one excluded for missing metadata (08EE007), box pool 53, extension pool 21, departure pool 31, short-record 13. 08EE003 counts 44 (the issue's 43 came from a different count); the script fixes 44 and asserts 43 or 44. The 13 short-record gauges differ from the findings table's 13: 08EC002 (regulated) is out, and 08EE028 is in at 10 years; it is also in the departure pool (10 baseline years), so it is scored in both sets. 08EE003 has only 18 baseline years.
+
+## `wet_window_extend()` guards proved (Phase 3)
+
+| planted defect | test result |
+|---|---|
+| ratio as a mean of ratios | 1 failure |
+| donor coverage rule removed | 1 failure, 1 error |
+| MOVE.1 slope multiplied by r (ols's) | 2 failures |
+
+Each restored and `cmp`-checked against the saved copy. The predictor space projects with `terra` (already imported), not `sf`.
