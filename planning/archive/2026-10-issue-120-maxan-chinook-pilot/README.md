@@ -31,4 +31,4 @@ Every fix regenerated the report twice, byte-identical, and no value moved after
 
 - Tick #120 in #118's component task list.
 
-Closed by: PR (opened from branch `120-maxan-creek-chinook-pilot-extend-08ee018`)
+Closed by: PR #125
