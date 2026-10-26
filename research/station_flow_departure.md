@@ -127,7 +127,7 @@ The interval resamples years within each period and adds a held-out residual to 
 | Maxan (08EE018), extended | 75 | +21 % (+10 to +34) | +18 % (+11 to +26) | 0.46 | 0.28 |
 | Maxan, donor-carried | 65 | +20 % (+11 to +29) | +10 % (+5 to +16) | 0.50 | 0.20 |
 
-Each slope is from the fit with both predictors, as a percent change in the window's mean flow, with its 90 % interval. Every one of the eight intervals excludes zero. Peak snow and melt date are correlated, at r = 0.50 to 0.57, so each alone takes up some of the other: alone, peak snow gives +30 % to +39 % per 100 mm and melt date +18 % to +28 % per 10 days. In the spawning window R² is at most 0.07, and every slope's interval spans zero. The residuals show little year-to-year persistence: their lag-1 autocorrelation is −0.07 to 0.19.
+Each slope is from the fit with both predictors, as a percent change in the window's mean flow, with its 90 % interval. Every one of the eight intervals excludes zero. Peak snow and melt date are correlated, at r = 0.50 to 0.57 over the migration-window fits' years, so each alone takes up some of the other: alone, peak snow gives +30 % to +39 % per 100 mm and melt date +18 % to +28 % per 10 days. In the spawning window R² is at most 0.07, and every slope's interval spans zero. The residuals show little year-to-year persistence: their lag-1 autocorrelation is −0.07 to 0.19.
 
 **Snow over the record.** In all three watersheds, peak snow over 2011–2025 averaged about 10 mm less than over 1950–1980, 3 to 4 %. The 50 % melt date came about 10 days earlier: 9 days at Houston, 11 at Buck and 10 at Maxan. Applying Maxan's migration-window slopes to that change gives −17 % on the extended series and −11 % on the carried one. That arithmetic is not part of the registered specification. Most of it comes from the earlier melt. The pilot measured −14 % and −3 % between 2011–2025 and the years before 1981, which reach back to 1931.
 
@@ -135,7 +135,7 @@ Each slope is from the fit with both predictors, as a percent change in the wind
 
 **Limits.**
 
-- Maxan's extended series is its donors' flow passed through a line fitted on five years. Its snow slopes therefore restate the donors' response: Buck Creek for most years since 1973, Goathorn Creek for 1961–1971, and before 1961 the Bulkley at Quick, which contains Maxan. They are not independent evidence about Maxan.
+- Maxan's extended series is its donors' flow passed through a line fitted on five years. Its snow slopes therefore restate the donors' response, and they are not independent evidence about Maxan. Buck Creek supplies most years since 1973. In the migration window, Goathorn Creek supplies 1961–1971 and the Bulkley at Quick, which contains Maxan, 1950–1960 and 1972. In the spawning window, Goathorn supplies 1960–1971 and Quick 1950–1959 and 1972.
 - In 1950 and 1951 the carried departure equals Houston's, its only donor with a value then, and Houston contains Maxan.
 - Houston's watershed contains Buck's and Maxan's, so the fits at the three gauges share ground and weather.
 - Houston has 36 fitted years. Eight of its 44 complete migration windows fall before 1950, and it has none between 1999 and 2010.
