@@ -30,12 +30,28 @@
 #' @param baseline Baseline years.
 #' @param min_baseline Fewest baseline years a donor needs, and the target
 #'   needs for `value`.
+#' @param weights How the donors are weighted. `"distance"` (the default):
+#'   the `k` nearest, by inverse distance. `"covariance"`: the same `k`, each
+#'   weight multiplied by `max(r, 0)`, where `r` is the correlation between
+#'   the target's and the donor's modelled values in `modelled` (log values
+#'   for flow, days for `*_cov_day`) over the years both have; an `r` from
+#'   fewer than 30 years, or undefined, counts as 0. `"covariance_pick"`:
+#'   among the 15 nearest, the `k` with the highest `r`, weighted by
+#'   `max(r, 0)` alone. Where every donor chosen weighs 0, the covariance
+#'   options fall back to `"distance"` for that statistic.
+#' @param modelled For the covariance options only: modelled values in `x`'s
+#'   long format, such as routed PCIC flow at each gauge's segment from
+#'   [wet_routed_years()] through [wet_window_stats()], with rows for the
+#'   target and every donor the option considers.
 #' @return A data frame: `station_number` (the target), `variable`, `period`,
 #'   `year`, `anomaly` (log, or days for `*_cov_day`), `pct_normal`,
 #'   `n_donors` (present that year), `donors` (`"station:weight"` pairs
 #'   used that year, separated by spaces) and `value`: the target's baseline
 #'   mean carried by the anomaly, only where the target has its own
-#'   baseline in `x`, else `NA`.
+#'   baseline in `x`, else `NA`. Under the covariance options each pair in
+#'   `donors` also carries the donor's `r` (`"station:weight:r"`), and a
+#'   column `weighting` says which weighting was used: the option, or
+#'   `"distance"` where it fell back.
 #' @examples
 #' # Two donors share a wet year in 1990; the target, ungauged, gets it too
 #' yrs <- 1975:2000
@@ -48,7 +64,20 @@
 #' a <- wet_departure_carry(x, st, "T", k = 2)
 #' a[a$year %in% 1989:1991, c("year", "anomaly", "pct_normal", "donors")]
 #' @export
-wet_departure_carry <- function(x, stations, target, k = 5, baseline = 1981:2010, min_baseline = 10) {
+wet_departure_carry <- function(x, stations, target, k = 5, baseline = 1981:2010, min_baseline = 10,
+                                weights = c("distance", "covariance", "covariance_pick"), modelled = NULL) {
+  weights <- match.arg(weights)
+  cov <- weights != "distance"
+  if (cov && is.null(modelled)) stop("`weights = \"", weights, "\"` needs `modelled`", call. = FALSE)
+  if (!cov && !is.null(modelled)) stop("`modelled` is used only by the covariance weightings", call. = FALSE)
+  if (cov) {
+    for (col in c("station_number", "variable", "period", "year", "value")) {
+      if (!col %in% names(modelled)) stop("`modelled` has no column `", col, "`", call. = FALSE)
+    }
+    if (anyDuplicated(modelled[c("station_number", "variable", "period", "year")])) {
+      stop("`modelled` has more than one value for a station, variable, period and year", call. = FALSE)
+    }
+  }
   for (col in c("station_number", "variable", "period", "year", "value")) {
     if (!col %in% names(x)) stop("`x` has no column `", col, "`", call. = FALSE)
   }
@@ -74,11 +103,12 @@ wet_departure_carry <- function(x, stations, target, k = 5, baseline = 1981:2010
     if (!days) g <- g[g$value > 0, ]
     cand <- sort(setdiff(unique(g$station_number), target))
     don <- rownames(space)[rownames(space) %in% cand]
-    # wet_donor_mean() on the identity gives each donor's weight, so the
-    # weighting stays the one #70 and #102 use
-    wt <- drop(wet_donor_mean(space[target, , drop = FALSE], space[don, , drop = FALSE],
-                              diag(length(don)), min(k, length(don))))
-    names(wt) <- don
+    # wet_donor_mean() on the identity gives each donor's distance weight, so
+    # the weighting stays the one #70 and #102 use; the covariance options
+    # scale or replace it (wet_donor_weights())
+    mod <- if (cov) modelled[modelled$variable == v & modelled$period == p, c("station_number", "year", "value")]
+    dw <- wet_donor_weights(space, target, don, k, weights, mod, days)
+    wt <- dw$weight
     dist <- sqrt(colSums((t(space[don, , drop = FALSE]) - space[target, ])^2))
     use <- don[order(dist, don)]
     use <- use[wt[use] > 0]
@@ -100,14 +130,20 @@ wet_departure_carry <- function(x, stations, target, k = 5, baseline = 1981:2010
     an <- rowSums(wt_mat * ifelse(is.na(dep_mat), 0, dep_mat))
     used <- vapply(seq_len(nrow(wt_mat)), function(r) {
       j <- which(wt_mat[r, ] > 0)
-      paste(sprintf("%s:%.4f", use[j], wt_mat[r, j]), collapse = " ")
+      if (cov) {
+        paste(sprintf("%s:%.4f:%.3f", use[j], wt_mat[r, j], dw$r[use[j]]), collapse = " ")
+      } else {
+        paste(sprintf("%s:%.4f", use[j], wt_mat[r, j]), collapse = " ")
+      }
     }, "")
     tb <- g$value[g$station_number == target & g$year %in% baseline]
     tmean <- if (length(tb) >= min_baseline) mean(tb) else NA_real_
-    data.frame(station_number = target, variable = v, period = p, year = yrs, anomaly = unname(an),
-               pct_normal = if (days) NA_real_ else 100 * (exp(unname(an)) - 1),
-               n_donors = unname(rowSums(wt_mat > 0)), donors = used,
-               value = if (days) tmean + unname(an) else tmean * exp(unname(an)))
+    o <- data.frame(station_number = target, variable = v, period = p, year = yrs, anomaly = unname(an),
+                    pct_normal = if (days) NA_real_ else 100 * (exp(unname(an)) - 1),
+                    n_donors = unname(rowSums(wt_mat > 0)), donors = used,
+                    value = if (days) tmean + unname(an) else tmean * exp(unname(an)))
+    if (cov) o$weighting <- if (dw$fallback) "distance" else weights
+    o
   })
   out <- do.call(rbind, res)
   out <- out[order(out$variable, out$period, out$year), ]

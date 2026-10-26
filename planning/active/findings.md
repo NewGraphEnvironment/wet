@@ -48,6 +48,17 @@ Relates to #118, #58, #102, NewGraphEnvironment/fwapg#42, NewGraphEnvironment/fw
 - **Header amended before any candidate (second commit):** the first header said the distance weight's m is "the median of the k distances"; `wet_donor_mean()` takes the median over the target's distances to every donor, and a donor at distance 0 takes the whole weight. The pool also now says a baseline year needs a value > 0, since `wet_departure_carry()` drops values <= 0 from a log statistic. Caught by reading the carry code at the start of Phase 2.
 - **Limit stated in the header:** PCIC publishes no calibration gauges, so `pcic`'s score at a calibration gauge may be partly in sample (`research/water_balance_method.md`, #58).
 
+## Phase 2: covariance weighting (2026-10-26)
+
+- **The default path is byte-identical:** `wet_departure_carry()` on a 12-gauge synthetic case (two statistics, three targets, missing years) serialises to the same bytes before and after the change (`identical(serialize(a), serialize(b))`).
+- **Mutation table, `wet_donor_weights()`** (each restored in a copy of the tree; failed test blocks across its test file and the carry's):
+
+| restored defect | failed blocks |
+|---|---|
+| covariance weight `wt * r` instead of `wt * max(r, 0)` | 2 |
+| covariance_pick chooses by distance, not r | 1 |
+| r needs 3 common years, not 30 | 1 |
+
 ## Errors Encountered
 
 | Error | Resolution |

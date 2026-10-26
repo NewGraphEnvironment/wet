@@ -10,7 +10,9 @@ wet_departure_carry(
   target,
   k = 5,
   baseline = 1981:2010,
-  min_baseline = 10
+  min_baseline = 10,
+  weights = c("distance", "covariance", "covariance_pick"),
+  modelled = NULL
 )
 }
 \arguments{
@@ -32,6 +34,21 @@ the target and every station in \code{x}.}
 
 \item{min_baseline}{Fewest baseline years a donor needs, and the target
 needs for \code{value}.}
+
+\item{weights}{How the donors are weighted. \code{"distance"} (the default):
+the \code{k} nearest, by inverse distance. \code{"covariance"}: the same \code{k}, each
+weight multiplied by \code{max(r, 0)}, where \code{r} is the correlation between
+the target's and the donor's modelled values in \code{modelled} (log values
+for flow, days for \verb{*_cov_day}) over the years both have; an \code{r} from
+fewer than 30 years, or undefined, counts as 0. \code{"covariance_pick"}:
+among the 15 nearest, the \code{k} with the highest \code{r}, weighted by
+\code{max(r, 0)} alone. Where every donor chosen weighs 0, the covariance
+options fall back to \code{"distance"} for that statistic.}
+
+\item{modelled}{For the covariance options only: modelled values in \code{x}'s
+long format, such as routed PCIC flow at each gauge's segment from
+\code{\link[=wet_routed_years]{wet_routed_years()}} through \code{\link[=wet_window_stats]{wet_window_stats()}}, with rows for the
+target and every donor the option considers.}
 }
 \value{
 A data frame: \code{station_number} (the target), \code{variable}, \code{period},
@@ -39,7 +56,10 @@ A data frame: \code{station_number} (the target), \code{variable}, \code{period}
 \code{n_donors} (present that year), \code{donors} (\code{"station:weight"} pairs
 used that year, separated by spaces) and \code{value}: the target's baseline
 mean carried by the anomaly, only where the target has its own
-baseline in \code{x}, else \code{NA}.
+baseline in \code{x}, else \code{NA}. Under the covariance options each pair in
+\code{donors} also carries the donor's \code{r} (\code{"station:weight:r"}), and a
+column \code{weighting} says which weighting was used: the option, or
+\code{"distance"} where it fell back.
 }
 \description{
 Gives a site with no record of its own (or a short one) the departure of
