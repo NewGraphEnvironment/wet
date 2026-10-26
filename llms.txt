@@ -136,8 +136,9 @@ Read the per-segment and per-watershed discharge wet publishes.
 
 ## Station flow
 
-Daily and monthly flow at hydrometric stations, and the gauges the water
-balance is fitted at.
+Daily and monthly flow at hydrometric stations, the gauges the water
+balance is fitted at, a short record extended from its neighbours, and
+departures carried to an ungauged site.
 
 - [`wet_station_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_station_daily.md)
   : Daily flow at hydrometric stations, from HYDAT through to the
@@ -151,6 +152,10 @@ balance is fitted at.
 - [`wet_station_snap()`](https://newgraphenvironment.github.io/wet/reference/wet_station_snap.md)
   : Snap HYDAT stations to FWA fundamental watersheds, checked by
   drainage area
+- [`wet_window_extend()`](https://newgraphenvironment.github.io/wet/reference/wet_window_extend.md)
+  : Extend a short gauge record of window statistics from donor gauges
+- [`wet_departure_carry()`](https://newgraphenvironment.github.io/wet/reference/wet_departure_carry.md)
+  : Carry donor gauges' year-to-year departures onto an ungauged site
 
 ## Water temperature
 
