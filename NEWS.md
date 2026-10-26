@@ -1,3 +1,7 @@
+# wet 0.4.23
+
+* `wet_snow_annual()` returns each year's ERA5-Land snow from cd's annual layers, such as peak snow water equivalent and the 50 % melt date, over one watershed's dissolved polygons, 1950–2025 (#121). Its example reads Maxan Creek's outline and cd's layers, bundled in `inst/extdata/snow_pilot/`. `scripts/departure_snow.R` regresses the Maxan pilot's Chinook window flows on them: more peak snow and a later melt mean more migration-window flow at every series, and snow explains almost nothing in the spawning window (`research/station_flow_departure.md`).
+
 # wet 0.4.22
 
 * Two functions estimate window flow at a site with a short record or none (#120). `wet_window_extend()` extends a short record of window statistics from the nearest long-record donors that cover each year (OLS, MOVE.1 or a ratio of means), with an interval per year. `wet_departure_carry()` carries donors' log departures, each from the donor's own 1981–2010 mean, onto a site. `scripts/departure_pilot.R` chose OLS under a rule registered before any candidate existed, and found carried departures usable (median held-out NSE 0.63 on the Chinook migration-window mean, against 0.5 set in advance). At Maxan Creek (08EE018), extended to 1931–2024 from five gauged years, the spawning-window mean was 56 % lower in 2011–2025 than before 1981 (90 % interval −73 % to −28 %). The report is `data/checks/departure_pilot_20260717.txt`.
