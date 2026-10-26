@@ -1,0 +1,20 @@
+## Checklist read
+
+- code-check.md (330,698 bytes): the prose of all 14 H3s under `## Mechanisms`, table rows skipped. Also read the index of "Rules that stand alone", Security and Spreadsheets/PDFs; none of those sections apply to this diff, so 0 of them were read in full.
+- code-check-r.md (177,187 bytes): read in full: "`sort()` and `order()` collate by `LC_COLLATE`", "`tolerance` in testthat is RELATIVE", "`$` on a list partial-matches", "`ifelse()` with an all-NA test", "`sample.int(prob =)` without replacement". Checked from the index line alone, with no full read: "Rscript reads a script as it runs", "`vapply(..., USE.NAMES = FALSE)`", "`[[` on a named ATOMIC vector", "`match()` treats NA", "Postgres row order", "`on.exit()` at a script's top level", "`c(name = x)`", "testthat counts an uncaught error under `error`". About 105 other headings were not read.
+- code-check-shell.md (124,506 bytes): index only. The diff has no shell code, so 0 of 67 sections were read.
+- code-check-spatial.md (155,517 bytes): index only. The only spatial calls are `terra::project()` on a matrix of points and `sf::st_transform()` of points, and no listed trap covers either, so 0 of 93 sections were read.
+
+## Verification done
+
+- Walked the header's rule against the body item by item. These all match: the pools; donor selection (k nearest covering donors, then the nearest donor with a value in each year); the fit on the observed years; the tiled 5-year blocks; scoring on held-out years over the years all three candidates share; per-gauge median then median over gauges; the margin rule with 1e-9; the leave-gauge-out residual quantiles for move1 and ratio; centred NSE for question 2; the usable threshold; the leak-free drop; the bootstrap (resampling years within each period, a residual added only to extended years, set.seed(120)); cd baseline, anomaly and trend from the first year and from 1981; and the refusals.
+- Checked the `wet_nse(obs, mod)` argument order at all five call sites: correct.
+- Ran both new test files under `NOT_CRAN=true` against `load_all()`: window_extend 31 pass, 0 fail, 0 error; departure_carry 20 pass, 0 fail, 0 error.
+- The header promises that window-years with a value <= 0 are "counted", but `sens_line()` never prints `dropped_le0` for the sensitivities. I probed HYDAT 20260717: the 21 extension-pool gauges have 0 window-years <= 0 in any window or statistic, so no number moves. This is not listed as a finding.
+- Checked every number in the new research section against the report. All match except the two below. Spawning means under 0.5 m3/s: 80 of 94 years, which supports "most".
+
+## Findings
+
+- **[bug]** research/station_flow_departure.md, Limits paragraph (last line of the new section): "Every pre-1981 departure therefore carries the Bulkley's own history". The report contradicts this. Its line 187 says that of the 50 years before 1981, 31 come from 08EE004 (Bulkley at Quick), 11 from 08EE008 (Goathorn), 3 from 08EE013 (Buck), and 5 are observed. So 19 of the 50 pre-1981 years, which is 14 of the 45 extended ones, do not come from the Bulkley mainstem. The claim holds only for the years before 1961, which is what the previous sentence says. This is an unsupported universal quantifier in a tracked research file.
+- **[bug]** research/station_flow_departure.md, question 1 paragraph: "Each long gauge was cut into 5-year blocks, 218 in all." The report (line 73) says 220 blocks were cut, of which 2 were dropped for no covering donor and 218 were scored (line 74). The research number names the wrong count. It should say 218 scored, or 220 cut.
+- **[bug]** scripts/departure_pilot.R, header line 21-22 ("max is computed and reported, never scored") against the body: `q_max` is computed (line 247, `stats = c(..., "max", ...)`) but never written to the report. No section, table or line of data/checks/departure_pilot_20260717.txt mentions max (`grep max` on the report: 0 hits). This is a divergence between the pre-registered header and the code. It decides nothing, but the registered report content is missing. Either report max (for example at Maxan) or record the omission.
