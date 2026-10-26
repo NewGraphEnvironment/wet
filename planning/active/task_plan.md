@@ -1,6 +1,6 @@
-# PARKED: baseline only (2026-10-26)
+# Resumed 2026-10-26 (run to the PR)
 
-Approved at the plan gate 2026-10-26 and parked by the user. The approval covered this baseline (branch, the three planning files, the Plan review folded in); the run-to-PR mandate starts at the resume instruction (`progress.md`, Resume).
+Approved at the plan gate 2026-10-26 and parked by the user; resumed the same day with the instruction to run every phase to the open PR.
 
 # Task: Per-year ERA5-Land snow for a watershed, and the regression of the Maxan window series on peak SWE and melt date (#121)
 
@@ -30,8 +30,8 @@ User, 2026-10-26: the plan as presented, parked. Mechanism, picked here (convent
 
 ## Phase 1: Register the specification
 
-- [ ] `scripts/departure_snow.R`: header only, with the specification above (series, predictors, model, counts, parity, connection, the rds it reads and its two refusals: `release` mismatch, `code_md5` not the current pilot script), the run line (`WET_HYDAT_RELEASE=20260717 Rscript scripts/departure_snow.R`), inputs (HYDAT, fwapg via `WET_PG*`, cd, the pilot rds) and output (`data/checks/departure_snow_20260717.txt`); committed alone
-- [ ] `planning/active/findings.md`: cd's measured coverage and the fwapg watershed counts (done at the baseline)
+- [x] `scripts/departure_snow.R`: header only, with the specification above (series, predictors, model, counts, parity, connection, the rds it reads and its two refusals: `release` mismatch, `code_md5` not the current pilot script), the run line (`WET_HYDAT_RELEASE=20260717 Rscript scripts/departure_snow.R`), inputs (HYDAT, fwapg via `WET_PG*`, cd, the pilot rds) and output (`data/checks/departure_snow_20260717.txt`); committed alone
+- [x] `planning/active/findings.md`: cd's measured coverage and the fwapg watershed counts (done at the baseline)
 
 ## Phase 2: `wet_snow_annual()`
 
