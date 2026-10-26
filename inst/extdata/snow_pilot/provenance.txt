@@ -1,0 +1,22 @@
+Built by data-raw/snow_pilot_data.R (wet #121).
+Date: 2026-10-26 (UTC).
+wet commit: 3cbd020ae5a1d42cfed8edca55d5a859c2fd0aa5.
+HYDAT release: 20260717 (STATIONS lon, lat and gross drainage area for the snaps).
+Snaps (wet_station_snap(), fwapg, all accepted): 08EE003 -> 7653689 (5448 upstream fundamental watersheds); 08EE013 -> 7619666 (1005 upstream fundamental watersheds); 08EE018 -> 9939958 (788 upstream fundamental watersheds).
+maxan_outline.rds: the union of 08EE018's 788 upstream fundamental watersheds, EPSG:3005, unsimplified, 2690 vertices, WKT at 15 significant digits.
+Layers: cd's annual ERA5-Land files cropped to the outline plus two 0.1-degree cells, every band, FLT8S; equal to the remote file at every cell.
+  swe_max: https://stac-era5-land.s3.us-west-2.amazonaws.com/swe_max_annual.tif
+    CD_RUN_ID local
+    CD_RUN_TIME 2026-10-10T22:36:36Z
+    CD_SHA 349f9d72e1687761ce98ebd62e6a086be30cc2a6
+    CD_VERSION 0.6.3
+  snowmelt_doy_50: https://stac-era5-land.s3.us-west-2.amazonaws.com/snowmelt_doy_50_annual.tif
+    CD_RUN_ID local
+    CD_RUN_TIME 2026-10-10T22:36:36Z
+    CD_SHA 349f9d72e1687761ce98ebd62e6a086be30cc2a6
+    CD_VERSION 0.6.3
+  snowmelt_rate_peak: https://stac-era5-land.s3.us-west-2.amazonaws.com/snowmelt_rate_peak_annual.tif
+    CD_RUN_ID local
+    CD_RUN_TIME 2026-10-10T22:36:36Z
+    CD_SHA 349f9d72e1687761ce98ebd62e6a086be30cc2a6
+    CD_VERSION 0.6.3

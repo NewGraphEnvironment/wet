@@ -41,9 +41,9 @@ User, 2026-10-26: the plan as presented, parked. Mechanism, picked here (convent
 
 ## Phase 3: Bundled pilot data and the example
 
-- [ ] `data-raw/snow_pilot_data.R`: `devtools::load_all()`; snaps 08EE018 (and 08EE003, 08EE013 for the count assertion) from HYDAT 20260717 `STATIONS` with `wet_station_snap()`, asserts the three `watershed_feature_id`s and polygon counts above (`count(*)::int`), fetches Maxan's upstream fundamental watersheds (`FWA_Upstream` join), writes its dissolved outline (`maxan_outline.rds`, WKT, xz), crops cd's three annual layers to it plus margin (`<var>_annual.tif`, bands named by year, `CD_*` tags) and `catalog.csv` (relative `href`); asserts crop = remote at every cell; records provenance (cd run id and time, HYDAT release, wet commit, date, outline simplification if any) in `provenance.txt`; reports the bundle size and refuses over 500 KB
-- [ ] `@examples` on `wet_snow_annual()` reading the bundle through `system.file()` and joining the hrefs (runs under pkgdown on CI; touches neither cd nor fwapg); a test that the bundle gives one row per year 1950–2025 with `cover == 1` and values inside cd's ranges
-- [ ] `.gitignore`: `data/departure/` falls under `data/*` (confirmed with `git check-ignore` at the baseline); `inst/extdata/snow_pilot/` is tracked
+- [x] `data-raw/snow_pilot_data.R`: `devtools::load_all()`; snaps 08EE018 (and 08EE003, 08EE013 for the count assertion) from HYDAT 20260717 `STATIONS` with `wet_station_snap()`, asserts the three `watershed_feature_id`s and polygon counts above (`count(*)::int`), fetches Maxan's upstream fundamental watersheds (`FWA_Upstream` join), writes its dissolved outline (`maxan_outline.rds`, WKT, xz), crops cd's three annual layers to it plus margin (`<var>_annual.tif`, bands named by year, `CD_*` tags) and `catalog.csv` (relative `href`); asserts crop = remote at every cell; records provenance (cd run id and time, HYDAT release, wet commit, date, outline simplification if any) in `provenance.txt`; reports the bundle size and refuses over 500 KB
+- [x] `@examples` on `wet_snow_annual()` reading the bundle through `system.file()` and joining the hrefs (runs under pkgdown on CI; touches neither cd nor fwapg); a test that the bundle gives one row per year 1950–2025 with `cover == 1` and values inside cd's ranges
+- [x] `.gitignore`: `data/departure/` falls under `data/*` (confirmed with `git check-ignore` at the baseline); `inst/extdata/snow_pilot/` is tracked
 
 ## Phase 4: The regression at the pilot
 

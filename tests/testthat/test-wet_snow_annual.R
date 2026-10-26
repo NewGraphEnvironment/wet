@@ -159,3 +159,20 @@ test_that("bad inputs stop", {
                                catalog = snow_cat(c(swe_max = f, snowmelt_doy_50 = h))),
                "snowmelt_doy_50 is not on swe_max's grid")
 })
+
+test_that("the bundled pilot data give every year 1950-2025 at full cover, inside cd's ranges", {
+  d <- system.file("extdata", "snow_pilot", package = "wet")
+  skip_if(!nzchar(d), "bundled pilot data not installed")
+  outline <- readRDS(file.path(d, "maxan_outline.rds"))
+  expect_identical(outline$station_number, "08EE018")
+  ws <- terra::vect(outline$wkt, crs = outline$crs)
+  expect_equal(sum(terra::expanse(ws)) / 1e6, 364, tolerance = 1e-3)
+  cat <- utils::read.csv(file.path(d, "catalog.csv"))
+  cat$href <- file.path(d, cat$href)
+  s <- wet_snow_annual(ws, c("swe_max", "snowmelt_doy_50", "snowmelt_rate_peak"), catalog = cat)
+  expect_identical(s$year, 1950:2025)
+  expect_true(all(s$cover == 1))
+  expect_true(all(s$swe_max > 0 & s$swe_max <= 3000))
+  expect_true(all(s$snowmelt_doy_50 >= 1 & s$snowmelt_doy_50 <= 366))
+  expect_true(all(s$snowmelt_rate_peak > 0))
+})
