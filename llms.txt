@@ -263,6 +263,8 @@ the evapotranspiration models applied to them.
   : Land-cover fractions on a grid from the NRCan 2020 land cover
 - [`wet_snow_normals()`](https://newgraphenvironment.github.io/wet/reference/wet_snow_normals.md)
   : Snow normals from cd's ERA5-Land annual snow layers
+- [`wet_snow_annual()`](https://newgraphenvironment.github.io/wet/reference/wet_snow_annual.md)
+  : Each year's ERA5-Land snow over one watershed
 
 ## Water balance fit and validation
 
