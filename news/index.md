@@ -1,5 +1,19 @@
 # Changelog
 
+## wet 0.4.23
+
+- [`wet_snow_annual()`](https://newgraphenvironment.github.io/wet/reference/wet_snow_annual.md)
+  returns each year’s ERA5-Land snow from cd’s annual layers, such as
+  peak snow water equivalent and the 50 % melt date, over one
+  watershed’s dissolved polygons, 1950–2025
+  ([\#121](https://github.com/NewGraphEnvironment/wet/issues/121)). Its
+  example reads Maxan Creek’s outline and cd’s layers, bundled in
+  `inst/extdata/snow_pilot/`. `scripts/departure_snow.R` regresses the
+  Maxan pilot’s Chinook window flows on them: more peak snow and a later
+  melt mean more migration-window flow at every series, and snow
+  explains almost nothing in the spawning window
+  (`research/station_flow_departure.md`).
+
 ## wet 0.4.22
 
 - Two functions estimate window flow at a site with a short record or
