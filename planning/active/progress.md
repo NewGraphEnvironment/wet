@@ -19,3 +19,4 @@ The approval covered the baseline only; the run-to-PR mandate (`agent-operations
 
 - Resumed on the user's instruction; branch already current with origin and main.
 - Phase 1: `scripts/departure_snow.R` header committed alone. Beyond the plan's wording it fixes three things before any body exists: predictors centred on each watershed's 1981-2010 mean (intercept = departure at normal snow); the parity line checks that the shipped normals were built from the bands read (their cache key reproduced in `tempdir()`); a year with cover below 1 is refused.
+- Phase 2: `wet_snow_annual()` with 37 synthetic-layer expectations. The catalog, file, cap and band checks moved out of `wet_snow_normals()` into internal helpers unchanged (its 28 tests pass; its cache key does not involve them). The default `cap` applies only when `swe_max` is asked for. Mutation: without the dissolve, the union-identity and nested-polygon tests fail. The example reads the Phase 3 bundle.

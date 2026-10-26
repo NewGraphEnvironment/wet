@@ -67,6 +67,7 @@ reference:
   - wet_dem_glo90
   - wet_landcover_nrcan
   - wet_snow_normals
+  - wet_snow_annual
 - title: Water balance fit and validation
   desc: Fit the balance at HYDAT gauges, split it into months and score it held out.
   contents:

@@ -35,9 +35,9 @@ User, 2026-10-26: the plan as presented, parked. Mechanism, picked here (convent
 
 ## Phase 2: `wet_snow_annual()`
 
-- [ ] `R/wet_snow_annual.R`: the function as decided, sharing `wet_snow_normals()`'s catalog, fetch, band-year, CRS and `cap` checks (factor the shared pieces into internal helpers only where both call them unchanged)
-- [ ] `tests/testthat/test-wet_snow_annual.R` on synthetic layers whose values vary across cells (value = year − 1980 + column): one row per band year with the exact per-year value; `years` subsets and a missing band stops; `cap` applies per year and only to the named variable; a polygon half over sea reports `cover = 0.5` and the land value; fundamental polygons and their union give `identical()` results; one extra NA cell in one year moves every year's value and `cover` is one number; catalog, CRS and non-polygon errors
-- [ ] Export, roxygen (the union, the cover rule, one watershed per call), `_pkgdown.yml` (beside `wet_snow_normals` under Water balance inputs), `devtools::document()`, `pkgdown::check_pkgdown()`
+- [x] `R/wet_snow_annual.R`: the function as decided, sharing `wet_snow_normals()`'s catalog, fetch, band-year, CRS and `cap` checks (factor the shared pieces into internal helpers only where both call them unchanged)
+- [x] `tests/testthat/test-wet_snow_annual.R` on synthetic layers whose values vary across cells (value = year − 1980 + column): one row per band year with the exact per-year value; `years` subsets and a missing band stops; `cap` applies per year and only to the named variable; a polygon half over sea reports `cover = 0.5` and the land value; fundamental polygons and their union give `identical()` results; one extra NA cell in one year moves every year's value and `cover` is one number; catalog, CRS and non-polygon errors
+- [x] Export, roxygen (the union, the cover rule, one watershed per call), `_pkgdown.yml` (beside `wet_snow_normals` under Water balance inputs), `devtools::document()`, `pkgdown::check_pkgdown()`
 
 ## Phase 3: Bundled pilot data and the example
 
