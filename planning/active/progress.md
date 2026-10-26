@@ -23,3 +23,4 @@ Then "start Phase 1 of planning/active/task_plan.md". Phase 1 is the rule header
 - Resumed on instruction; branch current with origin and main; CI green.
 - Phase 1: probed `pcic.subbasin_daily`'s precision (float64; findings), wrote the rule header of `scripts/departure_pcic.R`, committed it alone before any candidate.
 - Next: Phase 2 (wet reads the years; synthetic fixture).
+- Phase 2: `wet_routed_years()` (reads only the named sub-basins through duckdb, refuses a missing, repeated or non-calendar day and an NA flow, routes with `wet_routed_days()`), the synthetic fixture (4 sub-basins, 1951-2012, 400 KB; a losing reach exercises the clamp) and 24 test expectations; exported under a widened "PCIC runoff and routed flow" pkgdown section.

@@ -32,9 +32,10 @@ reference:
   - wet_flow_window
   - wet_window_stats
   - wet_windows_calendar
-- title: PCIC gridded runoff
-  desc: Fetch PCIC VIC-GL gridded variables and summarise them per year.
+- title: PCIC runoff and routed flow
+  desc: Fetch PCIC VIC-GL gridded variables and summarise them per year, and route PCIC's per-year sub-basin flows to FWA segments day by day.
   contents:
+  - wet_routed_years
   - wet_pcic_url
   - wet_pcic_index
   - wet_pcic_fetch

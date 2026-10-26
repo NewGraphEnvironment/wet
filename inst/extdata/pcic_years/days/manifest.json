@@ -1,0 +1,7 @@
+{
+  "product": "synthetic per-year sub-basin flows (data-raw/pcic_years_fixture.R)",
+  "model": "synthetic",
+  "scenario": "historical",
+  "years": "1951-2012",
+  "fwapg_commit": "synthetic"
+}
