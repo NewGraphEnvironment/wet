@@ -15,8 +15,12 @@
 # carried series per statistic and window (`mx`), the pilot gauges' window
 # statistics before wsel()'s value > 0 filter (`ws`), `release`, `ship`,
 # `k_main`, `baseline`, `level` and `code_md5` (the md5 of the script file
-# this run executes, taken at its start; it covers the script, not the
-# package functions it calls), which scripts/departure_snow.R reads. Nothing is published, no fit is read or
+# Rscript runs, as it stands at the start of the run; it covers the script,
+# not the package functions it calls), which scripts/departure_snow.R reads.
+# Rscript reads a script as it runs, so run a frozen copy
+# (cp scripts/departure_pilot.R "$TMPDIR/p.R" && Rscript "$TMPDIR/p.R"), or
+# an edit made mid-run executes under the md5 taken before it. Sourcing the
+# script from another stops at its start. Nothing is published, no fit is read or
 # touched: 08EE018 and 08EE003 are not calibration gauges, and 08EE013 is
 # used here only as a HYDAT record.
 #
@@ -217,7 +221,9 @@ if (release != "20260717") stop("the pilot's rule names HYDAT 20260717, not ", r
 # the script this run executes (a frozen copy, say), hashed before anything else can change it
 # (Rscript writes a space in the path as ~+~)
 self <- gsub("~+~", " ", sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)), fixed = TRUE)
-if (length(self) != 1) stop("run with Rscript, so the script's own md5 can be recorded", call. = FALSE)
+if (length(self) != 1 || sys.nframe() != 0) {
+  stop("run with Rscript, not through source(), so the script's own md5 can be recorded", call. = FALSE)
+}
 code_md5 <- unname(tools::md5sum(self))
 if (is.na(code_md5)) stop("cannot read the running script at ", self, " to record its md5", call. = FALSE)
 hydat <- wb_hydat(release)
