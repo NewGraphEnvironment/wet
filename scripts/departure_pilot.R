@@ -215,9 +215,11 @@ source("scripts/wb_fit_lib.R")  # wb_release(), wb_hydat()
 release <- wb_release()
 if (release != "20260717") stop("the pilot's rule names HYDAT 20260717, not ", release, call. = FALSE)
 # the script this run executes (a frozen copy, say), hashed before anything else can change it
-self <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
+# (Rscript writes a space in the path as ~+~)
+self <- gsub("~+~", " ", sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)), fixed = TRUE)
 if (length(self) != 1) stop("run with Rscript, so the script's own md5 can be recorded", call. = FALSE)
 code_md5 <- unname(tools::md5sum(self))
+if (is.na(code_md5)) stop("cannot read the running script at ", self, " to record its md5", call. = FALSE)
 hydat <- wb_hydat(release)
 report <- file.path("data", "checks", sprintf("departure_pilot_%s.txt", release))
 baseline <- 1981:2010
