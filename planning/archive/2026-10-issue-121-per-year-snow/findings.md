@@ -80,4 +80,4 @@ All three `accepted`. The counts came back as `integer64` printed as doubles (th
 - Snow change 1950-1980 to 2011-2025: peak SWE -9 to -11 mm (3-4 %), melt date 9-11 days earlier, in all three watersheds.
 - Parity with the shipped normals: within 0.86 mm and 0.49 days; the normals' cache key reproduces from the bands read.
 - Maxan's carried departure equals Houston's in 1950 and 1951 (its only donor then).
-- R's environment sets bare `PG*` to the tailnet fwapg host; `WET_PG*` default to localhost. Both answered; the pilot's leak-free lines read the former.
+- R's environment sets the bare `PG*` to a different fwapg database from `WET_PG*`'s localhost default. Both answered; the pilot's leak-free lines read the former.

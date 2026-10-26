@@ -3,7 +3,7 @@
 Measured 2026-10-26 on R 4.5.2 (macOS, /Library/Frameworks/R.framework), with probe scripts holding
 exactly lines 219-222 of scripts/departure_pilot.R at HEAD (plus a first line printing a per-file
 marker and a last line printing `self` and `code_md5`), under
-/private/tmp/claude-501/-Users-airvine-Projects-repo-wet/cb533427-05b5-4600-a3db-4bac866270bf/scratchpad/r5/.
+<scratch dir>
 "Executed" is the file whose marker printed; "md5 ok" compares `code_md5` with `md5 -q` of that file.
 The front end that encodes paths is `bin/R` (a sh script): `--file=*` and `-f` pass the path through
 `echo | sed 's/ /~+~/g'`, and the result is spliced into an unquoted `${args}`.
