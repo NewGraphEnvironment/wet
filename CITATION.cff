@@ -8,7 +8,7 @@ message: If you use wet, please cite it by its DOI, 10.5281/zenodo.23305781.
 type: software
 license: MIT
 title: 'wet: Stream Flow and Water Temperature for the BC Freshwater Atlas'
-version: 0.4.22
+version: 0.4.23
 doi: 10.5281/zenodo.23305781
 abstract: 'Mean monthly and annual stream flow for the British Columbia Freshwater
   Atlas (FWA), published openly per stream segment from two sources: the Pacific Climate
@@ -30,7 +30,7 @@ preferred-citation:
     email: al@newgraphenvironment.com
     orcid: https://orcid.org/0000-0002-3495-2128
     affiliation: New Graph Environment Ltd.
-  version: 0.4.22
+  version: 0.4.23
   date-released: '2026-10-26'
   url: https://newgraphenvironment.github.io/wet/
   repository-code: https://github.com/NewGraphEnvironment/wet
