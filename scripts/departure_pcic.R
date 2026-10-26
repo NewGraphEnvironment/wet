@@ -60,9 +60,10 @@
 # definition (a pcic.discharge_monthly row; 290 there).
 #
 # Per (variable, period): a gauge enters that statistic's pool if it has at
-# least 10 complete window-years of the observed statistic inside 1981-2010,
-# so its own baseline is defined and wet_departure_carry() accepts it as a
-# donor. A complete window-year is a row wet_window_stats() returns at its
+# least 10 complete window-years of the observed statistic inside 1981-2010
+# with a value > 0 (any value for cov_day), so its own baseline is defined
+# and wet_departure_carry(), which drops values <= 0 from a log statistic,
+# accepts it as a donor. A complete window-year is a row wet_window_stats() returns at its
 # default min_frac = 0.8; cov_day's are the window-years with every day
 # present, which wet_window_stats() alone returns. The headline pool, and
 # the counts the rule reports, are the migration mean's. Donors and held-out
@@ -107,12 +108,15 @@
 # segment routed to 0), counts as 0. Only modelled series enter r, so a
 # held-out target's observations never weight its donors.
 #
-# Candidates, every setting fixed here; d is the distance to the target and
-# m the median of the k distances, as wet_donor_mean():
+# Candidates, every setting fixed here. w_d is wet_donor_mean()'s distance
+# weight: 1 / (d + 1e-6 * m), d the donor's distance to the target and m the
+# median of the target's distances to every donor in its pool, except that
+# when any of the chosen donors is at distance 0, those take weight 1 and
+# the rest 0.
 #
 #   distance         the incumbent, wet_departure_carry() as #120 shipped it:
-#                    the k nearest, weight 1 / (d + 1e-6 * m).
-#   covariance       the same k nearest, weight max(r, 0) / (d + 1e-6 * m).
+#                    the k nearest, weight w_d.
+#   covariance       the same k nearest, weight w_d * max(r, 0).
 #   covariance_pick  among the 15 nearest, the k with the highest r (a tie
 #                    to the nearer), weight max(r, 0).
 #
