@@ -1,6 +1,6 @@
 Built by data-raw/snow_pilot_data.R (wet #121).
 Date: 2026-10-26 (UTC).
-wet commit: 3cbd020ae5a1d42cfed8edca55d5a859c2fd0aa5.
+wet commit: 7e8b9fa7dbcbc444682ff27b8b3b9c784cbb00ef.
 HYDAT release: 20260717 (STATIONS lon, lat and gross drainage area for the snaps).
 Snaps (wet_station_snap(), fwapg, all accepted): 08EE003 -> 7653689 (5448 upstream fundamental watersheds); 08EE013 -> 7619666 (1005 upstream fundamental watersheds); 08EE018 -> 9939958 (788 upstream fundamental watersheds).
 maxan_outline.rds: the union of 08EE018's 788 upstream fundamental watersheds, EPSG:3005, unsimplified, 2690 vertices, WKT at 15 significant digits.
