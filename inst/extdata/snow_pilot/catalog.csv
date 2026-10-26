@@ -1,0 +1,4 @@
+"variable","period","href"
+"swe_max","annual","swe_max_annual.tif"
+"snowmelt_doy_50","annual","snowmelt_doy_50_annual.tif"
+"snowmelt_rate_peak","annual","snowmelt_rate_peak_annual.tif"

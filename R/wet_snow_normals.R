@@ -44,37 +44,15 @@
 wet_snow_normals <- function(grid, vars = c("snowmelt_doy_50", "swe_max"), years = 1981:2010,
                              dir = "data/snow", catalog = NULL, cap = c(swe_max = 3000), overwrite = FALSE) {
   grid <- if (inherits(grid, "SpatRaster")) grid[[1]] else terra::rast(grid)[[1]]
-  if (is.null(catalog)) {
-    if (!requireNamespace("cd", quietly = TRUE)) stop("catalog = NULL needs the cd package", call. = FALSE)
-    catalog <- cd::cd_catalog()
-  }
+  catalog <- wet_snow_catalog(catalog)
   if (!length(vars) || anyDuplicated(vars)) stop("vars must be distinct cd variable names", call. = FALSE)
   if (!length(years) || anyNA(years) || anyDuplicated(years)) stop("years must be distinct years", call. = FALSE)
-  hrefs <- vapply(vars, function(v) {
-    h <- catalog$href[catalog$variable %in% v & catalog$period %in% "annual"]
-    if (length(h) != 1) stop("catalog has ", length(h), " annual rows for ", v, ", not 1", call. = FALSE)
-    h
-  }, "")
-  files <- vapply(hrefs, function(h) {
-    if (grepl("^https?://", h)) {
-      if (!requireNamespace("cd", quietly = TRUE)) stop("a remote href needs the cd package", call. = FALSE)
-      cd::cd_cache_fetch(h)
-    } else {
-      h
-    }
-  }, "")
-  if (!all(file.exists(files))) stop("missing: ", paste(files[!file.exists(files)], collapse = ", "), call. = FALSE)
-  if (length(cap) && (is.null(names(cap)) || !all(names(cap) %in% vars) || anyNA(cap))) {
-    stop("cap must name variables in vars", call. = FALSE)
-  }
+  files <- wet_snow_files(vars, catalog)
+  wet_snow_cap_check(cap, vars)
   src <- lapply(seq_along(vars), function(i) {
     r <- terra::rast(files[[i]])
     if (!terra::same.crs(r, grid)) stop(vars[i], " is not in the grid's CRS", call. = FALSE)
-    miss <- setdiff(as.character(years), names(r))
-    if (length(miss)) {
-      stop(vars[i], " has no band for ", length(miss), " of the years: ", paste(utils::head(miss, 5), collapse = ", "),
-           call. = FALSE)
-    }
+    wet_snow_bands_check(r, years, vars[i])
     # a margin of two source cells, so bilinear at the grid's edge has neighbours
     terra::crop(r[[as.character(years)]], terra::extend(terra::ext(grid), 2 * terra::res(r)), snap = "out")
   })
@@ -101,3 +79,46 @@ wet_snow_normals <- function(grid, vars = c("snowmelt_doy_50", "swe_max"), years
 
 # bump whenever wet_snow_normals() changes what it computes
 wet_snow_method <- "year-mean-cap-bilinear-2"
+
+# cd's catalog unless one is given
+wet_snow_catalog <- function(catalog) {
+  if (!is.null(catalog)) return(catalog)
+  if (!requireNamespace("cd", quietly = TRUE)) stop("catalog = NULL needs the cd package", call. = FALSE)
+  cd::cd_catalog()
+}
+
+# One local file per variable: the catalog's single annual row, fetched through
+# cd's cache when remote.
+wet_snow_files <- function(vars, catalog) {
+  hrefs <- vapply(vars, function(v) {
+    h <- catalog$href[catalog$variable %in% v & catalog$period %in% "annual"]
+    if (length(h) != 1) stop("catalog has ", length(h), " annual rows for ", v, ", not 1", call. = FALSE)
+    h
+  }, "")
+  files <- vapply(hrefs, function(h) {
+    if (grepl("^https?://", h)) {
+      if (!requireNamespace("cd", quietly = TRUE)) stop("a remote href needs the cd package", call. = FALSE)
+      cd::cd_cache_fetch(h)
+    } else {
+      h
+    }
+  }, "")
+  if (!all(file.exists(files))) stop("missing: ", paste(files[!file.exists(files)], collapse = ", "), call. = FALSE)
+  files
+}
+
+wet_snow_cap_check <- function(cap, vars) {
+  if (length(cap) && (is.null(names(cap)) || !all(names(cap) %in% vars) || anyNA(cap))) {
+    stop("cap must name variables in vars", call. = FALSE)
+  }
+  invisible(cap)
+}
+
+wet_snow_bands_check <- function(r, years, var) {
+  miss <- setdiff(as.character(years), names(r))
+  if (length(miss)) {
+    stop(var, " has no band for ", length(miss), " of the years: ", paste(utils::head(miss, 5), collapse = ", "),
+         call. = FALSE)
+  }
+  invisible(r)
+}

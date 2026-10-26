@@ -10,9 +10,19 @@
 # Reads HYDAT 20260717 only (scripts/wb_fit_lib.R's wb_hydat(), wet's
 # per-user cache), and fwapg through the PG* env vars for the leak-free
 # sensitivity alone. Writes the tracked report
-# data/checks/departure_pilot_20260717.txt and nothing else. Nothing is
-# published, no fit is read or touched: 08EE018 and 08EE003 are not
-# calibration gauges, and 08EE013 is used here only as a HYDAT record.
+# data/checks/departure_pilot_20260717.txt and, after it, the gitignored
+# data/departure/departure_pilot_20260717.rds (#121): Maxan's extended and
+# carried series per statistic and window (`mx`), the pilot gauges' window
+# statistics before wsel()'s value > 0 filter (`ws`), `release`, `ship`,
+# `k_main`, `baseline`, `level` and `code_md5` (the md5 of the script file
+# Rscript runs, as it stands at the start of the run; it covers the script,
+# not the package functions it calls), which scripts/departure_snow.R reads.
+# Rscript reads a script as it runs, so run a frozen copy
+# (cp scripts/departure_pilot.R "$TMPDIR/p.R" && Rscript "$TMPDIR/p.R"), or
+# an edit made mid-run executes under the md5 taken before it. Sourcing the
+# script from another stops at its start. Nothing is published, no fit is read or
+# touched: 08EE018 and 08EE003 are not calibration gauges, and 08EE013 is
+# used here only as a HYDAT record.
 #
 # ---- decided at the plan gate (user, 2026-10-24) ---------------------------------------------
 #
@@ -208,6 +218,14 @@ source("scripts/wb_fit_lib.R")  # wb_release(), wb_hydat()
 
 release <- wb_release()
 if (release != "20260717") stop("the pilot's rule names HYDAT 20260717, not ", release, call. = FALSE)
+# the script this run executes (a frozen copy, say), hashed before anything else can change it
+# (Rscript writes a space in the path as ~+~)
+self <- gsub("~+~", " ", sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)), fixed = TRUE)
+if (length(self) != 1 || sys.nframe() != 0) {
+  stop("run with Rscript, not through source(), so the script's own md5 can be recorded", call. = FALSE)
+}
+code_md5 <- unname(tools::md5sum(self))
+if (is.na(code_md5)) stop("cannot read the running script at ", self, " to record its md5", call. = FALSE)
 hydat <- wb_hydat(release)
 report <- file.path("data", "checks", sprintf("departure_pilot_%s.txt", release))
 baseline <- 1981:2010
@@ -808,3 +826,10 @@ for (m in mx) {
 }
 
 writeLines(out, report)
+
+# the series for scripts/departure_snow.R (#121), after the report so no draw moves
+rds <- file.path("data", "departure", sprintf("departure_pilot_%s.rds", release))
+dir.create(dirname(rds), recursive = TRUE, showWarnings = FALSE)
+saveRDS(list(release = release, ship = ship, k_main = k_main, baseline = baseline, level = level, mx = mx,
+             ws = ws[ws$station_number %in% pilot, ],
+             code_md5 = code_md5), rds)
