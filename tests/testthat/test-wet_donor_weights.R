@@ -29,7 +29,7 @@ test_that("covariance scales the k nearest's weights by max(r, 0)", {
   x <- dw_case()
   w <- wet_donor_weights(x$space, "T", x$donors, 3, "covariance", x$m)
   d <- wet_donor_weights(x$space, "T", x$donors, 3, "distance")
-  expect_equal(w$weight[["D2"]], 0)  # r < 0
+  expect_equal(w$weight[["D2"]], 0)  # a negative r
   expect_true(w$r[["D2"]] < -0.9)
   expect_equal(w$weight[["D3"]], d$weight[["D3"]] * w$r[["D3"]])
   expect_equal(w$weight[c("D4", "D5")], c(D4 = 0, D5 = 0))  # not among the 3 nearest

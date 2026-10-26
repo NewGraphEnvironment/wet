@@ -4,16 +4,22 @@
 \alias{wet_routed_years}
 \title{Routed PCIC flow on FWA segments, day by day and year by year}
 \usage{
-wet_routed_years(dir, weights, years = 1951:2012)
+wet_routed_years(
+  dir,
+  weights,
+  years = 1951:2012,
+  series = "PNWNAmet_historical"
+)
 }
 \arguments{
-\item{dir}{Directory holding the per-year sub-basin flows as parquet,
-searched recursively.}
+\item{dir}{Directory holding the per-year files.}
 
 \item{weights}{\code{data.frame(linear_feature_id, subid, share, upstream_subids)}, one row per segment, as fwapg's
 \code{pcic.segment_weights}: \code{upstream_subids} is a list of integer vectors.}
 
-\item{years}{Years to route.}
+\item{years}{Years to route; each needs its file.}
+
+\item{series}{The run's model and scenario, as the files name them.}
 }
 \value{
 \code{data.frame(linear_feature_id, date, q_m3s)}, one row per segment
@@ -33,17 +39,18 @@ rounded to 5 decimals, the routing and rounding fwapg uses for the daily
 climatology it publishes, applied to one day of one year instead of a mean
 over years.
 
-The sub-basin flows are read through duckdb from parquet files under
-\code{dir}, one row per sub-basin and calendar day: \code{subid}, \code{year}, \code{month},
-\code{day}, \code{q_local} and \code{q_acc} (m3/s). Only the sub-basins \code{weights} names
-are read. Each must hold every day of \code{years} once, with no missing flow.
+The sub-basin flows are read through duckdb from fwapg's per-year parquet
+files in \code{dir}, \verb{pcic.subbasin_days.<series>.<year>.parquet}, one row per
+sub-basin and calendar day: \code{subid}, \code{date}, \code{q_local} and \code{q_acc} (m3/s).
+Only the years asked and the sub-basins \code{weights} names are read. Each
+sub-basin must hold every day of \code{years} once, with no missing flow.
 }
 \examples{
 if (requireNamespace("duckdb", quietly = TRUE)) {
   fx <- system.file("extdata", "pcic_years", package = "wet")
   w <- read.csv(file.path(fx, "weights.csv"), colClasses = c(upstream_subids = "character"))
   w$upstream_subids <- lapply(strsplit(w$upstream_subids, ";", fixed = TRUE), as.integer)
-  q <- wet_routed_years(file.path(fx, "days"), w, years = 1981:1990)
+  q <- wet_routed_years(file.path(fx, "days"), w, years = 1981:1990, series = "synthetic_historical")
   head(q)
   # the Chinook migration window's mean flow on each segment, year by year
   win <- data.frame(window = "migration", start = "05-01", end = "08-01")
