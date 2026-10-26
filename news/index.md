@@ -1,5 +1,23 @@
 # Changelog
 
+## wet 0.4.22
+
+- Two functions estimate window flow at a site with a short record or
+  none ([\#120](https://github.com/NewGraphEnvironment/wet/issues/120)).
+  [`wet_window_extend()`](https://newgraphenvironment.github.io/wet/reference/wet_window_extend.md)
+  extends a short record of window statistics from the nearest
+  long-record donors that cover each year (OLS, MOVE.1 or a ratio of
+  means), with an interval per year.
+  [`wet_departure_carry()`](https://newgraphenvironment.github.io/wet/reference/wet_departure_carry.md)
+  carries donors’ log departures, each from the donor’s own 1981–2010
+  mean, onto a site. `scripts/departure_pilot.R` chose OLS under a rule
+  registered before any candidate existed, and found carried departures
+  usable (median held-out NSE 0.63 on the Chinook migration-window mean,
+  against 0.5 set in advance). At Maxan Creek (08EE018), extended to
+  1931–2024 from five gauged years, the spawning-window mean was 56 %
+  lower in 2011–2025 than before 1981 (90 % interval −73 % to −28 %).
+  The report is `data/checks/departure_pilot_20260717.txt`.
+
 ## wet 0.4.21
 
 - After an upload, `scripts/discharge_publish.R` (`WET_PUBLISH=1`)
