@@ -42,7 +42,7 @@ order. \code{cover} is the same in every row; where it is 0 the values are
 }
 \description{
 Reads cd's annual snow layers (one band per year, ERA5-Land at 0.1 degree)
-and returns each year's area-weighted mean over a watershed: the per-year
+and returns each year's mean over a watershed: the per-year
 values that \code{\link[=wet_snow_normals]{wet_snow_normals()}} averages over 1981-2010 onto a grid, here
 kept year by year and for one area.
 }
@@ -54,6 +54,13 @@ fundamental watersheds and their union give identical results, and nested
 or overlapping polygons count their ground once. Several watersheds passed
 together return the mean over their union; call once per watershed for
 separate values.
+
+The mean weights each cell by the share of that 0.1-degree cell the
+watershed covers, as \code{\link[=wet_ws_sample]{wet_ws_sample()}} does, not by the cell's ground area.
+A cell's area shrinks with latitude, by about 2.4 \% per degree at 54 N, so
+for a watershed spanning half a degree of latitude the two weightings
+differ by about 1 \% between its north and south edges; for one spanning
+many degrees, cells to the south are underweighted by more.
 
 Each variable and year is one layer of a single stack, so
 \code{\link[=wet_ws_sample]{wet_ws_sample()}}'s rule holds across all of them: a cell counts only where

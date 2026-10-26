@@ -63,7 +63,15 @@ test_that("`years` subsets and orders; a year with no band stops", {
   expect_error(wet_snow_annual(cells_poly(3, 4, 2, 3), c("snowmelt_doy_50", "swe_max"), catalog = cat),
                "swe_max has no band for 1 of the years: 1991")
   expect_error(wet_snow_annual(cells_poly(3, 4, 2, 3), "swe_max", years = c(1983, 1983), catalog = cat),
-               "distinct years")
+               "distinct whole years")
+  # years are checked after coercion, so nothing is dropped or truncated silently
+  expect_error(wet_snow_annual(cells_poly(3, 4, 2, 3), "swe_max", years = c("1990", "x"), catalog = cat),
+               "distinct whole years")
+  expect_error(wet_snow_annual(cells_poly(3, 4, 2, 3), "swe_max", years = 1990.7, catalog = cat),
+               "distinct whole years")
+  expect_error(wet_snow_annual(cells_poly(3, 4, 2, 3), "swe_max", years = c("1990", "1990.0"), catalog = cat),
+               "distinct whole years")
+  expect_identical(wet_snow_annual(cells_poly(3, 4, 2, 3), "swe_max", years = "1990", catalog = cat)$year, 1990L)
 })
 
 test_that("cap limits each cell in each year, and only the named variable", {

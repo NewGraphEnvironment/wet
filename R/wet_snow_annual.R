@@ -1,7 +1,7 @@
 #' Each year's ERA5-Land snow over one watershed
 #'
 #' Reads cd's annual snow layers (one band per year, ERA5-Land at 0.1 degree)
-#' and returns each year's area-weighted mean over a watershed: the per-year
+#' and returns each year's mean over a watershed: the per-year
 #' values that [wet_snow_normals()] averages over 1981-2010 onto a grid, here
 #' kept year by year and for one area.
 #'
@@ -12,6 +12,13 @@
 #' or overlapping polygons count their ground once. Several watersheds passed
 #' together return the mean over their union; call once per watershed for
 #' separate values.
+#'
+#' The mean weights each cell by the share of that 0.1-degree cell the
+#' watershed covers, as [wet_ws_sample()] does, not by the cell's ground area.
+#' A cell's area shrinks with latitude, by about 2.4 % per degree at 54 N, so
+#' for a watershed spanning half a degree of latitude the two weightings
+#' differ by about 1 % between its north and south edges; for one spanning
+#' many degrees, cells to the south are underweighted by more.
 #'
 #' Each variable and year is one layer of a single stack, so
 #' [wet_ws_sample()]'s rule holds across all of them: a cell counts only where
@@ -72,8 +79,12 @@ wet_snow_annual <- function(ws, vars = c("snowmelt_doy_50", "swe_max"), years = 
   if (!length(vars) || anyNA(vars) || anyDuplicated(vars) || any(grepl("|", vars, fixed = TRUE))) {
     stop("vars must be distinct cd variable names", call. = FALSE)
   }
-  if (!is.null(years) && (!length(years) || anyNA(years) || anyDuplicated(years))) {
-    stop("years must be distinct years", call. = FALSE)
+  if (!is.null(years)) {
+    y <- suppressWarnings(as.numeric(years))
+    if (!length(y) || anyNA(y) || any(y != round(y)) || anyDuplicated(y)) {
+      stop("years must be distinct whole years", call. = FALSE)
+    }
+    years <- as.integer(y)
   }
   files <- wet_snow_files(vars, catalog)
   # the default cap applies when its variable is asked for
