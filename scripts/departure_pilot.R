@@ -10,9 +10,14 @@
 # Reads HYDAT 20260717 only (scripts/wb_fit_lib.R's wb_hydat(), wet's
 # per-user cache), and fwapg through the PG* env vars for the leak-free
 # sensitivity alone. Writes the tracked report
-# data/checks/departure_pilot_20260717.txt and nothing else. Nothing is
-# published, no fit is read or touched: 08EE018 and 08EE003 are not
-# calibration gauges, and 08EE013 is used here only as a HYDAT record.
+# data/checks/departure_pilot_20260717.txt and, after it, the gitignored
+# data/departure/departure_pilot_20260717.rds (#121): Maxan's extended and
+# carried series per statistic and window (`mx`), the pilot gauges' window
+# statistics before wsel()'s value > 0 filter (`ws`), `release`, `ship`,
+# `k_main`, `baseline`, `level` and `code_md5` (this script's md5), which
+# scripts/departure_snow.R reads. Nothing is published, no fit is read or
+# touched: 08EE018 and 08EE003 are not calibration gauges, and 08EE013 is
+# used here only as a HYDAT record.
 #
 # ---- decided at the plan gate (user, 2026-10-24) ---------------------------------------------
 #
@@ -808,3 +813,10 @@ for (m in mx) {
 }
 
 writeLines(out, report)
+
+# the series for scripts/departure_snow.R (#121), after the report so no draw moves
+rds <- file.path("data", "departure", sprintf("departure_pilot_%s.rds", release))
+dir.create(dirname(rds), recursive = TRUE, showWarnings = FALSE)
+saveRDS(list(release = release, ship = ship, k_main = k_main, baseline = baseline, level = level, mx = mx,
+             ws = ws[ws$station_number %in% pilot, ],
+             code_md5 = unname(tools::md5sum("scripts/departure_pilot.R"))), rds)

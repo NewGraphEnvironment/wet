@@ -47,7 +47,7 @@ User, 2026-10-26: the plan as presented, parked. Mechanism, picked here (convent
 
 ## Phase 4: The regression at the pilot
 
-- [ ] `scripts/departure_pilot.R`: save the rds as decided after `writeLines()`, amend the header's "nothing else"; rerun with fwapg reachable through `PG*`; `data/checks/departure_pilot_20260717.txt` byte-identical (`git diff --stat` empty), log under `data/logs/121/`
+- [x] `scripts/departure_pilot.R`: save the rds as decided after `writeLines()`, amend the header's "nothing else"; rerun with fwapg reachable through `PG*`; `data/checks/departure_pilot_20260717.txt` byte-identical (`git diff --stat` empty), log under `data/logs/121/`
 - [ ] `scripts/departure_snow.R` body: refuses without the pilot rds, on `release` mismatch or on `code_md5` ≠ the current pilot script; snaps the three gauges (`WET_PG*`), fetches their upstream polygons, `wet_snow_annual()` per gauge over 1950–2025; the parity line (or "parity not run"); the regressions and tables as registered, `ship` reported; writes the report; runs twice byte-identical
 - [ ] Guards: the rds's window stats for the pilot gauges equal `wet_window_stats()` recomputed from HYDAT for them; Maxan's migration-mean fit has n = 75; each gauge's n equals its pool-table count in the tracked pilot report less its years before 1950
 
