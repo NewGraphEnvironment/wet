@@ -63,9 +63,9 @@ User, 2026-10-26: the plan as presented, parked. Mechanism, picked here (convent
 
 ## Validation
 
-- [ ] Tests pass (`devtools::test()`), `lintr::lint_package()` clean on the new files, `devtools::document()` and `pkgdown::check_pkgdown()` clean (CI runs pkgdown only, so no R CMD check size NOTE is exercised there; run `devtools::check()` once locally for the bundle)
-- [ ] `/code-check` clean (once over the branch with `/code-check branch`, three-round floor)
-- [ ] PWF checkboxes match landed work
+- [x] Tests pass (`devtools::test()`), `lintr::lint_package()` clean on the new files, `devtools::document()` and `pkgdown::check_pkgdown()` clean (CI runs pkgdown only, so no R CMD check size NOTE is exercised there; run `devtools::check()` once locally for the bundle)
+- [x] `/code-check` clean (once over the branch with `/code-check branch`, three-round floor)
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
 How each change is proved: the function by its synthetic tests (exact per-year values on a cell-varying fixture, the union identity, the cover rule) and the bundle test; the bundle by the data-raw script's crop-equals-remote assertion and its measured size; the pilot change by its report regenerating byte-identical; the regression script by two byte-identical runs, its refusals and count guards, and the parity line against the shipped normals; the research numbers by reading each from the report.

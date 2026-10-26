@@ -71,6 +71,8 @@ All three `accepted`. The counts came back as `integer64` printed as doubles (th
 | Error | Resolution |
 |-------|------------|
 | `count(*)` over fwapg printed as `2.69e-320` | RPostgres returns `integer64`; `print()` shows its bits as a double. Cast in SQL (`count(*)::int`) or `as.integer()` before printing. |
+| `Rscript` writes a space in `--file=` as `~+~`, so `tools::md5sum()` of it is NA | Decode `~+~` before hashing; stop at the start on NA (round 4) |
+| `as.integer()` after a years check turned `Inf` and `3e9` into NA that `sort()` dropped | Coerce first, then require finite, integer-range, whole, distinct (rounds 2-3) |
 
 ## Results (2026-10-26, `data/checks/departure_snow_20260717.txt`)
 

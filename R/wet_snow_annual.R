@@ -83,8 +83,8 @@ wet_snow_annual <- function(ws, vars = c("snowmelt_doy_50", "swe_max"), years = 
   }
   if (!is.null(years)) {
     y <- suppressWarnings(as.numeric(years))
-    if (!length(y) || !all(is.finite(y)) || any(abs(y) > .Machine$integer.max) || any(y != round(y)) ||
-        anyDuplicated(y)) {
+    bad <- !length(y) || !all(is.finite(y)) || any(abs(y) > .Machine$integer.max) || any(y != round(y))
+    if (bad || anyDuplicated(y)) {
       stop("years must be distinct whole years", call. = FALSE)
     }
     years <- as.integer(y)
