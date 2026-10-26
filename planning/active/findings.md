@@ -59,6 +59,12 @@ Relates to #118, #58, #102, NewGraphEnvironment/fwapg#42, NewGraphEnvironment/fw
 | covariance_pick chooses by distance, not r | 1 |
 | r needs 3 common years, not 30 | 1 |
 
+## fwapg#42 was gated in parallel (2026-10-26 23:47 UTC)
+
+- A parallel session ran `/planning-init fwapg#42` and parked it (fwapg e7ec7ef, d43eaaf) about ten minutes after this session resumed #122. Its gate decided float32, a `date` column, one file per year, and the catalogue `pcic.series` with no commit; its plan never mentions wet's item 6. Re-running `/planning-init` would overwrite that parked baseline, so the interface section of this header was amended to consume what fwapg decided instead (own commit), and fwapg#42's resume is left to the user.
+- **The first float32 tolerance was wrong:** 2^-23 relative to the bin mean fails wherever a bin's values change sign (a losing reach), because float32 rounding bounds the error relative to each value, so the mean's error is bounded by 2^-24 × mean |v|, not by the mean. The amendment uses 2^-23 × mean |v| + 1e-9 m³/s. fwapg#42's own QA (`1e-6 * greatest(abs(clim), 1e-3)`) has an absolute floor of 1e-9 m³/s where the climatology is 0, which the same sign change could break; worth raising when fwapg#42 resumes.
+- **AC1 held:** `departure_pilot.R` rewrote `data/checks/departure_pilot_20260717.txt` byte-identical (23:50 to 23:53 UTC, R's environment as is); `pcic_routed_compare.R` rewrote its report identical but for the line recording the wet commit, which was restored. Logs: `data/logs/122/*_phase2.log`.
+
 ## Errors Encountered
 
 | Error | Resolution |

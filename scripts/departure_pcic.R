@@ -6,15 +6,16 @@
 # scored; the body that runs it came later (planning/archive, issue 122). The
 # report names the commit this header was registered at.
 #
-#   WET_HYDAT_RELEASE=20260717 WET_FWAPG_COMMIT=<sha> WET_PCIC_YEARS=<dir> \
-#     Rscript scripts/departure_pcic.R
+#   WET_HYDAT_RELEASE=20260717 WET_FWAPG_COMMIT=<sha> WET_FWAPG_DAYS_COMMIT=<sha> \
+#     WET_PCIC_YEARS=<dir> Rscript scripts/departure_pcic.R
 #
 # Reads HYDAT 20260717 only (scripts/wb_fit_lib.R's wb_hydat()); the shipped
 # fit's calibration gauges through scripts/wb_cv_lib.R (`cal`, held to its
 # scores by scripts/pcic_routed_lib.R's shipped_heldout()); fwapg through the
 # WET_PG* env vars (pcic.segment_weights, pcic.subbasin_daily and pcic.runs
-# for the 1951-2012 run, and the FWA for snapping the box gauges); and the
-# per-year product under WET_PCIC_YEARS (the interface section below). Writes
+# for the 1951-2012 run, pcic.series for the per-year catalogue, and the FWA
+# for snapping the box gauges); and the per-year product under WET_PCIC_YEARS
+# (the interface section below). Writes
 # the tracked report data/checks/departure_pcic_20260717.txt and, after it,
 # the gitignored data/departure/departure_pcic_20260717.rds: per gauge the
 # observed, modelled and carried series per statistic and window, what each
@@ -213,29 +214,43 @@
 #
 # THIS SECTION ALONE IS AMENDABLE, by NewGraphEnvironment/fwapg#42's plan gate
 # and before this script's body is written, in a commit of its own that the
-# report names. The scoring rule above is frozen.
+# report names. The scoring rule above is frozen. Amended once, before any
+# body existed, to what fwapg#42's gate decided on 2026-10-26 (its decisions
+# 1 to 3), which had not seen the first version (float64, year/month/day
+# ints, a commit in a sidecar).
 #
-# The per-year analogue of pcic.subbasin_daily for the PNWNAmet historical
-# run: one row per sub-basin per calendar day, `subid` (int), `year`, `month`,
-# `day` (ints, the calendar date, so 29 February is its own day and the bins
-# match cdo ydaymean's), `q_local` and `q_acc` (m3/s, float64, unrounded),
-# parquet under one directory (WET_PCIC_YEARS) that duckdb reads. 1950 may be
-# present or absent; wet reads 1951-2012, which is 22,646 days per sub-basin.
-# The product names the fwapg commit that built it in a sidecar
-# (manifest.json, or the parquet's key-value metadata).
+# The per-year sub-basin days of the PNWNAmet historical run as fwapg#42
+# publishes them: one parquet file per year,
+# pcic.subbasin_days.PNWNAmet_historical.<year>.parquet, with columns `subid`
+# (int32), `date` (date32, the calendar date, so 29 February is its own day
+# and the bins match cdo ydaymean's) and `q_local`, `q_acc` (m3/s, float32),
+# in one directory, WET_PCIC_YEARS. fwapg publishes 1950 to 2012; wet reads
+# the 62 files of 1951-2012, 22,646 days per sub-basin, and refuses a missing
+# one.
+#
+# The catalogue is fwapg's pcic.series (decision 3), one row per (model,
+# scenario, year): crosswalk_md5, rows, subbasins, q_local_sum, q_acc_sum
+# (each the sum of floor(double(v) * 1000 + 0.5) over the stored float32
+# values, as a 64-bit integer) and bytes. Each of the 62 files read must
+# equal its row in bytes, rows, subbasins and both sums, computed by wet from
+# the file, and every row's crosswalk_md5 must be the one pcic.runs records
+# for the 1951-2012 run. The catalogue names no commit, as pcic.runs names
+# none, so WET_FWAPG_DAYS_COMMIT names the fwapg commit that built the files,
+# as WET_FWAPG_COMMIT names the one that built the Postgres tables. The report
+# prints both commits and the md5 of the 62 catalogue rows.
 #
 # Parity, over every sub-basin the pool's and the test set's segments name
-# (subid and upstream_subids): the mean over 1951-2012 of each (month, day)
-# bin of q_local and of q_acc equals pcic.subbasin_daily's 1951-2012 row
-# within 1e-9 relative (1e-9 absolute where that row is 0). pcic.subbasin_daily
-# holds full float64 means (measured 2026-10-26: neither float32 nor 5-decimal
-# values), so a float64 product meets this. If fwapg#42 stores float32
-# instead, the tolerance is 2^-23 relative (one float32 unit in the last
-# place, which bounds the mean of round-to-nearest values), fixed here so that
-# choice needs no amendment. The 1951-2012 run's tables must match pcic.runs
-# (routed_daily_fingerprint() for that period). The report prints both fwapg
-# commits: WET_FWAPG_COMMIT, which built the Postgres tables, and the
-# product's own, read from its sidecar; and the product's digest.
+# (subid and upstream_subids): for each (month, day) bin of q_local and of
+# q_acc, the mean over 1951-2012 of the stored values is within
+# 2^-23 * (the mean over the same years of their absolute values) + 1e-9 m3/s
+# of pcic.subbasin_daily's 1951-2012 row. Each stored float32 is within
+# 2^-24 of its float64 value relative to that value, so the bin mean is
+# within 2^-24 of the mean absolute value, and the float64 means agree but
+# for summation order; a bound relative to the mean alone would fail at a
+# bin whose values change sign (a losing reach). pcic.subbasin_daily holds
+# full float64 means (measured 2026-10-26: neither float32 nor 5-decimal
+# values). The 1951-2012 run's tables must match pcic.runs
+# (routed_daily_fingerprint() for that period).
 #
 # ---- what it refuses -----------------------------------------------------------------------------
 #
@@ -243,9 +258,11 @@
 # 40 hex characters; uncommitted changes under R/ or scripts/ (as
 # scripts/pcic_routed_compare.R, so the recorded commit rebuilds the report);
 # a `cal` whose scores were made under other scoring code (shipped_heldout()'s
-# guards); a per-year product without its sidecar commit, a read sub-basin
-# missing from it, without its 22,646 days of 1951-2012, with a day twice or
-# an NA flow, or failing parity in any bin; 1951-2012 tables that differ from
+# guards); WET_FWAPG_DAYS_COMMIT unset or not 7 to 40 hex characters; a year
+# of 1951-2012 without its file, or a file unlike its pcic.series row, or a
+# row on another crosswalk than the run's; a read sub-basin missing from a
+# year, without its 22,646 days of 1951-2012, with a day twice or an NA flow,
+# or failing parity in any bin; 1951-2012 tables that differ from
 # pcic.runs; a migration-mean pool under 100 gauges; a stage whose
 # candidates are not scored at the same gauges on the same years. The report
 # carries no timestamp, so a rerun on the same inputs reproduces it byte for
