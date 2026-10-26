@@ -118,7 +118,7 @@ The interval resamples years within each period and adds a held-out residual to 
 
 **Verified:** 2026-10-26 · **Issues:** #121 (component 2 of #118) · **Produced by:** `scripts/departure_snow.R` → `data/checks/departure_snow_20260717.txt`, from the pilot's saved series, HYDAT 2026-07-17, and cd's annual ERA5-Land snow layers (cd run of 2026-10-10) through `wet_snow_annual()`. The specification was registered in the script's header at 81580b5, before any body code. Nothing was chosen: all 24 fits are reported.
 
-**More peak snow and a later melt mean more flow in the Chinook migration window, at every gauge and both Maxan series. In the spawning window, snow explains almost nothing.** Each year's peak snow water equivalent (`swe_max`) and 50 % melt date (`snowmelt_doy_50`) were averaged over the gauge's whole upstream watershed. The window's mean flow, as a log departure from its 1981–2010 mean, was regressed on both, 1950–2024.
+**More peak snow and a later melt mean more flow in the Chinook migration window, at every gauge and both Maxan series. In the spawning window, snow explains almost nothing.** Each year's peak snow water equivalent (`swe_max`) and 50 % melt date (`snowmelt_doy_50`) were averaged over the gauge's whole upstream watershed. The window's mean flow, as a log departure, was regressed on both, 1950–2024. For the observed and extended series the departure is from the series' own 1981–2010 mean; the donor-carried series is the donors' departures from theirs.
 
 | series, migration-window mean | n | per 100 mm more peak snow | per 10 days later melt | R² | residual SE (log) |
 |---|---|---|---|---|---|

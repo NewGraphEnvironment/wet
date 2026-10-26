@@ -69,6 +69,10 @@ test_that("`years` subsets and orders; a year with no band stops", {
                "distinct whole years")
   expect_error(wet_snow_annual(cells_poly(3, 4, 2, 3), "swe_max", years = 1990.7, catalog = cat),
                "distinct whole years")
+  expect_error(wet_snow_annual(cells_poly(3, 4, 2, 3), "swe_max", years = c(1990, Inf), catalog = cat),
+               "distinct whole years")
+  expect_error(wet_snow_annual(cells_poly(3, 4, 2, 3), "swe_max", years = 3e9, catalog = cat),
+               "distinct whole years")
   expect_error(wet_snow_annual(cells_poly(3, 4, 2, 3), "swe_max", years = c("1990", "1990.0"), catalog = cat),
                "distinct whole years")
   expect_identical(wet_snow_annual(cells_poly(3, 4, 2, 3), "swe_max", years = "1990", catalog = cat)$year, 1990L)

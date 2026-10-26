@@ -14,8 +14,9 @@
 # data/departure/departure_pilot_20260717.rds (#121): Maxan's extended and
 # carried series per statistic and window (`mx`), the pilot gauges' window
 # statistics before wsel()'s value > 0 filter (`ws`), `release`, `ship`,
-# `k_main`, `baseline`, `level` and `code_md5` (this script's md5), which
-# scripts/departure_snow.R reads. Nothing is published, no fit is read or
+# `k_main`, `baseline`, `level` and `code_md5` (the md5 of the script file
+# this run executes, taken at its start; it covers the script, not the
+# package functions it calls), which scripts/departure_snow.R reads. Nothing is published, no fit is read or
 # touched: 08EE018 and 08EE003 are not calibration gauges, and 08EE013 is
 # used here only as a HYDAT record.
 #
@@ -213,6 +214,10 @@ source("scripts/wb_fit_lib.R")  # wb_release(), wb_hydat()
 
 release <- wb_release()
 if (release != "20260717") stop("the pilot's rule names HYDAT 20260717, not ", release, call. = FALSE)
+# the script this run executes (a frozen copy, say), hashed before anything else can change it
+self <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
+if (length(self) != 1) stop("run with Rscript, so the script's own md5 can be recorded", call. = FALSE)
+code_md5 <- unname(tools::md5sum(self))
 hydat <- wb_hydat(release)
 report <- file.path("data", "checks", sprintf("departure_pilot_%s.txt", release))
 baseline <- 1981:2010
@@ -819,4 +824,4 @@ rds <- file.path("data", "departure", sprintf("departure_pilot_%s.rds", release)
 dir.create(dirname(rds), recursive = TRUE, showWarnings = FALSE)
 saveRDS(list(release = release, ship = ship, k_main = k_main, baseline = baseline, level = level, mx = mx,
              ws = ws[ws$station_number %in% pilot, ],
-             code_md5 = unname(tools::md5sum("scripts/departure_pilot.R"))), rds)
+             code_md5 = code_md5), rds)

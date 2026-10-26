@@ -13,8 +13,9 @@
 #     digits.
 #   - <var>_annual.tif for swe_max, snowmelt_doy_50 and snowmelt_rate_peak:
 #     cd's file cropped to the outline plus two cells (the window
-#     wet_snow_annual() reads), every band (named by year), FLT8S as cd
-#     writes it, cd's CD_* tags kept.
+#     wet_snow_annual() reads), every band (named by year), written as FLT8S
+#     (cd writes snowmelt_doy_50 as Float64 and the other two as Float32,
+#     both held exactly), cd's CD_* tags kept.
 #   - catalog.csv: variable, period, href, the href relative to the
 #     directory (the example joins it onto system.file()).
 #   - provenance.txt: the build's date, wet commit, HYDAT release, snap, and
@@ -26,8 +27,10 @@
 # file at every cell; wet_snow_annual() over the bundle equals it over cd's
 # whole files, and over the outline equals it over the fundamental
 # watersheds (to 1e-9); every year 1950-2025 has cover 1; the bundle is at
-# most 500 KB. HYDAT from wet's per-user cache (wb_hydat()); fwapg from the
-# WET_PG* variables (vd_connect()).
+# most 500 KB. The bundle is built and checked in a temporary directory and
+# replaces inst/extdata/snow_pilot/ only once every check has passed. HYDAT
+# from wet's per-user cache (wb_hydat()); fwapg from the WET_PG* variables
+# (vd_connect()).
 
 devtools::load_all(quiet = TRUE)
 source("scripts/wb_fit_lib.R")  # wb_release(), wb_hydat()
@@ -37,7 +40,8 @@ source("scripts/departure_snow_lib.R")  # ds_gauges, ds_stations(), ds_snap(), d
 release <- wb_release()
 if (release != "20260717") stop("the pilot names HYDAT 20260717, not ", release, call. = FALSE)
 hydat <- wb_hydat(release)
-out <- file.path("inst", "extdata", "snow_pilot")
+dest <- file.path("inst", "extdata", "snow_pilot")
+out <- file.path(tempfile("snow_pilot_"), "snow_pilot")  # built and checked here, then moved to dest
 vars <- c("swe_max", "snowmelt_doy_50", "snowmelt_rate_peak")
 max_kb <- 500
 maxan <- ds_gauges[ds_gauges$name == "maxan", ]
@@ -54,7 +58,6 @@ wkt <- sf::st_as_text(sf::st_geometry(sf::st_as_sf(u)), digits = 15)
 outline <- list(station_number = maxan$station_number, watershed_feature_id = maxan$watershed_feature_id,
                 crs = "EPSG:3005", wkt = wkt)
 
-unlink(out, recursive = TRUE)
 dir.create(out, recursive = TRUE)
 saveRDS(outline, file.path(out, "maxan_outline.rds"), compress = "xz")
 back <- readRDS(file.path(out, "maxan_outline.rds"))
@@ -126,3 +129,10 @@ kb <- sum(file.size(list.files(out, full.names = TRUE))) / 1024
 print(data.frame(file = list.files(out), kb = round(file.size(list.files(out, full.names = TRUE)) / 1024, 1)))
 message(sprintf("snow_pilot bundle: %.1f KB", kb))
 if (kb > max_kb) stop(sprintf("the bundle is %.1f KB, over %d KB", kb, max_kb), call. = FALSE)
+
+# every check passed: replace the bundle
+unlink(dest, recursive = TRUE)
+dir.create(dest, recursive = TRUE)
+ok <- file.copy(list.files(out, full.names = TRUE), dest)
+if (!all(ok) || !setequal(list.files(dest), list.files(out))) stop("could not copy the bundle to ", dest, call. = FALSE)
+message("written: ", dest)

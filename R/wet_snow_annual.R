@@ -6,10 +6,12 @@
 #' kept year by year and for one area.
 #'
 #' `ws` is one watershed, given as its fundamental watersheds (as fetched from
-#' fwapg) or as a single outline. The polygons are dissolved into one and that
-#' union is sampled once with [wet_ws_sample()] (`method = "area"`), so the
-#' fundamental watersheds and their union give identical results, and nested
-#' or overlapping polygons count their ground once. Several watersheds passed
+#' fwapg) or as a single outline. The polygons are dissolved into one with
+#' `terra::aggregate()` and that union is sampled once with [wet_ws_sample()]
+#' (`method = "area"`), so the fundamental watersheds and their union as
+#' `terra::aggregate()` returns it give identical results, and nested or
+#' overlapping polygons count their ground once. A union stored and read back
+#' (as WKT, say) agrees to the rounding of its coordinates. Several watersheds passed
 #' together return the mean over their union; call once per watershed for
 #' separate values.
 #'
@@ -26,7 +28,7 @@
 #' watershed on those cells. A cell missing in one year or one variable
 #' therefore leaves every year's value over the remaining cells, and a year's
 #' value can depend on which `years` and `vars` are asked for. ERA5-Land has
-#' no cell over the sea, so a watershed reaching the coast reports `cover`
+#' no cell over the sea, so a watershed reaching the coast can report `cover`
 #' below 1.
 #'
 #' `cap` limits each cell's value in each year before the mean, as
@@ -81,7 +83,8 @@ wet_snow_annual <- function(ws, vars = c("snowmelt_doy_50", "swe_max"), years = 
   }
   if (!is.null(years)) {
     y <- suppressWarnings(as.numeric(years))
-    if (!length(y) || anyNA(y) || any(y != round(y)) || anyDuplicated(y)) {
+    if (!length(y) || !all(is.finite(y)) || any(abs(y) > .Machine$integer.max) || any(y != round(y)) ||
+        anyDuplicated(y)) {
       stop("years must be distinct whole years", call. = FALSE)
     }
     years <- as.integer(y)

@@ -48,10 +48,12 @@ kept year by year and for one area.
 }
 \details{
 \code{ws} is one watershed, given as its fundamental watersheds (as fetched from
-fwapg) or as a single outline. The polygons are dissolved into one and that
-union is sampled once with \code{\link[=wet_ws_sample]{wet_ws_sample()}} (\code{method = "area"}), so the
-fundamental watersheds and their union give identical results, and nested
-or overlapping polygons count their ground once. Several watersheds passed
+fwapg) or as a single outline. The polygons are dissolved into one with
+\code{terra::aggregate()} and that union is sampled once with \code{\link[=wet_ws_sample]{wet_ws_sample()}}
+(\code{method = "area"}), so the fundamental watersheds and their union as
+\code{terra::aggregate()} returns it give identical results, and nested or
+overlapping polygons count their ground once. A union stored and read back
+(as WKT, say) agrees to the rounding of its coordinates. Several watersheds passed
 together return the mean over their union; call once per watershed for
 separate values.
 
@@ -68,7 +70,7 @@ Each variable and year is one layer of a single stack, so
 watershed on those cells. A cell missing in one year or one variable
 therefore leaves every year's value over the remaining cells, and a year's
 value can depend on which \code{years} and \code{vars} are asked for. ERA5-Land has
-no cell over the sea, so a watershed reaching the coast reports \code{cover}
+no cell over the sea, so a watershed reaching the coast can report \code{cover}
 below 1.
 
 \code{cap} limits each cell's value in each year before the mean, as
