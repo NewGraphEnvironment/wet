@@ -1,0 +1,19 @@
+# Progress — PCIC per-year routed flow: keep the years, weight donors by modelled covariance, and score donors, PCIC and a blend at held-out gauges (#122)
+
+## Session 2026-10-26
+
+- Plan-mode exploration; three gate questions asked and answered (sequencing, windows, blend); Plan review run synchronously and folded in (`review-plan.md`)
+- Phases approved by user as **parked** (baseline only)
+- Created branch `122-pcic-per-year-routed-flow-keep-the-years` off main (fa9b31f)
+- Scaffolded PWF baseline from issue #122 with the approved phases
+- Next: parked 2026-10-26; resume with the command below, then "start Phase 1"
+
+### Resume
+
+One machine runs the branch at a time: the push at park handed it off, and the resume takes it. The run-to-PR mandate starts at the resume instruction, not at the parked approval.
+
+```bash
+cd ~/Projects/repo/wet && git fetch -q origin && git checkout 122-pcic-per-year-routed-flow-keep-the-years && git pull --ff-only && git merge origin/main
+```
+
+Then "start Phase 1 of planning/active/task_plan.md". Phase 1 is the rule header alone, committed alone, before any candidate is coded. Phase 3 (fwapg#42) runs in the fwapg checkout under its own `/planning-init fwapg#42` gate and needs this machine (the `pcic` schema in the local fwapg database, the crosswalk staging, the fit bundle).
