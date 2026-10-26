@@ -16,6 +16,6 @@ After an upload, PUBLISH (`WET_PUBLISH=1 Rscript scripts/discharge_publish.R`) n
 - The tracked report's line has no digest, and this branch changes `scripts/`, so PUBLISH would refuse the
       current tree anyway. Until the next BUILD on m4 (about 3.5 h) writes the new line, the vignette data
       scripts refuse. Nothing needs them now; the next republish carries it. Reported, not run.
-  (A BUILD at the merge commit is enough on its own: its parts are byte-identical to live b4bbc50, so its report passes `vd_published()` with no upload.)
+  (Not urgent, and no BUILD is needed for its own sake: the BUILD that comes with the next republish writes both md5s, and from then on PUBLISH keeps the line current. Run one sooner only to regenerate the vignette data before that republish; its parts are byte-identical to live b4bbc50, so its report passes `vd_published()` with no upload.)
 
 Closed by: PR for #117 and #94 (see `git log`)
