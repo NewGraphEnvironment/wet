@@ -71,3 +71,11 @@ All three `accepted`. The counts came back as `integer64` printed as doubles (th
 | Error | Resolution |
 |-------|------------|
 | `count(*)` over fwapg printed as `2.69e-320` | RPostgres returns `integer64`; `print()` shows its bits as a double. Cast in SQL (`count(*)::int`) or `as.integer()` before printing. |
+
+## Results (2026-10-26, `data/checks/departure_snow_20260717.txt`)
+
+- Migration-window mean: both slopes positive with 90 % intervals excluding zero in all four series (both-predictor fits); R² 0.40-0.50; residual SE 0.20-0.28 log. Spawning window: R² <= 0.07, every interval spans zero.
+- Snow change 1950-1980 to 2011-2025: peak SWE -9 to -11 mm (3-4 %), melt date 9-11 days earlier, in all three watersheds.
+- Parity with the shipped normals: within 0.86 mm and 0.49 days; the normals' cache key reproduces from the bands read.
+- Maxan's carried departure equals Houston's in 1950 and 1951 (its only donor then).
+- R's environment sets bare `PG*` to the tailnet fwapg host; `WET_PG*` default to localhost. Both answered; the pilot's leak-free lines read the former.

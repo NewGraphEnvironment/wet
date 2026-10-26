@@ -53,9 +53,9 @@ User, 2026-10-26: the plan as presented, parked. Mechanism, picked here (convent
 
 ## Phase 5: Research and documentation
 
-- [ ] `research/station_flow_departure.md`: section "Snow and the window flows at the pilot (#121)" with the Verified / Issues / Produced-by line, the coefficient table, the before/after snow means, the parity line, and limits (one donor per extended year; Houston contains Maxan; ERA5-Land's 0.1° cells against a 364 km² watershed); the #120 section's Produced-by line names the rds
-- [ ] `research/README.md` row; `CLAUDE.md` station-flow-departure paragraph names `wet_snow_annual()`, `scripts/departure_snow.R` and the pilot's rds
-- [ ] `planning/active/progress.md` and `findings.md` current
+- [x] `research/station_flow_departure.md`: section "Snow and the window flows at the pilot (#121)" with the Verified / Issues / Produced-by line, the coefficient table, the before/after snow means, the parity line, and limits (one donor per extended year; Houston contains Maxan; ERA5-Land's 0.1° cells against a 364 km² watershed); the #120 section's Produced-by line names the rds
+- [x] `research/README.md` row; `CLAUDE.md` station-flow-departure paragraph names `wet_snow_annual()`, `scripts/departure_snow.R` and the pilot's rds
+- [x] `planning/active/progress.md` and `findings.md` current
 
 ## Owed at the end (reported, done after merge)
 
