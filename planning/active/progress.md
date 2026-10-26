@@ -17,3 +17,9 @@ cd ~/Projects/repo/wet && git fetch -q origin && git checkout 122-pcic-per-year-
 ```
 
 Then "start Phase 1 of planning/active/task_plan.md". Phase 1 is the rule header alone, committed alone, before any candidate is coded. Phase 3 (fwapg#42) runs in the fwapg checkout under its own `/planning-init fwapg#42` gate and needs this machine (the `pcic` schema in the local fwapg database, the crosswalk staging, the fit bundle).
+
+## Session 2026-10-26 (resume)
+
+- Resumed on instruction; branch current with origin and main; CI green.
+- Phase 1: probed `pcic.subbasin_daily`'s precision (float64; findings), wrote the rule header of `scripts/departure_pcic.R`, committed it alone before any candidate.
+- Next: Phase 2 (wet reads the years; synthetic fixture).

@@ -41,6 +41,12 @@ Relates to #118, #58, #102, NewGraphEnvironment/fwapg#42, NewGraphEnvironment/fw
 - **The pilot's committed report rests on bare `PG*`** reaching an fwapg server for its leak-free lines (a machine-local note); regenerating it byte-identical needs that environment.
 - **Plan review** (`review-plan.md`): 3 blockers (common scoring years; parity tolerance vs float32; `doy` vs month-day bins), 9 gaps, 2 ordering points, 4 assumptions, 4 scope, 4 acceptance. All folded into `task_plan.md` and marked by their codes.
 
+## Phase 1: the header (2026-10-26)
+
+- **`pcic.subbasin_daily` holds full float64 means** (measured 2026-10-26 on the 1951-2012 run): over 73,200 `q_local` values, 1 in 73,200 is float32-representable (chance), and no `q_local` or `q_acc` value is 5-decimal rounded; `q_acc` at the largest sub-basin (4009421) is `1197.5002032...`. `n_days` runs 16 (29 February) to 62. So a float64 per-year product can meet 1e-9 relative parity. The header also fixes the float32 alternative (2^-23 relative, which bounds the mean of round-to-nearest float32 values), so fwapg#42 choosing float32 needs no amendment.
+- **Decisions the plan left open, fixed in the header:** one challenger per stage, chosen by the leave-one-gauge-out median (a tie to the first listed), which must then clear the incumbent under both pools; a year in which every present donor weighs 0 is missing for that candidate; `covariance_pick` ties on r go to the nearer donor; a test gauge in the migration-mean pool is dropped from the test set.
+- **Limit stated in the header:** PCIC publishes no calibration gauges, so `pcic`'s score at a calibration gauge may be partly in sample (`research/water_balance_method.md`, #58).
+
 ## Errors Encountered
 
 | Error | Resolution |
