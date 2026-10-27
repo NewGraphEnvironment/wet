@@ -170,3 +170,13 @@ test_that("a station modelled for one statistic but not another has r = 0 there,
   expect_error(wet_departure_carry(x, carry_stations(), "T", k = 2, weights = "covariance",
                                    modelled = m[m$station_number != "D2", ]), "no rows for: D2")
 })
+
+test_that("a modelled with no rows for the statistic carried is refused, not read as r = 0", {
+  yrs <- 1951:2000
+  f <- ifelse(yrs == 1990, 2, 1)
+  x <- carry_x(list(D1 = 10 * f, D2 = 500 * f), yrs)
+  m <- carry_x(list(T = exp(1:50 / 10), D1 = exp(1:50 / 10), D2 = exp(1:50 / 10)), yrs)
+  m$period <- "Migration"
+  expect_error(wet_departure_carry(x, carry_stations(), "T", k = 2, weights = "covariance", modelled = m),
+               "no rows for q_mean migration")
+})

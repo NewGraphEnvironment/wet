@@ -109,6 +109,8 @@ wet_departure_carry <- function(x, stations, target, k = 5, baseline = 1981:2010
     # the weighting stays the one #70 and #102 use; the covariance options
     # scale or replace it (wet_donor_weights())
     mod <- if (cov) modelled[modelled$variable == v & modelled$period == p, c("station_number", "year", "value")]
+    # one station without rows here is a segment routed to 0 (r = 0); none at all is a mislabelled `modelled`
+    if (cov && !nrow(mod)) stop("`modelled` has no rows for ", v, " ", p, call. = FALSE)
     dw <- wet_donor_weights(space, target, don, k, weights, mod, days, known = unique(modelled$station_number))
     wt <- dw$weight
     dist <- sqrt(colSums((t(space[don, , drop = FALSE]) - space[target, ])^2))
