@@ -47,3 +47,9 @@ Inputs for the sweep: the stations `wet_station_snap()` is run on (the station s
 
 | Error | Resolution |
 |-------|------------|
+| `WET_FWAPG_TRIAL` relative path: `file(con, "r"): cannot open the connection` | tests run from tests/testthat; helper refuses a missing file and asks for an absolute path |
+| `wet_pg_trial()` deferring to its caller's frame rolled back inside `local_fwapg_indexpoint()` before the test ran | pass `env = env` from the helper |
+
+## Note on the planning probe (plan review G10)
+
+The two 08KD006 candidates whose `fwa_watershedatmeasure()` errors are not the picked one; the sweep calls it only at picked positions, which is wet's path (`vignette_map_lib.R`). The picked-position error count is real anyway: 4 before, 3 after.

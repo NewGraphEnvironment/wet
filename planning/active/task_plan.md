@@ -15,7 +15,7 @@ Measured during planning, on the local fwapg (PostgreSQL 17.5):
 
 ## Decided at the gate (proposed by Claude, approved by the user 2026-10-27)
 
-- **Sweep inputs:** the shipped release's 352 calibration and 137 test stations, from `stations_20260717.rds`. The 20251014 set is #15's frozen record and is not cached on m1, so it is not swept.
+- **Sweep inputs:** the shipped release's 352 calibration and 137 test stations, from `stations_20260717.rds`. The 20251014 set is #15's frozen record and is not cached here, so it is not swept.
 - **Trial base:** only #41's migration, applied on top of the local fwapg as it is. fwapg#200's migration is not applied with it, and the report records the base.
 - **Scope of "this package's path":** beyond the issue's three counts, the sweep also diffs `wet_station_snap()`'s own output before and after (segment, watershed, area, accepted, lake). That diff answers whether migrating would change the station table, and through it the fit.
 - **Database is never migrated.** The migration goes inside `BEGIN … ROLLBACK`. After the rollback, the run asserts that the signature is the old one again.
@@ -31,14 +31,14 @@ Measured during planning, on the local fwapg (PostgreSQL 17.5):
   - `wet_station_snap()` on all stations, plus each picked position's `fwa_locatealong()` and `fwa_watershedatmeasure()`, counted empty or erroring, with the area set against the gross area;
   - calls that error, by function.
   It then rolls back and asserts that the old signature is back. It diffs the two `wet_station_snap()` outputs and writes `data/checks/station_snap_sweep_20260717.txt` (tracked), which records the migration's md5 and the fwapg commit it came from (`WET_FWAPG_MIGRATION_COMMIT`).
-- [ ] Run it on the local fwapg with fwapg `b088b43`'s migration. Log to `data/logs/127/`.
+- [x] Run it on the local fwapg with fwapg `b088b43`'s migration. Log to `data/logs/127/`.
 - [ ] `research/station_snap.md` (new topic file, with its `research/README.md` row): what changes for wet, the counts before and after, which stations' snaps move and why, and the base. Fix the comment in `wet_snap_pick()` that already credits `fwa_indexpoint()` with the tie rule, which holds only once the database is migrated.
 
 ## Phase 3: Gate and pin in live tests
-- [ ] `helper-fwapg.R`: add `local_fwapg_indexpoint()`. It calls `local_fwapg()`. If `WET_FWAPG_TRIAL` names a migration file, it applies the file with `wet_pg_trial()` and defers a rollback. If `pg_get_function_arguments('whse_basemapping.fwa_indexpoint'::regproc)` then lacks `include_disconnected`, it skips with a message naming `202610240132__indexpoint_tiebreak` (fwapg#41), unless `WET_FWAPG_CURRENT=true`, in which case it runs on so the assertions fail.
-- [ ] One gate test fails, rather than skips, when `WET_FWAPG_CURRENT=true` and the function is old.
-- [ ] Pin 08KD006: the snap is 703862887; `fwa_locatealong()` at the snapped measure returns one point; `fwa_watershedatmeasure()` gives about 2,861 km², checked with an absolute tolerance. Also pin up to three cases the sweep turns up, such as a station whose snap moves, or an empty or erroring call that comes back.
-- [ ] Show each pinned test failing before and passing after: `WET_FWAPG_CURRENT=true` on the current database (fails), then `WET_FWAPG_TRIAL=<file>` (passes), with the output in `progress.md`.
+- [x] `helper-fwapg.R`: add `local_fwapg_indexpoint()`. It calls `local_fwapg()`. If `WET_FWAPG_TRIAL` names a migration file, it applies the file with `wet_pg_trial()` and defers a rollback. If `pg_get_function_arguments('whse_basemapping.fwa_indexpoint'::regproc)` then lacks `include_disconnected`, it skips with a message naming `202610240132__indexpoint_tiebreak` (fwapg#41), unless `WET_FWAPG_CURRENT=true`, in which case it runs on so the assertions fail.
+- [x] One gate test fails, rather than skips, when `WET_FWAPG_CURRENT=true` and the function is old.
+- [x] Pin 08KD006: the snap is 703862887; `fwa_locatealong()` at the snapped measure returns one point; `fwa_watershedatmeasure()` gives about 2,861 km², checked with an absolute tolerance. Also pin up to three cases the sweep turns up, such as a station whose snap moves, or an empty or erroring call that comes back.
+- [x] Show each pinned test failing before and passing after: `WET_FWAPG_CURRENT=true` on the current database (fails), then `WET_FWAPG_TRIAL=<file>` (passes), with the output in `progress.md`.
 
 ## Phase 4: Docs and wrap
 - [ ] CLAUDE.md: the sweep script, `WET_FWAPG_TRIAL` and `WET_FWAPG_CURRENT`.
