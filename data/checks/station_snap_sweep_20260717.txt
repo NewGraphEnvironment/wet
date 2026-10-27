@@ -1,0 +1,211 @@
+# wet_station_snap() before and after fwapg's fwa_indexpoint() rework (#127)
+
+Migration: 202610240132__indexpoint_tiebreak.sql (md5 98d84a339d18f1eb11a917c60f9012ad), fwapg commit b088b43 (fwapg#41, PR fwapg#43)
+Applied inside a transaction and rolled back; fwa_indexpoint() read the old signature after the rollback.
+Base: fwa_watershedatmeasure() still reads hydrosheds and NHD for area outside BC (fwapg's migration 202610131654 not applied).
+Issue's check, grep -nE '^(BEGIN|COMMIT|ROLLBACK);' on the body the trial ran: no lines.
+Stations: HYDAT 20260717 calibration 352 and test 137 (data/wb/stations_20260717.rds), and 1 more the vignette maps draw (08EE003); snapped with tolerance 1000 m, 5 candidates.
+Before run against the stations file (segment, watershed, accepted): 0 of 489 differ.
+Picked positions with an upstream border crossing, where the base's area outside BC applies: 30 (AB_120, USA_49, YTNWT_60).
+fwa_upstreambordercrossings(), run for that flag on the database as it is, errored at 2 picked positions: 2 x Failed to fetch row : ERROR:  line_interpolate_point: 2nd arg isn't within [0,1].
+
+## Counts
+
+                                                                                before   after
+fwa_indexpoint() calls that error                                                    0       0
+candidates                                                                        2304    2304
+candidates where fwa_locatealong() at the measure returns nothing                  114       0
+candidates where fwa_locatealong() errors                                            0       0
+wet_station_snap() stations with a pick                                            490     490
+  picked position: fwa_locatealong() returns nothing                                 1       0
+  picked position: fwa_locatealong() errors                                          0       0
+  picked position: fwa_watershedatmeasure() returns nothing                          6       5
+  picked position: fwa_watershedatmeasure() errors                                   4       3
+  picked position: watershed within 10 % of HYDAT's gross area                     439     441
+wet_station_snap() accepted                                                        454     454
+
+Stations whose 5 returned streams changed: 0.
+Same candidate (station, segment) on both sides: 2268; its measure moved by at most 0.00186 m (median 3.04e-05 m).
+
+## Errors by message
+
+before:
+  1 x Failed to fetch row : ERROR:  line_interpolate_point: 2nd arg isn't within [0,1]
+  3 x Failed to fetch row : ERROR:  more than one row returned by a subquery used as an expression
+after:
+  3 x Failed to fetch row : ERROR:  more than one row returned by a subquery used as an expression
+
+## Streams tied on two segments at the station (geometry; 76 exact, 76 within 1e-6 m, at 64 stations; on the picked stream: 3 before, 3 after)
+
+before:
+  07EA001 blk 359014591: segments 207086752 207086967 -> 207086967 (locatealong 0)
+  07EA004 blk 359026034: segments 68051490 68051813 -> 68051813 (locatealong 1)
+  07EA005 blk 359004814: segments 49096660 49098368 -> 49096660 (locatealong 1)
+  07EA007 blk 359017472: segments 49083172 49083225 -> 49083172 (locatealong 1)
+  07EC004 blk 359565402: segments 115008492 115008496 -> 115008496 (locatealong 1)
+  07EE007 blk 359418289: segments 165024643 165024758 -> 165024758 (locatealong 1)
+  07FA003 blk 359380548: segments 223085800 223086035 -> 223085800 (locatealong 1)
+  07FA005 blk 359004374: segments 104052948 104052994 -> 104052948 (locatealong 1)
+  07FD001 blk 359321495: segments 81003795 81003837 -> 81003795 (locatealong 1)
+  07GC001 blk 359292913: segments 187017972 187018168 -> 187018168 (locatealong 1)
+  08CA001 blk 360233977: segments 188008176 188008182 -> 188008176 (locatealong 1)
+  08CA001 blk 360841477: segments 188007831 188007853 -> 188007831 (locatealong 1)
+  08EC013 blk 360221024: segments 5085717 5085719 -> 5085717 (locatealong 0)
+  08EC013 blk 360886970: segments 5086038 5086970 -> 5086970 (locatealong 1), the picked stream
+  08EE004 blk 360718079: segments 17055498 17055500 -> 17055498 (locatealong 1)
+  08EF001 blk 360228533: segments 87065236 87065385 -> 87065385 (locatealong 1)
+  08EF001 blk 360243476: segments 87064283 87064458 -> 87064283 (locatealong 1)
+  08EF005 blk 360554639: segments 245027662 245028011 -> 245028011 (locatealong 1)
+  08FB005 blk 360447876: segments 9016031 9016126 -> 9016126 (locatealong 1)
+  08FB006 blk 360724845: segments 3023476 3024616 -> 3023476 (locatealong 1)
+  08FF003 blk 360227628: segments 84024941 84025014 -> 84025014 (locatealong 1)
+  08FF004 blk 360218422: segments 84009815 84009816 -> 84009816 (locatealong 1)
+  08FF004 blk 360885824: segments 84009722 84009728 -> 84009722 (locatealong 1)
+  08GA054 blk 360462394: segments 189034598 189034608 -> 189034608 (locatealong 1)
+  08GA054 blk 360853347: segments 189034494 189034520 -> 189034494 (locatealong 1)
+  08GA075 blk 360462394: segments 189034598 189034608 -> 189034608 (locatealong 1)
+  08GA075 blk 360639220: segments 189034715 189034716 -> 189034715 (locatealong 1)
+  08GA079 blk 360229873: segments 189054613 189054620 -> 189054613 (locatealong 1)
+  08GD007 blk 360536623: segments 66039446 66039470 -> 66039470 (locatealong 1)
+  08HA003 blk 354103976: segments 710284351 710284353 -> 710284353 (locatealong 1)
+  08HE008 blk 354130322: segments 710290111 710290134 -> 710290134 (locatealong 1)
+  08HF012 blk 354142397: segments 710375468 710375492 -> 710375492 (locatealong 1)
+  08HF013 blk 354150648: segments 710354069 710354126 -> 710354069 (locatealong 1)
+  08JB002 blk 356056511: segments 701130559 701130598 -> 701130598 (locatealong 1)
+  08KA001 blk 355992502: segments 702290037 702290056 -> 702290056 (locatealong 1)
+  08KD001 blk 355998642: segments 700535570 700536134 -> 700536134 (locatealong 1)
+  08KD006 blk 355999967: segments 703862894 703863073 -> 703863073 (locatealong 1)
+  08KD006 blk 356360570: segments 703862843 703862887 -> 703862843 (locatealong 0), the picked stream
+  08KH001 blk 356357305: segments 702667996 702668742 -> 702668742 (locatealong 1)
+  08KH014 blk 355998782: segments 702636812 702636814 -> 702636812 (locatealong 1)
+  08KH030 blk 356329397: segments 702642521 702642543 -> 702642521 (locatealong 1)
+  08LA001 blk 356000237: segments 700821080 700821081 -> 700821080 (locatealong 1)
+  08LA004 blk 355996773: segments 702352310 702352329 -> 702352329 (locatealong 1)
+  08LB050 blk 356363387: segments 701842242 701842250 -> 701842242 (locatealong 1), the picked stream
+  08LB076 blk 356072154: segments 701873147 701873150 -> 701873147 (locatealong 1)
+  08LD001 blk 356352514: segments 700281085 700281086 -> 700281085 (locatealong 1)
+  08LF051 blk 356201543: segments 703340487 703340497 -> 703340497 (locatealong 1)
+  08LF080 blk 356138102: segments 700457626 700457745 -> 700457626 (locatealong 1)
+  08LG008 blk 355999880: segments 701772710 701772728 -> 701772728 (locatealong 1)
+  08LG016 blk 356191098: segments 702618689 702618691 -> 702618691 (locatealong 1)
+  08MB005 blk 356105545: segments 701547167 701547223 -> 701547223 (locatealong 1)
+  08MB005 blk 356110204: segments 701547134 701547179 -> 701547134 (locatealong 1)
+  08ME023 blk 356360832: segments 702848976 702849659 -> 702848976 (locatealong 1)
+  08MH076 blk 356292529: segments 701643985 701644099 -> 701644099 (locatealong 1)
+  08NA006 blk 356488447: segments 707002595 707002628 -> 707002628 (locatealong 1)
+  08NB015 blk 356370279: segments 706972381 706972391 -> 706972391 (locatealong 1)
+  08NB015 blk 356569878: segments 706972445 706972453 -> 706972453 (locatealong 1)
+  08ND018 blk 356367700: segments 707402907 707402953 -> 707402953 (locatealong 1)
+  08ND018 blk 356367701: segments 707402827 707402900 -> 707402827 (locatealong 1)
+  08NE117 blk 356444646: segments 707758200 707758402 -> 707758402 (locatealong 1)
+  08NG065 blk 356561013: segments 707674424 707674438 -> 707674424 (locatealong 1)
+  08NG077 blk 356427821: segments 707669286 707669305 -> 707669305 (locatealong 1)
+  08NH051 blk 356568591: segments 707055266 707055268 -> 707055266 (locatealong 1)
+  08NH119 blk 356367909: segments 706751672 706751707 -> 706751672 (locatealong 1)
+  08NK016 blk 356366042: segments 706829294 706829535 -> 706829294 (locatealong 1)
+  08NK019 blk 356570562: segments 706829896 706829938 -> 706829938 (locatealong 1)
+  08NL038 blk 356553351: segments 707492120 707492137 -> 707492120 (locatealong 1)
+  08NL070 blk 356488459: segments 707532300 707533858 -> 707533858 (locatealong 1)
+  08NL076 blk 356570316: segments 707522631 707523002 -> 707522631 (locatealong 0)
+  08NM137 blk 356476159: segments 707337181 707337284 -> 707337284 (locatealong 1)
+  08NM137 blk 356529478: segments 707337442 707337835 -> 707337442 (locatealong 1)
+  10AC006 blk 359409128: segments 40003059 40003676 -> 40003676 (locatealong 1)
+  10AC006 blk 359571031: segments 40003014 40004008 -> 40003014 (locatealong 1)
+  10BE011 blk 359089775: segments 8081442 8081445 -> 8081442 (locatealong 1)
+  10BE013 blk 359028739: segments 105059793 105059856 -> 105059856 (locatealong 1)
+  10CD004 blk 359498049: segments 140029308 140029312 -> 140029308 (locatealong 1)
+after:
+  07EA001 blk 359014591: segments 207086752 207086967 -> 207086752 (locatealong 1)
+  07EA004 blk 359026034: segments 68051490 68051813 -> 68051813 (locatealong 1)
+  07EA005 blk 359004814: segments 49096660 49098368 -> 49096660 (locatealong 1)
+  07EA007 blk 359017472: segments 49083172 49083225 -> 49083225 (locatealong 1)
+  07EC004 blk 359565402: segments 115008492 115008496 -> 115008496 (locatealong 1)
+  07EE007 blk 359418289: segments 165024643 165024758 -> 165024758 (locatealong 1)
+  07FA003 blk 359380548: segments 223085800 223086035 -> 223086035 (locatealong 1)
+  07FA005 blk 359004374: segments 104052948 104052994 -> 104052994 (locatealong 1)
+  07FD001 blk 359321495: segments 81003795 81003837 -> 81003795 (locatealong 1)
+  07GC001 blk 359292913: segments 187017972 187018168 -> 187018168 (locatealong 1)
+  08CA001 blk 360233977: segments 188008176 188008182 -> 188008182 (locatealong 1)
+  08CA001 blk 360841477: segments 188007831 188007853 -> 188007831 (locatealong 1)
+  08EC013 blk 360221024: segments 5085717 5085719 -> 5085719 (locatealong 1)
+  08EC013 blk 360886970: segments 5086038 5086970 -> 5086970 (locatealong 1), the picked stream
+  08EE004 blk 360718079: segments 17055498 17055500 -> 17055498 (locatealong 1)
+  08EF001 blk 360228533: segments 87065236 87065385 -> 87065385 (locatealong 1)
+  08EF001 blk 360243476: segments 87064283 87064458 -> 87064283 (locatealong 1)
+  08EF005 blk 360554639: segments 245027662 245028011 -> 245028011 (locatealong 1)
+  08FB005 blk 360447876: segments 9016031 9016126 -> 9016126 (locatealong 1)
+  08FB006 blk 360724845: segments 3023476 3024616 -> 3024616 (locatealong 1)
+  08FF003 blk 360227628: segments 84024941 84025014 -> 84025014 (locatealong 1)
+  08FF004 blk 360218422: segments 84009815 84009816 -> 84009815 (locatealong 1)
+  08FF004 blk 360885824: segments 84009722 84009728 -> 84009722 (locatealong 1)
+  08GA054 blk 360462394: segments 189034598 189034608 -> 189034598 (locatealong 1)
+  08GA054 blk 360853347: segments 189034494 189034520 -> 189034494 (locatealong 1)
+  08GA075 blk 360462394: segments 189034598 189034608 -> 189034598 (locatealong 1)
+  08GA075 blk 360639220: segments 189034715 189034716 -> 189034715 (locatealong 1)
+  08GA079 blk 360229873: segments 189054613 189054620 -> 189054620 (locatealong 1)
+  08GD007 blk 360536623: segments 66039446 66039470 -> 66039446 (locatealong 1)
+  08HA003 blk 354103976: segments 710284351 710284353 -> 710284351 (locatealong 1)
+  08HE008 blk 354130322: segments 710290111 710290134 -> 710290111 (locatealong 1)
+  08HF012 blk 354142397: segments 710375468 710375492 -> 710375492 (locatealong 1)
+  08HF013 blk 354150648: segments 710354069 710354126 -> 710354069 (locatealong 1)
+  08JB002 blk 356056511: segments 701130559 701130598 -> 701130559 (locatealong 1)
+  08KA001 blk 355992502: segments 702290037 702290056 -> 702290037 (locatealong 1)
+  08KD001 blk 355998642: segments 700535570 700536134 -> 700536134 (locatealong 1)
+  08KD006 blk 355999967: segments 703862894 703863073 -> 703863073 (locatealong 1)
+  08KD006 blk 356360570: segments 703862843 703862887 -> 703862887 (locatealong 1), the picked stream
+  08KH001 blk 356357305: segments 702667996 702668742 -> 702668742 (locatealong 1)
+  08KH014 blk 355998782: segments 702636812 702636814 -> 702636812 (locatealong 1)
+  08KH030 blk 356329397: segments 702642521 702642543 -> 702642521 (locatealong 1)
+  08LA001 blk 356000237: segments 700821080 700821081 -> 700821081 (locatealong 1)
+  08LA004 blk 355996773: segments 702352310 702352329 -> 702352310 (locatealong 1)
+  08LB050 blk 356363387: segments 701842242 701842250 -> 701842242 (locatealong 1), the picked stream
+  08LB076 blk 356072154: segments 701873147 701873150 -> 701873147 (locatealong 1)
+  08LD001 blk 356352514: segments 700281085 700281086 -> 700281086 (locatealong 1)
+  08LF051 blk 356201543: segments 703340487 703340497 -> 703340487 (locatealong 1)
+  08LF080 blk 356138102: segments 700457626 700457745 -> 700457745 (locatealong 1)
+  08LG008 blk 355999880: segments 701772710 701772728 -> 701772728 (locatealong 1)
+  08LG016 blk 356191098: segments 702618689 702618691 -> 702618689 (locatealong 1)
+  08MB005 blk 356105545: segments 701547167 701547223 -> 701547167 (locatealong 1)
+  08MB005 blk 356110204: segments 701547134 701547179 -> 701547134 (locatealong 1)
+  08ME023 blk 356360832: segments 702848976 702849659 -> 702849659 (locatealong 1)
+  08MH076 blk 356292529: segments 701643985 701644099 -> 701643985 (locatealong 1)
+  08NA006 blk 356488447: segments 707002595 707002628 -> 707002595 (locatealong 1)
+  08NB015 blk 356370279: segments 706972381 706972391 -> 706972381 (locatealong 1)
+  08NB015 blk 356569878: segments 706972445 706972453 -> 706972445 (locatealong 1)
+  08ND018 blk 356367700: segments 707402907 707402953 -> 707402907 (locatealong 1)
+  08ND018 blk 356367701: segments 707402827 707402900 -> 707402827 (locatealong 1)
+  08NE117 blk 356444646: segments 707758200 707758402 -> 707758402 (locatealong 1)
+  08NG065 blk 356561013: segments 707674424 707674438 -> 707674438 (locatealong 1)
+  08NG077 blk 356427821: segments 707669286 707669305 -> 707669286 (locatealong 1)
+  08NH051 blk 356568591: segments 707055266 707055268 -> 707055266 (locatealong 1)
+  08NH119 blk 356367909: segments 706751672 706751707 -> 706751672 (locatealong 1)
+  08NK016 blk 356366042: segments 706829294 706829535 -> 706829294 (locatealong 1)
+  08NK019 blk 356570562: segments 706829896 706829938 -> 706829896 (locatealong 1)
+  08NL038 blk 356553351: segments 707492120 707492137 -> 707492120 (locatealong 1)
+  08NL070 blk 356488459: segments 707532300 707533858 -> 707533858 (locatealong 1)
+  08NL076 blk 356570316: segments 707522631 707523002 -> 707523002 (locatealong 1)
+  08NM137 blk 356476159: segments 707337181 707337284 -> 707337181 (locatealong 1)
+  08NM137 blk 356529478: segments 707337442 707337835 -> 707337442 (locatealong 1)
+  10AC006 blk 359409128: segments 40003059 40003676 -> 40003676 (locatealong 1)
+  10AC006 blk 359571031: segments 40003014 40004008 -> 40004008 (locatealong 1)
+  10BE011 blk 359089775: segments 8081442 8081445 -> 8081442 (locatealong 1)
+  10BE013 blk 359028739: segments 105059793 105059856 -> 105059856 (locatealong 1)
+  10CD004 blk 359498049: segments 140029308 140029312 -> 140029308 (locatealong 1)
+
+## wet_station_snap() output that changed (1 stations)
+
+linear_feature_id: 1
+watershed_feature_id: 1
+upstream_area_km2: 1
+accepted: 0
+lake: 0
+
+station   segment / watershed / upstream area / accepted / lake, before -> after
+08KD006  703862843 / 8483126 / 2863.8 km2 / accepted / lake FALSE
+          -> 703862887 / 7713002 / 2861.1 km2 / accepted / lake FALSE
+
+## Picked positions whose segment, fwa_locatealong() or watershed changed (2)
+
+station   segment before -> after; locatealong before -> after; watershed (share of gross) before -> after; upstream border crossing (before)
+08KD006  703862843 -> 703862887; 0 -> 1; empty -> 2861.2 km2 (0.999); error: Failed to fetch row : ERROR:  line_interpolate_point: 2nd arg isn't within [0,1]
+08LB050  701842242 -> 701842242; 1 -> 1; error -> 287.5 km2 (1.002); error: Failed to fetch row : ERROR:  line_interpolate_point: 2nd arg isn't within [0,1]

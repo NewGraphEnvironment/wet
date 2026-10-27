@@ -20,6 +20,7 @@ Scripts:
 - `scripts/mad_basin.R 100` builds a whole basin (the Fraser in about 3 min from cache) and attributes every difference from fwapg.
 - `scripts/mad_parity.R SALR` is the headwater-group regression gate, and cross-checks against the slow pairwise oracle `wet_upstream_pairs()`.
 - `scripts/upstream_area_check.R` checks topology against fwapg's upstream areas.
+- `scripts/station_snap_sweep.R <migration.sql>` (#127) measures what a pending fwapg migration changes on wet's snap path (`wet_station_snap()`, then `fwa_locatealong()` and `fwa_watershedatmeasure()` at the pick) over the shipped release's stations, before and inside a rolled-back trial (`wet:::wet_pg_trial()`); report `data/checks/station_snap_sweep_<release>.txt`, findings in `research/station_snap.md`.
 
 The open water balance (#11), a second pipeline run in this order. Each script's outputs are keyed on its inputs and code, and later scripts refuse a run without `upstream/_complete`:
 - `scripts/wb_inputs.R`: CGIAR AET, GLO-90 DEM, climr 1981–2010 normals (MSWX anomalies) and zones, all on one 30″ grid. Also the ET-experiment inputs, including MOD16 via `wet_mod16_aet()`, which needs an Earthdata login in a netrc for granules not yet in `data/mod16/` (#18). And cd's ERA5-Land 1981–2010 snow normals (`snowmelt_doy_50`, `swe_max` capped at 3,000 mm) via `wet_snow_normals()`, for the monthly shares (#16).
@@ -83,6 +84,8 @@ wet owns hydrology data, observed and modelled (decided 2026-09-28, sred#26), wa
 ## Database
 
 fwapg in PostgreSQL, for example fresh's Docker setup (`fresh/docker/`, db `fwapg`). Scripts connect with `DBI::dbConnect(RPostgres::Postgres(), ...)` using the `WET_PG*` env vars (`scripts/departure_pilot.R` alone reads libpq's bare `PG*`); never hardcode hosts.
+
+A pending fwapg migration is tried, not applied: `wet:::wet_pg_trial(conn, file)` runs it inside a transaction rolled back when the caller's frame exits, refusing transaction control of its own and named calls whose effect a rollback does not undo (dblink, `COPY ... PROGRAM`, `setval()`), and checking the transaction id is unchanged after. Sequence increments and other non-transactional effects are not caught, so read a migration before trying it. The live snap tests that need fwapg#41's `fwa_indexpoint()` skip on an older database, run against the migration when `WET_FWAPG_TRIAL` names its file, and fail instead of skipping under `WET_FWAPG_CURRENT=true`, which a database that should be current sets so a stale one cannot pass.
 
 wet reads three of fwapg's schemas only: `whse_basemapping` (the FWA), `pcic` (routed PCIC) and `postgisftw` (fwapg's functions). Other packages' province runs written into the same database (link's, in `fresh_default`) feed nothing here, so a "province run" there is not `scripts/wb_province.R` and changes no wet output.
 
@@ -3101,6 +3104,7 @@ EOF
 - `usethis::use_directory("dev")` — reproducible setup script
 - `usethis::use_directory("data-raw")` — data generation scripts
 - Hex sticker: copy soul's `templates/make_hexsticker.R` to `data-raw/`
+- CI: copy soul's `templates/R-CMD-check.yaml` to `.github/workflows/` (one job, `ubuntu-latest`, `timeout-minutes: 45`)
 - Set GitHub Pages to serve from `gh-pages` branch
 
 ### dev/dev.R

@@ -1,3 +1,7 @@
+# wet 0.4.24
+
+* `scripts/station_snap_sweep.R` measures what NewGraphEnvironment/fwapg#41's `fwa_indexpoint()` rework changes on `wet_station_snap()`'s path (#127). It does not migrate the database: it tries the migration inside a transaction that is rolled back, through the internal `wet_pg_trial()`. Over HYDAT 2026-07-17's 490 stations only 08KD006's snap moves, to the upper segment at the vertex it is tied on (watershed 8483126 → 7713002, accepted either way). `fwa_locatealong()` places every candidate measure (114 missed before, 110 of them at stream heads), and two picked catchments that came back empty or raised an error come back. Live tests pin four cases. They skip on an older database, run against the migration under `WET_FWAPG_TRIAL`, and fail under `WET_FWAPG_CURRENT=true`. The report is `data/checks/station_snap_sweep_20260717.txt`. The shipped stations file and fit stay as they are until the next HYDAT release's refit.
+
 # wet 0.4.23
 
 * `wet_snow_annual()` returns each year's ERA5-Land snow from cd's annual layers, such as peak snow water equivalent and the 50 % melt date, over one watershed's dissolved polygons, 1950–2025 (#121). Its example reads Maxan Creek's outline and cd's layers, bundled in `inst/extdata/snow_pilot/`. `scripts/departure_snow.R` regresses the Maxan pilot's Chinook window flows on them: more peak snow and a later melt mean more migration-window flow at every series, and snow explains almost nothing in the spawning window (`research/station_flow_departure.md`).
