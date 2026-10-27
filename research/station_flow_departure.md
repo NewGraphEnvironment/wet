@@ -114,6 +114,8 @@ The interval resamples years within each period and adds a held-out residual to 
 
 **Limits.** Each extended year rests on one donor, through a relation fitted on five years. The earliest three decades come from one large mainstem gauge that contains Maxan, so they carry the Bulkley's own history: the years before 1961 in the migration window, and before 1960 in the spawning window. Of the 50 years before 1981, that gauge supplies 31 in the migration window and 30 in the spawning window. Only the migration-window mean was used to choose a method. The other statistics, windows and the before/after are reported, and decide nothing.
 
+**Across the province (#122).** Held out at the 290 calibration gauges PCIC covers, 1951–2012, donors chosen by how well PCIC's modelled flow at the two sites moves together carry departures better than #120's nearest donors (median NSE 0.72 against 0.67), and better than PCIC's own routed departures (0.48) or a blend of the two (0.71): [`pcic_hydrology.md`](pcic_hydrology.md), "Per-year routed flow and the departure competition".
+
 ## Snow and the window flows at the pilot (#121)
 
 **Verified:** 2026-10-26 · **Issues:** #121 (component 2 of #118) · **Produced by:** `scripts/departure_snow.R` → `data/checks/departure_snow_20260717.txt`, from the pilot's saved series, HYDAT 2026-07-17, and cd's annual ERA5-Land snow layers (cd run of 2026-10-10) through `wet_snow_annual()`. The specification was registered in the script's header at 81580b5, before any body code. Nothing was chosen: all 24 fits are reported.

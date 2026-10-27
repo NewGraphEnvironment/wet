@@ -26,8 +26,9 @@
 #                         the stored values per sub-basin, in
 #                         pcic.subbasin_daily's shape, to 17 significant digits
 #
-# A second mode, cutting the same layout from the real product for one small
-# segment, is added once fwapg#42's product exists.
+# It is synthetic only: scripts/departure_pcic.R checks every sub-basin it
+# reads from the real product against pcic.subbasin_daily, which is what a
+# real cut would have shown (#122).
 
 if (!requireNamespace("duckdb", quietly = TRUE)) stop("install duckdb")
 out <- "inst/extdata/pcic_years"

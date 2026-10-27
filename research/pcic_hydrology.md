@@ -44,6 +44,33 @@
   - Recommended use: compare PNWNAmet-driven runs with observations, and take climate impacts within one model-scenario combination.
 - **`downscaled_cmip6`:** BCCAQv2 CMIP6 *climate* (not hydrology), Canada-wide.
 
+## Per-year routed flow and the departure competition (#122)
+
+**Verified:** 2026-10-27 · **Issues:** #122 (component 2 of #118; reads #120's usable threshold), NewGraphEnvironment/fwapg#42 (the per-year product) · **Produced by:** `scripts/departure_pcic.R` → `data/checks/departure_pcic_20260717.txt`, HYDAT 2026-07-17, approved daily flows only; PCIC's PNWNAmet historical run routed per year from fwapg's `pcic.subbasin_days.PNWNAmet_historical.<year>.parquet` (fwapg ea9b199). The rule was registered in the script's header at 5904cd7, before any candidate existed, and amended at a8ff752, 5a67a46 and b518ebc before any run on the product. Two runs from a frozen copy gave a byte-identical report (`data/logs/122/`).
+
+**The verdict.** Donors carry a gauge's year-to-year departures better than PCIC's own routed flow does, and a half-and-half blend adds nothing. Choosing donors by how well PCIC's modelled flow at the two sites moves together beats choosing them by distance.
+
+The question is the one #120 left open: at a site with no record, are its departures better carried from gauged neighbours or read off PCIC's modelled flow at the site? The pool is the shipped fit's calibration gauges whose segment has a routed weight, 290, held out one at a time and again with every gauge upstream or downstream of the target removed (leak-free). The score is the centred log NSE of the Chinook migration-window mean (05-01 to 08-01), on the years 1951–2012 every candidate has; 0 means no better than no departure. A challenger ships if it beats the incumbent's median by 0.01 in both pools.
+
+| | candidate | median NSE, held out | median NSE, leak-free |
+|---|---|---|---|
+| stage 1: how donors are weighted | distance (#120's, incumbent) | 0.67 | 0.64 |
+| | PCIC covariance, same 5 nearest | 0.68 | 0.66 |
+| | **PCIC covariance, best 5 of 15 nearest (ships)** | **0.72** | **0.69** |
+| stage 2: donors, PCIC or a blend | **donors, as stage 1 ships** | **0.72** | **0.69** |
+| | PCIC's own departure at the segment | 0.48 | 0.48 |
+| | blend, half each in logs | 0.71 | 0.69 |
+
+- **Stage 1.** Picking the five donors whose modelled departures correlate best with the target's, among its 15 nearest, gains 0.054 held out and 0.047 leak-free. Its donors sit a little farther away (median 84 km against 81). Weighting the same five nearest by correlation gains only 0.01 to 0.02: the header expected that near-null, because PNWNAmet's forcing is shared across a region, so modelled correlation among neighbours is high and flat. The gain comes from choosing different donors, not from reweighting the same ones.
+- **Stage 2.** PCIC's own departures score 0.24 below donors held out and 0.21 below leak-free. The blend misses the margin both ways (−0.009 held out, +0.008 leak-free), so donors ship. After 2012 only donors carry values in any case.
+- **The short-record test set**, 60 gauges scored and deciding nothing, ranks them the same way: donors chosen by covariance 0.66, distance 0.50, blend 0.60, PCIC 0.41. At Maxan Creek (08EE018), five years, distance donors score 0.74 from the province pool and covariance-picked donors 0.64.
+
+**PCIC's own skill** at the 290 gauges, as the median centred NSE of its departures (correlation in brackets): Columbia 0.63 (0.81), Fraser 0.49 (0.73), Peace 0.43 (0.73), Coast 0.41 (0.69). It barely moves with drainage area (0.47 under 100 km² to 0.51 over 10,000 km²) and is a little higher at nested gauges (0.53) than at headwaters (0.47). Its correlation is well above its NSE everywhere, so PCIC follows which years run high or low better than it gets their size.
+
+**Sensitivities**, reported and unable to ship, keep the order: donors above PCIC with k = 3 and 8, and in every other window statistic (spawning-window mean 0.67 against 0.27; migration 7-day minimum 0.62 against 0.16). A blend weighted three quarters to donors scores 0.74 held out against donors' 0.72, the one setting where PCIC adds anything.
+
+**Limits.** PCIC publishes no calibration gauges, so its score at a calibration gauge may be partly in sample; donors are always held out, which favours PCIC if anything. Choosing 5 of 15 by a correlation over 62 years selects partly on noise (r's sampling SD is about 0.13), which is why the win had to hold leak-free too. Only the migration-window mean decided. PCIC's run ends in 2012, so the comparison covers 1951–2012 alone.
+
 ## Terms
 
 The PCIC terms of use provide data "AS IS" and name no open licence. The citation form is "Pacific Climate Impacts Consortium, University of Victoria, (Jan 2020). VIC-GL BCCAQ CMIP5: Gridded Hydrologic Model Output." **Publishing derived values is not a concern** (airvine, 2026-10-07): wet publishes values derived from PCIC output, cited as above, without seeking separate confirmation. The contact named in the file metadata is Markus Schnorbus (PCIC hydrology).
