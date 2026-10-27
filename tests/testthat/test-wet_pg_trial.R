@@ -35,6 +35,13 @@ test_that("transaction control left inside the migration is refused, with its li
   refuse("SELECT 1;\n/* c */ COMMIT;")
   refuse("SELECT 1;\nCOMMIT/* c */;")
   refuse("SELECT 1; /* a\nb */\nROLLBACK;")
+  # and between a command's words, and a last statement needs no semicolon
+  refuse("SELECT 1;\nCOMMIT\nAND CHAIN;")
+  refuse("SELECT 1;\nEND\nTRANSACTION;")
+  refuse("SELECT 1;\nROLLBACK /* x */ WORK;")
+  refuse("SELECT 1;\nCOMMIT -- c\nWORK;")
+  refuse("SELECT 1;\nCOMMIT")
+  refuse("SELECT 1;\nCOMMIT\n\n")
   # a COMMIT; with no BEGIN; before it is not the migration's own pair
   refuse("SELECT 1;\nCOMMIT;")
   expect_error(wet:::wet_pg_trial_sql("BEGIN;\nSELECT 1;\nCOMMIT;\nSELECT 2;\nCOMMIT;"), "at line 3\\b")

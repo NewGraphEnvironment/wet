@@ -28,8 +28,9 @@ wet_pg_trial <- function(conn, file, env = parent.frame()) {
 # still names the file's line), refusing any transaction control left after that.
 # A plpgsql body's `BEGIN` and `END` lines carry no semicolon and `END IF;`
 # names no transaction, so neither is refused; a bare `END;` is, on purpose.
-# Whitespace, line breaks and comments may sit around the keyword, as the
-# server allows.
+# Whitespace, line breaks and comments may sit around and between the words,
+# and the last statement may end the input with no semicolon, as the server
+# allows.
 wet_pg_trial_sql <- function(sql) {
   lines <- strsplit(sql, "\n", fixed = TRUE)[[1]]
   code <- which(!grepl("^\\s*(--.*)?$", lines))
@@ -41,12 +42,13 @@ wet_pg_trial_sql <- function(sql) {
     lines[c(first, last)] <- ""
   }
   body <- paste(lines, collapse = "\n")
-  s <- "[ \\t]+"
+  ws <- "(\\s|--[^\\n]*|/\\*[\\s\\S]*?\\*/)*"
+  s <- "(\\s|--[^\\n]*|/\\*[\\s\\S]*?\\*/)+"
   opt <- paste0("(", s, "(WORK|TRANSACTION|AND", s, "(NO", s, ")?CHAIN|PREPARED", s, "'[^']*'|'[^']*'|",
                 "ISOLATION", s, "LEVEL", s, "[A-Z \\t]+|READ", s, "(ONLY|WRITE)|(NOT", s, ")?DEFERRABLE))*")
-  ws <- "(\\s|--[^\\n]*|/\\*[\\s\\S]*?\\*/)*"
+  # `\\z`, not `$`: under (?m) `$` would also end a plpgsql body's bare BEGIN line
   pat <- paste0("(?im)(^|;)", ws, "(?<kw>BEGIN|START", s, "TRANSACTION|COMMIT|END|ROLLBACK|ABORT|PREPARE", s,
-                "TRANSACTION)", opt, ws, ";")
+                "TRANSACTION)", opt, ws, "(;|\\z)")
   hit <- gregexpr(pat, body, perl = TRUE)[[1]]
   if (hit[1] > 0) {
     kw <- attr(hit, "capture.start")[, "kw"]

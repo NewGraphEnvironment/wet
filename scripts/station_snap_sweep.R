@@ -149,11 +149,21 @@ sweep <- function(label) {
   list(cand = cand, idx_err = idx_err, snap = snap, pick = pick)
 }
 
+# wet_station_snap() on some stations, or the message of the first error it
+# raised: its on.exit() drops a temp table, which fails in the aborted
+# transaction and would otherwise replace the real cause
+snap_or_message <- function(x) {
+  first <- NULL
+  tryCatch(withCallingHandlers(wet_station_snap(conn, x), error = function(e) {
+    if (is.null(first)) first <<- conditionMessage(e)
+  }), error = function(e) if (is.null(first)) conditionMessage(e) else first)
+}
+
 # wet_station_snap() on every station at once, as wb_stations.R runs it; if
 # that errors, one station at a time, so the error is placed and counted
 try_sql_snap <- function(x) {
   DBI::dbExecute(conn, "SAVEPOINT snap")
-  r <- tryCatch(wet_station_snap(conn, x), error = function(e) conditionMessage(e))
+  r <- snap_or_message(x)
   if (!is.character(r)) {
     DBI::dbExecute(conn, "RELEASE SAVEPOINT snap")
     r$error <- ""
@@ -163,7 +173,7 @@ try_sql_snap <- function(x) {
   stamp("  wet_station_snap() on all stations errored (", first_line(r), "); one at a time")
   do.call(rbind, lapply(seq_len(nrow(x)), function(i) {
     DBI::dbExecute(conn, "SAVEPOINT snap")
-    s <- tryCatch(wet_station_snap(conn, x[i, ]), error = function(e) conditionMessage(e))
+    s <- snap_or_message(x[i, ])
     if (is.character(s)) {
       DBI::dbExecute(conn, "ROLLBACK TO SAVEPOINT snap")
       none <- data.frame(station_number = character(), linear_feature_id = numeric(), distance_m = numeric(),
