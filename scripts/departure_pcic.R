@@ -238,8 +238,10 @@
 # commit that built the files (fwapg#42 kept it); the 62 rows must name one
 # commit, which the report prints beside WET_FWAPG_COMMIT (the one that built
 # the Postgres tables, which pcic.runs does not record) and the md5 of the 62
-# catalogue rows. (Amended once the catalogue shipped with the column, before
-# any run on the product: it replaces WET_FWAPG_DAYS_COMMIT.)
+# catalogue rows. (Amended a second time at b518ebc, once the catalogue
+# shipped with the column: after the body was written, so outside the window
+# above, and before any run on the product. It changes which commit the report
+# names for the files, not the scoring, and replaces WET_FWAPG_DAYS_COMMIT.)
 #
 # Parity, over every sub-basin the pool's and the test set's segments name
 # (subid and upstream_subids): for each (month, day) bin of q_local and of
@@ -271,8 +273,9 @@
 # byte.
 
 # ==================================================================================================
-# The body: written after the header and its amendments (5904cd7, a8ff752, 5a67a46; b518ebc), before any
-# candidate was scored. Everything below implements the rule above; nothing here changes it.
+# The body: written after the header and its amendments (5904cd7, a8ff752, 5a67a46), before any candidate
+# was scored; the interface section was amended again after it, at b518ebc. Everything below implements
+# the rule above; nothing here changes it.
 # ==================================================================================================
 
 source("scripts/wb_cv_lib.R")  # load_all(), cal, release, fit_dir, score_code_md5
