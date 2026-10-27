@@ -58,6 +58,7 @@ Component 3 of #118. Two halves, one in the fwapg fork (NewGraphEnvironment/fwap
 
 ## Phase 4: The competition
 
+- [ ] **Body written 2026-10-27 (00:15 UTC), not yet run on the product:** exercised end to end in a scratch harness that replaces the product block with fake modelled series (report to the scratchpad only)
 - [ ] `scripts/departure_pcic.R` body under the Phase-1 header: pool from `wb_cv_lib.R`'s `cal` and the stations rds, the box set snapped; observed window stats via `wet_station_daily(sources = "hydat")` → `wet_window_stats()`; modelled via the weights-only reader → `wet_routed_years()` → `wet_window_stats()`; parity check over every read sub-basin against `pcic.subbasin_daily` (1951-2012) and `routed_daily_fingerprint(period = "1951-2012")`; stage 1, stage 2 on common years, leak-free, short-record set, sensitivities; report `data/checks/departure_pcic_20260717.txt` (tracked) with both commits and the product's digest; then `data/departure/departure_pcic_20260717.rds` (gitignored; the per-gauge observed, modelled and carried series, what shipped, `code_md5`) for #130.
 - [ ] Run it twice from a frozen copy (`cp` then `Rscript`), logs under `data/logs/122/`; the report byte-identical across the two runs.
 - [ ] Mutation table in `findings.md`: each refusal in the header restored and seen to fire (stale cal, wrong release, dirty tree, a perturbed bin in a read sub-basin of a copy of the product, a missing date, a product without its sidecar).

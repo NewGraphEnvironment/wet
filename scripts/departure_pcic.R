@@ -267,3 +267,523 @@
 # candidates are not scored at the same gauges on the same years. The report
 # carries no timestamp, so a rerun on the same inputs reproduces it byte for
 # byte.
+
+# ==================================================================================================
+# The body: written after the header and its amendments (5904cd7, a8ff752, 5a67a46), before any
+# candidate was scored. Everything below implements the rule above; nothing here changes it.
+# ==================================================================================================
+
+source("scripts/wb_cv_lib.R")  # load_all(), cal, release, fit_dir, score_code_md5
+source("scripts/pcic_routed_lib.R")
+
+if (release != "20260717") stop("the rule names HYDAT 20260717, not ", release, call. = FALSE)
+# the script this run executes (a frozen copy, say), hashed before anything else can change it
+self <- gsub("~+~", " ", sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)), fixed = TRUE)
+if (length(self) != 1 || sys.nframe() != 0) {
+  stop("run with Rscript, not through source(), so the script's own md5 can be recorded", call. = FALSE)
+}
+code_md5 <- unname(tools::md5sum(self))
+if (is.na(code_md5)) stop("cannot read the running script at ", self, " to record its md5", call. = FALSE)
+
+# the report cites the commit it was built at, so that commit must hold the code
+git <- function(...) {
+  x <- suppressWarnings(system2("git", c(...), stdout = TRUE, stderr = TRUE))
+  if (!is.null(attr(x, "status"))) stop("git ", paste(c(...), collapse = " "), " failed: ", paste(x, collapse = " "))
+  x
+}
+dirty <- git("status", "--porcelain", "--", "R", "scripts")
+if (length(dirty)) stop("commit these first, so the recorded commit can rebuild the report:\n",
+                        paste(dirty, collapse = "\n"))
+wet_commit <- git("rev-parse", "--short", "HEAD")
+rule_commits <- c(registered = "5904cd7", weight_amended = "a8ff752", interface_amended = "5a67a46")
+fwapg_commit <- routed_commit()
+days_commit <- Sys.getenv("WET_FWAPG_DAYS_COMMIT")
+if (!grepl("^[0-9a-f]{7,40}$", days_commit)) {
+  stop("set WET_FWAPG_DAYS_COMMIT to the fwapg commit that built the per-year files", call. = FALSE)
+}
+pcic_dir <- Sys.getenv("WET_PCIC_YEARS")
+if (!nzchar(pcic_dir) || !dir.exists(pcic_dir)) stop("set WET_PCIC_YEARS to the per-year files' directory", call. = FALSE)
+ho <- shipped_heldout()  # refuses a fit scored under other scoring code
+hydat <- wb_hydat(release)
+
+report <- file.path("data", "checks", sprintf("departure_pcic_%s.txt", release))
+rds <- file.path("data", "departure", sprintf("departure_pcic_%s.rds", release))
+years_run <- 1951:2012
+period_run <- "1951-2012"
+n_days_run <- sum(365 + (years_run %% 4 == 0))  # 22,646; no century year in the run
+baseline <- 1981:2010
+k_main <- 5
+k_sens <- c(3, 8)
+n_pick <- 15
+margin <- 0.01
+eps <- 1e-9
+min_pool <- 100
+w_blend <- 0.5
+w_blend_sens <- c(0.25, 0.75)
+box <- c(lon_min = -128.8, lon_max = -125.0, lat_min = 53.6, lat_max = 55.8)
+maxan <- "08EE018"
+series <- paste(routed_run$model, routed_run$scenario, sep = "_")
+where_run <- routed_where_period(period_run)
+
+lh <- utils::read.csv("inst/vignette-data/life_history_bulk.csv")
+lh <- lh[lh$species_code == "CH" & lh$life_stage %in% c("migration", "spawning"), ]
+windows <- data.frame(window = lh$life_stage, start = lh$start, end = lh$end)
+stopifnot(identical(windows$window, c("migration", "spawning")),
+          identical(windows$start, c("05-01", "08-01")), identical(windows$end, c("08-01", "09-15")))
+stats_all <- expand.grid(v = c("q_mean", "q_min7", "q_cov_day"), p = c("migration", "spawning"),
+                         stringsAsFactors = FALSE)
+stats_all <- stats_all[order(stats_all$p, match(stats_all$v, c("q_mean", "q_min7", "q_cov_day"))), ]
+is_days <- function(v) grepl("_cov_day$", v)
+
+fmt <- function(x, d = 2) ifelse(is.na(x), "-", formatC(x, format = "f", digits = d))
+out <- character()
+say <- function(...) out <<- c(out, ...)
+
+conn <- DBI::dbConnect(RPostgres::Postgres(),
+                       host = Sys.getenv("WET_PGHOST", "localhost"),
+                       port = as.integer(Sys.getenv("WET_PGPORT", "5432")),
+                       dbname = Sys.getenv("WET_PGDATABASE", "fwapg"),
+                       user = Sys.getenv("WET_PGUSER", "postgres"),
+                       password = Sys.getenv("WET_PGPASSWORD", "postgres"))
+daily_fp <- routed_daily_fingerprint(conn, period_run)  # refuses tables unlike pcic.runs
+
+# ---- the pool ------------------------------------------------------------------------------------
+cg <- cal[c("station_number", "station_name", "lon", "lat", "drainage_area_gross_km2", "linear_feature_id",
+            "wscode", "localcode", "nesting", "area_class")]
+cg$linear_feature_id <- as.integer(cg$linear_feature_id)
+stopifnot(!anyNA(cg$linear_feature_id), setequal(cg$station_number, ho$stations$station_number))
+w_cal <- routed_weights(conn, cg$linear_feature_id)
+cg$covered <- cg$linear_feature_id %in% w_cal$linear_feature_id
+ra <- routed_annual(conn, cg$linear_feature_id)
+n_58 <- sum(cg$linear_feature_id %in% ra$linear_feature_id[!is.na(ra$q_m3s)])
+
+# ---- the short-record test set: its two sources ---------------------------------------------------
+s_rds <- readRDS(wb_stations_path(release))
+cols_t <- c("station_number", "station_name", "lon", "lat", "drainage_area_gross_km2", "linear_feature_id",
+            "wscode", "localcode", "accepted")
+ta <- s_rds$test[cols_t]
+ta$from <- "stations rds test"
+hcon <- wet:::wet_hydat_connect(hydat)
+bx <- DBI::dbGetQuery(hcon, sprintf("
+  SELECT s.STATION_NUMBER station_number, s.STATION_NAME station_name, s.LONGITUDE lon,
+         s.LATITUDE lat, s.DRAINAGE_AREA_GROSS drainage_area_gross_km2
+  FROM STATIONS s JOIN STN_REGULATION r USING (STATION_NUMBER)
+  WHERE r.REGULATED = 0 AND s.PROV_TERR_STATE_LOC = 'BC'
+    AND s.LONGITUDE BETWEEN %f AND %f AND s.LATITUDE BETWEEN %f AND %f
+  ORDER BY s.STATION_NUMBER", box[["lon_min"]], box[["lon_max"]], box[["lat_min"]], box[["lat_max"]]))
+DBI::dbDisconnect(hcon)
+bx <- bx[stats::complete.cases(bx[c("lon", "lat", "drainage_area_gross_km2")]), ]
+
+# ---- observed window statistics ---------------------------------------------------------------------
+ids <- sort(unique(c(cg$station_number, ta$station_number, bx$station_number)))
+daily <- suppressWarnings(wet_station_daily(ids, hydat, to = NULL, sources = "hydat"))
+ws <- wet_window_stats(daily, windows, stats = c("mean", "min7", "cov_day"))
+ws <- ws[c("station_number", "variable", "period", "year", "value")]
+rm(daily)
+obs_vals <- function(v, p) {
+  g <- ws[ws$variable == v & ws$period == p & !is.na(ws$value), ]
+  if (!is_days(v)) g <- g[g$value > 0, ]
+  g
+}
+n_mig_all <- table(obs_vals("q_mean", "migration")$station_number)
+n_mig_run <- table(with(obs_vals("q_mean", "migration"), station_number[year %in% years_run]))
+n_of <- function(tab, s) ifelse(s %in% names(tab), as.integer(tab[s]), 0L)
+
+pool_of <- function(v, p) {
+  g <- obs_vals(v, p)
+  b <- table(g$station_number[g$year %in% baseline])
+  sort(intersect(cg$station_number[cg$covered], names(b)[b >= 10]))
+}
+pools <- lapply(seq_len(nrow(stats_all)), function(i) pool_of(stats_all$v[i], stats_all$p[i]))
+names(pools) <- paste(stats_all$v, stats_all$p)
+mig_pool <- pools[["q_mean migration"]]
+if (length(mig_pool) < min_pool) {
+  stop("the migration-mean pool holds ", length(mig_pool), " gauges; the rule needs ", min_pool, call. = FALSE)
+}
+
+# the box's short-record gauges by #120's rule, snapped
+bx$n_mig <- n_of(n_mig_all, bx$station_number)
+bx <- bx[bx$n_mig >= 3 & bx$n_mig <= 10, ]
+sn <- wet_station_snap(conn, bx[c("station_number", "lon", "lat", "drainage_area_gross_km2")])
+sn <- sn[match(bx$station_number, sn$station_number), ]
+tb <- data.frame(bx[c("station_number", "station_name", "lon", "lat", "drainage_area_gross_km2")],
+                 linear_feature_id = sn$linear_feature_id, wscode = sn$wscode, localcode = sn$localcode,
+                 accepted = sn$accepted %in% TRUE, from = "#120 box short-record")
+tt <- rbind(ta, tb[!tb$station_number %in% ta$station_number, ])
+tt$from[tt$station_number %in% intersect(ta$station_number, tb$station_number)] <- "both"
+tt$linear_feature_id <- as.integer(tt$linear_feature_id)
+w_test <- routed_weights(conn, tt$linear_feature_id[tt$accepted & !is.na(tt$linear_feature_id)])
+tt$n_run <- n_of(n_mig_run, tt$station_number)
+tt$drop <- ifelse(!tt$accepted, "snap not accepted",
+                  ifelse(!tt$linear_feature_id %in% w_test$linear_feature_id, "no pcic.segment_weights row",
+                         ifelse(tt$station_number %in% mig_pool, "in the migration-mean pool",
+                                ifelse(tt$n_run < 3 | tt$n_run > 10,
+                                       "not 3 to 10 migration years in 1951-2012", ""))))
+test <- tt[tt$drop == "", ]
+test <- test[order(test$station_number), ]
+
+# one stations table for every call: every statistic's pool and the test set
+in_pool <- sort(unique(unlist(pools)))
+st_tab <- rbind(cg[cg$station_number %in% in_pool, c("station_number", "lon", "lat", "drainage_area_gross_km2")],
+                test[c("station_number", "lon", "lat", "drainage_area_gross_km2")])
+stopifnot(!anyDuplicated(st_tab$station_number))
+seg <- rbind(cg[cg$station_number %in% in_pool, c("station_number", "linear_feature_id")],
+             test[c("station_number", "linear_feature_id")])
+w_need <- rbind(w_cal, w_test)
+w_need <- w_need[!duplicated(w_need$linear_feature_id) & w_need$linear_feature_id %in% seg$linear_feature_id, ]
+w_need <- w_need[order(w_need$linear_feature_id), ]
+subs <- sort(unique(c(w_need$subid, unlist(w_need$upstream_subids))))
+
+# ---- product: begin ----------------------------------------------------------------------------------
+# The per-year files against their catalogue and the climatology (the interface section), then
+# every gauge's segment routed day by day and its window statistics taken per year.
+duck <- DBI::dbConnect(duckdb::duckdb())
+files <- file.path(pcic_dir, sprintf("pcic.subbasin_days.%s.%d.parquet", series, years_run))
+gone <- years_run[!file.exists(files)]
+if (length(gone)) stop("WET_PCIC_YEARS has no ", series, " file for ", paste(gone, collapse = ", "), call. = FALSE)
+catalogue <- DBI::dbGetQuery(conn, sprintf("
+  SELECT year, crosswalk_md5, rows::text AS rows, subbasins::text AS subbasins, q_local_sum::text AS q_local_sum,
+         q_acc_sum::text AS q_acc_sum, bytes::text AS bytes
+  FROM pcic.series WHERE (model, scenario) = ('%s', '%s') AND year BETWEEN %d AND %d ORDER BY year",
+  routed_run$model, routed_run$scenario, min(years_run), max(years_run)))
+if (!identical(as.integer(catalogue$year), years_run)) {
+  stop("pcic.series lacks a row for ", paste(setdiff(years_run, catalogue$year), collapse = ", "), call. = FALSE)
+}
+run_md5 <- DBI::dbGetQuery(conn, sprintf("SELECT crosswalk_md5 FROM pcic.runs WHERE %s", where_run))$crosswalk_md5
+stopifnot(length(run_md5) == 1L)
+if (any(catalogue$crosswalk_md5 != run_md5)) {
+  stop("pcic.series rows for ", paste(catalogue$year[catalogue$crosswalk_md5 != run_md5], collapse = ", "),
+       " are on another crosswalk than the ", period_run, " run's", call. = FALSE)
+}
+sql_fp <- "SELECT count(*)::VARCHAR AS rows, count(DISTINCT subid)::VARCHAR AS subbasins,
+  sum(CAST(floor(CAST(q_local AS DOUBLE) * 1000 + 0.5) AS BIGINT))::VARCHAR AS q_local_sum,
+  sum(CAST(floor(CAST(q_acc AS DOUBLE) * 1000 + 0.5) AS BIGINT))::VARCHAR AS q_acc_sum,
+  count(*) FILTER (WHERE q_local IS NULL OR q_acc IS NULL OR isnan(q_local) OR isnan(q_acc)) AS bad
+  FROM read_parquet('%s')"
+for (i in seq_along(files)) {
+  f <- DBI::dbGetQuery(duck, sprintf(sql_fp, files[i]))
+  got <- c(f$rows, f$subbasins, f$q_local_sum, f$q_acc_sum, format(file.size(files[i]), scientific = FALSE))
+  want <- unlist(catalogue[i, c("rows", "subbasins", "q_local_sum", "q_acc_sum", "bytes")])
+  if (f$bad > 0 || !identical(unname(got), unname(want))) {
+    stop(basename(files[i]), " is not its pcic.series row: file ", paste(got, collapse = " "), ", row ",
+         paste(want, collapse = " "), if (f$bad > 0) sprintf(", %d NULL or NaN flows", f$bad), call. = FALSE)
+  }
+}
+f_cat <- tempfile()
+writeLines(do.call(paste, catalogue), f_cat)
+catalogue_md5 <- unname(tools::md5sum(f_cat))
+unlink(f_cat)
+
+# parity: every read sub-basin's bins against pcic.subbasin_daily
+sql_par <- "SELECT subid, month(date)::INTEGER AS month, day(date)::INTEGER AS day, count(*)::INTEGER AS n,
+  avg(CAST(q_local AS DOUBLE)) AS m_local, avg(abs(CAST(q_local AS DOUBLE))) AS a_local,
+  avg(CAST(q_acc AS DOUBLE)) AS m_acc, avg(abs(CAST(q_acc AS DOUBLE))) AS a_acc
+  FROM read_parquet([%s]) WHERE subid IN (%s) GROUP BY ALL"
+par <- DBI::dbGetQuery(duck, sprintf(sql_par, paste0("'", files, "'", collapse = ", "), paste(subs, collapse = ", ")))
+clim <- DBI::dbGetQuery(conn, sprintf("
+  SELECT subid, month, day, n_days, q_local, q_acc FROM %s WHERE %s AND subid IN (%s)",
+  routed_daily_table, where_run, paste(subs, collapse = ", ")))
+pm <- merge(clim, par, by = c("subid", "month", "day"), all = TRUE)
+if (anyNA(pm) || nrow(pm) != 366L * length(subs) || any(pm$n != pm$n_days)) {
+  stop("the per-year files and pcic.subbasin_daily do not hold the same bins and days for the read sub-basins",
+       call. = FALSE)
+}
+ratio <- pmax(abs(pm$m_local - pm$q_local) / (2^-23 * pm$a_local + 1e-9),
+              abs(pm$m_acc - pm$q_acc) / (2^-23 * pm$a_acc + 1e-9))
+if (any(ratio > 1)) {
+  b <- pm[which.max(ratio), ]
+  stop(sum(ratio > 1), " bins fail parity; worst sub-basin ", b$subid, " ", b$month, "-", b$day, call. = FALSE)
+}
+parity <- list(subbasins = length(subs), bins = nrow(pm), worst = max(ratio),
+               max_abs = max(abs(c(pm$m_local - pm$q_local, pm$m_acc - pm$q_acc))))
+DBI::dbDisconnect(duck, shutdown = TRUE)
+
+# every gauge's segment, day by day, in chunks of segments, then its window statistics
+chunk <- split(seq_len(nrow(w_need)), ceiling(seq_len(nrow(w_need)) / 40))
+mws <- do.call(rbind, lapply(chunk, function(i) {
+  q <- wet_routed_years(pcic_dir, w_need[i, ], years = years_run, series = series)
+  stopifnot(nrow(q) == length(i) * n_days_run)
+  m <- wet_window_stats(q, windows, stats = c("mean", "min7", "cov_day"), by = "linear_feature_id")
+  m[c("linear_feature_id", "variable", "period", "year", "value")]
+}))
+# ---- product: end ------------------------------------------------------------------------------------
+DBI::dbDisconnect(conn)
+
+mod <- merge(seg, mws, by = "linear_feature_id")[c("station_number", "variable", "period", "year", "value")]
+mod <- mod[order(mod$station_number, mod$variable, mod$period, mod$year), ]
+rownames(mod) <- NULL
+stopifnot(setequal(unique(mod$station_number), seg$station_number))
+mod_low <- mod[!is_days(mod$variable) & mod$value <= 0, ]
+
+# ---- series: observed, modelled departures, carried --------------------------------------------------
+tr <- function(v, x) if (is_days(v)) x else log(x)
+obs_of <- function(g, v, p) {
+  o <- obs_vals(v, p)
+  o <- o[o$station_number == g, ]
+  stats::setNames(tr(v, o$value), o$year)
+}
+# a modelled departure from the modelled 1981-2010 mean (a constant, cancelled by centring)
+pcic_of <- function(g, v, p) {
+  m <- mod[mod$station_number == g & mod$variable == v & mod$period == p, ]
+  if (!is_days(v)) m <- m[m$value > 0, ]
+  b <- m$value[m$year %in% baseline]
+  if (!length(b)) return(stats::setNames(numeric(), character()))
+  stats::setNames(if (is_days(v)) m$value - mean(b) else log(m$value / mean(b)), m$year)
+}
+weightings <- c("distance", "covariance", "covariance_pick")
+# the target's carried departures under each weighting, from `donors`; the donors used and fallback
+carry_all <- function(g, v, p, k, donors) {
+  x <- obs_vals(v, p)
+  x <- x[x$station_number %in% setdiff(donors, g), ]
+  md <- mod[mod$variable == v & mod$period == p & mod$station_number %in% c(g, unique(x$station_number)), ]
+  lapply(stats::setNames(weightings, weightings), function(w) {
+    a <- wet_departure_carry(x, st_tab, g, k = k, weights = w, modelled = if (w == "distance") NULL else md)
+    used <- unique(sub(":.*$", "", unlist(strsplit(a$donors, " ", fixed = TRUE))))
+    list(dep = stats::setNames(a$anomaly, a$year), used = used,
+         fallback = w != "distance" && identical(unique(a$weighting), "distance"))
+  })
+}
+# the same years for every candidate: the run's years, the gauge's observed years, and every candidate's
+score <- function(obs, cands) {
+  yrs <- names(obs)[as.integer(names(obs)) %in% years_run]
+  for (cc in cands) yrs <- intersect(yrs, names(cc)[!is.na(cc)])
+  yrs <- sort(yrs)
+  nse <- stats::setNames(rep(NA_real_, length(cands)), names(cands))
+  if (length(yrs) >= 3) {
+    o <- obs[yrs] - mean(obs[yrs])
+    nse <- vapply(cands, function(cc) wet:::wet_nse(o, cc[yrs] - mean(cc[yrs])), numeric(1))
+  }
+  # one year set per gauge, so every candidate is scored or none is
+  stopifnot(all(is.na(nse)) || !anyNA(nse))
+  list(n = length(yrs), years = yrs, nse = nse)
+}
+stage2_cands <- function(r, ship, w = w_blend) {
+  d <- r$carried[[ship]]$dep
+  pc <- r$pcic
+  yy <- intersect(names(d), names(pc))
+  list(donors = d, pcic = pc, blend = stats::setNames(w * d[yy] + (1 - w) * pc[yy], yy))
+}
+
+# leak-free: the pool gauges upstream or downstream of each gauge (either direction)
+up <- matrix(FALSE, nrow(cg), nrow(cg))
+for (i in seq_len(nrow(cg))) up[i, ] <- wet:::wet_fwa_upstream(cg$wscode[i], cg$localcode[i], cg$wscode, cg$localcode)
+diag(up) <- FALSE
+rel <- up | t(up)
+dimnames(rel) <- list(cg$station_number, cg$station_number)
+related <- lapply(stats::setNames(cg$station_number, cg$station_number), function(g) colnames(rel)[rel[g, ]])
+colocated <- sum(duplicated(paste(cg$wscode, cg$localcode)[cg$station_number %in% mig_pool]))
+
+# every series for one statistic, k and donor rule; targets are a pool's gauges (leave one out) or the test set
+run_set <- function(v, p, k, leakfree = FALSE, targets = NULL) {
+  pool <- pools[[paste(v, p)]]
+  test_mode <- !is.null(targets)
+  if (!test_mode) targets <- pool
+  lapply(stats::setNames(targets, targets), function(g) {
+    donors <- setdiff(pool, c(g, if (leakfree) related[[g]]))
+    list(obs = obs_of(g, v, p), pcic = pcic_of(g, v, p), carried = carry_all(g, v, p, k, donors))
+  })
+}
+scores_stage1 <- function(rs) {
+  lapply(rs, function(r) score(r$obs, lapply(r$carried, `[[`, "dep")))
+}
+scores_stage2 <- function(rs, ship, w = w_blend) lapply(rs, function(r) score(r$obs, stage2_cands(r, ship, w)))
+tab_of <- function(sc) {
+  nse <- do.call(rbind, lapply(sc, `[[`, "nse"))
+  keep <- stats::complete.cases(nse)
+  list(nse = nse[keep, , drop = FALSE], n_scored = sum(keep), n_not = sum(!keep),
+       med = apply(nse[keep, , drop = FALSE], 2, stats::median),
+       q25 = apply(nse[keep, , drop = FALSE], 2, stats::quantile, 0.25, names = FALSE),
+       q75 = apply(nse[keep, , drop = FALSE], 2, stats::quantile, 0.75, names = FALSE))
+}
+# one challenger, chosen on the leave-one-out median (a tie to the first listed), which must clear the
+# incumbent by the margin under both pools
+decide <- function(t_logo, t_lf, incumbent, challengers) {
+  ch <- challengers[which.max(t_logo$med[challengers])]
+  gain <- c(logo = t_logo$med[[ch]] - t_logo$med[[incumbent]], leakfree = t_lf$med[[ch]] - t_lf$med[[incumbent]])
+  list(challenger = ch, gain = gain, ship = if (all(gain >= margin - eps)) ch else incumbent)
+}
+
+# ---- the main run: migration mean, k = 5 --------------------------------------------------------------
+main <- run_set("q_mean", "migration", k_main)
+main_lf <- run_set("q_mean", "migration", k_main, leakfree = TRUE)
+t1 <- tab_of(scores_stage1(main))
+t1_lf <- tab_of(scores_stage1(main_lf))
+d1 <- decide(t1, t1_lf, "distance", c("covariance", "covariance_pick"))
+t2 <- tab_of(scores_stage2(main, d1$ship))
+t2_lf <- tab_of(scores_stage2(main_lf, d1$ship))
+d2 <- decide(t2, t2_lf, "donors", c("pcic", "blend"))
+
+# ---- the test set, the sensitivities and the counts ----------------------------------------------------
+tst <- run_set("q_mean", "migration", k_main, targets = test$station_number)
+sc_t1 <- scores_stage1(tst)
+sc_t2 <- scores_stage2(tst, d1$ship)
+tt1 <- tab_of(sc_t1)
+tt2 <- tab_of(sc_t2)
+
+sens <- list()
+add_sens <- function(label, rs, w = w_blend) {
+  a <- tab_of(scores_stage1(rs))
+  b <- tab_of(scores_stage2(rs, d1$ship, w))
+  sens[[length(sens) + 1]] <<- list(label = label, n = a$n_scored, s1 = a$med, n2 = b$n_scored, s2 = b$med)
+}
+for (k in k_sens) add_sens(sprintf("k = %d", k), run_set("q_mean", "migration", k))
+for (i in seq_len(nrow(stats_all))[-1]) {
+  add_sens(sprintf("%s %s", stats_all$p[i], sub("^q_", "", stats_all$v[i])),
+           run_set(stats_all$v[i], stats_all$p[i], k_main))
+}
+for (w in w_blend_sens) add_sens(sprintf("blend %.2f donors", w), main, w)
+
+# PCIC's own skill on the stage-2 years of the main run: centred NSE and correlation
+sc2_main <- scores_stage2(main, d1$ship)
+skill <- do.call(rbind, lapply(names(sc2_main), function(g) {
+  s <- sc2_main[[g]]
+  if (anyNA(s$nse)) return(NULL)
+  o <- main[[g]]$obs[s$years]
+  data.frame(station_number = g, n = s$n, nse = s$nse[["pcic"]], r = stats::cor(o, main[[g]]$pcic[s$years]))
+}))
+skill <- merge(skill, cg[c("station_number", "nesting", "area_class")], by = "station_number")
+skill$basin <- routed_basin(skill$station_number)
+
+# fallbacks, short r and the distance to the donors used, on the main run
+fallbacks <- vapply(c("covariance", "covariance_pick"), function(w) {
+  sum(vapply(main, function(r) r$carried[[w]]$fallback, logical(1)))
+}, integer(1))
+n_common <- function(a, b) {
+  m <- mod[mod$variable == "q_mean" & mod$period == "migration" & mod$value > 0, ]
+  length(intersect(m$year[m$station_number == a], m$year[m$station_number == b]))
+}
+short_r <- vapply(c("covariance", "covariance_pick"), function(w) {
+  sum(unlist(lapply(names(main), function(g) {
+    vapply(main[[g]]$carried[[w]]$used, function(d) n_common(g, d) < length(years_run), logical(1))
+  })))
+}, integer(1))
+xy <- terra::project(cbind(st_tab$lon, st_tab$lat), "EPSG:4326", "EPSG:3005") / 1000
+rownames(xy) <- st_tab$station_number
+km_used <- vapply(weightings, function(w) {
+  stats::median(vapply(names(main), function(g) {
+    u <- main[[g]]$carried[[w]]$used
+    mean(sqrt((xy[u, 1] - xy[g, 1])^2 + (xy[u, 2] - xy[g, 2])^2))
+  }, numeric(1)))
+}, numeric(1))
+low_by <- table(paste(mod_low$period, sub("^q_", "", mod_low$variable)))
+low_gauges <- sort(unique(mod_low$station_number[mod_low$variable == "q_mean" & mod_low$period == "migration"]))
+
+# ---- the report -----------------------------------------------------------------------------------------
+med_line <- function(t, nm) {
+  sprintf("  %-16s %5d %7s %7s %7s", nm, t$n_scored, fmt(t$q25[[nm]]), fmt(t$med[[nm]]), fmt(t$q75[[nm]]))
+}
+say("# PCIC's per-year routed flow against donor-carried departures (#122)", "",
+    sprintf("Rule registered in scripts/departure_pcic.R's header at %s, amended before any candidate at %s (distance weight) and %s (the fwapg#42 interface).",
+            rule_commits[["registered"]], rule_commits[["weight_amended"]], rule_commits[["interface_amended"]]),
+    sprintf("wet commit %s; HYDAT %s, approved daily flows only; fit %s, scoring code %s.", wet_commit, release,
+            release, score_code_md5),
+    routed_report_line(fwapg_commit, period_run),
+    sprintf("daily tables: %s", daily_fp),
+    sprintf("per-year files: %d of %s (%d-%d), built by NewGraphEnvironment/fwapg at %s; pcic.series rows md5 %s.",
+            length(files), series, min(years_run), max(years_run), days_commit, catalogue_md5),
+    sprintf("parity: %d sub-basins, %d bins; worst deviation %s of the bound (2^-23 x mean |v| + 1e-9 m3/s); largest %s m3/s.",
+            parity$subbasins, parity$bins, formatC(parity$worst, format = "g", digits = 2),
+            formatC(parity$max_abs, format = "g", digits = 2)),
+    sprintf("Windows (CH): %s. Statistic deciding: migration-window mean, log departure. k = %d; margin %s.",
+            paste(sprintf("%s %s..%s", windows$window, windows$start, windows$end), collapse = ", "), k_main, margin),
+    "", "## 1. The pool", "",
+    sprintf("Calibration gauges: %d. With a pcic.segment_weights row on their segment: %d (with a pcic.discharge_monthly row, #58's definition: %d).",
+            nrow(cg), sum(cg$covered), n_58),
+    sprintf("Pool per statistic (>= 10 baseline years with a value): %s.",
+            paste(sprintf("%s %d", names(pools), lengths(pools)), collapse = "; ")),
+    sprintf("Migration-mean pool: %d gauges; co-located pairs (same codes): %d; leak-free removes on average %s donors.",
+            length(mig_pool), colocated, fmt(mean(lengths(lapply(related[mig_pool], intersect, mig_pool))), 1)),
+    sprintf("Modelled window-years <= 0, dropped from logs: %s. Migration-mean gauges with one or more: %s.",
+            if (length(low_by)) paste(sprintf("%s %d", names(low_by), as.integer(low_by)), collapse = "; ") else "none",
+            if (length(low_gauges)) paste(low_gauges, collapse = ", ") else "none"),
+    "", "## 2. Stage 1: how donors are weighted", "",
+    "Median per-gauge NSE of centred log migration-window means, held out, on years every candidate has:", "",
+    sprintf("  %-16s %5s %7s %7s %7s", "leave-one-out", "n", "q25", "median", "q75"),
+    vapply(weightings, function(nm) med_line(t1, nm), ""),
+    sprintf("  not scored (fewer than 3 years): %d", t1$n_not), "",
+    sprintf("  %-16s %5s %7s %7s %7s", "leak-free", "n", "q25", "median", "q75"),
+    vapply(weightings, function(nm) med_line(t1_lf, nm), ""),
+    sprintf("  not scored (fewer than 3 years): %d", t1_lf$n_not), "",
+    sprintf("Challenger %s: %s over distance under leave-one-out, %s leak-free; margin %s. SHIPS: %s.",
+            d1$challenger, fmt(d1$gain[["logo"]], 3), fmt(d1$gain[["leakfree"]], 3), margin, d1$ship),
+    sprintf("Fell back to distance (every chosen donor weighing 0): covariance %d, covariance_pick %d targets.",
+            fallbacks[["covariance"]], fallbacks[["covariance_pick"]]),
+    sprintf("Target-donor pairs used whose r rests on fewer than %d years: covariance %d, covariance_pick %d.",
+            length(years_run), short_r[["covariance"]], short_r[["covariance_pick"]]),
+    sprintf("Median over targets of the mean distance to the donors used (km): %s.",
+            paste(sprintf("%s %s", weightings, fmt(km_used, 0)), collapse = ", ")),
+    "", sprintf("## 3. Stage 2: donors (%s), PCIC or a blend", d1$ship), "",
+    sprintf("  %-16s %5s %7s %7s %7s", "leave-one-out", "n", "q25", "median", "q75"),
+    vapply(c("donors", "pcic", "blend"), function(nm) med_line(t2, nm), ""),
+    sprintf("  not scored (fewer than 3 years): %d", t2$n_not), "",
+    sprintf("  %-16s %5s %7s %7s %7s", "leak-free", "n", "q25", "median", "q75"),
+    vapply(c("donors", "pcic", "blend"), function(nm) med_line(t2_lf, nm), ""),
+    sprintf("  not scored (fewer than 3 years): %d", t2_lf$n_not), "",
+    sprintf("Challenger %s: %s over donors under leave-one-out, %s leak-free; margin %s. SHIPS: %s.",
+            d2$challenger, fmt(d2$gain[["logo"]], 3), fmt(d2$gain[["leakfree"]], 3), margin, d2$ship),
+    sprintf("pcic minus donors, median NSE: %s leave-one-out, %s leak-free (the informative outcome; blend is favoured by averaging alone).",
+            fmt(t2$med[["pcic"]] - t2$med[["donors"]], 3), fmt(t2_lf$med[["pcic"]] - t2_lf$med[["donors"]], 3)),
+    "After 2012 only donors carry values, whatever ships.",
+    "Limit: PCIC publishes no calibration gauges, so pcic's score at a calibration gauge may be partly in sample; donors are always held out.",
+    "", "## 4. The short-record test set (deciding nothing)", "",
+    sprintf("Candidates: %d from the stations rds test set, %d from #120's box short-record rule (%d in both). Dropped: %s.",
+            sum(tt$from != "#120 box short-record"), sum(tt$from != "stations rds test"), sum(tt$from == "both"),
+            paste(sprintf("%s %d", names(table(tt$drop[tt$drop != ""])), as.integer(table(tt$drop[tt$drop != ""]))),
+                  collapse = "; ")),
+    sprintf("Kept: %d; scored: %d. Median NSE: %s.", nrow(test), tt1$n_scored,
+            paste(c(sprintf("%s %s", weightings, fmt(tt1$med[weightings])),
+                    sprintf("%s %s", c("donors", "pcic", "blend"), fmt(tt2$med[c("donors", "pcic", "blend")]))),
+                  collapse = ", ")),
+    "", sprintf("  %-8s %-21s %3s %8s %8s %8s %8s %8s %8s", "station", "from", "n", "distance", "covar", "cov_pick",
+                "donors", "pcic", "blend"))
+for (g in test$station_number) {
+  a <- sc_t1[[g]]
+  b <- sc_t2[[g]]
+  say(sprintf("  %-8s %-21s %3d %8s %8s %8s %8s %8s %8s%s", g, test$from[test$station_number == g], a$n,
+              fmt(a$nse[["distance"]]), fmt(a$nse[["covariance"]]), fmt(a$nse[["covariance_pick"]]),
+              fmt(b$nse[["donors"]]), fmt(b$nse[["pcic"]]), fmt(b$nse[["blend"]]), if (g == maxan) "  <- Maxan" else ""))
+}
+if (!maxan %in% test$station_number) {
+  say(sprintf("  %s is not in the test set: %s.", maxan,
+              if (maxan %in% tt$station_number) tt$drop[tt$station_number == maxan] else "not a candidate"))
+}
+say("", "## 5. Sensitivities (reported, unable to ship)", "",
+    sprintf("  %-26s %4s %8s %8s %8s %4s %8s %8s %8s", "setting", "n", "distance", "covar", "cov_pick", "n",
+            "donors", "pcic", "blend"))
+for (s in sens) {
+  say(sprintf("  %-26s %4d %8s %8s %8s %4d %8s %8s %8s", s$label, s$n, fmt(s$s1[["distance"]]),
+              fmt(s$s1[["covariance"]]), fmt(s$s1[["covariance_pick"]]), s$n2, fmt(s$s2[["donors"]]),
+              fmt(s$s2[["pcic"]]), fmt(s$s2[["blend"]])))
+}
+say("", "PCIC's own skill on the stage-2 years (median centred NSE, median correlation):", "",
+    sprintf("  %-22s %4s %7s %7s", "group", "n", "NSE", "r"))
+for (grp in c("basin", "area_class", "nesting")) {
+  lvs <- if (is.factor(skill[[grp]])) levels(skill[[grp]]) else sort(unique(skill[[grp]]))
+  for (lv in lvs[lvs %in% as.character(skill[[grp]])]) {
+    x <- skill[as.character(skill[[grp]]) == lv, ]
+    say(sprintf("  %-22s %4d %7s %7s", lv, nrow(x), fmt(stats::median(x$nse)), fmt(stats::median(x$r))))
+  }
+}
+say("", "## 6. Per gauge, migration mean, leave-one-out", "",
+    sprintf("  %-8s %-9s %-10s %-9s %3s %8s %8s %8s %8s %8s %8s", "station", "basin", "area", "nesting", "n",
+            "distance", "covar", "cov_pick", "donors", "pcic", "blend"))
+sc1_main <- scores_stage1(main)
+for (g in mig_pool) {
+  a <- sc1_main[[g]]
+  b <- sc2_main[[g]]
+  say(sprintf("  %-8s %-9s %-10s %-9s %3d %8s %8s %8s %8s %8s %8s", g, routed_basin(g),
+              as.character(cg$area_class[cg$station_number == g]), cg$nesting[cg$station_number == g], a$n,
+              fmt(a$nse[["distance"]]), fmt(a$nse[["covariance"]]), fmt(a$nse[["covariance_pick"]]),
+              fmt(b$nse[["donors"]]), fmt(b$nse[["pcic"]]), fmt(b$nse[["blend"]])))
+}
+writeLines(out, report)
+message("report: ", report)
+
+# ---- for #130: the series behind the report, after it -------------------------------------------------------
+dir.create(dirname(rds), showWarnings = FALSE, recursive = TRUE)
+saveRDS(list(release = release, ship = c(stage1 = d1$ship, stage2 = d2$ship), k_main = k_main, baseline = baseline,
+             rule_commits = rule_commits, wet_commit = wet_commit, fwapg_commit = fwapg_commit,
+             days_commit = days_commit, catalogue_md5 = catalogue_md5, code_md5 = code_md5,
+             main = main, main_leakfree = main_lf, test = tst, test_stations = test,
+             ws = ws[ws$station_number %in% seg$station_number, ], mod = mod), rds)
+message("series: ", rds)

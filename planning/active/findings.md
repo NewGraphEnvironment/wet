@@ -65,6 +65,11 @@ Relates to #118, #58, #102, NewGraphEnvironment/fwapg#42, NewGraphEnvironment/fw
 - **The first float32 tolerance was wrong:** 2^-23 relative to the bin mean fails wherever a bin's values change sign (a losing reach), because float32 rounding bounds the error relative to each value, so the mean's error is bounded by 2^-24 × mean |v|, not by the mean. The amendment uses 2^-23 × mean |v| + 1e-9 m³/s. fwapg#42's own QA (`1e-6 * greatest(abs(clim), 1e-3)`) has an absolute floor of 1e-9 m³/s where the climatology is 0, which the same sign change could break; worth raising when fwapg#42 resumes.
 - **AC1 held:** `departure_pilot.R` rewrote `data/checks/departure_pilot_20260717.txt` byte-identical (23:50 to 23:53 UTC, R's environment as is); `pcic_routed_compare.R` rewrote its report identical but for the line recording the wet commit, which was restored. Logs: `data/logs/122/*_phase2.log`.
 
+## Phase 4 body, harness run (2026-10-27)
+
+- The body was written before fwapg#42's product exists. A scratch copy with the block between `# ---- product: begin` and `# ---- product: end` replaced by fake modelled series (observed values times lognormal noise) ran end to end in 8.5 min (00:03:39 to 00:12:10 UTC), writing only to the scratchpad. Its scores mean nothing; the counts are real: 315 calibration gauges, 290 with a weights row (290 under #58's definition too), pools 289 to 290 per statistic, one co-located pair (08NM240, 08NM241, same codes and segment, counted as related), 809 sub-basins to read, a test set of 63 kept from 146 candidates (08EE018 kept, 5 migration years in 1951-2012).
+- Stage 1 can score a test gauge on 0 years while stage 2 scores it: the covariance weightings can pick donors whose years miss the target's, and stage 1 is scored on the years all three have. That is the registered rule (B1), not a defect.
+
 ## Errors Encountered
 
 | Error | Resolution |
