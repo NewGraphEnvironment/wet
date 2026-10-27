@@ -241,7 +241,8 @@
 # catalogue rows. (Amended a second time at b518ebc, once the catalogue
 # shipped with the column: after the body was written, so outside the window
 # above, and before any run on the product. It changes which commit the report
-# names for the files, not the scoring, and replaces WET_FWAPG_DAYS_COMMIT.)
+# names for the files, not the scoring, and replaces WET_FWAPG_DAYS_COMMIT;
+# the usage lines and the list of refusals changed with it.)
 #
 # Parity, over every sub-basin the pool's and the test set's segments name
 # (subid and upstream_subids): for each (month, day) bin of q_local and of
@@ -275,7 +276,8 @@
 # ==================================================================================================
 # The body: written after the header and its amendments (5904cd7, a8ff752, 5a67a46), before any candidate
 # was scored; the interface section was amended again after it, at b518ebc. Everything below implements
-# the rule above; nothing here changes it.
+# the rule above; nothing here changes it. After the first runs on the product it was edited only in what
+# the report prints (code-check rounds 5 and 6), which moved no score.
 # ==================================================================================================
 
 source("scripts/wb_cv_lib.R")  # load_all(), cal, release, fit_dir, score_code_md5
