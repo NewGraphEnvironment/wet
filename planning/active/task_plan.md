@@ -21,8 +21,8 @@ Measured during planning, on m1's fwapg (PostgreSQL 17.5):
 - **Database is never migrated.** The migration goes inside `BEGIN … ROLLBACK`. After the rollback, the run asserts that the signature is the old one again.
 
 ## Phase 1: Trial a migration without committing it
-- [ ] `R/wet_pg_trial.R` (internal): `wet_pg_trial_sql(sql)` strips the leading `BEGIN;` line and the trailing `COMMIT;` line. It then refuses any remaining `^\s*(BEGIN|COMMIT|ROLLBACK|END|START\s+TRANSACTION)\b[^;\n]*;` (case-insensitive), which bare plpgsql `BEGIN`/`END` lines pass. `wet_pg_trial(conn, sql)` runs `dbBegin()`, then `dbExecute(immediate = TRUE)`, then checks that `pg_current_xact_id_if_assigned()` is not null, so the transaction is still open and the migration was not committed mid-run. The caller rolls back.
-- [ ] `tests/testthat/test-wet_pg_trial.R`: unit tests without a database. They cover stripping, refusal of a nested `COMMIT;`, `commit ;`, `ROLLBACK;` and `END;`, and acceptance of plpgsql `BEGIN`/`END` lines.
+- [x] `R/wet_pg_trial.R` (internal): `wet_pg_trial_sql(sql)` strips the leading `BEGIN;` line and the trailing `COMMIT;` line. It then refuses any remaining `^\s*(BEGIN|COMMIT|ROLLBACK|END|START\s+TRANSACTION)\b[^;\n]*;` (case-insensitive), which bare plpgsql `BEGIN`/`END` lines pass. `wet_pg_trial(conn, sql)` runs `dbBegin()`, then `dbExecute(immediate = TRUE)`, then checks that `pg_current_xact_id_if_assigned()` is not null, so the transaction is still open and the migration was not committed mid-run. The caller rolls back.
+- [x] `tests/testthat/test-wet_pg_trial.R`: unit tests without a database. They cover stripping, refusal of a nested `COMMIT;`, `commit ;`, `ROLLBACK;` and `END;`, and acceptance of plpgsql `BEGIN`/`END` lines.
 
 ## Phase 2: Sweep, before and after
 - [ ] `scripts/station_snap_sweep.R <migration file>`. It reads the stations rds and connects through `WET_PG*`. Then, once on the current database and once inside `wet_pg_trial()`, it does the following. Each call runs under its own `SAVEPOINT`, so an error is counted and the run goes on:
