@@ -732,11 +732,11 @@ say("# PCIC's per-year routed flow against donor-carried departures (#122)", "",
     sprintf("  not scored (fewer than 3 years): %d", t1_lf$n_not), "",
     sprintf("Challenger %s: %s over distance under leave-one-out, %s leak-free; margin %s. SHIPS: %s.",
             d1$challenger, fmt(d1$gain[["logo"]], 3), fmt(d1$gain[["leakfree"]], 3), margin, d1$ship),
-    sprintf("Fell back to distance (every chosen donor weighing 0): covariance %d, covariance_pick %d targets.",
+    sprintf("Leave-one-out: fell back to distance (every chosen donor weighing 0): covariance %d, covariance_pick %d targets.",
             fallbacks[["covariance"]], fallbacks[["covariance_pick"]]),
-    sprintf("Target-donor pairs used whose r rests on fewer than %d years: covariance %d, covariance_pick %d.",
+    sprintf("Leave-one-out: target-donor pairs used whose r rests on fewer than %d years: covariance %d, covariance_pick %d.",
             length(years_run), short_r[["covariance"]], short_r[["covariance_pick"]]),
-    sprintf("Median over targets of the mean distance to the donors used (km): %s.",
+    sprintf("Leave-one-out: median over targets of the mean distance to the donors used (km): %s.",
             paste(sprintf("%s %s", weightings, fmt(km_used, 0)), collapse = ", ")),
     "", sprintf("## 3. Stage 2: donors (%s), PCIC or a blend", d1$ship), "",
     sprintf("  %-16s %5s %7s %7s %7s", "leave-one-out", "n", "q25", "median", "q75"),
@@ -782,7 +782,7 @@ for (s in sens) {
               fmt(s$s1[["covariance"]]), fmt(s$s1[["covariance_pick"]]), s$n2, fmt(s$s2[["donors"]]),
               fmt(s$s2[["pcic"]]), fmt(s$s2[["blend"]])))
 }
-say("", "PCIC's own skill on the stage-2 years (median centred NSE, median correlation):", "",
+say("", "PCIC's own skill on the stage-2 years, leave-one-out (median centred NSE, median correlation):", "",
     sprintf("  %-22s %4s %7s %7s", "group", "n", "NSE", "r"))
 for (grp in c("basin", "area_class", "nesting")) {
   lvs <- if (is.factor(skill[[grp]])) levels(skill[[grp]]) else sort(unique(skill[[grp]]))
