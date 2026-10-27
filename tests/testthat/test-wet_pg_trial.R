@@ -47,10 +47,19 @@ test_that("transaction control left inside the migration is refused, with its li
   refuse(paste0("SELECT 1;\n", strrep("-", 400), "\nSELECT 2;\nCOMMIT;"))
   refuse(paste0("SELECT 1;\n", strrep("/* x */\n", 20), "COMMIT;"))
   refuse("SELECT 1;\nCOMMIT /* a /* b */ c */;")
+  refuse("SELECT 1; -- c\rCOMMIT;")
   # a COMMIT; with no BEGIN; before it is not the migration's own pair
   refuse("SELECT 1;\nCOMMIT;")
   expect_error(wet:::wet_pg_trial_sql("BEGIN;\nSELECT 1;\nCOMMIT;\nSELECT 2;\nCOMMIT;"), "at line 3\\b")
   expect_error(wet:::wet_pg_trial_sql("SELECT 1; /* a\nb */\nROLLBACK;"), "at line 3\\b")
+})
+
+test_that("calls whose effect a rollback does not undo are refused", {
+  refuse <- function(x) expect_error(wet:::wet_pg_trial_sql(x), "a rollback does not undo")
+  refuse("SELECT dblink_exec('host=x', 'DROP TABLE t');")
+  refuse("COPY t FROM PROGRAM 'psql -c commit';")
+  refuse("SELECT setval('s', 1);")
+  refuse("SELECT pg_background_launch('VACUUM');")
 })
 
 test_that("a trial migrates its own session only, and its rollback undoes it", {

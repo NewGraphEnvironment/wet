@@ -30,6 +30,12 @@ stamp <- function(...) message(format(Sys.time(), "%H:%M:%S"), " ", ...)
 
 migration <- commandArgs(trailingOnly = TRUE)[1]
 if (is.na(migration) || !file.exists(migration)) stop("usage: station_snap_sweep.R <migration.sql>", call. = FALSE)
+# one copy, read once: the trial, the md5 and the report's check all use it, so
+# a file rewritten during the run cannot be credited with the counts
+migration_name <- basename(migration)
+migration <- file.path(tempdir(), migration_name)
+stopifnot(file.copy(commandArgs(trailingOnly = TRUE)[1], migration))
+migration_md5 <- unname(tools::md5sum(migration))
 commit <- Sys.getenv("WET_FWAPG_MIGRATION_COMMIT")
 if (!grepl("^[0-9a-f]{7,40}$", commit)) {
   stop("set WET_FWAPG_MIGRATION_COMMIT to the fwapg commit the migration file came from", call. = FALSE)
@@ -248,9 +254,9 @@ if (!identical(back_args, old_args)) {
 stamp("rolled back; fwa_indexpoint() is the old one again")
 
 dir.create(dirname(out_rds), recursive = TRUE, showWarnings = FALSE)
-saveRDS(list(stations = st, before = before, after = after, ties = tie, migration = basename(migration),
+saveRDS(list(stations = st, before = before, after = after, ties = tie, migration = migration_name,
              release = release,
-             migration_md5 = unname(tools::md5sum(migration)), commit = commit, exbc = exbc), out_rds)
+             migration_md5 = migration_md5, commit = commit, exbc = exbc), out_rds)
 
 # ---- report --------------------------------------------------------------------------------
 count_cand <- function(s) {
@@ -349,8 +355,8 @@ fmt_snap <- function(s, i) {
 
 lines <- c(
   "# wet_station_snap() before and after fwapg's fwa_indexpoint() rework (#127)", "",
-  sprintf("Migration: %s (md5 %s), fwapg commit %s (fwapg#41, PR fwapg#43)", basename(migration),
-          unname(tools::md5sum(migration)), commit),
+  sprintf("Migration: %s (md5 %s), fwapg commit %s (fwapg#41, PR fwapg#43)", migration_name,
+          migration_md5, commit),
   "Applied inside a transaction and rolled back; fwa_indexpoint() read the old signature after the rollback.",
   sprintf("Base: fwa_watershedatmeasure() %s.", if (exbc) {
     "still reads hydrosheds and NHD for area outside BC (fwapg's migration 202610131654 not applied)"

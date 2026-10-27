@@ -9,6 +9,12 @@
 # other transaction control refused before anything runs. The backstop is
 # that the session still holds the transaction it opened, with the same id;
 # a migration that commits and begins again would hold another.
+#
+# What a rollback cannot undo is not covered by either: work committed on
+# another connection (dblink, pg_background, a shell through COPY ... PROGRAM),
+# sequence changes (setval(), and nextval() however it is called) and files
+# written on the server. The calls named here are refused; read a migration
+# before trying it.
 wet_pg_trial <- function(conn, file, env = parent.frame()) {
   body <- wet_pg_trial_sql(paste(readLines(file, warn = FALSE), collapse = "\n"))
   DBI::dbBegin(conn)
@@ -46,8 +52,9 @@ wet_pg_trial_sql <- function(sql) {
   # server nests them), so a long run of them cannot send PCRE past its
   # backtracking limit, where gregexpr() only warns and reports no match
   com <- "(?(DEFINE)(?<c>/\\*(?>[^/*]++|/(?!\\*)|\\*(?!/)|(?&c))*\\*/))"
-  ws <- "(?:\\s|--[^\\n]*+|(?&c))*+"
-  s <- "(?:\\s|--[^\\n]*+|(?&c))++"
+  # the server ends a `--` comment at a carriage return as well as a newline
+  ws <- "(?:\\s|--[^\\n\\r]*+|(?&c))*+"
+  s <- "(?:\\s|--[^\\n\\r]*+|(?&c))++"
   opt <- paste0("(", s, "(WORK|TRANSACTION|AND", s, "(NO", s, ")?CHAIN|PREPARED", s, "'[^']*'|'[^']*'|",
                 "ISOLATION", s, "LEVEL", s, "[A-Z \\t]+|READ", s, "(ONLY|WRITE)|(NOT", s, ")?DEFERRABLE))*")
   # `\\z`, not `$`: under (?m) `$` would also end a plpgsql body's bare BEGIN line
@@ -61,6 +68,11 @@ wet_pg_trial_sql <- function(sql) {
   })
   if (!is.null(warned)) {
     stop("could not check the migration for transaction control (", warned, "): refusing to run it", call. = FALSE)
+  }
+  out <- regmatches(body, regexpr("(?i)\\b(dblink\\w*|pg_background\\w*|program|setval|lo_export|pg_file_write)\\b",
+                                  body, perl = TRUE))
+  if (length(out)) {
+    stop("the migration calls ", out, ", whose effect a rollback does not undo: refusing to run it", call. = FALSE)
   }
   if (hit[1] > 0) {
     kw <- attr(hit, "capture.start")[, "kw"]
