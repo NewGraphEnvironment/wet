@@ -72,6 +72,27 @@ Relates to #118, #58, #102, NewGraphEnvironment/fwapg#42, NewGraphEnvironment/fw
 
 - **Deterministic outside the product block:** two harness runs (00:12 to 00:30 UTC) wrote reports that differ only in the line recording the wet commit, which moved between them (384d656, b9e536b).
 
+## Mutation table: departure_pcic.R's refusals on the real product (2026-10-27)
+
+Each case is a copy of the script at 6b42331 (frozen-copy check off and outputs sent to the scratchpad, except where the case is that check) or a changed input, run against the loaded fwapg database; `data/logs/122/mutations.log` (21:29–21:39 UTC) and `mutations2.log` (21:40–21:44 UTC). Every one exits 1 at the guard named.
+
+| case | what was broken | refusal |
+|---|---|---|
+| release | `WET_HYDAT_RELEASE=20251014` | `wb_cv_lib.R` first: "fit_20251014 is #15's frozen record" |
+| release_check | the script's own constant moved to 20260718 | "the rule names HYDAT 20260718, not 20260717" |
+| fwapg_unset | `WET_FWAPG_COMMIT=` | "set WET_FWAPG_COMMIT to the fwapg commit that built pcic.discharge_monthly …" |
+| edited_copy | the running copy one comment longer than the committed script | "the running copy differs from scripts/departure_pcic.R at HEAD" |
+| dirty | one comment appended to `scripts/pcic_routed_lib.R` (restored from HEAD by trap) | "commit these first, so the recorded commit can rebuild the report" |
+| no1983 | a clone of the product without 1983's file | "WET_PCIC_YEARS has no PNWNAmet_historical file for 1983" |
+| swap1983 | 1984's file under 1983's name | "…1983.parquet is not its pcic.series row" (rows, sums) |
+| commit_two | one catalogue row naming another commit | "pcic.series rows for 1951-2012 must name one fwapg commit; they name: ea9b199…, 0000000" |
+| commit_na | the catalogue's commit column NA | "… they name: NA" |
+| parity_bin | one read sub-basin's bin mean moved by 1e-3 m³/s | "1 bins fail parity; worst sub-basin 1004993 5-3" |
+| parity_day | one bin one day short | "the per-year files and pcic.subbasin_daily do not hold the same bins and days" |
+| wrong database | (not staged: run 0) tables unlike `pcic.runs` | `routed_daily_fingerprint()` refused, `data/logs/122/run0_wrong_db.log` |
+
+Not staged, inherited: a stale `cal` (`shipped_heldout()`'s guards in `wb_cv_lib.R`). The first harness cloned the product with `cp -c`, which here resolves to GNU cp and failed, so no1983 and swap1983 met an empty directory; rerun with `/bin/cp -c` (APFS clones) in `mutations2.log`.
+
 ## Errors Encountered
 
 | Error | Resolution |
