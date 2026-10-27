@@ -3104,6 +3104,7 @@ EOF
 - `usethis::use_directory("dev")` — reproducible setup script
 - `usethis::use_directory("data-raw")` — data generation scripts
 - Hex sticker: copy soul's `templates/make_hexsticker.R` to `data-raw/`
+- CI: copy soul's `templates/R-CMD-check.yaml` to `.github/workflows/` (one job, `ubuntu-latest`, `timeout-minutes: 45`)
 - Set GitHub Pages to serve from `gh-pages` branch
 
 ### dev/dev.R
