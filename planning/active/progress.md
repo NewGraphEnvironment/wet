@@ -29,5 +29,10 @@ Then "start Phase 1 of planning/active/task_plan.md". Phase 1 is the rule header
 - Phase 2 done: full suite 1554 pass, 7 skip, 0 fail (23:57-23:58 UTC, `data/logs/122/test_phase2.log`); no lints in the new files; the pilot and routed reports regenerate identical.
 - `/code-check branch`: four rounds (00:14 to 00:56 UTC), 3, 1, 4 and 3 findings, all fixed; rounds 2 to 4 each found a defect inside the previous fix; ended on round 4's 59-row enumeration (`review-round4.md`, Closure). Full suite after: 1573 pass, 7 skip, 0 fail (`data/logs/122/test_review.log`). The harness on the final body reports what it did before the review but for the commit and md5 line.
 - Next: the user resumes fwapg#42 (Phase 3). Once its files and `pcic.series` exist, run Phase 4 from a frozen copy:
-  `cp scripts/departure_pcic.R "$TMPDIR/d.R" && WET_HYDAT_RELEASE=20260717 WET_FWAPG_COMMIT=7c30f58 WET_FWAPG_DAYS_COMMIT=<sha> WET_PCIC_YEARS=<dir> Rscript "$TMPDIR/d.R"`
+  `cp scripts/departure_pcic.R "$TMPDIR/d.R" && WET_HYDAT_RELEASE=20260717 WET_FWAPG_COMMIT=7c30f58 WET_PCIC_YEARS=<dir> Rscript "$TMPDIR/d.R"`
   twice (byte-identical), then the mutation table, then Phase 5.
+
+## Session 2026-10-27
+- fwapg#42 merged (fwapg PR #44, 14:36 UTC) with a `commit` column in `pcic.series`; 63 files built at ea9b199, local copy `~/Projects/repo/fwapg/extras/pcic_crosswalk/data/days/PNWNAmet_historical/`.
+- Loaded fwapg's `load/pcic_schema.sql` and `load/pcic.sql` into the local fwapg database (17:28–17:31 UTC). Before: both runs' fingerprints equal the published ones; after: unchanged, `pcic.series` 63 rows (1950–2012), one commit, one crosswalk md5.
+- Header amended at b518ebc (interface section, before any run on the product): the files' commit is read from `pcic.series`; `WET_FWAPG_DAYS_COMMIT` dropped.

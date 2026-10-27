@@ -271,7 +271,7 @@
 # byte.
 
 # ==================================================================================================
-# The body: written after the header and its amendments (5904cd7, a8ff752, 5a67a46), before any
+# The body: written after the header and its amendments (5904cd7, a8ff752, 5a67a46; b518ebc), before any
 # candidate was scored. Everything below implements the rule above; nothing here changes it.
 # ==================================================================================================
 
@@ -301,12 +301,9 @@ if (!identical(code_md5, unname(tools::md5sum("scripts/departure_pcic.R")))) {
   stop("the running copy differs from scripts/departure_pcic.R at HEAD; copy it again", call. = FALSE)
 }
 wet_commit <- git("rev-parse", "--short", "HEAD")
-rule_commits <- c(registered = "5904cd7", weight_amended = "a8ff752", interface_amended = "5a67a46")
+rule_commits <- c(registered = "5904cd7", weight_amended = "a8ff752", interface_amended = "5a67a46",
+                  commit_amended = "b518ebc")
 fwapg_commit <- routed_commit()
-days_commit <- Sys.getenv("WET_FWAPG_DAYS_COMMIT")
-if (!grepl("^[0-9a-f]{7,40}$", days_commit)) {
-  stop("set WET_FWAPG_DAYS_COMMIT to the fwapg commit that built the per-year files", call. = FALSE)
-}
 pcic_dir <- Sys.getenv("WET_PCIC_YEARS")
 if (!nzchar(pcic_dir) || !dir.exists(pcic_dir)) stop("set WET_PCIC_YEARS to the per-year files' directory", call. = FALSE)
 ho <- shipped_heldout()  # refuses a fit scored under other scoring code
@@ -448,8 +445,8 @@ files <- file.path(pcic_dir, sprintf("pcic.subbasin_days.%s.%d.parquet", series,
 gone <- years_run[!file.exists(files)]
 if (length(gone)) stop("WET_PCIC_YEARS has no ", series, " file for ", paste(gone, collapse = ", "), call. = FALSE)
 catalogue <- DBI::dbGetQuery(conn, sprintf("
-  SELECT year, crosswalk_md5, rows::text AS rows, subbasins::text AS subbasins, q_local_sum::text AS q_local_sum,
-         q_acc_sum::text AS q_acc_sum, bytes::text AS bytes
+  SELECT year, crosswalk_md5, commit, rows::text AS rows, subbasins::text AS subbasins,
+         q_local_sum::text AS q_local_sum, q_acc_sum::text AS q_acc_sum, bytes::text AS bytes
   FROM pcic.series WHERE (model, scenario) = ('%s', '%s') AND year BETWEEN %d AND %d ORDER BY year",
   routed_run$model, routed_run$scenario, min(years_run), max(years_run)))
 if (!identical(as.integer(catalogue$year), years_run)) {
@@ -460,6 +457,11 @@ stopifnot(length(run_md5) == 1L)
 if (any(catalogue$crosswalk_md5 != run_md5)) {
   stop("pcic.series rows for ", paste(catalogue$year[catalogue$crosswalk_md5 != run_md5], collapse = ", "),
        " are on another crosswalk than the ", period_run, " run's", call. = FALSE)
+}
+days_commit <- unique(catalogue$commit)
+if (length(days_commit) != 1L || !grepl("^[0-9a-f]{7,40}$", days_commit)) {
+  stop("pcic.series rows for ", period_run, " must name one fwapg commit; they name: ",
+       paste(days_commit, collapse = ", "), call. = FALSE)
 }
 sql_fp <- "SELECT count(*)::VARCHAR AS rows, count(DISTINCT subid)::VARCHAR AS subbasins,
   sum(CAST(floor(CAST(q_local AS DOUBLE) * 1000 + 0.5) AS BIGINT))::VARCHAR AS q_local_sum,
@@ -690,13 +692,14 @@ med_line <- function(t, nm) {
   sprintf("  %-16s %5d %7s %7s %7s", nm, t$n_scored, fmt(t$q25[[nm]]), fmt(t$med[[nm]]), fmt(t$q75[[nm]]))
 }
 say("# PCIC's per-year routed flow against donor-carried departures (#122)", "",
-    sprintf("Rule registered in scripts/departure_pcic.R's header at %s, amended before any candidate at %s (distance weight) and %s (the fwapg#42 interface).",
-            rule_commits[["registered"]], rule_commits[["weight_amended"]], rule_commits[["interface_amended"]]),
+    sprintf("Rule registered in scripts/departure_pcic.R's header at %s, amended before any candidate at %s (distance weight) and %s (the fwapg#42 interface), and before any run on the product at %s (the files' commit from pcic.series).",
+            rule_commits[["registered"]], rule_commits[["weight_amended"]], rule_commits[["interface_amended"]],
+            rule_commits[["commit_amended"]]),
     sprintf("wet commit %s (script md5 %s); HYDAT %s, approved daily flows only; fit %s, scoring code %s.",
             wet_commit, code_md5, release, release, score_code_md5),
     routed_report_line(fwapg_commit, period_run),
     sprintf("daily tables: %s", daily_fp),
-    sprintf("per-year files: %d of %s (%d-%d), built by NewGraphEnvironment/fwapg at %s; pcic.series rows md5 %s.",
+    sprintf("per-year files: %d of %s (%d-%d), built by NewGraphEnvironment/fwapg at %s (pcic.series); rows md5 %s.",
             length(files), series, min(years_run), max(years_run), days_commit, catalogue_md5),
     sprintf("parity: %d sub-basins, %d bins; worst deviation %s of the bound (2^-23 x mean |v| + 1e-9 m3/s); largest %s m3/s.",
             parity$subbasins, parity$bins, formatC(parity$worst, format = "g", digits = 2),
