@@ -6,8 +6,8 @@
 # scored; the body that runs it came later (planning/archive, issue 122). The
 # report names the commit this header was registered at.
 #
-#   WET_HYDAT_RELEASE=20260717 WET_FWAPG_COMMIT=<sha> WET_FWAPG_DAYS_COMMIT=<sha> \
-#     WET_PCIC_YEARS=<dir> Rscript scripts/departure_pcic.R
+#   WET_HYDAT_RELEASE=20260717 WET_FWAPG_COMMIT=<sha> WET_PCIC_YEARS=<dir> \
+#     Rscript scripts/departure_pcic.R
 #
 # Reads HYDAT 20260717 only (scripts/wb_fit_lib.R's wb_hydat()); the shipped
 # fit's calibration gauges through scripts/wb_cv_lib.R (`cal`, held to its
@@ -234,10 +234,12 @@
 # values, as a 64-bit integer) and bytes. Each of the 62 files read must
 # equal its row in bytes, rows, subbasins and both sums, computed by wet from
 # the file, and every row's crosswalk_md5 must be the one pcic.runs records
-# for the 1951-2012 run. The catalogue names no commit, as pcic.runs names
-# none, so WET_FWAPG_DAYS_COMMIT names the fwapg commit that built the files,
-# as WET_FWAPG_COMMIT names the one that built the Postgres tables. The report
-# prints both commits and the md5 of the 62 catalogue rows.
+# for the 1951-2012 run. The catalogue's `commit` column names the fwapg
+# commit that built the files (fwapg#42 kept it); the 62 rows must name one
+# commit, which the report prints beside WET_FWAPG_COMMIT (the one that built
+# the Postgres tables, which pcic.runs does not record) and the md5 of the 62
+# catalogue rows. (Amended once the catalogue shipped with the column, before
+# any run on the product: it replaces WET_FWAPG_DAYS_COMMIT.)
 #
 # Parity, over every sub-basin the pool's and the test set's segments name
 # (subid and upstream_subids): for each (month, day) bin of q_local and of
@@ -258,9 +260,9 @@
 # 40 hex characters; uncommitted changes under R/ or scripts/ (as
 # scripts/pcic_routed_compare.R, so the recorded commit rebuilds the report);
 # a `cal` whose scores were made under other scoring code (shipped_heldout()'s
-# guards); WET_FWAPG_DAYS_COMMIT unset or not 7 to 40 hex characters; a year
-# of 1951-2012 without its file, or a file unlike its pcic.series row, or a
-# row on another crosswalk than the run's; a read sub-basin missing from a
+# guards); a year of 1951-2012 without its file, or a file unlike its
+# pcic.series row, or a row on another crosswalk than the run's, or rows
+# naming more than one commit or none; a read sub-basin missing from a
 # year, without its 22,646 days of 1951-2012, with a day twice or an NA flow,
 # or failing parity in any bin; 1951-2012 tables that differ from
 # pcic.runs; a migration-mean pool under 100 gauges; a stage whose
