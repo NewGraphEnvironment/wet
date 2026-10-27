@@ -1,5 +1,24 @@
 # Changelog
 
+## wet 0.4.24
+
+- `scripts/station_snap_sweep.R` measures what
+  NewGraphEnvironment/fwapg#41’s `fwa_indexpoint()` rework changes on
+  [`wet_station_snap()`](https://newgraphenvironment.github.io/wet/reference/wet_station_snap.md)’s
+  path ([\#127](https://github.com/NewGraphEnvironment/wet/issues/127)).
+  It does not migrate the database: it tries the migration inside a
+  transaction that is rolled back, through the internal
+  `wet_pg_trial()`. Over HYDAT 2026-07-17’s 490 stations only 08KD006’s
+  snap moves, to the upper segment at the vertex it is tied on
+  (watershed 8483126 → 7713002, accepted either way).
+  `fwa_locatealong()` places every candidate measure (114 missed before,
+  110 of them at stream heads), and two picked catchments that came back
+  empty or raised an error come back. Live tests pin four cases. They
+  skip on an older database, run against the migration under
+  `WET_FWAPG_TRIAL`, and fail under `WET_FWAPG_CURRENT=true`. The report
+  is `data/checks/station_snap_sweep_20260717.txt`. The shipped stations
+  file and fit stay as they are until the next HYDAT release’s refit.
+
 ## wet 0.4.23
 
 - [`wet_snow_annual()`](https://newgraphenvironment.github.io/wet/reference/wet_snow_annual.md)

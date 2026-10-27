@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.23</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.24</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,9 +34,14 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/v0.4.24/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.24" id="wet-0424">wet 0.4.24<a class="anchor" aria-label="anchor" href="#wet-0424"></a></h2>
+<ul><li>
+<code>scripts/station_snap_sweep.R</code> measures what NewGraphEnvironment/fwapg#41’s <code>fwa_indexpoint()</code> rework changes on <code><a href="../reference/wet_station_snap.html">wet_station_snap()</a></code>’s path (<a href="https://github.com/NewGraphEnvironment/wet/issues/127" class="external-link">#127</a>). It does not migrate the database: it tries the migration inside a transaction that is rolled back, through the internal <code>wet_pg_trial()</code>. Over HYDAT 2026-07-17’s 490 stations only 08KD006’s snap moves, to the upper segment at the vertex it is tied on (watershed 8483126 → 7713002, accepted either way). <code>fwa_locatealong()</code> places every candidate measure (114 missed before, 110 of them at stream heads), and two picked catchments that came back empty or raised an error come back. Live tests pin four cases. They skip on an older database, run against the migration under <code>WET_FWAPG_TRIAL</code>, and fail under <code>WET_FWAPG_CURRENT=true</code>. The report is <code>data/checks/station_snap_sweep_20260717.txt</code>. The shipped stations file and fit stay as they are until the next HYDAT release’s refit.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.23" id="wet-0423">wet 0.4.23<a class="anchor" aria-label="anchor" href="#wet-0423"></a></h2>
 <ul><li>

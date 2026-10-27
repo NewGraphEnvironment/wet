@@ -192,12 +192,12 @@ on HYDAT 2026-07-17, against HYDAT’s observed runoff. The build’s own
 check of its published flows is [its
 report](https://github.com/NewGraphEnvironment/wet/blob/main/data/checks/discharge_publish_20260717.txt).
 
-- `wet` 0.4.23,
+- `wet` 0.4.24,
   [doi:10.5281/zenodo.23305781](https://doi.org/10.5281/zenodo.23305781).
   Irvine A (2026). *wet: Stream Flow and Water Temperature for the BC
   Freshwater Atlas*. New Graph Environment Ltd.
   <doi:10.5281/zenodo.23305781>
-  <https://doi.org/10.5281/zenodo.23305781>. Version 0.4.23,
+  <https://doi.org/10.5281/zenodo.23305781>. Version 0.4.24,
   <https://github.com/NewGraphEnvironment/wet>.
 - `duckdb` 2.0.0. Mühleisen H, Raasveldt M (2026). *duckdb: DBI Package
   for the DuckDB Database Management System*. R package version 2.0.0,
