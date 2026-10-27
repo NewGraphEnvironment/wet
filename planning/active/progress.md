@@ -16,3 +16,14 @@
   - both: gate fail 1 (the trial cannot satisfy it); pins pass
   - `WET_FWAPG_CURRENT=true WET_PGPORT=1`: gate error (not a skip); pins skip
   - the database read the old signature after each run. A relative `WET_FWAPG_TRIAL` failed (tests run from tests/testthat): the helper now refuses it by name.
+- Full suite (`data/logs/127/devtools_test_20261027T2145Z.log`, ~2 min): 1542 pass, 5 skip, 2 fail. Both failures are the live Buck Creek real-time test (`test-wet_station_daily.R:293`): ECCC real-time has nothing after 2026-10-01, so "realtime" is absent and the record ends 16 days short. Untouched by this branch; external.
+- `/code-check branch`, rounds spawned 21:46, 21:53, 21:59 UTC (findings in `review-round{1,2,3}.md`):
+
+  | Round | Findings | Fixed | Accepted | Inside previous fix? |
+  |-------|----------|-------|----------|----------------------|
+  | 1 | 2 | 2 | 0 | — (one in the plan-review regex widening) |
+  | 2 | 1 | 1 | 0 | y (PCRE match limit; round 1 put the comment class between words) |
+  | 3 | 2 + 1 lexer gap | 3 | 1 (DO-wrap not taken) | y (`\r` ends a `--` comment; in the comment class) |
+
+  Ended by enumeration (round 3): the statements that end an explicit block in PostgreSQL 17 are ABORT, COMMIT, END, ROLLBACK, PREPARE TRANSACTION (TransactionStmt and TransactionStmtLegacy); COMMIT/ROLLBACK PREPARED and COMMIT in DO/CALL raise instead. Every statement starts at input start or after `;`, both anchored. The comment and whitespace grammar was compared with the server's lexer; its one difference (`\r`) is fixed. Effects a rollback cannot undo are a different class with no finite list: the named calls are refused and CLAUDE.md and the function header say what is not caught. Not taken: wrapping the body in `DO ... EXECUTE` so the server refuses transaction statements itself (measured by round 3); the enumeration already covers them, and it would lose line numbers in errors.
+  Agents this task: plan review + 3 code-check rounds = 4.

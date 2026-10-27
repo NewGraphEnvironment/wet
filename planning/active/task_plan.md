@@ -32,7 +32,7 @@ Measured during planning, on the local fwapg (PostgreSQL 17.5):
   - calls that error, by function.
   It then rolls back and asserts that the old signature is back. It diffs the two `wet_station_snap()` outputs and writes `data/checks/station_snap_sweep_20260717.txt` (tracked), which records the migration's md5 and the fwapg commit it came from (`WET_FWAPG_MIGRATION_COMMIT`).
 - [x] Run it on the local fwapg with fwapg `b088b43`'s migration. Log to `data/logs/127/`.
-- [ ] `research/station_snap.md` (new topic file, with its `research/README.md` row): what changes for wet, the counts before and after, which stations' snaps move and why, and the base. Fix the comment in `wet_snap_pick()` that already credits `fwa_indexpoint()` with the tie rule, which holds only once the database is migrated.
+- [x] `research/station_snap.md` (new topic file, with its `research/README.md` row): what changes for wet, the counts before and after, which stations' snaps move and why, and the base. Fix the comment in `wet_snap_pick()` that already credits `fwa_indexpoint()` with the tie rule, which holds only once the database is migrated.
 
 ## Phase 3: Gate and pin in live tests
 - [x] `helper-fwapg.R`: add `local_fwapg_indexpoint()`. It calls `local_fwapg()`. If `WET_FWAPG_TRIAL` names a migration file, it applies the file with `wet_pg_trial()` and defers a rollback. If `pg_get_function_arguments('whse_basemapping.fwa_indexpoint'::regproc)` then lacks `include_disconnected`, it skips with a message naming `202610240132__indexpoint_tiebreak` (fwapg#41), unless `WET_FWAPG_CURRENT=true`, in which case it runs on so the assertions fail.
@@ -41,15 +41,15 @@ Measured during planning, on the local fwapg (PostgreSQL 17.5):
 - [x] Show each pinned test failing before and passing after: `WET_FWAPG_CURRENT=true` on the current database (fails), then `WET_FWAPG_TRIAL=<file>` (passes), with the output in `progress.md`.
 
 ## Phase 4: Docs and wrap
-- [ ] CLAUDE.md: the sweep script, `WET_FWAPG_TRIAL` and `WET_FWAPG_CURRENT`.
+- [x] CLAUDE.md: the sweep script, `WET_FWAPG_TRIAL` and `WET_FWAPG_CURRENT`.
 - [ ] Run the full `devtools::test()` and `lintr`, then `/code-check branch`, then `/planning-archive` and `/gh-pr-push`.
 
 ## Owed at the end (reported, done after merge)
-- When fwapg#41 merges and the database is migrated for real: run `WET_FWAPG_CURRENT=true` tests. If the sweep showed snaps moving, decide whether to rerun `wb_stations.R`, which would stale the fit.
+- [ ] When fwapg#41 merges and the database is migrated for real: run the tests with `WET_FWAPG_CURRENT=true`. The sweep showed 08KD006's snap moving (watershed 8483126 -> 7713002), so decide whether to rerun `wb_stations.R`, which would stale the fit (the user's call).
 
 ## Validation
 - [ ] Tests pass (no-DB unit tests; live tests skip with the reason on the old DB; fail under `WET_FWAPG_CURRENT=true`; pass under `WET_FWAPG_TRIAL`)
-- [ ] `/code-check` clean
+- [x] `/code-check` clean
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
