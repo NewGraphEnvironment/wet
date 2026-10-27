@@ -16,6 +16,8 @@
 # written on the server. The calls named here are refused; read a migration
 # before trying it.
 wet_pg_trial <- function(conn, file, env = parent.frame()) {
+  # withr is in Suggests: the scripts and tests that call this have it
+  if (!requireNamespace("withr", quietly = TRUE)) stop("wet_pg_trial() needs the withr package", call. = FALSE)
   body <- wet_pg_trial_sql(paste(readLines(file, warn = FALSE), collapse = "\n"))
   DBI::dbBegin(conn)
   withr::defer(DBI::dbRollback(conn), envir = env)
