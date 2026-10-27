@@ -760,13 +760,13 @@ say("# PCIC's per-year routed flow against donor-carried departures (#122)", "",
             paste(c(sprintf("%s %s", weightings, fmt(tt1$med[weightings])),
                     sprintf("%s %s", c("donors", "pcic", "blend"), fmt(tt2$med[c("donors", "pcic", "blend")]))),
                   collapse = ", ")),
-    "", sprintf("  %-8s %-21s %3s %8s %8s %8s %8s %8s %8s", "station", "from", "n", "distance", "covar", "cov_pick",
-                "donors", "pcic", "blend"))
+    "", sprintf("  %-8s %-21s %3s %8s %8s %8s %3s %8s %8s %8s", "station", "from", "n", "distance", "covar",
+                "cov_pick", "n", "donors", "pcic", "blend"))
 for (g in test$station_number) {
   a <- sc_t1[[g]]
   b <- sc_t2[[g]]
-  say(sprintf("  %-8s %-21s %3d %8s %8s %8s %8s %8s %8s%s", g, test$from[test$station_number == g], a$n,
-              fmt(a$nse[["distance"]]), fmt(a$nse[["covariance"]]), fmt(a$nse[["covariance_pick"]]),
+  say(sprintf("  %-8s %-21s %3d %8s %8s %8s %3d %8s %8s %8s%s", g, test$from[test$station_number == g], a$n,
+              fmt(a$nse[["distance"]]), fmt(a$nse[["covariance"]]), fmt(a$nse[["covariance_pick"]]), b$n,
               fmt(b$nse[["donors"]]), fmt(b$nse[["pcic"]]), fmt(b$nse[["blend"]]), if (g == maxan) "  <- Maxan" else ""))
 }
 if (!maxan %in% test$station_number) {
@@ -791,15 +791,15 @@ for (grp in c("basin", "area_class", "nesting")) {
   }
 }
 say("", "## 6. Per gauge, migration mean, leave-one-out", "",
-    sprintf("  %-8s %-9s %-10s %-9s %3s %8s %8s %8s %8s %8s %8s", "station", "basin", "area", "nesting", "n",
-            "distance", "covar", "cov_pick", "donors", "pcic", "blend"))
+    sprintf("  %-8s %-9s %-10s %-9s %3s %8s %8s %8s %3s %8s %8s %8s", "station", "basin", "area", "nesting", "n",
+            "distance", "covar", "cov_pick", "n", "donors", "pcic", "blend"))
 sc1_main <- scores_stage1(main)
 for (g in mig_pool) {
   a <- sc1_main[[g]]
   b <- sc2_main[[g]]
-  say(sprintf("  %-8s %-9s %-10s %-9s %3d %8s %8s %8s %8s %8s %8s", g, routed_basin(g),
+  say(sprintf("  %-8s %-9s %-10s %-9s %3d %8s %8s %8s %3d %8s %8s %8s", g, routed_basin(g),
               as.character(cg$area_class[cg$station_number == g]), cg$nesting[cg$station_number == g], a$n,
-              fmt(a$nse[["distance"]]), fmt(a$nse[["covariance"]]), fmt(a$nse[["covariance_pick"]]),
+              fmt(a$nse[["distance"]]), fmt(a$nse[["covariance"]]), fmt(a$nse[["covariance_pick"]]), b$n,
               fmt(b$nse[["donors"]]), fmt(b$nse[["pcic"]]), fmt(b$nse[["blend"]])))
 }
 writeLines(out, report)
