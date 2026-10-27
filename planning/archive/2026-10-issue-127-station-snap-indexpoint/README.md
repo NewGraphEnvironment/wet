@@ -28,6 +28,6 @@ What changed because of these:
 
 ## Owed
 
-- When fwapg#41 merges and the database is migrated for real: run the tests with `WET_FWAPG_CURRENT=true`. The sweep showed 08KD006's snap moving (watershed 8483126 -> 7713002), so decide whether to rerun `wb_stations.R`, which would stale the fit (the user's call).
+- When fwapg#41 merges and the database is migrated for real: run the tests with `WET_FWAPG_CURRENT=true`, then rerun `wb_stations.R` and the fit chain it stales (the user decided 2026-10-27 that it will be rerun: 08KD006's watershed moves 8483126 -> 7713002). Tracked in #133.
 
 Closed by: PR (this branch, `127-wet-station-snap-measure-the-effect-of-f`)

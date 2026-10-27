@@ -45,7 +45,7 @@ Measured during planning, on the local fwapg (PostgreSQL 17.5):
 - [x] Run the full `devtools::test()` and `lintr`, then `/code-check branch`, then `/planning-archive` and `/gh-pr-push`.
 
 ## Owed at the end (reported, done after merge)
-- [ ] When fwapg#41 merges and the database is migrated for real: run the tests with `WET_FWAPG_CURRENT=true`. The sweep showed 08KD006's snap moving (watershed 8483126 -> 7713002), so decide whether to rerun `wb_stations.R`, which would stale the fit (the user's call).
+- [ ] When fwapg#41 merges and the database is migrated for real: run the tests with `WET_FWAPG_CURRENT=true`, then rerun `wb_stations.R` and the fit chain it stales (the user decided 2026-10-27 that it will be rerun: 08KD006's watershed moves 8483126 -> 7713002). Tracked in #133.
 
 ## Validation
 - [x] Tests pass (no-DB unit tests; live tests skip with the reason on the old DB; fail under `WET_FWAPG_CURRENT=true`; pass under `WET_FWAPG_TRIAL`)
