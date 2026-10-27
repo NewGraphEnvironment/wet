@@ -46,7 +46,7 @@ The local fwapg the trial ran on still has the `exbc` branch in `fwa_watershedat
 
 - **The station table:** rerunning `scripts/wb_stations.R` on a migrated database would change 08KD006's `linear_feature_id`, `watershed_feature_id` and `upstream_area_km2`, and nothing else. The before run reproduces `data/wb/stations_20260717.rds` at all 489 of its stations, so the comparison is not mixed up with changes to the database since July.
 - **Rebuilding the stations file:** `research/water_balance_method.md` ("Reproducing #15 and #18") notes that before the migration, which segment of a tie came back depended on row order, and names 08EC013 and 08KD006. The migration makes it fixed: 08KD006 goes to the upper segment, and 08EC013 already returns it.
-- **The fit:** `wb_stations.R` will be rerun once the database is migrated (decided 2026-10-27, #133). The stations file is hashed into every fit's scores (`scripts/wb_score_md5.R`), so the rerun stales the fit and the scoring chain runs again; how much 08KD006's new watershed moves the fit is measured there.
+- **The fit:** not rerun for this (decided 2026-10-27; #133 closed). The shipped stations file and fit stay as they are, and the next HYDAT release's refit, which reruns `wb_stations.R` and the scoring chain anyway, picks up 08KD006's new snap. Until then, a rerun of `wb_stations.R` on a migrated database does not reproduce `stations_20260717.rds` at that one row; this is the known difference.
 
 ## How it is checked
 
