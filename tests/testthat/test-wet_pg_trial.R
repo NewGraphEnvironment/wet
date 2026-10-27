@@ -42,6 +42,11 @@ test_that("transaction control left inside the migration is refused, with its li
   refuse("SELECT 1;\nCOMMIT -- c\nWORK;")
   refuse("SELECT 1;\nCOMMIT")
   refuse("SELECT 1;\nCOMMIT\n\n")
+  # a long run of comments before one cannot hide it by exhausting the regex
+  refuse(paste0("SELECT 1;\n-- ", strrep("-", 40), "\nSELECT 2;\nCOMMIT;"))
+  refuse(paste0("SELECT 1;\n", strrep("-", 400), "\nSELECT 2;\nCOMMIT;"))
+  refuse(paste0("SELECT 1;\n", strrep("/* x */\n", 20), "COMMIT;"))
+  refuse("SELECT 1;\nCOMMIT /* a /* b */ c */;")
   # a COMMIT; with no BEGIN; before it is not the migration's own pair
   refuse("SELECT 1;\nCOMMIT;")
   expect_error(wet:::wet_pg_trial_sql("BEGIN;\nSELECT 1;\nCOMMIT;\nSELECT 2;\nCOMMIT;"), "at line 3\\b")

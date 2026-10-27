@@ -42,14 +42,26 @@ wet_pg_trial_sql <- function(sql) {
     lines[c(first, last)] <- ""
   }
   body <- paste(lines, collapse = "\n")
-  ws <- "(\\s|--[^\\n]*|/\\*[\\s\\S]*?\\*/)*"
-  s <- "(\\s|--[^\\n]*|/\\*[\\s\\S]*?\\*/)+"
+  # Comments are matched one way only (possessive, block comments nested as the
+  # server nests them), so a long run of them cannot send PCRE past its
+  # backtracking limit, where gregexpr() only warns and reports no match
+  com <- "(?(DEFINE)(?<c>/\\*(?>[^/*]++|/(?!\\*)|\\*(?!/)|(?&c))*\\*/))"
+  ws <- "(?:\\s|--[^\\n]*+|(?&c))*+"
+  s <- "(?:\\s|--[^\\n]*+|(?&c))++"
   opt <- paste0("(", s, "(WORK|TRANSACTION|AND", s, "(NO", s, ")?CHAIN|PREPARED", s, "'[^']*'|'[^']*'|",
                 "ISOLATION", s, "LEVEL", s, "[A-Z \\t]+|READ", s, "(ONLY|WRITE)|(NOT", s, ")?DEFERRABLE))*")
   # `\\z`, not `$`: under (?m) `$` would also end a plpgsql body's bare BEGIN line
-  pat <- paste0("(?im)(^|;)", ws, "(?<kw>BEGIN|START", s, "TRANSACTION|COMMIT|END|ROLLBACK|ABORT|PREPARE", s,
+  pat <- paste0("(?im)", com, "(^|;)", ws, "(?<kw>BEGIN|START", s, "TRANSACTION|COMMIT|END|ROLLBACK|ABORT|PREPARE", s,
                 "TRANSACTION)", opt, ws, "(;|\\z)")
-  hit <- gregexpr(pat, body, perl = TRUE)[[1]]
+  # a regex that gives up has not looked, so it refuses (after the call returns)
+  warned <- NULL
+  hit <- withCallingHandlers(gregexpr(pat, body, perl = TRUE)[[1]], warning = function(w) {
+    warned <<- conditionMessage(w)
+    invokeRestart("muffleWarning")
+  })
+  if (!is.null(warned)) {
+    stop("could not check the migration for transaction control (", warned, "): refusing to run it", call. = FALSE)
+  }
   if (hit[1] > 0) {
     kw <- attr(hit, "capture.start")[, "kw"]
     at <- vapply(kw, function(i) sum(gregexpr("\n", substr(body, 1, i), fixed = TRUE)[[1]] > 0) + 1L, 1L)
