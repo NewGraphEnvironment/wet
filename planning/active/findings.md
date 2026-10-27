@@ -70,6 +70,8 @@ Relates to #118, #58, #102, NewGraphEnvironment/fwapg#42, NewGraphEnvironment/fw
 - The body was written before fwapg#42's product exists. A scratch copy with the block between `# ---- product: begin` and `# ---- product: end` replaced by fake modelled series (observed values times lognormal noise) ran end to end in 8.5 min (00:03:39 to 00:12:10 UTC), writing only to the scratchpad. Its scores mean nothing; the counts are real: 315 calibration gauges, 290 with a weights row (290 under #58's definition too), pools 289 to 290 per statistic, one co-located pair (08NM240, 08NM241, same codes and segment, counted as related), 809 sub-basins to read, a test set of 63 kept from 146 candidates (08EE018 kept, 5 migration years in 1951-2012).
 - Stage 1 can score a test gauge on 0 years while stage 2 scores it: the covariance weightings can pick donors whose years miss the target's, and stage 1 is scored on the years all three have. That is the registered rule (B1), not a defect.
 
+- **Deterministic outside the product block:** two harness runs (00:12 to 00:30 UTC) wrote reports that differ only in the line recording the wet commit, which moved between them (384d656, b9e536b).
+
 ## Errors Encountered
 
 | Error | Resolution |
