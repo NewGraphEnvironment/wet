@@ -27,3 +27,7 @@ Then "start Phase 1 of planning/active/task_plan.md". Phase 1 is the rule header
 - Phase 2: `wet_departure_carry(weights =, modelled =)` through the internal `wet_donor_weights()`; default byte-identical; mutation table in findings.
 - Phase 2: `wet_routed_years()`, its fixture and tests moved to fwapg#42's decided layout (one file per year, `date`, float32; fixture gains a `pcic.series`-shaped catalogue); the fixture regenerates byte-identical.
 - Phase 2 done: full suite 1554 pass, 7 skip, 0 fail (23:57-23:58 UTC, `data/logs/122/test_phase2.log`); no lints in the new files; the pilot and routed reports regenerate identical.
+- `/code-check branch`: four rounds (00:14 to 00:56 UTC), 3, 1, 4 and 3 findings, all fixed; rounds 2 to 4 each found a defect inside the previous fix; ended on round 4's 59-row enumeration (`review-round4.md`, Closure). Full suite after: 1573 pass, 7 skip, 0 fail (`data/logs/122/test_review.log`). The harness on the final body reports what it did before the review but for the commit and md5 line.
+- Next: the user resumes fwapg#42 (Phase 3). Once its files and `pcic.series` exist, run Phase 4 from a frozen copy:
+  `cp scripts/departure_pcic.R "$TMPDIR/d.R" && WET_HYDAT_RELEASE=20260717 WET_FWAPG_COMMIT=7c30f58 WET_FWAPG_DAYS_COMMIT=<sha> WET_PCIC_YEARS=<dir> Rscript "$TMPDIR/d.R"`
+  twice (byte-identical), then the mutation table, then Phase 5.

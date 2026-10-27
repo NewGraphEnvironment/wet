@@ -51,6 +51,7 @@ Component 3 of #118. Two halves, one in the fwapg fork (NewGraphEnvironment/fwap
 
 ## Phase 3: fwapg#42 — keep the years (fwapg repo, its own plan gate)
 
+- [ ] **Blocked on the user (2026-10-27):** fwapg#42 was gated and parked by a parallel session before this one reached it (fwapg e7ec7ef). Not re-run: `/planning-init` would overwrite that baseline. Its resume, a 6.5 h build and an S3 publish, is the user's call; wet's interface already consumes what it decided (5a67a46).
 - [ ] `/planning-init fwapg#42` from this session, presenting there gate item 6 as what wet consumes. fwapg#42's own gate decides the store and the type; if it departs from item 6, the header's interface section is amended in its own commit here before Phase 4.
 - [ ] The product built on this machine for PNWNAmet historical 1951–2012, its directory, sidecar commit and `WET_FWAPG_COMMIT` recorded in `findings.md`.
 - [ ] fwapg#42's own check passes: averaging the years reproduces `pcic.subbasin_daily` bin for bin and `pcic.discharge_monthly`'s 1951–2012 run row for row.
@@ -77,7 +78,7 @@ Component 3 of #118. Two halves, one in the fwapg fork (NewGraphEnvironment/fwap
 ## Validation
 
 - [ ] Tests pass
-- [ ] `/code-check` clean (once over the branch with `/code-check branch`)
+- [x] `/code-check` clean (once over the branch with `/code-check branch`): four rounds 2026-10-27, ended on round 4's enumeration; rerun over the Phase 4 run and Phase 5 diff before the PR
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
