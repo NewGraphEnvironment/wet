@@ -535,6 +535,7 @@ pcic_of <- function(g, v, p) {
   stats::setNames(if (is_days(v)) m$value - mean(b) else log(m$value / mean(b)), m$year)
 }
 weightings <- c("distance", "covariance", "covariance_pick")
+cands2 <- c("donors", "pcic", "blend")
 # the target's carried departures under each weighting, from `donors`; the donors used and fallback
 carry_all <- function(g, v, p, k, donors) {
   x <- obs_vals(v, p)
@@ -593,12 +594,14 @@ scores_stage1 <- function(rs) {
   lapply(rs, function(r) score(r$obs, lapply(r$carried, `[[`, "dep")))
 }
 scores_stage2 <- function(rs, ship, w = w_blend) lapply(rs, function(r) score(r$obs, stage2_cands(r, ship, w)))
-tab_of <- function(sc) {
-  if (!length(sc)) {  # an empty test set reports nothing rather than stopping before the report
-    na <- stats::setNames(numeric(), character())
-    return(list(nse = matrix(numeric(), 0, 0), n_scored = 0L, n_not = 0L, med = na, q25 = na, q75 = na))
+tab_of <- function(sc, cands) {
+  if (!length(sc)) {  # an empty set reports "-" for every candidate rather than stopping before the report
+    na <- stats::setNames(rep(NA_real_, length(cands)), cands)
+    return(list(nse = matrix(numeric(), 0, length(cands), dimnames = list(NULL, cands)), n_scored = 0L,
+                n_not = 0L, med = na, q25 = na, q75 = na))
   }
   nse <- do.call(rbind, lapply(sc, `[[`, "nse"))
+  stopifnot(identical(colnames(nse), cands))
   keep <- stats::complete.cases(nse)
   list(nse = nse[keep, , drop = FALSE], n_scored = sum(keep), n_not = sum(!keep),
        med = apply(nse[keep, , drop = FALSE], 2, stats::median),
@@ -616,24 +619,24 @@ decide <- function(t_logo, t_lf, incumbent, challengers) {
 # ---- the main run: migration mean, k = 5 --------------------------------------------------------------
 main <- run_set("q_mean", "migration", k_main)
 main_lf <- run_set("q_mean", "migration", k_main, leakfree = TRUE)
-t1 <- tab_of(scores_stage1(main))
-t1_lf <- tab_of(scores_stage1(main_lf))
+t1 <- tab_of(scores_stage1(main), weightings)
+t1_lf <- tab_of(scores_stage1(main_lf), weightings)
 d1 <- decide(t1, t1_lf, "distance", c("covariance", "covariance_pick"))
-t2 <- tab_of(scores_stage2(main, d1$ship))
-t2_lf <- tab_of(scores_stage2(main_lf, d1$ship))
+t2 <- tab_of(scores_stage2(main, d1$ship), cands2)
+t2_lf <- tab_of(scores_stage2(main_lf, d1$ship), cands2)
 d2 <- decide(t2, t2_lf, "donors", c("pcic", "blend"))
 
 # ---- the test set, the sensitivities and the counts ----------------------------------------------------
 tst <- run_set("q_mean", "migration", k_main, targets = test$station_number)
 sc_t1 <- scores_stage1(tst)
 sc_t2 <- scores_stage2(tst, d1$ship)
-tt1 <- tab_of(sc_t1)
-tt2 <- tab_of(sc_t2)
+tt1 <- tab_of(sc_t1, weightings)
+tt2 <- tab_of(sc_t2, cands2)
 
 sens <- list()
 add_sens <- function(label, rs, w = w_blend) {
-  a <- tab_of(scores_stage1(rs))
-  b <- tab_of(scores_stage2(rs, d1$ship, w))
+  a <- tab_of(scores_stage1(rs), weightings)
+  b <- tab_of(scores_stage2(rs, d1$ship, w), cands2)
   sens[[length(sens) + 1]] <<- list(label = label, n = a$n_scored, s1 = a$med, n2 = b$n_scored, s2 = b$med)
 }
 for (k in k_sens) add_sens(sprintf("k = %d", k), run_set("q_mean", "migration", k))

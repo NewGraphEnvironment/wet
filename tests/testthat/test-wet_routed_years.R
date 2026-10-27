@@ -121,7 +121,13 @@ test_that("it refuses incomplete, repeated or misplaced days, and a missing year
   expect_error(routed(w = wna), "NA subid")
   expect_error(wet_routed_years(fx_dir(), w, years = 1981), "no PNWNAmet_historical file")
   expect_error(routed(dir = file.path(fx(), "nowhere")), "existing directory")
-  expect_error(routed(w = w[setdiff(names(w), "share")]), "needs columns")
+  # an empty directory: without this guard the error would be the missing year file
+  expect_error(routed(dir = withr::local_tempdir(), w = w[setdiff(names(w), "share")]), "needs columns")
+  wid <- w
+  wid$linear_feature_id[2] <- NA
+  expect_error(routed(w = wid), "each segment once")
+  expect_error(routed(years = integer()), "distinct whole years")
+  expect_error(routed(years = "1981"), "distinct whole years")
   expect_error(routed(w = w[0, ]), "no rows")
   expect_error(routed(years = c(1981, 1981)), "distinct whole years")
   expect_error(routed(years = 1981.5), "distinct whole years")
