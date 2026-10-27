@@ -154,3 +154,19 @@ test_that("modelled is required by, and only by, the covariance options", {
   expect_error(wet_departure_carry(x, carry_stations(), "T", weights = "covariance", modelled = rbind(m, m)),
                "more than one value")
 })
+
+test_that("a station modelled for one statistic but not another has r = 0 there, not a refusal", {
+  yrs <- 1951:2000
+  set.seed(4)
+  sig <- rnorm(length(yrs))
+  x <- carry_x(list(D1 = exp(sig), D2 = exp(-sig)), yrs, variable = "q_cov_day")
+  x$value <- 40 + 3 * c(sig, -sig)
+  # D2's segment is routed to 0: a mean but no cov_day
+  m <- rbind(carry_x(list(T = 40 + 3 * sig, D1 = 40 + 3 * sig), yrs, variable = "q_cov_day"),
+             carry_x(list(D2 = rep(0, length(yrs))), yrs, variable = "q_mean"))
+  a <- wet_departure_carry(x, carry_stations(), "T", k = 2, weights = "covariance", modelled = m)
+  expect_match(a$donors[1], "^D1:1\\.0000:1\\.000$")
+  # a station absent from `modelled` altogether is still refused
+  expect_error(wet_departure_carry(x, carry_stations(), "T", k = 2, weights = "covariance",
+                                   modelled = m[m$station_number != "D2", ]), "no rows for: D2")
+})

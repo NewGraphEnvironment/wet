@@ -14,11 +14,15 @@
 # gives the same r as log departures; days when `days`), counted as 0 when it
 # rests on fewer than `min_years` years or is NA. A target whose chosen
 # donors all weigh 0 falls back to `distance`. `modelled` holds one variable
-# and period: station_number, year, value. Returns list(weight, r, fallback):
+# and period: station_number, year, value. `known` names the stations the
+# caller has modelled at all: one of them without rows for this variable and
+# period (a segment routed to 0 has no cov_day) has no years, so r = 0; a
+# station not in `known` is refused. Returns list(weight, r, fallback):
 # `weight` over every donor (0 for one not used), `r` over every donor (NA
 # where not computed).
 wet_donor_weights <- function(space, target, donors, k, method = c("distance", "covariance", "covariance_pick"),
-                              modelled = NULL, days = FALSE, n_pick = 15, min_years = 30) {
+                              modelled = NULL, days = FALSE, n_pick = 15, min_years = 30,
+                              known = unique(modelled$station_number)) {
   method <- match.arg(method)
   k <- min(k, length(donors))
   wt <- drop(wet_donor_mean(space[target, , drop = FALSE], space[donors, , drop = FALSE],
@@ -38,8 +42,7 @@ wet_donor_weights <- function(space, target, donors, k, method = c("distance", "
     if (!days) m <- m[m$value > 0, ]
     stats::setNames(if (days) m$value else log(m$value), m$year)
   }
-  have <- unique(modelled$station_number)
-  absent <- setdiff(c(target, near), have)
+  absent <- setdiff(c(target, near), known)
   if (length(absent)) stop("`modelled` has no rows for: ", paste(absent, collapse = ", "), call. = FALSE)
   tm <- series(target)
   r <- vapply(near, function(s) {

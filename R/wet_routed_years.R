@@ -63,8 +63,9 @@ wet_routed_years <- function(dir, weights, years = 1951:2012, series = "PNWNAmet
   gone <- years[!file.exists(files)]
   if (length(gone)) stop("`dir` has no ", series, " file for ", paste(gone, collapse = ", "), call. = FALSE)
 
-  subid <- sort(unique(as.integer(c(weights$subid, unlist(weights$upstream_subids, use.names = FALSE)))))
+  subid <- as.integer(c(weights$subid, unlist(weights$upstream_subids, use.names = FALSE)))
   if (anyNA(subid)) stop("`weights` has an NA subid", call. = FALSE)
+  subid <- sort(unique(subid))
   duck <- DBI::dbConnect(duckdb::duckdb())
   on.exit(DBI::dbDisconnect(duck, shutdown = TRUE), add = TRUE)
   sql <- sprintf(

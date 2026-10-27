@@ -535,7 +535,9 @@ weightings <- c("distance", "covariance", "covariance_pick")
 carry_all <- function(g, v, p, k, donors) {
   x <- obs_vals(v, p)
   x <- x[x$station_number %in% setdiff(donors, g), ]
-  md <- mod[mod$variable == v & mod$period == p & mod$station_number %in% c(g, unique(x$station_number)), ]
+  # every statistic, so a station modelled elsewhere but without rows here (no cov_day where routed to 0)
+  # reads as no years, r = 0, rather than as missing
+  md <- mod[mod$station_number %in% c(g, unique(x$station_number)), ]
   lapply(stats::setNames(weightings, weightings), function(w) {
     a <- wet_departure_carry(x, st_tab, g, k = k, weights = w, modelled = if (w == "distance") NULL else md)
     used <- unique(sub(":.*$", "", unlist(strsplit(a$donors, " ", fixed = TRUE))))
@@ -627,9 +629,11 @@ add_sens <- function(label, rs, w = w_blend) {
   sens[[length(sens) + 1]] <<- list(label = label, n = a$n_scored, s1 = a$med, n2 = b$n_scored, s2 = b$med)
 }
 for (k in k_sens) add_sens(sprintf("k = %d", k), run_set("q_mean", "migration", k))
+by_statistic <- list(`q_mean migration` = main)
 for (i in seq_len(nrow(stats_all))[-1]) {
-  add_sens(sprintf("%s %s", stats_all$p[i], sub("^q_", "", stats_all$v[i])),
-           run_set(stats_all$v[i], stats_all$p[i], k_main))
+  rs <- run_set(stats_all$v[i], stats_all$p[i], k_main)
+  by_statistic[[paste(stats_all$v[i], stats_all$p[i])]] <- rs
+  add_sens(sprintf("%s %s", stats_all$p[i], sub("^q_", "", stats_all$v[i])), rs)
 }
 for (w in w_blend_sens) add_sens(sprintf("blend %.2f donors", w), main, w)
 
@@ -784,6 +788,6 @@ dir.create(dirname(rds), showWarnings = FALSE, recursive = TRUE)
 saveRDS(list(release = release, ship = c(stage1 = d1$ship, stage2 = d2$ship), k_main = k_main, baseline = baseline,
              rule_commits = rule_commits, wet_commit = wet_commit, fwapg_commit = fwapg_commit,
              days_commit = days_commit, catalogue_md5 = catalogue_md5, code_md5 = code_md5,
-             main = main, main_leakfree = main_lf, test = tst, test_stations = test,
+             main = main, main_leakfree = main_lf, by_statistic = by_statistic, test = tst, test_stations = test,
              ws = ws[ws$station_number %in% seg$station_number, ], mod = mod), rds)
 message("series: ", rds)

@@ -48,7 +48,9 @@ options fall back to \code{"distance"} for that statistic.}
 \item{modelled}{For the covariance options only: modelled values in \code{x}'s
 long format, such as routed PCIC flow at each gauge's segment from
 \code{\link[=wet_routed_years]{wet_routed_years()}} through \code{\link[=wet_window_stats]{wet_window_stats()}}, with rows for the
-target and every donor the option considers.}
+target and every donor the option considers. A station with rows for
+some statistics and none for another (a segment routed to 0 has no
+\verb{*_cov_day}) has no years there, so its \code{r} is 0.}
 }
 \value{
 A data frame: \code{station_number} (the target), \code{variable}, \code{period},

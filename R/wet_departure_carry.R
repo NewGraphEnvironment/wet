@@ -42,7 +42,9 @@
 #' @param modelled For the covariance options only: modelled values in `x`'s
 #'   long format, such as routed PCIC flow at each gauge's segment from
 #'   [wet_routed_years()] through [wet_window_stats()], with rows for the
-#'   target and every donor the option considers.
+#'   target and every donor the option considers. A station with rows for
+#'   some statistics and none for another (a segment routed to 0 has no
+#'   `*_cov_day`) has no years there, so its `r` is 0.
 #' @return A data frame: `station_number` (the target), `variable`, `period`,
 #'   `year`, `anomaly` (log, or days for `*_cov_day`), `pct_normal`,
 #'   `n_donors` (present that year), `donors` (`"station:weight"` pairs
@@ -107,7 +109,7 @@ wet_departure_carry <- function(x, stations, target, k = 5, baseline = 1981:2010
     # the weighting stays the one #70 and #102 use; the covariance options
     # scale or replace it (wet_donor_weights())
     mod <- if (cov) modelled[modelled$variable == v & modelled$period == p, c("station_number", "year", "value")]
-    dw <- wet_donor_weights(space, target, don, k, weights, mod, days)
+    dw <- wet_donor_weights(space, target, don, k, weights, mod, days, known = unique(modelled$station_number))
     wt <- dw$weight
     dist <- sqrt(colSums((t(space[don, , drop = FALSE]) - space[target, ])^2))
     use <- don[order(dist, don)]

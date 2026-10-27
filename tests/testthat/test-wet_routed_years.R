@@ -116,6 +116,9 @@ test_that("it refuses incomplete, repeated or misplaced days, and a missing year
   expect_error(routed(years = 2013), "no synthetic_historical file for 2013")
   expect_error(routed(years = 1980:1981, dir = fx_copy(identity)), "file for 1980$")
   expect_error(routed(w = rbind(w, w)), "each segment once")
+  wna <- w
+  wna$upstream_subids[[2]] <- c(101L, NA)
+  expect_error(routed(w = wna), "NA subid")
   expect_error(wet_routed_years(fx_dir(), w, years = 1981), "no PNWNAmet_historical file")
   expect_error(routed(dir = file.path(fx(), "nowhere")), "existing directory")
 })
