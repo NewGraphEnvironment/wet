@@ -194,7 +194,8 @@ routed_daily_inputs <- function(conn) {
 routed_weights <- function(conn, lfid = NULL) {
   only <- if (is.null(lfid)) "" else {
     stopifnot(length(lfid) > 0, !anyNA(lfid))
-    sprintf(" WHERE linear_feature_id IN (%s)", paste(sprintf("%.0f", unique(lfid)), collapse = ", "))
+    # as.numeric first: sprintf() prints a bit64 integer64 as 0
+    sprintf(" WHERE linear_feature_id IN (%s)", paste(sprintf("%.0f", unique(as.numeric(lfid))), collapse = ", "))
   }
   w <- DBI::dbGetQuery(conn, sprintf("
     SELECT linear_feature_id::int AS linear_feature_id, watershed_group_code, subid, share,

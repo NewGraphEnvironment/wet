@@ -178,5 +178,23 @@ test_that("a modelled with no rows for the statistic carried is refused, not rea
   m <- carry_x(list(T = exp(1:50 / 10), D1 = exp(1:50 / 10), D2 = exp(1:50 / 10)), yrs)
   m$period <- "Migration"
   expect_error(wet_departure_carry(x, carry_stations(), "T", k = 2, weights = "covariance", modelled = m),
-               "no rows for q_mean migration")
+               "no usable rows for q_mean migration")
+})
+
+test_that("a modelled with NA labels, or no usable value for the statistic, is refused", {
+  yrs <- 1951:2000
+  x <- carry_x(list(D1 = 10 * exp(sin(yrs)), D2 = 500 * exp(cos(yrs))), yrs)
+  m <- carry_x(list(T = exp(sin(yrs)), D1 = exp(sin(yrs)), D2 = exp(cos(yrs))), yrs)
+  go <- function(mm) wet_departure_carry(x, carry_stations(), "T", k = 2, weights = "covariance", modelled = mm)
+  for (col in c("variable", "period", "station_number", "year")) {
+    mm <- m
+    mm[[col]][3] <- NA
+    expect_error(go(mm), "NA station, variable, period or year")
+  }
+  mm <- m
+  mm$value <- NA_real_
+  expect_error(go(mm), "no usable rows for q_mean migration")
+  mm$value <- 0
+  expect_error(go(mm), "no usable rows")
+  expect_error(go(m[setdiff(names(m), "value")]), "no column `value`")
 })

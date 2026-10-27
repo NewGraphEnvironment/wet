@@ -294,6 +294,10 @@ git <- function(...) {
 dirty <- git("status", "--porcelain", "--", "R", "scripts")
 if (length(dirty)) stop("commit these first, so the recorded commit can rebuild the report:\n",
                         paste(dirty, collapse = "\n"))
+# the frozen copy that runs must be the committed script, or the report names a commit that did not make it
+if (!identical(code_md5, unname(tools::md5sum("scripts/departure_pcic.R")))) {
+  stop("the running copy differs from scripts/departure_pcic.R at HEAD; copy it again", call. = FALSE)
+}
 wet_commit <- git("rev-parse", "--short", "HEAD")
 rule_commits <- c(registered = "5904cd7", weight_amended = "a8ff752", interface_amended = "5a67a46")
 fwapg_commit <- routed_commit()
@@ -590,6 +594,10 @@ scores_stage1 <- function(rs) {
 }
 scores_stage2 <- function(rs, ship, w = w_blend) lapply(rs, function(r) score(r$obs, stage2_cands(r, ship, w)))
 tab_of <- function(sc) {
+  if (!length(sc)) {  # an empty test set reports nothing rather than stopping before the report
+    na <- stats::setNames(numeric(), character())
+    return(list(nse = matrix(numeric(), 0, 0), n_scored = 0L, n_not = 0L, med = na, q25 = na, q75 = na))
+  }
   nse <- do.call(rbind, lapply(sc, `[[`, "nse"))
   keep <- stats::complete.cases(nse)
   list(nse = nse[keep, , drop = FALSE], n_scored = sum(keep), n_not = sum(!keep),
@@ -679,8 +687,8 @@ med_line <- function(t, nm) {
 say("# PCIC's per-year routed flow against donor-carried departures (#122)", "",
     sprintf("Rule registered in scripts/departure_pcic.R's header at %s, amended before any candidate at %s (distance weight) and %s (the fwapg#42 interface).",
             rule_commits[["registered"]], rule_commits[["weight_amended"]], rule_commits[["interface_amended"]]),
-    sprintf("wet commit %s; HYDAT %s, approved daily flows only; fit %s, scoring code %s.", wet_commit, release,
-            release, score_code_md5),
+    sprintf("wet commit %s (script md5 %s); HYDAT %s, approved daily flows only; fit %s, scoring code %s.",
+            wet_commit, code_md5, release, release, score_code_md5),
     routed_report_line(fwapg_commit, period_run),
     sprintf("daily tables: %s", daily_fp),
     sprintf("per-year files: %d of %s (%d-%d), built by NewGraphEnvironment/fwapg at %s; pcic.series rows md5 %s.",
