@@ -307,7 +307,7 @@ HYDAT 2026-07-17, with HYDAT’s observed runoff.
   <https://ggplot2.tidyverse.org>.
 - `gq` 0.16.1,
   [doi:10.5281/zenodo.23524719](https://doi.org/10.5281/zenodo.23524719),
-  commit `367b562`. Irvine A (2026). *gq: Cartographic Style Management
+  commit `aa082d0`. Irvine A (2026). *gq: Cartographic Style Management
   Across Rendering Targets*. New Graph Environment
   Ltd. <doi:10.5281/zenodo.23524719>
   <https://doi.org/10.5281/zenodo.23524719>. Version 0.16.1,
