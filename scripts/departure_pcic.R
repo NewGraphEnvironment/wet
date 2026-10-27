@@ -277,7 +277,8 @@
 # The body: written after the header and its amendments (5904cd7, a8ff752, 5a67a46), before any candidate
 # was scored; the interface section was amended again after it, at b518ebc. Everything below implements
 # the rule above; nothing here changes it. After the first runs on the product it was edited only in what
-# the report prints (code-check rounds 5 and 6), which moved no score.
+# it prints: the report's counts and the wording of the WET_FWAPG_COMMIT refusal, with the two assignments
+# that refusal needs moved up. No computed value, input or guard changed, and no score moved.
 # ==================================================================================================
 
 source("scripts/wb_cv_lib.R")  # load_all(), cal, release, fit_dir, score_code_md5
