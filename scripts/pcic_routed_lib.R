@@ -31,11 +31,11 @@ routed_where <- routed_where_period()
 stopifnot(!grepl("'", paste(routed_run$model, routed_run$scenario, routed_run$period)))
 
 # the fwapg commit the routed run was built at: 7 to 40 hex characters
-routed_commit <- function() {
+routed_commit <- function(period = routed_run$period) {
   x <- Sys.getenv("WET_FWAPG_COMMIT")
   if (!grepl("^[0-9a-f]{7,40}$", x)) {
     stop("set WET_FWAPG_COMMIT to the fwapg commit that built ", routed_table, " ",
-         paste(routed_run$model, routed_run$scenario, routed_run$period), call. = FALSE)
+         paste(routed_run$model, routed_run$scenario, period), call. = FALSE)
   }
   x
 }

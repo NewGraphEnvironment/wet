@@ -306,7 +306,9 @@ if (!identical(code_md5, unname(tools::md5sum("scripts/departure_pcic.R")))) {
 wet_commit <- git("rev-parse", "--short", "HEAD")
 rule_commits <- c(registered = "5904cd7", weight_amended = "a8ff752", interface_amended = "5a67a46",
                   commit_amended = "b518ebc")
-fwapg_commit <- routed_commit()
+years_run <- 1951:2012
+period_run <- "1951-2012"
+fwapg_commit <- routed_commit(period_run)
 pcic_dir <- Sys.getenv("WET_PCIC_YEARS")
 if (!nzchar(pcic_dir) || !dir.exists(pcic_dir)) stop("set WET_PCIC_YEARS to the per-year files' directory", call. = FALSE)
 ho <- shipped_heldout()  # refuses a fit scored under other scoring code
@@ -314,8 +316,6 @@ hydat <- wb_hydat(release)
 
 report <- file.path("data", "checks", sprintf("departure_pcic_%s.txt", release))
 rds <- file.path("data", "departure", sprintf("departure_pcic_%s.rds", release))
-years_run <- 1951:2012
-period_run <- "1951-2012"
 n_days_run <- sum(365 + (years_run %% 4 == 0))  # 22,646; no century year in the run
 baseline <- 1981:2010
 k_main <- 5
@@ -753,7 +753,8 @@ say("# PCIC's per-year routed flow against donor-carried departures (#122)", "",
             sum(tt$from != "#120 box short-record"), sum(tt$from != "stations rds test"), sum(tt$from == "both"),
             paste(sprintf("%s %d", names(table(tt$drop[tt$drop != ""])), as.integer(table(tt$drop[tt$drop != ""]))),
                   collapse = "; ")),
-    sprintf("Kept: %d; scored: %d. Median NSE: %s.", nrow(test), tt1$n_scored,
+    sprintf("Kept: %d; scored: %d by the weightings, %d by donors, pcic and blend. Median NSE: %s.",
+            nrow(test), tt1$n_scored, tt2$n_scored,
             paste(c(sprintf("%s %s", weightings, fmt(tt1$med[weightings])),
                     sprintf("%s %s", c("donors", "pcic", "blend"), fmt(tt2$med[c("donors", "pcic", "blend")]))),
                   collapse = ", ")),
