@@ -29,7 +29,41 @@ test_that("transaction control left inside the migration is refused, with its li
   refuse("SELECT 1;\nSTART TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
   refuse("SELECT 1;\nBEGIN WORK;\nSELECT 2;")
   refuse("SELECT 1;\nPREPARE TRANSACTION 'x';")
+  # the server allows a line break or a comment around the keyword
+  refuse("SELECT 1;\nCOMMIT\n;")
+  refuse("SELECT 1;\nCOMMIT -- c\n;")
+  refuse("SELECT 1;\n/* c */ COMMIT;")
+  refuse("SELECT 1;\nCOMMIT/* c */;")
+  refuse("SELECT 1; /* a\nb */\nROLLBACK;")
   # a COMMIT; with no BEGIN; before it is not the migration's own pair
   refuse("SELECT 1;\nCOMMIT;")
   expect_error(wet:::wet_pg_trial_sql("BEGIN;\nSELECT 1;\nCOMMIT;\nSELECT 2;\nCOMMIT;"), "at line 3\\b")
+  expect_error(wet:::wet_pg_trial_sql("SELECT 1; /* a\nb */\nROLLBACK;"), "at line 3\\b")
+})
+
+test_that("a trial migrates its own session only, and its rollback undoes it", {
+  conn <- local_fwapg()
+  other <- local_fwapg()
+  tbl <- paste0("wet_trial_", paste(sample(letters, 12, TRUE), collapse = ""))
+  f <- withr::local_tempfile(fileext = ".sql")
+  writeLines(c("BEGIN;", sprintf("CREATE TABLE public.%s (x integer);", tbl),
+               sprintf("INSERT INTO public.%s VALUES (1);", tbl), "COMMIT;"), f)
+  exists_in <- function(con) !is.na(DBI::dbGetQuery(con, sprintf("SELECT to_regclass('public.%s')::text AS r", tbl))$r)
+  local({
+    wet:::wet_pg_trial(conn, f)
+    expect_true(exists_in(conn))
+    expect_false(exists_in(other))
+  })
+  expect_false(exists_in(conn))
+  expect_false(exists_in(other))
+})
+
+test_that("a migration that commits midway is refused before anything runs", {
+  conn <- local_fwapg()
+  tbl <- paste0("wet_trial_", paste(sample(letters, 12, TRUE), collapse = ""))
+  f <- withr::local_tempfile(fileext = ".sql")
+  writeLines(c("BEGIN;", sprintf("CREATE TABLE public.%s (x integer);", tbl), "COMMIT;",
+               "SELECT 1;", "COMMIT;"), f)
+  expect_error(wet:::wet_pg_trial(conn, f), "controls its own transaction")
+  expect_true(is.na(DBI::dbGetQuery(conn, sprintf("SELECT to_regclass('public.%s')::text AS r", tbl))$r))
 })
