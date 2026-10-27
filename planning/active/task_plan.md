@@ -66,7 +66,7 @@ Component 3 of #118. Two halves, one in the fwapg fork (NewGraphEnvironment/fwap
 ## Phase 5: Record, archive, PR
 
 - [ ] `research/pcic_hydrology.md`: a section "Per-year routed flow and the departure competition (#122)" with the verdict, the table (median NSE per candidate, both pools, common years), PCIC's skill by basin and size, the expected-null check, and limits; `research/station_flow_departure.md`'s #120 section gains one line pointing to it; `research/README.md` row updated.
-- [ ] `CLAUDE.md`: one sentence under station flow departure naming `scripts/departure_pcic.R`, `wet_routed_years()`, the `weights =` argument, `WET_PCIC_YEARS` and the two commits.
+- [x] `CLAUDE.md`: one sentence under station flow departure naming `scripts/departure_pcic.R`, `wet_routed_years()`, the `weights =` argument, `WET_PCIC_YEARS` and the two commits.
 - [ ] `NEWS.md` entry; `/code-check branch`; `/planning-archive`; `/gh-pr-push`.
 
 ## Owed at the end (reported, done after merge)
