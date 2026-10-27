@@ -66,21 +66,21 @@ Component 3 of #118. Two halves, one in the fwapg fork (NewGraphEnvironment/fwap
 
 ## Phase 5: Record, archive, PR
 
-- [ ] `research/pcic_hydrology.md`: a section "Per-year routed flow and the departure competition (#122)" with the verdict, the table (median NSE per candidate, both pools, common years), PCIC's skill by basin and size, the expected-null check, and limits; `research/station_flow_departure.md`'s #120 section gains one line pointing to it; `research/README.md` row updated.
+- [x] `research/pcic_hydrology.md`: a section "Per-year routed flow and the departure competition (#122)" with the verdict, the table (median NSE per candidate, both pools, common years), PCIC's skill by basin and size, the expected-null check, and limits; `research/station_flow_departure.md`'s #120 section gains one line pointing to it; `research/README.md` row updated.
 - [x] `CLAUDE.md`: one sentence under station flow departure naming `scripts/departure_pcic.R`, `wet_routed_years()`, the `weights =` argument, `WET_PCIC_YEARS` and the two commits.
-- [ ] `NEWS.md` entry; `/code-check branch`; `/planning-archive`; `/gh-pr-push`.
+- [x] `NEWS.md` entry (written by `/gh-pr-merge` at release, as every entry since 0.4.18; the line is in the PR body); `/code-check branch`; `/planning-archive`; `/gh-pr-push`.
 
 ## Owed at the end (reported, done after merge)
 
 - [ ] Tick #122 in #118's component list.
-- [ ] If stage 2 ships `pcic` or `blend`: file the follow-up #118 names ("Province-wide and a published dataset") — only if the scores hold.
+- [x] ~~If stage 2 ships `pcic` or `blend`:~~ Not needed: stage 2 shipped `donors`. file the follow-up #118 names ("Province-wide and a published dataset") — only if the scores hold.
 
 ## Validation
 
-- [ ] Tests pass
+- [x] Tests pass, but for the live Buck Creek real-time test (ECCC holds no 2–26 October values for 08EE013; nothing on this branch touches it)
 - [x] `/code-check` clean (once over the branch with `/code-check branch`): four rounds 2026-10-27, ended on round 4's enumeration; rounds 5–7 over the Phase 4 run and Phase 5 diff, each finding a defect inside the last fix (counts printed beside another set's values), ended on the enumeration of every count the report prints (`review-round7.md`)
-- [ ] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] PWF checkboxes match landed work
+- [x] `/planning-archive` on completion
 
 How each change is proved:
 
