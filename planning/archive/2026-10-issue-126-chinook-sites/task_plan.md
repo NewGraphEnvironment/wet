@@ -68,7 +68,7 @@ The Maxan pilot (#120, extension and carried departures) and its snow regression
 - [x] Tests pass
 - [x] `/code-check` clean (once over the branch with `/code-check branch`)
 - [x] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] `/planning-archive` on completion
 
 How each change is proved:
 - The generalised scripts reproduce Maxan's tracked pilot and snow reports, and the parity gates refuse on a mismatch. To prove a gate fires, perturb one parity value in a copy and watch it refuse.
