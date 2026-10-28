@@ -12,3 +12,4 @@
 ^pkgdown$
 ^data-raw$
 ^CITATION\.cff$
+^vignettes/articles$

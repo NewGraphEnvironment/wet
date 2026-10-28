@@ -81,3 +81,17 @@ reference:
   - wet_shape_predict
   - wet_cv_folds
   - wet_flow_validate
+
+articles:
+- title: Articles
+  navbar: ~
+  contents:
+  - monthly-flow
+  - segment-discharge
+  - short-record-flow
+  - station-flow
+# built and linked, but in neither the index nor the navbar until promoted (#126):
+# promote by moving its line into the section above
+- title: internal
+  contents:
+  - articles/chinook-sites

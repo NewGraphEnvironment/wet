@@ -50,15 +50,15 @@ The Maxan pilot (#120, extension and carried departures) and its snow regression
 - [x] Implement `departure_site_snow.R` and pass the `maxan` parity gate. Run the three sites, rerun each for byte identity, and commit the reports.
 
 ## Phase 6: Comparison article (unlisted)
-- [ ] `data-raw/chinook_sites_data.R` → `inst/vignette-data/chinook_sites_values.rds`. Guards as `short_record_vignette_data.R`: `vd_commit()`, each rds's `code_md5` matches its script, and every number is held to its line in the tracked report.
-- [ ] `data-raw/chinook_sites_map.R` → `inst/vignette-data/chinook_sites_map.rds`, built with `scripts/vignette_map_lib.R`: the province with the four targets, their boxes and donors. Classes go in `inst/cartography/wet_station.csv`.
+- [x] `data-raw/chinook_sites_data.R` → `inst/vignette-data/chinook_sites_values.rds`. Guards as `short_record_vignette_data.R`: `vd_commit()`, each rds's `code_md5` matches its script, and every number is held to its line in the tracked report.
+- [x] `data-raw/chinook_sites_map.R` → `inst/vignette-data/chinook_sites_map.rds`, built with `scripts/vignette_map_lib.R`: the province with the four targets, their boxes and donors. Classes go in `inst/cartography/wet_station.csv`.
 - [ ] `vignettes/articles/chinook-sites.Rmd`. It asks whether Maxan's result holds at the other three, side by side: the change in each window statistic, each route's held-out score per box, the snow fits, and the normal's error at the ungauged site. It follows #110's writing convention and ends with "Software and citation".
 - [ ] `_pkgdown.yml` gets an `articles:` section listing the four existing articles plus `internal: chinook-sites`. Add `^vignettes/articles$` to `.Rbuildignore`. After `pkgdown::build_site()`, check that the page exists and that the navbar menu and the Articles index don't list it.
-- [ ] Add tests in `test-vignette_data.R` for the new bundle and map: size limit, shape, provenance.
+- [x] Add tests in `test-vignette_data.R` for the new bundle and map: size limit, shape, provenance.
 
 ## Phase 7: Docs
-- [ ] CLAUDE.md: Architecture lines for the site table and the two site scripts. Move the site-table convention from memory into Working Conventions, then delete the memory file and its MEMORY.md line.
-- [ ] `research/chinook_sites.md`: the results at each site, with whether the Maxan result holds, attributed. (NEWS and the version are written at merge by `/gh-pr-merge`.)
+- [x] CLAUDE.md: Architecture lines for the site table and the two site scripts. Move the site-table convention from memory into Working Conventions, then delete the memory file and its MEMORY.md line.
+- [x] `research/chinook_sites.md`: the results at each site, with whether the Maxan result holds, attributed. (NEWS and the version are written at merge by `/gh-pr-merge`.)
 
 ## Owed at the end (reported, done after merge)
 - [ ] File an issue: move Maxan's five files onto the site table and retire `departure_pilot.R` / `departure_snow.R` as separate code paths.

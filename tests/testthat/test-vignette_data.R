@@ -12,7 +12,7 @@ test_that("each vignette's bundled data stays under 500 KB", {
                  segment = c("segment_values.rds", "segment_map.rds"),
                  monthly = c("monthly_values.rds", "monthly_map.rds"),
                  short_record = c("short_record_values.rds", "short_record_map.rds"),
-                 chinook_sites = c("life_history_morr.csv"))
+                 chinook_sites = c("life_history_morr.csv", "chinook_sites_values.rds", "chinook_sites_map.rds"))
   expect_setequal(files, unlist(budget))
   for (v in names(budget)) {
     expect_lt(sum(file.size(vignette_data(budget[[v]]))), 500 * 1024)
@@ -252,3 +252,41 @@ test_that("the short-record map layers are sf in BC Albers, with the three catch
   expect_setequal(m$streams$gnis_name[m$streams$main], c("Bulkley River", "Buck Creek", "Maxan Creek", "Foxy Creek"))
 })
 
+
+test_that("the Chinook sites' values hold four sites, both routes and their provenance", {
+  v <- readRDS(vignette_data("chinook_sites_values.rds"))
+  expect_named(v, c("sites", "change", "scores", "snow", "normal", "gauges", "provenance"))
+  expect_equal(v$sites$site_id, c("maxan", "swift", "naver", "gosnell"))
+  expect_equal(v$sites$kind, c("extend", "extend", "extend", "ungauged"))
+  # every site has the carried route in each window; only a gauged one has the extended route
+  for (id in v$sites$site_id) {
+    r <- v$change[v$change$site_id == id & v$change$group == "BULK", ]
+    expect_setequal(paste(r$statistic, r$window)[r$route == "carried"],
+                    paste(rep(c("mean", "min7", "cov_day"), each = 2), c("migration", "spawning")))
+    expect_equal(any(r$route == "extended"), v$sites$kind[v$sites$site_id == id] == "extend", info = id)
+  }
+  expect_true(all(v$change$lo <= v$change$change & v$change$change <= v$change$hi, na.rm = TRUE))
+  # Gosnell runs under the Morice's windows too, and only it has a normal
+  expect_setequal(v$scores$group[v$scores$site_id == "gosnell"], c("BULK", "MORR"))
+  expect_equal(unique(v$normal$site_id), "gosnell")
+  expect_true(all(c("wet_commit", "hydat", "scripts", "reports") %in% names(v$provenance)))
+})
+
+test_that("the Chinook sites' map layers are sf in BC Albers, with every site and gauge", {
+  skip_if_not_installed("sf")
+  m <- readRDS(vignette_data("chinook_sites_map.rds"))
+  v <- readRDS(vignette_data("chinook_sites_values.rds"))
+  expect_named(m, c("bc", "boxes", "targets", "gauges"))
+  for (nm in names(m)) {
+    expect_s3_class(m[[nm]], "sf")
+    expect_equal(sf::st_crs(m[[nm]])$epsg, 3005L, info = nm)
+  }
+  expect_equal(sort(m$boxes$site_id), sort(v$sites$site_id))
+  expect_equal(sort(m$targets$site_id), sort(v$sites$site_id))
+  expect_setequal(m$gauges$station_number, v$gauges$station_number)
+  # each target inside its own box
+  inside <- vapply(v$sites$site_id, function(id) {
+    lengths(sf::st_within(m$targets[m$targets$site_id == id, ], m$boxes[m$boxes$site_id == id, ])) == 1
+  }, TRUE)
+  expect_true(all(inside))
+})
