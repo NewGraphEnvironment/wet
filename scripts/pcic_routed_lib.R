@@ -19,17 +19,23 @@ routed_run <- local({
   as.list(lk[c("location", "model", "scenario", "period")])
 })
 routed_table <- routed_run$location
+# the filter for one period of the routed run's model and scenario; the
+# shipped period by default. Another period is read only where a script says
+# so (scripts/departure_pcic.R reads 1951-2012, #122).
+routed_where_period <- function(period = routed_run$period) {
+  stopifnot(length(period) == 1L, grepl("^[0-9]{4}-[0-9]{4}$", period))
+  sprintf("(model, scenario, period) = ('%s', '%s', '%s')", routed_run$model, routed_run$scenario, period)
+}
 # the filter every read of routed_table carries
-routed_where <- sprintf("(model, scenario, period) = ('%s', '%s', '%s')",
-                        routed_run$model, routed_run$scenario, routed_run$period)
+routed_where <- routed_where_period()
 stopifnot(!grepl("'", paste(routed_run$model, routed_run$scenario, routed_run$period)))
 
 # the fwapg commit the routed run was built at: 7 to 40 hex characters
-routed_commit <- function() {
+routed_commit <- function(period = routed_run$period) {
   x <- Sys.getenv("WET_FWAPG_COMMIT")
   if (!grepl("^[0-9a-f]{7,40}$", x)) {
     stop("set WET_FWAPG_COMMIT to the fwapg commit that built ", routed_table, " ",
-         paste(routed_run$model, routed_run$scenario, routed_run$period), call. = FALSE)
+         paste(routed_run$model, routed_run$scenario, period), call. = FALSE)
   }
   x
 }
@@ -37,9 +43,9 @@ routed_commit <- function() {
 # the report line naming the table, run and commit; written by
 # scripts/pcic_routed_compare.R and scripts/segment_output.R, and matched by
 # scripts/vignette_data_lib.R and segment_output.R against the routed report
-routed_report_line <- function(commit) {
+routed_report_line <- function(commit, period = routed_run$period) {
   sprintf("routed: %s (%s %s %s), built by NewGraphEnvironment/fwapg at %s", routed_table,
-          routed_run$model, routed_run$scenario, routed_run$period, commit)
+          routed_run$model, routed_run$scenario, period, commit)
 }
 
 # rows, segments, null flows and total flow of the run: a rebuild that moves
@@ -147,21 +153,22 @@ routed_weights_table <- "pcic.segment_weights"
 # sub-basins and q_acc summed over values rounded to 1e-6 (numeric, so exact
 # in any order), and weights rows and shares rounded to 1e-9, which is how
 # fwapg's export wrote those columns. Refused unless equal.
-routed_daily_fingerprint <- function(conn) {
+routed_daily_fingerprint <- function(conn, period = routed_run$period) {
+  where <- routed_where_period(period)
   fp <- DBI::dbGetQuery(conn, sprintf("
     SELECT count(*)::text AS rows, count(DISTINCT subid)::text AS subbasins,
            sum(round(q_acc::numeric, 6))::text AS sum_q
-    FROM %s WHERE %s", routed_daily_table, routed_where))
+    FROM %s WHERE %s", routed_daily_table, where))
   fw <- DBI::dbGetQuery(conn, sprintf("
     SELECT count(*)::text AS rows, sum(round(share::numeric, 9))::text AS sum_share FROM %s",
     routed_weights_table))
   run <- DBI::dbGetQuery(conn, sprintf("
     SELECT daily_rows::text AS rows, daily_subbasins::text AS subbasins, daily_q_sum = $1::numeric AS same_q,
            weights_rows::text AS w_rows, weights_share_sum = $2::numeric AS same_share
-    FROM pcic.runs WHERE %s", routed_where), params = list(fp$sum_q, fw$sum_share))
+    FROM pcic.runs WHERE %s", where), params = list(fp$sum_q, fw$sum_share))
   if (nrow(run) != 1L || fp$rows != run$rows || fp$subbasins != run$subbasins || !isTRUE(run$same_q) ||
         fw$rows != run$w_rows || !isTRUE(run$same_share)) {
-    stop(routed_daily_table, " ", routed_where, " (", fp$rows, " rows, ", fp$subbasins, " sub-basins, total ",
+    stop(routed_daily_table, " ", where, " (", fp$rows, " rows, ", fp$subbasins, " sub-basins, total ",
          fp$sum_q, ") or ", routed_weights_table, " (", fw$rows, " rows, shares ", fw$sum_share,
          ") is not what pcic.runs describes", call. = FALSE)
   }
@@ -178,14 +185,26 @@ routed_daily_inputs <- function(conn) {
     routed_daily_table, routed_where))
   fold <- wet:::wet_routed_fold(d)
   rm(d)
+  list(fold = fold, weights = routed_weights(conn))
+}
+
+# Segments' weights alone, upstream_subids as a list of integers in the order
+# fwapg stored them: every segment's, or those of `lfid` (a segment without a
+# row is absent from the result). Shared by every run.
+routed_weights <- function(conn, lfid = NULL) {
+  only <- if (is.null(lfid)) "" else {
+    stopifnot(length(lfid) > 0, !anyNA(lfid))
+    # as.numeric first: sprintf() prints a bit64 integer64 as 0
+    sprintf(" WHERE linear_feature_id IN (%s)", paste(sprintf("%.0f", unique(as.numeric(lfid))), collapse = ", "))
+  }
   w <- DBI::dbGetQuery(conn, sprintf("
     SELECT linear_feature_id::int AS linear_feature_id, watershed_group_code, subid, share,
            array_to_string(upstream_subids, ',') AS up
-    FROM %s ORDER BY linear_feature_id", routed_weights_table))
+    FROM %s%s ORDER BY linear_feature_id", routed_weights_table, only))
   stopifnot(!anyDuplicated(w$linear_feature_id), !anyNA(w$up))
   w$upstream_subids <- lapply(strsplit(w$up, ",", fixed = TRUE), as.integer)
   w$up <- NULL
-  list(fold = fold, weights = w)
+  w
 }
 
 # Mid-network segments, as fwapg's qa_report_clamped.sql counts them: placed

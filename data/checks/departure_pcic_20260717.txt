@@ -1,0 +1,447 @@
+# PCIC's per-year routed flow against donor-carried departures (#122)
+
+Rule registered in scripts/departure_pcic.R's header at 5904cd7, amended before any candidate at a8ff752 (distance weight) and 5a67a46 (the fwapg#42 interface), and before any run on the product at b518ebc (the files' commit from pcic.series).
+wet commit 846f9d7 (script md5 bf05d88ac0c2d9b06bd44ccb0b3c2d70); HYDAT 20260717, approved daily flows only; fit 20260717, scoring code 37d93d99ca657930d0e7c9c995e787a0.
+routed: pcic.discharge_monthly (PNWNAmet historical 1951-2012), built by NewGraphEnvironment/fwapg at 7c30f58
+daily tables: 13786122 rows, 37667 sub-basins, total q_acc 633459324.098216 m3/s; weights 3377037 rows, shares 558010.174364980
+per-year files: 62 of PNWNAmet_historical (1951-2012), built by NewGraphEnvironment/fwapg at ea9b199ea7e8ebc9b61e0f031ec81c7801044acc (pcic.series); rows md5 c1cf545e1f6f665cbe8cc03c55c0563e.
+parity: 809 sub-basins, 296094 bins; worst deviation 0.26 of the bound (2^-23 x mean |v| + 1e-9 m3/s); largest 2.4e-05 m3/s.
+Windows (CH): migration 05-01..08-01, spawning 08-01..09-15. Statistic deciding: migration-window mean, log departure. k = 5; margin 0.01.
+
+## 1. The pool
+
+Calibration gauges: 315. With a pcic.segment_weights row on their segment: 290 (with a pcic.discharge_monthly row, #58's definition: 290).
+Pool per statistic (>= 10 baseline years with a value): q_mean migration 290; q_min7 migration 290; q_cov_day migration 290; q_mean spawning 290; q_min7 spawning 289; q_cov_day spawning 290.
+Migration-mean pool: 290 gauges; co-located pairs (same codes): 1; leak-free removes on average 1.5 donors.
+Modelled window-years <= 0, dropped from logs: migration min7 97; spawning min7 10. Migration-mean gauges with one or more: none.
+
+## 2. Stage 1: how donors are weighted
+
+Median per-gauge NSE of centred log migration-window means, held out, on years every candidate has:
+
+  leave-one-out        n     q25  median     q75
+  distance           290    0.43    0.67    0.79
+  covariance         290    0.47    0.68    0.80
+  covariance_pick    290    0.52    0.72    0.85
+  not scored (fewer than 3 years): 0
+
+  leak-free            n     q25  median     q75
+  distance           290    0.40    0.64    0.77
+  covariance         290    0.44    0.66    0.77
+  covariance_pick    290    0.50    0.69    0.81
+  not scored (fewer than 3 years): 0
+
+Challenger covariance_pick: 0.054 over distance under leave-one-out, 0.047 leak-free; margin 0.01. SHIPS: covariance_pick.
+Leave-one-out: fell back to distance (every chosen donor weighing 0): covariance 0, covariance_pick 0 targets.
+Leave-one-out: target-donor pairs used whose r rests on fewer than 62 years: covariance 0, covariance_pick 0.
+Leave-one-out: median over targets of the mean distance to the donors used (km): distance 81, covariance 81, covariance_pick 84.
+
+## 3. Stage 2: donors (covariance_pick), PCIC or a blend
+
+  leave-one-out        n     q25  median     q75
+  donors             290    0.53    0.72    0.84
+  pcic               290    0.33    0.48    0.62
+  blend              290    0.56    0.71    0.80
+  not scored (fewer than 3 years): 0
+
+  leak-free            n     q25  median     q75
+  donors             290    0.50    0.69    0.81
+  pcic               290    0.33    0.48    0.62
+  blend              290    0.56    0.69    0.79
+  not scored (fewer than 3 years): 0
+
+Challenger blend: -0.009 over donors under leave-one-out, 0.008 leak-free; margin 0.01. SHIPS: donors.
+pcic minus donors, median NSE: -0.242 leave-one-out, -0.208 leak-free (the informative outcome; blend is favoured by averaging alone).
+After 2012 only donors carry values, whatever ships.
+Limit: PCIC publishes no calibration gauges, so pcic's score at a calibration gauge may be partly in sample; donors are always held out.
+
+## 4. The short-record test set (deciding nothing)
+
+Candidates: 137 from the stations rds test set, 13 from #120's box short-record rule (4 in both). Dropped: in the migration-mean pool 1; no pcic.segment_weights row 8; not 3 to 10 migration years in 1951-2012 53; snap not accepted 21.
+Kept: 63; scored: 60 by the weightings, 62 by donors, pcic and blend. Median NSE: distance 0.50, covariance 0.56, covariance_pick 0.66, donors 0.65, pcic 0.41, blend 0.60.
+
+  station  from                    n distance    covar cov_pick   n   donors     pcic    blend
+  07FA007  stations rds test       3    -0.51    -0.53    -1.34   3    -1.34    -3.67    -2.34
+  07FB007  stations rds test       8     0.75     0.76     0.80   8     0.80     0.23     0.76
+  07GC001  stations rds test       4     0.27     0.26     0.16   4     0.16    -1.83    -0.34
+  08CC002  stations rds test       9    -2.66    -2.47    -0.76   9    -0.76    -4.39    -2.01
+  08CC003  stations rds test       9    -1.20    -1.00     0.08   9     0.08    -0.73    -0.15
+  08CE004  stations rds test       5    -0.43     0.12     0.50   5     0.50    -0.48     0.12
+  08DA009  stations rds test       9     0.45     0.45    -0.25   9    -0.25    -0.53    -0.09
+  08DA010  stations rds test       7     0.77     0.91     0.95   7     0.95     0.54     0.92
+  08EC008  #120 box short-record   3     0.01     0.01     0.96   3     0.96     0.33     0.88
+  08EE005  stations rds test       7     0.96     0.96     0.97   7     0.97     0.25     0.77
+  08EE009  #120 box short-record   2        -        -        -   2        -        -        -
+  08EE018  #120 box short-record   5     0.74     0.89     0.64   5     0.64     0.54     0.74  <- Maxan
+  08FC005  stations rds test      10     0.51     0.61     0.66  10     0.66     0.67     0.74
+  08GA026  stations rds test       7     0.99     0.99     0.98   7     0.98     0.71     0.91
+  08GB014  stations rds test       5     0.65     0.64     0.66   5     0.66     0.59     0.70
+  08GC008  stations rds test       9     0.87     0.87     0.82   9     0.82     0.54     0.78
+  08GD009  stations rds test       7     0.95     0.93     0.66   7     0.66     0.50     0.59
+  08GE001  stations rds test       6    -0.05    -0.05    -0.05   6    -0.05    -0.22    -0.13
+  08GF007  stations rds test       6    -0.13    -0.09     0.59   6     0.59     0.34     0.49
+  08GF008  stations rds test       5    -0.54    -2.90     0.88   5     0.88    -0.09     0.57
+  08HA034  stations rds test       7    -0.07    -0.07    -0.07   7    -0.07     0.24     0.12
+  08HA064  stations rds test       3     0.60     0.60     0.17   3     0.17     0.18     0.18
+  08HB078  stations rds test       6     0.61     0.64     0.58   6     0.58    -0.21     0.43
+  08HB080  stations rds test       7    -0.13    -0.12    -0.04   7    -0.04     0.73     0.75
+  08HB088  stations rds test       6    -0.90    -0.72    -0.53   6    -0.53    -0.29    -0.13
+  08HC004  stations rds test       7     0.76     0.77     0.81   7     0.81     0.70     0.91
+  08HD016  stations rds test       9     0.86     0.86     0.84   9     0.84     0.41     0.70
+  08HF007  stations rds test       1        -        -        -   7    -0.18     0.47     0.45
+  08HF008  stations rds test       7    -0.38    -0.34     0.79   8     0.77     0.72     0.87
+  08HF011  stations rds test       4     0.35     0.35     0.70   4     0.70     0.60     0.68
+  08JA019  stations rds test       4     0.42     0.52     0.51   4     0.51    -0.07     0.25
+  08JA020  stations rds test       3    -0.87    -0.92     0.93   3     0.93    -0.24     0.53
+  08JA021  stations rds test       3    -1.57    -2.34    -3.70   3    -3.70    -0.21    -1.57
+  08JA024  stations rds test       4     0.14     0.15     0.32   4     0.32    -0.06     0.14
+  08JA025  both                    3    -0.92    -4.29    -3.19   3    -3.19    -0.11    -1.34
+  08JA026  both                    3     0.04     0.04    -2.56   3    -2.56     0.02    -1.04
+  08JB006  #120 box short-record   2        -        -        -   5    -0.73     0.54     0.46
+  08JB012  both                    8     0.78     0.87     0.91   8     0.91     0.91     0.95
+  08JE005  both                    7     0.66     0.66     0.86   7     0.86     0.57     0.80
+  08KE028  stations rds test       6     0.72     0.72     0.79   6     0.79     0.54     0.70
+  08KG004  stations rds test       5     0.48     0.47    -0.08   5    -0.08    -0.94     0.05
+  08KH031  stations rds test       7     0.70     0.78     0.67   7     0.67     0.76     0.72
+  08LA029  stations rds test       3    -0.20     0.24     0.68   3     0.68    -0.73     0.13
+  08LB077  stations rds test       6     0.79     0.83     0.58   6     0.58    -0.16     0.45
+  08LB083  stations rds test       4     0.66     0.71     0.38   4     0.38     0.62     0.73
+  08LE096  stations rds test       7     0.78     0.77     0.96   7     0.96     0.40     0.82
+  08LF093  stations rds test       3     0.78     0.77     0.68   3     0.68    -0.46     0.26
+  08LG068  stations rds test      10     0.92     0.92     0.89  10     0.89     0.46     0.79
+  08MC041  stations rds test       8     0.45     0.45     0.42   8     0.42     0.24     0.35
+  08MC044  stations rds test       8     0.35     0.36     0.35   8     0.35     0.23     0.30
+  08MH163  stations rds test       4    -0.05    -0.06    -2.45   4    -2.45     0.67     0.45
+  08MH168  stations rds test       3     0.87     0.87     0.93   3     0.93     0.91     0.93
+  08NA012  stations rds test       9     0.83     0.84     0.90   9     0.90     0.36     0.73
+  08NA067  stations rds test      10     0.08     0.08     0.40  10     0.40     0.65     0.60
+  08NE121  stations rds test       4    -0.73    -0.65     0.75   4     0.75     0.63     0.75
+  08NG085  stations rds test       8     0.87     0.88     0.73   8     0.73     0.79     0.81
+  08NG086  stations rds test      10     0.72     0.72     0.65  10     0.65     0.42     0.61
+  08NH085  stations rds test       8     0.92     0.92     0.88   8     0.88     0.86     0.88
+  08NH101  stations rds test       5     0.34     0.35     0.30   5     0.30     0.74     0.63
+  08NJ019  stations rds test       7     0.40     0.39     0.29   7     0.29     0.68     0.59
+  08NK029  stations rds test      10     0.74     0.74     0.74  10     0.74     0.79     0.79
+  08NL060  stations rds test       8     0.79     0.79     0.80   8     0.80     0.92     0.89
+  08NM246  stations rds test       3     0.60     0.60     0.85   3     0.85     0.96     0.92
+
+## 5. Sensitivities (reported, unable to ship)
+
+  setting                       n distance    covar cov_pick    n   donors     pcic    blend
+  k = 3                       290     0.65     0.66     0.75  290     0.74     0.48     0.73
+  k = 8                       290     0.66     0.68     0.71  290     0.71     0.48     0.71
+  migration min7              290     0.53     0.58     0.63  289     0.62     0.16     0.55
+  migration cov_day           290     0.69     0.73     0.78  290     0.78     0.32     0.69
+  spawning mean               290     0.61     0.64     0.67  290     0.67     0.27     0.61
+  spawning min7               289     0.49     0.50     0.56  289     0.56     0.23     0.53
+  spawning cov_day            290     0.54     0.56     0.58  290     0.58     0.21     0.53
+  blend 0.25 donors           290     0.67     0.68     0.72  290     0.72     0.48     0.64
+  blend 0.75 donors           290     0.67     0.68     0.72  290     0.72     0.48     0.74
+
+PCIC's own skill on the stage-2 years, leave-one-out (median centred NSE, median correlation):
+
+  group                     n     NSE       r
+  Coast                    94    0.41    0.69
+  Columbia                 78    0.63    0.81
+  Fraser                   90    0.49    0.73
+  Peace                    28    0.43    0.73
+  <100 km2                 80    0.47    0.73
+  100-1000                107    0.47    0.73
+  1000-10000               84    0.49    0.74
+  >10000                   19    0.51    0.77
+  headwater               218    0.47    0.73
+  nested                   72    0.53    0.77
+
+## 6. Per gauge, migration mean, leave-one-out
+
+  station  basin     area       nesting     n distance    covar cov_pick   n   donors     pcic    blend
+  07EA002  Peace     1000-10000 headwater  21     0.47     0.47     0.48  21     0.48     0.46     0.56
+  07EA004  Peace     1000-10000 headwater  35     0.86     0.86     0.89  35     0.89     0.63     0.84
+  07EA005  Peace     >10000     nested     34     0.54     0.57     0.74  34     0.74     0.51     0.76
+  07EA007  Peace     1000-10000 headwater  29     0.71     0.71     0.57  29     0.57     0.56     0.65
+  07EB002  Peace     1000-10000 headwater  32     0.85     0.85     0.84  32     0.84     0.49     0.79
+  07EC002  Peace     1000-10000 headwater  37     0.93     0.93     0.94  37     0.94     0.67     0.88
+  07EC003  Peace     1000-10000 headwater  37     0.85     0.85     0.78  37     0.78     0.13     0.58
+  07EC004  Peace     1000-10000 headwater  32     0.90     0.90     0.88  32     0.88     0.25     0.69
+  07ED001  Peace     1000-10000 headwater  28     0.67     0.68     0.87  32     0.81     0.60     0.81
+  07ED003  Peace     1000-10000 nested     32     0.78     0.79     0.88  32     0.88     0.58     0.80
+  07EE007  Peace     1000-10000 headwater  44     0.75     0.75     0.77  44     0.77     0.57     0.75
+  07EE009  Peace     100-1000   headwater  37     0.72     0.72     0.36  37     0.36     0.52     0.60
+  07EE010  Peace     1000-10000 nested     32     0.83     0.83     0.80  32     0.80     0.56     0.78
+  07EF004  Peace     100-1000   headwater  14     0.72     0.74     0.83  14     0.83     0.40     0.69
+  07FA003  Peace     1000-10000 headwater  18     0.30     0.39     0.37  18     0.37    -0.15     0.21
+  07FA005  Peace     1000-10000 headwater  29     0.62     0.66     0.70  29     0.70     0.25     0.54
+  07FA006  Peace     1000-10000 nested     29     0.47     0.49     0.56  29     0.56     0.35     0.49
+  07FB001  Peace     >10000     nested     47     0.46     0.50     0.88  52     0.86     0.65     0.84
+  07FB002  Peace     1000-10000 nested     35     0.57     0.62     0.78  35     0.78     0.40     0.67
+  07FB003  Peace     1000-10000 headwater  35     0.39     0.47     0.88  35     0.88     0.52     0.80
+  07FB004  Peace     <100 km2   headwater  34     0.46     0.46     0.49  34     0.49     0.24     0.40
+  07FB005  Peace     <100 km2   headwater  23     0.61     0.64     0.74  23     0.74     0.15     0.56
+  07FB006  Peace     1000-10000 headwater  35     0.42     0.50     0.84  35     0.84     0.51     0.78
+  07FB008  Peace     1000-10000 headwater  33     0.58     0.60     0.64  33     0.64     0.36     0.55
+  07FB009  Peace     100-1000   headwater  29     0.44     0.45     0.69  29     0.69     0.33     0.61
+  07FC003  Peace     1000-10000 headwater  45     0.38     0.38     0.27  45     0.27     0.21     0.32
+  07FD001  Peace     1000-10000 headwater  35     0.33     0.34     0.39  47     0.42    -0.02     0.39
+  07FD004  Peace     100-1000   headwater  28     0.49     0.49     0.52  28     0.52     0.10     0.40
+  08CA001  Coast     1000-10000 headwater  14     0.53     0.57     0.66  14     0.66    -0.72     0.27
+  08CA002  Coast     1000-10000 nested     14     0.67     0.69     0.80  14     0.80    -0.27     0.44
+  08CA003  Coast     1000-10000 headwater  14     0.48     0.48     0.67  14     0.67     0.44     0.70
+  08CB001  Coast     >10000     nested     33     0.87     0.93     0.92  33     0.92     0.40     0.81
+  08CC001  Coast     1000-10000 headwater  31    -0.42    -0.58     0.39  32     0.38    -0.14     0.42
+  08CD001  Coast     1000-10000 headwater  30     0.21     0.25     0.49  48     0.64     0.44     0.73
+  08CE001  Coast     >10000     nested     34     0.75     0.80     0.84  34     0.84     0.50     0.80
+  08CF001  Coast     >10000     nested     23     0.93     0.93     0.91  23     0.91     0.46     0.82
+  08CG001  Coast     1000-10000 nested     52    -0.43    -0.08     0.71  52     0.71     0.34     0.80
+  08CG004  Coast     1000-10000 nested     27     0.72     0.86     0.77  27     0.77     0.61     0.84
+  08CG005  Coast     100-1000   headwater  20     0.80     0.79     0.80  20     0.80     0.42     0.70
+  08CG006  Coast     100-1000   headwater  22     0.59     0.59     0.56  22     0.56     0.47     0.81
+  08DA005  Coast     100-1000   headwater  44    -0.35    -0.38    -0.32  44    -0.32    -0.07     0.18
+  08DB001  Coast     >10000     nested     56    -0.07     0.04     0.45  56     0.45     0.09     0.65
+  08DB010  Coast     <100 km2   headwater  17    -0.08    -0.05     0.17  18     0.23    -0.01     0.13
+  08DB011  Coast     100-1000   headwater  14     0.20     0.16     0.77  14     0.77    -0.09     0.48
+  08DB013  Coast     <100 km2   headwater  16     0.86     0.86     0.81  16     0.81     0.07     0.58
+  08DB014  Coast     <100 km2   headwater  16     0.77     0.79     0.61  16     0.61    -0.15     0.33
+  08DC006  Coast     100-1000   headwater  32     0.46     0.46     0.57  32     0.57     0.37     0.57
+  08DD001  Coast     1000-10000 headwater  29     0.57     0.52     0.62  29     0.62     0.06     0.48
+  08EB004  Coast     1000-10000 headwater  37     0.56     0.62     0.56  37     0.56     0.56     0.69
+  08EB005  Coast     >10000     headwater  29     0.56     0.57     0.66  29     0.66     0.35     0.72
+  08EC013  Coast     1000-10000 headwater  41     0.72     0.73     0.87  41     0.87     0.68     0.89
+  08ED001  Coast     100-1000   headwater  39     0.56     0.74     0.83  39     0.83    -0.64     0.49
+  08ED002  Coast     1000-10000 nested     49     0.31     0.49     0.79  49     0.79    -0.69     0.57
+  08EE004  Coast     1000-10000 nested     62     0.40     0.41     0.39  62     0.39     0.46     0.69
+  08EE008  Coast     100-1000   headwater  46     0.36     0.36     0.50  46     0.50     0.36     0.60
+  08EE012  Coast     <100 km2   headwater  30     0.02     0.02     0.50  40     0.34     0.36     0.59
+  08EE013  Coast     100-1000   headwater  40     0.40     0.46     0.63  40     0.63     0.53     0.66
+  08EE020  Coast     100-1000   headwater  37     0.27     0.51     0.88  37     0.88    -0.11     0.67
+  08EE025  Coast     <100 km2   headwater  30     0.47     0.46     0.47  30     0.47     0.60     0.58
+  08EE028  Coast     <100 km2   headwater  10     0.17     0.08     0.21  10     0.21     0.14     0.57
+  08EF001  Coast     >10000     nested     62     0.77     0.76     0.73  62     0.73     0.58     0.83
+  08EF005  Coast     1000-10000 headwater  49     0.86     0.86     0.89  49     0.89     0.22     0.73
+  08EG011  Coast     100-1000   headwater  33     0.78     0.79     0.57  33     0.57     0.04     0.41
+  08EG012  Coast     100-1000   headwater  51     0.61     0.59     0.58  51     0.58     0.47     0.81
+  08EG017  Coast     <100 km2   headwater  18     0.15     0.15     0.29  18     0.29     0.01     0.22
+  08FA002  Coast     1000-10000 headwater  51     0.12     0.45     0.48  51     0.48    -0.22     0.25
+  08FB004  Coast     100-1000   headwater  45     0.25     0.25     0.81  47     0.82     0.42     0.75
+  08FB005  Coast     100-1000   headwater  28    -0.00     0.43     0.45  28     0.45    -0.33     0.43
+  08FB006  Coast     1000-10000 headwater  47     0.81     0.83     0.87  47     0.87     0.42     0.74
+  08FB007  Coast     1000-10000 nested     45     0.25     0.46     0.65  45     0.65     0.30     0.57
+  08FB009  Coast     <100 km2   headwater  16     0.08     0.47     0.51  16     0.51     0.27     0.52
+  08FC003  Coast     1000-10000 headwater  44     0.70     0.74     0.74  44     0.74     0.53     0.72
+  08FE003  Coast     100-1000   headwater  41     0.28     0.52     0.54  41     0.54    -0.14     0.42
+  08FF001  Coast     1000-10000 nested     47     0.64     0.67     0.86  47     0.86     0.44     0.73
+  08FF002  Coast     100-1000   headwater  47     0.74     0.76     0.79  47     0.79     0.40     0.72
+  08FF003  Coast     100-1000   headwater  45     0.50     0.53     0.42  45     0.42     0.36     0.49
+  08FF006  Coast     <100 km2   headwater  15     0.50     0.54     0.57  15     0.57     0.49     0.53
+  08GA047  Coast     <100 km2   headwater  52     0.62     0.62     0.52  52     0.52     0.59     0.69
+  08GA071  Coast     1000-10000 headwater  32    -0.15     0.11     0.65  32     0.65     0.42     0.71
+  08GA072  Coast     100-1000   headwater  30    -0.24    -0.16     0.50  31     0.31     0.24     0.51
+  08GA075  Coast     100-1000   headwater  20     0.69     0.71     0.54  20     0.54     0.32     0.58
+  08GA077  Coast     <100 km2   headwater  20     0.77     0.76     0.80  20     0.80     0.35     0.65
+  08GA079  Coast     <100 km2   nested     16     0.83     0.87     0.91  16     0.91     0.51     0.81
+  08GB013  Coast     100-1000   headwater  19     0.28     0.30     0.10  19     0.10     0.46     0.70
+  08GD004  Coast     1000-10000 nested     56     0.68     0.68     0.66  56     0.66     0.45     0.79
+  08GD007  Coast     1000-10000 headwater  22    -0.61    -0.43     0.73  22     0.73     0.70     0.78
+  08GD008  Coast     100-1000   headwater  35     0.53     0.56     0.57  35     0.57     0.36     0.52
+  08GE002  Coast     1000-10000 nested     35     0.67     0.68     0.73  35     0.73    -0.08     0.66
+  08GE003  Coast     <100 km2   headwater  15    -1.66    -2.37    -4.47  15    -4.47     0.28    -1.20
+  08GF005  Coast     <100 km2   headwater  13     0.16     0.34     0.22  13     0.22     0.45     0.50
+  08GF006  Coast     <100 km2   headwater  15     0.32     0.16     0.29  15     0.29     0.41     0.49
+  08HA001  Coast     100-1000   headwater  56     0.74     0.76     0.74  58     0.74     0.65     0.81
+  08HA003  Coast     100-1000   headwater  56     0.74     0.75     0.82  56     0.82     0.45     0.74
+  08HA010  Coast     100-1000   nested     50     0.80     0.81     0.75  50     0.75     0.22     0.66
+  08HA069  Coast     <100 km2   headwater  15     0.92     0.92     0.94  15     0.94     0.72     0.92
+  08HA070  Coast     <100 km2   headwater  16     0.76     0.77     0.80  16     0.80     0.43     0.75
+  08HA072  Coast     <100 km2   headwater  14     0.67     0.73     0.85  14     0.85     0.65     0.84
+  08HB014  Coast     100-1000   headwater  54     0.30     0.30     0.43  56     0.43     0.45     0.52
+  08HB024  Coast     100-1000   headwater  33     0.75     0.76     0.87  35     0.88     0.48     0.81
+  08HB025  Coast     <100 km2   headwater  34     0.65     0.67     0.81  35     0.81     0.46     0.73
+  08HB032  Coast     100-1000   headwater  29    -0.03    -0.02     0.55  29     0.55     0.15     0.42
+  08HB048  Coast     <100 km2   headwater  40     0.33     0.34     0.41  40     0.41     0.75     0.64
+  08HB074  Coast     100-1000   headwater  31     0.77     0.80     0.52  31     0.52     0.36     0.69
+  08HB075  Coast     <100 km2   headwater  27     0.72     0.72     0.64  27     0.64     0.42     0.56
+  08HB086  Coast     <100 km2   headwater  18     0.64     0.64     0.73  18     0.73     0.62     0.79
+  08HB089  Coast     <100 km2   headwater  15     0.84     0.85     0.84  15     0.84     0.45     0.69
+  08HC002  Coast     100-1000   headwater  47     0.68     0.68     0.31  47     0.31     0.55     0.74
+  08HC006  Coast     <100 km2   headwater  15    -1.24    -1.15    -1.13  15    -1.13    -0.72    -0.83
+  08HD007  Coast     100-1000   nested     39     0.49     0.49     0.48  39     0.48     0.24     0.41
+  08HD011  Coast     100-1000   headwater  38     0.68     0.68     0.67  38     0.67     0.47     0.73
+  08HD015  Coast     100-1000   headwater  30     0.91     0.91     0.92  30     0.92     0.45     0.85
+  08HE007  Coast     <100 km2   headwater  12     0.37     0.45     0.48  12     0.48     0.36     0.58
+  08HE008  Coast     <100 km2   headwater  14     0.37     0.37     0.72  14     0.72     0.29     0.57
+  08HE009  Coast     <100 km2   headwater  14     0.56     0.57     0.59  14     0.59     0.02     0.46
+  08HE010  Coast     <100 km2   headwater  13    -0.03     0.03     0.50  13     0.50    -0.36     0.30
+  08HF004  Coast     100-1000   headwater  36     0.66     0.66     0.62  36     0.62     0.49     0.76
+  08HF005  Coast     100-1000   headwater  23     0.64     0.64     0.76  23     0.76     0.44     0.80
+  08HF006  Coast     <100 km2   headwater  15     0.74     0.87     0.83  18     0.55     0.78     0.79
+  08HF012  Coast     <100 km2   headwater  14     0.61     0.69     0.63  14     0.63     0.33     0.53
+  08HF013  Coast     <100 km2   headwater  13     0.50     0.66     0.78  13     0.78     0.52     0.70
+  08JA014  Fraser    100-1000   headwater  30     0.25     0.25     0.53  30     0.53     0.26     0.46
+  08JA015  Fraser    <100 km2   headwater  36    -0.50    -1.04    -3.14  36    -3.14    -0.32    -0.71
+  08JA016  Fraser    <100 km2   headwater  16     0.00    -0.25    -0.74  16    -0.74    -0.83    -0.40
+  08JA028  Fraser    1000-10000 headwater  12     0.26    -0.47    -0.88  12    -0.88     0.57     0.28
+  08JB002  Fraser    1000-10000 headwater  62     0.82     0.85     0.74  62     0.74     0.64     0.73
+  08JB003  Fraser    1000-10000 nested     60     0.85     0.86     0.78  60     0.78     0.66     0.77
+  08JC017  Fraser    100-1000   headwater  10     0.80     0.81     0.77  10     0.77     0.79     0.84
+  08JD006  Fraser    100-1000   headwater  30     0.16     0.10     0.39  30     0.39     0.47     0.58
+  08JE001  Fraser    >10000     nested     62     0.47     0.48     0.60  62     0.60     0.62     0.76
+  08JE004  Fraser    100-1000   headwater  36     0.77     0.77     0.61  36     0.61     0.48     0.64
+  08KA001  Fraser    100-1000   headwater  46     0.51     0.32     0.52  46     0.52     0.29     0.55
+  08KA004  Fraser    >10000     nested     60     0.62     0.62     0.93  60     0.93     0.54     0.83
+  08KA005  Fraser    1000-10000 nested     60     0.10     0.11     0.44  60     0.44     0.44     0.59
+  08KA007  Fraser    1000-10000 nested     57     0.22     0.17     0.38  57     0.38    -0.14     0.38
+  08KA008  Fraser    100-1000   headwater  29     0.57     0.60     0.32  40     0.25     0.14     0.25
+  08KA009  Fraser    100-1000   headwater  40     0.54     0.65     0.76  40     0.76     0.05     0.54
+  08KA012  Fraser    100-1000   headwater  14     0.60     0.63     0.60  14     0.60     0.32     0.53
+  08KA013  Fraser    1000-10000 headwater  15     0.71     0.80     0.79  15     0.79     0.90     0.87
+  08KB001  Fraser    >10000     nested     60     0.62     0.61     0.93  60     0.93     0.59     0.88
+  08KB003  Fraser    1000-10000 nested     52    -0.04    -0.01     0.87  53     0.87     0.52     0.79
+  08KB006  Fraser    100-1000   headwater  32    -0.17    -0.18     0.01  32     0.01     0.34     0.41
+  08KC001  Fraser    1000-10000 nested     40     0.64     0.64     0.69  40     0.69     0.66     0.80
+  08KC003  Fraser    100-1000   headwater  21     0.66     0.66     0.45  21     0.45     0.22     0.58
+  08KD006  Fraser    1000-10000 headwater  31     0.83     0.83     0.82  31     0.82     0.70     0.79
+  08KD007  Fraser    1000-10000 headwater  35     0.71     0.72     0.90  35     0.90     0.69     0.86
+  08KE009  Fraser    1000-10000 nested     43     0.47     0.50     0.79  43     0.79     0.68     0.79
+  08KE016  Fraser    1000-10000 headwater  45     0.70     0.70     0.68  48     0.68     0.51     0.70
+  08KE024  Fraser    100-1000   headwater  40     0.42     0.43     0.73  40     0.73     0.53     0.73
+  08KE032  Fraser    <100 km2   headwater  16     0.53     0.52     0.48  16     0.48     0.46     0.52
+  08KF001  Fraser    1000-10000 headwater  29     0.52     0.56     0.70  29     0.70     0.14     0.59
+  08KG001  Fraser    >10000     nested     57     0.33     0.34     0.64  57     0.64     0.41     0.63
+  08KG003  Fraser    1000-10000 headwater  21     0.66     0.67     0.57  21     0.57    -1.52     0.01
+  08KH001  Fraser    1000-10000 nested     62     0.70     0.67     0.71  62     0.71     0.60     0.70
+  08KH003  Fraser    1000-10000 headwater  42    -0.56    -0.40     0.35  42     0.35     0.40     0.76
+  08KH006  Fraser    >10000     nested     62     0.24     0.03    -0.07  62    -0.07    -4.12    -1.04
+  08KH010  Fraser    100-1000   headwater  50     0.31     0.38     0.58  50     0.58     0.63     0.67
+  08KH019  Fraser    100-1000   headwater  46     0.65     0.66     0.63  47     0.62     0.65     0.69
+  08KH030  Fraser    100-1000   headwater  14     0.82     0.82     0.72  14     0.72     0.51     0.66
+  08LA001  Fraser    >10000     nested     62     0.95     0.95     0.94  62     0.94     0.60     0.86
+  08LA007  Fraser    1000-10000 headwater  40     0.74     0.74     0.73  40     0.73     0.49     0.71
+  08LA027  Fraser    100-1000   headwater  14     0.55     0.56     0.60  14     0.60     0.42     0.53
+  08LA028  Fraser    <100 km2   headwater  13     0.50     0.54     0.52  13     0.52     0.45     0.55
+  08LB012  Fraser    <100 km2   headwater  31     0.71     0.72     0.72  31     0.72     0.52     0.65
+  08LB020  Fraser    1000-10000 nested     51     0.76     0.80     0.84  55     0.83     0.58     0.81
+  08LB024  Fraser    100-1000   headwater  42     0.78     0.78     0.68  42     0.68     0.61     0.77
+  08LB038  Fraser    100-1000   headwater  29     0.57     0.71     0.72  29     0.72     0.79     0.85
+  08LB047  Fraser    1000-10000 nested     52     0.67     0.68     0.80  52     0.80     0.63     0.81
+  08LB064  Fraser    >10000     nested     54     0.92     0.93     0.96  54     0.96     0.63     0.88
+  08LB069  Fraser    100-1000   nested     48     0.88     0.89     0.89  48     0.89     0.79     0.91
+  08LB076  Fraser    100-1000   headwater  39     0.59     0.59     0.67  39     0.67     0.70     0.81
+  08LC040  Fraser    <100 km2   headwater  41     0.93     0.92     0.87  41     0.87     0.49     0.80
+  08LD001  Fraser    1000-10000 headwater  59     0.81     0.80     0.85  60     0.85     0.55     0.81
+  08LE024  Fraser    100-1000   headwater  49     0.87     0.88     0.90  49     0.90     0.66     0.82
+  08LE027  Fraser    100-1000   headwater  45     0.94     0.94     0.93  45     0.93     0.63     0.86
+  08LE031  Fraser    >10000     nested     50     0.82     0.82     0.91  50     0.91     0.54     0.81
+  08LE075  Fraser    100-1000   headwater  34     0.88     0.88     0.85  34     0.85     0.71     0.88
+  08LE077  Fraser    <100 km2   headwater  33    -0.10    -0.12     0.04  33     0.04     0.48     0.59
+  08LE108  Fraser    <100 km2   headwater  30     0.63     0.63     0.77  30     0.77     0.25     0.63
+  08LF051  Fraser    >10000     nested     61     0.86     0.89     0.91  61     0.91     0.47     0.80
+  08LF081  Fraser    <100 km2   headwater  21     0.68     0.67     0.42  21     0.42     0.01     0.31
+  08LF084  Fraser    <100 km2   headwater  20     0.23     0.17     0.50  20     0.50    -0.23     0.35
+  08LG008  Fraser    100-1000   headwater  41     0.89     0.89     0.92  41     0.92     0.59     0.85
+  08LG016  Fraser    <100 km2   headwater  43     0.56     0.56     0.65  43     0.65     0.56     0.70
+  08LG048  Fraser    100-1000   headwater  47     0.73     0.73     0.87  47     0.87     0.59     0.81
+  08LG056  Fraser    <100 km2   headwater  43     0.49     0.49     0.48  43     0.48     0.41     0.53
+  08LG064  Fraser    <100 km2   headwater  19     0.84     0.83     0.82  19     0.82     0.62     0.76
+  08LG066  Fraser    <100 km2   headwater  15     0.78     0.78     0.79  15     0.79     0.48     0.75
+  08MA001  Fraser    1000-10000 nested     60     0.08     0.54     0.87  60     0.87    -0.55     0.45
+  08MA002  Fraser    1000-10000 headwater  56     0.40     0.66     0.80  61     0.80    -0.84     0.35
+  08MA006  Fraser    <100 km2   headwater  38     0.20     0.42     0.52  38     0.52     0.34     0.48
+  08MB005  Fraser    >10000     nested     42     0.08     0.39     0.61  42     0.61     0.05     0.48
+  08MB006  Fraser    1000-10000 nested     38     0.65     0.72     0.63  38     0.63     0.37     0.56
+  08MB007  Fraser    100-1000   headwater  38     0.45     0.49     0.56  38     0.56     0.40     0.59
+  08MC045  Fraser    <100 km2   headwater  16     0.38     0.39     0.39  16     0.39     0.56     0.49
+  08ME023  Fraser    100-1000   headwater  19    -1.65    -0.05    -0.02  31    -0.01     0.38     0.60
+  08ME025  Fraser    100-1000   headwater  30     0.64     0.68     0.75  30     0.75     0.50     0.72
+  08ME027  Fraser    100-1000   headwater  17     0.71     0.62     0.21  17     0.21     0.48     0.56
+  08ME028  Fraser    100-1000   nested     17    -0.78    -0.36     0.63  17     0.63     0.25     0.82
+  08MF062  Fraser    <100 km2   headwater  44     0.55     0.56     0.41  44     0.41     0.37     0.66
+  08MF065  Fraser    100-1000   headwater  37     0.08     0.07     0.05  37     0.05     0.52     0.68
+  08MF068  Fraser    100-1000   nested     24     0.87     0.86     0.88  24     0.88     0.34     0.75
+  08MG001  Fraser    100-1000   headwater  29     0.76     0.76     0.66  29     0.66     0.48     0.64
+  08MG005  Fraser    1000-10000 headwater  60     0.69     0.73     0.69  61     0.68     0.56     0.77
+  08MG013  Fraser    1000-10000 nested     61     0.43     0.59     0.46  61     0.46     0.31     0.52
+  08MG026  Fraser    <100 km2   headwater  18    -2.46    -0.93    -0.45  18    -0.45     0.20     0.23
+  08MH006  Fraser    <100 km2   headwater  52     0.86     0.86     0.80  52     0.80     0.55     0.79
+  08MH076  Fraser    <100 km2   headwater  51     0.64     0.64     0.64  51     0.64     0.62     0.69
+  08MH141  Fraser    <100 km2   headwater  31     0.69     0.69     0.70  31     0.70     0.46     0.78
+  08MH147  Fraser    100-1000   headwater  29     0.40     0.38     0.63  29     0.63     0.37     0.78
+  08MH166  Fraser    <100 km2   headwater  12     0.96     0.96     0.95  12     0.95     0.40     0.80
+  08NA002  Columbia  1000-10000 nested     61     0.88     0.89     0.86  61     0.86     0.54     0.80
+  08NA006  Columbia  1000-10000 headwater  39     0.70     0.71     0.72  39     0.72     0.46     0.67
+  08NA045  Columbia  100-1000   headwater  34     0.76     0.76     0.88  46     0.88     0.63     0.84
+  08NB005  Columbia  1000-10000 nested     62     0.87     0.88     0.93  62     0.93     0.44     0.82
+  08NB012  Columbia  100-1000   nested     41     0.70     0.69     0.76  41     0.76     0.56     0.76
+  08NB013  Columbia  100-1000   headwater  21    -0.94    -1.19     0.02  21     0.02    -0.68     0.04
+  08NB014  Columbia  100-1000   nested     40     0.14     0.28     0.65  40     0.65    -0.01     0.58
+  08NB015  Columbia  100-1000   headwater  22     0.76     0.76     0.76  22     0.76    -0.02     0.51
+  08NB016  Columbia  <100 km2   headwater  37     0.43     0.36    -0.09  37    -0.09     0.33     0.29
+  08NB019  Columbia  1000-10000 headwater  28     0.76     0.77     0.85  28     0.85     0.34     0.70
+  08NC004  Columbia  100-1000   headwater  38    -0.60    -0.40     0.12  38     0.12     0.40     0.67
+  08ND012  Columbia  100-1000   nested     49     0.71     0.72     0.83  49     0.83     0.66     0.83
+  08ND013  Columbia  1000-10000 headwater  49     0.87     0.89     0.90  49     0.90     0.58     0.84
+  08ND018  Columbia  100-1000   headwater  26     0.26     0.22     0.22  26     0.22    -0.08     0.16
+  08ND019  Columbia  100-1000   headwater  33     0.45     0.44     0.44  33     0.44     0.62     0.65
+  08NE001  Columbia  100-1000   headwater  44     0.70     0.71     0.69  44     0.69     0.50     0.75
+  08NE006  Columbia  100-1000   nested     49     0.62     0.63     0.83  49     0.83     0.57     0.76
+  08NE008  Columbia  <100 km2   headwater  37     0.67     0.69     0.73  37     0.73     0.68     0.74
+  08NE039  Columbia  100-1000   headwater  62     0.71     0.71     0.70  62     0.70    -0.56     0.58
+  08NE077  Columbia  100-1000   headwater  49     0.84     0.84     0.82  49     0.82     0.37     0.70
+  08NE087  Columbia  <100 km2   headwater  42     0.65     0.65     0.71  54     0.68     0.64     0.75
+  08NE110  Columbia  100-1000   headwater  38     0.84     0.85     0.84  38     0.84     0.63     0.81
+  08NE114  Columbia  <100 km2   headwater  39     0.83     0.84     0.85  39     0.85     0.70     0.85
+  08NE117  Columbia  100-1000   headwater  22     0.86     0.86     0.82  22     0.82     0.58     0.77
+  08NF001  Columbia  100-1000   headwater  62     0.70     0.71     0.72  62     0.72     0.47     0.69
+  08NF002  Columbia  1000-10000 nested     31     0.87     0.88     0.83  31     0.83     0.77     0.87
+  08NF005  Columbia  <100 km2   headwater  26     0.57     0.54     0.49  26     0.49     0.62     0.63
+  08NF006  Columbia  100-1000   nested     22     0.77     0.75     0.58  22     0.58     0.83     0.78
+  08NG012  Columbia  1000-10000 nested     44     0.91     0.91     0.92  44     0.92     0.70     0.89
+  08NG046  Columbia  1000-10000 nested     44     0.94     0.94     0.94  44     0.94     0.68     0.89
+  08NG053  Columbia  1000-10000 nested     45     0.95     0.95     0.88  45     0.88     0.51     0.86
+  08NG065  Columbia  >10000     nested     49     0.95     0.95     0.90  49     0.90     0.71     0.89
+  08NG076  Columbia  100-1000   headwater  40     0.68     0.68     0.67  40     0.67     0.76     0.74
+  08NG077  Columbia  100-1000   headwater  40     0.80     0.80     0.90  40     0.90     0.67     0.86
+  08NG078  Columbia  100-1000   headwater  22     0.73     0.74     0.78  22     0.78     0.77     0.79
+  08NH005  Columbia  100-1000   nested     49     0.88     0.88     0.89  49     0.89     0.68     0.87
+  08NH007  Columbia  1000-10000 nested     56     0.88     0.88     0.87  56     0.87     0.51     0.79
+  08NH016  Columbia  <100 km2   headwater  37     0.86     0.86     0.87  37     0.87     0.64     0.81
+  08NH084  Columbia  <100 km2   headwater  42     0.87     0.87     0.89  47     0.90     0.63     0.83
+  08NH115  Columbia  <100 km2   headwater  46     0.69     0.69     0.74  46     0.74     0.63     0.72
+  08NH119  Columbia  1000-10000 headwater  50     0.78     0.79     0.86  50     0.86     0.48     0.82
+  08NH130  Columbia  100-1000   nested     39     0.78     0.78     0.74  39     0.74     0.50     0.71
+  08NH131  Columbia  100-1000   headwater  31    -0.29    -0.27     0.13  31     0.13     0.15     0.33
+  08NH132  Columbia  <100 km2   headwater  39     0.80     0.80     0.75  39     0.75     0.76     0.88
+  08NH138  Columbia  <100 km2   headwater  15    -0.06    -0.07     0.13  15     0.13     0.52     0.62
+  08NJ013  Columbia  1000-10000 nested     62     0.86     0.87     0.87  62     0.87     0.59     0.87
+  08NJ026  Columbia  <100 km2   headwater  18     0.90     0.90     0.89  18     0.89     0.72     0.85
+  08NJ061  Columbia  <100 km2   headwater  33     0.83     0.84     0.87  39     0.83     0.73     0.84
+  08NJ129  Columbia  <100 km2   headwater  29     0.81     0.81     0.87  29     0.87     0.59     0.78
+  08NJ130  Columbia  <100 km2   headwater  46     0.85     0.85     0.86  46     0.86     0.60     0.78
+  08NJ160  Columbia  100-1000   headwater  39     0.87     0.87     0.87  39     0.87     0.70     0.84
+  08NJ162  Columbia  <100 km2   headwater  12     0.78     0.78     0.73  12     0.73     0.53     0.66
+  08NJ168  Columbia  <100 km2   headwater  30     0.84     0.84     0.89  30     0.89     0.62     0.81
+  08NK002  Columbia  1000-10000 nested     43     0.91     0.91     0.97  43     0.97     0.76     0.91
+  08NK016  Columbia  1000-10000 nested     61     0.88     0.88     0.90  61     0.90     0.47     0.78
+  08NK018  Columbia  100-1000   nested     27     0.78     0.78     0.90  43     0.93     0.69     0.86
+  08NK019  Columbia  <100 km2   headwater  28     0.84     0.85     0.84  28     0.84     0.48     0.77
+  08NK020  Columbia  100-1000   headwater  25     0.86     0.86     0.82  25     0.82     0.82     0.86
+  08NK022  Columbia  100-1000   headwater  42     0.75     0.75     0.93  42     0.93     0.74     0.89
+  08NK026  Columbia  <100 km2   headwater  31     0.54     0.54     0.50  31     0.50     0.27     0.50
+  08NK027  Columbia  100-1000   headwater  14     0.65     0.66     0.44  14     0.44     0.69     0.72
+  08NL024  Columbia  1000-10000 nested     45     0.75     0.76     0.87  46     0.87     0.60     0.79
+  08NL036  Columbia  100-1000   headwater  33     0.74     0.74     0.75  33     0.75     0.75     0.79
+  08NL050  Columbia  100-1000   headwater  39     0.66     0.67     0.77  39     0.77     0.65     0.79
+  08NL071  Columbia  100-1000   headwater  38     0.89     0.90     0.92  38     0.92     0.53     0.84
+  08NM134  Columbia  <100 km2   headwater  44     0.76     0.75     0.87  44     0.87     0.80     0.88
+  08NM142  Columbia  <100 km2   headwater  42     0.92     0.92     0.80  44     0.79     0.66     0.77
+  08NM171  Columbia  100-1000   headwater  42     0.71     0.72     0.72  42     0.72     0.74     0.81
+  08NM173  Columbia  <100 km2   headwater  42     0.73     0.73     0.71  42     0.71     0.77     0.76
+  08NM174  Columbia  100-1000   headwater  40     0.77     0.77     0.81  40     0.81     0.72     0.81
+  08NM240  Columbia  <100 km2   nested     29     0.93     0.93     0.47  29     0.47     0.68     0.70
+  08NM241  Columbia  <100 km2   nested     29     0.93     0.93     0.70  29     0.70     0.73     0.82
+  08NN002  Columbia  1000-10000 nested     46     0.79     0.80     0.88  46     0.88     0.71     0.88
+  08NN015  Columbia  100-1000   headwater  47     0.87     0.87     0.85  47     0.85     0.66     0.83
+  08NN019  Columbia  100-1000   headwater  47     0.85     0.85     0.86  47     0.86     0.66     0.83
+  08NN022  Columbia  1000-10000 nested     21     0.72     0.74     0.88  21     0.88     0.63     0.82
+  08NN023  Columbia  100-1000   headwater  39     0.83     0.83     0.87  39     0.87     0.65     0.84
+  08NN028  Columbia  <100 km2   headwater  15     0.63     0.63     0.66  15     0.66     0.39     0.59
+  08OA002  Coast     100-1000   headwater  49     0.46     0.66     0.63  49     0.63     0.60     0.64
+  08OB002  Coast     <100 km2   headwater  44     0.51     0.68     0.67  44     0.67     0.45     0.62

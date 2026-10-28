@@ -1,0 +1,103 @@
+# Findings — PCIC per-year routed flow: keep the years, weight donors by modelled covariance, and score donors, PCIC and a blend at held-out gauges (#122)
+
+## Issue context
+
+**If we do it:** where no gauge exists, wet knows which gauges move with the place from PCIC's modelled 1951–2012 years, and PCIC's own skill at carrying year-to-year change on small basins is a number rather than an assumption. **If we never do:** donor weights rest on distance and similarity alone, and PCIC's per-year run stays unused.
+
+Component 3 of #118. Two halves, one in the fwapg fork and one here.
+
+### Problem
+
+PCIC's routed run (hydromosaic, Raven over VIC-GL, PNWNAmet daily 1950–2012) is daily and year by year, but fwapg's crosswalk reduces each batch with `cdo ymonmean` and deletes the daily file, so fwapg holds only climatologies: `pcic.discharge_monthly`, and `pcic.subbasin_daily` as 366 day-of-year bins. Change over time needs the years.
+
+### Proposed approach
+
+**fwapg half (NewGraphEnvironment/fwapg#42).** Keep the per-year series from the fetch. Options for the plan gate, after counting the outlets:
+- (a) per-year window statistics for a fixed window set, which ties fwapg to wet's windows;
+- (b) per-sub-basin per-year days as parquet, routed to segments on demand through `pcic.segment_weights` as the daily climatology is, so no window need be known in advance;
+- (c) per-year monthly and weekly means per sub-basin in Postgres.
+The days per segment are about a billion rows; per sub-basin they are the outlet count times 23,011, which is what to measure first.
+
+**wet half.**
+1. Per-year window statistics from routed PCIC at every gauge PCIC covers (290 of the shipped fit's 315 calibration gauges, and the short-record test gauges), 1951–2012, in `wet_window_stats()`'s shape.
+2. **Donor weighting by modelled covariance.** For a target and its candidate donors, the covariance of modelled per-year departures over 1951–2012 enters the `wet_donor_mean()` weights beside similarity.
+3. **The competition.** At held-out gauges over 1951–2012: donors alone (observed departures carried), PCIC's own departures at the segment, and a blend. The rule is registered before any candidate is coded, scored under blocked CV and in a leak-free pool (each held-out gauge's upstream and downstream gauges removed) as #102 did. After 2012 only donors carry values whatever wins.
+4. **Outputs.** A report under `data/checks/`, scored under `WET_FWAPG_COMMIT` as `scripts/pcic_routed_compare.R` is, and the result in `research/pcic_hydrology.md`.
+
+Depends on #120 for the rule's shape and the first estimator.
+
+Relates to #118, #58, #102, NewGraphEnvironment/fwapg#42, NewGraphEnvironment/fwapg#25, NewGraphEnvironment/fwapg#28.
+
+## Plan-mode exploration (2026-10-26)
+
+- **This is the machine.** 137 GB RAM, 274 GB free. fwapg's crosswalk ran here (fwapg's `extras/pcic_crosswalk/data/series/` holds 1,061 batch lists); the fit bundle `data/wb/92b893c4da/fit_20260717/` and `data/wb/stations_20260717.rds` are here; the fwapg database is reachable through `WET_PG*`.
+- **`pcic` schema (measured):** tables `day_bins, discharge_monthly, discharge_weekly, fwa_crosswalk, runs, segment_weights, subbasin_daily`. `pcic.runs` has two PNWNAmet historical rows, periods 1951-2012 and 1981-2010, each 40,524,444 monthly rows over 3,377,037 segments and 13,786,122 daily rows over 37,667 sub-basins; `segment_weights` 3,377,037 rows (bigint `linear_feature_id`, text `watershed_group_code`, int `subid`, double `share`, int[] `upstream_subids`). `subbasin_daily` columns: model, scenario, period, subid, month, day, n_days, q_local, q_acc (double).
+- **`upstream_subids` names only the placed outlets directly above:** max cardinality 101, total 489,610 over 3.4 M segments. `q_acc` is accumulated on the FWA tree in `pcic_crosswalk06_subbasins.sql` (linear). So a segment's per-year days need at most 102 sub-basins' series; `wet:::wet_routed_raw()` already does the arithmetic for any number of columns.
+- **The hydromosaic fetch is cheap:** `pcic_crosswalk.sh` uses the bulk NetCDF endpoint (500 outlets per request, `xargs -P 3`), 19 min for the whole network on 2026-10-17 (27 min with weekly). The per-year days exist in those NetCDFs before `cdo ydaymean`; fwapg#42 is to keep them and derive per-year `q_local`/`q_acc`. fwapg#42's body measured 867 M rows; 5.1–10.3 GB parquet depending on type.
+- **Coverage:** 290 of 315 calibration gauges have routed flow on their segment (`data/checks/pcic_routed_compare_20260717.txt`); five route to about 0 (08JA015, 08JA016, 08JA014, 08JA028, 08DB013) and 11 carry under 20 % of observed.
+- **08EE018 is in neither `$stations` (352 rows) nor `$test` (137 rows, `n_years` 1–9) of the stations rds:** `wb_stations.R` selects on complete years inside 1981–2010, and Maxan ran 1975–1979. The #120 box short-record set (13 gauges) is what carries it; the pilot snapped the box with `wet_station_snap()` for its leak-free lines.
+- **`scripts/pcic_routed_lib.R` is fixed to the 1981-2010 run** through `routed_where` (from `wet:::wet_segment_sources()`), so `routed_daily_fingerprint()`, `routed_report_line()` and `routed_daily_inputs()` need a `period` argument for the 1951-2012 run; `routed_daily_inputs()` reads the whole fold (~1 GB) to get weights, which the competition does not need.
+- **`wet_departure_carry()`** gets its donor weights from `wet_donor_mean()` on the identity matrix and renormalises per year; a donor needs ≥ 10 baseline years of the statistic carried, so the pool must be per (variable, period) as the pilot's `dep_pool_of()`. `wet_station_space()` scales predictors over the rows it is given, so one stations table must serve every run.
+- **The pilot's committed report rests on bare `PG*`** reaching an fwapg server for its leak-free lines (a machine-local note); regenerating it byte-identical needs that environment.
+- **Plan review** (`review-plan.md`): 3 blockers (common scoring years; parity tolerance vs float32; `doy` vs month-day bins), 9 gaps, 2 ordering points, 4 assumptions, 4 scope, 4 acceptance. All folded into `task_plan.md` and marked by their codes.
+
+## Phase 1: the header (2026-10-26)
+
+- **`pcic.subbasin_daily` holds full float64 means** (measured 2026-10-26 on the 1951-2012 run): over 73,200 `q_local` values, 1 in 73,200 is float32-representable (chance), and no `q_local` or `q_acc` value is 5-decimal rounded; `q_acc` at the largest sub-basin (4009421) is `1197.5002032...`. `n_days` runs 16 (29 February) to 62. So a float64 per-year product can meet 1e-9 relative parity. The header also fixes the float32 alternative (2^-23 relative, which bounds the mean of round-to-nearest float32 values), so fwapg#42 choosing float32 needs no amendment.
+- **Decisions the plan left open, fixed in the header:** one challenger per stage, chosen by the leave-one-gauge-out median (a tie to the first listed), which must then clear the incumbent under both pools; a year in which every present donor weighs 0 is missing for that candidate; `covariance_pick` ties on r go to the nearer donor; a test gauge in the migration-mean pool is dropped from the test set.
+- **Header amended before any candidate (second commit):** the first header said the distance weight's m is "the median of the k distances"; `wet_donor_mean()` takes the median over the target's distances to every donor, and a donor at distance 0 takes the whole weight. The pool also now says a baseline year needs a value > 0, since `wet_departure_carry()` drops values <= 0 from a log statistic. Caught by reading the carry code at the start of Phase 2.
+- **Limit stated in the header:** PCIC publishes no calibration gauges, so `pcic`'s score at a calibration gauge may be partly in sample (`research/water_balance_method.md`, #58).
+
+## Phase 2: covariance weighting (2026-10-26)
+
+- **The default path is byte-identical:** `wet_departure_carry()` on a 12-gauge synthetic case (two statistics, three targets, missing years) serialises to the same bytes before and after the change (`identical(serialize(a), serialize(b))`).
+- **Mutation table, `wet_donor_weights()`** (each restored in a copy of the tree; failed test blocks across its test file and the carry's):
+
+| restored defect | failed blocks |
+|---|---|
+| covariance weight `wt * r` instead of `wt * max(r, 0)` | 2 |
+| covariance_pick chooses by distance, not r | 1 |
+| r needs 3 common years, not 30 | 1 |
+
+## fwapg#42 was gated in parallel (2026-10-26 23:47 UTC)
+
+- A parallel session ran `/planning-init fwapg#42` and parked it (fwapg e7ec7ef, d43eaaf) about ten minutes after this session resumed #122. Its gate decided float32, a `date` column, one file per year, and the catalogue `pcic.series` with no commit; its plan never mentions wet's item 6. Re-running `/planning-init` would overwrite that parked baseline, so the interface section of this header was amended to consume what fwapg decided instead (own commit), and fwapg#42's resume is left to the user.
+- **The first float32 tolerance was wrong:** 2^-23 relative to the bin mean fails wherever a bin's values change sign (a losing reach), because float32 rounding bounds the error relative to each value, so the mean's error is bounded by 2^-24 × mean |v|, not by the mean. The amendment uses 2^-23 × mean |v| + 1e-9 m³/s. fwapg#42's own QA (`1e-6 * greatest(abs(clim), 1e-3)`) has an absolute floor of 1e-9 m³/s where the climatology is 0, which the same sign change could break; worth raising when fwapg#42 resumes.
+- **AC1 held:** `departure_pilot.R` rewrote `data/checks/departure_pilot_20260717.txt` byte-identical (23:50 to 23:53 UTC, R's environment as is); `pcic_routed_compare.R` rewrote its report identical but for the line recording the wet commit, which was restored. Logs: `data/logs/122/*_phase2.log`.
+
+## Phase 4 body, harness run (2026-10-27)
+
+- The body was written before fwapg#42's product exists. A scratch copy with the block between `# ---- product: begin` and `# ---- product: end` replaced by fake modelled series (observed values times lognormal noise) ran end to end in 8.5 min (00:03:39 to 00:12:10 UTC), writing only to the scratchpad. Its scores mean nothing; the counts are real: 315 calibration gauges, 290 with a weights row (290 under #58's definition too), pools 289 to 290 per statistic, one co-located pair (08NM240, 08NM241, same codes and segment, counted as related), 809 sub-basins to read, a test set of 63 kept from 146 candidates (08EE018 kept, 5 migration years in 1951-2012).
+- Stage 1 can score a test gauge on 0 years while stage 2 scores it: the covariance weightings can pick donors whose years miss the target's, and stage 1 is scored on the years all three have. That is the registered rule (B1), not a defect.
+
+- **Deterministic outside the product block:** two harness runs (00:12 to 00:30 UTC) wrote reports that differ only in the line recording the wet commit, which moved between them (384d656, b9e536b).
+
+## Mutation table: departure_pcic.R's refusals on the real product (2026-10-27)
+
+Each case is a copy of the script at 6b42331 (frozen-copy check off and outputs sent to the scratchpad, except where the case is that check) or a changed input, run against the loaded fwapg database; `data/logs/122/mutations.log` (21:29–21:39 UTC) and `mutations2.log` (21:40–21:44 UTC). Every one exits 1 at the guard named.
+
+| case | what was broken | refusal |
+|---|---|---|
+| release | `WET_HYDAT_RELEASE=20251014` | `wb_cv_lib.R` first: "fit_20251014 is #15's frozen record" |
+| release_check | the script's own constant moved to 20260718 | "the rule names HYDAT 20260718, not 20260717" |
+| fwapg_unset | `WET_FWAPG_COMMIT=` | "set WET_FWAPG_COMMIT to the fwapg commit that built pcic.discharge_monthly …" |
+| edited_copy | the running copy one comment longer than the committed script | "the running copy differs from scripts/departure_pcic.R at HEAD" |
+| dirty | one comment appended to `scripts/pcic_routed_lib.R` (restored from HEAD by trap) | "commit these first, so the recorded commit can rebuild the report" |
+| no1983 | a clone of the product without 1983's file | "WET_PCIC_YEARS has no PNWNAmet_historical file for 1983" |
+| swap1983 | 1984's file under 1983's name | "…1983.parquet is not its pcic.series row" (rows, sums) |
+| commit_two | one catalogue row naming another commit | "pcic.series rows for 1951-2012 must name one fwapg commit; they name: ea9b199…, 0000000" |
+| commit_na | the catalogue's commit column NA | "… they name: NA" |
+| parity_bin | one read sub-basin's bin mean moved by 1e-3 m³/s | "1 bins fail parity; worst sub-basin 1004993 5-3" |
+| parity_day | one bin one day short | "the per-year files and pcic.subbasin_daily do not hold the same bins and days" |
+| wrong database | (not staged: run 0) tables unlike `pcic.runs` | `routed_daily_fingerprint()` refused, `data/logs/122/run0_wrong_db.log` |
+
+Not staged, inherited: a stale `cal` (`shipped_heldout()`'s guards in `wb_cv_lib.R`). The first harness cloned the product with `cp -c`, which here resolves to GNU cp and failed, so no1983 and swap1983 met an empty directory; rerun with `/bin/cp -c` (APFS clones) in `mutations2.log`.
+
+## Errors Encountered
+
+| Error | Resolution |
+|-------|------------|
+| Runs 3 and 4 at 846f9d7 (22:01–22:04 UTC, `data/logs/122/run3.log` before it was rerun) refused: "WET_PCIC_YEARS has no PNWNAmet_historical file for 1951, …, 2012" | The fwapg checkout's `extras/pcic_crosswalk/data/days/PNWNAmet_historical/` was emptied at 21:56 UTC by another session rebuilding fwapg on its #24 branch. The 63 published files were downloaded from `fresh-bc` (`fwapg/extras/pcic.subbasin_days.PNWNAmet_historical.<year>.parquet`) into wet's gitignored `data/pcic_years/PNWNAmet_historical/` (8.9 GB, 30 min), which `WET_PCIC_YEARS` names from now on; the script holds each file to `pcic.series` as before |
+| A pair-run wrapper printed REPORT_IDENTICAL after both runs had refused, comparing the committed report with itself | The wrapper now requires exit 0 and a report newer than the run's start before copying it |
+| Run 0 (2026-10-27 18:09–19:52 UTC, `data/logs/122/run0_wrong_db.log`) refused at `routed_daily_fingerprint()`: no 1951-2012 rows in `pcic.subbasin_daily`, weights summing to 566023.13 against 558010.17 | Two fwapg databases: the script reads `WET_PG*`, which were unset, so it took the localhost defaults, a database holding another session's fwapg development build; the published tables were loaded into the one libpq's `PG*` name. The guard was right. Runs set `WET_PG*` from `PG*`. That database had the 1951-2012 run's row in `pcic.runs` but never its daily rows (wet read only 1981-2010 since #103), so its published file is loaded with fwapg's `load/pcic_run.sql` first |
+| Probing the `pcic` schema inline with `Rscript -e` and a `sed` quote swap broke the SQL (`zero-length delimited identifier`) | Put the probe in a script file in the scratchpad and run it with `Rscript <file>` |
