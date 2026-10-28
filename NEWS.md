@@ -1,3 +1,7 @@
+# wet 0.4.25
+
+* `wet_routed_years()` routes PCIC's per-year sub-basin days to segments, and `wet_departure_carry()` can weight donors by PCIC's modelled covariance (#122). `scripts/departure_pcic.R` found donors picked by that covariance carry departures best (median held-out NSE 0.72, against 0.67 for the nearest donors). PCIC's own per-year departures (0.48) and a blend of the two (0.71) do not ship (`research/pcic_hydrology.md`).
+
 # wet 0.4.24
 
 * `scripts/station_snap_sweep.R` measures what NewGraphEnvironment/fwapg#41's `fwa_indexpoint()` rework changes on `wet_station_snap()`'s path (#127). It does not migrate the database: it tries the migration inside a transaction that is rolled back, through the internal `wet_pg_trial()`. Over HYDAT 2026-07-17's 490 stations only 08KD006's snap moves, to the upper segment at the vertex it is tied on (watershed 8483126 → 7713002, accepted either way). `fwa_locatealong()` places every candidate measure (114 missed before, 110 of them at stream heads), and two picked catchments that came back empty or raised an error come back. Live tests pin four cases. They skip on an older database, run against the migration under `WET_FWAPG_TRIAL`, and fail under `WET_FWAPG_CURRENT=true`. The report is `data/checks/station_snap_sweep_20260717.txt`. The shipped stations file and fit stay as they are until the next HYDAT release's refit.
