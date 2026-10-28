@@ -51,7 +51,8 @@ classes <- function(layer, expect) {
   list(values = x$values, labels = stats::setNames(x$labels, names(x$values)))
 }
 pal_map <- classes("short_record_map",
-                   c("catchment_main", "catchment_buck", "catchment_maxan", "stream_main", "subject", "donor"))
+                   c("catchment_main", "catchment_buck", "catchment_maxan", "stream_main", "subject", "fill",
+                     "lend"))
 pal_series <- classes("short_record_series", c("band", "extended", "observed", "period_mean"))
 pal_gauge <- classes("snow_gauge", c("08EE003", "08EE013", maxan))
 
@@ -90,7 +91,7 @@ stopifnot(sp$pct_hi < 0, sp7$pct_hi < 0, mg$pct_lo < 0, mg$pct_hi > 0)
 # "about two thirds" for the lowest seven-day flow
 stopifnot(abs(sp7$pct + 100 * 2 / 3) < 3)
 # the borrowed departures: the same direction, smaller drops
-stopifnot(sp$carried_pct < 0, abs(sp$carried_pct) < abs(sp$pct), abs(mg$carried_pct) < abs(mg$pct))
+stopifnot(sp$carried_pct < 0, mg$carried_pct < 0, abs(sp$carried_pct) < abs(sp$pct), abs(mg$carried_pct) < abs(mg$pct))
 
 sc <- v$scores
 score_of <- function(s, w) {
@@ -113,8 +114,8 @@ from gauges nearby, and asks how flow has changed in two Chinook windows: adult
 migration (`r window_dates[["migration"]]`) and spawning
 (`r window_dates[["spawning"]]`).
 
-**The answer.** In the spawning window, Maxan Creek's average flow in `r post_text`
-was `r pct(sp$pct)` lower than in `r pre_text`, with a 90% range of
+**The answer.** In the spawning window, Maxan Creek's flow in a typical year of
+`r post_text` was `r pct(sp$pct)` lower than in `r pre_text`, with a 90% range of
 `r pct(sp$pct_hi)`–`r pct(sp$pct_lo)` lower, and its lowest seven-day flow fell by
 about two thirds. In the migration window the change is small and uncertain:
 `r pct(mg$pct)` lower, with a range from `r pct(mg$pct_lo)` lower to
@@ -137,12 +138,14 @@ stopifnot(share_inside(maxan) > 0.99, share_inside("08EE013") > 0.99)
 maxan_km2 <- catch$area_km2[catch$station_number == maxan]
 
 st <- map$stations
-st$role <- ifelse(st$station_number == maxan, "subject", "donor")
-# every other gauge lends Maxan years, by one route or the other
-stopifnot(all(st$extension_donor | st$carried_donor | st$station_number == maxan))
-d_km <- as.numeric(sf::st_distance(st[st$station_number == maxan, ], st)) / 1000
-far_km <- 10 * round(max(d_km) / 10)
-stopifnot(abs(max(d_km) - far_km) < 5)   # "within about"
+# the two routes: gauges whose records fill Maxan's years, and gauges that only lend departures
+st$role <- ifelse(st$station_number == maxan, "subject", ifelse(st$extension_donor, "fill", "lend"))
+stopifnot(all(st$extension_donor | st$carried_donor | st$station_number == maxan),
+          all(st$carried_donor[st$role == "lend"]))
+d_km <- stats::setNames(as.numeric(sf::st_distance(st[st$station_number == maxan, ], st)) / 1000, st$role)
+far_all <- 10 * round(max(d_km) / 10)
+far_fill <- 10 * round(max(d_km[names(d_km) == "fill"]) / 10)
+stopifnot(abs(max(d_km) - far_all) < 5, abs(max(d_km[names(d_km) == "fill"]) - far_fill) < 5)   # "within about"
 
 map_w <- 7
 map_h <- 6.5
@@ -191,13 +194,14 @@ key_w <- 0.22 * dx
 key_h <- key_w * 1.05
 
 cap_map <- sprintf(paste(
-  "Maxan Creek's gauge and catchment (%s km²), and the gauges its record is filled from.",
+  "Maxan Creek's gauge and catchment (%s km²), and the neighbouring gauges it borrows from.",
   "Maxan's and Buck Creek's catchments lie inside the Bulkley gauge's near Houston."
 ), format(round(maxan_km2), big.mark = ","))
 ```
 
 Maxan Creek drains `r round(maxan_km2)` km² of plateau east of Houston. The gauges
-that fill its record are all within about `r far_km` km.
+whose records fill its years are within about `r far_fill` km, and those that lend
+only their departures within about `r far_all` km.
 
 ```{r map, fig.width = map_w, fig.height = map_h, fig.cap = cap_map}
 ggplot() +
@@ -217,15 +221,15 @@ ggplot() +
   annotation_custom(ggplotGrob(key), xmin = lim_x[2] - key_w - 0.02 * dx, xmax = lim_x[2] - 0.02 * dx,
                     ymin = lim_y[2] - key_h - 0.02 * dy, ymax = lim_y[2] - 0.02 * dy) +
   scale_fill_manual(values = pal_map$values[c("catchment_main", "catchment_buck", "catchment_maxan",
-                                              "subject", "donor")],
+                                              "subject", "fill", "lend")],
                     breaks = c("catchment_maxan", "catchment_buck", "catchment_main"),
                     labels = pal_map$labels[c("catchment_maxan", "catchment_buck", "catchment_main")],
                     name = NULL) +
   scale_colour_manual(values = pal_map$values["stream_main"], labels = pal_map$labels["stream_main"],
                       name = NULL) +
-  scale_shape_manual(values = c(subject = 21, donor = 24), breaks = c("subject", "donor"),
-                     labels = pal_map$labels[c("subject", "donor")], name = NULL) +
-  guides(shape = guide_legend(order = 1, override.aes = list(fill = pal_map$values[c("subject", "donor")])),
+  scale_shape_manual(values = c(subject = 21, fill = 24, lend = 22), breaks = c("subject", "fill", "lend"),
+                     labels = pal_map$labels[c("subject", "fill", "lend")], name = NULL) +
+  guides(shape = guide_legend(order = 1, override.aes = list(fill = pal_map$values[c("subject", "fill", "lend")])),
          colour = guide_legend(order = 2), fill = guide_legend(order = 3)) +
   coord_sf(xlim = lim_x, ylim = lim_y, expand = FALSE, datum = NA) +
   theme_void(base_size = 11) +
@@ -256,13 +260,13 @@ for (w in names(windows)) {
 
 tab <- data.frame(
   Window = c(windows[["migration"]], windows[["spawning"]], windows[["spawning"]]),
-  Flow = c("Average", "Average", "Lowest seven days"),
+  Flow = c("Window average", "Window average", "Lowest seven days"),
   Change = vapply(list(mg, sp, sp7), function(r) paste0(if (r$pct < 0) "−" else "+", pct(r$pct)), ""),
   Range = vapply(list(mg, sp, sp7), function(r) {
     paste0(if (r$pct_lo < 0) "−" else "+", pct(r$pct_lo), " to ", if (r$pct_hi < 0) "−" else "+", pct(r$pct_hi))
   }, "")
 )
-names(tab)[3:4] <- c(paste(post_text, "against", pre_text), "90% range")
+names(tab)[3:4] <- c(paste("Typical year,", post_text, "against", pre_text), "90% range")
 
 cap_change <- sprintf(paste(
   "Average flow in each window, %s (log scale). Points are the five measured summers; the line fills",
@@ -307,8 +311,8 @@ Two routes fill the years Maxan Creek was not measured. Each was scored by hidin
 gauges with long records and filling them back in. A score of 1 is a perfect
 match, and 0 is no better than calling every year average.
 
-- **Filling the record.** Each missing year comes from the nearest gauge with a
-  record that year, through a straight-line fit between its flow and Maxan's over
+- **Filling the record.** Each missing year comes from the gauge nearest in place
+  and size with a record that year, through a straight-line fit between its flow and Maxan's over
   the five measured summers. Hidden five years at a time at
   `r scm$extension_gauges` gauges, the fill scored a median of
   `r sprintf("%.2f", scm$extension_median)` in the migration window and
@@ -333,15 +337,16 @@ sw <- v$snow_change
 swe_pct <- 100 * (sw$swe_post / sw$swe_pre - 1)
 doy_shift <- sw$doy_post - sw$doy_pre
 # "about ten days earlier" and "3–4% lower" at every gauge
-stopifnot(all(doy_shift < -8.5 & doy_shift > -11.5), all(swe_pct < -2.5 & swe_pct > -4.5))
+stopifnot(nrow(sw) == 3, all(doy_shift < -8.5 & doy_shift > -11.5), all(swe_pct < -2.5 & swe_pct > -4.5))
 swe_text <- paste0(floor(min(abs(swe_pct))), "–", ceiling(max(abs(swe_pct))), "%")
 
 f <- v$fits[v$fits$series != "carried", ]
 fm <- f[f$window == "migration", ]
 doy_gain <- 100 * (exp(fm$slope[fm$model == "doy"]) - 1)      # per 10 days later
 swe_gain <- 100 * (exp(fm$slope[fm$model == "swe"]) - 1)      # per 100 mm more
-# "about a quarter" and "a third or more" at every gauge; every slope's interval above zero
-stopifnot(all(doy_gain > 20 & doy_gain < 30), all(swe_gain > 32 & swe_gain < 45), all(fm$slope_lo > 0))
+# "about a quarter" and "about a third" at each of the three gauges; every slope's interval above zero
+stopifnot(length(doy_gain) == 3, length(swe_gain) == 3, all(abs(doy_gain - 25) < 5),
+          all(abs(swe_gain - 100 / 3) < 7), all(fm$slope_lo > 0))
 spawn_r2 <- max(f$r2[f$window == "spawning"])
 stopifnot(spawn_r2 < 0.1)
 
@@ -370,7 +375,7 @@ cap_snow <- sprintf(paste(
 On all three watersheds, snow melted about ten days earlier in 2011–2025 than in
 1950–1980, and peak snow was `r swe_text` lower. Migration-window flow follows the snow: at all three gauges, a year
 whose snow melted ten days later carried about a quarter more flow, and one with
-100 mm more snow a third or more. Spawning-window flow does not: each of these two
+100 mm more snow about a third more. Spawning-window flow does not: each of these two
 measures of snow explains at most `r round(100 * spawn_r2)`% of its year-to-year
 change at any gauge.
 
