@@ -34,6 +34,8 @@
 #     extension donor, carried donor, snow), over every scored statistic,
 #     window and window set
 #   - windows: each site's window sets, as its runs used them
+#   - score_settings: per site and window set, each statistic and window's
+#     held-out scores, both routes, read from the report's two score tables
 #   - use: the candidate streams' Chinook records, as
 #     data/checks/chinook_sites_use.txt prints them (NuSEDS rows, use records,
 #     distinct use years and their span; provincial records, spawning records),
@@ -90,6 +92,7 @@ snow <- list()
 normal <- list()
 gauges <- list()
 windows <- list()
+score_rows <- list()
 reports <- character()
 for (id in site_ids) {
   site <- site_get(id)
@@ -144,6 +147,28 @@ for (id in site_ids) {
     }
     if (!any(grepl(sprintf("; %d hold at least one 5-year block", r$gauges), rp$lines, fixed = TRUE))) {
       stop(id, " ", group, ": race gauges ", r$gauges, " not in its report", call. = FALSE)
+    }
+    # every setting's scores, both routes, from the report's two tables (the series file keeps only the
+    # migration mean's); the migration-mean rows must agree with the series file
+    sec <- function(from, to) rp$lines[seq(grep(from, rp$lines)[1], grep(to, rp$lines)[1])]
+    s2 <- sec("^Sensitivities \\(median over gauges", "^Leak-free: ")
+    s3 <- sec("^By setting \\(median and quartiles", "^Per gauge, migration mean")
+    for (lab in c("migration mean, k = 5", "spawning mean", "migration min7", "spawning min7",
+                  "migration cov_day \\(days\\)", "spawning cov_day \\(days\\)")) {
+      e2 <- grep(sprintf("^  %s +[0-9]+ +[0-9]+ ", lab), s2, value = TRUE)
+      e3 <- grep(sprintf("^  %s +[0-9]+ ", lab), s3, value = TRUE)
+      if (length(e2) != 1 || length(e3) != 1) stop(id, " ", group, ": no single score row for ", lab, call. = FALSE)
+      f2 <- strsplit(trimws(sub(sprintf("^  %s", lab), "", e2)), " +")[[1]]
+      f3 <- strsplit(trimws(sub(sprintf("^  %s", lab), "", e3)), " +")[[1]]
+      num <- function(z) if (identical(z, "-")) NA_real_ else as.numeric(z)
+      score_rows[[length(score_rows) + 1]] <- data.frame(site_id = id, group = group,
+        setting = gsub("\\\\", "", lab), ext_gauges = as.integer(f2[1]), ols = num(f2[3]), move1 = num(f2[4]),
+        ratio = num(f2[5]), carried_n = as.integer(f3[1]), carried_q25 = num(f3[2]), carried = num(f3[3]),
+        carried_q75 = num(f3[4]))
+    }
+    mig_row <- score_rows[[length(score_rows) - 5]]
+    if (!isTRUE(all.equal(c(mig_row$ols, mig_row$carried), round(c(r$med[["ols"]], cq$median), 2)))) {
+      stop(id, " ", group, ": the report's migration-mean scores differ from the series file's", call. = FALSE)
     }
     scores[[length(scores) + 1]] <- data.frame(site_id = id, group = group, ols = r$med[["ols"]],
       move1 = r$med[["move1"]], ratio = r$med[["ratio"]], rule_pick = r$rule_pick, ext_gauges = r$gauges,
@@ -249,16 +274,23 @@ use <- do.call(rbind, lapply(rows, function(r) {
 }))
 # every new site's stream is in the use table (Maxan's use is its own article's)
 stopifnot(all(vapply(sites, function(x) x$site_id == "maxan" || x$blue_line_key %in% use$blue_line_key, TRUE)))
-obs_rows <- grep("^  \\S.+ +[0-9]{4}-[0-9]{2}-[0-9]{2} +[0-9]+ m  ", ul, value = TRUE)
+obs_rows <- grep("^  \\S.+ +([0-9]{4}-[0-9]{2}-[0-9]{2}|NA) +[0-9]+ m  ", ul, value = TRUE)
 use_obs <- do.call(rbind, lapply(obs_rows, function(r) {
-  m <- regmatches(r, regexec("^  (.+?) +([0-9]{4}-[0-9]{2}-[0-9]{2}) +([0-9]+) m  (.{40}) ", r))[[1]]
-  data.frame(stream = m[2], date = as.Date(m[3]), measure_m = as.integer(m[4]), activity = trimws(m[5]))
+  m <- regmatches(r, regexec("^  (.+?) +([0-9]{4}-[0-9]{2}-[0-9]{2}|NA) +([0-9]+) m  (.{40}) ", r))[[1]]
+  if (length(m) != 5) stop("cannot read the observation row: ", r, call. = FALSE)
+  data.frame(stream = m[2], date = as.Date(if (m[3] == "NA") NA_character_ else m[3]), measure_m = as.integer(m[4]),
+             activity = trimws(m[5]))
 }))
+# every observation the use table counts is a row here
+if (!identical(as.integer(table(factor(use_obs$stream, levels = use$stream))), use$obs)) {
+  stop("the observation rows do not add up to the use table's counts", call. = FALSE)
+}
 
 values <- list(
   sites = do.call(rbind, sites), change = do.call(rbind, change), scores = do.call(rbind, scores),
   snow = do.call(rbind, snow), normal = do.call(rbind, normal),
   gauges = unique(do.call(rbind, gauges)), windows = do.call(rbind, windows), use = use, use_obs = use_obs,
+  score_settings = do.call(rbind, score_rows),
   provenance = list(wet_commit = wet_commit, built = format(Sys.Date()), hydat = release, scripts = md5,
                     reports = reports))
 rownames(values$change) <- NULL

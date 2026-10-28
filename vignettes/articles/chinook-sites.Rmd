@@ -70,7 +70,13 @@ stopifnot(sites$obs_n[sites$site_id == "maxan"] == 5, row_of("maxan", "spawning"
 mig_all <- ch[ch$group == "BULK" & ch$statistic == "mean" & ch$window == "migration", ]
 stopifnot(all(mig_all$pct_lo < 0), all(mig_all$pct_hi > 0))
 # "each gauged for under twenty years"
-stopifnot(all(sites$obs_n[sites$site_id %in% c("swift", "naver")] < 20))
+# held-out scores by window, from the reports' tables
+ssc <- v$score_settings[v$score_settings$group == "BULK", ]
+ss_mig <- ssc[ssc$setting == "migration mean, k = 5", ]
+ss_spw <- ssc[ssc$setting == "spawning mean", ]
+stopifnot(setequal(ss_mig$site_id, ids), setequal(ss_spw$site_id, ids))
+# "below the bar ... at all four": the spawning-window carried median under 0.5 everywhere, the migration's at or over it
+stopifnot(all(ss_spw$carried < 0.5), all(ss_mig$carried >= 0.5))
 low_spw <- spw[spw$pct_hi < 0, ]
 sc <- v$scores[v$scores$group == "BULK", ]
 stopifnot(identical(sc$site_id, ids))
@@ -91,16 +97,19 @@ The article on [Maxan Creek](short-record-flow.html) used the R package
 [`wet`](https://newgraphenvironment.github.io/wet/) to fill in a five-summer gauge record
 from nearby gauges and found its spawning-window flow lower now than before 1981. This
 article asks whether that holds at three more Chinook streams, run the same way with the
-method fixed in advance: Swift Creek at Valemount and Naver Creek near Hixon, each
-gauged for under twenty years and filled in the same way, and Gosnell Creek in the Morice, which was
+method fixed in advance: Swift Creek at Valemount and Naver Creek near Hixon, whose
+gauges hold `r sites$obs_n[sites$site_id == "swift"]` and `r sites$obs_n[sites$site_id == "naver"]` full summers and are filled in the same way, and Gosnell Creek in the Morice, which was
 never gauged.
 
-**The answer.** In the spawning window, flow in a typical year of 2011–2025 was lower
+**The answer.** In the spawning window, mean flow in a typical year of 2011–2025 was lower
 than before 1981 at all four streams, by `r pct(min(abs(spw$pct)))` to
 `r pct(max(abs(spw$pct)))` from neighbours' departures alone; at
 `r and_text(sub(" Creek$", "", name_of[low_spw$site_id]))` creeks the 90% range stays below no change. In the migration
-window no stream shows a clear change by either route. The method scored about as well as at Maxan in the Cottonwood
-and Morice boxes, and worse in the upper Fraser, where few long records sit nearby.
+window no stream's mean flow shows a clear change by either route. Borrowed departures
+scored `r sprintf("%.2f", min(ss_mig$carried))`–`r sprintf("%.2f", max(ss_mig$carried))` in the migration window but only `r sprintf("%.2f", min(ss_spw$carried))`–`r sprintf("%.2f", max(ss_spw$carried))` in the
+spawning window, below the bar set for the method, at all four streams, Maxan included.
+Filling in a record scored about as well as at Maxan in the Cottonwood and Morice boxes,
+and worse in the upper Fraser, where few long records sit nearby.
 
 ## Which streams?
 
@@ -165,8 +174,8 @@ spawning site within five kilometres of its mouth; they find Chinook in Naver Cr
 years since the mid-1980s. Gosnell Creek's record
 is thinner: one survey that found adults, in 2001, and three provincial records of fish
 seen. The two gauged streams' records sit in different places from Maxan's five summers:
-Swift Creek's gauge near the mouth ran `r gauged$obs_first[gauged$site_id == "swift"]`–`r gauged$obs_last[gauged$site_id == "swift"]`, inside the
-1981–2010 baseline, and Naver Creek's at Hixon ran
+Swift Creek's gauge near the mouth has full summers for `r gauged$obs_first[gauged$site_id == "swift"]`–`r gauged$obs_last[gauged$site_id == "swift"]`, inside the
+1981–2010 baseline, and Naver Creek's at Hixon for
 `r gauged$obs_first[gauged$site_id == "naver"]`–`r gauged$obs_last[gauged$site_id == "naver"]`, before it.
 
 ## How has flow changed?
@@ -206,7 +215,8 @@ stopifnot(as.numeric(start_of("MORR") - start_of("BULK")) %in% 25:35)
 # the ranking: largest at Maxan and Naver, smallest at Swift
 rk <- spw$site_id[order(spw$pct)]
 stopifnot(setequal(rk[1:2], c("maxan", "naver")), rk[length(rk)] == "swift")
-err_factor <- exp(v$normal$err_abs_out[v$normal$group == "BULK" & v$normal$window == "spawning"])
+nerr <- v$normal[v$normal$group == "BULK" & v$normal$window == "spawning", ]
+stopifnot(nrow(nerr) == 1, nerr$err_median > 0, nerr$err_q75 > nerr$err_median)
 # the citation section names routed PCIC as Gosnell Creek's typical flow
 stopifnot(all(v$normal$pick == "pcic_routed"))
 ```
@@ -225,12 +235,15 @@ tab <- data.frame(
   Stream = name_of[sc$site_id],
   `Filled-in record` = sprintf("%.2f", sc$ols),
   `Gauges tested` = sc$ext_gauges,
-  `Neighbours' departures` = sprintf("%.2f", sc$carried),
+  `Neighbours' departures, migration` = sprintf("%.2f", ss_mig$carried[match(sc$site_id, ss_mig$site_id)]),
+  `Neighbours' departures, spawning` = sprintf("%.2f", ss_spw$carried[match(sc$site_id, ss_spw$site_id)]),
   `Gauges scored` = sc$carried_gauges,
   check.names = FALSE)
-knitr::kable(tab, row.names = FALSE, align = "lrrrr",
-             caption = "Held-out scores in each stream's box: the median over gauges, where 1 is perfect and 0 is no better than the average year. Filling in a record is tested at the box's long-record gauges; Gosnell Creek has no record of its own to fill in.")
-stopifnot(all(sc$carried >= 0.5), sc$ols[sc$site_id == "swift"] < 0.2)
+knitr::kable(tab, row.names = FALSE, align = "lrrrrr",
+             caption = "Held-out scores of each window's mean flow in each stream's box: the median over gauges, where 1 is perfect and 0 is no better than the average year. Filling in a record is tested at the box's long-record gauges, on the migration window; Gosnell Creek has no record of its own to fill in.")
+stopifnot(sc$ols[sc$site_id == "swift"] < 0.2)
+# "only N gauges" and "few long records": the upper Fraser box has the fewest
+stopifnot(sc$ext_gauges[sc$site_id == "swift"] < min(sc$ext_gauges[sc$site_id != "swift"]))
 # "the less certain of its two routes": Swift's filled-in range wider than its borrowed one, in both windows
 width <- function(w, route) with(row_of("swift", w, route), pct_hi - pct_lo)
 stopifnot(width("migration", "extended") > width("migration", "carried"),
@@ -238,8 +251,10 @@ stopifnot(width("migration", "extended") > width("migration", "carried"),
 ```
 
 Both routes are scored by hiding a gauge's own record and predicting it from its
-neighbours. Neighbours' departures score at least 0.5 in every box, the bar set for
-the method before any Maxan result. Filling in a record scores about as well as at Maxan in
+neighbours. Neighbours' departures score at least 0.5, the bar set for the method before
+any Maxan result, in the migration window in every box, and below it in the spawning window
+in every box, Maxan's included; the ranges in the change figure carry that weaker score.
+Filling in a record scores about as well as at Maxan in
 the Cottonwood and Morice boxes and poorly in the upper Fraser, where only
 `r sc$ext_gauges[sc$site_id == "swift"]` gauges have long enough records to test it. There,
 Swift Creek's change from its filled-in record is the less certain of its two routes.
@@ -264,19 +279,19 @@ r2_melt <- max(melt_spw$r2)
 stopifnot(r2_melt < min(r2_mig))
 ```
 
-As at Maxan, migration-window flow at every stream follows the winter's snow. In
-years with more peak snow over the stream's catchment, the departures borrowed for it are
-higher, at all four with a 90% range above zero, and snow alone accounts for
-`r round(100 * r2_mig[1])`–`r round(100 * r2_mig[2])`% of the year-to-year spread.
-Spawning-window flow follows peak snow much less, at most `r round(100 * r2_spw)`% of its
-spread, and the melt date at most `r round(100 * r2_melt)`%.
+As at Maxan, the migration-window departures borrowed for each stream follow the winter's
+snow: in years with more peak snow over its catchment they are higher, at all four with a
+90% range above zero, and peak snow alone accounts for
+`r round(100 * r2_mig[1])`–`r round(100 * r2_mig[2])`% of their year-to-year spread. In the
+spawning window it accounts for at most `r round(100 * r2_spw)`%, and the melt date for at
+most `r round(100 * r2_melt)`%.
 
 ## Where could it be wrong?
 
 - **Gosnell Creek's flow is never measured.** Its departures are tested only at the
-  gauges around it, and its typical flow is `wet`'s published flow for the stream, which
-  is off from measured flow, at the nearby gauges the water balance is not fitted to, by a
-  typical factor of `r sprintf("%.1f", err_factor)` in the spawning window.
+  gauges around it, and its typical flow is `wet`'s published flow for the stream. At the
+  `r nerr$err_n` gauges in its box, that published spawning-window flow runs a median
+  `r pct(pct_of(nerr$err_median))` above measured, and more than `r pct(pct_of(nerr$err_q75))` above at a quarter of them.
 - **The windows are the Bulkley's** at all four streams. Only the Morice has its own cited
   windows; Swift and Naver creeks have none yet.
 - **Each filled-in year rests on one neighbouring gauge**, and the earliest years on
