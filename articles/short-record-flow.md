@@ -1,14 +1,16 @@
 # Chinook Flow at a Short-Record Stream
 
-Maxan Creek runs into Bulkley Lake, at the head of the Bulkley River,
-which Chinook salmon use in summer. Chinook have spawned in Maxan Creek
-too: surveys in Fisheries and Oceans Canada’s salmon escapement records
-found them there in some years between the late 1980s and the early
-2000s. Gottesfeld and Rabnett suggest its main spawning grounds lie
-between Maxan Lake and Foxy Creek, and note that low flows can leave the
-creek partly dry and impassable to fish, and that beaver activity has
-affected it. It was gauged for only five summers, 1975–1979. This
-article uses the R package
+Maxan Creek runs into Bulkley Lake, at the head of the Bulkley River.
+Chinook salmon use the upper Bulkley year round: adults spawn there in
+August and September, their eggs stay in the gravel until the fry emerge
+in spring, and the young rear in the river and its spawning creeks,
+Maxan Creek among them. In Maxan Creek, surveys in Fisheries and Oceans
+Canada’s salmon escapement records found Chinook in some years between
+the late 1980s and the early 2000s. Gottesfeld and Rabnett suggest its
+main spawning grounds lie in the reach between the outlet of Maxan Lake
+and Foxy Creek, and note that low flows can leave the creek partly dry
+and impassable to fish, and that beaver activity has affected it. It was
+gauged for only five summers, 1975–1979. This article uses the R package
 [`wet`](https://newgraphenvironment.github.io/wet/) to fill in its flow
 for the years it was not measured, from gauges nearby, and asks how flow
 has changed in two Chinook windows: adult migration (May 1 – August 1)
@@ -83,33 +85,25 @@ picture: a much drier spawning window, and little change in migration.
 
 ## Does snow explain it?
 
-On all three watersheds, half of each year’s snowmelt came about ten
-days earlier in 2011–2025 than in 1950–1980, and the water in the peak
-snowpack was 3–4% lower. Migration-window flow follows the snow: at all
-three gauges, a year whose half-melt came ten days later carried about a
-quarter more flow, and one with 100 mm more water in the peak snowpack
-about a third more. Spawning-window flow does not: each of these two
-measures of snow explains at most 6% of its variation between years at
-any gauge.
+On each of the three catchments on the map, half of each year’s snowmelt
+came about ten days earlier in 2011–2025 than in 1950–1980, and the
+water in the peak snowpack was 3–4% lower. Migration-window flow follows
+the snow: at all three gauges (at Maxan, over its filled record), a year
+whose half-melt came ten days later carried about a quarter more flow,
+and one with 100 mm more water in the peak snowpack about a third more.
+Spawning-window flow does not: each of these two measures of snow
+explains at most 6% of its variation between years at any gauge.
 
-![Each year's window flow, as a percentage of its 1981–2010 average,
-against its half-melt date: the day by which half the year's snowmelt
-had happened, averaged over the watershed, 1950–2024. Maxan Creek's
-values are its filled years. Lines are fits on the log
-scale.](short-record-flow_files/figure-html/snow-1.png)
+## Where could it be wrong?
 
-Each year’s window flow, as a percentage of its 1981–2010 average,
-against its half-melt date: the day by which half the year’s snowmelt
-had happened, averaged over the watershed, 1950–2024. Maxan Creek’s
-values are its filled years. Lines are fits on the log scale.
-
-## What it does not show
-
-- **Each filled year rests on one nearby gauge**, through a fit on five
-  summers.
-- **Most of the years before 1981 come from the Bulkley at Quick**,
-  whose catchment holds Maxan’s, so they carry the Bulkley’s own
-  history: 31 of the 50 in the migration window.
+- **Each filled year is estimated from a single nearby gauge**, using
+  how that gauge’s flow and Maxan’s moved together in the five summers
+  both were measured. Five summers is a short base, and any error in it
+  carries into every year filled from that gauge.
+- **Most years before 1981 are estimated from the Bulkley at Quick**, a
+  much larger river whose catchment takes in Maxan Creek’s and the
+  Morice River’s, so those years partly follow that whole basin rather
+  than Maxan alone: 31 of the 50 in the migration window.
 - **Spawning-window flows are small**, under 0.5 m³/s in 80 of the 94
   years, so a small change in flow is a large one in percent.
 - **The snow comes on cells a tenth of a degree across**, about 11 by
@@ -167,10 +161,11 @@ System Science Data* 13, 4349–4383,
 [doi:10.5194/essd-13-4349-2021](https://doi.org/10.5194/essd-13-4349-2021);
 the Chinook windows from Gottesfeld, A. and Rabnett, K. (2007), *Skeena
 Fish Populations and their Habitat*, Skeena Fisheries Commission, and
-from the same report Maxan Creek’s spawning grounds and beaver activity
-(p. 357) and its low flows (pp. 342 and 357); the spawner surveys from
-Fisheries and Oceans Canada’s New Salmon Escapement Database System
-(NuSEDS), release of 1 June 2026,
+from the same report when Chinook fry emerge (p. 29), the upper
+Bulkley’s spawning months and rearing streams (p. 355), Maxan Creek’s
+spawning grounds and beaver activity (p. 357) and its low flows (pp. 342
+and 357); the spawner surveys from Fisheries and Oceans Canada’s New
+Salmon Escapement Database System (NuSEDS), release of 1 June 2026,
 <https://open.canada.ca/data/en/dataset/c48669a3-045b-400d-b730-48aafe8c5ee6>;
 the stream network from the Freshwater Atlas Stream Network (Province of
 British Columbia, Ministry of Forests, Lands, Natural Resource
