@@ -1,7 +1,7 @@
-# Data for vignettes/ungauged-flow.Rmd (#130), which runs on this file and
+# Data for vignettes/short-record-flow.Rmd (#130), which runs on this file and
 # never touches HYDAT, fwapg, S3 or the network at build.
 #
-#   WET_HYDAT_RELEASE=20260717 Rscript data-raw/ungauged_vignette_data.R
+#   WET_HYDAT_RELEASE=20260717 Rscript data-raw/short_record_vignette_data.R
 #
 # Reads the series the Maxan pilot and the snow regression save after their
 # reports (both gitignored):
@@ -15,7 +15,7 @@
 # the precision the report prints; the held-out scores, which the series
 # files do not carry, are read from those lines.
 #
-# Writes inst/vignette-data/ungauged_values.rds, a list:
+# Writes inst/vignette-data/short_record_values.rds, a list:
 #   - extended: Maxan's (08EE018) migration- and spawning-window mean flow,
 #     1931-2024: value and 90 % interval (m3/s), observed or extended, and the
 #     donor of each extended year
@@ -23,12 +23,15 @@
 #   - change: the window mean and 7-day minimum in both windows, 2011-2025
 #     against the years before 1981: years in each period, the log change,
 #     its % of normal and 90 % interval, and the carried change
-#   - scores: the held-out scores the article quotes
+#   - scores: the held-out scores of each window statistic, for both routes:
+#     the extension's median and interval coverage over the extension pool, the
+#     carried departures' median over the departure pool, and Maxan's own five
+#     years (the carried departures against the observed ones)
 #   - snow: each watershed's peak snow water equivalent (mm) and 50 % melt
 #     date (day of year), 1950-2025, for 08EE003, 08EE013 and 08EE018
 #   - departures: the window-mean log departures the snow fits used, per
-#     gauge, window and year (observed at 08EE003 and 08EE013, extended and
-#     carried at 08EE018)
+#     gauge, window and year, 1950-2025 (observed at 08EE003 and 08EE013,
+#     extended and carried at 08EE018)
 #   - snow_change: each watershed's mean snow and melt date, 1950-1980 and
 #     2011-2025
 #   - fits: the one-predictor snow fits (slope, 90 % interval, R2, n)
@@ -44,7 +47,7 @@ wet_commit <- vd_commit()
 release <- wb_release()
 if (release != "20260717") stop("the article's data are HYDAT 20260717's, not ", release, call. = FALSE)
 hydat <- wb_hydat(release)
-out <- file.path("inst", "vignette-data", "ungauged_values.rds")
+out <- file.path("inst", "vignette-data", "short_record_values.rds")
 
 # ---- the two series files, each held to the script that made it ------------------------------
 read_series <- function(script) {
@@ -110,6 +113,16 @@ carried <- do.call(rbind, lapply(windows, function(w) {
   data.frame(window = w, year = a$year, dep = a$anomaly, donors = a$donors)
 }))
 carried <- carried[!is.na(carried$dep), ]
+# each carried year against the per-year table's last column (% of normal, one decimal)
+for (w in windows) {
+  head_i <- grep(sprintf("^08EE018 per year, %s mean \\(m3/s\\)", w), pr)
+  rows <- pr[head_i + 2 + seq_len(sum(extended$window == w))]
+  yr <- as.integer(sub("^\\s*(\\d+).*", "\\1", rows))
+  last <- sub(".*\\s(\\S+)$", "\\1", rows)
+  cw <- carried[carried$window == w, ]
+  stopifnot(setequal(yr[last != "-"], cw$year))
+  near(100 * (exp(cw$dep) - 1), as.numeric(last[match(cw$year, yr)]), 1, paste("carried", w))
+}
 donor_ids <- function(s) sub(":.*", "", unlist(strsplit(s, " ")))
 carried_donors <- sort(unique(donor_ids(carried$donors)))
 
@@ -130,23 +143,37 @@ change <- do.call(rbind, lapply(c("mean", "min7"), function(v) do.call(rbind, la
 }))))
 
 # ---- the held-out scores, from the report's own lines --------------------------------------------
-ext_line <- one_line(pr, "^The rule: the highest median is ols \\(", "extension median")
-ext_median <- nums(sub("^.*?is ols", "", ext_line))[1]
-cover_line <- one_line(pr, "^Coverage of the nominal 90 % interval on held-out years: ols ", "coverage")
-ext_cover <- nums(sub("^.*?: ols ", "", cover_line))[1]
+# per window statistic: the extension's median and coverage (its sensitivity table), the carried
+# departures' median over the departure pool (its by-setting table), and Maxan's own five years
+# (the two-routes table: the carried departures against the observed, the pilot's obs_nse)
+setting <- c("mean migration" = "migration mean", "mean spawning" = "spawning mean",
+             "min7 migration" = "migration min7", "min7 spawning" = "spawning min7")
 pool_line <- one_line(pr, "^Extension pool: \\d+ gauges", "extension pool")
-ext_gauges <- nums(pool_line)[1]
 head_line <- one_line(pr, "^HEADLINE: median per-gauge NSE ", "carried headline")
-h <- nums(head_line)
-carry_median <- h[1]
-carry_gauges <- h[4]
-maxan_row <- regmatches(pr, regexpr("08EE018\\s+\\d+\\s+-?[0-9.]+", pr))
-stopifnot(length(maxan_row) == 1)
-mr <- nums(sub("08EE018", "", maxan_row))
-scores <- list(extension_median = ext_median, extension_gauges = ext_gauges, extension_cover = ext_cover,
-               carried_median = carry_median, carried_gauges = carry_gauges,
-               maxan_years = mr[1], maxan_carried = mr[2])
-stopifnot(scores$maxan_years == pilot$mx[["q_mean migration"]]$obs_n)
+scores <- do.call(rbind, lapply(names(setting), function(k) {
+  v <- sub(" .*", "", k)
+  w <- sub(".* ", "", k)
+  lab <- setting[[k]]
+  first <- if (lab == "migration mean") "migration mean, k = 5" else lab
+  ext <- one_line(pr, sprintf("^  %s\\s+21\\s+\\d+\\s+-?[0-9.]+\\s+-?[0-9.]+\\s+-?[0-9.]+\\s+\\w+\\s+ols \\d+",
+                              gsub(" ", "\\\\s", first)), paste("extension score", lab))
+  e <- nums(sub(sprintf("^  %s", first), "", ext))
+  stopifnot(length(e) == 9)   # gauges, blocks, three medians, then ols's coverage (move1's 1 is a name)
+  car <- one_line(pr, sprintf("^  %s\\s+\\d+\\s+-?[0-9.]+\\s+-?[0-9.]+\\s+-?[0-9.]+\\s+\\d+\\s+-?[0-9.]+$",
+                              gsub(" ", "\\\\s", first)), paste("carried score", lab))
+  cs <- nums(sub(sprintf("^  %s", first), "", car))
+  two <- one_line(pr, sprintf("^  %s\\s+%s\\s+5\\s+-?[0-9.]+\\s+\\d+\\s+-?[0-9.]+\\s+[0-9.]+$", v, w),
+                  paste("two routes", lab))
+  t2 <- nums(sub(sprintf("^  %s\\s+%s", v, w), "", two))
+  m <- pilot$mx[[paste(paste0("q_", v), w)]]
+  near(m$obs_nse, t2[2], 2, paste("Maxan carried", lab))
+  stopifnot(t2[1] == m$obs_n)
+  data.frame(statistic = v, window = w, extension_gauges = e[1], extension_median = e[3],
+             extension_cover = e[6], carried_gauges = cs[1], carried_median = cs[3],
+             maxan_years = t2[1], maxan_carried = t2[2])
+}))
+stopifnot(nums(pool_line)[1] == scores$extension_gauges[1],
+          nums(head_line)[1] == scores$carried_median[scores$statistic == "mean" & scores$window == "migration"])
 
 # ---- snow, departures and the snow fits ---------------------------------------------------------
 gauges_snow <- names(snow_rds$snow)
@@ -171,7 +198,7 @@ for (k in seq_along(yrs)) {
 
 series_key <- vapply(snow_rds$series, function(s) paste(s$label, s$window), "")
 departures <- do.call(rbind, lapply(snow_rds$series, function(s) {
-  d <- s$d[!is.na(s$d$dep), ]
+  d <- s$d[!is.na(s$d$dep) & s$d$year >= min(snow$year), ]   # the snow years, which the report checks
   data.frame(gauge = s$gauge, series = sub("^\\S+ ", "", s$label), window = s$window, year = d$year, dep = d$dep)
 }))
 # against the report's per-year departures (three decimals), every series and year 1950-2025
