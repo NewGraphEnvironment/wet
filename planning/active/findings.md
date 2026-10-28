@@ -85,3 +85,9 @@ Relates to #118, #120, #121, #122, #137.
 | Error | Resolution |
 |-------|------------|
 | `postgisftw.fwa_watershedatmeasure()` failed inside its own SQL on the PG* server | Summed `fwa_watersheds_poly` under the stream's wscode_ltree instead |
+
+## Phase 1 (2026-10-28)
+
+- NuSEDS's `FWA_WATERSHED_CDE` equals FWA's `fwa_watershed_code` exactly for all five streams, so match on it rather than on names. Owen Creek also exists in NuSEDS area 13 (Johnstone Strait), a different stream.
+- NuSEDS Chinook at Owen (4D): 11 rows, all uninspected or none observed. Gosnell: 29 rows, 1 PRESENT (2001). Lamprey: no Chinook rows (coho 20, sockeye 1).
+- The local `fresh-db` (WET_PG* defaults) holds `bcfishobs` too, with the same counts as the PG* server.

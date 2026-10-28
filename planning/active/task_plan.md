@@ -8,6 +8,8 @@ The Maxan pilot (#120, extension and carried departures) and its snow regression
 
 ## Decided at the gate (user, 2026-10-28)
 
+- **Morice target fixed in Phase 1: Gosnell Creek** (blue_line_key 360885021, 536.9 km²). It ties with Lamprey on 4 use records and alone has a spawning record (NuSEDS adult presence 2001); `data/checks/chinook_sites_use.txt`.
+
 - **Swift target: 08KA012**, Swift Creek near the mouth. Every Chinook record on Swift Creek, several of them major spawning locations, lies within 6 km of the mouth, around this gauge. 08KA010 is upstream of all of them.
 - **Morice target: Gosnell Creek or Lamprey Creek, whichever has more Chinook records and no gauge.** Owen Creek is dropped: the provincial fish observations record no Chinook there (coho, steelhead, pink and bull trout only). Neither Gosnell nor Lamprey has a HYDAT station. Provincial observations so far: Lamprey 4 (1984–2009, "fish observed", lower 1.5 km), Gosnell 3 (1979–1999, inventories). Phase 1 adds the NuSEDS counts and fixes the target.
 - **Carried departures weighted by inverse distance, k = 5, as at Maxan.** This keeps the comparison like for like. #122's `covariance_pick` is not used here.
@@ -15,10 +17,10 @@ The Maxan pilot (#120, extension and carried departures) and its snow regression
 - From the issue: one comparison article in `vignettes/articles/`, under a pkgdown `internal` section. Maxan moves onto the site table later, not here.
 
 ## Phase 1: Targets and Chinook use
-- [ ] Count Chinook records per candidate stream: NuSEDS (open.canada.ca CSV, downloaded once into `data/chinook_sites/raw/` with its md5 reported) plus provincial observations (`bcfishobs.observations` joined to `fwa_stream_networks_sp` on the stream's blue_line_key). Candidates: Swift, Naver, Gosnell, Lamprey.
-- [ ] Fix the Morice target by record count. Ties go to the stream with a spawning-stage record, then to the larger area. Write the counts and the choice in `research/chinook_sites.md` (new topic file, with a provenance header) and add a row to `research/README.md`.
-- [ ] Check the issue's window counts for 08KA012 and 08KE014 under the pilot's definition (HYDAT 20260717, `wet_window_stats()` min_frac 0.8).
-- [ ] Edit the issue body and title: Owen becomes the chosen stream, 08KA012 is the Swift target, and the decisions above are added.
+- [x] Count Chinook records per candidate stream: NuSEDS (open.canada.ca CSV, downloaded once into `data/chinook_sites/raw/` with its md5 reported) plus provincial observations (`bcfishobs.observations` joined to `fwa_stream_networks_sp` on the stream's blue_line_key). Candidates: Swift, Naver, Gosnell, Lamprey.
+- [x] Fix the Morice target by record count. Ties go to the stream with a spawning-stage record, then to the larger area. Write the counts and the choice in `research/chinook_sites.md` (new topic file, with a provenance header) and add a row to `research/README.md`.
+- [x] Check the issue's window counts for 08KA012 and 08KE014 under the pilot's definition (HYDAT 20260717, `wet_window_stats()` min_frac 0.8).
+- [x] Edit the issue body and title: Owen becomes the chosen stream, 08KA012 is the Swift target, and the decisions above are added.
 
 ## Phase 2: Site table and timing
 - [ ] `scripts/departure_sites.csv`, one row per site: `site_id`, `name`, `wsg_code`, `kind` (`extend` | `ungauged`), `target_station`, `blue_line_key` (mouth point for ungauged), `lon_min/lon_max/lat_min/lat_max`, `windows` (life-history wsg codes, `BULK` always first), `snow_gauges` (observed long-record gauges regressed beside the target), `label_keys` (streams the map labels). Maxan's row carries its box verbatim. Every other box is the same size as Maxan's (3.8° × 2.2°) and centred on the target.
@@ -42,7 +44,7 @@ The Maxan pilot (#120, extension and carried departures) and its snow regression
 ## Phase 4: The pilot per site
 - [ ] Implement `departure_site.R`, adapted from `scripts/departure_pilot.R`'s body with the site's values swapped in for the hard-coded Maxan ones. Reuse `wet_window_extend()`, `wet_departure_carry()`, `wet_station_snap()`, `wet_window_stats()`, `wet_segment_daily()` and `wet_flow_window()`. Outputs: `data/checks/departure_site_<site>_20260717.txt` (tracked, no timestamp) and `data/departure/departure_site_<site>_20260717.rds` (gitignored, `code_md5`).
 - [ ] Run `maxan` until it passes the parity gate.
-- [ ] Run swift, naver and the Morice site, each from a frozen copy. Rerun each and confirm the report is byte-identical. Commit the reports with the logs under `data/logs/126/`.
+- [ ] Run swift, naver and the Morice site, each from a frozen copy. Rerun each and confirm the report is byte-identical. Commit the reports; run logs stay local under `data/logs/126/` (gitignored).
 
 ## Phase 5: Snow per site
 - [ ] Implement `departure_site_snow.R` and pass the `maxan` parity gate. Run the three sites, rerun each for byte identity, and commit the reports.

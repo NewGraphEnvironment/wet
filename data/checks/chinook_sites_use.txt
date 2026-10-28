@@ -1,0 +1,69 @@
+# Chinook use at #126's candidate streams
+
+NuSEDS All Areas 2026-06-01 (nuseds_all_areas_20260601.zip, md5 25bb43441645519f18eb4853dd1cf399): 421001 rows; Chinook rows matched on FWA_WATERSHED_CDE.
+Provincial fish observations (fwapg bcfishobs.observations, 375962 rows): Chinook rows on the stream's blue line.
+Area: the fundamental watersheds under the stream's watershed code in its group. Gauges: HYDAT 20260717 BC stations inside that area.
+A NuSEDS use record: ADULT_PRESENCE PRESENT or NATURAL_ADULT_SPAWNERS > 0. A spawning record: a NuSEDS use record, or an observation whose activity names spawning.
+
+  stream         wsg  blkey      role         km2 gauges      nuseds     use years       obs spawn years       use
+  Swift Creek    UFRA 356345574  extend     186.8 08KA010 08KA012       60      57 1970-2024    17     1 1974-2012    74
+  Naver Creek    COTR 356363814  extend     907.9 08KE014         50      24 1985-2023    25     6 1988-2012    49
+  Gosnell Creek  MORR 360885021  morice     536.9 none            29       1 2001-2001     3     0 1981-1999     4
+  Lamprey Creek  MORR 360880441  morice     240.2 none             0       0 -             4     0 1984-2009     4
+  Owen Creek     MORR 360819468  dropped    212.5 none            11       0 -             0     0 -             0
+
+nuseds: Chinook rows; use: of them, use records. obs: provincial Chinook observations; spawn: of them, spawning records. Last column: use records in all.
+
+Provincial Chinook observations, per stream:
+
+  Swift Creek    1974-01-01       1 m  -                                        -        FISS Database: survey_id 149838
+  Swift Creek    1980-01-01    4938 m  Major spawning location                  -        FISS Database: survey_id 71361
+  Swift Creek    1983-01-01       1 m  -                                        -        FISS Database: survey_id 149128
+  Swift Creek    1984-01-01       1 m  -                                        -        FISS Database: survey_id 149144
+  Swift Creek    1997-10-01    4008 m  Fish observed at this point or zone      -        FISS Database: survey_id 183563
+  Swift Creek    1997-10-01    5984 m  Fish observed at this point or zone      -        FISS Database: survey_id 183567
+  Swift Creek    2011-11-03    2695 m  -                                        -        FDIS Database: fshclctn_id 155058
+  Swift Creek    2011-11-04    2695 m  -                                        -        FDIS Database: fshclctn_id 155059
+  Swift Creek    2012-10-09    2698 m  -                                        Fry      FDIS Database: fshclctn_id 179309
+  Swift Creek    2012-10-09    2698 m  -                                        Fry      FDIS Database: fshclctn_id 179325
+  Swift Creek    2012-10-09    2698 m  -                                        Fry      FDIS Database: fshclctn_id 179329
+  Swift Creek    2012-10-10    2698 m  -                                        Fry      FDIS Database: fshclctn_id 179312
+  Swift Creek    2012-10-10    2698 m  -                                        Fry      FDIS Database: fshclctn_id 179314
+  Swift Creek    2012-10-11    2698 m  -                                        Fry      FDIS Database: fshclctn_id 179316
+  Swift Creek    2012-10-11    2698 m  -                                        Fry      FDIS Database: fshclctn_id 179317
+  Swift Creek    2012-10-17    2698 m  -                                        Fry      FDIS Database: fshclctn_id 179321
+  Swift Creek    NA       1 m  -                                        -        FISS Database: survey_id 150994
+  Naver Creek    1988-01-01   34335 m  Spawning location                        -        FISS Database: survey_id 92819
+  Naver Creek    1989-01-01    6298 m  Fish observed at this point or zone      -        FISS Database: survey_id 92822
+  Naver Creek    1992-01-01   26464 m  Spawning location                        -        FISS Database: survey_id 71833
+  Naver Creek    1994-01-01   26464 m  Major spawning location                  -        FISS Database: survey_id 116485
+  Naver Creek    1994-01-01    5394 m  Major spawning location                  -        FISS Database: survey_id 97559
+  Naver Creek    1994-01-01   26775 m  Spawning location                        -        FISS Database: survey_id 97890
+  Naver Creek    1994-01-01   47976 m  Spawning location                        -        FISS Database: survey_id 101467
+  Naver Creek    1998-12-01     207 m  -                                        -        FISS Database: survey_id 280969
+  Naver Creek    1998-12-01     207 m  -                                        -        FISS Database: survey_id 280970
+  Naver Creek    1998-12-01     207 m  -                                        -        FISS Database: survey_id 280971
+  Naver Creek    1998-12-01   15980 m  -                                        -        FISS Database: survey_id 285242
+  Naver Creek    1998-12-01   15980 m  -                                        -        FISS Database: survey_id 285243
+  Naver Creek    2000-06-26   45567 m  Rearing (feeding or resting)             Parr     FDIS Database: fshclctn_id 79998
+  Naver Creek    2000-08-06   50807 m  Rearing (feeding or resting)             Parr     FDIS Database: fshclctn_id 79999
+  Naver Creek    2000-10-05   19703 m  Rearing (feeding or resting)             Parr     FDIS Database: fshclctn_id 79997
+  Naver Creek    2000-12-01   10390 m  -                                        -        FISS Database: survey_id 285244
+  Naver Creek    2002-01-01    9092 m  -                                        -        FISS Database: survey_id 285246
+  Naver Creek    2002-01-01    9092 m  -                                        -        FISS Database: survey_id 285247
+  Naver Creek    2002-01-01    9092 m  -                                        -        FISS Database: survey_id 285248
+  Naver Creek    2004-07-18   13145 m  Rearing (feeding or resting)             -        FDIS Database: fshclctn_id 93293
+  Naver Creek    2006-09-15    6587 m  -                                        -        FDIS Database: fshclctn_id 103186
+  Naver Creek    2006-09-15    6587 m  -                                        -        FDIS Database: fshclctn_id 103187
+  Naver Creek    2010-07-22    6549 m  -                                        -        FDIS Database: fshclctn_id 154813
+  Naver Creek    2012-07-16    6499 m  Rearing (feeding or resting)             Fry      FDIS Database: fshclctn_id 179307
+  Naver Creek    2012-07-16    6600 m  Rearing (feeding or resting)             Fry      FDIS Database: fshclctn_id 179308
+  Gosnell Creek  1981-01-01    6426 m  Fish observed at this point or zone      -        FISS Database: survey_id 185860
+  Gosnell Creek  1984-01-01     180 m  Fish observed at this point or zone      -        FISS Database: survey_id 130132
+  Gosnell Creek  1999-01-01      38 m  -                                        -        FISS Database: survey_id 281286
+  Lamprey Creek  1984-09-01     434 m  Fish observed at this point or zone      -        FISS Database: survey_id 95984
+  Lamprey Creek  1996-01-01     211 m  Fish observed at this point or zone      -        FISS Database: survey_id 106560
+  Lamprey Creek  1999-02-01      32 m  Fish observed at this point or zone      -        FISS Database: survey_id 95866
+  Lamprey Creek  2009-08-18    1477 m  -                                        -        FDIS Database: fshclctn_id 117167
+
+The Morice rule (more use records, then a spawning record, then the larger area): Gosnell Creek, tied on use records; it alone has a spawning record.
