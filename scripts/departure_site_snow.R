@@ -45,7 +45,10 @@
 #
 # The snow gauges: the site's snow_gauges column where it names them (Maxan's:
 # 08EE003 and 08EE013, #121's). Otherwise the first two gauges, nearest first,
-# with at least 10 complete 1981-2010 window-years in both windows. For an
+# with at least 10 complete 1981-2010 window-years in both windows and an
+# accepted snap (that last condition amended after the first Naver run, whose
+# second gauge by the rule, 08KD001, has a snap wet_station_snap() does not
+# accept; it decides which gauges are fitted, not what any fit says). For an
 # extend site they are taken from the target's extension donor chain under the
 # window set's migration mean (attr(e, "donors")); for an ungauged site, from
 # its carried donors there.
@@ -176,8 +179,18 @@ if (length(site$snow_gauges)) {
     sub(":.*", "", strsplit(full, " ")[[1]])
   }
   ok <- vapply(cand, function(g) n_base(g, "migration") >= 10 && n_base(g, "spawning") >= 10, TRUE)
-  gauges <- utils::head(cand[ok], 2)
-  gauge_rule <- sprintf("the first two of the target's %s (nearest first: %s) with >= 10 baseline years in both windows",
+  # an accepted snap, so the gauge has a watershed to sample
+  con0 <- wet:::wet_hydat_connect(hydat)
+  st0 <- DBI::dbGetQuery(con0, sprintf("
+    SELECT STATION_NUMBER AS station_number, LONGITUDE AS lon, LATITUDE AS lat, DRAINAGE_AREA_GROSS AS drainage_area_gross_km2
+    FROM STATIONS WHERE STATION_NUMBER IN (%s)", paste0("'", cand, "'", collapse = ", ")))
+  DBI::dbDisconnect(con0)
+  conn0 <- vd_connect()
+  sn0 <- wet_station_snap(conn0, st0)
+  DBI::dbDisconnect(conn0)
+  snapped <- cand %in% sn0$station_number[sn0$accepted %in% TRUE]
+  gauges <- utils::head(cand[ok & snapped], 2)
+  gauge_rule <- sprintf("the first two of the target's %s (nearest first: %s) with >= 10 baseline years in both windows and an accepted snap",
                         if (site$kind == "extend") "extension donor chain" else "carried donors",
                         paste(cand, collapse = ", "))
 }

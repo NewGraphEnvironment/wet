@@ -203,7 +203,8 @@ if (site$kind == "ungauged") {
     WHERE wscode_ltree <@ '%s'::ltree", code$wscode))$km2
   use <- readLines(file.path("data", "checks", "chinook_sites_use.txt"))
   row <- grep(sprintf(" %d ", site$blue_line_key), use, value = TRUE)
-  use_km2 <- if (length(row) == 1) as.numeric(strsplit(trimws(row), " +")[[1]][5]) else NA_real_
+  # the km2 column follows the role column; a stream name has spaces in it
+  use_km2 <- if (length(row) == 1) suppressWarnings(as.numeric(sub("^.* (extend|morice|dropped) +([0-9.]+) .*$", "\\2", row))) else NA_real_
   if (is.na(use_km2) || abs(km2 - use_km2) > 0.1) {
     stop(site$site_id, ": basin area ", round(km2, 1), " km2 differs from chinook_sites_use.txt's ", use_km2, call. = FALSE)
   }
@@ -231,11 +232,14 @@ if (site$kind == "ungauged") {
   DBI::dbExecute(duck, "INSTALL httpfs; LOAD httpfs;")
   read_days <- function(groups, ids) {
     parts <- dly[dly$code %in% groups, ]
+    # the source is a Hive key, not a column: take it from the catalog, as wet_segment_parts() does
     d <- do.call(rbind, lapply(seq_len(nrow(parts)), function(i) {
-      DBI::dbGetQuery(duck, sprintf(
-        "SELECT linear_feature_id, doy, q_m3s, pick, period, source FROM read_parquet(%s, hive_partitioning = false)
+      x <- DBI::dbGetQuery(duck, sprintf(
+        "SELECT linear_feature_id, doy, q_m3s, pick, period FROM read_parquet(%s, hive_partitioning = false)
          WHERE linear_feature_id IN (%s) ORDER BY linear_feature_id, doy",
         DBI::dbQuoteString(duck, parts$href[i]), paste(as.integer(ids), collapse = ",")))
+      x$source <- rep(parts$source[i], nrow(x))
+      x
     }))
     list(d = d, parts = parts[c("source", "code", "md5")])
   }
@@ -941,8 +945,9 @@ if (site$kind == "extend") {
               site$target_lon, site$target_lat, fmt(mouth$km2, 1)),
       sprintf("Donors (nearest first), migration mean: %s.",
               {
+                # a year with every donor lists them in distance order
                 a1 <- mx[["q_mean migration"]]$a
-                paste(unique(sub(":.*", "", unlist(strsplit(a1$donors, " ")))), collapse = ", ")
+                paste(sub(":.*", "", strsplit(a1$donors[which.max(a1$n_donors)], " ")[[1]]), collapse = ", ")
               }),
       "", "Before/after: mean carried departure 2011-2025 minus mean before 1981 (log, or days for cov_day);",
       sprintf("90 %% interval from %d draws resampling years in each period and adding a held-out carried residual to each year; set.seed(126).", n_boot),

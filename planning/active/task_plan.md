@@ -42,12 +42,12 @@ The Maxan pilot (#120, extension and carried departures) and its snow regression
 - [x] Commit the two headers alone: "Register #126's rules before any body code".
 
 ## Phase 4: The pilot per site
-- [ ] Implement `departure_site.R`, adapted from `scripts/departure_pilot.R`'s body with the site's values swapped in for the hard-coded Maxan ones. Reuse `wet_window_extend()`, `wet_departure_carry()`, `wet_station_snap()`, `wet_window_stats()`, `wet_segment_daily()` and `wet_flow_window()`. Outputs: `data/checks/departure_site_<site>_20260717.txt` (tracked, no timestamp) and `data/departure/departure_site_<site>_20260717.rds` (gitignored, `code_md5`).
-- [ ] Run `maxan` until it passes the parity gate.
-- [ ] Run swift, naver and the Morice site, each from a frozen copy. Rerun each and confirm the report is byte-identical. Commit the reports; run logs stay local under `data/logs/126/` (gitignored).
+- [x] Implement `departure_site.R`, adapted from `scripts/departure_pilot.R`'s body with the site's values swapped in for the hard-coded Maxan ones. Reuse `wet_window_extend()`, `wet_departure_carry()`, `wet_station_snap()`, `wet_window_stats()`, `wet_segment_daily()` and `wet_flow_window()`. Outputs: `data/checks/departure_site_<site>_20260717.txt` (tracked, no timestamp) and `data/departure/departure_site_<site>_20260717.rds` (gitignored, `code_md5`).
+- [x] Run `maxan` until it passes the parity gate.
+- [x] Run swift, naver and the Morice site, each from a frozen copy. Rerun each and confirm the report is byte-identical. Commit the reports; run logs stay local under `data/logs/126/` (gitignored).
 
 ## Phase 5: Snow per site
-- [ ] Implement `departure_site_snow.R` and pass the `maxan` parity gate. Run the three sites, rerun each for byte identity, and commit the reports.
+- [x] Implement `departure_site_snow.R` and pass the `maxan` parity gate. Run the three sites, rerun each for byte identity, and commit the reports.
 
 ## Phase 6: Comparison article (unlisted)
 - [ ] `data-raw/chinook_sites_data.R` → `inst/vignette-data/chinook_sites_values.rds`. Guards as `short_record_vignette_data.R`: `vd_commit()`, each rds's `code_md5` matches its script, and every number is held to its line in the tracked report.
@@ -58,7 +58,7 @@ The Maxan pilot (#120, extension and carried departures) and its snow regression
 
 ## Phase 7: Docs
 - [ ] CLAUDE.md: Architecture lines for the site table and the two site scripts. Move the site-table convention from memory into Working Conventions, then delete the memory file and its MEMORY.md line.
-- [ ] `research/chinook_sites.md`: the results at each site, with whether the Maxan result holds, attributed. Add a NEWS line.
+- [ ] `research/chinook_sites.md`: the results at each site, with whether the Maxan result holds, attributed. (NEWS and the version are written at merge by `/gh-pr-merge`.)
 
 ## Owed at the end (reported, done after merge)
 - [ ] File an issue: move Maxan's five files onto the site table and retire `departure_pilot.R` / `departure_snow.R` as separate code paths.

@@ -91,3 +91,18 @@ Relates to #118, #120, #121, #122, #137.
 - NuSEDS's `FWA_WATERSHED_CDE` equals FWA's `fwa_watershed_code` exactly for all five streams, so match on it rather than on names. Owen Creek also exists in NuSEDS area 13 (Johnstone Strait), a different stream.
 - NuSEDS Chinook at Owen (4D): 11 rows, all uninspected or none observed. Gosnell: 29 rows, 1 PRESENT (2001). Lamprey: no Chinook rows (coho 20, sockeye 1).
 - The local `fresh-db` (WET_PG* defaults) holds `bcfishobs` too, with the same counts as the PG* server.
+
+## Phase 4 results (2026-10-28, first full runs)
+
+- **Parity:** `departure_site.R maxan` reproduces #120's `mx` exactly (identical()). Every report line outside the header and the new carried-interval columns is byte-equal to the pilot report, leak-free lines included. `departure_site_snow.R maxan` reproduces #121's `fits` and series exactly; 19 lines differ, wording only.
+- **Swift (08KA012), UFRA box:** 44 natural gauges, box pool 30, extension pool 11 (below #120's floor of 15; most of the box east of about -118.5 is Alberta). The extension race is weak: ols 0.14, move1 -0.24, ratio 0.17, so #120's rule would pick ratio. Carried 0.51 (usable). The donor chain starts at 08LB038, a Thompson-side gauge.
+- **Naver (08KE014), COTR box:** box pool 58, extension 17. ols 0.634 against ratio 0.631, so #120's rule would pick ratio (within the 0.01 margin). Carried 0.60. The years since 1999 come from 08KH006, not from the Quesnel at Likely or the West Road as the issue guessed; 08KE009 Cottonwood supplies 1976–1998.
+- **Gosnell (ungauged), MORR box:** ols 0.48 against ratio 0.35 under the Bulkley windows (ols also under the Morice's, 0.49). Carried 0.65 (Bulkley windows) and 0.62 (Morice). Normal: routed PCIC (pick) on mouth segment 139028198, migration 34.4 m3/s and spawning 8.7 m3/s under the Bulkley windows. Its error at 29 box gauges: median log ratio +0.035 for migration and +0.19 for spawning; at the 7 outside the balance's station set, +0.035 and +0.24.
+- **Spawning-window mean, carried change** (2011–2025 against before 1981, Bulkley windows): Maxan -46 %, Swift -12 %, Naver -41 %, Gosnell -35 %; under the Morice windows Gosnell -23 % (90 % range -47 to +11). Migration-window mean, carried: -3 %, +2 %, -3 %, +4 %.
+
+## Errors Encountered (Phase 4)
+
+| Error | Resolution |
+|-------|------------|
+| Gosnell: area parse took column 5 of a row whose stream name has two words | Regex on the number after the role column |
+| duckdb: `source` not a column with `hive_partitioning = false` | Take the source from the catalog row, as `wet_segment_parts()` does |
