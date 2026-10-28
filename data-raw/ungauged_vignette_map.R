@@ -55,5 +55,5 @@ stopifnot(nrow(places) == 1)
 layers <- vm_layers(list(stations = pts, catchments = catch, streams = streams, lakes = lakes,
                          places = places, bc = bc), hydat)
 saveRDS(layers, out, compress = "xz")
-print(vapply(layers, function(x) nrow(sf::st_coordinates(x)), 0))
+print(vapply(layers, nrow, 0L))   # features per layer: merged streams mix line types
 message("ungauged_map.rds: ", round(file.size(out) / 1024), " KB")
