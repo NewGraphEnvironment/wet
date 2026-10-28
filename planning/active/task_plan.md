@@ -44,7 +44,7 @@ It sits beside `vignettes/station-flow.Rmd`, which covers gauged departures at B
 
 ## Phase 2: the article's data bundle
 
-- [ ] `data-raw/ungauged_vignette_data.R` → `inst/vignette-data/ungauged_values.rds`. It reads the two rds files and refuses:
+- [x] `data-raw/ungauged_vignette_data.R` → `inst/vignette-data/ungauged_values.rds`. It reads the two rds files and refuses:
   - when a file's `code_md5` is not the md5 of its script at HEAD;
   - when `R/`, `scripts/`, `data-raw/` or `data/checks/` hold uncommitted changes (`vd_git()`).
 
