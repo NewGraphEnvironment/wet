@@ -29,9 +29,13 @@
 #     CD_RUN_TIME and CD_SHA tags.
 #   - The shipped snow normals data/snow/snow_19812010_*.tif (gitignored,
 #     local), for the parity line only.
-# Output: the tracked report data/checks/departure_snow_20260717.txt and
-# nothing else. It carries no timestamp, so a rerun reproduces it byte for
-# byte.
+# Output: the tracked report data/checks/departure_snow_20260717.txt, which
+# carries no timestamp, so a rerun reproduces it byte for byte. After it, the
+# series it was made from go to data/departure/departure_snow_20260717.rds
+# (gitignored) for the Maxan article's data (#130): `snow` (per watershed,
+# each year's swe_max, snowmelt_doy_50, snowmelt_rate_peak and cover),
+# `series` (the eight responses, each with its years and departures), `fits`,
+# `release`, and `code_md5` (the md5 of the script file that ran).
 #
 # ---- the watersheds ----------------------------------------------------------------------------
 #
@@ -139,6 +143,14 @@ source("scripts/departure_snow_lib.R")  # ds_gauges, ds_stations(), ds_snap(), d
 
 release <- wb_release()
 if (release != "20260717") stop("the specification names HYDAT 20260717, not ", release, call. = FALSE)
+# the script this run executes (a frozen copy, say), hashed before anything else can change it
+# (Rscript writes a space in the path as ~+~)
+self <- gsub("~+~", " ", sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)), fixed = TRUE)
+if (length(self) != 1 || sys.nframe() != 0) {
+  stop("run with Rscript, not through source(), so the script's own md5 can be recorded", call. = FALSE)
+}
+code_md5 <- unname(tools::md5sum(self))
+if (is.na(code_md5)) stop("cannot read the running script at ", self, " to record its md5", call. = FALSE)
 hydat <- wb_hydat(release)
 report <- file.path("data", "checks", sprintf("departure_snow_%s.txt", release))
 pilot_rds <- file.path("data", "departure", sprintf("departure_pilot_%s.rds", release))
@@ -427,3 +439,8 @@ for (y in years) {
 }
 
 writeLines(sub(" +$", "", out), report)
+
+# the series for the Maxan article's data (#130), after the report so nothing in it moves
+rds <- file.path("data", "departure", sprintf("departure_snow_%s.rds", release))
+dir.create(dirname(rds), recursive = TRUE, showWarnings = FALSE)
+saveRDS(list(release = release, snow = snow, series = series, fits = fits, code_md5 = code_md5), rds)

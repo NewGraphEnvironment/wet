@@ -1,6 +1,6 @@
 # The vignettes run on data bundled by data-raw/station_vignette_*.R (#27),
-# data-raw/segment_vignette_*.R (#28, #64, #71) and data-raw/monthly_vignette_data.R
-# (#65), never on HYDAT, fwapg or the network.
+# data-raw/segment_vignette_*.R (#28, #64, #71), data-raw/monthly_vignette_data.R
+# (#65) and data-raw/short_record_vignette_*.R (#130), never on HYDAT, fwapg or the network.
 
 vignette_data <- function(f) system.file("vignette-data", f, package = "wet")
 
@@ -9,7 +9,8 @@ test_that("each vignette's bundled data stays under 500 KB", {
   # every bundled file belongs to one vignette's budget
   budget <- list(station = c("station_daily.rds", "station_map.rds", "life_history_bulk.csv"),
                  segment = c("segment_values.rds", "segment_map.rds"),
-                 monthly = c("monthly_values.rds", "monthly_map.rds"))
+                 monthly = c("monthly_values.rds", "monthly_map.rds"),
+                 short_record = c("short_record_values.rds", "short_record_map.rds"))
   expect_setequal(files, unlist(budget))
   for (v in names(budget)) {
     expect_lt(sum(file.size(vignette_data(budget[[v]]))), 500 * 1024)
@@ -211,3 +212,41 @@ test_that("the monthly map holds the three Bulkley gauges and their nested catch
   expect_setequal(m$stations$station_number, unique(v$segments$station_number))
   expect_identical(attr(m, "provenance")$hydat, substr(v$provenance$hydat_release, 1, 10))
 })
+
+test_that("the short-record values carry Maxan's series, its scores and their provenance", {
+  v <- readRDS(vignette_data("short_record_values.rds"))
+  expect_named(v, c("extended", "carried", "change", "scores", "snow", "departures", "snow_change", "fits",
+                    "gauges", "provenance"))
+  # Maxan's five measured summers, each window filled to 1931-2024
+  for (w in c("migration", "spawning")) {
+    e <- v$extended[v$extended$window == w, ]
+    expect_equal(range(e$year), c(1931L, 2024L))
+    expect_false(anyDuplicated(e$year) > 0)
+    expect_equal(e$year[e$source == "observed"], 1975:1979)
+    expect_true(all(is.na(e$donor[e$source == "observed"])), info = w)
+    expect_false(anyNA(e$donor[e$source == "extended"]), info = w)
+    expect_true(all(e$lower <= e$value & e$value <= e$upper), info = w)
+  }
+  expect_setequal(paste(v$scores$statistic, v$scores$window), paste(v$change$statistic, v$change$window))
+  expect_setequal(unique(v$snow$gauge), c("08EE003", "08EE013", "08EE018"))
+  expect_true("08EE018" %in% v$gauges$station_number)
+  expect_true(all(c("wet_commit", "hydat", "cd_sha", "code_md5", "report_md5") %in% names(v$provenance)))
+})
+
+test_that("the short-record map layers are sf in BC Albers, with the three catchments", {
+  skip_if_not_installed("sf")
+  m <- readRDS(vignette_data("short_record_map.rds"))
+  v <- readRDS(vignette_data("short_record_values.rds"))
+  expect_named(m, c("stations", "catchments", "streams", "lakes", "places", "bc"))
+  for (nm in names(m)) {
+    expect_s3_class(m[[nm]], "sf")
+    expect_equal(sf::st_crs(m[[nm]])$epsg, 3005L, info = nm)
+    expect_gt(nrow(m[[nm]]), 0)
+  }
+  # the map draws every gauge the values name
+  expect_setequal(m$stations$station_number, v$gauges$station_number)
+  expect_setequal(m$catchments$station_number, c("08EE003", "08EE013", "08EE018"))
+  expect_true(all(abs(m$catchments$area_ratio - 1) < 0.1))
+  expect_equal(sum(m$streams$main), 3L)
+})
+

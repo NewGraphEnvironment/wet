@@ -1,5 +1,6 @@
 # Map layers shared by the vignette map data scripts
-# (data-raw/station_vignette_map.R, #27; data-raw/monthly_vignette_map.R, #107):
+# (data-raw/station_vignette_map.R, #27; data-raw/monthly_vignette_map.R, #107;
+# data-raw/short_record_vignette_map.R, #130):
 # the stations from HYDAT, each one's catchment from its FWA snap, and the
 # context in an extent (streams, lakes, place names, the province outline),
 # all sf in EPSG:3005. Sourced after load_all(); the scripts choose the

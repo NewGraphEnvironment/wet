@@ -1,7 +1,9 @@
 # Guards shared by the vignette data scripts that read the published product
 # (data-raw/segment_vignette_data.R, #64; data-raw/monthly_vignette_data.R,
-# #65), so both refuse the same things. Sourced, not run on its own: source
-# it first, then call vd_commit() before anything else reads the tree.
+# #65), so both refuse the same things; data-raw/short_record_vignette_data.R
+# (#130) uses vd_commit() alone, and the map scripts vd_connect(). Sourced, not
+# run on its own: source it first, then call vd_commit() before anything else
+# reads the tree.
 
 # system2() only warns when git fails and returns character(0), which would
 # read as a clean tree, so check its status
