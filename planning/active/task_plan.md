@@ -61,13 +61,13 @@ It sits beside `vignettes/station-flow.Rmd`, which covers gauged departures at B
 
 ## Phase 3: map layers and colours
 
-- [ ] `data-raw/ungauged_vignette_map.R` → `inst/vignette-data/ungauged_map.rds`, through `vignette_map_lib.R`:
+- [x] `data-raw/ungauged_vignette_map.R` → `inst/vignette-data/ungauged_map.rds`, through `vignette_map_lib.R`:
   - Maxan, Buck and Houston with their catchments, and the donor gauges as points;
   - the Bulkley River and Maxan Creek by `blue_line_key`;
   - lakes, Bulkley Lake among them;
   - Houston as the place name;
   - the BC outline for the keymap.
-- [ ] `inst/cartography/wet_station.csv` gains the classes the article draws: the map's subject gauge, donor gauges and catchments, and the series' observed, extended, interval and carried lines. The values come from gq and the existing palettes, with no hex literal in the vignette.
+- [x] `inst/cartography/wet_station.csv` gains the classes the article draws: the map's subject gauge, donor gauges and catchments, and the series' observed, extended, interval and carried lines. The values come from gq and the existing palettes, with no hex literal in the vignette.
 
 ## Phase 4: the article
 
