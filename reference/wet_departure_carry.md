@@ -20,7 +20,9 @@ wet_departure_carry(
   target,
   k = 5,
   baseline = 1981:2010,
-  min_baseline = 10
+  min_baseline = 10,
+  weights = c("distance", "covariance", "covariance_pick"),
+  modelled = NULL
 )
 ```
 
@@ -58,6 +60,29 @@ wet_departure_carry(
 
   Fewest baseline years a donor needs, and the target needs for `value`.
 
+- weights:
+
+  How the donors are weighted. `"distance"` (the default): the `k`
+  nearest, by inverse distance. `"covariance"`: the same `k`, each
+  weight multiplied by `max(r, 0)`, where `r` is the correlation between
+  the target's and the donor's modelled values in `modelled` (log values
+  for flow, days for `*_cov_day`) over the years both have; an `r` from
+  fewer than 30 years, or undefined, counts as 0. `"covariance_pick"`:
+  among the 15 nearest, the `k` with the highest `r`, weighted by
+  `max(r, 0)` alone. Where every donor chosen weighs 0, the covariance
+  options fall back to `"distance"` for that statistic.
+
+- modelled:
+
+  For the covariance options only: modelled values in `x`'s long format,
+  such as routed PCIC flow at each gauge's segment from
+  [`wet_routed_years()`](https://newgraphenvironment.github.io/wet/reference/wet_routed_years.md)
+  through
+  [`wet_window_stats()`](https://newgraphenvironment.github.io/wet/reference/wet_window_stats.md),
+  with rows for the target and every donor the option considers. A
+  station with rows for some statistics and none for another (a segment
+  routed to 0 has no `*_cov_day`) has no years there, so its `r` is 0.
+
 ## Value
 
 A data frame: `station_number` (the target), `variable`, `period`,
@@ -65,7 +90,10 @@ A data frame: `station_number` (the target), `variable`, `period`,
 `n_donors` (present that year), `donors` (`"station:weight"` pairs used
 that year, separated by spaces) and `value`: the target's baseline mean
 carried by the anomaly, only where the target has its own baseline in
-`x`, else `NA`.
+`x`, else `NA`. Under the covariance options each pair in `donors` also
+carries the donor's `r` (`"station:weight:r"`), and a column `weighting`
+says which weighting was used: the option, or `"distance"` where it fell
+back.
 
 ## Details
 

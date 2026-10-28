@@ -77,7 +77,9 @@ to sum to 1; a year no donor has is not returned.</p>
 <span>  <span class="va">target</span>,</span>
 <span>  k <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  baseline <span class="op">=</span> <span class="fl">1981</span><span class="op">:</span><span class="fl">2010</span>,</span>
-<span>  min_baseline <span class="op">=</span> <span class="fl">10</span></span>
+<span>  min_baseline <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  weights <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"distance"</span>, <span class="st">"covariance"</span>, <span class="st">"covariance_pick"</span><span class="op">)</span>,</span>
+<span>  modelled <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -115,6 +117,27 @@ the target and every station in <code>x</code>.</p></dd>
 <dd><p>Fewest baseline years a donor needs, and the target
 needs for <code>value</code>.</p></dd>
 
+
+<dt id="arg-weights">weights<a class="anchor" aria-label="anchor" href="#arg-weights"></a></dt>
+<dd><p>How the donors are weighted. <code>"distance"</code> (the default):
+the <code>k</code> nearest, by inverse distance. <code>"covariance"</code>: the same <code>k</code>, each
+weight multiplied by <code>max(r, 0)</code>, where <code>r</code> is the correlation between
+the target's and the donor's modelled values in <code>modelled</code> (log values
+for flow, days for <code>*_cov_day</code>) over the years both have; an <code>r</code> from
+fewer than 30 years, or undefined, counts as 0. <code>"covariance_pick"</code>:
+among the 15 nearest, the <code>k</code> with the highest <code>r</code>, weighted by
+<code>max(r, 0)</code> alone. Where every donor chosen weighs 0, the covariance
+options fall back to <code>"distance"</code> for that statistic.</p></dd>
+
+
+<dt id="arg-modelled">modelled<a class="anchor" aria-label="anchor" href="#arg-modelled"></a></dt>
+<dd><p>For the covariance options only: modelled values in <code>x</code>'s
+long format, such as routed PCIC flow at each gauge's segment from
+<code><a href="wet_routed_years.html">wet_routed_years()</a></code> through <code><a href="wet_window_stats.html">wet_window_stats()</a></code>, with rows for the
+target and every donor the option considers. A station with rows for
+some statistics and none for another (a segment routed to 0 has no
+<code>*_cov_day</code>) has no years there, so its <code>r</code> is 0.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -123,7 +146,10 @@ needs for <code>value</code>.</p></dd>
 <code>n_donors</code> (present that year), <code>donors</code> (<code>"station:weight"</code> pairs
 used that year, separated by spaces) and <code>value</code>: the target's baseline
 mean carried by the anomaly, only where the target has its own
-baseline in <code>x</code>, else <code>NA</code>.</p>
+baseline in <code>x</code>, else <code>NA</code>. Under the covariance options each pair in
+<code>donors</code> also carries the donor's <code>r</code> (<code>"station:weight:r"</code>), and a
+column <code>weighting</code> says which weighting was used: the option, or
+<code>"distance"</code> where it fell back.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

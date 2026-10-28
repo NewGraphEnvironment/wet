@@ -181,10 +181,13 @@ flow or temperature over them.
 - [`wet_windows_calendar()`](https://newgraphenvironment.github.io/wet/reference/wet_windows_calendar.md)
   : Calendar months and seasons as date windows
 
-## PCIC gridded runoff
+## PCIC runoff and routed flow
 
-Fetch PCIC VIC-GL gridded variables and summarise them per year.
+Fetch PCIC VIC-GL gridded variables and summarise them per year, and
+route PCIC’s per-year sub-basin flows to FWA segments day by day.
 
+- [`wet_routed_years()`](https://newgraphenvironment.github.io/wet/reference/wet_routed_years.md)
+  : Routed PCIC flow on FWA segments, day by day and year by year
 - [`wet_pcic_url()`](https://newgraphenvironment.github.io/wet/reference/wet_pcic_url.md)
   : OPeNDAP URL for one PCIC VIC-GL gridded variable
 - [`wet_pcic_index()`](https://newgraphenvironment.github.io/wet/reference/wet_pcic_index.md)
