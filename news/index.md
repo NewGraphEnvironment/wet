@@ -1,5 +1,17 @@
 # Changelog
 
+## wet 0.4.25
+
+- [`wet_routed_years()`](https://newgraphenvironment.github.io/wet/reference/wet_routed_years.md)
+  routes PCIC’s per-year sub-basin days to segments, and
+  [`wet_departure_carry()`](https://newgraphenvironment.github.io/wet/reference/wet_departure_carry.md)
+  can weight donors by PCIC’s modelled covariance
+  ([\#122](https://github.com/NewGraphEnvironment/wet/issues/122)).
+  `scripts/departure_pcic.R` found donors picked by that covariance
+  carry departures best (median held-out NSE 0.72, against 0.67 for the
+  nearest donors). PCIC’s own per-year departures (0.48) and a blend of
+  the two (0.71) do not ship (`research/pcic_hydrology.md`).
+
 ## wet 0.4.24
 
 - `scripts/station_snap_sweep.R` measures what

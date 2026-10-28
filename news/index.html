@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.24</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.25</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,9 +34,14 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/v0.4.25/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.25" id="wet-0425">wet 0.4.25<a class="anchor" aria-label="anchor" href="#wet-0425"></a></h2>
+<ul><li>
+<code><a href="../reference/wet_routed_years.html">wet_routed_years()</a></code> routes PCIC’s per-year sub-basin days to segments, and <code><a href="../reference/wet_departure_carry.html">wet_departure_carry()</a></code> can weight donors by PCIC’s modelled covariance (<a href="https://github.com/NewGraphEnvironment/wet/issues/122" class="external-link">#122</a>). <code>scripts/departure_pcic.R</code> found donors picked by that covariance carry departures best (median held-out NSE 0.72, against 0.67 for the nearest donors). PCIC’s own per-year departures (0.48) and a blend of the two (0.71) do not ship (<code>research/pcic_hydrology.md</code>).</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.24" id="wet-0424">wet 0.4.24<a class="anchor" aria-label="anchor" href="#wet-0424"></a></h2>
 <ul><li>
