@@ -1,3 +1,7 @@
+# wet 0.4.28
+
+* The Maxan Creek article's opening now says how Chinook use the upper Bulkley through the year: adults spawn in August and September, the eggs stay in the gravel until the fry emerge in spring, and the young rear in the river and its spawning creeks, Maxan Creek among them (Gottesfeld and Rabnett 2007, pp. 29 and 355). Its map draws and labels Foxy Creek, Maxan's tributary, and labels Maxan Lake, the two ends of the creek's spawning reach. The snow figure is gone, and its paragraph stays. The limits section, now "Where could it be wrong?", says how each filled year is made and that the Bulkley at Quick also takes in the Morice River.
+
 # wet 0.4.27
 
 * The Maxan Creek article now opens with two sentences on chinook spawning there: DFO's spawner surveys found them in some years between the late 1980s and the early 2000s, and Gottesfeld and Rabnett (2007) suggest where the main spawning grounds lie and note the creek's low flows. Both sources are cited, and the article's body-prose cap rises from 600 to 800 words. The fuller account waits on a per-stream table of salmon records (#137).
