@@ -62,7 +62,12 @@ row_of <- function(id, w, route, s = "mean", group = "BULK") {
 spw <- do.call(rbind, lapply(ids, row_of, w = "spawning", route = "carried"))
 mig <- do.call(rbind, lapply(ids, row_of, w = "migration", route = "carried"))
 # the answer: spawning-window flow lower at every stream, the migration window's range spanning no change
-stopifnot(all(spw$pct < 0), all(mig$pct_lo < 0), all(mig$pct_hi > 0))
+stopifnot(all(spw$pct < 0))
+# "no stream shows a clear change by either route" in the migration window
+mig_all <- ch[ch$group == "BULK" & ch$statistic == "mean" & ch$window == "migration", ]
+stopifnot(all(mig_all$pct_lo < 0), all(mig_all$pct_hi > 0))
+# "each gauged for under twenty years"
+stopifnot(all(sites$obs_n[sites$site_id %in% c("swift", "naver")] < 20))
 low_spw <- spw[spw$pct_hi < 0, ]
 sc <- v$scores[v$scores$group == "BULK", ]
 stopifnot(identical(sc$site_id, ids))
@@ -72,15 +77,15 @@ The article on [Maxan Creek](short-record-flow.html) used the R package
 [`wet`](https://newgraphenvironment.github.io/wet/) to fill in a five-summer gauge record
 from nearby gauges and found its spawning-window flow lower now than before 1981. This
 article asks whether that holds at three more Chinook streams, run the same way with the
-method fixed in advance: Swift Creek at Valemount and Naver Creek near Hixon, both gauged
-for a few years and filled in the same way, and Gosnell Creek in the Morice, which was
+method fixed in advance: Swift Creek at Valemount and Naver Creek near Hixon, each
+gauged for under twenty years and filled in the same way, and Gosnell Creek in the Morice, which was
 never gauged.
 
 **The answer.** In the spawning window, flow in a typical year of 2011–2025 was lower
 than before 1981 at all four streams, by `r pct(min(abs(spw$pct)))` to
 `r pct(max(abs(spw$pct)))` from neighbours' departures alone; at
-`r and_text(sub(" Creek$", "", name_of[low_spw$site_id]))` creeks the 90% range stays below no change. Migration-window
-flow changed little anywhere. The method scored about as well as at Maxan in the Cottonwood
+`r and_text(sub(" Creek$", "", name_of[low_spw$site_id]))` creeks the 90% range stays below no change. In the migration
+window no stream shows a clear change by either route. The method scored about as well as at Maxan in the Cottonwood
 and Morice boxes, and worse in the upper Fraser, where few long records sit nearby.
 
 ## Which streams?
@@ -117,6 +122,27 @@ ggplot() +
 
 ```{r use}
 gauged <- sites[sites$kind == "extend" & sites$site_id != "maxan", ]
+yr <- function(id, col) gauged[[col]][gauged$site_id == id]
+# "inside the 1981–2010 baseline" and "before it"
+stopifnot(yr("swift", "obs_first") >= 1981, yr("swift", "obs_last") <= 2010, yr("naver", "obs_last") < 1981)
+# the Chinook records, from the tracked use report
+u <- v$use
+use_of <- function(stream) {
+  r <- u[u$stream == stream, ]
+  stopifnot(nrow(r) == 1)
+  r
+}
+sw <- use_of("Swift Creek")
+nv <- use_of("Naver Creek")
+gs <- use_of("Gosnell Creek")
+# "in most years since 1970" and "in most years since the mid-1980s"
+stopifnot(sw$nus_first == 1970, sw$nus_use_years > (sw$nus_last - sw$nus_first + 1) / 2,
+          nv$nus_first %in% 1984:1986, nv$nus_use_years > (nv$nus_last - nv$nus_first + 1) / 2)
+# "a major spawning site within five kilometres of its mouth"
+stopifnot(any(v$use_obs$stream == "Swift Creek" & grepl("^Major spawning", v$use_obs$activity) &
+                v$use_obs$measure_m < 5000))
+# "one survey that found adults, in 2001, and three provincial records of fish seen"
+stopifnot(gs$nus_use == 1, gs$nus_first == 2001, gs$nus_last == 2001, gs$obs == 3, gs$obs_spawning == 0)
 ```
 
 Each stream has recorded Chinook use. Fisheries and Oceans Canada's spawner surveys find
@@ -134,8 +160,15 @@ Swift Creek's gauge near the mouth ran `r gauged$obs_first[gauged$site_id == "sw
 ```{r change, fig.height = 4.2, fig.cap = "Change in each Chinook window's mean flow, 2011–2025 against the years before 1981, with its 90% range. Blue: from neighbouring gauges' departures alone; orange: from the stream's own record filled in from neighbours."}
 d <- ch[ch$group == "BULK" & ch$statistic == "mean", ]
 d$site <- factor(name_of[d$site_id], levels = rev(name_of[ids]))
-d$window <- factor(c(migration = "Migration (May 1 – August 1)", spawning = "Spawning (August 1 – September 15)")[d$window],
-                   levels = c("Migration (May 1 – August 1)", "Spawning (August 1 – September 15)"))
+# the window labels from the Bulkley windows every site ran under
+md_text <- function(md) {
+  d <- as.Date(paste0("2001-", md))
+  sprintf("%s %d", format(d, "%B"), as.integer(format(d, "%d")))
+}
+wb <- unique(v$windows[v$windows$group == "BULK", c("window", "start", "end")])
+stopifnot(identical(wb$window, c("migration", "spawning")))
+wlab <- stats::setNames(sprintf("%s (%s – %s)", c("Migration", "Spawning"), md_text(wb$start), md_text(wb$end)), wb$window)
+d$window <- factor(wlab[d$window], levels = wlab)
 ggplot(d, aes(pct, site, colour = route)) +
   geom_vline(xintercept = 0, colour = "grey50") +
   geom_errorbarh(aes(xmin = pct_lo, xmax = pct_hi), height = 0, position = position_dodge(width = 0.5)) +
@@ -150,6 +183,15 @@ ext <- ch[ch$group == "BULK" & ch$statistic == "mean" & ch$window == "spawning" 
 stopifnot(nrow(ext) == 3, all(ext$pct < 0))
 morr <- row_of("gosnell", "spawning", "carried", group = "MORR")
 stopifnot(morr$pct < 0, morr$pct_hi > 0)
+# "smaller" than under the Bulkley windows
+stopifnot(abs(morr$pct) < abs(row_of("gosnell", "spawning", "carried")$pct))
+# "whose spawning window falls a month later": the Morice spawning window starts 25-35 days after the Bulkley's
+start_of <- function(g) as.Date(paste0("2001-", v$windows$start[v$windows$site_id == "gosnell" & v$windows$group == g &
+                                                                 v$windows$window == "spawning"]))
+stopifnot(as.numeric(start_of("MORR") - start_of("BULK")) %in% 25:35)
+# the ranking: largest at Maxan and Naver, smallest at Swift
+rk <- spw$site_id[order(spw$pct)]
+stopifnot(setequal(rk[1:2], c("maxan", "naver")), rk[length(rk)] == "swift")
 err_factor <- exp(v$normal$err_abs_out[v$normal$group == "BULK" & v$normal$window == "spawning"])
 # the citation section names routed PCIC as Gosnell Creek's typical flow
 stopifnot(all(v$normal$pick == "pcic_routed"))

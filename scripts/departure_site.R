@@ -655,6 +655,8 @@ dep_pool_of <- function(v, p) {
   sort(names(nb)[nb >= 10])
 }
 short_set <- pool$station_number[pool$short]
+# a median that is NA, not NULL, for a box with no short-record gauge (NULL drops a report line silently)
+med_na <- function(x) if (length(x) && any(!is.na(x))) stats::median(x, na.rm = TRUE) else NA_real_
 
 # One target's carried departures against its observed record, both centred
 # on their mean over the years both have; the centred residuals ride along.
@@ -706,14 +708,14 @@ say("## 3. Donor-carried departures (question 2)", "",
             fmt(head_q[2]), fmt(head_q[1]), fmt(head_q[3]), sum(!is.na(cm$held$nse)), sum(is.na(cm$held$nse))),
     sprintf("USABLE (departure-pool median >= %s, #120's threshold): %s.", usable_nse, if (usable) "YES" else "NO"),
     sprintf("Short-record gauges, scored from the full departure pool: median NSE %s over %d scored (%d not scored).",
-            fmt(stats::median(cm$short$nse, na.rm = TRUE)), sum(!is.na(cm$short$nse)), sum(is.na(cm$short$nse))),
+            fmt(med_na(cm$short$nse)), sum(!is.na(cm$short$nse)), sum(is.na(cm$short$nse))),
     "", "By setting (median and quartiles over gauges; short-record median):", "",
     sprintf("  %-26s %5s %7s %7s %7s  %5s %7s", "setting", "n", "q25", "median", "q75", "short", "median"))
 for (nm in names(cruns)) {
   r <- cruns[[nm]]
   q <- stats::quantile(r$held$nse, c(0.25, 0.5, 0.75), na.rm = TRUE, names = FALSE)
   say(sprintf("  %-26s %5d %7s %7s %7s  %5d %7s", nm, sum(!is.na(r$held$nse)), fmt(q[1]), fmt(q[2]), fmt(q[3]),
-              sum(!is.na(r$short$nse)), fmt(stats::median(r$short$nse, na.rm = TRUE))))
+              sum(!is.na(r$short$nse)), fmt(med_na(r$short$nse))))
 }
 if (is.null(related)) say(sprintf("  %-26s %s", "leak-free", snap_note))
 say("", "Per gauge, migration mean, k = 5 (years scored, NSE):", "",
@@ -1033,6 +1035,6 @@ saveRDS(list(site = site, windows = windows, release = release, ship = ship, k_m
              level = level, mx = mx, ws = ws, stations = stations_t, pool = pool,
              race = list(med = dec$med, rule_pick = dec$ship, gauges = main$n[["gauges"]], below_floor = below_floor),
              carried = list(median = head_q[2], q = head_q, n = sum(!is.na(cm$held$nse)), usable = usable,
-                            short = stats::median(cm$short$nse, na.rm = TRUE)),
+                            short = med_na(cm$short$nse)),
              normal = if (site$kind == "ungauged") pub_out else NULL, code_md5 = code_md5), rds)
 }

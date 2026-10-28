@@ -255,7 +255,7 @@ test_that("the short-record map layers are sf in BC Albers, with the three catch
 
 test_that("the Chinook sites' values hold four sites, both routes and their provenance", {
   v <- readRDS(vignette_data("chinook_sites_values.rds"))
-  expect_named(v, c("sites", "change", "scores", "snow", "normal", "gauges", "provenance"))
+  expect_named(v, c("sites", "change", "scores", "snow", "normal", "gauges", "windows", "use", "use_obs", "provenance"))
   expect_equal(v$sites$site_id, c("maxan", "swift", "naver", "gosnell"))
   expect_equal(v$sites$kind, c("extend", "extend", "extend", "ungauged"))
   # every site has the carried route in each window; only a gauged one has the extended route

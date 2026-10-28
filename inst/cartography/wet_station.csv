@@ -35,7 +35,7 @@ short_record_series,line,,part,extended,Filled from a neighbouring gauge,#636363
 short_record_series,point,,part,observed,Measured at Maxan Creek,#d55e00,1,,,,,,,,,,,,,,,,Okabe-Ito vermillion: the subject
 short_record_series,line,,part,period_mean,Typical flow over the period,#000000,1,,,,,,,,,,,,,,,,Okabe-Ito black: the two means compared
 chinook_sites_map,polygon,,part,box,Gauges each stream borrows from lie in its box,#f0f0f0,0.6,#636363,0.6,1,,,,,,,,,,,,,ColorBrewer Greys: the donor boxes recede behind the points
-chinook_sites_map,point,,part,target_gauged,Stream gauged for a few years,#d55e00,1,,,,,,,,,,,,,,,,"Okabe-Ito vermillion: the subjects, as short_record_map's"
+chinook_sites_map,point,,part,target_gauged,Stream with a short gauge record,#d55e00,1,,,,,,,,,,,,,,,,"Okabe-Ito vermillion: the subjects, as short_record_map's"
 chinook_sites_map,point,,part,target_ungauged,Stream never gauged,#cc79a7,1,,,,,,,,,,,,,,,,Okabe-Ito reddish purple: the subject with no record
 chinook_sites_map,point,,part,donor,Gauge whose record the numbers rest on,#0072b2,1,,,,,,,,,,,,,,,,"Okabe-Ito blue: as short_record_map's fill"
 chinook_sites_change,point,,part,extended,From the stream's record filled in from neighbours,#d55e00,1,,,,,,,,,,,,,,,,Okabe-Ito vermillion: the stream's own route

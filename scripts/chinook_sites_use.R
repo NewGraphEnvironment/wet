@@ -122,7 +122,8 @@ tab <- do.call(rbind, lapply(seq_len(nrow(cand)), function(i) {
   data.frame(stream = cand$stream[i], wsg = cand$wsg[i], blue_line_key = k, role = cand$role[i],
              km2 = basin$km2[basin$blue_line_key == k],
              gauges = paste(c(gauged[[i]], character(0)), collapse = " "),
-             nus_rows = nrow(nu), nus_use = sum(nu$use), nus_years = yrs(nu$yr[nu$use]),
+             nus_rows = nrow(nu), nus_use = sum(nu$use), nus_use_years = length(unique(stats::na.omit(nu$yr[nu$use]))),
+             nus_years = yrs(nu$yr[nu$use]),
              obs = nrow(ob), obs_spawning = sum(grepl("spawn", ob$activity, ignore.case = TRUE)),
              obs_years = yrs(as.integer(format(ob$observation_date, "%Y"))))
 }))
@@ -148,16 +149,16 @@ out <- c("# Chinook use at #126's candidate streams", "",
          sprintf("Provincial fish observations (fwapg bcfishobs.observations, %d rows): Chinook rows on the stream's blue line.", n_obs_all),
          sprintf("Area: the fundamental watersheds under the stream's watershed code in its group. Gauges: HYDAT %s BC stations inside that area.", release),
          "A NuSEDS use record: ADULT_PRESENCE PRESENT or NATURAL_ADULT_SPAWNERS > 0. A spawning record: a NuSEDS use record, or an observation whose activity names spawning.",
-         "", sprintf("  %-14s %-4s %-10s %-8s %7s %-9s %8s %7s %-10s %4s %5s %-10s %4s",
-                     "stream", "wsg", "blkey", "role", "km2", "gauges", "nuseds", "use", "years", "obs", "spawn", "years", "use"))
+         "", sprintf("  %-14s %-4s %-10s %-8s %7s %-9s %8s %7s %6s %-10s %4s %5s %-10s %4s",
+                     "stream", "wsg", "blkey", "role", "km2", "gauges", "nuseds", "use", "uyrs", "years", "obs", "spawn", "years", "use"))
 for (i in seq_len(nrow(tab))) {
-  out <- c(out, sprintf("  %-14s %-4s %-10d %-8s %7.1f %-9s %8d %7d %-10s %4d %5d %-10s %4d",
+  out <- c(out, sprintf("  %-14s %-4s %-10d %-8s %7.1f %-9s %8d %7d %6d %-10s %4d %5d %-10s %4d",
                         tab$stream[i], tab$wsg[i], tab$blue_line_key[i], tab$role[i], tab$km2[i],
                         if (nzchar(tab$gauges[i])) tab$gauges[i] else "none",
-                        tab$nus_rows[i], tab$nus_use[i], tab$nus_years[i], tab$obs[i], tab$obs_spawning[i],
+                        tab$nus_rows[i], tab$nus_use[i], tab$nus_use_years[i], tab$nus_years[i], tab$obs[i], tab$obs_spawning[i],
                         tab$obs_years[i], tab$use[i]))
 }
-out <- c(out, "", "nuseds: Chinook rows; use: of them, use records. obs: provincial Chinook observations; spawn: of them, spawning records. Last column: use records in all.",
+out <- c(out, "", "nuseds: Chinook rows; use: of them, use records; uyrs: the distinct years with a use record. obs: provincial Chinook observations; spawn: of them, spawning records. Last column: use records in all.",
          "", "Provincial Chinook observations, per stream:", "")
 for (i in seq_len(nrow(cand))) {
   ob <- obs[obs$blue_line_key == cand$blue_line_key[i], ]

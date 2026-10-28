@@ -31,7 +31,14 @@
 #   - normal: the ungauged site's published window normal per source and the
 #     pick, and the normal's error at its box gauges per window
 #   - gauges: every gauge a site's numbers rest on, with its role (target,
-#     extension donor, carried donor, snow)
+#     extension donor, carried donor, snow), over every scored statistic,
+#     window and window set
+#   - windows: each site's window sets, as its runs used them
+#   - use: the candidate streams' Chinook records, as
+#     data/checks/chinook_sites_use.txt prints them (NuSEDS rows, use records,
+#     distinct use years and their span; provincial records, spawning records),
+#     and the provincial records one per row (stream, date, metres from the
+#     mouth, activity)
 #   - provenance: wet commit, build date, HYDAT release, the scripts' and the
 #     reports' md5s
 
@@ -82,6 +89,7 @@ scores <- list()
 snow <- list()
 normal <- list()
 gauges <- list()
+windows <- list()
 reports <- character()
 for (id in site_ids) {
   site <- site_get(id)
@@ -164,6 +172,9 @@ for (id in site_ids) {
         held(sprintf("  %-10s %12s %12s  %s", w, fmt(nm$sources$q_m3s[nm$sources$window == w & nm$sources$source == "pcic_routed"], 3),
                      fmt(nm$sources$q_m3s[nm$sources$window == w & nm$sources$source == "wet_balance"], 3), nm$pick),
              rp$lines, paste(id, group, "normal", w))
+        if (!any(grepl(sprintf("build digest %s, on the mouth segment", nm$digest), rp$lines, fixed = TRUE))) {
+          stop(id, " ", group, ": build digest ", nm$digest, " not in its report", call. = FALSE)
+        }
         e <- nm$error[nm$error$window == w & !is.na(nm$error$log_ratio), ]
         eu <- e[!e$calib, ]
         q <- stats::quantile(e$log_ratio, c(0.25, 0.5, 0.75), names = FALSE)
@@ -180,16 +191,18 @@ for (id in site_ids) {
       }
     }
 
-    # the gauges the numbers rest on (the Bulkley windows' run names them)
+    # the gauges the numbers rest on: every donor of every scored statistic, window and window set
+    scored <- Filter(function(m) m$v != "q_max", x$mx)
+    ext_don <- if (site$kind == "extend") sort(unique(unlist(lapply(scored, function(m) stats::na.omit(m$e$donor))))) else character()
+    car_don <- sort(unique(sub(":.*", "", unlist(lapply(scored, function(m) strsplit(m$a$donors, " "))))))
+    gauges[[length(gauges) + 1]] <- rbind(
+      if (site$kind == "extend") data.frame(site_id = id, station_number = target, role = "target"),
+      if (length(ext_don)) data.frame(site_id = id, station_number = ext_don, role = "extension donor"),
+      data.frame(site_id = id, station_number = car_don, role = "carried donor"),
+      data.frame(site_id = id, station_number = s$gauges, role = "snow"))
+    windows[[length(windows) + 1]] <- data.frame(site_id = id, group = group, x$windows)
     if (group == "BULK") {
       mm <- x$mx[["q_mean migration"]]
-      ext_don <- if (site$kind == "extend") sort(unique(stats::na.omit(mm$e$donor))) else character()
-      car_don <- sort(unique(sub(":.*", "", unlist(strsplit(mm$a$donors, " ")))))
-      gauges[[length(gauges) + 1]] <- rbind(
-        if (site$kind == "extend") data.frame(site_id = id, station_number = target, role = "target"),
-        if (length(ext_don)) data.frame(site_id = id, station_number = ext_don, role = "extension donor"),
-        data.frame(site_id = id, station_number = car_don, role = "carried donor"),
-        data.frame(site_id = id, station_number = s$gauges, role = "snow"))
       if (site$kind == "extend") {
         obs <- sort(mm$e$year[mm$e$source == "observed"])
         held(sprintf("Target, complete migration-window years by this definition: %s %d (%s).", target, length(obs),
@@ -216,9 +229,35 @@ for (id in site_ids) {
   }
 }
 
+# the Chinook use behind the article's first section, read from its tracked report
+use_report <- file.path("data", "checks", "chinook_sites_use.txt")
+ul <- readLines(use_report)
+reports[use_report] <- unname(tools::md5sum(use_report))
+hdr <- grep("^  stream +wsg +blkey", ul)
+stopifnot(length(hdr) == 1)
+rows <- ul[(hdr + 1):(hdr + 5)]
+use <- do.call(rbind, lapply(rows, function(r) {
+  m <- regmatches(r, regexec(paste0("^  (.+?) +([A-Z]{4}) +([0-9]+) +(\\S+) +([0-9.]+) +(.+?) +([0-9]+) +([0-9]+) +([0-9]+) +",
+                                    "(\\S+) +([0-9]+) +([0-9]+) +(\\S+) +([0-9]+)$"), r))[[1]]
+  if (length(m) != 15) stop("cannot read the use table row: ", r, call. = FALSE)
+  yr <- as.integer(strsplit(m[11], "-")[[1]])
+  data.frame(stream = m[2], wsg = m[3], blue_line_key = as.integer(m[4]), role = m[5], km2 = as.numeric(m[6]),
+             nus_rows = as.integer(m[8]), nus_use = as.integer(m[9]), nus_use_years = as.integer(m[10]),
+             nus_first = if (length(yr) == 2) yr[1] else NA_integer_, nus_last = if (length(yr) == 2) yr[2] else NA_integer_,
+             obs = as.integer(m[12]), obs_spawning = as.integer(m[13]))
+}))
+# every new site's stream is in the use table (Maxan's use is its own article's)
+stopifnot(all(vapply(sites, function(x) x$site_id == "maxan" || x$blue_line_key %in% use$blue_line_key, TRUE)))
+obs_rows <- grep("^  \\S.+ +[0-9]{4}-[0-9]{2}-[0-9]{2} +[0-9]+ m  ", ul, value = TRUE)
+use_obs <- do.call(rbind, lapply(obs_rows, function(r) {
+  m <- regmatches(r, regexec("^  (.+?) +([0-9]{4}-[0-9]{2}-[0-9]{2}) +([0-9]+) m  (.{40}) ", r))[[1]]
+  data.frame(stream = m[2], date = as.Date(m[3]), measure_m = as.integer(m[4]), activity = trimws(m[5]))
+}))
+
 values <- list(
   sites = do.call(rbind, sites), change = do.call(rbind, change), scores = do.call(rbind, scores),
-  snow = do.call(rbind, snow), normal = do.call(rbind, normal), gauges = do.call(rbind, gauges),
+  snow = do.call(rbind, snow), normal = do.call(rbind, normal),
+  gauges = unique(do.call(rbind, gauges)), windows = do.call(rbind, windows), use = use, use_obs = use_obs,
   provenance = list(wet_commit = wet_commit, built = format(Sys.Date()), hydat = release, scripts = md5,
                     reports = reports))
 rownames(values$change) <- NULL
