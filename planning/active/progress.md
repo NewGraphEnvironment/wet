@@ -13,3 +13,4 @@
 - Plan review (Plan agent) landed; dispositions in `planning/active/review-plan.md`. Header amended before any body code (target scaling, area assert, part md5s); vignette-data test budget gets life_history_morr.csv.
 - Phase 4: site script runs at all four; maxan passes the parity gate; two fixes in the ungauged path (area parse, source from the catalog) made a full rerun necessary.
 - Phase 6/7: bundle and map built (6 KB, 20 KB; every number held to its report line), article drafted and its two figures reviewed and redrawn; tests 213 pass; CLAUDE.md lines and the site-table convention added (memory retired); research results written.
+- pkgdown build (scratch destination): articles/chinook-sites.html built; 0 mentions in articles/index.html and in the home navbar; the navbar dropdown gains a 'More articles…' link to the index (pkgdown's behaviour with `navbar: ~`). Article body 584 words.

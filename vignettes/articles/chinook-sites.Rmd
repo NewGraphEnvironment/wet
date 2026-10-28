@@ -173,11 +173,15 @@ tab <- data.frame(
 knitr::kable(tab, row.names = FALSE, align = "lrrrr",
              caption = "Held-out scores in each stream's box: the median over gauges, where 1 is perfect and 0 is no better than the average year. Filling in a record is tested at the box's long-record gauges; Gosnell Creek has no record of its own to fill in.")
 stopifnot(all(sc$carried >= 0.5), sc$ols[sc$site_id == "swift"] < 0.2)
+# "the less certain of its two routes": Swift's filled-in range wider than its borrowed one, in both windows
+width <- function(w, route) with(row_of("swift", w, route), pct_hi - pct_lo)
+stopifnot(width("migration", "extended") > width("migration", "carried"),
+          width("spawning", "extended") > width("spawning", "carried"))
 ```
 
 Both routes are scored by hiding a gauge's own record and predicting it from its
-neighbours. Neighbours' departures score at least 0.5 in every box, the bar the method
-was given before the Maxan work. Filling in a record scores about as well as at Maxan in
+neighbours. Neighbours' departures score at least 0.5 in every box, the bar set for
+the method before any Maxan result. Filling in a record scores about as well as at Maxan in
 the Cottonwood and Morice boxes and poorly in the upper Fraser, where only
 `r sc$ext_gauges[sc$site_id == "swift"]` gauges have long enough records to test it. There,
 Swift Creek's change from its filled-in record is the less certain of its two routes.
