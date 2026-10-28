@@ -83,7 +83,7 @@ wet owns hydrology data, observed and modelled (decided 2026-09-28, sred#26), wa
 
 ## Database
 
-fwapg in PostgreSQL, for example fresh's Docker setup (`fresh/docker/`, db `fwapg`). Scripts connect with `DBI::dbConnect(RPostgres::Postgres(), ...)` using the `WET_PG*` env vars (`scripts/departure_pilot.R` alone reads libpq's bare `PG*`); never hardcode hosts.
+fwapg in PostgreSQL, for example fresh's Docker setup (`fresh/docker/`, db `fwapg`). Scripts connect with `DBI::dbConnect(RPostgres::Postgres(), ...)` using the `WET_PG*` env vars (`scripts/departure_pilot.R` alone reads libpq's bare `PG*`); never hardcode hosts. `scripts/departure_pcic.R` needs a database loaded from fwapg's published `pcic` export, including the 1951–2012 run's `pcic.subbasin_daily` (fwapg's `load/pcic_run.sql`), and its fingerprint check refuses one holding another fwapg build; its per-year files are fwapg's published parquet in the directory `WET_PCIC_YEARS` names (#135 would cache them).
 
 A pending fwapg migration is tried, not applied: `wet:::wet_pg_trial(conn, file)` runs it inside a transaction rolled back when the caller's frame exits, refusing transaction control of its own and named calls whose effect a rollback does not undo (dblink, `COPY ... PROGRAM`, `setval()`), and checking the transaction id is unchanged after. Sequence increments and other non-transactional effects are not caught, so read a migration before trying it. The live snap tests that need fwapg#41's `fwa_indexpoint()` skip on an older database, run against the migration when `WET_FWAPG_TRIAL` names its file, and fail instead of skipping under `WET_FWAPG_CURRENT=true`, which a database that should be current sets so a stale one cannot pass.
 
