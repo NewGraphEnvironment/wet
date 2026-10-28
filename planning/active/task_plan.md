@@ -33,14 +33,14 @@ It sits beside `vignettes/station-flow.Rmd`, which covers gauged departures at B
 
 ## Phase 1: the snow regression saves its series
 
-- [ ] `scripts/departure_snow.R`: after the report, save `data/departure/departure_snow_20260717.rds` (gitignored), as the pilot does. It holds:
+- [x] `scripts/departure_snow.R`: after the report, save `data/departure/departure_snow_20260717.rds` (gitignored), as the pilot does. It holds:
   - each watershed's per-year `swe_max`, `snowmelt_doy_50` and `snowmelt_rate_peak`, 1950–2025;
   - the eight response series;
   - the before/after snow table;
   - `release` and `code_md5` (`tools::md5sum` of the script).
   
   The header and `CLAUDE.md` name the file.
-- [ ] Rerun it from a frozen copy. The tracked report must regenerate byte-identical; a diff stops the phase. Log to `data/logs/130/`.
+- [x] Rerun it from a frozen copy. The tracked report must regenerate byte-identical; a diff stops the phase. Log to `data/logs/130/`.
 
 ## Phase 2: the article's data bundle
 
