@@ -222,6 +222,7 @@ for (id in site_ids) {
         target_lat = if (site$kind == "ungauged") site$target_lat else NA_real_,
         km2 = if (site$kind == "ungauged") x$normal$km2 else x$pool$drainage_area_gross_km2[x$pool$station_number == target],
         windows = paste(names(site_windows(site)), collapse = " "),
+        lon_span = site$box[["lon_max"]] - site$box[["lon_min"]], lat_span = site$box[["lat_max"]] - site$box[["lat_min"]],
         obs_first = if (site$kind == "extend") min(mm$e$year[mm$e$source == "observed"]) else NA_integer_,
         obs_last = if (site$kind == "extend") max(mm$e$year[mm$e$source == "observed"]) else NA_integer_,
         obs_n = if (site$kind == "extend") sum(mm$e$source == "observed") else 0L)

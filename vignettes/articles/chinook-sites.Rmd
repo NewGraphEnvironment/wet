@@ -63,6 +63,9 @@ spw <- do.call(rbind, lapply(ids, row_of, w = "spawning", route = "carried"))
 mig <- do.call(rbind, lapply(ids, row_of, w = "migration", route = "carried"))
 # the answer: spawning-window flow lower at every stream, the migration window's range spanning no change
 stopifnot(all(spw$pct < 0))
+# the opening: Maxan's five summers and its lower spawning-window flow; Gosnell never gauged
+stopifnot(sites$obs_n[sites$site_id == "maxan"] == 5, row_of("maxan", "spawning", "extended")$pct_hi < 0,
+          identical(sites$kind, c("extend", "extend", "extend", "ungauged")))
 # "no stream shows a clear change by either route" in the migration window
 mig_all <- ch[ch$group == "BULK" & ch$statistic == "mean" & ch$window == "migration", ]
 stopifnot(all(mig_all$pct_lo < 0), all(mig_all$pct_hi > 0))
@@ -71,6 +74,17 @@ stopifnot(all(sites$obs_n[sites$site_id %in% c("swift", "naver")] < 20))
 low_spw <- spw[spw$pct_hi < 0, ]
 sc <- v$scores[v$scores$group == "BULK", ]
 stopifnot(identical(sc$site_id, ids))
+# "about as well as at Maxan in the Cottonwood and Morice boxes, and worse in the upper Fraser":
+# within 0.15 of Maxan's median on both routes at Naver and Gosnell; Swift's filled-in record 0.2 or more below
+sc_of <- function(id, col) sc[[col]][sc$site_id == id]
+for (id in c("naver", "gosnell")) {
+  stopifnot(abs(sc_of(id, "ols") - sc_of("maxan", "ols")) <= 0.15, abs(sc_of(id, "carried") - sc_of("maxan", "carried")) <= 0.15)
+}
+stopifnot(sc_of("swift", "ols") <= sc_of("maxan", "ols") - 0.2)
+# "the windows are the Bulkley's at all four; only the Morice has its own"
+stopifnot(all(grepl("^BULK", sites$windows)), identical(sites$windows != "BULK", sites$site_id == "gosnell"))
+# the map caption: every box the size of Maxan's
+stopifnot(all(abs(sites$lon_span - sites$lon_span[1]) < 1e-9), all(abs(sites$lat_span - sites$lat_span[1]) < 1e-9))
 ```
 
 The article on [Maxan Creek](short-record-flow.html) used the R package
