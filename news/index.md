@@ -1,5 +1,17 @@
 # Changelog
 
+## wet 0.4.26
+
+- A new article, “Chinook Flow at a Short-Record Stream”, shows how flow
+  in two Chinook windows has changed at Maxan Creek, gauged for only
+  five summers: the rest of its years filled from nearby gauges, and the
+  window flows set beside each year’s snow. Its spawning-window flow
+  fell by more than half from 1931–1980 to 2011–2024
+  ([\#130](https://github.com/NewGraphEnvironment/wet/issues/130)). The
+  four articles now cite the Freshwater Atlas, upstream `fwapg` and New
+  Graph’s fork of it separately, the fork only where it places PCIC’s
+  routed flow.
+
 ## wet 0.4.25
 
 - [`wet_routed_years()`](https://newgraphenvironment.github.io/wet/reference/wet_routed_years.md)
