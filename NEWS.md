@@ -1,3 +1,7 @@
+# wet 0.4.27
+
+* The Maxan Creek article now opens with two sentences on chinook spawning there: DFO's spawner surveys found them in some years between the late 1980s and the early 2000s, and Gottesfeld and Rabnett (2007) suggest where the main spawning grounds lie and note the creek's low flows. Both sources are cited, and the article's body-prose cap rises from 600 to 800 words. The fuller account waits on a per-stream table of salmon records (#137).
+
 # wet 0.4.26
 
 * A new article, "Chinook Flow at a Short-Record Stream", shows how flow in two Chinook windows has changed at Maxan Creek, gauged for only five summers: the rest of its years filled from nearby gauges, and the window flows set beside each year's snow. Its spawning-window flow fell by more than half from 1931–1980 to 2011–2024 (#130). The four articles now cite the Freshwater Atlas, upstream `fwapg` and New Graph's fork of it separately, the fork only where it places PCIC's routed flow.
