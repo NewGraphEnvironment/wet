@@ -14,10 +14,10 @@
 # the snow regression fits beside the target, space-separated, or empty for the
 # rule in scripts/departure_site_snow.R's header.
 
-ds_sites_file <- file.path("scripts", "departure_sites.csv")
+site_file <- file.path("scripts", "departure_sites.csv")
 
 # One site's row as a list, validated
-ds_site <- function(id, file = ds_sites_file) {
+site_get <- function(id, file = site_file) {
   x <- utils::read.csv(file, colClasses = "character", na.strings = character(), strip.white = FALSE)
   cols <- c("site_id", "name", "wsg_code", "kind", "target_station", "blue_line_key", "target_lon",
             "target_lat", "lon_min", "lon_max", "lat_min", "lat_max", "windows", "snow_gauges")
@@ -50,7 +50,7 @@ ds_site <- function(id, file = ds_sites_file) {
   if (r$kind == "ungauged") {
     r$target_lon <- num(r$target_lon)
     r$target_lat <- num(r$target_lat)
-    ds_in_box(r, r$target_lon, r$target_lat)
+    site_in_box(r, r$target_lon, r$target_lat)
   }
   r$windows <- strsplit(r$windows, " ", fixed = TRUE)[[1]]
   if (!identical(r$windows[1], "BULK") || anyDuplicated(r$windows)) {
@@ -62,7 +62,7 @@ ds_site <- function(id, file = ds_sites_file) {
 }
 
 # Refuses a target outside its own box
-ds_in_box <- function(site, lon, lat) {
+site_in_box <- function(site, lon, lat) {
   b <- site$box
   if (!(lon >= b[["lon_min"]] && lon <= b[["lon_max"]] && lat >= b[["lat_min"]] && lat <= b[["lat_max"]])) {
     stop(site$site_id, ": the target (", lon, ", ", lat, ") lies outside its box", call. = FALSE)
@@ -72,7 +72,7 @@ ds_in_box <- function(site, lon, lat) {
 
 # The site's Chinook window sets: a named list, one per group in `windows`,
 # each a data.frame(window, start, end) of the CH migration and spawning rows
-ds_windows <- function(site, dir = file.path("inst", "vignette-data")) {
+site_windows <- function(site, dir = file.path("inst", "vignette-data")) {
   out <- lapply(site$windows, function(g) {
     f <- file.path(dir, sprintf("life_history_%s.csv", tolower(g)))
     if (!file.exists(f)) stop(site$site_id, ": no ", f, " for the ", g, " windows", call. = FALSE)
