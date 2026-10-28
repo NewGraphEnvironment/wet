@@ -1,6 +1,7 @@
 # The vignettes run on data bundled by data-raw/station_vignette_*.R (#27),
 # data-raw/segment_vignette_*.R (#28, #64, #71), data-raw/monthly_vignette_data.R
-# (#65) and data-raw/short_record_vignette_*.R (#130), never on HYDAT, fwapg or the network.
+# (#65), data-raw/short_record_vignette_*.R (#130) and data-raw/life_history_data.R (#126), never on
+# HYDAT, fwapg or the network.
 
 vignette_data <- function(f) system.file("vignette-data", f, package = "wet")
 
@@ -10,7 +11,8 @@ test_that("each vignette's bundled data stays under 500 KB", {
   budget <- list(station = c("station_daily.rds", "station_map.rds", "life_history_bulk.csv"),
                  segment = c("segment_values.rds", "segment_map.rds"),
                  monthly = c("monthly_values.rds", "monthly_map.rds"),
-                 short_record = c("short_record_values.rds", "short_record_map.rds"))
+                 short_record = c("short_record_values.rds", "short_record_map.rds"),
+                 chinook_sites = c("life_history_morr.csv"))
   expect_setequal(files, unlist(budget))
   for (v in names(budget)) {
     expect_lt(sum(file.size(vignette_data(budget[[v]]))), 500 * 1024)

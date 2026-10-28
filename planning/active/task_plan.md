@@ -1,4 +1,4 @@
-# Task: Second-region Chinook pilots: Swift Creek (UFRA) and Naver Creek (COTR) extended from short records, Owen Creek (MORR) with no gauge (#126)
+# Task: Second-region Chinook pilots: Swift Creek (UFRA) and Naver Creek (COTR) extended from short records, Gosnell Creek (MORR) with no gauge (#126)
 
 **If we do it:** the Maxan method (#120) and the snow explanation (#121) are tested at three more Chinook streams, with the method fixed in advance, so a result at Maxan is either shown to hold elsewhere or found to be Bulkley-specific, and the method gets its first test at a stream with no gauge at all. **If we never do:** every claim about change in Chinook-window flow rests on one site in one snow regime, and on a stream that was at least gauged for five years.
 
@@ -20,12 +20,12 @@ The Maxan pilot (#120, extension and carried departures) and its snow regression
 - [x] Count Chinook records per candidate stream: NuSEDS (open.canada.ca CSV, downloaded once into `data/chinook_sites/raw/` with its md5 reported) plus provincial observations (`bcfishobs.observations` joined to `fwa_stream_networks_sp` on the stream's blue_line_key). Candidates: Swift, Naver, Gosnell, Lamprey.
 - [x] Fix the Morice target by record count. Ties go to the stream with a spawning-stage record, then to the larger area. Write the counts and the choice in `research/chinook_sites.md` (new topic file, with a provenance header) and add a row to `research/README.md`.
 - [x] Check the issue's window counts for 08KA012 and 08KE014 under the pilot's definition (HYDAT 20260717, `wet_window_stats()` min_frac 0.8).
-- [x] Edit the issue body and title: Owen becomes the chosen stream, 08KA012 is the Swift target, and the decisions above are added.
+- [x] Edit the issue body and title: Gosnell replaces Owen, 08KA012 is the Swift target, and the decisions above are added.
 
 ## Phase 2: Site table and timing
 - [x] `scripts/departure_sites.csv`, one row per site: `site_id`, `name`, `wsg_code`, `kind` (`extend` | `ungauged`), `target_station`, `blue_line_key` (mouth point for ungauged), `lon_min/lon_max/lat_min/lat_max`, `windows` (life-history wsg codes, `BULK` always first), `snow_gauges` (observed long-record gauges regressed beside the target; empty = the snow header's rule), `target_lon/target_lat` (ungauged mouth). `label_keys` dropped: the map labels the target stream by `blue_line_key`. Maxan's row carries its box verbatim. Every other box is the same size as Maxan's (3.8° × 2.2°) and centred on the target.
 - [x] `scripts/departure_site_lib.R`: `site_get(id)` reads and validates a row, and refuses an unknown id, a missing field or a box without its target (prefix `site_`, since `scripts/departure_snow_lib.R` already uses `ds_`). `site_windows(site)` returns the site's window sets from the bundled life-history CSVs.
-- [x] `data-raw/life_history_data.R` writes `inst/vignette-data/life_history_morr.csv` (MORR rows, same columns as `life_history_bulk.csv`) from knowledge's `data/life_history_timing.csv`. The source path is a local checkout named by an env var. The table is cited to Bustard and Schell (2002): Chinook migration 05-01..09-30, spawning 09-01..10-07. `life_history_bulk.csv` is not touched. UFRA and COTR have no cited windows yet, so they run under the Bulkley windows only, and the reports say so.
+- [x] `data-raw/life_history_data.R` writes `inst/vignette-data/life_history_morr.csv` (MORR rows, same columns as `life_history_bulk.csv`) from knowledge's `data/life_history_timing.csv`. Read with `gh api` at knowledge c97c4d0, as `station_vignette_data.R`. The table is cited to Bustard and Schell (2002): Chinook migration 05-01..09-30, spawning 09-01..10-07. `life_history_bulk.csv` is not touched. UFRA and COTR have no cited windows yet, so they run under the Bulkley windows only, and the reports say so.
 
 ## Phase 3: Register the rules (headers only, committed alone, before any body code)
 - [x] `scripts/departure_site.R <site_id>` header, which is #120's rule taken over per site:

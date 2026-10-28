@@ -78,7 +78,12 @@
 # departures, per statistic and window, k = 5 from the departure pool, under
 # the predictors of a station at the mouth: the site's target_lon/target_lat
 # and, for area, the fundamental watersheds whose wscode_ltree descends from
-# the blue line's (the stream's whole basin). Its window flow per year is
+# the blue line's (the stream's whole basin), refused unless within 0.1 km2 of
+# data/checks/chinook_sites_use.txt's area for it. The target's row joins the
+# station table for its own carry alone; every held-out test runs on the box
+# pool's table, so the predictor SDs there are the pool's (amended before any
+# body code, after the plan review: a target row in the shared table would move
+# every box score). The FWA area stands in for a HYDAT gross area. Its window flow per year is
 # the published normal (below) times exp(carried departure), for the window
 # mean only. min7 and cov_day get departures only, because the product
 # publishes no normal for them. The report says that the result at the
@@ -89,7 +94,8 @@
 # segment, the lowest-measure segment on the blue line that has rows in the
 # part. Each source's window mean comes from its days (wet_flow_window(),
 # basis "daily"), and the normal is the `pick` source's. Both sources and the
-# pick are reported, with the build's tree digest (wet:::wet_catalog_digest()).
+# pick are reported, with the build's tree digest (wet:::wet_catalog_digest())
+# and the md5 of each part read, so a rerun on another build shows itself.
 #
 # The normal's error: at every box gauge in the migration-mean departure pool
 # whose snap (wet_station_snap()) is accepted, the published pick's window mean
