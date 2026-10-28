@@ -12,7 +12,8 @@ It sits beside `vignettes/station-flow.Rmd`, which covers gauged departures at B
 ## Decided at the gate (2026-10-27, airvine)
 
 - **Donors for the second estimate:** keep #120's nearest Bulkley donors (08EE013, 08EE003, 08EE008, 08EE020, 08JA016). The headline is Maxan's extended record (ordinary least squares on the nearest covering donor), and no donor choice changes it.
-- **One sentence on #122:** province-wide, donors picked by PCIC's modelled covariance carry departures better (median held-out NSE 0.72 against 0.67). At Maxan those donors include four plateau gauges 100–230 km east, and their series starts in 1973, so the article keeps the nearest donors.
+- **One sentence on #122:** province-wide, donors picked by PCIC's modelled covariance carry departures better (median held-out NSE 0.72 against 0.67). At Maxan those donors include four plateau gauges 100–230 km east, and their series starts in 1973, so the article keeps the nearest donors. *Dropped after the plan review (G1): its numbers are in no file the data script reads, and `writing.md` cuts how a decision was reached.*
+- **After the plan review (2026-10-27, `review-plan.md`):** renamed from "ungauged" to "short-record" (Maxan has five years, and the extension needs them): `vignettes/short-record-flow.Rmd`, `data-raw/short_record_vignette_*.R`, `inst/vignette-data/short_record_*.rds`, registry keys `short_record_map` and `short_record_series`. The change table keeps three rows (the migration 7-day minimum's two routes disagree in sign); scores are per window statistic; the limits name the Bulkley at Quick.
 
 ## Exploration that shaped the plan
 
@@ -35,16 +36,15 @@ It sits beside `vignettes/station-flow.Rmd`, which covers gauged departures at B
 
 - [x] `scripts/departure_snow.R`: after the report, save `data/departure/departure_snow_20260717.rds` (gitignored), as the pilot does. It holds:
   - each watershed's per-year `swe_max`, `snowmelt_doy_50` and `snowmelt_rate_peak`, 1950–2025;
-  - the eight response series;
-  - the before/after snow table;
-  - `release` and `code_md5` (`tools::md5sum` of the script).
+  - the eight response series and the 24 fits;
+  - `release` and `code_md5` (`tools::md5sum` of the script). The before/after table is recomputed in Phase 2 and the cd SHA parsed from the report.
   
   The header and `CLAUDE.md` name the file.
 - [x] Rerun it from a frozen copy. The tracked report must regenerate byte-identical; a diff stops the phase. Log to `data/logs/130/`.
 
 ## Phase 2: the article's data bundle
 
-- [x] `data-raw/ungauged_vignette_data.R` → `inst/vignette-data/ungauged_values.rds`. It reads the two rds files and refuses:
+- [x] `data-raw/short_record_vignette_data.R` → `inst/vignette-data/short_record_values.rds` (first named `ungauged_*`). It reads the two rds files and refuses:
   - when a file's `code_md5` is not the md5 of its script at HEAD;
   - when `R/`, `scripts/`, `data-raw/` or `data/checks/` hold uncommitted changes (`vd_git()`).
 
@@ -61,7 +61,7 @@ It sits beside `vignettes/station-flow.Rmd`, which covers gauged departures at B
 
 ## Phase 3: map layers and colours
 
-- [x] `data-raw/ungauged_vignette_map.R` → `inst/vignette-data/ungauged_map.rds`, through `vignette_map_lib.R`:
+- [x] `data-raw/short_record_vignette_map.R` → `inst/vignette-data/short_record_map.rds`, through `vignette_map_lib.R`:
   - Maxan, Buck and Houston with their catchments, and the donor gauges as points;
   - the Bulkley River and Maxan Creek by `blue_line_key`;
   - lakes, Bulkley Lake among them;
@@ -71,7 +71,7 @@ It sits beside `vignettes/station-flow.Rmd`, which covers gauged departures at B
 
 ## Phase 4: the article
 
-- [ ] `vignettes/ungauged-flow.Rmd`, titled "Chinook Flow at an Ungauged Stream". Headings follow the reader's questions:
+- [ ] `vignettes/short-record-flow.Rmd`, titled "Chinook Flow at a Short-Record Stream". Headings follow the reader's questions:
   1. An opening that gives the answer with its numbers.
   2. **Where Maxan Creek is:** a map of Maxan, Buck and Houston, their catchments and the donor gauges.
   3. **How flow has changed:** the extended series in both windows, with its 90 % band, the observed years marked, and a table of the four changes and their intervals.
@@ -88,7 +88,9 @@ It sits beside `vignettes/station-flow.Rmd`, which covers gauged departures at B
 
 ## Phase 5: check and PR
 
-- [ ] Install the branch, then `pkgdown::build_article("ungauged-flow")`. Read the rendered figures at their delivered width against the cartography self-review, and check that the word cap passes.
+- [x] `tests/testthat/test-vignette_data.R`: the new bundles in the size budget, and a shape test for each (plan review B1).
+- [ ] `CLAUDE.md` names the article and its scripts beside the other three, and the headers of `scripts/vignette_map_lib.R` and `scripts/vignette_data_lib.R` name the new scripts (plan review G6).
+- [ ] Install the branch, then `pkgdown::build_article("short-record-flow")`. Read the rendered figures at their delivered width against the cartography self-review, and check that the word cap passes.
 - [ ] `pkgdown::check_pkgdown()`; `devtools::test()`.
 - [ ] `/code-check branch`; `/planning-archive`; `/gh-pr-push`.
 
@@ -105,6 +107,6 @@ It sits beside `vignettes/station-flow.Rmd`, which covers gauged departures at B
 
 How each change is proved:
 - **Phase 1:** `departure_snow_20260717.txt` regenerates byte-identical, and the rds's per-year snow rounds to the report's table.
-- **Phase 2:** rerunning the data script reproduces `ungauged_values.rds` `identical()`. A script comment changed in a scratch copy, so that its md5 no longer matches, makes the data script refuse; so does a dirty `scripts/`.
+- **Phase 2:** rerunning the data script reproduces the values bundle `identical()`. A series file stamped with another md5 makes the data script refuse; so do a dirty `scripts/` and one report number moved in a copy of the report.
 - **Phase 3:** the map layers are rebuilt, and the catchments' areas are held to HYDAT within 10 % (the `vm_catchments()` check).
 - **Phase 4:** the article renders after install, every `stopifnot()` holds, the cap passes, and the rendered PNGs are read before the PR.
