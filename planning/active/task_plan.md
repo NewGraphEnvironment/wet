@@ -28,7 +28,7 @@ The Maxan pilot (#120, extension and carried departures) and its snow regression
 - [x] `data-raw/life_history_data.R` writes `inst/vignette-data/life_history_morr.csv` (MORR rows, same columns as `life_history_bulk.csv`) from knowledge's `data/life_history_timing.csv`. The source path is a local checkout named by an env var. The table is cited to Bustard and Schell (2002): Chinook migration 05-01..09-30, spawning 09-01..10-07. `life_history_bulk.csv` is not touched. UFRA and COTR have no cited windows yet, so they run under the Bulkley windows only, and the reports say so.
 
 ## Phase 3: Register the rules (headers only, committed alone, before any body code)
-- [ ] `scripts/departure_site.R <site_id>` header, which is #120's rule taken over per site:
+- [x] `scripts/departure_site.R <site_id>` header, which is #120's rule taken over per site:
   - The pools come from the site's box.
   - Extension uses OLS, k = 5. The three-candidate leave-gauge-out race is reported, with "what #120's rule would pick".
   - Carried departures are weighted by distance, k = 5. The method is usable if the box's departure-pool median NSE is ≥ 0.5.
@@ -38,8 +38,8 @@ The Maxan pilot (#120, extension and carried departures) and its snow regression
   - The result at the ungauged point itself is stated as untested.
   - A second window set runs where the site names one.
   - **Parity gate:** `maxan` must reproduce the tracked `data/checks/departure_pilot_20260717.txt` headline numbers (pool counts, section-2 medians, carried medians, Maxan's change table), or the script refuses.
-- [ ] `scripts/departure_site_snow.R <site_id>` header: #121 unchanged per site. The responses are the target's extended and carried series plus the site's `snow_gauges` observed. The watershed comes from the snap, or for an ungauged site from the FWA upstream of the mouth point. **Parity gate:** `maxan` must reproduce `data/checks/departure_snow_20260717.txt`'s fits.
-- [ ] Commit the two headers alone: "Register #126's rules before any body code".
+- [x] `scripts/departure_site_snow.R <site_id>` header: #121 unchanged per site. The responses are the target's extended and carried series plus the site's `snow_gauges` observed. The watershed comes from the snap, or for an ungauged site from the FWA upstream of the mouth point. **Parity gate:** `maxan` must reproduce `data/checks/departure_snow_20260717.txt`'s fits.
+- [x] Commit the two headers alone: "Register #126's rules before any body code".
 
 ## Phase 4: The pilot per site
 - [ ] Implement `departure_site.R`, adapted from `scripts/departure_pilot.R`'s body with the site's values swapped in for the hard-coded Maxan ones. Reuse `wet_window_extend()`, `wet_departure_carry()`, `wet_station_snap()`, `wet_window_stats()`, `wet_segment_daily()` and `wet_flow_window()`. Outputs: `data/checks/departure_site_<site>_20260717.txt` (tracked, no timestamp) and `data/departure/departure_site_<site>_20260717.rds` (gitignored, `code_md5`).
