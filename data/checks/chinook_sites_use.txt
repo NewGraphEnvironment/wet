@@ -5,14 +5,14 @@ Provincial fish observations (fwapg bcfishobs.observations, 375962 rows): Chinoo
 Area: the fundamental watersheds under the stream's watershed code in its group. Gauges: HYDAT 20260717 BC stations inside that area.
 A NuSEDS use record: ADULT_PRESENCE PRESENT or NATURAL_ADULT_SPAWNERS > 0. A spawning record: a NuSEDS use record, or an observation whose activity names spawning.
 
-  stream         wsg  blkey      role         km2 gauges      nuseds     use years       obs spawn years       use
-  Swift Creek    UFRA 356345574  extend     186.8 08KA010 08KA012       60      57 1970-2024    17     1 1974-2012    74
-  Naver Creek    COTR 356363814  extend     907.9 08KE014         50      24 1985-2023    25     6 1988-2012    49
-  Gosnell Creek  MORR 360885021  morice     536.9 none            29       1 2001-2001     3     0 1981-1999     4
-  Lamprey Creek  MORR 360880441  morice     240.2 none             0       0 -             4     0 1984-2009     4
-  Owen Creek     MORR 360819468  dropped    212.5 none            11       0 -             0     0 -             0
+  stream         wsg  blkey      role         km2 gauges      nuseds     use   uyrs years       obs spawn years       use
+  Swift Creek    UFRA 356345574  extend     186.8 08KA010 08KA012       60      57     55 1970-2024    17     1 1974-2012    74
+  Naver Creek    COTR 356363814  extend     907.9 08KE014         50      24     24 1985-2023    25     6 1988-2012    49
+  Gosnell Creek  MORR 360885021  morice     536.9 none            29       1      1 2001-2001     3     0 1981-1999     4
+  Lamprey Creek  MORR 360880441  morice     240.2 none             0       0      0 -             4     0 1984-2009     4
+  Owen Creek     MORR 360819468  dropped    212.5 none            11       0      0 -             0     0 -             0
 
-nuseds: Chinook rows; use: of them, use records. obs: provincial Chinook observations; spawn: of them, spawning records. Last column: use records in all.
+nuseds: Chinook rows; use: of them, use records; uyrs: the distinct years with a use record. obs: provincial Chinook observations; spawn: of them, spawning records. Last column: use records in all.
 
 Provincial Chinook observations, per stream:
 
