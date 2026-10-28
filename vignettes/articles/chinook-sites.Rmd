@@ -79,9 +79,9 @@ never gauged.
 **The answer.** In the spawning window, flow in a typical year of 2011–2025 was lower
 than before 1981 at all four streams, by `r pct(min(abs(spw$pct)))` to
 `r pct(max(abs(spw$pct)))` from neighbours' departures alone; at
-`r and_text(name_of[low_spw$site_id])` the 90% range stays below no change. Migration-window
-flow changed little anywhere. The method scored as well as at Maxan in the Cottonwood and
-Morice boxes, and worse in the upper Fraser, where few long records sit nearby.
+`r and_text(sub(" Creek$", "", name_of[low_spw$site_id]))` creeks the 90% range stays below no change. Migration-window
+flow changed little anywhere. The method scored about as well as at Maxan in the Cottonwood
+and Morice boxes, and worse in the upper Fraser, where few long records sit nearby.
 
 ## Which streams?
 
@@ -155,9 +155,9 @@ err_factor <- exp(v$normal$err_abs_out[v$normal$group == "BULK" & v$normal$windo
 
 The spawning-window drop is largest at Maxan and Naver creeks and smallest at Swift
 Creek. Filling in each gauged stream's own record
-gives drops in the same direction (`r pct(min(abs(ext$pct)))`–`r pct(max(abs(ext$pct)))`),
-with wider ranges. Under the Morice's own Chinook windows, a month later than the Bulkley's,
-Gosnell Creek's spawning-window drop is smaller, `r pct(morr$pct)`, and its range reaches
+gives drops in the same direction (`r pct(min(abs(ext$pct)))`–`r pct(max(abs(ext$pct)))`).
+Under the Morice's own Chinook windows, whose spawning window falls a month later than the
+Bulkley's, Gosnell Creek's spawning-window drop is smaller, `r pct(morr$pct)`, and its range reaches
 no change.
 
 ## How well does the method score?
@@ -171,7 +171,7 @@ tab <- data.frame(
   `Gauges scored` = sc$carried_gauges,
   check.names = FALSE)
 knitr::kable(tab, row.names = FALSE, align = "lrrrr",
-             caption = "Held-out scores in each stream's box: the median over gauges, where 1 is perfect and 0 is no better than the average year.")
+             caption = "Held-out scores in each stream's box: the median over gauges, where 1 is perfect and 0 is no better than the average year. Filling in a record is tested at the box's long-record gauges; Gosnell Creek has no record of its own to fill in.")
 stopifnot(all(sc$carried >= 0.5), sc$ols[sc$site_id == "swift"] < 0.2)
 ```
 
