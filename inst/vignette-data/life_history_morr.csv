@@ -1,0 +1,27 @@
+"species_code","life_stage","start","end","source","note"
+"CH","migration","05-01","09-30","bustard_schell2002ConservingMorice","see Shepher 1979 for peak spawning"
+"CH","spawning","09-01","10-07","bustard_schell2002ConservingMorice",
+"CH","incubation","09-01","04-15",,"no source in template; to confirm with knowledge holders"
+"CH","emergence","03-15","04-15","bustard_schell2002ConservingMorice",
+"CH","outmigration","04-15","07-15","gottesfeld_rabnett2007SkeenaFish",
+"CO","migration","07-15","09-07","bustard_schell2002ConservingMorice",
+"CO","spawning","10-15","11-30","bustard_schell2002ConservingMorice",
+"CO","incubation","10-15","07-07",,"no source in template; to confirm with knowledge holders"
+"CO","emergence","05-15","07-07","gottesfeld_rabnett2007SkeenaFish",
+"CO","outmigration","04-21","07-31","bustard_schell2002ConservingMorice",
+"ST","migration","07-01","09-15","bustard_schell2002ConservingMorice",
+"ST","spawning","05-15","06-15","bustard_schell2002ConservingMorice",
+"ST","incubation","05-15","08-31","bustard_schell2002ConservingMorice",
+"ST","emergence","08-01","08-31","bustard_schell2002ConservingMorice",
+"ST","overwintering","07-01","03-21","bustard_schell2002ConservingMorice",
+"SK","migration","06-15","08-31","bustard_schell2002ConservingMorice",
+"SK","spawning","09-01","09-30","bustard_schell2002ConservingMorice",
+"SK","incubation","09-01","05-21","gottesfeld_rabnett2007SkeenaFish",
+"BT","migration","06-01","09-01","bustard_schell2002ConservingMorice",
+"BT","spawning","08-23","09-15","bustard_schell2002ConservingMorice",
+"BT","incubation","08-23","04-30",,"no source in template; to confirm with knowledge holders"
+"CT","migration","05-01","06-01",,"no source in template; to confirm with knowledge holders"
+"CT","spawning","06-01","06-30","bustard_schell2002ConservingMorice",
+"CT","incubation","06-30","08-07","bustard_schell2002ConservingMorice",
+"CT","emergence","07-01","08-07","bustard_schell2002ConservingMorice",
+"PL","spawning","06-30","07-31","bustard_schell2002ConservingMorice",

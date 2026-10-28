@@ -8,3 +8,4 @@
 - User: run all phases to the PR
 - Next: start Phase 1
 - Phase 1: `scripts/chinook_sites_use.R` → `data/checks/chinook_sites_use.txt` (byte-identical on rerun). NuSEDS All Areas 2026-06-01 downloaded to `data/chinook_sites/raw/`. Morice target: Gosnell Creek (tie with Lamprey at 4; spawning record). Window counts at 08KA012 (14, 1985–1998) and 08KE014 (18, 1956–1975) match the issue. Issue body and title edited. `research/chinook_sites.md` opened.
+- Phase 2: `scripts/departure_sites.csv` (maxan, swift, naver, gosnell), `scripts/departure_site_lib.R` (`ds_site()`, `ds_windows()`, `ds_in_box()`), `data-raw/life_history_data.R` → `inst/vignette-data/life_history_morr.csv` (knowledge at c97c4d0, as the BULK file).
