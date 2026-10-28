@@ -26,7 +26,7 @@ station_map,point,,part,station,Hydrometric station,#d55e00,1,,,,,,,,,,,,,,,,"Ok
 short_record_map,polygon,,part,catchment_main,Drains to the Bulkley gauge near Houston,#f0f0f0,1,,,,,,,,,,,,,,,,ColorBrewer Greys lightest: the largest catchment
 short_record_map,polygon,,part,catchment_buck,Drains to the Buck Creek gauge,#d9d9d9,1,,,,,,,,,,,,,,,,ColorBrewer Greys light: inside the Bulkley gauge's
 short_record_map,polygon,,part,catchment_maxan,Drains to Maxan Creek's gauge,#fdd0a2,1,,,,,,,,,,,,,,,,"ColorBrewer Oranges light: the subject's catchment, in the subject's hue"
-short_record_map,line,,part,stream_main,"Bulkley River, Buck Creek and Maxan Creek",#1f78b4,1,,,,,,,,,,,,,,,,gq lake stroke blue: the gauged streams
+short_record_map,line,,part,stream_main,"Bulkley River; Buck, Maxan and Foxy creeks",#1f78b4,1,,,,,,,,,,,,,,,,"gq lake stroke blue: the streams the article names"
 short_record_map,point,,part,subject,Maxan Creek gauge (five years),#d55e00,1,,,,,,,,,,,,,,,,"Okabe-Ito vermillion: the subject, as station_map's station"
 short_record_map,point,,part,fill,Gauge whose record fills Maxan's years,#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue: the neighbours the record is filled from
 short_record_map,point,,part,lend,Gauge that lends only its departures,#56b4e9,1,,,,,,,,,,,,,,,,Okabe-Ito sky blue: the neighbours whose departures are borrowed
@@ -34,6 +34,3 @@ short_record_series,polygon,,part,band,90% range,#d9d9d9,1,,,,,,,,,,,,,,,,ColorB
 short_record_series,line,,part,extended,Filled from a neighbouring gauge,#636363,1,,,,,,,,,,,,,,,,ColorBrewer Greys dark: as hydrograph's median
 short_record_series,point,,part,observed,Measured at Maxan Creek,#d55e00,1,,,,,,,,,,,,,,,,Okabe-Ito vermillion: the subject
 short_record_series,line,,part,period_mean,Typical flow over the period,#000000,1,,,,,,,,,,,,,,,,Okabe-Ito black: the two means compared
-snow_gauge,point,,station_number,08EE003,Bulkley River near Houston,#009e73,1,,,,,,,,,,,,,,,,Okabe-Ito bluish green
-snow_gauge,point,,station_number,08EE013,Buck Creek,#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue: as short_record_map's fill
-snow_gauge,point,,station_number,08EE018,Maxan Creek (filled record),#d55e00,1,,,,,,,,,,,,,,,,Okabe-Ito vermillion: the subject

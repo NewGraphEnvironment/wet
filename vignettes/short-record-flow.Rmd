@@ -54,7 +54,6 @@ pal_map <- classes("short_record_map",
                    c("catchment_main", "catchment_buck", "catchment_maxan", "stream_main", "subject", "fill",
                      "lend"))
 pal_series <- classes("short_record_series", c("band", "extended", "observed", "period_mean"))
-pal_gauge <- classes("snow_gauge", c("08EE003", "08EE013", maxan))
 
 theme_set(theme_minimal(base_size = 10) +
             theme(legend.position = "bottom", panel.grid.minor = element_blank()))
@@ -106,11 +105,13 @@ stopifnot(scm$extension_gauges == scs$extension_gauges, scm$carried_gauges == sc
           scm$maxan_years == length(obs_years))
 ```
 
-Maxan Creek runs into Bulkley Lake, at the head of the Bulkley River, which Chinook
-salmon use in summer. Chinook have spawned in Maxan Creek too: surveys in Fisheries and
-Oceans Canada's salmon escapement records found them there in some years between the
-late 1980s and the early 2000s. Gottesfeld and Rabnett suggest its main spawning grounds
-lie between Maxan Lake and Foxy Creek, and note that low flows can leave the creek partly dry and impassable to
+Maxan Creek runs into Bulkley Lake, at the head of the Bulkley River. Chinook salmon
+use the upper Bulkley year round: adults spawn there in August and September, their eggs
+stay in the gravel until the fry emerge in spring, and the young rear in the river and its
+spawning creeks, Maxan Creek among them. In Maxan Creek, surveys in Fisheries and Oceans
+Canada's salmon escapement records found Chinook in some years between the late 1980s
+and the early 2000s. Gottesfeld and Rabnett suggest its main spawning grounds lie in the
+reach between the outlet of Maxan Lake and Foxy Creek, and note that low flows can leave the creek partly dry and impassable to
 fish, and that beaver activity has affected it. It was gauged for only five summers,
 `r min(obs_years)`–`r max(obs_years)`. This article uses the R package
 [`wet`](https://newgraphenvironment.github.io/wet/) to fill in its flow for the years it
@@ -182,6 +183,17 @@ st_lab$y <- st_lab$y + st_lab$ny * dy
 st_lab$label <- short[st_lab$station_number]
 pl <- sf::st_coordinates(map$places)
 pl_lab <- data.frame(x = pl[, 1], y = pl[, 2] - 0.04 * dy, label = map$places$name)
+# the water the opening names: Foxy Creek and Maxan Lake, labelled on themselves
+foxy <- map$streams[map$streams$gnis_name %in% "Foxy Creek", ]
+mlake <- map$lakes[map$lakes$gnis_name %in% "Maxan Lake", ]
+stopifnot(nrow(foxy) == 1, foxy$main, nrow(mlake) == 1)
+# Foxy against the west side of its line, the lake's name off its south end, so neither crosses a
+# stream or touches Decker Lake to the east
+fx <- sf::st_coordinates(sf::st_point_on_surface(sf::st_geometry(foxy)))
+lk <- sf::st_bbox(mlake)
+wa_lab <- data.frame(x = c(fx[1, "X"] - 0.006 * dx, lk[["xmax"]] + 0.004 * dx),
+                     y = c(fx[1, "Y"] + 0.025 * dy, lk[["ymin"]] - 0.008 * dy),
+                     label = c("Foxy Creek", "Maxan Lake"), hjust = c(1, 0))
 
 stream_sty <- reg_main$layers$streams_all$classification$classes$WA24111110
 lake_sty <- reg_main$layers$lake
@@ -219,6 +231,8 @@ ggplot() +
           key_glyph = "path") +
   geom_label(data = pl_lab, aes(x, y, label = label), colour = town_sty$label$color, fontface = "bold",
              size = 3.4, linewidth = 0, fill = "white", alpha = 0.85, label.padding = unit(1.5, "pt")) +
+  geom_text(data = wa_lab, aes(x, y, label = label, hjust = hjust), colour = pal_map$values[["stream_main"]],
+            fontface = "italic", size = 3) +
   geom_sf(data = st, aes(shape = role, fill = role), colour = "black", size = 2.8, stroke = 0.4) +
   geom_label(data = st_lab, aes(x, y, label = label, hjust = hjust), size = 3.1, linewidth = 0,
              fill = "white", alpha = 0.85, label.padding = unit(1.5, "pt")) +
@@ -350,7 +364,7 @@ sw <- v$snow_change
 swe_pct <- 100 * (sw$swe_post / sw$swe_pre - 1)
 doy_shift <- sw$doy_post - sw$doy_pre
 # "about ten days earlier" and "3–4% lower" at every gauge
-stopifnot(nrow(sw) == 3, all(doy_shift < -8.5 & doy_shift > -11.5), all(swe_pct < -2.5 & swe_pct > -4.5))
+stopifnot(nrow(sw) == 3, setequal(sw$gauge, catch$station_number), all(doy_shift < -8.5 & doy_shift > -11.5), all(swe_pct < -2.5 & swe_pct > -4.5))
 swe_text <- paste0(floor(min(abs(swe_pct))), "–", ceiling(max(abs(swe_pct))), "%")
 
 f <- v$fits[v$fits$series != "carried", ]
@@ -358,71 +372,44 @@ fm <- f[f$window == "migration", ]
 doy_gain <- 100 * (exp(fm$slope[fm$model == "doy"]) - 1)      # per 10 days later
 swe_gain <- 100 * (exp(fm$slope[fm$model == "swe"]) - 1)      # per 100 mm more
 # "about a quarter" and "about a third" at each of the three gauges; every slope's interval above zero
-stopifnot(length(doy_gain) == 3, length(swe_gain) == 3, all(abs(doy_gain - 25) < 5),
+stopifnot(length(doy_gain) == 3, length(swe_gain) == 3, setequal(fm$gauge, catch$station_number),
+          all(fm$series[fm$gauge == maxan] == "extended"),   # "over its filled record" all(abs(doy_gain - 25) < 5),
           all(abs(swe_gain - 100 / 3) < 7), all(fm$slope_lo > 0))
 spawn_r2 <- max(f$r2[f$window == "spawning"])
 stopifnot(spawn_r2 < 0.1)
 
-d <- merge(v$departures[v$departures$series != "carried", ],
-           v$snow[c("gauge", "year", "melt_doy")], by = c("gauge", "year"))
-d$pct_normal <- 100 * exp(d$dep)
-d$panel <- factor(windows[d$window], windows)
-d$gauge <- factor(d$gauge, names(pal_gauge$values))
-# each drawn line is the bundled one-predictor fit: same slope, refitted on the same years
-for (k in seq_len(nrow(f[f$model == "doy", ]))) {
-  r <- f[f$model == "doy", ][k, ]
-  x <- d[d$gauge == r$gauge & d$window == r$window, ]
-  stopifnot(nrow(x) == r$n,
-            isTRUE(all.equal(unname(stats::coef(stats::lm(dep ~ I(melt_doy / 10), x))[2]), r$slope)))
-}
-# breaks inside the drawn range, so no label is cut at the edge
-doy_breaks <- as.integer(format(as.Date(c("2001-04-15", "2001-05-01", "2001-05-15", "2001-06-01")), "%j"))
-stopifnot(max(doy_breaks) <= max(d$melt_doy), min(doy_breaks) >= min(d$melt_doy) - 1)
-cap_snow <- sprintf(paste(
-  "Each year's window flow, as a percentage of its 1981–2010 average, against its half-melt date: the",
-  "day by which half the year's snowmelt had happened, averaged over the watershed, %s. Maxan Creek's",
-  "values are its filled years. Lines are fits on the log scale."
-), paste0(min(d$year), "–", max(d$year)))
 ```
 
-On all three watersheds, half of each year's snowmelt came about ten days earlier
+On each of the three catchments on the map, half of each year's snowmelt came about ten days earlier
 in 2011–2025 than in 1950–1980, and the water in the peak snowpack was `r swe_text`
-lower. Migration-window flow follows the snow: at all three gauges, a year whose
+lower. Migration-window flow follows the snow: at all three gauges (at Maxan, over its
+filled record), a year whose
 half-melt came ten days later carried about a quarter more flow, and one with 100 mm
 more water in the peak snowpack about a third more. Spawning-window flow does not: each of these two
 measures of snow explains at most `r round(100 * spawn_r2)`% of its variation between
 years at any gauge.
 
-```{r snow, fig.height = 5.5, fig.cap = cap_snow}
-ggplot(d, aes(melt_doy, pct_normal, colour = gauge)) +
-  geom_hline(yintercept = 100, colour = pal_series$values[["extended"]], linewidth = 0.3) +
-  geom_point(size = 1.2, alpha = 0.7) +
-  geom_smooth(method = "lm", formula = y ~ x, se = FALSE, linewidth = 0.7) +
-  facet_wrap(~ panel, ncol = 1, scales = "free_y",
-             labeller = as_labeller(stats::setNames(paste0(windows, " (", window_dates, ")"), windows))) +
-  scale_y_log10(labels = function(x) paste0(x, "%")) +
-  scale_x_continuous(breaks = doy_breaks, labels = function(x) {
-    d <- as.Date(x - 1, "2001-01-01")
-    paste(format(d, "%b"), as.integer(format(d, "%d")))
-  }) +
-  scale_colour_manual(values = pal_gauge$values, labels = pal_gauge$labels, name = NULL) +
-  labs(x = "Half-melt date", y = "Window flow (% of 1981–2010 average)")
-```
-
-## What it does not show
+## Where could it be wrong?
 
 ```{r limits}
 quick <- "08EE004"
 n_quick <- sum(ext$window == "migration" & ext$year %in% pre & ext$donor %in% quick)
-stopifnot(n_quick > length(pre) / 2)   # "most of the years"
+n_quick_sp <- sum(ext$window == "spawning" & ext$year %in% pre & ext$donor %in% quick)
+stopifnot(n_quick > length(pre) / 2, n_quick_sp > length(pre) / 2)   # "most years", in both windows
+area <- stats::setNames(v$gauges$area_km2, v$gauges$station_number)
+stopifnot(area[[quick]] > 10 * area[[maxan]])   # "a much larger river"
 small <- sum(ext$window == "spawning" & ext$value < 0.5)
 n_spawn <- sum(ext$window == "spawning")
 stopifnot(small > n_spawn / 2)
 ```
 
-- **Each filled year rests on one nearby gauge**, through a fit on five summers.
-- **Most of the years before 1981 come from the Bulkley at Quick**, whose
-  catchment holds Maxan's, so they carry the Bulkley's own history:
+- **Each filled year is estimated from a single nearby gauge**, using how that
+  gauge's flow and Maxan's moved together in the five summers both were measured.
+  Five summers is a short base, and any error in it carries into every year filled
+  from that gauge.
+- **Most years before 1981 are estimated from the Bulkley at Quick**, a much
+  larger river whose catchment takes in Maxan Creek's and the Morice River's, so
+  those years partly follow that whole basin rather than Maxan alone:
   `r n_quick` of the `r length(pre)` in the migration window.
 - **Spawning-window flows are small**, under 0.5 m³/s in `r small` of the
   `r n_spawn` years, so a small change in flow is a large one in percent.
@@ -454,7 +441,8 @@ reanalysis dataset for land applications, *Earth System Science Data* 13,
 4349–4383, [doi:10.5194/essd-13-4349-2021](https://doi.org/10.5194/essd-13-4349-2021);
 the Chinook windows from Gottesfeld, A. and Rabnett, K. (2007), *Skeena Fish
 Populations and their Habitat*, Skeena Fisheries Commission, and from the same report
-Maxan Creek's spawning grounds and beaver activity (p. 357) and its low flows (pp. 342
+when Chinook fry emerge (p. 29), the upper Bulkley's spawning months
+and rearing streams (p. 355), Maxan Creek's spawning grounds and beaver activity (p. 357) and its low flows (pp. 342
 and 357); the spawner surveys from Fisheries and Oceans Canada's New Salmon
 Escapement Database System (NuSEDS), release of 1 June 2026,
 <https://open.canada.ca/data/en/dataset/c48669a3-045b-400d-b730-48aafe8c5ee6>; the stream network from the Freshwater Atlas Stream Network (Province of British

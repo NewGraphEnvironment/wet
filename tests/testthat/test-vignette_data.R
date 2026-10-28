@@ -247,6 +247,6 @@ test_that("the short-record map layers are sf in BC Albers, with the three catch
   expect_setequal(m$stations$station_number, v$gauges$station_number)
   expect_setequal(m$catchments$station_number, c("08EE003", "08EE013", "08EE018"))
   expect_true(all(abs(m$catchments$area_ratio - 1) < 0.1))
-  expect_equal(sum(m$streams$main), 3L)
+  expect_setequal(m$streams$gnis_name[m$streams$main], c("Bulkley River", "Buck Creek", "Maxan Creek", "Foxy Creek"))
 })
 
