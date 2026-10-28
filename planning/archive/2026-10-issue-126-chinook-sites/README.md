@@ -35,4 +35,4 @@ Wrong turns kept:
 - File an issue: move Maxan's five files onto the site table and retire `departure_pilot.R` / `departure_snow.R` as separate code paths.
 - File an issue: `covariance_pick` carried departures at the sites, where PCIC covers them.
 
-Closed by: PR (to be opened from branch 126-second-region-chinook-pilots-swift-creek)
+Closed by: PR #141
