@@ -1,0 +1,460 @@
+---
+title: "Chinook Flow at a Short-Record Stream"
+output: bookdown::html_vignette2
+vignette: >
+  %\VignetteIndexEntry{Chinook Flow at a Short-Record Stream}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 7,
+  out.width = "100%",
+  dpi = 150
+)
+```
+
+```{r load}
+# data from data-raw/short_record_vignette_data.R and data-raw/short_record_vignette_map.R
+library(wet)
+library(ggplot2)
+sf::sf_use_s2(FALSE)
+
+vd <- function(f) system.file("vignette-data", f, package = "wet")
+v <- readRDS(vd("short_record_values.rds"))
+map <- readRDS(vd("short_record_map.rds"))
+prov <- v$provenance
+maxan <- "08EE018"
+
+to_title <- function(x) {
+  vapply(strsplit(tolower(x), " "), function(w) {
+    big <- !w %in% c("at", "the", "near", "of", "above", "below")
+    w[big] <- paste0(toupper(substring(w[big], 1, 1)), substring(w[big], 2))
+    paste(w, collapse = " ")
+  }, "")
+}
+name_of <- stats::setNames(to_title(v$gauges$station_name), v$gauges$station_number)
+
+# colours come from the gq registry, so no hex literal appears in this vignette;
+# assert each class set, because a malformed CSV row adds a layer silently
+reg <- gq::gq_reg_custom(system.file("cartography", "wet_station.csv", package = "wet"))
+reg_main <- gq::gq_reg_main()
+classes <- function(layer, expect) {
+  x <- gq::gq_tmap_classes(reg$layers[[layer]])
+  stopifnot(identical(names(x$values), expect))
+  list(values = x$values, labels = stats::setNames(x$labels, names(x$values)))
+}
+pal_map <- classes("short_record_map",
+                   c("catchment_main", "catchment_buck", "catchment_maxan", "stream_main", "subject", "donor"))
+pal_series <- classes("short_record_series", c("band", "extended", "observed", "period_mean"))
+pal_gauge <- classes("snow_gauge", c("08EE003", "08EE013", maxan))
+
+theme_set(theme_minimal(base_size = 10) +
+            theme(legend.position = "bottom", panel.grid.minor = element_blank()))
+pct <- function(x) paste0(round(abs(x)), "%")
+and_text <- function(x) sub(", ([^,]*)$", " and \\1", paste(x, collapse = ", "))
+
+# the windows, as the pilot defined them
+windows <- c(migration = "Migration", spawning = "Spawning")
+window_dates <- c(migration = "May 1 – August 1", spawning = "August 1 – September 15")
+```
+
+```{r numbers}
+ext <- v$extended
+obs_years <- sort(unique(ext$year[ext$source == "observed"]))
+stopifnot(identical(obs_years, 1975:1979))
+first_year <- min(ext$year)
+last_year <- max(ext$year)
+pre <- first_year:1980
+post <- 2011:last_year
+pre_text <- paste0(min(pre), "–", max(pre))
+post_text <- paste0(min(post), "–", max(post))
+
+ch <- v$change
+row_of <- function(s, w) {
+  r <- ch[ch$statistic == s & ch$window == w, ]
+  stopifnot(nrow(r) == 1, r$n_pre == length(pre), r$n_post == length(post))
+  r
+}
+sp <- row_of("mean", "spawning")
+sp7 <- row_of("min7", "spawning")
+mg <- row_of("mean", "migration")
+# the sentences: the spawning window clearly lower, the migration window's range spans no change
+stopifnot(sp$pct_hi < 0, sp7$pct_hi < 0, mg$pct_lo < 0, mg$pct_hi > 0)
+# "about two thirds" for the lowest seven-day flow
+stopifnot(abs(sp7$pct + 100 * 2 / 3) < 3)
+# the borrowed departures: the same direction, smaller drops
+stopifnot(sp$carried_pct < 0, abs(sp$carried_pct) < abs(sp$pct), abs(mg$carried_pct) < abs(mg$pct))
+
+sc <- v$scores
+score_of <- function(s, w) {
+  r <- sc[sc$statistic == s & sc$window == w, ]
+  stopifnot(nrow(r) == 1)
+  r
+}
+scm <- score_of("mean", "migration")
+scs <- score_of("mean", "spawning")
+cover <- range(c(scm$extension_cover, scs$extension_cover))
+stopifnot(scm$extension_gauges == scs$extension_gauges, scm$carried_gauges == scs$carried_gauges,
+          scm$maxan_years == length(obs_years))
+```
+
+Maxan Creek runs into Bulkley Lake, at the head of the Bulkley River, which Chinook
+salmon use in summer. Its flow was measured for only five summers,
+`r min(obs_years)`–`r max(obs_years)`. This article uses the R package
+[`wet`](https://newgraphenvironment.github.io/wet/) to fill in the rest of its record
+from gauges nearby, and asks how flow has changed in two Chinook windows: adult
+migration (`r window_dates[["migration"]]`) and spawning
+(`r window_dates[["spawning"]]`).
+
+**The answer.** In the spawning window, Maxan Creek's average flow in `r post_text`
+was `r pct(sp$pct)` lower than in `r pre_text`, with a 90% range of
+`r pct(sp$pct_hi)`–`r pct(sp$pct_lo)` lower, and its lowest seven-day flow fell by
+about two thirds. In the migration window the change is small and uncertain:
+`r pct(mg$pct)` lower, with a range from `r pct(mg$pct_lo)` lower to
+`r pct(mg$pct_hi)` higher.
+
+## Where is Maxan Creek?
+
+```{r map-data}
+catch <- map$catchments
+catch$part <- c("08EE003" = "catchment_main", "08EE013" = "catchment_buck",
+                "08EE018" = "catchment_maxan")[catch$station_number]
+catch <- catch[order(match(catch$part, c("catchment_main", "catchment_buck", "catchment_maxan"))), ]
+# the caption says Maxan's and Buck Creek's catchments lie inside the Bulkley gauge's
+share_inside <- function(id) {
+  a <- sf::st_geometry(catch[catch$station_number == id, ])
+  as.numeric(sf::st_area(sf::st_intersection(a, sf::st_geometry(catch[catch$part == "catchment_main", ])))) /
+    as.numeric(sf::st_area(a))
+}
+stopifnot(share_inside(maxan) > 0.99, share_inside("08EE013") > 0.99)
+maxan_km2 <- catch$area_km2[catch$station_number == maxan]
+
+st <- map$stations
+st$role <- ifelse(st$station_number == maxan, "subject", "donor")
+# every other gauge lends Maxan years, by one route or the other
+stopifnot(all(st$extension_donor | st$carried_donor | st$station_number == maxan))
+d_km <- as.numeric(sf::st_distance(st[st$station_number == maxan, ], st)) / 1000
+far_km <- 10 * round(max(d_km) / 10)
+stopifnot(abs(max(d_km) - far_km) < 5)   # "within about"
+
+map_w <- 7
+map_h <- 6.5
+bb <- sf::st_bbox(sf::st_buffer(sf::st_union(c(sf::st_geometry(catch), sf::st_geometry(st))), 6000))
+# room below for the legend and scale bar, so neither covers a gauge
+bb[["ymin"]] <- bb[["ymin"]] - 0.22 * (bb[["ymax"]] - bb[["ymin"]])
+bb <- gq::gq_bbox_aspect(bb, asp = map_w / map_h)
+lim_x <- c(bb[["xmin"]], bb[["xmax"]])
+lim_y <- c(bb[["ymin"]], bb[["ymax"]])
+dx <- diff(lim_x)
+dy <- diff(lim_y)
+
+# labels: short names, placed by hand so none covers another or a gauge;
+# the Houston gauge sits just west of Buck Creek's mouth
+short <- c("08EE018" = "Maxan Creek", "08EE003" = "Bulkley near Houston", "08EE013" = "Buck Creek",
+           "08EE004" = "Bulkley at Quick", "08EE008" = "Goathorn Creek", "08EE020" = "Telkwa River",
+           "08JA016" = "MacIvor Creek")
+stopifnot(setequal(names(short), st$station_number))
+nudge <- data.frame(station_number = c("08EE018", "08EE003", "08EE013", "08EE004", "08EE008", "08EE020", "08JA016"),
+                    nx = c(0.015, -0.015, 0.015, 0.015, -0.015, 0.015, 0.015),
+                    ny = c(0, 0.025, -0.025, 0, 0.02, 0.02, 0),
+                    hjust = c(0, 1, 0, 0, 1, 0, 0))
+xy <- sf::st_coordinates(st)
+st_lab <- merge(data.frame(station_number = st$station_number, x = xy[, 1], y = xy[, 2]), nudge)
+st_lab$x <- st_lab$x + st_lab$nx * dx
+st_lab$y <- st_lab$y + st_lab$ny * dy
+st_lab$label <- short[st_lab$station_number]
+pl <- sf::st_coordinates(map$places)
+pl_lab <- data.frame(x = pl[, 1], y = pl[, 2] - 0.04 * dy, label = map$places$name)
+
+stream_sty <- reg_main$layers$streams_all$classification$classes$WA24111110
+lake_sty <- reg_main$layers$lake
+town_sty <- reg_main$layers$town
+
+sb_km <- max(gq::gq_scale_breaks(bb))
+sb <- data.frame(x = lim_x[2] - 0.05 * dx - sb_km * 1000, y = lim_y[1] + 0.05 * dy)
+sb$xend <- sb$x + sb_km * 1000
+
+key <- ggplot() +
+  geom_sf(data = map$bc, fill = "white", colour = pal_series$values[["extended"]], linewidth = 0.2) +
+  geom_sf(data = sf::st_as_sfc(bb), fill = NA, colour = pal_map$values[["subject"]], linewidth = 0.6) +
+  theme_void() +
+  theme(panel.background = element_rect(fill = "white", colour = pal_series$values[["extended"]],
+                                        linewidth = 0.3))
+key_w <- 0.22 * dx
+key_h <- key_w * 1.05
+
+cap_map <- sprintf(paste(
+  "Maxan Creek's gauge and catchment (%s km²), and the gauges its record is filled from.",
+  "Maxan's and Buck Creek's catchments lie inside the Bulkley gauge's near Houston."
+), format(round(maxan_km2), big.mark = ","))
+```
+
+Maxan Creek drains `r round(maxan_km2)` km² of plateau east of Houston. The gauges
+that fill its record are all within about `r far_km` km.
+
+```{r map, fig.width = map_w, fig.height = map_h, fig.cap = cap_map}
+ggplot() +
+  geom_sf(data = catch, aes(fill = part), colour = pal_series$values[["extended"]], linewidth = 0.25,
+          key_glyph = "rect") +
+  geom_sf(data = map$lakes, fill = lake_sty$fill$color, colour = lake_sty$stroke$color, linewidth = 0.15) +
+  geom_sf(data = map$streams[!map$streams$main, ], colour = stream_sty$color, linewidth = 0.3) +
+  geom_sf(data = map$streams[map$streams$main, ], aes(colour = "stream_main"), linewidth = 0.8,
+          key_glyph = "path") +
+  geom_label(data = pl_lab, aes(x, y, label = label), colour = town_sty$label$color, fontface = "bold",
+             size = 3.4, linewidth = 0, fill = "white", alpha = 0.85, label.padding = unit(1.5, "pt")) +
+  geom_sf(data = st, aes(shape = role, fill = role), colour = "black", size = 2.8, stroke = 0.4) +
+  geom_label(data = st_lab, aes(x, y, label = label, hjust = hjust), size = 3.1, linewidth = 0,
+             fill = "white", alpha = 0.85, label.padding = unit(1.5, "pt")) +
+  geom_segment(data = sb, aes(x = x, xend = xend, y = y, yend = y), linewidth = 1) +
+  geom_text(data = sb, aes(x = (x + xend) / 2, y = y, label = paste(sb_km, "km")), vjust = -0.7, size = 3.2) +
+  annotation_custom(ggplotGrob(key), xmin = lim_x[2] - key_w - 0.02 * dx, xmax = lim_x[2] - 0.02 * dx,
+                    ymin = lim_y[2] - key_h - 0.02 * dy, ymax = lim_y[2] - 0.02 * dy) +
+  scale_fill_manual(values = pal_map$values[c("catchment_main", "catchment_buck", "catchment_maxan",
+                                              "subject", "donor")],
+                    breaks = c("catchment_maxan", "catchment_buck", "catchment_main"),
+                    labels = pal_map$labels[c("catchment_maxan", "catchment_buck", "catchment_main")],
+                    name = NULL) +
+  scale_colour_manual(values = pal_map$values["stream_main"], labels = pal_map$labels["stream_main"],
+                      name = NULL) +
+  scale_shape_manual(values = c(subject = 21, donor = 24), breaks = c("subject", "donor"),
+                     labels = pal_map$labels[c("subject", "donor")], name = NULL) +
+  guides(shape = guide_legend(order = 1, override.aes = list(fill = pal_map$values[c("subject", "donor")])),
+         colour = guide_legend(order = 2), fill = guide_legend(order = 3)) +
+  coord_sf(xlim = lim_x, ylim = lim_y, expand = FALSE, datum = NA) +
+  theme_void(base_size = 11) +
+  theme(legend.position = "inside", legend.position.inside = c(0.02, 0.02),
+        legend.justification = c(0, 0), legend.box.just = "left", legend.box = "vertical",
+        legend.box.background = element_rect(fill = "white", colour = NA),
+        legend.background = element_rect(fill = "white", colour = NA),
+        legend.margin = margin(4, 6, 4, 6), legend.spacing.y = unit(0, "pt"),
+        panel.border = element_rect(fill = NA, colour = pal_series$values[["extended"]]))
+```
+
+## How has flow changed?
+
+```{r change-data}
+ext$panel <- factor(windows[ext$window], windows)
+means <- do.call(rbind, lapply(names(windows), function(w) {
+  e <- ext[ext$window == w, ]
+  data.frame(panel = windows[[w]], period = c("pre", "post"),
+             x = c(min(pre), min(post)) - 0.5, xend = c(max(pre), max(post)) + 0.5,
+             y = c(exp(mean(log(e$value[e$year %in% pre]))), exp(mean(log(e$value[e$year %in% post])))))
+}))
+means$panel <- factor(means$panel, windows)
+# the drawn means are the geometric means the changes compare: their ratio is the change
+for (w in names(windows)) {
+  m <- means[means$panel == windows[[w]], ]
+  stopifnot(isTRUE(all.equal(100 * (m$y[2] / m$y[1] - 1), row_of("mean", w)$pct, tolerance = 1e-6)))
+}
+
+tab <- data.frame(
+  Window = c(windows[["migration"]], windows[["spawning"]], windows[["spawning"]]),
+  Flow = c("Average", "Average", "Lowest seven days"),
+  Change = vapply(list(mg, sp, sp7), function(r) paste0(if (r$pct < 0) "−" else "+", pct(r$pct)), ""),
+  Range = vapply(list(mg, sp, sp7), function(r) {
+    paste0(if (r$pct_lo < 0) "−" else "+", pct(r$pct_lo), " to ", if (r$pct_hi < 0) "−" else "+", pct(r$pct_hi))
+  }, "")
+)
+names(tab)[3:4] <- c(paste(post_text, "against", pre_text), "90% range")
+
+cap_change <- sprintf(paste(
+  "Average flow in each window, %s (log scale). Points are the five measured summers; the line fills",
+  "the other years from one nearby gauge each, shaded by its 90%% range. Black lines are each",
+  "period's typical flow (the geometric mean), %s and %s: their ratio is the change."
+), paste0(first_year, "–", last_year), pre_text, post_text)
+```
+
+Each year has one value per window. The black lines show the two periods the
+changes compare.
+
+```{r change, fig.height = 5, fig.cap = cap_change}
+ggplot(ext, aes(year)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper, fill = "band")) +
+  geom_line(aes(y = value, colour = "extended"), linewidth = 0.4) +
+  geom_point(data = ext[ext$source == "observed", ], aes(y = value, colour = "observed"), size = 1.8) +
+  geom_segment(data = means, aes(x = x, xend = xend, y = y, yend = y, colour = "period_mean"),
+               linewidth = 0.8) +
+  facet_wrap(~ panel, ncol = 1, scales = "free_y",
+             labeller = as_labeller(stats::setNames(paste0(windows, " (", window_dates, ")"), windows))) +
+  scale_y_log10(labels = function(x) format(x, drop0trailing = TRUE, scientific = FALSE)) +
+  scale_fill_manual(values = pal_series$values["band"], labels = pal_series$labels["band"], name = NULL) +
+  scale_colour_manual(values = pal_series$values[c("extended", "observed", "period_mean")],
+                      labels = pal_series$labels[c("extended", "observed", "period_mean")], name = NULL) +
+  labs(x = NULL, y = "Average flow (m³/s)") +
+  guides(colour = guide_legend(order = 1, override.aes = list(
+    linetype = c("solid", "blank", "solid"), shape = c(NA, 16, NA))), fill = guide_legend(order = 2)) +
+  theme(panel.grid.major.x = element_blank())
+```
+
+```{r change-table}
+knitr::kable(tab, align = "llrr")
+```
+
+## How can five summers say this?
+
+```{r how-data}
+carried_text <- function(r) paste0(pct(r$carried_pct), if (r$carried_pct < 0) " lower" else " higher")
+```
+
+Two routes fill the years Maxan Creek was not measured. Each was scored by hiding
+gauges with long records and filling them back in. A score of 1 is a perfect
+match, and 0 is no better than calling every year average.
+
+- **Filling the record.** Each missing year comes from the nearest gauge with a
+  record that year, through a straight-line fit between its flow and Maxan's over
+  the five measured summers. Hidden five years at a time at
+  `r scm$extension_gauges` gauges, the fill scored a median of
+  `r sprintf("%.2f", scm$extension_median)` in the migration window and
+  `r sprintf("%.2f", scs$extension_median)` in the spawning window, and its 90%
+  range held the measured flow in `r cover[1]`–`r cover[2]`% of years.
+- **Borrowing neighbours' departures.** Each year's departure from normal (its
+  1981–2010 average) at the nearest long-record gauges, weighted toward those nearest in place and size,
+  needs no record at Maxan at all. Leaving out each of `r scm$carried_gauges`
+  gauges in turn, it scored a median of `r sprintf("%.2f", scm$carried_median)` in
+  the migration window and `r sprintf("%.2f", scs$carried_median)` in the spawning
+  window, and `r sprintf("%.2f", scm$maxan_carried)` and
+  `r sprintf("%.2f", scs$maxan_carried)` on Maxan's own five summers.
+
+The borrowed departures give smaller drops, `r carried_text(mg)` in the migration
+window and `r carried_text(sp)` in the spawning window, but the same picture: a much
+drier spawning window, and little change in migration.
+
+## Does snow explain it?
+
+```{r snow-data}
+sw <- v$snow_change
+swe_pct <- 100 * (sw$swe_post / sw$swe_pre - 1)
+doy_shift <- sw$doy_post - sw$doy_pre
+# "about ten days earlier" and "3–4% lower" at every gauge
+stopifnot(all(doy_shift < -8.5 & doy_shift > -11.5), all(swe_pct < -2.5 & swe_pct > -4.5))
+swe_text <- paste0(floor(min(abs(swe_pct))), "–", ceiling(max(abs(swe_pct))), "%")
+
+f <- v$fits[v$fits$series != "carried", ]
+fm <- f[f$window == "migration", ]
+doy_gain <- 100 * (exp(fm$slope[fm$model == "doy"]) - 1)      # per 10 days later
+swe_gain <- 100 * (exp(fm$slope[fm$model == "swe"]) - 1)      # per 100 mm more
+# "about a quarter" and "a third or more" at every gauge; every slope's interval above zero
+stopifnot(all(doy_gain > 20 & doy_gain < 30), all(swe_gain > 32 & swe_gain < 45), all(fm$slope_lo > 0))
+spawn_r2 <- max(f$r2[f$window == "spawning"])
+stopifnot(spawn_r2 < 0.1)
+
+d <- merge(v$departures[v$departures$series != "carried", ],
+           v$snow[c("gauge", "year", "melt_doy")], by = c("gauge", "year"))
+d$pct_normal <- 100 * exp(d$dep)
+d$panel <- factor(windows[d$window], windows)
+d$gauge <- factor(d$gauge, names(pal_gauge$values))
+# each drawn line is the bundled one-predictor fit: same slope, refitted on the same years
+for (k in seq_len(nrow(f[f$model == "doy", ]))) {
+  r <- f[f$model == "doy", ][k, ]
+  x <- d[d$gauge == r$gauge & d$window == r$window, ]
+  stopifnot(nrow(x) == r$n,
+            isTRUE(all.equal(unname(stats::coef(stats::lm(dep ~ I(melt_doy / 10), x))[2]), r$slope)))
+}
+# breaks inside the drawn range, so no label is cut at the edge
+doy_breaks <- as.integer(format(as.Date(c("2001-04-15", "2001-05-01", "2001-05-15", "2001-06-01")), "%j"))
+stopifnot(max(doy_breaks) <= max(d$melt_doy), min(doy_breaks) >= min(d$melt_doy) - 1)
+cap_snow <- sprintf(paste(
+  "Each year's window flow, as a percentage of its 1981–2010 average, against the date half of the",
+  "watershed's snow had melted, %s. Maxan Creek's values are its filled record. Lines are straight-line",
+  "fits (log scale)."
+), paste0(min(d$year), "–", max(d$year)))
+```
+
+On all three watersheds, snow melted about ten days earlier in 2011–2025 than in
+1950–1980, and peak snow was `r swe_text` lower. Migration-window flow follows the snow: at all three gauges, a year
+whose snow melted ten days later carried about a quarter more flow, and one with
+100 mm more snow a third or more. Spawning-window flow does not: each of these two
+measures of snow explains at most `r round(100 * spawn_r2)`% of its year-to-year
+change at any gauge.
+
+```{r snow, fig.height = 5.5, fig.cap = cap_snow}
+ggplot(d, aes(melt_doy, pct_normal, colour = gauge)) +
+  geom_hline(yintercept = 100, colour = pal_series$values[["extended"]], linewidth = 0.3) +
+  geom_point(size = 1.2, alpha = 0.7) +
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE, linewidth = 0.7) +
+  facet_wrap(~ panel, ncol = 1, scales = "free_y",
+             labeller = as_labeller(stats::setNames(paste0(windows, " (", window_dates, ")"), windows))) +
+  scale_y_log10(labels = function(x) paste0(x, "%")) +
+  scale_x_continuous(breaks = doy_breaks, labels = function(x) {
+    d <- as.Date(x - 1, "2001-01-01")
+    paste(format(d, "%b"), as.integer(format(d, "%d")))
+  }) +
+  scale_colour_manual(values = pal_gauge$values, labels = pal_gauge$labels, name = NULL) +
+  labs(x = "Date half the snow had melted", y = "Window flow (% of 1981–2010 average)")
+```
+
+## What it does not show
+
+```{r limits}
+quick <- "08EE004"
+n_quick <- sum(ext$window == "migration" & ext$year %in% pre & ext$donor %in% quick)
+stopifnot(n_quick > length(pre) / 2)   # "most of the years"
+small <- sum(ext$window == "spawning" & ext$value < 0.5)
+n_spawn <- sum(ext$window == "spawning")
+stopifnot(small > n_spawn / 2)
+```
+
+- **Each filled year rests on one nearby gauge**, through a fit on five summers.
+- **Most of the years before 1981 come from the Bulkley at Quick**, whose
+  catchment holds Maxan's, so they carry the Bulkley's own history:
+  `r n_quick` of the `r length(pre)` in the migration window.
+- **Spawning-window flows are small**, under 0.5 m³/s in `r small` of the
+  `r n_spawn` years, so a small change in flow is a large one in percent.
+- **The snow is modelled on cells a tenth of a degree across**, about 11 by 7 km
+  here, coarse for a `r round(maxan_km2)` km² watershed.
+- **The windows come from the literature for the Bulkley**, not from observation
+  at Maxan Creek.
+
+## Software and citation
+
+The flows in this article are from HYDAT release `r prov$hydat`; the snow is
+ERA5-Land, summarised per year by the R package
+[`cd`](https://newgraphenvironment.github.io/cd/) (its layers at commit
+`r substr(prov$cd_sha, 1, 7)`); the catchments and streams are the Freshwater
+Atlas's, through `fwapg`. The data were bundled at `wet` commit
+`r prov$wet_commit`. How the record is filled and scored is set out in
+[`wet`'s research notes](https://github.com/NewGraphEnvironment/wet/blob/main/research/station_flow_departure.md).
+
+```{r citation, results = "asis"}
+# the citation record each package ships: the first DOI it carries, the version, and the
+# commit when the install recorded one
+cat(wet:::wet_software_cite(c("wet", "cd", "ggplot2", "gq", "sf")), sep = "\n")
+```
+
+Cite `wet` by the DOI above, which resolves to its latest release.
+
+Data: daily flow from the Water Survey of Canada's HYDAT, release `r prov$hydat`;
+snow from Muñoz-Sabater, J. and others (2021), ERA5-Land: a state-of-the-art global
+reanalysis dataset for land applications, *Earth System Science Data* 13,
+4349–4383, [doi:10.5194/essd-13-4349-2021](https://doi.org/10.5194/essd-13-4349-2021);
+the Chinook windows from Gottesfeld, A. and Rabnett, K. (2007), *Skeena Fish
+Populations and their Habitat*, Skeena Fisheries Commission; the stream network
+from the BC Freshwater Atlas through Norris, S. (2026), *fwapg: PostgreSQL tools
+for working with British Columbia's Freshwater Atlas*,
+<https://github.com/smnorris/fwapg>; place names from BC Geographic Names.
+
+```{r wordcount, include = FALSE}
+f <- knitr::current_input()
+if (!is.null(f)) {
+  x <- readLines(f, warn = FALSE)
+  y <- utils::tail(x, -utils::head(which(x == "---"), 2)[2])   # drop the YAML header
+  cite <- which(y == "## Software and citation")
+  stopifnot(length(cite) == 1)
+  y <- utils::head(y, cite - 1)   # the closing citation section is not body prose
+  fence <- cumsum(grepl("^```", y)) %% 2 == 1
+  y <- y[!fence & !grepl("^```", y)]
+  y <- gsub("`r [^`]*`", "", y)          # inline code is not body prose
+  y <- y[!grepl("^\\s*$", y)]
+  n <- sum(lengths(strsplit(trimws(y), "\\s+")))
+  message("body prose: ", n, " words")
+  cap <- 600   # as station-flow
+  if (n > cap) stop("body prose is ", n, " words; the cap is ", cap)
+}
+```

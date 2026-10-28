@@ -42,6 +42,7 @@ xtabs(round(q_m3s) ~ source + month, q)
 - [Stream Discharge per Segment](https://newgraphenvironment.github.io/wet/articles/segment-discharge.html): what the published flow is, which source to use, how to read it, and how well each source matches the gauges.
 - [Monthly Flow per Segment](https://newgraphenvironment.github.io/wet/articles/monthly-flow.html): the twelve months, as hydrographs at three Bulkley gauges and scored at gauges across the province.
 - [Chinook Flow at Two Stations](https://newgraphenvironment.github.io/wet/articles/station-flow.html): how recent flow in three Chinook salmon windows at two stations in the Bulkley compares with its 1981–2010 normal.
+- [Chinook Flow at a Short-Record Stream](https://newgraphenvironment.github.io/wet/articles/short-record-flow.html): how flow in two Chinook windows has changed at Maxan Creek, measured for only five summers, with the rest of its record filled from nearby gauges.
 - [Water temperature functions](https://newgraphenvironment.github.io/wet/reference/index.html#water-temperature): daily station temperature, gap filling and growing-season degree days.
 - [Function reference](https://newgraphenvironment.github.io/wet/reference/)
 

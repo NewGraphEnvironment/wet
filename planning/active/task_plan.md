@@ -71,7 +71,7 @@ It sits beside `vignettes/station-flow.Rmd`, which covers gauged departures at B
 
 ## Phase 4: the article
 
-- [ ] `vignettes/short-record-flow.Rmd`, titled "Chinook Flow at a Short-Record Stream". Headings follow the reader's questions:
+- [x] `vignettes/short-record-flow.Rmd`, titled "Chinook Flow at a Short-Record Stream". Headings follow the reader's questions:
   1. An opening that gives the answer with its numbers.
   2. **Where Maxan Creek is:** a map of Maxan, Buck and Houston, their catchments and the donor gauges.
   3. **How flow has changed:** the extended series in both windows, with its 90 % band, the observed years marked, and a table of the four changes and their intervals.
@@ -84,12 +84,12 @@ It sits beside `vignettes/station-flow.Rmd`, which covers gauged departures at B
   7. **Software and citation.**
 
   It follows #110's convention: software in code font and linked, no issue numbers or dated words in the prose, and a 600-word cap enforced in a chunk. Every quoted number has its `stopifnot()`.
-- [ ] Link it from the README's "Learn more" list (plain language), and point to it from `research/station_flow_departure.md`'s Maxan section.
+- [x] Link it from the README's "Learn more" list (plain language), and point to it from `research/station_flow_departure.md`'s Maxan section.
 
 ## Phase 5: check and PR
 
 - [x] `tests/testthat/test-vignette_data.R`: the new bundles in the size budget, and a shape test for each (plan review B1).
-- [ ] `CLAUDE.md` names the article and its scripts beside the other three, and the headers of `scripts/vignette_map_lib.R` and `scripts/vignette_data_lib.R` name the new scripts (plan review G6).
+- [x] `CLAUDE.md` names the article and its scripts beside the other three, and the headers of `scripts/vignette_map_lib.R` and `scripts/vignette_data_lib.R` name the new scripts (plan review G6).
 - [ ] Install the branch, then `pkgdown::build_article("short-record-flow")`. Read the rendered figures at their delivered width against the cartography self-review, and check that the word cap passes.
 - [ ] `pkgdown::check_pkgdown()`; `devtools::test()`.
 - [ ] `/code-check branch`; `/planning-archive`; `/gh-pr-push`.
