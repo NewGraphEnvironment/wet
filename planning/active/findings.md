@@ -37,3 +37,25 @@ Relates to #118, #25.
 
 | Error | Resolution |
 |-------|------------|
+
+## Phase 1: prior work (2026-10-28)
+
+**Installed NGE packages** (DESCRIPTION URL or BugReports naming NewGraphEnvironment: cd crate cred drift flooded fly fpr fresh gq knowledge link mc ngr rfp roli spacehakr trap wet xciter). Exports matching `hyd|flow|disch|station|gauge|gage|stream|water|level|datastream|hakai|aquarius`: only federal fetchers. `ngr::ngr_hyd_q_daily()` and `ngr::ngr_hyd_realtime()` (the latter is `tidyhydat::realtime_ws()`), and wet's own `wet_station_*`. No package fetches any candidate source.
+
+**Org code search** (`gh api search/code`, `org:NewGraphEnvironment`, default branches):
+- `skeenaknowledgetrust`: references only (restoration_wedzin_kwa_2024 cites the SKT "UBR Water Temperature Monitoring Dashboard Draft" on Tableau Public; xciter test fixtures).
+- `aquarius` / `aqrt`: one hit, `restoration_wedzin_kwa_2024/data/inputs_extracted/skt_geoserver_info.csv` (2025-03-11). SKT's GeoNode serves `geonode:hydrometric_stns_flnrod_nwbc_2018_09_20`, "Provincial hydrometric and water quality station locations from the Aquarius Time-Series database sourced from http://aqrt.nrs.gov.bc.ca/. Layer created by EGIS on 2018-09-20." This is a lead for the provincial network, not a fetcher.
+- `datastream`: a report in one of our private repos, and a closed issue there, proposed (did not build) reading Pacific DataStream's API (`api.datastream.org/v1/odata/v4`) for Skeena water temperature. Also one mention in a private planning note.
+- `hakai`: one mention in a private planning note; no code.
+- `columbiabasinwaterhub`, `"water hub"`: none.
+- `realtime_ws`: ngr, water-temp-bc and wet only (federal).
+- `unbc hydrometric`: reporting-template background and methods prose, and bibliographies; no code.
+- Local grep across `~/Projects/repo` checkouts (hosts `datastream.org`, `columbiabasinwaterhub`, `skeenaknowledgetrust`, `aqrt.nrs`, `aquarius`, `hakai.org`, `bchydro`, `okanagan basin water board`): the same files, nothing more.
+
+**Open issues and PRs** in wet, water-temp-bc, ngr, fresh and one more of our repos (`hydrometric OR datastream OR hakai OR "living lakes" OR skeena OR unbc OR gauge`): no harvester work in flight. Adjacent: wet#124 (CABIN spot flows), wet#126 (second-region pilots, which would use any new gauges); downstream work on life-stage flow is in progress elsewhere.
+
+**Verdict for point 6, every source:** no NGE package or org code fetches any of them.
+
+## BC Hydro (user, 2026-10-28)
+
+BC Hydro holds a large hydrometric record, released only by individual request. Pointer issue filed: wet#140. It goes into the survey as "by request" with what is publicly known.
