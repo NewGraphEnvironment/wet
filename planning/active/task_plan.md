@@ -90,8 +90,8 @@ It sits beside `vignettes/station-flow.Rmd`, which covers gauged departures at B
 
 - [x] `tests/testthat/test-vignette_data.R`: the new bundles in the size budget, and a shape test for each (plan review B1).
 - [x] `CLAUDE.md` names the article and its scripts beside the other three, and the headers of `scripts/vignette_map_lib.R` and `scripts/vignette_data_lib.R` name the new scripts (plan review G6).
-- [ ] Install the branch, then `pkgdown::build_article("short-record-flow")`. Read the rendered figures at their delivered width against the cartography self-review, and check that the word cap passes.
-- [ ] `pkgdown::check_pkgdown()`; `devtools::test()`.
+- [x] Install the branch, then `pkgdown::build_article("short-record-flow")`. Read the rendered figures at their delivered width against the cartography self-review, and check that the word cap passes.
+- [x] `pkgdown::check_pkgdown()`; `devtools::test()`.
 - [ ] `/code-check branch`; `/planning-archive`; `/gh-pr-push`.
 
 ## Owed at the end (reported, done after merge)
