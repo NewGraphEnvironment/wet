@@ -1,3 +1,7 @@
+# wet 0.4.26
+
+* A new article, "Chinook Flow at a Short-Record Stream", shows how flow in two Chinook windows has changed at Maxan Creek, gauged for only five summers: the rest of its years filled from nearby gauges, and the window flows set beside each year's snow. Its spawning-window flow fell by more than half from 1931–1980 to 2011–2024 (#130). The four articles now cite the Freshwater Atlas, upstream `fwapg` and New Graph's fork of it separately, the fork only where it places PCIC's routed flow.
+
 # wet 0.4.25
 
 * `wet_routed_years()` routes PCIC's per-year sub-basin days to segments, and `wet_departure_carry()` can weight donors by PCIC's modelled covariance (#122). `scripts/departure_pcic.R` found donors picked by that covariance carry departures best (median held-out NSE 0.72, against 0.67 for the nearest donors). PCIC's own per-year departures (0.48) and a blend of the two (0.71) do not ship (`research/pcic_hydrology.md`).
