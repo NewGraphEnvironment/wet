@@ -1,6 +1,6 @@
 # Enumeration: every claim the article makes, what holds it, and whether the guard covers the claim's scope (#126)
 
-Round 2 found a defect inside a round-1 fix, so the review loop ends on an enumeration. Round 3 named the mechanism behind every finding so far: **a guard checked one value (the migration window, the borrowed series, complete windows, a 7-gauge subset) while its sentence spoke for a group.** The first version of this enumeration (b6a1634) checked that each claim had a guard. This version also checks that each guard covers the set its sentence names. Round 4 checked it row by row and found five rows that did not hold (7, 8, 13, 24 and the table caption) and six sentences missing; those are corrected or added below. The candidate set is every prose line of `vignettes/articles/chinook-sites.Rmd` outside code chunks, the figure and table captions, and the citation's data-derived values: 34 entries.
+Round 2 found a defect inside a round-1 fix, so the review loop ends on an enumeration. Round 3 named the mechanism behind every finding so far: **a guard checked one value (the migration window, the borrowed series, complete windows, a 7-gauge subset) while its sentence spoke for a group.** The first version of this enumeration (b6a1634) checked that each claim had a guard. This version also checks that each guard covers the set its sentence names. Round 4 checked it row by row and found five rows that did not hold (7, 8, 13, 24 and the table caption) and six sentences missing; those are corrected or added below. Round 5 verified the 34 rows on the data (32 held; rows 24 and the ranges row did not) and found three missing claims and one research sentence; all are corrected below, at the commit after f519744. The candidate set is every prose line of `vignettes/articles/chinook-sites.Rmd` outside code chunks, the figure and table captions, and the citation's data-derived values: 34 entries.
 
 | # | claim | set the sentence names | held by | guard covers that set? |
 |---|---|---|---|---|
@@ -40,3 +40,19 @@ Round 2 found a defect inside a round-1 fix, so the review loop ends on an enume
 | added | blue and orange in the change caption | the routes | the registry's `chinook_sites_change` classes, asserted in the setup chunk | yes |
 
 Not claimed, and so not guarded: the min7 and cov_day changes (Swift's migration min7 rose, and Swift's and Gosnell's migration cov_day moved earlier with ranges excluding zero; round 3). The article speaks only of mean flow, and every such sentence now says so. Nothing in the set sits above its source.
+
+## Round 5 corrections
+
+| row | was | now | held by |
+|---|---|---|---|
+| 4, figure caption | "2011–2025" | "since 2011 (to 2024, or 2025 where recorded)" | every route's post years 14 or 15 |
+| 6 | migration "no clear change" guarded on the Bulkley set | over both window sets | every migration-mean row, both sets |
+| 19 | "at least 0.5 in the migration window in every box" | unchanged | migration score at or over 0.5 in both sets |
+| 24 | "the 29 long-record gauges" | "29 gauges in its box with ten or more years of the 1981–2010 baseline" | `err_n`, the departure pool with an accepted snap |
+| added | "the ranges carry that weaker score" | "the borrowed route's ranges" | the carried bootstrap |
+| added | "Each stream has recorded Chinook use" (Maxan has no use row) | "Each of the three new streams" | use table |
+| added | "records sit in different places from Maxan's" (Naver's does not) | Swift inside the baseline unlike Maxan's; Naver before it like Maxan's | `obs_first`/`obs_last`, Maxan's `obs_last < 1981` |
+| caption | "Blue ... orange" (colours unguarded) | "by each route the legend names" | the legend is drawn from the registry |
+| research | Naver since 1999 on 08KH006 | per window: migration 08KH006 (2025 08KH001); spawning 08KC001 (08KG001 2008–2010, 2013) | the Naver series file |
+
+Every row now holds and covers the set its sentence names; nothing in the set sits above its source. The loop ends here, on this enumeration.
