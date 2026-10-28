@@ -1,8 +1,14 @@
 # Chinook Flow at a Short-Record Stream
 
 Maxan Creek runs into Bulkley Lake, at the head of the Bulkley River,
-which Chinook salmon use in summer. It was gauged for only five summers,
-1975–1979. This article uses the R package
+which Chinook salmon use in summer. Chinook have spawned in Maxan Creek
+too: surveys in Fisheries and Oceans Canada’s salmon escapement records
+found them there in some years between the late 1980s and the early
+2000s. Gottesfeld and Rabnett suggest its main spawning grounds lie
+between Maxan Lake and Foxy Creek, and note that low flows can leave the
+creek partly dry and impassable to fish, and that beaver activity has
+affected it. It was gauged for only five summers, 1975–1979. This
+article uses the R package
 [`wet`](https://newgraphenvironment.github.io/wet/) to fill in its flow
 for the years it was not measured, from gauges nearby, and asks how flow
 has changed in two Chinook windows: adult migration (May 1 – August 1)
@@ -160,8 +166,13 @@ state-of-the-art global reanalysis dataset for land applications, *Earth
 System Science Data* 13, 4349–4383,
 [doi:10.5194/essd-13-4349-2021](https://doi.org/10.5194/essd-13-4349-2021);
 the Chinook windows from Gottesfeld, A. and Rabnett, K. (2007), *Skeena
-Fish Populations and their Habitat*, Skeena Fisheries Commission; the
-stream network from the Freshwater Atlas Stream Network (Province of
+Fish Populations and their Habitat*, Skeena Fisheries Commission, and
+from the same report Maxan Creek’s spawning grounds and beaver activity
+(p. 357) and its low flows (pp. 342 and 357); the spawner surveys from
+Fisheries and Oceans Canada’s New Salmon Escapement Database System
+(NuSEDS), release of 1 June 2026,
+<https://open.canada.ca/data/en/dataset/c48669a3-045b-400d-b730-48aafe8c5ee6>;
+the stream network from the Freshwater Atlas Stream Network (Province of
 British Columbia, Ministry of Forests, Lands, Natural Resource
 Operations and Rural Development, 2021,
 <https://catalogue.data.gov.bc.ca/dataset/freshwater-atlas-stream-network>),
