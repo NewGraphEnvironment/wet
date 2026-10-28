@@ -207,9 +207,11 @@ Data: daily flow from the Water Survey of Canada’s HYDAT, release
 [water-temp-bc](https://github.com/NewGraphEnvironment/water-temp-bc),
 and its real-time feed; the Chinook windows from Gottesfeld, A. and
 Rabnett, K. (2007), *Skeena Fish Populations and their Habitat*, Skeena
-Fisheries Commission; the stream network from the BC Freshwater Atlas
-through Norris, S. (2026), *fwapg: PostgreSQL tools for working with
-British Columbia’s Freshwater Atlas*,
+Fisheries Commission; the stream network from the Freshwater Atlas
+Stream Network (Province of British Columbia, Ministry of Forests,
+Lands, Natural Resource Operations and Rural Development, 2021,
+<https://catalogue.data.gov.bc.ca/dataset/freshwater-atlas-stream-network>),
+held in a database by Norris, S. (2024), *fwapg*,
 <https://github.com/smnorris/fwapg>; place names from BC Geographic
 Names.
 

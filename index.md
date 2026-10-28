@@ -70,6 +70,11 @@ xtabs(round(q_m3s) ~ source + month, q)
   Stations](https://newgraphenvironment.github.io/wet/articles/station-flow.html):
   how recent flow in three Chinook salmon windows at two stations in the
   Bulkley compares with its 1981–2010 normal.
+- [Chinook Flow at a Short-Record
+  Stream](https://newgraphenvironment.github.io/wet/articles/short-record-flow.html):
+  how flow in two Chinook windows has changed at Maxan Creek, measured
+  for only five summers, with the years it was not measured filled from
+  nearby gauges.
 - [Water temperature
   functions](https://newgraphenvironment.github.io/wet/reference/index.html#water-temperature):
   daily station temperature, gap filling and growing-season degree days.

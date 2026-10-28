@@ -227,14 +227,19 @@ Data: routed flow from the Pacific Climate Impacts Consortium,
 University of Victoria
 ([hydromosaic](https://beehive.pacificclimate.org/chyp/): VIC-GL
 hydrologic model output routed with Raven, PNWNAmet forcing), placed on
-the Freshwater Atlas by New Graph’s fork of `fwapg` at commit 7c30f58;
-the stream network from the BC Freshwater Atlas through Norris, S.
-(2026), *fwapg: PostgreSQL tools for working with British Columbia’s
-Freshwater Atlas*, <https://github.com/smnorris/fwapg>; gauge records
-from the Water Survey of Canada’s HYDAT, release 2026-07-17; 1981–2010
-climate normals from the R package
-[`climr`](https://github.com/bcgov/climr); actual evapotranspiration
-from CGIAR-CSI’s Global High-Resolution Soil-Water Balance v3 ([figshare
+the Freshwater Atlas by New Graph’s fork of `fwapg` (Norris, S. and
+Irvine, A. (2026), *fwapg, New Graph Environment’s fork*,
+<https://github.com/NewGraphEnvironment/fwapg/tree/newgraph>) at commit
+7c30f58; the stream network from the Freshwater Atlas Stream Network
+(Province of British Columbia, Ministry of Forests, Lands, Natural
+Resource Operations and Rural Development, 2021,
+<https://catalogue.data.gov.bc.ca/dataset/freshwater-atlas-stream-network>),
+held in a database by Norris, S. (2024), *fwapg*,
+<https://github.com/smnorris/fwapg>; gauge records from the Water Survey
+of Canada’s HYDAT, release 2026-07-17; 1981–2010 climate normals from
+the R package [`climr`](https://github.com/bcgov/climr); actual
+evapotranspiration from CGIAR-CSI’s Global High-Resolution Soil-Water
+Balance v3 ([figshare
 7707605](https://figshare.com/articles/dataset/Global_High-Resolution_Soil-Water_Balance/7707605)),
 held no lower than a Fu–Budyko estimate; elevation from the Copernicus
 GLO-90 DEM; for the monthly shares, ERA5-Land snow normals (Copernicus

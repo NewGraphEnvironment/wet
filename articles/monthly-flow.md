@@ -28,16 +28,16 @@ Each source fills the twelve months its own way:
   hydrologic model over BC on observed climate and routes the runoff
   down the river network with the Raven model
   ([hydromosaic](https://beehive.pacificclimate.org/chyp/)).
-  [`fwapg`](https://github.com/smnorris/fwapg) (Norris 2026), PostgreSQL
+  [`fwapg`](https://github.com/smnorris/fwapg) (Norris 2024), PostgreSQL
   tools for the Freshwater Atlas, holds the Atlas’s stream network in a
   database; [New Graph’s
-  fork](https://github.com/NewGraphEnvironment/fwapg) of it places
-  PCIC’s river points on that network and gives each segment the flow
-  accumulated in the sub-basins draining to it, plus a share of its own
-  sub-basin’s runoff. The published value is the mean of each month’s
-  daily flow over 1981–2010. Its annual value is the plain mean of the
-  twelve months; weighting them by their days would move it by at most
-  0.4% on the segments below.
+  fork](https://github.com/NewGraphEnvironment/fwapg/tree/newgraph) of
+  it (Norris and Irvine 2026) places PCIC’s river points on that network
+  and gives each segment the flow accumulated in the sub-basins draining
+  to it, plus a share of its own sub-basin’s runoff. The published value
+  is the mean of each month’s daily flow over 1981–2010. Its annual
+  value is the plain mean of the twelve months; weighting them by their
+  days would move it by at most 0.4% on the segments below.
 - **The water balance** (`wet_balance`) is the annual flow over
   1981–2010, split into months by the shares of the year carried by the
   five gauges most like the place
@@ -321,12 +321,17 @@ Data: routed flow from the Pacific Climate Impacts Consortium,
 University of Victoria
 ([hydromosaic](https://beehive.pacificclimate.org/chyp/): VIC-GL
 hydrologic model output routed with Raven, PNWNAmet forcing), placed on
-the Freshwater Atlas by New Graph’s fork of `fwapg` at commit 7c30f58;
-the stream network from the BC Freshwater Atlas through Norris, S.
-(2026), *fwapg: PostgreSQL tools for working with British Columbia’s
-Freshwater Atlas*, <https://github.com/smnorris/fwapg>; gauge records
-from the Water Survey of Canada’s HYDAT, release 2026-07-17; for the
-balance, 1981–2010 climate normals from the R package
+the Freshwater Atlas by New Graph’s fork of `fwapg` (Norris, S. and
+Irvine, A. (2026), *fwapg, New Graph Environment’s fork*,
+<https://github.com/NewGraphEnvironment/fwapg/tree/newgraph>) at commit
+7c30f58; the stream network from the Freshwater Atlas Stream Network
+(Province of British Columbia, Ministry of Forests, Lands, Natural
+Resource Operations and Rural Development, 2021,
+<https://catalogue.data.gov.bc.ca/dataset/freshwater-atlas-stream-network>),
+held in a database by Norris, S. (2024), *fwapg*,
+<https://github.com/smnorris/fwapg>; gauge records from the Water Survey
+of Canada’s HYDAT, release 2026-07-17; for the balance, 1981–2010
+climate normals from the R package
 [`climr`](https://github.com/bcgov/climr), actual evapotranspiration
 from CGIAR-CSI’s Global High-Resolution Soil-Water Balance v3 ([figshare
 7707605](https://figshare.com/articles/dataset/Global_High-Resolution_Soil-Water_Balance/7707605))

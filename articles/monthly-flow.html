@@ -35,6 +35,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/monthly-flow.html">Monthly Flow per Segment</a></li>
     <li><a class="dropdown-item" href="../articles/segment-discharge.html">Stream Discharge per Segment</a></li>
+    <li><a class="dropdown-item" href="../articles/short-record-flow.html">Chinook Flow at a Short-Record Stream</a></li>
     <li><a class="dropdown-item" href="../articles/station-flow.html">Chinook Flow at Two Stations</a></li>
   </ul>
 </li>
@@ -93,14 +94,15 @@ the Pacific Climate Impacts Consortium (PCIC) at the University of
 Victoria, which runs the VIC-GL hydrologic model over BC on observed
 climate and routes the runoff down the river network with the Raven
 model (<a href="https://beehive.pacificclimate.org/chyp/" class="external-link">hydromosaic</a>). <a href="https://github.com/smnorris/fwapg" class="external-link"><code>fwapg</code></a> (Norris
-2026), PostgreSQL tools for the Freshwater Atlas, holds the Atlas’s
-stream network in a database; <a href="https://github.com/NewGraphEnvironment/fwapg" class="external-link">New Graph’s fork</a>
-of it places PCIC’s river points on that network and gives each segment
-the flow accumulated in the sub-basins draining to it, plus a share of
-its own sub-basin’s runoff. The published value is the mean of each
-month’s daily flow over 1981–2010. Its annual value is the plain mean of
-the twelve months; weighting them by their days would move it by at most
-0.4% on the segments below.</li>
+2024), PostgreSQL tools for the Freshwater Atlas, holds the Atlas’s
+stream network in a database; <a href="https://github.com/NewGraphEnvironment/fwapg/tree/newgraph" class="external-link">New
+Graph’s fork</a> of it (Norris and Irvine 2026) places PCIC’s river
+points on that network and gives each segment the flow accumulated in
+the sub-basins draining to it, plus a share of its own sub-basin’s
+runoff. The published value is the mean of each month’s daily flow over
+1981–2010. Its annual value is the plain mean of the twelve months;
+weighting them by their days would move it by at most 0.4% on the
+segments below.</li>
 <li>
 <strong>The water balance</strong> (<code>wet_balance</code>) is the
 annual flow over 1981–2010, split into months by the shares of the year
@@ -714,10 +716,13 @@ water balance method</a>.</p>
 <p>Data: routed flow from the Pacific Climate Impacts Consortium,
 University of Victoria (<a href="https://beehive.pacificclimate.org/chyp/" class="external-link">hydromosaic</a>: VIC-GL
 hydrologic model output routed with Raven, PNWNAmet forcing), placed on
-the Freshwater Atlas by New Graph’s fork of <code>fwapg</code> at commit
-7c30f58; the stream network from the BC Freshwater Atlas through Norris,
-S. (2026), <em>fwapg: PostgreSQL tools for working with British
-Columbia’s Freshwater Atlas</em>, <a href="https://github.com/smnorris/fwapg" class="external-link uri">https://github.com/smnorris/fwapg</a>; gauge records from
+the Freshwater Atlas by New Graph’s fork of <code>fwapg</code> (Norris,
+S. and Irvine, A. (2026), <em>fwapg, New Graph Environment’s fork</em>,
+<a href="https://github.com/NewGraphEnvironment/fwapg/tree/newgraph" class="external-link uri">https://github.com/NewGraphEnvironment/fwapg/tree/newgraph</a>)
+at commit 7c30f58; the stream network from the Freshwater Atlas Stream
+Network (Province of British Columbia, Ministry of Forests, Lands,
+Natural Resource Operations and Rural Development, 2021, <a href="https://catalogue.data.gov.bc.ca/dataset/freshwater-atlas-stream-network" class="external-link uri">https://catalogue.data.gov.bc.ca/dataset/freshwater-atlas-stream-network</a>),
+held in a database by Norris, S. (2024), <em>fwapg</em>, <a href="https://github.com/smnorris/fwapg" class="external-link uri">https://github.com/smnorris/fwapg</a>; gauge records from
 the Water Survey of Canada’s HYDAT, release 2026-07-17; for the balance,
 1981–2010 climate normals from the R package <a href="https://github.com/bcgov/climr" class="external-link"><code>climr</code></a>, actual
 evapotranspiration from CGIAR-CSI’s Global High-Resolution Soil-Water
