@@ -92,7 +92,7 @@ It sits beside `vignettes/station-flow.Rmd`, which covers gauged departures at B
 - [x] `CLAUDE.md` names the article and its scripts beside the other three, and the headers of `scripts/vignette_map_lib.R` and `scripts/vignette_data_lib.R` name the new scripts (plan review G6).
 - [x] Install the branch, then `pkgdown::build_article("short-record-flow")`. Read the rendered figures at their delivered width against the cartography self-review, and check that the word cap passes.
 - [x] `pkgdown::check_pkgdown()`; `devtools::test()`.
-- [ ] `/code-check branch`; `/planning-archive`; `/gh-pr-push`.
+- [x] `/code-check branch`; `/planning-archive`; `/gh-pr-push`.
 
 ## Owed at the end (reported, done after merge)
 
@@ -100,10 +100,10 @@ It sits beside `vignettes/station-flow.Rmd`, which covers gauged departures at B
 
 ## Validation
 
-- [ ] Tests pass
+- [x] Tests pass, but for the live Buck Creek real-time test (ECCC lacks 08EE013's October daily values; nothing on this branch touches it)
 - [x] `/code-check` clean (once over the branch with `/code-check branch`): three rounds 2026-10-28; rounds 1 and 2 each found wording that described the method in everyday words rather than by the code (r2 inside r1's fixes), so round 3 enumerated all 65 published units against the code; its six findings fixed, which ends the loop
-- [ ] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] PWF checkboxes match landed work
+- [x] `/planning-archive` on completion
 
 How each change is proved:
 - **Phase 1:** `departure_snow_20260717.txt` regenerates byte-identical, and the rds's per-year snow rounds to the report's table.
