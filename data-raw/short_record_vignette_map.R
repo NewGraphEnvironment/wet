@@ -11,7 +11,8 @@
 #     (08EE013) and the Bulkley near Houston (08EE003), from each one's FWA
 #     snap (wet_station_snap()) and fwapg's fwa_watershedatmeasure()
 #   - streams: order >= 5 in the map extent, plus the whole of the Bulkley
-#     River, Buck Creek and Maxan Creek by blue_line_key, simplified
+#     River, Buck Creek, Maxan Creek and Foxy Creek (Maxan's tributary, which the
+#     article names) by blue_line_key, simplified
 #   - lakes: FWA lakes of at least 100 ha in the map extent
 #   - places: Houston, from BC Geographic Names (bcdata)
 #   - bc: the province outline for the keymap
@@ -31,7 +32,8 @@ sf::sf_use_s2(FALSE)
 values <- readRDS(file.path("inst", "vignette-data", "short_record_values.rds"))
 gauges <- values$gauges
 catchment_ids <- c("08EE003", "08EE013", "08EE018")   # the three the snow fits sample
-blk <- c(bulkley = 360873822L, buck = 360886221L, maxan = 360881038L)   # by key: GNIS names repeat across BC
+blk <- c(bulkley = 360873822L, buck = 360886221L, maxan = 360881038L,   # by key: GNIS names repeat across BC
+         foxy = 360877225L)
 hydat <- wb_hydat(wb_release())
 out <- file.path("inst", "vignette-data", "short_record_map.rds")
 simplify_m <- 50
@@ -47,7 +49,7 @@ ext <- vm_extent(rbind(sf::st_sf(geom = sf::st_geometry(catch)),
                        sf::st_sf(geom = sf::st_buffer(sf::st_geometry(pts), 1))), 8000)
 streams <- vm_streams(conn, ext$wkt, blk, simplify_m)
 # the keys are the streams named, not only three keys
-stopifnot(identical(streams$gnis_name[match(blk, streams$blue_line_key)], c("Bulkley River", "Buck Creek", "Maxan Creek")))
+stopifnot(identical(streams$gnis_name[match(blk, streams$blue_line_key)], c("Bulkley River", "Buck Creek", "Maxan Creek", "Foxy Creek")))
 lakes <- vm_lakes(conn, ext$wkt, simplify_m)
 bc <- vm_bc(conn)
 DBI::dbDisconnect(conn)
