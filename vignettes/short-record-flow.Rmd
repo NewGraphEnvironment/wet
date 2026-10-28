@@ -107,17 +107,17 @@ stopifnot(scm$extension_gauges == scs$extension_gauges, scm$carried_gauges == sc
 ```
 
 Maxan Creek runs into Bulkley Lake, at the head of the Bulkley River, which Chinook
-salmon use in summer. Its flow was measured for only five summers,
+salmon use in summer. It was gauged for only five summers,
 `r min(obs_years)`–`r max(obs_years)`. This article uses the R package
-[`wet`](https://newgraphenvironment.github.io/wet/) to fill in the rest of its record
-from gauges nearby, and asks how flow has changed in two Chinook windows: adult
+[`wet`](https://newgraphenvironment.github.io/wet/) to fill in its flow for the years it
+was not measured, from gauges nearby, and asks how flow has changed in two Chinook windows: adult
 migration (`r window_dates[["migration"]]`) and spawning
 (`r window_dates[["spawning"]]`).
 
 **The answer.** In the spawning window, Maxan Creek's flow in a typical year of
 `r post_text` was `r pct(sp$pct)` lower than in `r pre_text`, with a 90% range of
 `r pct(sp$pct_hi)`–`r pct(sp$pct_lo)` lower, and its lowest seven-day flow fell by
-about two thirds. In the migration window the change is small and uncertain:
+about two thirds. The migration-window change is small and uncertain:
 `r pct(mg$pct)` lower, with a range from `r pct(mg$pct_lo)` lower to
 `r pct(mg$pct_hi)` higher.
 
@@ -146,10 +146,9 @@ st$role <- ifelse(g$station_number == maxan, "subject", ifelse(g$extension_donor
 stopifnot(all(g$extension_donor | g$carried_donor | g$station_number == maxan), all(g$carried_donor[st$role == "lend"]))
 d_km <- as.numeric(sf::st_distance(st[st$station_number == maxan, ], st)) / 1000
 far_of <- function(role) max(d_km[st$role == role])
-far_fill <- 10 * round(far_of("fill") / 10)
-far_lend <- 10 * round(far_of("lend") / 10)
-# "within about": the farthest of each group within 2 km of the figure printed
-stopifnot(abs(far_of("fill") - far_fill) < 2, abs(far_of("lend") - far_lend) < 2)
+far_all <- 10 * round(max(d_km) / 10)
+# "within about": the farthest gauge within 2 km of the figure printed
+stopifnot(abs(max(d_km) - far_all) < 2)
 
 map_w <- 7
 map_h <- 6.5
@@ -203,9 +202,8 @@ cap_map <- sprintf(paste(
 ), format(round(maxan_km2), big.mark = ","))
 ```
 
-Maxan Creek drains `r round(maxan_km2)` km² of plateau east of Houston. The gauges
-whose records fill its years are within about `r far_fill` km, and those that lend
-only their departures within about `r far_lend` km.
+Maxan Creek drains `r round(maxan_km2)` km² of plateau east of Houston, and every
+gauge it borrows from is within about `r far_all` km.
 
 ```{r map, fig.width = map_w, fig.height = map_h, fig.cap = cap_map}
 ggplot() +
@@ -279,8 +277,6 @@ cap_change <- sprintf(paste(
 ), paste0(first_year, "–", last_year), pre_text, post_text)
 ```
 
-The black lines are the two periods the changes compare.
-
 ```{r change, fig.height = 5, fig.cap = cap_change}
 ggplot(ext, aes(year)) +
   geom_ribbon(aes(ymin = lower, ymax = upper, fill = "band")) +
@@ -310,31 +306,36 @@ knitr::kable(tab, align = "llrr")
 carried_text <- function(r) paste0(pct(r$carried_pct), if (r$carried_pct < 0) " lower" else " higher")
 n_pre_c <- range(c(mg$n_pre_carried, sp$n_pre_carried))
 stopifnot(n_pre_c[2] < length(pre))   # "reach only"
+# "most of them from one gauge": the borrowed years before 1981 that rest on a single gauge
+n_single <- tapply(lengths(strsplit(v$carried$donors, " ")) == 1 & v$carried$year %in% pre, v$carried$window, sum)
+n_carried_pre <- tapply(v$carried$year %in% pre, v$carried$window, sum)
+stopifnot(all(n_single > n_carried_pre / 2), all(n_carried_pre == c(mg$n_pre_carried, sp$n_pre_carried)))
 n_pre_c_text <- if (n_pre_c[1] == n_pre_c[2]) n_pre_c[1] else paste0(n_pre_c[1], "–", n_pre_c[2])
 ```
 
-Two routes fill the years Maxan Creek was not measured, and each was scored at
-gauges with fuller records. A score of 1 is a perfect match, and 0 is no better
+Two routes fill the years Maxan Creek was not measured, each scored at gauges
+with fuller records. A score of 1 is a perfect match, and 0 is no better
 than calling every year typical.
 
 - **Filling the record.** Each missing year comes from the gauge nearest in place
-  and size with a record that year, through a fit between the logs of its flow and
-  Maxan's over the five measured summers. At `r scm$extension_gauges` gauges, each
+  and size that was measured in Maxan's five summers and has a record that year,
+  through a fit between the logs of its flow and Maxan's over those summers. At `r scm$extension_gauges` gauges, each
   record was cut to five years at a time, filled back out and scored on the years
   it had lost: a median of `r sprintf("%.2f", scm$extension_median)` in the
   migration window and `r sprintf("%.2f", scs$extension_median)` in the spawning
   window, with the 90% range holding the measured flow in
   `r cover[1]`–`r cover[2]`% of those years.
-- **Borrowing neighbours' departures.** Each year takes the departure from normal
-  (its 1981–2010 average) at the five gauges nearest in place and size with at
-  least ten years of record then, so needs no record at Maxan. Leaving out each of `r scm$carried_gauges`
+- **Borrowing neighbours' departures.** Each year takes the weighted mean departure
+  from normal (each gauge's 1981–2010 average) at those of the five gauges nearest
+  in place and size, with ten years of record then, that have that year, so needs
+  no record at Maxan. Leaving out each of `r scm$carried_gauges`
   gauges in turn, it scored a median of `r sprintf("%.2f", scm$carried_median)` in
   the migration window and `r sprintf("%.2f", scs$carried_median)` in the spawning
   window, and `r sprintf("%.2f", scm$maxan_carried)` and
   `r sprintf("%.2f", scs$maxan_carried)` on Maxan's own five summers.
 
 The borrowed departures reach only `r n_pre_c_text` of the `r length(pre)` years
-before 1981. They give smaller drops, `r carried_text(mg)` in the migration window
+before 1981, most of them from one gauge. They give smaller drops, `r carried_text(mg)` in the migration window
 and `r carried_text(sp)` in the spawning window, but the same picture: a much
 drier spawning window, and little change in migration.
 
@@ -374,18 +375,19 @@ for (k in seq_len(nrow(f[f$model == "doy", ]))) {
 doy_breaks <- as.integer(format(as.Date(c("2001-04-15", "2001-05-01", "2001-05-15", "2001-06-01")), "%j"))
 stopifnot(max(doy_breaks) <= max(d$melt_doy), min(doy_breaks) >= min(d$melt_doy) - 1)
 cap_snow <- sprintf(paste(
-  "Each year's window flow, as a percentage of its 1981–2010 average, against the date half of the",
-  "watershed's snow had melted, %s. Maxan Creek's values are its filled record. Lines are straight-line",
-  "fits (log scale)."
+  "Each year's window flow, as a percentage of its 1981–2010 average, against its half-melt date: the",
+  "day by which half the year's snowmelt had happened, averaged over the watershed, %s. Maxan Creek's",
+  "values are its filled years. Lines are fits on the log scale."
 ), paste0(min(d$year), "–", max(d$year)))
 ```
 
-On all three watersheds, snow melted about ten days earlier in 2011–2025 than in
-1950–1980, and peak snow was `r swe_text` lower. Migration-window flow follows the snow: at all three gauges, a year
-whose snow melted ten days later carried about a quarter more flow, and one with
-100 mm more snow about a third more. Spawning-window flow does not: each of these two
-measures of snow explains at most `r round(100 * spawn_r2)`% of how its flow
-varies between years, at any gauge.
+On all three watersheds, half of each year's snowmelt came about ten days earlier
+in 2011–2025 than in 1950–1980, and the water in the peak snowpack was `r swe_text`
+lower. Migration-window flow follows the snow: at all three gauges, a year whose
+half-melt came ten days later carried about a quarter more flow, and one with 100 mm
+more water in the peak snowpack about a third more. Spawning-window flow does not: each of these two
+measures of snow explains at most `r round(100 * spawn_r2)`% of its variation between
+years at any gauge.
 
 ```{r snow, fig.height = 5.5, fig.cap = cap_snow}
 ggplot(d, aes(melt_doy, pct_normal, colour = gauge)) +
@@ -400,7 +402,7 @@ ggplot(d, aes(melt_doy, pct_normal, colour = gauge)) +
     paste(format(d, "%b"), as.integer(format(d, "%d")))
   }) +
   scale_colour_manual(values = pal_gauge$values, labels = pal_gauge$labels, name = NULL) +
-  labs(x = "Date half the snow had melted", y = "Window flow (% of 1981–2010 average)")
+  labs(x = "Half-melt date", y = "Window flow (% of 1981–2010 average)")
 ```
 
 ## What it does not show
@@ -420,10 +422,9 @@ stopifnot(small > n_spawn / 2)
   `r n_quick` of the `r length(pre)` in the migration window.
 - **Spawning-window flows are small**, under 0.5 m³/s in `r small` of the
   `r n_spawn` years, so a small change in flow is a large one in percent.
-- **The snow is modelled on cells a tenth of a degree across**, about 11 by 7 km
+- **The snow comes on cells a tenth of a degree across**, about 11 by 6.5 km
   here, coarse for a `r round(maxan_km2)` km² watershed.
-- **The windows come from the literature for the Bulkley**, not from observation
-  at Maxan Creek.
+- **The windows come from the literature for the Bulkley**, not from Maxan Creek.
 
 ## Software and citation
 

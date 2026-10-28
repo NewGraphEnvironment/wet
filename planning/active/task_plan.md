@@ -101,7 +101,7 @@ It sits beside `vignettes/station-flow.Rmd`, which covers gauged departures at B
 ## Validation
 
 - [ ] Tests pass
-- [ ] `/code-check` clean (once over the branch with `/code-check branch`)
+- [x] `/code-check` clean (once over the branch with `/code-check branch`): three rounds 2026-10-28; rounds 1 and 2 each found wording that described the method in everyday words rather than by the code (r2 inside r1's fixes), so round 3 enumerated all 65 published units against the code; its six findings fixed, which ends the loop
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
