@@ -122,10 +122,21 @@ for (id in site_ids) {
                  if (r$rule_pick == "ols") ", which #120's rule also picks here" else ", which #120's rule would NOT pick here"),
          rp$lines, paste(id, group, "race"))
     cq <- x$carried
-    held(sprintf("HEADLINE: median per-gauge NSE %s (quartiles %s to %s) over %d gauges scored; %d not scored (fewer than 3 years).",
-                 fmt(cq$q[2]), fmt(cq$q[1]), fmt(cq$q[3]), cq$n,
-                 as.integer(sub(".* (\\d+) not scored.*", "\\1", grep("^HEADLINE: ", rp$lines, value = TRUE)))),
-         rp$lines, paste(id, group, "headline"))
+    # the headline up to its not-scored count, which the series file does not carry and the article does not quote
+    head_line <- sprintf("HEADLINE: median per-gauge NSE %s (quartiles %s to %s) over %d gauges scored;",
+                         fmt(cq$q[2]), fmt(cq$q[1]), fmt(cq$q[3]), cq$n)
+    if (sum(startsWith(rp$lines, head_line)) != 1) stop(id, " ", group, " headline: not in its report: ", head_line, call. = FALSE)
+    # each method's median in section 2's table (the first such row per method), the gauges the race ran at,
+    # the target's observed years and the area, as the report prints them
+    for (mt in names(r$med)) {
+      row <- grep(sprintf("^  %-6s +[-0-9.]+ +[-0-9.]+ +[-0-9.]+$", mt), rp$lines, value = TRUE)[1]
+      if (is.na(row) || strsplit(trimws(row), " +")[[1]][3] != fmt(r$med[[mt]])) {
+        stop(id, " ", group, " race ", mt, ": median ", fmt(r$med[[mt]]), " not in its report", call. = FALSE)
+      }
+    }
+    if (!any(grepl(sprintf("; %d hold at least one 5-year block", r$gauges), rp$lines, fixed = TRUE))) {
+      stop(id, " ", group, ": race gauges ", r$gauges, " not in its report", call. = FALSE)
+    }
     scores[[length(scores) + 1]] <- data.frame(site_id = id, group = group, ols = r$med[["ols"]],
       move1 = r$med[["move1"]], ratio = r$med[["ratio"]], rule_pick = r$rule_pick, ext_gauges = r$gauges,
       below_floor = r$below_floor, carried = cq$median, carried_q25 = cq$q[1], carried_q75 = cq$q[3],
@@ -162,7 +173,7 @@ for (id in site_ids) {
         normal[[length(normal) + 1]] <- data.frame(site_id = id, group = group, window = w,
           pcic_routed = nm$sources$q_m3s[nm$sources$window == w & nm$sources$source == "pcic_routed"],
           wet_balance = nm$sources$q_m3s[nm$sources$window == w & nm$sources$source == "wet_balance"],
-          pick = nm$pick, normal = nm$normal$q_m3s[nm$normal$window == w], err_n = nrow(e), err_q25 = q[1],
+          pick = nm$pick, digest = nm$digest, normal = nm$normal$q_m3s[nm$normal$window == w], err_n = nrow(e), err_q25 = q[1],
           err_median = q[2], err_q75 = q[3], err_n_out = nrow(eu),
           err_median_out = if (nrow(eu)) stats::median(eu$log_ratio) else NA_real_,
           err_abs_out = if (nrow(eu)) stats::median(abs(eu$log_ratio)) else NA_real_)
@@ -179,6 +190,19 @@ for (id in site_ids) {
         if (length(ext_don)) data.frame(site_id = id, station_number = ext_don, role = "extension donor"),
         data.frame(site_id = id, station_number = car_don, role = "carried donor"),
         data.frame(site_id = id, station_number = s$gauges, role = "snow"))
+      if (site$kind == "extend") {
+        obs <- sort(mm$e$year[mm$e$source == "observed"])
+        held(sprintf("Target, complete migration-window years by this definition: %s %d (%s).", target, length(obs),
+                     paste(vapply(split(obs, cumsum(c(1, diff(obs) != 1))), function(r) {
+                       if (length(r) > 1) sprintf("%d-%d", min(r), max(r)) else as.character(r)
+                     }, ""), collapse = ", ")), rp$lines, paste(id, "observed years"))
+        # the pool table's row: station, name, then the area right-aligned, then the migration years
+        km2_pat <- sprintf("^  %s .* %s +%d ", target, gsub(".", "\\.", fmt(x$pool$drainage_area_gross_km2[x$pool$station_number == target], 1),
+                                                             fixed = TRUE), length(obs))
+        if (sum(grepl(km2_pat, rp$lines)) != 1) stop(id, ": target area not in its report's pool table", call. = FALSE)
+      } else if (!any(grepl(sprintf("with the basin's FWA area, %s km2", fmt(x$normal$km2, 1)), rp$lines, fixed = TRUE))) {
+        stop(id, ": basin area not in its report", call. = FALSE)
+      }
       sites[[length(sites) + 1]] <- data.frame(site_id = id, name = site$name, wsg_code = site$wsg_code,
         kind = site$kind, target = target, blue_line_key = site$blue_line_key,
         target_lon = if (site$kind == "ungauged") site$target_lon else NA_real_,

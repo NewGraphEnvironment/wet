@@ -18,10 +18,11 @@
 # rerun reproduces it byte for byte) and, after it, the gitignored
 # data/departure/departure_site_<site>_<group>_20260717.rds: `site`,
 # `windows`, `release`, `ship`, `k_main`, `baseline`, `level`, `mx` (the
-# target's series per statistic and window, as the pilot's), `ws` (the box
-# pool's window statistics before the value > 0 filter), `stations`, `pool`,
-# `donors` (the target's carried donors per statistic and window), `normal`
-# (ungauged only) and `code_md5` (the md5 of the script file Rscript runs, as
+# target's series per statistic and window, as the pilot's; the carried
+# donors per year are in `mx[[...]]$a$donors`), `ws` (the box pool's window
+# statistics before the value > 0 filter), `stations`, `pool`, `race` (the
+# extension race's medians, #120's pick, gauges, below the floor), `carried`
+# (the held-out carried headline), `normal` (ungauged only) and `code_md5` (the md5 of the script file Rscript runs, as
 # it stands at the start of the run). Run a frozen copy
 # (cp scripts/departure_site.R "$TMPDIR/s.R" && Rscript "$TMPDIR/s.R" <site>),
 # as for the pilot. Nothing is published and no fit is read or touched.
@@ -100,7 +101,8 @@
 # The normal's error: at every box gauge in the migration-mean departure pool
 # whose snap (wet_station_snap()) is accepted, the published pick's window mean
 # on the snapped segment against the gauge's observed 1981-2010 mean of that
-# window's complete years. Each is reported as a log ratio, with its source.
+# window's complete years (at least 10 of them, the departure pool's floor,
+# stated after the code review; every gauge of the Gosnell box meets it). Each is reported as a log ratio, with its source.
 # A gauge in the water balance's station set (data/wb/stations_20260717.rds,
 # `stations`) is flagged, because the balance publishes a calibration gauge's
 # own observed monthly shares, so there it is partly in sample. Reported: the
@@ -199,8 +201,8 @@ if (site$kind == "ungauged") {
     WHERE blue_line_key = %d AND blue_line_key = watershed_key AND gnis_name IS NOT NULL", site$blue_line_key))
   if (nrow(code) != 1) stop(site$site_id, ": blue line ", site$blue_line_key, " has no single watershed code", call. = FALSE)
   km2 <- DBI::dbGetQuery(conn, sprintf("
-    SELECT sum(ST_Area(geom)) / 1e6 km2 FROM whse_basemapping.fwa_watersheds_poly
-    WHERE wscode_ltree <@ '%s'::ltree", code$wscode))$km2
+    SELECT sum(ST_Area(geom) ORDER BY watershed_feature_id) / 1e6 km2 FROM whse_basemapping.fwa_watersheds_poly
+    WHERE wscode_ltree <@ '%s'::ltree", code$wscode))$km2   # a float sum in a fixed order
   use <- readLines(file.path("data", "checks", "chinook_sites_use.txt"))
   row <- grep(sprintf(" %d ", site$blue_line_key), use, value = TRUE)
   # the km2 column follows the role column; a stream name has spaces in it

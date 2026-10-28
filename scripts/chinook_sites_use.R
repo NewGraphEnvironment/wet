@@ -75,7 +75,7 @@ stopifnot(identical(code$gnis_name, cand$stream), identical(code$watershed_group
 
 basin <- do.call(rbind, lapply(seq_len(nrow(cand)), function(i) {
   DBI::dbGetQuery(conn, sprintf("
-    SELECT %d::bigint blue_line_key, sum(ST_Area(geom)) / 1e6 km2, ST_AsText(ST_Union(geom)) wkt
+    SELECT %d::bigint blue_line_key, sum(ST_Area(geom) ORDER BY watershed_feature_id) / 1e6 km2, ST_AsText(ST_Union(geom)) wkt
     FROM whse_basemapping.fwa_watersheds_poly
     WHERE watershed_group_code = '%s' AND wscode_ltree <@ '%s'::ltree",
     cand$blue_line_key[i], cand$wsg[i], code$wscode[i]))

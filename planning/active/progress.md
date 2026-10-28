@@ -14,3 +14,5 @@
 - Phase 4: site script runs at all four; maxan passes the parity gate; two fixes in the ungauged path (area parse, source from the catalog) made a full rerun necessary.
 - Phase 6/7: bundle and map built (6 KB, 20 KB; every number held to its report line), article drafted and its two figures reviewed and redrawn; tests 213 pass; CLAUDE.md lines and the site-table convention added (memory retired); research results written.
 - pkgdown build (scratch destination): articles/chinook-sites.html built; 0 mentions in articles/index.html and in the home navbar; the navbar dropdown gains a 'More articles…' link to the index (pkgdown's behaviour with `navbar: ~`). Article body 584 words.
+- Full test suite: 1685 passed, 0 failed, 0 errors, 12 skipped (`data/logs/126/test.log`).
+- Byte identity: maxan and swift reports identical across three runs; naver and gosnell (both window sets) identical on a fresh rerun of the committed script (0 diff lines).

@@ -68,7 +68,7 @@ sc <- v$scores[v$scores$group == "BULK", ]
 stopifnot(identical(sc$site_id, ids))
 ```
 
-The article on [Maxan Creek](../short-record-flow.html) used the R package
+The article on [Maxan Creek](short-record-flow.html) used the R package
 [`wet`](https://newgraphenvironment.github.io/wet/) to fill in a five-summer gauge record
 from nearby gauges and found its spawning-window flow lower now than before 1981. This
 article asks whether that holds at three more Chinook streams, run the same way with the
@@ -151,6 +151,8 @@ stopifnot(nrow(ext) == 3, all(ext$pct < 0))
 morr <- row_of("gosnell", "spawning", "carried", group = "MORR")
 stopifnot(morr$pct < 0, morr$pct_hi > 0)
 err_factor <- exp(v$normal$err_abs_out[v$normal$group == "BULK" & v$normal$window == "spawning"])
+# the citation section names routed PCIC as Gosnell Creek's typical flow
+stopifnot(all(v$normal$pick == "pcic_routed"))
 ```
 
 The spawning-window drop is largest at Maxan and Naver creeks and smallest at Swift
@@ -198,14 +200,20 @@ stopifnot(all(sn_mig$lo > 0))
 r2_mig <- range(sn_mig$r2)
 r2_spw <- max(sn_spw$r2)
 stopifnot(r2_spw < min(r2_mig) / 2)
+# the melt date, the other snow predictor, over the spawning window
+melt_spw <- v$snow[v$snow$group == "BULK" & v$snow$series == "carried" & v$snow$predictor == "doy" &
+                     v$snow$window == "spawning", ]
+stopifnot(setequal(melt_spw$site_id, ids))
+r2_melt <- max(melt_spw$r2)
+stopifnot(r2_melt < min(r2_mig))
 ```
 
 As at Maxan, migration-window flow at every stream follows the winter's snow. In
 years with more peak snow over the stream's catchment, the departures borrowed for it are
 higher, at all four with a 90% range above zero, and snow alone accounts for
 `r round(100 * r2_mig[1])`–`r round(100 * r2_mig[2])`% of the year-to-year spread.
-Spawning-window flow follows snow much less: snow accounts for at most
-`r round(100 * r2_spw)`% of its spread.
+Spawning-window flow follows peak snow much less, at most `r round(100 * r2_spw)`% of its
+spread, and the melt date at most `r round(100 * r2_melt)`%.
 
 ## Where could it be wrong?
 
@@ -221,7 +229,7 @@ Spawning-window flow follows snow much less: snow accounts for at most
 ## Software and citation
 
 The flows in this article are from HYDAT release `r prov$hydat`; the published flow at
-Gosnell Creek is `wet`'s own; the streams and catchments are the Freshwater Atlas's,
+Gosnell Creek is routed PCIC's, as `wet` publishes it; the streams and catchments are the Freshwater Atlas's,
 through `fwapg`. The data were bundled at `wet` commit `r prov$wet_commit`. How each
 stream was chosen, and how the method is run and scored, is set out in
 [`wet`'s research notes](https://github.com/NewGraphEnvironment/wet/blob/main/research/chinook_sites.md).
@@ -232,7 +240,13 @@ cat(wet:::wet_software_cite(c("wet", "cd", "ggplot2", "gq", "sf")), sep = "\n")
 
 Cite `wet` by the DOI above, which resolves to its latest release.
 
-Data: daily flow from the Water Survey of Canada's HYDAT, release `r prov$hydat`; the
+Data: daily flow from the Water Survey of Canada's HYDAT, release `r prov$hydat`; Gosnell
+Creek's typical flow from the Pacific Climate Impacts Consortium, University of Victoria
+([hydromosaic](https://beehive.pacificclimate.org/chyp/): VIC-GL hydrologic model output
+routed with Raven, PNWNAmet forcing), placed on the Freshwater Atlas by New Graph's fork of
+`fwapg` (Norris, S. and Irvine, A. (2026), *fwapg, New Graph Environment's fork*,
+<https://github.com/NewGraphEnvironment/fwapg/tree/newgraph>) and published by `wet`
+(build `r substr(v$normal$digest[1], 1, 7)`); the
 Chinook windows from Gottesfeld, A. and Rabnett, K. (2007), *Skeena Fish Populations and
 their Habitat*, Skeena Fisheries Commission, and for the Morice from Bustard, D. and
 Schell, C. (2002), *Conserving Morice Watershed Fish Populations and their Habitat*,
