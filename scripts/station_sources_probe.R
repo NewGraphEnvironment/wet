@@ -439,7 +439,7 @@ usgs_meta <- data.frame(
 # ---- one table: every station read, matched to HYDAT -----------------------------------------
 cols <- c("source", "network", "station_id", "name", "lon", "lat", "first", "last", "basis", "regulation", "licence")
 cbs$network <- paste0("cbwaterhub: ", cbs$org, ifelse(cbs$cbwmf, " (CBWMF)", ""))
-cbs$basis[cbs$discharge == "tag only"] <- "period [I], Discharge tag only"
+cbs$basis[cbs$discharge == "tag only"] <- "no discharge parameter (Discharge tag only)"  # stage-only or spot-flow datasets
 wt$source <- "bcwatertool"
 wt$network <- wt$net
 wt$basis[!wt$discharge] <- ifelse(grepl("^HTTP", wt$analyses[!wt$discharge]),

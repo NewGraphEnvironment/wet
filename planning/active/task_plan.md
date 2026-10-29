@@ -53,7 +53,7 @@ For each of the five, establish the issue's six points from the source's own doc
 - [ ] Tick #123 in #118's component list (`/gh-pr-merge` step 3b).
 
 ## Validation
-- [ ] `/code-check branch` clean (the probe script and docs)
+- [x] `/code-check branch` clean (the probe script and docs)
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
