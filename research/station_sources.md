@@ -78,7 +78,7 @@ The bar's 3 window-years and 5 stations come from the Maxan pilot. Lower bars [M
 - 250 stations at 238 sites hold a daily record with a complete day and are not HYDAT duplicates.
 - 238 of them, at 227 sites, have at least one complete window-year outside HYDAT's discharge years: 185 provincial, 51 Water Tool, 2 USGS.
 - 60 of those are seasonal-only: a daily record with no day in December–February. Seasonal gauges serve window statistics but not annual baselines.
-- The Water Hub's 110 listed-period stations have no daily values to read; 85 list a period holding at least one whole window [I], and 39 pass the station test on that proxy alone. None of the 39 is at a site that passes on daily values.
+- The Water Hub's 95 listed-period stations that are not duplicates have no daily values to read; 85 list a period holding at least one whole window [I], and 39 pass the station test on that proxy alone. None of the 39 is at a site that passes on daily values.
 
 ## Access and robots.txt
 
@@ -102,7 +102,7 @@ These are the publishers' defects, reported as found and not filtered:
 - **NaN.** 800,830 hourly values at 121 stations are `NaN`. The probe drops them; a day needs 20 real hours [M].
 - **Impossible values, graded.** Oliver Creek in Lake Cowichan (08HA0036) reaches 2.1 million m³/s on RISC C and U hours in 2021–2024. Amor De Cosmos Creek (08HD0003) reaches about 7,000 m³/s on RISC C, U and Unspecified hours in 2021–2025 [M]. Complete days do not depend on magnitude, so the counts stand. A harvester needs a plausibility rule (wet#142). The Fraser at the Big Bar slide (08MD0002 and 08MD0003, up to 9,887 m³/s) is plausible.
 - **Two copies that part in 2021.** The Water Tool's daily values for the provincial stations match the files to within 0.1 % on at least 99.7 % of days in every year from 1998 to 2020. From 2021 they match on only 61–92 % of days [M, report "by year"]. One copy has been revised since the other was taken. Which one is unresolved, because the Aquarius portal was not read.
-- **Coordinates.** The Water Tool places 08JC0002 and 08JC0006 111.6 km from the province's coordinates, a degree of latitude [M]. It also lists 17 provincial stations under "Regulator – BC Oil and Gas Commission": BCER's own (07FA0001, 07FC0001, 10CD0001 and others) beside Okanagan, Shuswap and Lower Mainland stations (08NM00xx, 08LC000x, 08MH0062) that are not the regulator's by name or place [M, report; I for ownership]. Take location and owner from the province.
+- **Coordinates.** The Water Tool places 08JC0002 and 08JC0006 111.6 km from the province's coordinates, a degree of latitude [M]. It also lists 17 provincial stations under "Regulator – BC Oil and Gas Commission": BCER's own (07FA0001, 07FC0001, 10CD0001 and others) beside Okanagan, Shuswap, Nicola, Kootenay and Lower Mainland stations (08NM00xx, 08LC000x, 08LG0019, 08NJ0001, 08MH0062) that are not the regulator's by name or place [M, report; I for ownership]. Take location and owner from the province.
 
 ## Already fetched by a New Graph package?
 

@@ -23,7 +23,7 @@ Plan review: `planning/active/review-plan.md`; its findings are folded in above 
 
 ## Phase 1: Prior work and verdict rule
 - [x] Enumerate installed NGE packages' exports and `gh api search/code` across the org for each source's name, host and API terms (`datastream`, `columbiabasinwaterhub`, `skeena`, `aquarius`, `unbc`, `hakai`); list `ngr`'s hydrometric functions (`ngr_hyd_q_daily()` ports here, #25). Record every hit or the negative with what was searched.
-- [x] Search open issues and PRs in wet and adjacent repos (water-temp-bc, ngr, fresh, knowledge) for work on any candidate.
+- [x] Search open issues and PRs in wet and adjacent repos (water-temp-bc, ngr, fresh and one more of ours) for work on any candidate.
 - [x] Write `research/station_sources.md` skeleton: header (Verified / Issues / Produced by), tag legend, verdict rule from decision 3, one empty row per source.
 
 ## Phase 2: Per-source desk research

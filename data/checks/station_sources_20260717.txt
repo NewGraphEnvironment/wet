@@ -1,5 +1,5 @@
 Station sources beyond HYDAT (#123): station lists, the HYDAT match and Chinook-window years
-HYDAT release 20260717; code_md5 a3719fad1be1991ea684d98729673403
+HYDAT release 20260717; code_md5 a60dcf4b288d68bb3afb52afd6b03617
 Windows: CH migration 05-01..08-01 and spawning 08-01..09-15; a complete window-year is a
 wet_window_stats() row at min_frac 0.8 ('daily'), or a window inside a listed period ('period [I]').
 HYDAT match: within 1 km and the same stream name; near misses within 3 km listed.
@@ -76,7 +76,7 @@ Distinct sites among them (within 0.5 km on the same stream): 140
 Passing on the period proxy alone (cannot reach harvest): 39 stations, 38 sites; not already a passing site: 38
 Lower bars, daily records: new stations (not duplicates) with a complete day 250, sites 238;
   with >= 1 complete window-year outside HYDAT 238, sites 227; seasonal-only among those 60; by source: bcenv 185, bcwatertool 51, usgs 2
-Lower bars, period proxy [I]: new listed-period stations 110; with >= 1 window inside the period 85
+Lower bars, period proxy [I]: new listed-period stations 95; with >= 1 window inside the period 85
 Water Tool passing stations at a site that also passes in the provincial files: 6 (4601, 4602, 2601, 2602, 2603, 2604)
 
 Sensitivity: the same site out to 3 km. Passing stations that fail when the nearest HYDAT gauge on the

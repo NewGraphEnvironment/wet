@@ -531,7 +531,8 @@ pass_n <- tapply(st$pass, st$network, sum)
 pass_n <- pass_n[pass_n > 0]
 for (n in names(pass_n)[order(-pass_n, names(pass_n), method = "radix")]) say(sprintf("  %3d  %s", pass_n[[n]], n))
 say(sprintf("Distinct sites among them (within %g km on the same stream): %d", same_site_km, length(unique(st$site[st$pass]))))
-proxy_pass <- st$new & st$basis != "daily" & st$window_years_new >= min_years
+listed <- grepl("^period", st$basis)  # a listed period and no daily values: the Water Hub
+proxy_pass <- st$new & listed & st$window_years_new >= min_years
 say(sprintf("Passing on the period proxy alone (cannot reach harvest): %d stations, %d sites; not already a passing site: %d",
             sum(proxy_pass), length(unique(st$site[proxy_pass])), length(setdiff(st$site[proxy_pass], st$site[st$pass]))))
 daily_new <- st$new & st$basis == "daily"
@@ -543,7 +544,7 @@ say(sprintf("Lower bars, daily records: new stations (not duplicates) with a com
             paste(sprintf("%s %d", sort(unique(st$source[daily_1]), method = "radix"),
                           tapply(daily_1, st$source, sum)[sort(unique(st$source[daily_1]), method = "radix")]), collapse = ", ")),
     sprintf("Lower bars, period proxy [I]: new listed-period stations %d; with >= 1 window inside the period %d",
-            sum(st$new & st$basis != "daily"), sum(st$new & st$basis != "daily" & st$window_years_new >= 1)))
+            sum(st$new & listed), sum(st$new & listed & st$window_years_new >= 1)))
 tool_pass <- st$pass & st$source == "bcwatertool"
 prov_sites <- st$site[st$pass & st$source == "bcenv"]
 say(sprintf("Water Tool passing stations at a site that also passes in the provincial files: %d (%s)",
