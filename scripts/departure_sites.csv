@@ -1,5 +1,5 @@
-site_id,name,wsg_code,kind,target_station,blue_line_key,target_lon,target_lat,lon_min,lon_max,lat_min,lat_max,windows,snow_gauges
-maxan,Maxan Creek,BULK,extend,08EE018,360881038,,,-128.8,-125.0,53.6,55.8,BULK,08EE003 08EE013
-swift,Swift Creek,UFRA,extend,08KA012,356345574,,,-121.17,-117.37,51.74,53.94,BULK,
-naver,Naver Creek,COTR,extend,08KE014,356363814,,,-124.49,-120.69,52.33,54.53,BULK,
-gosnell,Gosnell Creek,MORR,ungauged,,360885021,-127.3459,54.2071,-129.25,-125.45,53.11,55.31,BULK MORR,
+site_id,name,wsg_code,kind,target_station,blue_line_key,target_lon,target_lat,lon_min,lon_max,lat_min,lat_max,windows,snow_gauges,places
+maxan,Maxan Creek,BULK,extend,08EE018,360881038,,,-128.8,-125.0,53.6,55.8,BULK,08EE003 08EE013,Houston;Burns Lake
+swift,Swift Creek,UFRA,extend,08KA012,356345574,,,-121.17,-117.37,51.74,53.94,BULK,,Valemount;McBride
+naver,Naver Creek,COTR,extend,08KE014,356363814,,,-124.49,-120.69,52.33,54.53,BULK,,Quesnel;Prince George
+gosnell,Gosnell Creek,MORR,ungauged,,360885021,-127.3459,54.2071,-129.25,-125.45,53.11,55.31,BULK MORR,,Houston;Smithers

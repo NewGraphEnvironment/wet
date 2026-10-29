@@ -12,7 +12,8 @@
 # site runs under, space-separated, BULK first, each one an
 # inst/vignette-data/life_history_<group>.csv; snow_gauges, the observed gauges
 # the snow regression fits beside the target, space-separated, or empty for the
-# rule in scripts/departure_site_snow.R's header.
+# rule in scripts/departure_site_snow.R's header; places, the named places
+# its map labels (BC Geographic Names), separated by semicolons.
 
 site_file <- file.path("scripts", "departure_sites.csv")
 
@@ -20,7 +21,7 @@ site_file <- file.path("scripts", "departure_sites.csv")
 site_get <- function(id, file = site_file) {
   x <- utils::read.csv(file, colClasses = "character", na.strings = character(), strip.white = FALSE)
   cols <- c("site_id", "name", "wsg_code", "kind", "target_station", "blue_line_key", "target_lon",
-            "target_lat", "lon_min", "lon_max", "lat_min", "lat_max", "windows", "snow_gauges")
+            "target_lat", "lon_min", "lon_max", "lat_min", "lat_max", "windows", "snow_gauges", "places")
   if (!identical(names(x), cols)) stop(file, " must have the columns ", paste(cols, collapse = ", "), call. = FALSE)
   if (anyDuplicated(x$site_id)) stop(file, ": duplicate site_id", call. = FALSE)
   if (length(id) != 1 || !id %in% x$site_id) {
@@ -57,6 +58,7 @@ site_get <- function(id, file = site_file) {
     stop(id, ": windows must start with BULK and name each group once", call. = FALSE)
   }
   r$snow_gauges <- if (nzchar(r$snow_gauges)) strsplit(r$snow_gauges, " ", fixed = TRUE)[[1]] else character()
+  r$places <- if (nzchar(r$places)) strsplit(r$places, ";", fixed = TRUE)[[1]] else character()
   r[c("lon_min", "lon_max", "lat_min", "lat_max")] <- NULL
   r
 }
