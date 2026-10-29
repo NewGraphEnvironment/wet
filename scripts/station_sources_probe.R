@@ -118,11 +118,18 @@ hydat_match <- function(s, wsc = NULL) {
     near <- which((d <= match_km & hy$stream != stream[i]) |
                   (d > match_km & d <= near_km & hy$stream == stream[i] & nzchar(stream[i])))
     near <- setdiff(near, j)
+    # the nearest gauge on the same stream beyond match_km, with discharge: the 3 km sensitivity
+    far <- which(d > match_km & d <= near_km & hy$stream == stream[i] & nzchar(stream[i]) & !is.na(hy$q_from))
+    j3 <- if (length(far)) far[which.min(d[far])] else NA_integer_
     data.frame(
       hydat = if (is.na(j)) NA_character_ else hy$station_number[j],
       hydat_km = if (is.na(j)) NA_real_ else round(d[j], 2),
       hydat_q = if (is.na(j) || is.na(hy$q_from[j])) NA_character_ else sprintf("%d-%d", hy$q_from[j], hy$q_to[j]),
       near_miss = paste(sprintf("%s (%.2f km)", hy$station_number[near], d[near]), collapse = "; "),
+      hydat3 = if (is.na(j3)) NA_character_ else sprintf("%s (%.2f km, %d-%d)", hy$station_number[j3], d[j3],
+                                                         hy$q_from[j3], hy$q_to[j3]),
+      q3_from = if (is.na(j3)) NA_integer_ else hy$q_from[j3],
+      q3_to = if (is.na(j3)) NA_integer_ else hy$q_to[j3],
       class = if (is.na(j)) "not in HYDAT" else if (!is.na(hy$q_from[j]) && !is.na(s$first[i]) &&
         s$first[i] >= hy$q_from[j] && s$last[i] <= hy$q_to[j]) "duplicate" else "same site, new years"
     )
@@ -193,7 +200,7 @@ cb_row <- function(p) {
   )
 }
 cbs <- do.call(rbind, lapply(cb, cb_row))
-cbs <- cbs[order(cbs$station_id), ]
+cbs <- cbs[order(cbs$station_id, method = "radix"), ]
 cb_rows <- proxy_rows(cbs$station_id, cbs$from, cbs$to)
 cbs$basis <- "period [I]"
 
@@ -251,7 +258,7 @@ wt <- do.call(rbind, lapply(wt, function(f) {
              lon = f$geometry$coordinates[[1]], lat = f$geometry$coordinates[[2]], stringsAsFactors = FALSE)
 }))
 wt <- wt[wt$n_yr > 0 & wt$net != "Water Survey of Canada", ]
-wt <- wt[order(wt$nid, wt$id), ]
+wt <- wt[order(wt$nid, wt$id, method = "radix"), ]
 wt <- wt[!duplicated(wt$nid), ]   # the tool repeats some stations under one nid
 read_wt <- function(id) {
   path <- fetch(sprintf("https://nr-bcwat.bcwatertool.ca/api/streamflow/stations/%d/csv", id),
@@ -273,7 +280,7 @@ read_wt <- function(id) {
   list(licence = field("Data Licence Information"), area = suppressWarnings(as.numeric(field("Drainage Area"))),
        q = if (!is.null(q) && nrow(q)) data.frame(station_number = as.character(id), date = as.Date(q$Datetime),
                                                   q_m3s = as.numeric(q$Value), qa = q$QA) else NULL,
-       analyses = if (!is.null(x)) paste(sort(unique(x$Analysis)), collapse = "; ") else "")
+       analyses = if (!is.null(x)) paste(sort(unique(x$Analysis), method = "radix"), collapse = "; ") else "")
 }
 wt_read <- lapply(wt$id, read_wt)
 wt$analyses <- vapply(wt_read, function(r) r$analyses, "")
@@ -362,7 +369,9 @@ invisible(DBI::dbExecute(duck, "
 # no plausibility filter: what the province publishes is reported, and complete days do not
 # depend on magnitude
 prov_big <- DBI::dbGetQuery(duck, "
-  SELECT trim(id) AS station_id, trim(arg_max(name, t)) AS name, count(*) AS hours, max(value) AS max_m3s
+  SELECT trim(id) AS station_id, trim(arg_max(name, t)) AS name, count(*) AS hours, max(value) AS max_m3s,
+         min(substr(t, 1, 4)) AS y0, max(substr(t, 1, 4)) AS y1,
+         string_agg(DISTINCT trim(grade), ', ' ORDER BY trim(grade)) AS grades
   FROM h WHERE value > 1000 GROUP BY 1 ORDER BY 1")
 prov_q <- DBI::dbGetQuery(duck, "
   SELECT trim(id) AS station_number, CAST(substr(t, 1, 10) AS DATE) AS date, avg(value) AS q_m3s, count(*) AS hours
@@ -448,14 +457,16 @@ rows$key <- paste(rows$source, rows$station_id)
 stopifnot(all(rows$key %in% key))
 q_from <- hy$q_from[match(st$hydat, hy$station_number)]
 q_to <- hy$q_to[match(st$hydat, hy$station_number)]
-count_years <- function(i, new_only) {
+count_years <- function(i, new_only, within3 = FALSE) {
   r <- rows[rows$key == key[i], ]
   if (new_only && !is.na(q_from[i])) r <- r[r$year < q_from[i] | r$year > q_to[i], ]
+  if (within3 && !is.na(st$q3_from[i])) r <- r[r$year < st$q3_from[i] | r$year > st$q3_to[i], ]
   if (!nrow(r)) return(0L)
   max(table(factor(r$period, levels = windows$window)))
 }
 st$window_years <- vapply(seq_len(nrow(st)), count_years, 0L, new_only = FALSE)
 st$window_years_new <- vapply(seq_len(nrow(st)), count_years, 0L, new_only = TRUE)
+st$window_years_new3 <- vapply(seq_len(nrow(st)), count_years, 0L, new_only = TRUE, within3 = TRUE)
 # seasonal: a daily record with no day in December-February
 q_all <- rbind(cbind(source = "bcwatertool", wt_q[, c("station_number", "date")]),
                cbind(source = "bcenv", prov_q[, c("station_number", "date")]),
@@ -466,7 +477,7 @@ winter <- unique(paste(q_all$source, q_all$station_number)[format(q_all$date, "%
 st$seasonal <- ifelse(st$basis == "daily", !key %in% winter, NA)
 st$new <- st$class != "duplicate" & !grepl("^no discharge", st$basis)
 st$pass <- st$new & st$basis == "daily" & st$window_years_new >= min_years
-st <- st[order(st$source, st$network, st$station_id), ]
+st <- st[order(st$source, st$network, st$station_id, method = "radix"), ]
 # one site, several listings (a stewardship network's station also in the provincial
 # database, a Water Hub site under two groups): within same_site_km on the same stream
 same_site_km <- 0.5
@@ -490,13 +501,13 @@ say(sprintf("Station sources beyond HYDAT (#123): station lists, the HYDAT match
     sprintf("HYDAT match: within %g km and the same stream name; near misses within %g km listed.", match_km, near_km),
     sprintf("A station passes the station test with >= %d complete window-years (daily) outside HYDAT's discharge years at its site.", min_years),
     "", "Snapshots (data/station_sources/raw/, md5):")
-for (f in sort(names(snapshot))) if (!grepl("^bcwatertool/", f)) say(sprintf("  %s  %s", snapshot[[f]], f))
-wt_files <- sort(grep("^bcwatertool/", names(snapshot), value = TRUE))
-say(sprintf("  bcwatertool/: %d stations answered HTTP errors (kept as .status files)", sum(grepl("[.]status$", wt_files))))
+for (f in sort(names(snapshot), method = "radix")) if (!grepl("^bcwatertool/", f)) say(sprintf("  %s  %s", snapshot[[f]], f))
+wt_files <- sort(grep("^bcwatertool/", names(snapshot), value = TRUE), method = "radix")
+say(sprintf("  bcwatertool/: %d stations; %d per-station CSVs; %d answered an HTTP error (kept as .status files)",
+            length(wt_files), sum(!grepl("[.]status$", wt_files)), sum(grepl("[.]status$", wt_files))))
 tf <- tempfile()
 writeLines(paste(unlist(snapshot[wt_files]), wt_files), tf)
-say(sprintf("  bcwatertool/*.csv: %d per-station files; md5 of their md5 list %s", length(wt_files),
-            unname(tools::md5sum(tf))))
+say(sprintf("  bcwatertool/: md5 of their md5 list %s", unname(tools::md5sum(tf))))
 unlink(tf)
 
 say("", sprintf("HYDAT: %d stations with coordinates, %d in BC, %d BC with a discharge record (STN_DATA_RANGE Q).",
@@ -516,16 +527,43 @@ for (i in seq_len(nrow(nets))) {
               paste(unique(x$basis), collapse = "; ")))
 }
 say("", sprintf("Stations passing the station test (daily): %d; by network:", sum(st$pass)))
-for (n in names(sort(table(st$network[st$pass]), decreasing = TRUE))) say(sprintf("  %3d  %s", sum(st$pass & st$network == n), n))
+pass_n <- tapply(st$pass, st$network, sum)
+pass_n <- pass_n[pass_n > 0]
+for (n in names(pass_n)[order(-pass_n, names(pass_n), method = "radix")]) say(sprintf("  %3d  %s", pass_n[[n]], n))
 say(sprintf("Distinct sites among them (within %g km on the same stream): %d", same_site_km, length(unique(st$site[st$pass]))))
 proxy_pass <- st$new & st$basis != "daily" & st$window_years_new >= min_years
 say(sprintf("Passing on the period proxy alone (cannot reach harvest): %d stations, %d sites; not already a passing site: %d",
             sum(proxy_pass), length(unique(st$site[proxy_pass])), length(setdiff(st$site[proxy_pass], st$site[st$pass]))))
-say(sprintf("Lower bars: new discharge stations (any record) %d, sites %d; with >= 1 complete window-year %d, sites %d;",
-            sum(st$new), length(unique(st$site[st$new])), sum(st$new & st$window_years_new >= 1),
-            length(unique(st$site[st$new & st$window_years_new >= 1]))),
-    sprintf("  seasonal-only (daily, no Dec-Feb day) new stations with >= 1 complete window-year: %d",
-            sum(st$new & st$window_years_new >= 1 & st$seasonal %in% TRUE)))
+daily_new <- st$new & st$basis == "daily"
+daily_1 <- daily_new & st$window_years_new >= 1
+say(sprintf("Lower bars, daily records: new stations (not duplicates) with a complete day %d, sites %d;", sum(daily_new),
+            length(unique(st$site[daily_new]))),
+    sprintf("  with >= 1 complete window-year outside HYDAT %d, sites %d; seasonal-only among those %d; by source: %s",
+            sum(daily_1), length(unique(st$site[daily_1])), sum(daily_1 & st$seasonal %in% TRUE),
+            paste(sprintf("%s %d", sort(unique(st$source[daily_1]), method = "radix"),
+                          tapply(daily_1, st$source, sum)[sort(unique(st$source[daily_1]), method = "radix")]), collapse = ", ")),
+    sprintf("Lower bars, period proxy [I]: new listed-period stations %d; with >= 1 window inside the period %d",
+            sum(st$new & st$basis != "daily"), sum(st$new & st$basis != "daily" & st$window_years_new >= 1)))
+tool_pass <- st$pass & st$source == "bcwatertool"
+prov_sites <- st$site[st$pass & st$source == "bcenv"]
+say(sprintf("Water Tool passing stations at a site that also passes in the provincial files: %d (%s)",
+            sum(tool_pass & st$site %in% prov_sites),
+            paste(st$station_id[tool_pass & st$site %in% prov_sites], collapse = ", ")))
+drop3 <- st$pass & st$window_years_new3 < min_years
+say("", sprintf("Sensitivity: the same site out to %g km. Passing stations that fail when the nearest HYDAT gauge on the", near_km),
+    sprintf("  same stream %g-%g km away also counts as the site (window-years outside its discharge years too): %d of %d;",
+            match_km, near_km, sum(drop3), sum(st$pass)),
+    sprintf("  passing stations with such a gauge: %d. Those that fail (station, years, window-years then, the gauge):",
+            sum(st$pass & !is.na(st$hydat3))))
+for (i in which(drop3)) {
+  say(sprintf("  %s %s %s (%d-%d): %d -> %d; %s", st$source[i], st$station_id[i], st$name[i], st$first[i], st$last[i],
+              st$window_years_new[i], st$window_years_new3[i], st$hydat3[i]))
+}
+say("", "Regulation flagged from names [I] (every other station is unknown), by source:")
+for (src in sort(unique(st$source), method = "radix")) {
+  r <- st$source == src & st$regulation != "unknown"
+  say(sprintf("  %s: %d (with a daily record: %d; passing: %d)", src, sum(r), sum(r & st$basis %in% "daily"), sum(r & st$pass)))
+}
 
 say("", sprintf("Provincial files: %d stations with discharge, %d with a complete day; %d hourly values; grades:",
                 nrow(prov), sum(!is.na(prov$first)), sum(prov$hours_q)))
@@ -534,9 +572,10 @@ say(sprintf("  stations whose hours are mostly Undefined or Unspecified: %d of %
 say(sprintf("  units: %s (l/s divided by 1000); NaN values dropped: %d at %d stations",
             paste(sprintf("%s %d values at %d stations", prov_units$unit, prov_units$n, prov_units$stations), collapse = "; "),
             prov_nan$n, prov_nan$stations))
-say("  stations with an hourly value above 1,000 m^3/s (hours, max):")
+say("  stations with an hourly value above 1,000 m^3/s (hours, max, years, grades of those hours):")
 for (i in seq_len(nrow(prov_big))) {
-  say(sprintf("    %s %s: %d, %.1f", prov_big$station_id[i], prov_big$name[i], prov_big$hours[i], prov_big$max_m3s[i]))
+  say(sprintf("    %s %s: %d, %.1f, %s-%s, %s", prov_big$station_id[i], prov_big$name[i], prov_big$hours[i],
+              prov_big$max_m3s[i], prov_big$y0[i], prov_big$y1[i], prov_big$grades[i]))
 }
 say("", "The BC Water Tool against the province (the same station's 24-hour UTC days):")
 for (x in list(list("before 2025-10-01", cmp$date < as.Date("2025-10-01")), list("from 2025-10-01 (provisional)", cmp$date >= as.Date("2025-10-01")))) {
@@ -547,19 +586,23 @@ for (x in list(list("before 2025-10-01", cmp$date < as.Date("2025-10-01")), list
 }
 cmp_yr <- format(cmp$date, "%Y")
 say("  by year: station-days, % within 0.1 %, % within 5 %")
-for (y in sort(unique(cmp_yr))) {
+for (y in sort(unique(cmp_yr), method = "radix")) {
   c1 <- cmp[cmp_yr == y, ]
   say(sprintf("    %s %6d %5.1f %5.1f", y, nrow(c1), 100 * mean(c1$rel <= 0.001), 100 * mean(c1$rel <= 0.05)))
 }
 say(sprintf("  coordinates: %d stations in both; %d more than 1 km apart (tool against province, km):",
             length(coord_km), sum(coord_km > 1)))
 for (n in names(sort(coord_km[coord_km > 1], decreasing = TRUE))) say(sprintf("    %s %.1f", n, coord_km[[n]]))
+reg_net <- "Regulator \u2013 BC Oil and Gas Commission"
+reg_prov <- wt$nid[wt$net == reg_net & wt$nid %in% prov$station_id]
+say(sprintf("  provincial-file stations the tool lists under '%s': %d (%s)", reg_net, length(reg_prov),
+            paste(reg_prov, collapse = ", ")))
 say(sprintf("  provincial-file stations not in the tool: %s", paste(setdiff(prov$station_id, wt$nid), collapse = ", ")),
     sprintf("  tool BC ENV stations with discharge not in the provincial files (kept from the tool): %s",
             paste(wt_own$nid[wt_own$net == "BC ENV - Real-time Water Data Reporting" & wt_own$discharge], collapse = ", ")))
 
 say("", "Licences stated in the BC Water Tool CSV headers, by network (first 100 characters):")
-for (n in sort(unique(wt$net))) {
+for (n in sort(unique(wt$net), method = "radix")) {
   l <- unique(substr(wt$licence[wt$net == n], 1, 100))
   say(sprintf("  %s: %s", n, paste(l, collapse = " | ")))
 }

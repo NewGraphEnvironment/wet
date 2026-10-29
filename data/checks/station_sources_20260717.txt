@@ -1,11 +1,12 @@
 Station sources beyond HYDAT (#123): station lists, the HYDAT match and Chinook-window years
-HYDAT release 20260717; code_md5 8918d04a08b203bca5a8e17021c77402
+HYDAT release 20260717; code_md5 a3719fad1be1991ea684d98729673403
 Windows: CH migration 05-01..08-01 and spawning 08-01..09-15; a complete window-year is a
 wet_window_stats() row at min_frac 0.8 ('daily'), or a window inside a listed period ('period [I]').
 HYDAT match: within 1 km and the same stream name; near misses within 3 km listed.
 A station passes the station test with >= 3 complete window-years (daily) outside HYDAT's discharge years at its site.
 
 Snapshots (data/station_sources/raw/, md5):
+  a6cc0d30dd62f3ef47b7446d1202f20e  bcenv/Discharge.csv
   aeedae1e951c43152912daf9a260c390  bcenv/Discharge_Archive_2015Oct_2017Oct.csv
   852cbd06ba42392ea940557a79ce9a7b  bcenv/Discharge_Archive_2017Oct_2019Oct.csv
   d48e04430a139b4e8a2a4f83011fa933  bcenv/Discharge_Archive_2019Oct_2021Oct.csv
@@ -13,14 +14,13 @@ Snapshots (data/station_sources/raw/, md5):
   587278403145c8ec731525df267379ce  bcenv/Discharge_Archive_2023Oct_2025Oct.csv
   6fbb822bee0ac01599ace8a00a3b45c0  bcenv/Discharge_Archive_Post_20251001.csv
   95c8aa5041fa81333fb84147f106b1ab  bcenv/Discharge_Archive_Pre_20151001.csv
-  a6cc0d30dd62f3ef47b7446d1202f20e  bcenv/Discharge.csv
   4c29e2ad9fd6ea40a8547edca66ea3fc  bcwatertool_streamflow_stations_20261028.geojson
   dc08247340e96f4ce51cb7e1ad78d75d  cbwaterhub_package_search_20261028.json
   c0d622195d4721020d09b9c52e63f188  usgs_dv_12212390_20261028.rdb
   db38f83f3ddff8d439c40604a12587e4  usgs_dv_12355000_20261028.rdb
   2c0cdbfeabf97a434d52cac0bb23cf29  usgs_site_20261028.rdb
-  bcwatertool/: 2 stations answered HTTP errors (kept as .status files)
-  bcwatertool/*.csv: 391 per-station files; md5 of their md5 list 529b73cf508a7cedc107304b13209028
+  bcwatertool/: 391 stations; 389 per-station CSVs; 2 answered an HTTP error (kept as .status files)
+  bcwatertool/: md5 of their md5 list 529b73cf508a7cedc107304b13209028
 
 HYDAT: 8057 stations with coordinates, 2324 in BC, 2048 BC with a discharge record (STN_DATA_RANGE Q).
 
@@ -74,18 +74,34 @@ Stations passing the station test (daily): 147; by network:
     2  USGS
 Distinct sites among them (within 0.5 km on the same stream): 140
 Passing on the period proxy alone (cannot reach harvest): 39 stations, 38 sites; not already a passing site: 38
-Lower bars: new discharge stations (any record) 360, sites 345; with >= 1 complete window-year 323, sites 309;
-  seasonal-only (daily, no Dec-Feb day) new stations with >= 1 complete window-year: 60
+Lower bars, daily records: new stations (not duplicates) with a complete day 250, sites 238;
+  with >= 1 complete window-year outside HYDAT 238, sites 227; seasonal-only among those 60; by source: bcenv 185, bcwatertool 51, usgs 2
+Lower bars, period proxy [I]: new listed-period stations 110; with >= 1 window inside the period 85
+Water Tool passing stations at a site that also passes in the provincial files: 6 (4601, 4602, 2601, 2602, 2603, 2604)
+
+Sensitivity: the same site out to 3 km. Passing stations that fail when the nearest HYDAT gauge on the
+  same stream 1-3 km away also counts as the site (window-years outside its discharge years too): 4 of 147;
+  passing stations with such a gauge: 21. Those that fail (station, years, window-years then, the gauge):
+  bcenv 08HA0024 Chemainus River ds of Chemainus Rd Bridge (2019-2021): 3 -> 0; 08HA001 (1.42 km, 1914-2025)
+  bcenv 08LC0006 Bessette Creek at Whitevale Road-Shuswap Ave (2021-2026): 4 -> 1; 08LC042 (1.85 km, 1973-2025)
+  bcenv 08MG0002 Fitzsimmons Creek (2014-2026): 12 -> 1; 08MG026 (1.39 km, 1993-2025)
+  bcenv 08NM0006 Coldstream Creek Near McClounie Road (2016-2023): 3 -> 2; 08NM248 (1.85 km, 2021-2024)
+
+Regulation flagged from names [I] (every other station is unknown), by source:
+  bcenv: 10 (with a daily record: 9; passing: 4)
+  bcwatertool: 15 (with a daily record: 1; passing: 0)
+  cbwaterhub: 0 (with a daily record: 0; passing: 0)
+  usgs: 0 (with a daily record: 0; passing: 0)
 
 Provincial files: 211 stations with discharge, 196 with a complete day; 5221434 hourly values; grades:
   Undefined 58.8 %; Very Good 7.8 %; Good 7.4 %; Unspecified 7.3 %; RISC C 5.1 %; Estimated 3.7 %; RISC U 2.7 %; RISC A 2.1 %; Excellent 1.7 %; RISC B 1.4 %; RISC E 1.2 %; Poor 0.2 %; EXCELLENT - RATED STRUCTURE 0.2 %; Best Practice 0.2 %; Unusable 0.2 %; Unverified 0.0 %
   stations whose hours are mostly Undefined or Unspecified: 134 of 211
   units: l/s 33893 values at 6 stations; m^3/s 5187541 values at 205 stations (l/s divided by 1000); NaN values dropped: 800830 at 121 stations
-  stations with an hourly value above 1,000 m^3/s (hours, max):
-    08HA0036 Oliver Creek in Lake Cowichan: 166, 2117656.5
-    08HD0003 Amor De Cosmos Creek at Hwy 19: 1335, 7041.9
-    08MD0002 Fraser River Upstream of Big Bar Slide: 19178, 9886.9
-    08MD0003 Fraser River Eddy Below Big Bar Slide: 15521, 5974.1
+  stations with an hourly value above 1,000 m^3/s (hours, max, years, grades of those hours):
+    08HA0036 Oliver Creek in Lake Cowichan: 166, 2117656.5, 2021-2024, RISC C, RISC U
+    08HD0003 Amor De Cosmos Creek at Hwy 19: 1335, 7041.9, 2021-2025, RISC C, RISC U, Unspecified
+    08MD0002 Fraser River Upstream of Big Bar Slide: 19178, 9886.9, 2021-2026, Undefined
+    08MD0003 Fraser River Eddy Below Big Bar Slide: 15521, 5974.1, 2021-2026, Undefined
 
 The BC Water Tool against the province (the same station's 24-hour UTC days):
   before 2025-10-01: 163924 station-days at 181 stations; 91.9 % within 0.1 %, 93.0 % within 1 %, 95.2 % within 5 %
@@ -121,6 +137,7 @@ The BC Water Tool against the province (the same station's 24-hour UTC days):
   coordinates: 210 stations in both; 2 more than 1 km apart (tool against province, km):
     08JC0006 111.6
     08JC0002 111.6
+  provincial-file stations the tool lists under 'Regulator – BC Oil and Gas Commission': 17 (07FA0001, 07FC0001, 07FC0002, 08LC0005, 08LC0006, 08LG0019, 08MH0062, 08NJ0001, 08NM0066, 08NM0069, 08NM0072, 08NM0073, 08NM0074, 08NM0075, 08NM0076, 08NM0077, 10CD0001)
   provincial-file stations not in the tool: 08LG0020
   tool BC ENV stations with discharge not in the provincial files (kept from the tool): 08MH0061, H08KC1015
 
@@ -510,11 +527,11 @@ Every station read (source | network | id | name | lon | lat | first-last | basi
   bcwatertool | Oil and Gas Industry Network | 61013 | Tsea River at Geet-La (Nexen Energy ULC) | -121.8302 | 59.4690 | 2009-2014 | daily | unknown | - | not in HYDAT | 6/6 | TRUE | - | -
   bcwatertool | Oil and Gas Industry Network | BSE2 | 126 Road (Black Swan Energy) | -122.1384 | 57.0598 | 2013-2015 | daily | unknown | - | not in HYDAT | 2/2 | TRUE | - | -
   bcwatertool | Oil and Gas Industry Network | HRB5454 | Tommy Lakes Rd (Black Swan Energy) | -121.7194 | 57.2872 | 2016-2025 | daily | unknown | - | not in HYDAT | 9/9 | FALSE | 07FC008 (0.04 km) | -
+  bcwatertool | Oil and Gas Industry Network | UC 5 | Birch Rd station at 'East Whiplash Creek' (Todd Energy Canada Limited) | -121.5593 | 56.9296 | 2016-2018 | daily | unknown | - | not in HYDAT | 1/1 | TRUE | - | -
   bcwatertool | Oil and Gas Industry Network | ogc_1002 | Emile Creek (Quicksilver Resources Ltd) | -122.6777 | 59.8146 | 2011-2015 | daily | unknown | - | not in HYDAT | 4/4 | TRUE | - | -
   bcwatertool | Oil and Gas Industry Network | ogc_1004 | Petitot River (Penn West) | -120.6359 | 59.6481 | 2013-2015 | daily | unknown | - | not in HYDAT | 3/3 | TRUE | - | -
   bcwatertool | Oil and Gas Industry Network | ogc_1005 | Cameron River (Progress Energy) | -122.3827 | 56.8016 | 2011-2015 | daily | unknown | - | not in HYDAT | 4/4 | TRUE | - | -
   bcwatertool | Oil and Gas Industry Network | ogc_1006 | Petitot River (Quicksilver Resources Ltd.) | -122.7093 | 59.9892 | 2014-2015 | daily | unknown | - | not in HYDAT | 2/2 | TRUE | - | -
-  bcwatertool | Oil and Gas Industry Network | UC 5 | Birch Rd station at 'East Whiplash Creek' (Todd Energy Canada Limited) | -121.5593 | 56.9296 | 2016-2018 | daily | unknown | - | not in HYDAT | 1/1 | TRUE | - | -
   bcwatertool | Regulator – BC Oil and Gas Commission | 07FA0002 | Alexander Creek at Upper Halfway Rd | -121.7818 | 56.5213 | 2022-2023 | daily | unknown | - | not in HYDAT | 0/0 | TRUE | - | -
   bcwatertool | Regulator – BC Oil and Gas Commission | 07FA0003 | Hulcross Creek at Moberly Lake Road S | -121.9911 | 55.7727 | 2022-2025 | daily | unknown | - | not in HYDAT | 4/4 | TRUE | - | -
   bcwatertool | Regulator – BC Oil and Gas Commission | 07FB0001 | Stewart Creek at Stewart Lake Rd | -121.0631 | 55.9421 | 2022-2023 | daily | unknown | - | not in HYDAT | 1/1 | TRUE | - | -
