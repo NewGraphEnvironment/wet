@@ -282,27 +282,28 @@ test_that("the Chinook sites' values hold four sites, both routes and their prov
   expect_true(all(c("wet_commit", "hydat", "scripts", "reports") %in% names(v$provenance)))
 })
 
-test_that("the Chinook sites' map layers are sf in BC Albers, with every site and gauge", {
+test_that("the Chinook sites' map layers are sf in BC Albers, two regional maps holding every site", {
   skip_if_not_installed("sf")
   m <- readRDS(vignette_data("chinook_sites_map.rds"))
   v <- readRDS(vignette_data("chinook_sites_values.rds"))
-  expect_named(m, c("bc", "boxes", "targets", "gauges", "extents", "streams", "lakes", "places"))
-  # every site's own map has its extent, its target stream and its places
-  for (id in v$sites$site_id) {
-    expect_equal(sum(m$extents$site_id == id), 1L, info = id)
-    expect_true(any(m$streams$site_id == id & m$streams$main), info = id)
-    expect_true(any(m$places$site_id == id), info = id)
-  }
+  expect_named(m, c("bc", "targets", "gauges", "extents", "streams", "lakes", "places"))
   for (nm in names(m)) {
     expect_s3_class(m[[nm]], "sf")
     expect_equal(sf::st_crs(m[[nm]])$epsg, 3005L, info = nm)
   }
-  expect_equal(sort(m$boxes$site_id), sort(v$sites$site_id))
   expect_equal(sort(m$targets$site_id), sort(v$sites$site_id))
-  expect_setequal(m$gauges$station_number, v$gauges$station_number)
-  # each target inside its own box
-  inside <- vapply(v$sites$site_id, function(id) {
-    lengths(sf::st_within(m$targets[m$targets$site_id == id, ], m$boxes[m$boxes$site_id == id, ])) == 1
-  }, TRUE)
-  expect_true(all(inside))
+  expect_setequal(m$extents$map, unique(m$targets$map))
+  # every target and every gauge it borrows from inside its map's extent
+  for (k in seq_len(nrow(m$targets))) {
+    ext <- m$extents[m$extents$map == m$targets$map[k], ]
+    expect_equal(lengths(sf::st_within(m$targets[k, ], ext)), 1L, info = m$targets$site_id[k])
+  }
+  for (mp in unique(m$extents$map)) {
+    g <- m$gauges[m$gauges$map == mp, ]
+    expect_true(all(lengths(sf::st_within(g, m$extents[m$extents$map == mp, ])) == 1), info = mp)
+    expect_true(any(m$streams$map == mp & m$streams$main), info = mp)
+    expect_true(any(m$places$map == mp), info = mp)
+  }
+  # each target names the river it flows into
+  expect_false(anyNA(m$targets$into1))
 })

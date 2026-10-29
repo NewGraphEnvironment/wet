@@ -113,7 +113,7 @@ stopifnot(all(grepl("^BULK", sites$windows)), identical(sites$windows != "BULK",
 
 Many streams that matter to salmon were gauged for only a few summers, or never. This
 article uses the R package [`wet`](https://newgraphenvironment.github.io/wet/) to ask how
-their summer flow has changed since before 1981, at four streams in central British
+their summer flow has changed since before 1981, at four streams in northern British
 Columbia that Chinook salmon use: Maxan Creek, with five full summers on record; Swift
 Creek and Naver Creek, with `r sites$obs_n[sites$site_id == "swift"]` and
 `r sites$obs_n[sites$site_id == "naver"]`; and Gosnell Creek, never gauged. Each is run the
@@ -130,30 +130,126 @@ than in the migration window at all four under these windows.
 
 ## Where are the four streams?
 
-```{r locator, fig.height = 4.6, fig.cap = "The four streams in British Columbia, and the box around each from which its nearby gauges come. Every box is the same size."}
-# the map caption: every box the same size
-stopifnot(all(abs(sites$lon_span - sites$lon_span[1]) < 1e-9), all(abs(sites$lat_span - sites$lat_span[1]) < 1e-9))
+```{r where}
 tg <- map$targets
-tg$part <- ifelse(tg$kind == "extend", "target_gauged", "target_ungauged")
-xy <- sf::st_coordinates(tg)
-off <- data.frame(site_id = ids, nx = c(25000, 30000, 25000, -25000), ny = c(30000, -45000, 30000, -40000),
-                  hjust = c(0, 0, 0, 1))
-lab <- merge(data.frame(site_id = tg$site_id, x = xy[, 1], y = xy[, 2], label = tg$name), off)
-boxes <- map$boxes
-boxes$part <- "box"
-bb <- sf::st_bbox(map$bc)
-ggplot() +
-  geom_sf(data = map$bc, fill = NA, colour = pal_series$values[["filled"]], linewidth = 0.3) +
-  geom_sf(data = boxes, aes(fill = part), colour = pal_series$values[["filled"]], linewidth = 0.3, alpha = 0.6) +
-  geom_sf(data = tg, aes(colour = part), size = 2.4) +
-  geom_label(data = lab, aes(x + nx, y + ny, label = label, hjust = hjust), size = 3.1, fill = "white",
-             alpha = 0.85, linewidth = 0, label.padding = unit(0.12, "lines")) +
-  scale_fill_manual(values = pal_map$values["box"], labels = pal_map$labels["box"], name = NULL) +
-  scale_colour_manual(values = pal_map$values[c("target_gauged", "target_ungauged")],
-                      labels = pal_map$labels[c("target_gauged", "target_ungauged")], name = NULL) +
-  guides(fill = guide_legend(order = 1), colour = guide_legend(order = 2)) +
-  coord_sf(xlim = c(bb[["xmin"]], bb[["xmax"]]), ylim = c(bb[["ymin"]], bb[["ymax"]]), datum = NA) +
-  theme_void() + theme(legend.position = "bottom", legend.box = "vertical", legend.text = element_text(size = 8))
+stopifnot(setequal(tg$site_id, ids))
+t_of <- function(id) tg[tg$site_id == id, ]
+pl_of <- function(name) {
+  p <- map$places[map$places$name == name, ]
+  stopifnot(nrow(p) >= 1)
+  p[1, ]
+}
+# the compass point and distance from a place to a stream, as the orientation states them
+compass <- function(name, id) {
+  a <- sf::st_coordinates(pl_of(name))
+  b <- sf::st_coordinates(t_of(id))
+  deg <- (atan2(b[1] - a[1], b[2] - a[2]) * 180 / pi) %% 360
+  c("north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west")[(round(deg / 45) %% 8) + 1]
+}
+km <- function(name, id) as.numeric(sf::st_distance(pl_of(name), t_of(id))) / 1000
+# the rivers each stream flows into, from the Freshwater Atlas
+stopifnot(t_of("maxan")$into1 == "Bulkley River", t_of("maxan")$into2 == "Skeena River",
+          t_of("gosnell")$into1 == "Thautil River", t_of("gosnell")$into2 == "Morice River",
+          t_of("naver")$into1 == "Fraser River", t_of("swift")$into1 == "McLennan River",
+          t_of("swift")$into2 == "Fraser River")
+# two maps, the Skeena's and the Fraser's
+stopifnot(identical(sort(tg$site_id[tg$map == "skeena"]), c("gosnell", "maxan")),
+          identical(sort(tg$site_id[tg$map == "fraser"]), c("naver", "swift")))
+# "near Topley, south-east of Smithers"; "south-west of Houston"; "at Hixon, south of Prince George"; "at Valemount"
+stopifnot(km("Topley", "maxan") < 25, compass("Smithers", "maxan") == "south-east",
+          compass("Houston", "gosnell") == "south-west",
+          km("Hixon", "naver") < 5, compass("Prince George", "naver") == "south", km("Valemount", "swift") < 5)
+# every box the same size
+stopifnot(all(abs(sites$lon_span - sites$lon_span[1]) < 1e-9), all(abs(sites$lat_span - sites$lat_span[1]) < 1e-9))
+```
+
+The four streams are in northern British Columbia, two in the Skeena system and two in
+the Fraser. Maxan Creek flows into the upper Bulkley River near Topley, south-east of
+Smithers, and Gosnell Creek into the Thautil River just above the Morice River,
+south-west of Houston. Naver Creek flows into the Fraser River at Hixon, south of Prince
+George, and Swift Creek into the McLennan River, a Fraser tributary, at Valemount. Each
+borrows its numbers from gauges inside a box of the same size around it.
+
+```{r region-data}
+map_w <- 7
+map_h <- 6.1   # a map area of attr(map, "map_asp") above a legend of about 0.7 in
+stopifnot(abs(map_w / (map_h - 0.7) - attr(map, "map_asp")) < 0.01)
+region <- function(m) {
+  ext <- sf::st_bbox(map$extents[map$extents$map == m, ])
+  ex <- ext[["xmax"]] - ext[["xmin"]]
+  ey <- ext[["ymax"]] - ext[["ymin"]]
+  cx <- (ext[["xmin"]] + ext[["xmax"]]) / 2
+  s <- map$streams[map$streams$map == m, ]
+  g <- map$gauges[map$gauges$map == m, ]
+  g <- g[!duplicated(g$station_number), ]
+  g$part <- "donor"
+  t <- tg[tg$map == m, ]
+  t$part <- ifelse(t$kind == "extend", "target_gauged", "target_ungauged")
+  txy <- sf::st_coordinates(t)
+  pl <- map$places[map$places$map == m, ]
+  pxy <- sf::st_coordinates(pl)
+  # the rivers the orientation names, each labelled midway along its longest drawn part
+  rv <- s[s$gnis_name %in% unique(c(t$into1, t$into2)) & !s$main, ]
+  rv <- rv[!duplicated(rv$gnis_name), ]
+  rxy <- do.call(rbind, lapply(seq_len(nrow(rv)), function(k) {
+    parts <- sf::st_cast(sf::st_geometry(rv[k, ]), "LINESTRING")
+    longest <- parts[which.max(as.numeric(sf::st_length(parts)))]
+    sf::st_coordinates(sf::st_line_sample(longest, sample = 0.5))[1, 1:2]
+  }))
+  # every label in one repelling layer, so none covers another or a marker; a white halo keeps each readable
+  lab <- rbind(
+    data.frame(x = txy[, 1], y = txy[, 2], label = t$name, face = "bold", size = 3.5, col = "black"),
+    data.frame(x = pxy[, 1], y = pxy[, 2], label = pl$name, face = "plain", size = 3.1, col = town_sty$label$color),
+    if (nrow(rv)) data.frame(x = rxy[, 1], y = rxy[, 2], label = rv$gnis_name, face = "italic", size = 3,
+                             col = lake_sty$stroke$color))
+  sb_km <- max(gq::gq_scale_breaks(ext))
+  sb <- data.frame(x = ext[["xmax"]] - 0.04 * ex - sb_km * 1000, y = ext[["ymin"]] + 0.05 * ey)
+  sb$xend <- sb$x + sb_km * 1000
+  # the keymap: the province, and this map's frame on it
+  key <- ggplot() +
+    geom_sf(data = map$bc, fill = "white", colour = pal_series$values[["filled"]], linewidth = 0.2) +
+    geom_sf(data = map$extents[map$extents$map == m, ], fill = NA, colour = pal_map$values[["target_gauged"]],
+            linewidth = 0.6) +
+    theme_void() +
+    theme(panel.background = element_rect(fill = "white", colour = pal_series$values[["filled"]], linewidth = 0.3))
+  key_w <- 0.22 * ex
+  key_h <- key_w * 1.05
+  key_left <- mean(txy[, 1]) > cx   # the keymap in the corner away from the streams
+  kx <- if (key_left) c(ext[["xmin"]] + 0.02 * ex, ext[["xmin"]] + 0.02 * ex + key_w) else
+    c(ext[["xmax"]] - 0.02 * ex - key_w, ext[["xmax"]] - 0.02 * ex)
+  ggplot() +
+    geom_sf(data = map$lakes[map$lakes$map == m, ], fill = lake_sty$fill$color, colour = lake_sty$stroke$color,
+            linewidth = 0.15) +
+    geom_sf(data = s[!s$main, ], colour = stream_sty$color, linewidth = 0.45) +
+    geom_sf(data = merge(s[s$main, ], sf::st_drop_geometry(t[c("blue_line_key", "part")])), aes(colour = part),
+            linewidth = 1.1, show.legend = FALSE) +
+    geom_sf(data = g, aes(colour = part), size = 1.5) +
+    geom_sf(data = t, aes(colour = part), size = 3.2) +
+    geom_point(data = data.frame(x = pxy[, 1], y = pxy[, 2]), aes(x, y), shape = 15, size = 1.3,
+               colour = town_sty$label$color) +
+    ggrepel::geom_text_repel(data = lab, aes(x, y, label = label, fontface = face, size = I(size), colour = I(col)),
+                             seed = 126, min.segment.length = Inf, box.padding = 0.35, point.padding = 0.25,
+                             bg.colour = "white", bg.r = 0.12, max.overlaps = Inf, show.legend = FALSE) +
+    geom_segment(data = sb, aes(x = x, xend = xend, y = y, yend = y), linewidth = 0.8) +
+    geom_text(data = sb, aes(x = (x + xend) / 2, y = y, label = paste(sb_km, "km")), vjust = -0.7, size = 3) +
+    annotation_custom(ggplotGrob(key), xmin = kx[1], xmax = kx[2], ymin = ext[["ymax"]] - 0.02 * ey - key_h,
+                      ymax = ext[["ymax"]] - 0.02 * ey) +
+    scale_colour_manual(values = pal_map$values, labels = pal_map$labels[c(unique(t$part), "donor")],
+                        breaks = c(unique(t$part), "donor"), name = NULL) +
+    coord_sf(xlim = c(ext[["xmin"]], ext[["xmax"]]), ylim = c(ext[["ymin"]], ext[["ymax"]]), expand = FALSE,
+             datum = NA) +
+    theme_void(base_size = 10) +
+    theme(legend.position = "bottom", plot.background = element_rect(fill = "white", colour = pal_series$values[["band"]]),
+          plot.margin = margin(4, 4, 4, 4))
+}
+```
+
+```{r skeena, fig.width = map_w, fig.height = map_h, fig.cap = "Maxan and Gosnell creeks in the Skeena system, with the gauges each borrows from. The inset locates the map in British Columbia."}
+region("skeena")
+```
+
+```{r fraser, fig.width = map_w, fig.height = map_h, fig.cap = "Swift and Naver creeks in the Fraser system, with the gauges each borrows from. The inset locates the map in British Columbia."}
+region("fraser")
 ```
 
 ```{r use}
@@ -182,88 +278,15 @@ stopifnot(any(v$use_obs$stream == "Swift Creek" & grepl("^Major spawning", v$use
 stopifnot(gs$nus_use == 1, gs$nus_first == 2001, gs$nus_last == 2001, gs$obs == 3, gs$obs_spawning == 0)
 ```
 
-Each stream's numbers are borrowed from gauges nearby, inside a box of the same size
-around it. Fisheries and Oceans Canada's spawner surveys find Chinook in Swift Creek in
-most years since 1970, and the provincial records place a major spawning site within
-five kilometres of its mouth; they find Chinook in Naver Creek in most years since the
-mid-1980s. Gosnell Creek's record is thinner: one survey that found adults, in 2001, and
-three provincial records of fish seen. The gauged streams' records sit in different
-places: Swift Creek's `r yr("swift", "obs_n")` full summers fall between
-`r yr("swift", "obs_first")` and `r yr("swift", "obs_last")`, inside the 1981–2010
-baseline, while Naver Creek's `r yr("naver", "obs_n")` fall between
-`r yr("naver", "obs_first")` and `r yr("naver", "obs_last")`, before it, as do Maxan
-Creek's five.
-
-```{r panels-data}
-panel_cap <- "Each stream, with its main rivers, lakes and towns, and the gauges its numbers are borrowed from."
-panel_w <- 4.2
-panel_h <- 4.7   # a square map area above a half-inch legend, the map script's extents' shape
-panel <- function(id) {
-  # one aspect for every panel: the map area above the legend
-  ext <- sf::st_bbox(map$extents[map$extents$site_id == id, ])
-  stopifnot(abs((ext[["xmax"]] - ext[["xmin"]]) / (ext[["ymax"]] - ext[["ymin"]]) - 1) < 1e-6)
-  ex <- ext[["xmax"]] - ext[["xmin"]]
-  ey <- ext[["ymax"]] - ext[["ymin"]]
-  cx <- (ext[["xmin"]] + ext[["xmax"]]) / 2
-  s <- map$streams[map$streams$site_id == id, ]
-  # the gauges it borrows from, by either route (snow gauges are not drawn unless they are donors too)
-  g <- map$gauges[map$gauges$site_id == id & map$gauges$role %in% c("extension donor", "carried donor"), ]
-  g <- g[!duplicated(g$station_number), ]
-  g$part <- "donor"
-  t <- tg[tg$site_id == id, ]
-  # a label sits on the side of its point with more room, so none runs off the frame
-  side <- function(x) ifelse(x > cx, 1, 0)
-  txy <- sf::st_coordinates(t)
-  tlab <- data.frame(x = txy[, 1] + ifelse(side(txy[, 1]) == 1, -0.03, 0.03) * ex, y = txy[, 2],
-                     hjust = side(txy[, 1]), label = name_of[[id]])
-  pl <- map$places[map$places$site_id == id, ]
-  pxy <- sf::st_coordinates(pl)
-  plab <- data.frame(x = pxy[, 1] + ifelse(side(pxy[, 1]) == 1, -0.02, 0.02) * ex, y = pxy[, 2] - 0.035 * ey,
-                     hjust = side(pxy[, 1]), label = pl$name)
-  # the two largest named rivers, labelled midway along their longest drawn part
-  rv <- s[!s$main & !is.na(s$gnis_name), ]
-  rv <- rv[order(-rv$stream_order, -as.numeric(sf::st_length(rv))), ][seq_len(min(2, nrow(rv))), ]
-  rlab <- do.call(rbind, lapply(seq_len(nrow(rv)), function(k) {
-    parts <- sf::st_cast(sf::st_geometry(rv[k, ]), "LINESTRING")
-    longest <- parts[which.max(as.numeric(sf::st_length(parts)))]
-    # midway, or a quarter or three quarters along where midway falls on the stream's own label
-    for (f in c(0.5, 0.25, 0.75)) {
-      xy <- sf::st_coordinates(sf::st_line_sample(longest, sample = f))
-      if (sqrt((xy[1, 1] - txy[1, 1])^2 + (xy[1, 2] - txy[1, 2])^2) > 0.15 * ex) break
-    }
-    data.frame(x = xy[1, 1], y = xy[1, 2], label = rv$gnis_name[k])
-  }))
-  sb_km <- max(gq::gq_scale_breaks(ext))
-  sb <- data.frame(x = ext[["xmax"]] - 0.05 * ex - sb_km * 1000, y = ext[["ymin"]] + 0.05 * ey)
-  sb$xend <- sb$x + sb_km * 1000
-  ggplot() +
-    geom_sf(data = map$lakes[map$lakes$site_id == id, ], fill = lake_sty$fill$color, colour = lake_sty$stroke$color,
-            linewidth = 0.15) +
-    geom_sf(data = s[!s$main, ], colour = stream_sty$color, linewidth = 0.45) +
-    geom_sf(data = s[s$main, ], colour = pal_map$values[[t$part]], linewidth = 1.1) +
-    geom_text(data = rlab, aes(x, y, label = label), colour = lake_sty$stroke$color, fontface = "italic", size = 2.8,
-              vjust = -0.6) +
-    geom_sf(data = g, aes(colour = part), size = 1.6) +
-    geom_sf(data = t, aes(colour = part), size = 3) +
-    geom_label(data = tlab, aes(x, y, label = label, hjust = hjust), size = 3.2, fontface = "bold", fill = "white",
-               alpha = 0.85, linewidth = 0, label.padding = unit(0.12, "lines")) +
-    geom_text(data = plab, aes(x, y, label = label, hjust = hjust), colour = town_sty$label$color, size = 2.9) +
-    geom_segment(data = sb, aes(x = x, xend = xend, y = y, yend = y), linewidth = 0.8) +
-    geom_text(data = sb, aes(x = (x + xend) / 2, y = y, label = paste(sb_km, "km")), vjust = -0.7, size = 2.8) +
-    scale_colour_manual(values = pal_map$values, labels = pal_map$labels[c(t$part, "donor")],
-                        breaks = c(t$part, "donor"), name = NULL) +
-    coord_sf(xlim = c(ext[["xmin"]], ext[["xmax"]]), ylim = c(ext[["ymin"]], ext[["ymax"]]), expand = FALSE,
-             datum = NA) +
-    theme_void(base_size = 9) +
-    theme(legend.position = "bottom", legend.text = element_text(size = 7.5),
-          plot.background = element_rect(fill = "white", colour = pal_series$values[["band"]]),
-          plot.margin = margin(4, 4, 4, 4))
-}
-```
-
-```{r panels, fig.width = panel_w, fig.height = panel_h, out.width = "49%", fig.show = "hold", fig.cap = panel_cap}
-for (id in ids) print(panel(id))
-```
+Fisheries and Oceans Canada's spawner surveys find Chinook in Swift Creek in most years
+since 1970, and the provincial records place a major spawning site within five kilometres
+of its mouth; they find Chinook in Naver Creek in most years since the mid-1980s. Gosnell
+Creek's record is thinner: one survey that found adults, in 2001, and three provincial
+records of fish seen. The gauged streams' records sit in different places: Swift Creek's
+`r yr("swift", "obs_n")` full summers fall between `r yr("swift", "obs_first")` and
+`r yr("swift", "obs_last")`, inside the 1981–2010 baseline, while Naver Creek's
+`r yr("naver", "obs_n")` fall between `r yr("naver", "obs_first")` and
+`r yr("naver", "obs_last")`, before it, as do Maxan Creek's five.
 
 ## What is a window?
 

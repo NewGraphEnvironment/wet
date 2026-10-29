@@ -32,6 +32,7 @@ Suggests:
     climr,
     duckdb,
     ggplot2,
+    ggrepel,
     gsdd,
     gq,
     kableExtra,
