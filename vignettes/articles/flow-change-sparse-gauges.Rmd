@@ -126,7 +126,7 @@ method predicts gauges it was not given.
 `r and_text(sub(" Creek$", "", name_of[low_spw$site_id]))` creeks that route's 90% range
 stays below no change. In the migration window no stream's mean flow shows a clear change.
 Borrowing departures, the one route every stream has, scores worse in the spawning window
-than in the migration window at all four.
+than in the migration window at all four under these windows.
 
 ## Where are the four streams?
 
@@ -206,7 +206,8 @@ panel <- function(id) {
   ey <- ext[["ymax"]] - ext[["ymin"]]
   cx <- (ext[["xmin"]] + ext[["xmax"]]) / 2
   s <- map$streams[map$streams$site_id == id, ]
-  g <- map$gauges[map$gauges$site_id == id & map$gauges$role != "target", ]
+  # the gauges it borrows from, by either route (snow gauges are not drawn unless they are donors too)
+  g <- map$gauges[map$gauges$site_id == id & map$gauges$role %in% c("extension donor", "carried donor"), ]
   g <- g[!duplicated(g$station_number), ]
   g$part <- "donor"
   t <- tg[tg$site_id == id, ]
@@ -343,12 +344,14 @@ for (id in ids) for (w in wb$window) {
 }
 ```
 
-```{r years, fig.height = 8.5, fig.cap = "Each window's mean flow, year by year, as a share of its 1981–2010 typical flow (log scale). Points are measured summers; the grey line fills the other years from one nearby gauge, with its 90% range; the blue line is borrowed from nearby gauges' year-to-year departures. Black lines are the borrowed route's typical departure before 1981 and since 2011."}
+```{r years, fig.height = 8.5, fig.cap = "Each window's mean flow, year by year, as a share of its 1981–2010 typical flow (log scale). Large orange points are measured summers; the grey line fills the other years from one nearby gauge, with its 90% range; the blue line is borrowed from nearby gauges' year-to-year departures. A small point is a year with no neighbouring year on its line. Black lines are the borrowed route's typical departure before 1981 and since 2011."}
 ggplot(yy, aes(year)) +
   geom_hline(yintercept = 0, colour = pal_series$values[["band"]]) +
   geom_ribbon(data = yl[yl$line == "filled", ], aes(ymin = pct_of(lo), ymax = pct_of(hi), fill = "band")) +
   geom_line(data = yl[yl$line == "filled", ], aes(y = pct, colour = "filled"), linewidth = 0.35) +
   geom_line(data = yl[yl$line == "borrowed", ], aes(y = pct, colour = "borrowed"), linewidth = 0.35) +
+  geom_linerange(data = yl[yl$alone & yl$line == "filled" & yl$route %in% "filled", ],
+                 aes(ymin = pct_of(lo), ymax = pct_of(hi)), colour = pal_series$values[["band"]], linewidth = 1.5) +
   geom_point(data = yl[yl$alone & yl$line == "filled" & yl$route %in% "filled", ], aes(y = pct, colour = "filled"),
              size = 0.6) +
   geom_point(data = yl[yl$alone & yl$line == "borrowed", ], aes(y = pct, colour = "borrowed"), size = 0.6) +
