@@ -1,17 +1,16 @@
 # Station sources beyond HYDAT: which networks hold BC discharge
 
-**Verified:** 2026-10-28 · **Issues:** #123 (component 4 of #118); spawned wet#142 (provincial harvester) and wet#140 (BC Hydro) · **Produced by:** web and API reads of each source (URLs inline), `scripts/station_sources_probe.R` → `data/checks/station_sources_20260717.txt` against HYDAT 2026-07-17, and an org-wide search of NewGraphEnvironment code and installed packages · **Status:** complete for the bar below; sources not accessed are listed with what blocked them
+**Verified:** 2026-10-29 · **Issues:** #123 (component 4 of #118); spawned wet#142 (provincial harvester), wet#144 (the Water Tool's third-party networks) and wet#140 (BC Hydro) · **Produced by:** web and API reads of each source (URLs inline), `scripts/station_sources_probe.R` → `data/checks/station_sources_20260717.txt` against HYDAT 2026-07-17, and an org-wide search of NewGraphEnvironment code and installed packages · **Status:** complete for the bar below; sources not accessed are listed with what blocked them
 
 Tags: **[S]** the linked source says it · **[M]** measured (the probe report, or the command named beside it) · **[I]** inferred, not verified.
 
 ## The answer
 
-One source passes the bar: **the province's non-integrated hydrometric network**, published as hourly CSVs under the Open Government Licence – British Columbia. 110 of its 211 stations have at least 3 complete Chinook-window years that HYDAT does not hold [M]. Its harvester is wet#142.
+Two sources are harvest candidates:
+- **the province's non-integrated hydrometric network**, published as hourly CSVs under the Open Government Licence – British Columbia. 110 of its 211 stations have at least 3 complete Chinook-window years that HYDAT does not hold [M]. Its harvester is wet#142.
+- **the third-party networks the BC Water Tool serves**: 35 more stations pass the station test, 6 of them at sites that also pass in the provincial files [M]. They pass the terms, access and station tests; each operator's rating is not stated, so the rating test is confirmed in their harvester, wet#144.
 
-Three more hold usable discharge but fail the bar, so they are **test-only**:
-- the third-party networks in the BC Water Tool: 35 more stations pass the station test (6 of them at sites that also pass in the provincial files), but no redistribution licence is stated;
-- the Columbia Basin Water Hub: 29 stations pass on the period proxy, all preliminary, and a scripted reader needs Living Lakes Canada's consent;
-- two USGS gauges inside BC, below the 5-station threshold.
+The **Columbia Basin Water Hub** is a lead: its discharge datasets carry Creative Commons BY-SA licences (18 of the 76 non-commercial, and 39 "amended" with the amendment not stated) [M], and 29 of its stations pass on the period proxy, but the daily values that would settle the station test have not been read: robots.txt disallows the API, and each dataset's CSV download sits behind a bot check, so a scripted reader needs Living Lakes Canada's consent. Two **USGS** gauges inside BC are test-only, below the 5-station threshold.
 
 Everything else is **no** (stage only, a copy of HYDAT, no discharge, or not accessible: BC Hydro's archive by request, wet#140; DataStream, key by request) or a **lead** not yet read (the CRD's ECCC partner feed, Rio Tinto, two DataCite records).
 
@@ -19,19 +18,21 @@ All told, 147 stations at 140 distinct sites pass the station test [M]; listings
 
 ## The bar
 
-Written before any source was checked (#123's plan gate, 2026-10-28). Every source and every asset found is recorded below, accessed or not, so the bar can be revisited. A verdict is a column over the inventory, not a filter on it.
+Written before any source was checked (#123's plan gate, 2026-10-28), and revised once (2026-10-29, below). Every source and every asset found is recorded below, accessed or not, so the bar can be revisited. A verdict is a column over the inventory, not a filter on it.
 
 - **harvest**: all four of these:
   - discharge (not only stage), with a maintained rating;
-  - a licence that allows use and redistribution of derived values;
+  - terms that do not forbid use and redistribution of derived values, with the source credited;
   - machine-readable access (API or bulk download);
-  - at least 5 BC stations not in HYDAT, each with at least 3 complete years in a Chinook window.
+  - at least 5 BC stations not in HYDAT, each with at least 3 complete years in a Chinook window. Stations are counted per publisher's feed: the Water Tool's seven third-party networks, served by one API, count together.
 
-  That is the size of record the Maxan pilot used (`research/station_flow_departure.md`). A window is the migration window (05-01–08-01) or the spawning window (08-01–09-15) of `inst/vignette-data/life_history_bulk.csv`. A complete year is a row that `wet_window_stats()` returns at `min_frac = 0.8`. A count taken from a listed period of record, without daily values, is a proxy tagged [I], and a proxy alone cannot reach harvest.
-- **test-only**: discharge that can be used for scoring but fails the redistribution, QA or station tests. We score against it and never publish from it.
+  The terms test first read "a licence that allows use and redistribution of derived values". It was revised on 2026-10-29, once the survey had read the Water Tool's headers (389 of 391 stations; 2 answer HTTP 500: 08HB0020, a BC ENV listing, and 08NM0072, a provincial-file station): the passing networks' headers name their source and disclaim liability for the data and derived information, and none restricts use. That moved those networks from test-only to harvest, with each operator's rating to confirm. Whatever terms come with a dataset carry over to what is published from it: attribution always, and ShareAlike or non-commercial terms where a licence carries them.
+
+  The station threshold is the size of record the Maxan pilot used (`research/station_flow_departure.md`). A window is the migration window (05-01–08-01) or the spawning window (08-01–09-15) of `inst/vignette-data/life_history_bulk.csv`. A complete year is a row that `wet_window_stats()` returns at `min_frac = 0.8`. A count taken from a listed period of record, without daily values, is a proxy tagged [I], and a proxy alone cannot reach harvest.
+- **test-only**: discharge that can be used for scoring but fails the terms, QA or station tests. We score against it and never publish from it.
 - **no**: stage only, no discharge, a duplicate of HYDAT, or no access. A station at a HYDAT site is a duplicate only where its period overlaps HYDAT's there. One that adds years at a discontinued HYDAT site is counted as "same site, new years".
 
-Regulation is recorded for each station (natural, regulated or unknown), because the pilot's donor pool was natural only. The probe can flag regulation only from station names: 10 provincial stations (4 of them passing) and 15 Water Tool listings (none passing) read as regulated by name, and every other station is unknown [M, report "Regulation"]. Establishing it is part of wet#142.
+Regulation is recorded for each station (natural, regulated or unknown), because the pilot's donor pool was natural only. The probe can flag regulation only from station names: 10 provincial stations (4 of them passing) and 15 Water Tool listings (none passing) read as regulated by name, and every other station is unknown [M, report "Regulation"]. Establishing it is part of wet#142 and wet#144.
 
 ## Inventory
 
@@ -43,10 +44,10 @@ Regulation is recorded for each station (natural, regulated or unknown), because
 | Province | Catalogue record <https://catalogue.data.gov.bc.ca/dataset/hydrometric_data> | The same files | | OGL-BC 2.0 | Some archive links stale or 404 [M] | | the files above |
 | Province | Aquarius WebPortal (aqrt.nrs.gov.bc.ca → bcmoe-prod.aquaticinformatics.net) | The same database | | | Click-through disclaimer, not accepted [M] | Not read | the files above |
 | Province, integrated (federal–provincial) stations | HYDAT | WSC | Approved | | | In HYDAT | no (HYDAT) |
-| BC Water Tool (Foundry Spatial), third-party networks | <https://nr-bcwat.bcwatertool.ca/api/streamflow/stations>, then `/{id}/csv` | Daily "Preliminary Discharge"; each operator's rating, not stated [M] | Header flag "1 - Quality Checked, 0 - Unchecked Quality" [M] | Headers carry attributions and disclaimers ("submitted as condition of permit", "provided under Memorandum of Understanding"), no redistribution licence [M] | Open JSON API; robots.txt allows all [M] | Passing: CRD 8, Geoscience BC 7, Oil and Gas Industry Network 7, EAO 5, Tofino 4, BCCF 2, BCER 2 = **35**; the 4 Tofino and 2 BCCF stations sit at sites that also pass in the provincial files (08HC000x, 08HB0011, 08HB0008), so 29 are beyond them [M] | **test-only** (no licence) |
+| BC Water Tool (Foundry Spatial), third-party networks | <https://nr-bcwat.bcwatertool.ca/api/streamflow/stations>, then `/{id}/csv` | Daily "Preliminary Discharge"; each operator's rating, not stated [M] | Header flag "1 - Quality Checked, 0 - Unchecked Quality" [M] | Headers name the source ("submitted as condition of permit", "provided under Memorandum of Understanding") and disclaim liability for the data and derived information; none restricts use [M, report "headers whose licence text restricts use"] | Open JSON API; robots.txt allows all [M] | Passing: CRD 8, Geoscience BC 7, Oil and Gas Industry Network 7, EAO 5, Tofino 4, BCCF 2, BCER 2 = **35**; the 4 Tofino and 2 BCCF stations sit at sites that also pass in the provincial files (08HC000x, 08HB0011, 08HB0008), so 29 are beyond them [M] | **harvest**, rating to confirm (wet#144) |
 | BC Water Tool, BC ENV series | The same API | A copy of the provincial files | | OGL-BC (report JSON) [M] | | 78 BC ENV listings not in the files; 2 of them hold a discharge series (08MH0061, H08KC1015) [M] | no (copy) |
 | BC Water Tool, stage-only networks | The same API | DFO 14, Delta 6, Cowichan Valley RD 3, Surrey SCADA 2, Wasa Lake LID 1: no discharge series [M] | | DFO: "personal and public non-commercial" [M] | | | no (stage) |
-| Living Lakes Canada, Columbia Basin Water Hub | <https://data.cbwaterhub.ca> (CKAN) | 96 datasets tagged or listing discharge: 76 list a discharge parameter (43 of them in Living Lakes' CBWMF network), and 20 carry only a Discharge tag (stage-only streams, spot measurements, a reports dataset), counted as no discharge [M] | All preliminary; flag column empty [M] | "Amended CC-BY-SA-4.0" (amendment text unreachable), CC BY-NC-SA, CC BY-SA [M] | robots.txt disallows `/api/`; HTML behind an Anubis bot wall [M]. Read once from a stored `package_search` dump | Listed periods only. Of the 76: 54 not in HYDAT, 21 adding years at a HYDAT site, and Redfish Creek a duplicate of active 08NJ061; **29 passing on the proxy [I]** at 29 sites [M] | **test-only**, once Living Lakes agrees to a scripted reader (cbwaterhub@livinglakescanada.ca) |
+| Living Lakes Canada, Columbia Basin Water Hub | <https://data.cbwaterhub.ca> (CKAN) | 96 datasets tagged or listing discharge: 76 list a discharge parameter (43 of them in Living Lakes' CBWMF network), and 20 carry only a Discharge tag (stage-only streams, spot measurements, a reports dataset), counted as no discharge [M] | All preliminary; flag column empty [M] | Of the 76: "Amended CC-BY-SA-4.0" 39 (amendment text not in the dataset records), CC BY-SA 19, CC BY-NC-SA 18 [M, report "Licences of the Water Hub's discharge datasets"] | robots.txt disallows `/api/`; HTML pages and each dataset's CSV download (all 76 discharge datasets have one, by the resource URLs in the stored dump) sit behind a bot check [M]. Read once from a stored `package_search` dump | Listed periods only. Of the 76: 54 not in HYDAT, 21 adding years at a HYDAT site, and Redfish Creek a duplicate of active 08NJ061; **29 passing on the proxy [I]** at 29 sites [M] | **lead**: daily values need a scripted reader, which needs Living Lakes Canada's consent (cbwaterhub@livinglakescanada.ca) |
 | Skeena Knowledge Trust | Skeena Salmon Data Centre, <https://data.skeenasalmon.info> (CKAN; the trust's site is skeenatrust.ca) | No original discharge: HYDAT copies, two provincial regional streamflow analyses, links to provincial 08EE0001 and 08EE0002 [M] | | Mostly "other (closed)" [M] | CKAN | | no (no discharge of its own) |
 | DataStream hubs | <https://datastream.org>, API `api.datastream.org` | Vocabulary includes discharge and water level [M]; BC holdings mostly water quality, a few water-level loggers (DFO CoSMo, Resilient Waters) [S] | | BC datasets ODC-By or ODC-PDDL [S] | API key given by Google form (not requested); robots.txt opts out ClaudeBot and anthropic-ai [M] | Not measured | no (not accessed; one `Locations` query with a key would answer it) |
 | UNBC | Northern Hydrometeorology Group request form <https://nhgdatareq.unbc.ca/>; Zenodo datasets | No discharge in its own releases: 68 request-form sites are water temperature, weather and one level logger [M]. Its only discharge found is two Kiskatinaw series in the BC Water Tool | | Zenodo CC BY 4.0 | By request form | Two Kiskatinaw stations (2010–2012) in the BC Water Tool, 0 passing [M] | no |
@@ -88,21 +89,21 @@ The probe reads only what each host allows its agents to read [M, each host's `/
 |---|---|---|
 | www.env.gov.bc.ca | Disallows four unrelated paths; `/wsd/data_searches/water/` allowed | Downloads the 8 CSVs once |
 | nr-bcwat.bcwatertool.ca | Allows all | Reads the station list and each of 391 stations' CSVs once: 389 files, and 2 stations that answer HTTP 500 every time, kept as `.status` files |
-| data.cbwaterhub.ca | `Disallow: /api/` for every agent | Fetches nothing. Reads one `package_search` dump taken by hand during the survey |
+| data.cbwaterhub.ca | `Disallow: /api/` for every agent (and three unrelated paths); the CSV downloads are allowed but sit behind a bot check | Fetches nothing. Reads one `package_search` dump taken by hand during the survey |
 | catalogue.hakai.org | Disallows `/erddap*?` | Fetches nothing |
 | datastream.org | Opts out ClaudeBot and anthropic-ai by name | Fetches nothing |
 | waterservices.usgs.gov | None served | Reads daily values for two sites; the OGC API's `items` path, disallowed on its own host, is not used |
 
 Snapshots are cached under the gitignored `data/station_sources/raw/`, and the report carries their md5s. A rerun on the same snapshots gives a byte-identical report.
 
-## What the provincial files and the Water Tool get wrong
+## Data notes: the provincial files and the Water Tool
 
-These are the publishers' defects, reported as found and not filtered:
+Reported as found, not filtered:
 - **Units.** Six Vancouver Island stations report 2016–2019 in `l/s` and the rest in `m^3/s`. The probe divides `l/s` by 1000 [M].
 - **NaN.** 800,830 hourly values at 121 stations are `NaN`. The probe drops them; a day needs 20 real hours [M].
 - **Impossible values, graded.** Oliver Creek in Lake Cowichan (08HA0036) reaches 2.1 million m³/s on RISC C and U hours in 2021–2024. Amor De Cosmos Creek (08HD0003) reaches about 7,000 m³/s on RISC C, U and Unspecified hours in 2021–2025 [M]. Complete days do not depend on magnitude, so the counts stand. A harvester needs a plausibility rule (wet#142). The Fraser at the Big Bar slide (08MD0002 and 08MD0003, up to 9,887 m³/s) is plausible.
 - **Two copies that part in 2021.** The Water Tool's daily values for the provincial stations match the files to within 0.1 % on at least 99.7 % of days in every year with data from 1998 to 2020 (none in 2004–2005). From 2021 they match on only 61–92 % of days [M, report "by year"]. One copy has been revised since the other was taken. Which one is unresolved, because the Aquarius portal was not read.
-- **Coordinates.** The Water Tool places 08JC0002 and 08JC0006 111.6 km from the province's coordinates, a degree of latitude [M]. It also lists 17 provincial stations under "Regulator – BC Oil and Gas Commission": BCER's own (07FA0001, 07FC0001, 10CD0001 and others) beside Okanagan, Shuswap, Nicola, Kootenay and Lower Mainland stations (08NM00xx, 08LC000x, 08LG0019, 08NJ0001, 08MH0062) that are not the regulator's by name or place [M, report; I for ownership]. Take location and owner from the province.
+- **Coordinates.** The Water Tool places 08JC0002 and 08JC0006 111.6 km from the province's coordinates, a degree of latitude [M]. It also lists 17 provincial stations under "Regulator – BC Oil and Gas Commission": BCER's own (07FA0001, 07FC0001, 10CD0001 and others) beside Okanagan, Shuswap, Nicola, Kootenay and Lower Mainland stations (08NM00xx, 08LC000x, 08LG0019, 08NJ0001, 08MH0062) that are not the regulator's by name or place [M, report; I for ownership]. Where a station is in both, the provincial files are the source for its location and owner.
 
 ## Already fetched by a New Graph package?
 

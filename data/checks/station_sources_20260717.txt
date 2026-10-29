@@ -1,5 +1,5 @@
 Station sources beyond HYDAT (#123): station lists, the HYDAT match and Chinook-window years
-HYDAT release 20260717; code_md5 bcec272776e03a2848ff77374f3f7408
+HYDAT release 20260717; code_md5 ef3628c47ce649685144c1e6b08ab844
 Windows: CH migration 05-01..08-01 and spawning 08-01..09-15; a complete window-year is a
 wet_window_stats() row at min_frac 0.8 ('daily'), or a window inside a listed period ('period [I]').
 HYDAT match: within 1 km and the same stream name; near misses within 3 km listed.
@@ -157,6 +157,11 @@ Licences stated in the BC Water Tool CSV headers, by network (first 100 characte
   Tofino (District): Data from District of Tofino provided under Memorandum of Understanding with the Province of British
   UNBC (Collected for academic research project): Data from UNBC research programs. https://www.unbc.ca/. Any reliance you place upon the information 
   Wasa Lake Land Improvement District: Wasa Lake water level measurements from 1996-2017
+  headers whose licence text restricts use (/non-commercial|prohibit|permission|redistribut|copyright|all rights|must not|may not/): 1 (Department of Fisheries and Oceans); passing stations among them: 0
+
+Licences of the Water Hub's discharge datasets (license_id):
+  all 76: Amended CC-BY-SA-4.0 39, CC-BY-NC-SA-4.0 18, CC-BY-SA-4.0 19
+  passing on the period proxy 29: Amended CC-BY-SA-4.0 10, CC-BY-NC-SA-4.0 6, CC-BY-SA-4.0 13
 
 Every station read (source | network | id | name | lon | lat | first-last | basis | regulation |
   HYDAT match (km, its Q years) | class | window-years all/new | seasonal | near misses | same site listed as):

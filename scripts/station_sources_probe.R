@@ -163,7 +163,8 @@ snap <- function(file) {
 # robots.txt at data.cbwaterhub.ca disallows /api/ for every agent, so this script fetches
 # nothing from that host. It reads one package_search dump (all 452 datasets), taken once by
 # hand during the survey; a scripted reader waits on Living Lakes saying it is welcome. The
-# daily values sit behind the same path, so window-years here are the [I] period proxy.
+# daily values are per-dataset CSV downloads behind a bot check, so window-years here are the
+# [I] period proxy.
 cb_file <- "cbwaterhub_package_search_20261028.json"
 cb <- jsonlite::fromJSON(snap(cb_file), simplifyVector = FALSE)$result$results
 stopifnot(length(cb) == 452)
@@ -607,6 +608,20 @@ for (n in sort(unique(wt$net), method = "radix")) {
   l <- unique(substr(wt$licence[wt$net == n], 1, 100))
   say(sprintf("  %s: %s", n, paste(l, collapse = " | ")))
 }
+restrict_re <- "non-commercial|prohibit|permission|redistribut|copyright|all rights|must not|may not"
+wt_restrict <- grepl(restrict_re, wt$licence, ignore.case = TRUE)
+say(sprintf("  headers whose licence text restricts use (/%s/): %d (%s); passing stations among them: %d",
+            restrict_re, sum(wt_restrict), paste(sort(unique(wt$net[wt_restrict]), method = "radix"), collapse = ", "),
+            sum(tool_pass & grepl(restrict_re, st$licence, ignore.case = TRUE))))
+lic_tally <- function(x) {
+  x[is.na(x) | !nzchar(x)] <- "none"
+  u <- sort(unique(x), method = "radix")
+  paste(sprintf("%s %d", u, vapply(u, function(v) sum(x == v), 0L)), collapse = ", ")
+}
+cb_q <- st$source == "cbwaterhub" & st$basis == "period [I]"
+say("", "Licences of the Water Hub's discharge datasets (license_id):",
+    sprintf("  all %d: %s", sum(cb_q), lic_tally(st$licence[cb_q])),
+    sprintf("  passing on the period proxy %d: %s", sum(proxy_pass), lic_tally(st$licence[proxy_pass])))
 
 say("", "Every station read (source | network | id | name | lon | lat | first-last | basis | regulation |",
     "  HYDAT match (km, its Q years) | class | window-years all/new | seasonal | near misses | same site listed as):")
