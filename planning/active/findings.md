@@ -34,6 +34,13 @@ Relates to #28, #59, #65, #71, #107, #145 (article titles and which articles sta
 - The only redirect needed is pkgdown 2.2.0's `redirects:` field (meta refresh).
 - #80 (drop the >0.5 check) and #74 (recipe INSTALL httpfs) touch the same chunks.
 
+## Baseline renders (2026-10-29, main at 14fc428, installed 0.4.29)
+
+- Body prose by the articles' own rule (Rmd source up to "Software and citation", code and inline `r` removed): segment-discharge 829 words, monthly-flow 1,543, **2,372 together**. The issue's 2,500 was this count rounded up.
+- Rendered text up to the citation section, tables and captions included: 1,004 + 2,199 = 3,203 words.
+- Distinct numbers printed: 108 in segment-discharge and 177 in monthly-flow. Kept in the scratchpad as `before/*.txt.nums` for the Phase 4 number check, with the strip script `html_text.R`.
+- The two bundles' provenance agrees on `built`, `wet_commit`, `province_run`, `aet`, `hydat_release`, `routed*` and the published manifest, build, commit, parts, reader and report. Only `published_check` differs (each bundle checked its own values).
+
 ## Errors Encountered
 
 | Error | Resolution |

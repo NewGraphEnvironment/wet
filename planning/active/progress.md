@@ -6,3 +6,4 @@
 - Created branch `149-merge-the-segment-discharge-and-monthly` off origin/main
 - Scaffolded PWF baseline from issue #149 with approved phases
 - Next: start Phase 1
+- Phase 1: rendered both articles from the installed 0.4.29 into the scratchpad. Body prose is 829 + 1,543 = 2,372 words. The Plan review was spawned at 23:22Z.

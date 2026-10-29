@@ -11,7 +11,7 @@
 
 ## Phase 1: Baseline renders
 
-- [ ] Install main and render both current articles (`pkgdown::build_article()`) into the scratchpad. Strip each to text and record its body-prose word count (the articles' own counting rule) and every number in its text.
+- [x] Install main and render both current articles (`pkgdown::build_article()`) into the scratchpad. Strip each to text and record its body-prose word count (the articles' own counting rule) and every number in its text.
 
 ## Phase 2: One article
 
