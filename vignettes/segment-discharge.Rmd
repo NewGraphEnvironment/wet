@@ -141,6 +141,8 @@ n_src <- stats::setNames(reader$rows / 13, reader$source)
 n_with <- sg[["pick_routed"]] + sg[["pick_balance"]]
 n_both_src <- sum(n_src) - n_with
 stopifnot(all(n_src == round(n_src)))
+# the prose: almost every segment has a value
+stopifnot(sg[["neither"]] < 0.1 * sg[["fwa"]])
 built <- as.Date(substr(pub$built, 1, 10))
 built_text <- paste(as.integer(format(built, "%d")), format(built, "%B %Y"))
 
@@ -173,8 +175,8 @@ stopifnot(identical(pm$share_spec, "snow"), identical(pm$share_method, "donor"))
 
 The R package [`wet`](https://newgraphenvironment.github.io/wet/) publishes the mean flow of British Columbia's Freshwater Atlas stream
 segments, in cubic metres per second, for the year, each month and each
-day. Few streams in BC have a gauge, so this gives every one of them an
-estimate: what flow a stream carries in the weeks a fish needs it, and how
+day. Few streams in BC have a gauge, so this gives almost every one of them
+an estimate: what flow a stream carries in the weeks a fish needs it, and how
 that compares with the next stream. It is public at
 `s3://fresh-bc/discharge/fwa/v1/`. The bucket allows no
 listing, so a reader starts from the manifest, <`r pub$manifest`>, which lists
@@ -200,8 +202,9 @@ New Graph's [fork](https://github.com/NewGraphEnvironment/fwapg/tree/newgraph) o
 [`fwapg`](https://github.com/smnorris/fwapg), PostgreSQL tools for the Freshwater Atlas,
 places PCIC's river points on Freshwater Atlas segments and gives each segment
 the flow accumulated in the sub-basins draining to it, plus a share of its own
-sub-basin's runoff. A month is the mean of its daily flow, and a day is routed
-day by day, so its days need not average to its month. The annual value is
+sub-basin's runoff. A month is the mean of its daily flow. Its days are
+clamped and rounded one by one, with 29 February folded into 28, so they need
+not average exactly to its month. The annual value is
 the plain mean of the twelve months; weighting them by their days would move
 it by at most `r sprintf("%.1f%%", wtd_diff)` on the Bulkley segments below.
 
@@ -511,7 +514,7 @@ cap_map <- sprintf(paste(
 ), area_of("08EE013"), area_of("08EE003"), area_of("08EE004"))
 ```
 
-Three gauges on the Bulkley River, one inside the next. Buck Creek joins the
+Three gauges in the Bulkley basin, one inside the next. Buck Creek joins the
 Bulkley at Houston; the Houston gauge sits just downstream and measures it too,
 and the Quick gauge, further down, drains the whole basin above. Buck Creek and
 Quick are among the gauges the water balance is built on. Houston is not: it
@@ -810,8 +813,8 @@ Routed PCIC's yearly flow is the closer of the two at `r n_rt_closer` of the
 `r n_both` gauges both are scored at. Month by
 month the two score about the same, and routed PCIC errs with the season.
 Each source is scored against a gauge's mean annual runoff and monthly means
-over its complete years in `r base_text`, at the `r nrow(sk)` HYDAT gauges the
-balance is built on or the subset routed PCIC reaches. Error is modelled minus observed, as a percentage of observed.
+over its complete years in `r base_text`: the balance at the `r nrow(sk)`
+HYDAT gauges it is built on, and routed PCIC at `r n_both` of them. Error is modelled minus observed, as a percentage of observed.
 The balance is scored *held out*: each Water Survey sub-sub-drainage (such as
 08EE) is left out of the fit in turn and predicted from the rest, so a gauge's
 neighbours on the same river cannot vouch for it. Routed PCIC is scored on the
@@ -856,12 +859,13 @@ ggplot(sm, aes(date)) +
 Where each is weak:
 
 - **The season, routed PCIC.** It is low from March to May and high in July
-  and August, as if its melt started late and ran on. The shape holds at most
-  of its gauges, not only at the median, so it is the model's, not the
-  placement's.
-- **Spread, the balance.** At all `r n_bal_gauges` gauges its median monthly
-  error is within ±10% in every month, but in no month are half of them within
-  ±`r err_cut`%.
+  and August, as if its melt started late and ran on. Each half holds at
+  most of its gauges, not only at the median (low in spring at
+  `r pct(100 * mean(g_low))`, high in summer at `r pct(100 * mean(g_high))`),
+  so it is the model's, not the placement's.
+- **Spread, the balance.** Across all `r n_bal_gauges` gauges its median
+  monthly error is within ±10% in every month, but in no month are half of the
+  gauges within ±`r err_cut`%.
   Where a gauge's flow peaks in May or June, the balance more often falls
   short in that month than overshoots.
 - **Headwaters and small basins, the balance.** It averages `r pct(mae_head)`
@@ -952,6 +956,13 @@ late_july <- vapply(c("08EE013", "08EE003"), function(st) {
 # leaving its annual error; at Houston they fall less than half as far, and
 # the balance stays several times the gauge in both late-summer windows
 late_w <- c("Spawning", "Fry migration")
+# the prose: migration covers whole months (May 1 to Aug 1) and costs under
+# 1%; spawning starts on a month and ends mid-month
+stopifnot(identical(windows$start[windows$window == "Migration"], "05-01"),
+          identical(windows$end[windows$window == "Migration"], "08-01"), approx_w[["Migration"]] < 1,
+          identical(windows$start[windows$window == "Spawning"], "08-01"),
+          identical(windows$end[windows$window == "Spawning"], "09-15"),
+          identical(good_w, c("Migration", "Spawning")))
 b003 <- err_of("balance_daily")[win$station_number == "08EE003" & win$window %in% late_w]
 stopifnot(identical(poor_w, "Fry migration"), all(late_july < 0.9),
           max(approx_w[good_w]) < 5, all(abs(c(win$move_routed, win$move_balance)[!in_poor]) < 10),
@@ -965,14 +976,15 @@ stopifnot(identical(poor_w, "Fry migration"), all(late_july < 0.9),
           length(b003) == 2, all(b003 > 200))
 ```
 
-A Chinook window starts and ends mid-month (how windows are set and used:
+Read from monthly means, every day of a window takes its month's mean (how
+windows are set and used:
 [What is a window?](https://newgraphenvironment.github.io/wet/articles/flow-change-sparse-gauges.html#what-is-a-window)).
-Read from monthly means,
-every day takes its month's mean. At the gauges that costs little where flow
-changes slowly: in `r tolower(and_text(good_w))` the gauge's own monthly means
-and daily record agree within `r sprintf("%.0f%%", max(approx_w[good_w]))`.
-`r and_text(poor_w)` takes the second half of July, as the freshet recedes,
-and there the monthly means overstate the gauge by about a quarter.
+That costs nothing where a window covers whole months, as migration does, and
+little where the month it cuts changes slowly: spawning ends mid-September,
+and the gauge's own monthly means and daily record agree within
+`r sprintf("%.0f%%", approx_w[["Spawning"]])`. `r and_text(poor_w)` takes the
+second half of July, as the freshet recedes, and there the monthly means
+overstate the gauge by about a quarter.
 
 The published days remove that cost where a source's daily pattern is right.
 Routed PCIC's fry-migration error shrinks at both gauges. The balance's days
