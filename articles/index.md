@@ -1,12 +1,12 @@
 # Articles
 
-### All vignettes
+### Articles
 
 - [Monthly Flow per
   Segment](https://newgraphenvironment.github.io/wet/articles/monthly-flow.md):
 - [Stream Discharge per
   Segment](https://newgraphenvironment.github.io/wet/articles/segment-discharge.md):
-- [Chinook Flow at a Short-Record
-  Stream](https://newgraphenvironment.github.io/wet/articles/short-record-flow.md):
+- [How Stream Flow Has Changed Where Gauges Are
+  Few](https://newgraphenvironment.github.io/wet/articles/flow-change-sparse-gauges.md):
 - [Chinook Flow at Two
   Stations](https://newgraphenvironment.github.io/wet/articles/station-flow.md):

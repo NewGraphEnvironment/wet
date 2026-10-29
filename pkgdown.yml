@@ -2,11 +2,12 @@ pandoc: 3.8.3
 pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
+  articles/flow-change-sparse-gauges: flow-change-sparse-gauges.html
   monthly-flow: monthly-flow.html
   segment-discharge: segment-discharge.html
   short-record-flow: short-record-flow.html
   station-flow: station-flow.html
-last_built: 2026-10-29T20:38Z
+last_built: 2026-10-29T22:10Z
 urls:
   reference: https://newgraphenvironment.github.io/wet/reference
   article: https://newgraphenvironment.github.io/wet/articles
