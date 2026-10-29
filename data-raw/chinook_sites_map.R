@@ -96,6 +96,12 @@ per_map <- lapply(maps, function(m) {
   lakes <- vm_lakes(conn, ext$wkt, simplify_m, min_ha = 1000)
   want <- unique(unlist(lapply(sites[map_of == m], `[[`, "places")))
   places <- vm_places(ext$sfc, want)
+  # a name can be several features (Hixon is a community and a locality): keep one populated place per name,
+  # the first by kind of place
+  kinds <- c("City", "Town", "District Municipality (1)", "Village (1)", "Community", "Locality")
+  places <- places[places$feature_type %in% kinds, ]
+  places <- places[order(places$name, match(places$feature_type, kinds)), ]
+  places <- places[!duplicated(places$name), ]
   if (!setequal(places$name, want) || nrow(places) != length(want)) {
     stop(m, ": places found ", paste(places$name, collapse = ", "), " for ", paste(want, collapse = ", "), call. = FALSE)
   }
