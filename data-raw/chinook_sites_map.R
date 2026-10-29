@@ -85,8 +85,8 @@ tg$system <- vapply(tg$blue_line_key, function(blk) {
   DBI::dbGetQuery(conn, sprintf("
     SELECT max(s.gnis_name) AS gnis_name FROM whse_basemapping.fwa_stream_networks_sp s
     WHERE s.blue_line_key = s.watershed_key AND s.wscode_ltree = (
-      SELECT subpath(min(wscode_ltree), 0, 1) FROM whse_basemapping.fwa_stream_networks_sp
-      WHERE blue_line_key = %d AND blue_line_key = watershed_key)", as.integer(blk)))$gnis_name
+      SELECT subpath(wscode_ltree, 0, 1) FROM whse_basemapping.fwa_stream_networks_sp
+      WHERE blue_line_key = %d AND blue_line_key = watershed_key LIMIT 1)", as.integer(blk)))$gnis_name
 }, "")
 # the mouth: the downstream end of the blue line's lowest segment
 mouth <- sf::st_read(conn, quiet = TRUE, query = sprintf("
