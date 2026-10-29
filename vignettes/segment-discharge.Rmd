@@ -59,7 +59,8 @@ stopifnot(identical(pm$published$manifest, wet:::wet_catalog_url), all(pm$publis
 # for both bundles
 stopifnot(identical(pm$published$wet_commit, pub$wet_commit), identical(pm$published$built, pub$built),
           identical(pm$published$report, pub$report), identical(pm$built, ps$built),
-          identical(pm$hydat_release, ps$hydat_release), identical(pm$aet, ps$aet),
+          identical(pm$province_run, ps$province_run), identical(pm$hydat_release, ps$hydat_release),
+          identical(pm$aet, ps$aet),
           identical(pm$routed_commit, ps$routed_commit), identical(pm$routed, ps$routed))
 # the prose gives routed's period from the published rows; the balance's is 1981-2010
 stopifnot(length(ps$routed_period) == 1, grepl(ps$routed_period, ps$routed, fixed = TRUE))
@@ -807,11 +808,10 @@ cap_err <- paste0(
 
 Routed PCIC's yearly flow is the closer of the two at `r n_rt_closer` of the
 `r n_both` gauges both are scored at. Month by
-month the two score about the same: the balance is unbiased, and routed PCIC
-errs with the season. Both
-are scored at the `r nrow(sk)` HYDAT gauges the balance is built on, against
-each gauge's mean annual runoff and monthly means over its complete years in
-`r base_text`. Error is modelled minus observed, as a percentage of observed.
+month the two score about the same, and routed PCIC errs with the season.
+Each source is scored against a gauge's mean annual runoff and monthly means
+over its complete years in `r base_text`, at the `r nrow(sk)` HYDAT gauges the
+balance is built on or the subset routed PCIC reaches. Error is modelled minus observed, as a percentage of observed.
 The balance is scored *held out*: each Water Survey sub-sub-drainage (such as
 08EE) is left out of the fit in turn and predicted from the rest, so a gauge's
 neighbours on the same river cannot vouch for it. Routed PCIC is scored on the
