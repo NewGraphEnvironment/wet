@@ -15,7 +15,7 @@
 
 ## Phase 2: One article
 
-- [ ] Rewrite `vignettes/segment-discharge.Rmd` with these sections:
+- [x] Rewrite `vignettes/segment-discharge.Rmd` with these sections:
   1. **What it is.** The three datasets (`segment_monthly` months 0–12, `watershed_monthly`, `segment_daily`) and the manifest. The two sources and their periods, with how each fills its months: routed's annual value is the plain mean of its 12 months, and the balance's months sum to its year.
   2. **Which value to use.** `pick`'s rule, the province counts and the province map, unchanged.
   3. **How to read it.** `wet_segment_monthly()` and `wet_segment_daily()` for one segment (Buck Creek, 17094080, both reads already run by the data scripts), plus `wet_flow_window()`. Then the duckdb group read of `pick`, now with `INSTALL httpfs`. Then `wet_db_load()`. Then one paragraph on the row's columns.
@@ -24,9 +24,9 @@
   6. **A window from months or from days.** The current section, shrunk. One short table at 08EE013 and 08EE003 over the three windows: the gauge's cost of reading a window from its monthly means, then each source's error from its months and from its days. A few sentences: the days remove that cost where a source's daily pattern is right, and the balance's borrowed pattern at Houston is the exception. Windows are defined in "How Stream Flow Has Changed Where Gauges Are Few", which is linked.
   7. **Limits.** The two lists merged with duplicates removed.
   8. **Software and citation.** One provenance paragraph for both bundles. `wet_software_cite(c("wet", "duckdb", "ggplot2", "gq", "sf"))`. Data, method (Chapman et al. 2018), windows (Gottesfeld and Rabnett 2007) and scores (Nash and Sutcliffe 1970, Moriasi et al. 2007).
-- [ ] The setup loads both bundles and asserts they come from one published build (same `wet_commit` and `built`), because the merged prose names one build. Every `stopifnot()` guarding a surviving sentence is kept. Guards whose sentences are cut are removed, and `progress.md` lists them. Cut: the Buck Creek spring-window table (the window section makes the same point), though its guard tying the shown recipe to the bundled read stays; the 12-row monthly error table (the figure carries it); and the separate NSE group table (it goes into the one table and the bullets).
-- [ ] The word-count chunk caps body prose at 2,000 words.
-- [ ] `git rm vignettes/monthly-flow.Rmd`.
+- [x] The setup loads both bundles and asserts they come from one published build (same `wet_commit` and `built`), because the merged prose names one build. Every `stopifnot()` guarding a surviving sentence is kept. Guards whose sentences are cut are removed, and `progress.md` lists them. Cut: the Buck Creek spring-window table (the window section makes the same point), though its guard tying the shown recipe to the bundled read stays; the 12-row monthly error table (the figure carries it); and the separate NSE group table (it goes into the one table and the bullets).
+- [x] The word-count chunk caps body prose at 2,000 words.
+- [x] `git rm vignettes/monthly-flow.Rmd`.
 
 ## Phase 3: Addresses and docs
 
