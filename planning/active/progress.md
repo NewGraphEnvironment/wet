@@ -12,3 +12,5 @@
 - Phase 2 done: agents A and B wrote `sources-a.md` and `sources-b.md` (spot-checked); the probe respects robots.txt (Water Hub `/api/`, DataStream, Hakai ERDDAP queries not fetched)
 - Phase 3 probe done: `scripts/station_sources_probe.R` → `data/checks/station_sources_20260717.txt`, identical across two runs; NaN hours dropped, `l/s` converted, the province's impossible values and the 2021–2026 Tool/province split reported
 - Scrubbed private-repo pointers from the unpushed Phase 1 commit (amended to 3e14885)
+- Phase 3–4 done: `research/station_sources.md` filled from the report (answer, inventory with verdicts, also-found, lower bars, robots.txt per host, publishers' defects); README index row and CLAUDE.md Data Sources line; filed wet#142 (provincial harvester, the one harvest verdict); #118's body states the result and lists #142. No issue for test-only sources: none is needed until a test reads them (named in wet#142). Every URL in the file answers 200 except BC Hydro's page (403 to curl, noted)
+- Next: `/code-check branch`, `/planning-archive`, `/gh-pr-push`

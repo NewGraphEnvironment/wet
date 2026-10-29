@@ -42,12 +42,12 @@ For each of the five, establish the issue's six points from the source's own doc
   - Daily values are read for every non-HYDAT discharge station whose source serves them, and complete window-years come from `wet_window_stats()`. Where a source serves no dailies, the listed period is the `[I]` proxy.
   - Cache or fetch: it reads `data/station_sources/raw/` when present and fetches only what is missing, so a rerun on the same snapshots reproduces the report. A credential (e.g. a DataStream API key) comes from an env var, is never committed, and the report names the sources that needed one.
   - Report `data/checks/station_sources_20260717.txt`, named by HYDAT release as the pilot's is, with snapshot dates and md5s inside, `code_md5`, and no timestamp.
-- [ ] Fill the counts into the research file from the report.
+- [x] Fill the counts into the research file from the report.
 
 ## Phase 4: Verdicts, index, issues
-- [ ] Inventory table: one row per source and asset found (accessed or not), with the six points (the rating's maintainer named under point 1; point 6 answered by the recorded org-wide search), access status and what blocked it; verdict and reason as a column; a short opening answer (which sources are worth a harvester) and a note on how the counts move under a lower bar (e.g. any non-HYDAT discharge station), with seasonal-only stations counted on their own.
-- [ ] `research/README.md` index row; one line in CLAUDE.md's Data Sources pointing to the file.
-- [ ] File one wet issue per **harvest** verdict (and one for test-only sources only if a test needs them), and cite them in the file and in #118's body.
+- [x] Inventory table: one row per source and asset found (accessed or not), with the six points (the rating's maintainer named under point 1; point 6 answered by the recorded org-wide search), access status and what blocked it; verdict and reason as a column; a short opening answer (which sources are worth a harvester) and a note on how the counts move under a lower bar (e.g. any non-HYDAT discharge station), with seasonal-only stations counted on their own.
+- [x] `research/README.md` index row; one line in CLAUDE.md's Data Sources pointing to the file.
+- [x] File one wet issue per **harvest** verdict (and one for test-only sources only if a test needs them), and cite them in the file and in #118's body.
 
 ## Owed at the end (reported, done after merge)
 - [ ] Tick #123 in #118's component list (`/gh-pr-merge` step 3b).
