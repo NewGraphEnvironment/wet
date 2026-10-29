@@ -13,8 +13,8 @@
 #     its mouth
 #   - gauges: the gauges each site's numbers rest on (inst/vignette-data/
 #     chinook_sites_values.rds, `gauges`), with their site and role
-#   - extents: one rectangle per site, the area its own map draws: the target
-#     and its gauges, with a margin
+#   - extents: one square per site, the area its own map draws: the target
+#     and its gauges, with a margin, widened to a square
 #   - streams: per site, FWA streams of order 6 and up and the target stream
 #     (by blue_line_key), simplified and cut to its extent
 #   - lakes: per site, FWA lakes of at least 500 ha, cut to its extent
@@ -36,6 +36,7 @@ hydat <- wb_hydat(wb_release())
 out <- file.path("inst", "vignette-data", "chinook_sites_map.rds")
 simplify_m <- 300
 margin_m <- 15000
+panel_asp <- 1   # the article's site panels draw a square map area
 
 sites <- lapply(values$sites$site_id, site_get)
 boxes <- do.call(rbind, lapply(sites, function(s) {
@@ -63,11 +64,14 @@ per_site <- lapply(sites, function(s) {
   pts <- c(sf::st_geometry(targets[targets$site_id == s$site_id, ]),
            sf::st_geometry(gauges[gauges$site_id == s$site_id, ]))
   ext <- vm_extent(sf::st_sf(geom = sf::st_buffer(pts, 1)), margin_m)
+  # square, the shape of the article's panels, so the clip below reaches every edge of the frame
+  sq <- gq::gq_bbox_aspect(sf::st_bbox(ext$sfc), asp = panel_asp)
+  ext <- list(sfc = sf::st_as_sfc(sq), wkt = sf::st_as_text(sf::st_as_sfc(sq)))
   streams <- vm_streams(conn, ext$wkt, s$blue_line_key, simplify_m, min_order = 6)
   if (!s$blue_line_key %in% streams$blue_line_key) stop(s$site_id, ": the target stream is not drawn", call. = FALSE)
   lakes <- vm_lakes(conn, ext$wkt, simplify_m, min_ha = 500)
   places <- if (length(s$places)) vm_places(ext$sfc, s$places) else NULL
-  if (length(s$places) && !setequal(places$name, s$places)) {
+  if (length(s$places) && (!setequal(places$name, s$places) || nrow(places) != length(s$places))) {
     stop(s$site_id, ": places found ", paste(places$name, collapse = ", "), " for ", paste(s$places, collapse = ", "),
          call. = FALSE)
   }

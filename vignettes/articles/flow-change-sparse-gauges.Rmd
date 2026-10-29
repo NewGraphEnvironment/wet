@@ -91,6 +91,8 @@ ss_mig <- ssc[ssc$setting == "migration mean, k = 5", ]
 ss_spw <- ssc[ssc$setting == "spawning mean", ]
 stopifnot(setequal(ss_mig$site_id, ids), setequal(ss_spw$site_id, ids))
 # "below the bar ... at all four" under the Bulkley windows; the migration window at or over it in both sets
+# "scores worse in the spawning window than in the migration window at all four" (the Bulkley windows)
+stopifnot(all(ss_spw$carried[match(ids, ss_spw$site_id)] < ss_mig$carried[match(ids, ss_mig$site_id)]))
 stopifnot(all(ss_spw$carried < 0.5), all(ss_mig$carried >= 0.5),
           all(v$score_settings$carried[v$score_settings$setting == "migration mean, k = 5"] >= 0.5))
 sc <- v$scores[v$scores$group == "BULK", ]
@@ -120,9 +122,11 @@ method predicts gauges it was not given.
 
 **The answer.** In the salmon spawning window, a stream's mean flow in a typical year since
 2011 was lower than before 1981 at all four streams, by `r pct(min(abs(spw$pct)))` to
-`r pct(max(abs(spw$pct)))`; at `r and_text(sub(" Creek$", "", name_of[low_spw$site_id]))`
-creeks the 90% range stays below no change. In the migration window no stream's mean flow
-shows a clear change. The method is weakest in the spawning window, where the change is.
+`r pct(max(abs(spw$pct)))` from nearby gauges' departures; at
+`r and_text(sub(" Creek$", "", name_of[low_spw$site_id]))` creeks that route's 90% range
+stays below no change. In the migration window no stream's mean flow shows a clear change.
+Borrowing departures, the one route every stream has, scores worse in the spawning window
+than in the migration window at all four.
 
 ## Where are the four streams?
 
@@ -193,10 +197,11 @@ Creek's five.
 ```{r panels-data}
 panel_cap <- "Each stream, with its main rivers, lakes and towns, and the gauges its numbers are borrowed from."
 panel_w <- 4.2
-panel_h <- 4.6
+panel_h <- 4.7   # a square map area above a half-inch legend, the map script's extents' shape
 panel <- function(id) {
   # one aspect for every panel: the map area above the legend
-  ext <- gq::gq_bbox_aspect(sf::st_bbox(map$extents[map$extents$site_id == id, ]), asp = panel_w / (panel_h - 0.5))
+  ext <- sf::st_bbox(map$extents[map$extents$site_id == id, ])
+  stopifnot(abs((ext[["xmax"]] - ext[["xmin"]]) / (ext[["ymax"]] - ext[["ymin"]]) - 1) < 1e-6)
   ex <- ext[["xmax"]] - ext[["xmin"]]
   ey <- ext[["ymax"]] - ext[["ymin"]]
   cx <- (ext[["xmin"]] + ext[["xmax"]]) / 2
@@ -269,11 +274,12 @@ shade <- data.frame(window = wb$window, xmin = day_of(wb$start), xmax = day_of(w
 # the hydrographs show each stream's flow peaking inside the migration window and falling through spawning
 peak <- vapply(ids, function(id) d$doy[d$site_id == id][which.max(d$q_m3s[d$site_id == id])], 0L)
 stopifnot(all(peak >= shade$xmin[1] & peak <= shade$xmax[1]))
-fall <- vapply(ids, function(id) {
+# "under a third of its peak": the spawning window's mean against the year's peak
+low <- vapply(ids, function(id) {
   x <- d[d$site_id == id, ]
-  x$q_m3s[x$doy == shade$xmax[2]] < x$q_m3s[x$doy == shade$xmin[2]]
+  mean(x$q_m3s[x$doy >= shade$xmin[2] & x$doy <= shade$xmax[2]]) < max(x$q_m3s) / 3
 }, TRUE)
-stopifnot(all(fall))
+stopifnot(all(low))
 month_breaks <- day_of(sprintf("%02d-01", 1:12))
 ```
 
@@ -282,7 +288,7 @@ migrate upstream from `r md_text(wb$start[1])` to `r md_text(wb$end[1])` and spa
 `r md_text(wb$start[2])` to `r md_text(wb$end[2])`, the dates Gottesfeld and Rabnett give
 for the Bulkley River, used here at all four streams. A stream's flow in a window is its
 mean over those days. At every stream, flow peaks inside the migration window, as snow
-melts, and falls through the spawning window.
+melts, and is low in the spawning window, under a third of its peak.
 
 ```{r windows, fig.height = 5, fig.cap = "Each stream's typical year (1981–2010), with the two windows shaded: wet's published daily flow at the gauge, or at Gosnell Creek's mouth."}
 ggplot(d) +
@@ -316,8 +322,14 @@ yl <- do.call(rbind, lapply(split(yy, list(yy$site_id, yy$window, yy$route == "b
   m$site <- x$site[1]
   m$wlab <- x$wlab[1]
   m$line <- if (x$route[1] == "borrowed") "borrowed" else "filled"
+  # a year with no neighbouring year draws no line, so it gets a point
+  have <- !is.na(m$dep)
+  m$alone <- have & !c(FALSE, have[-length(have)]) & !c(have[-1], FALSE)
   m
 }))
+# 7. the change caption's "to 2024, or 2025 where recorded"
+last <- tapply(yy$year, list(yy$site_id, yy$window, yy$route == "borrowed"), max)
+stopifnot(all(last[!is.na(last)] %in% 2024:2025))
 # the period lines: each route's mean departure before 1981 and since 2011; their difference is the change
 per <- do.call(rbind, lapply(split(yy, list(yy$site_id, yy$window), drop = TRUE), function(x) {
   b <- x[x$route == "borrowed", ]
@@ -337,6 +349,9 @@ ggplot(yy, aes(year)) +
   geom_ribbon(data = yl[yl$line == "filled", ], aes(ymin = pct_of(lo), ymax = pct_of(hi), fill = "band")) +
   geom_line(data = yl[yl$line == "filled", ], aes(y = pct, colour = "filled"), linewidth = 0.35) +
   geom_line(data = yl[yl$line == "borrowed", ], aes(y = pct, colour = "borrowed"), linewidth = 0.35) +
+  geom_point(data = yl[yl$alone & yl$line == "filled" & yl$route %in% "filled", ], aes(y = pct, colour = "filled"),
+             size = 0.6) +
+  geom_point(data = yl[yl$alone & yl$line == "borrowed", ], aes(y = pct, colour = "borrowed"), size = 0.6) +
   geom_point(data = yy[yy$route == "measured", ], aes(y = pct, colour = "measured"), size = 1.2) +
   geom_segment(data = per, aes(x = x, xend = xend, y = y, yend = y, colour = "period_mean"), linewidth = 0.8) +
   facet_grid(site ~ wlab, scales = "free_y") +
@@ -451,8 +466,8 @@ for at most `r round(100 * r2_melt)`%.
 ```{r limits}
 nerr <- v$normal[v$normal$group == "BULK" & v$normal$window == "spawning", ]
 stopifnot(nrow(nerr) == 1, nerr$err_median > 0, nerr$err_q75 > nerr$err_median)
-# the citation section names routed PCIC as Gosnell Creek's typical flow
-stopifnot(all(v$normal$pick == "pcic_routed"))
+# the citation section names routed PCIC as Gosnell Creek's typical flow and as every hydrograph's source
+stopifnot(all(v$normal$pick == "pcic_routed"), all(v$daily$source[v$daily$pick] == "pcic_routed"))
 ```
 
 - **Gosnell Creek's flow is never measured.** Its departures are tested only at the

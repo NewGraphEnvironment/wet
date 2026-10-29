@@ -364,7 +364,7 @@ daily <- do.call(rbind, lapply(sites, function(x) {
     y$source <- parts$source[i]
     y
   }))
-  data.frame(site_id = x$site_id, d, md5 = dly$md5[match(d$source, dly$source[dly$code == site$wsg_code])])
+  data.frame(site_id = x$site_id, d, md5 = parts$md5[match(d$source, parts$source)])
 }))
 DBI::dbDisconnect(duck, shutdown = TRUE)
 if (anyDuplicated(unique(daily[daily$pick, c("site_id", "doy")]))) stop("two picked sources on one day", call. = FALSE)
