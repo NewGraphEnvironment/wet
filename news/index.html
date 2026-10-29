@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.28</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.29</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,9 +37,13 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/v0.4.29/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.29" id="wet-0429">wet 0.4.29<a class="anchor" aria-label="anchor" href="#wet-0429"></a></h2>
+<ul><li>A new article, “How Stream Flow Has Changed Where Gauges Are Few”, runs the Maxan Creek method at three more Chinook streams, fixed in advance: Swift Creek (08KA012) and Naver Creek (08KE014), extended from short records, and Gosnell Creek in the Morice, which has no gauge (<a href="https://github.com/NewGraphEnvironment/wet/issues/126" class="external-link">#126</a>). The spawning-window drop and the flat migration window hold at all three. Carried spawning-window mean flow fell 12 % at Swift, 41 % at Naver and 35 % at Gosnell, against 46 % at Maxan. The method travels less well: record extension fails in the sparse upper Fraser box, and the borrowed departures score below the 0.5 bar in the spawning window everywhere. The article takes the Maxan article’s place in the Articles menu and the README; the Maxan article is still built at its address. The streams are keyed on a site table, <code>scripts/departure_sites.csv</code>, read by <code>scripts/departure_site.R</code> and <code>scripts/departure_site_snow.R</code> (<code>research/chinook_sites.md</code>).</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.28" id="wet-0428">wet 0.4.28<a class="anchor" aria-label="anchor" href="#wet-0428"></a></h2>
 <ul><li>The Maxan Creek article’s opening now says how Chinook use the upper Bulkley through the year: adults spawn in August and September, the eggs stay in the gravel until the fry emerge in spring, and the young rear in the river and its spawning creeks, Maxan Creek among them (Gottesfeld and Rabnett 2007, pp. 29 and 355). Its map draws and labels Foxy Creek, Maxan’s tributary, and labels Maxan Lake, the two ends of the creek’s spawning reach. The snow figure is gone, and its paragraph stays. The limits section, now “Where could it be wrong?”, says how each filled year is made and that the Bulkley at Quick also takes in the Morice River.</li>

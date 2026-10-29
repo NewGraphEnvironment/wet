@@ -1,5 +1,24 @@
 # Changelog
 
+## wet 0.4.29
+
+- A new article, “How Stream Flow Has Changed Where Gauges Are Few”,
+  runs the Maxan Creek method at three more Chinook streams, fixed in
+  advance: Swift Creek (08KA012) and Naver Creek (08KE014), extended
+  from short records, and Gosnell Creek in the Morice, which has no
+  gauge
+  ([\#126](https://github.com/NewGraphEnvironment/wet/issues/126)). The
+  spawning-window drop and the flat migration window hold at all three.
+  Carried spawning-window mean flow fell 12 % at Swift, 41 % at Naver
+  and 35 % at Gosnell, against 46 % at Maxan. The method travels less
+  well: record extension fails in the sparse upper Fraser box, and the
+  borrowed departures score below the 0.5 bar in the spawning window
+  everywhere. The article takes the Maxan article’s place in the
+  Articles menu and the README; the Maxan article is still built at its
+  address. The streams are keyed on a site table,
+  `scripts/departure_sites.csv`, read by `scripts/departure_site.R` and
+  `scripts/departure_site_snow.R` (`research/chinook_sites.md`).
+
 ## wet 0.4.28
 
 - The Maxan Creek article’s opening now says how Chinook use the upper
