@@ -11,7 +11,8 @@
 #   - targets: each site's target, the HYDAT station or, for an ungauged site,
 #     its mouth, with the map it is drawn on (scripts/departure_sites.csv, `map`)
 #     and the rivers it flows into, from its blue line's watershed code: `into1`
-#     (the stream it joins), `into2` (the one that joins after)
+#     (the stream it joins), `into2` (the one that joins after, NA where `into1`
+#     runs to the sea)
 #   - gauges: the gauges each site's numbers are borrowed from (inst/vignette-data/
 #     chinook_sites_values.rds, `gauges`, the extension and carried donors), with
 #     their site and map
@@ -62,7 +63,8 @@ tg$map <- unname(map_of[tg$site_id])
 conn <- vd_connect()
 # the rivers each target stream flows into: the streams whose watershed code is its own, one and two levels up
 into <- do.call(rbind, lapply(tg$blue_line_key, function(blk) {
-  DBI::dbGetQuery(conn, sprintf("
+  # a stream that joins a river running to the sea (Naver into the Fraser) has no second level
+  r <- DBI::dbGetQuery(conn, sprintf("
     WITH t AS (SELECT DISTINCT wscode_ltree FROM whse_basemapping.fwa_stream_networks_sp
                WHERE blue_line_key = %d AND blue_line_key = watershed_key AND gnis_name IS NOT NULL),
          up AS (SELECT n, subpath(t.wscode_ltree, 0, nlevel(t.wscode_ltree) - n) AS code FROM t, (VALUES (1), (2)) v(n))
@@ -70,8 +72,10 @@ into <- do.call(rbind, lapply(tg$blue_line_key, function(blk) {
     FROM up JOIN whse_basemapping.fwa_stream_networks_sp s
       ON s.wscode_ltree = up.code AND s.blue_line_key = s.watershed_key
     GROUP BY up.n ORDER BY up.n", as.integer(blk)))
+  if (!1 %in% r$n) stop("blue line ", blk, " flows into no named stream", call. = FALSE)
+  merge(data.frame(n = 1:2), r, all.x = TRUE)
 }))
-stopifnot(nrow(into) == 2 * nrow(tg), !anyNA(into$gnis_name))
+stopifnot(nrow(into) == 2 * nrow(tg), !anyNA(into$gnis_name[into$n == 1]))
 tg$into1 <- into$gnis_name[into$n == 1]
 tg$into2 <- into$gnis_name[into$n == 2]
 tg$into1_blk <- as.integer(into$blue_line_key[into$n == 1])
