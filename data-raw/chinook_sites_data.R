@@ -16,6 +16,10 @@
 # the series file, and must appear in
 # data/checks/departure_site[_snow]_<site>_<group>_20260717.txt verbatim.
 #
+# Also reads wet's published discharge (wet_catalog(), the segment_daily parts
+# over HTTPS) for each site's typical year, and fwapg through the WET_PG*
+# variables for the gauged targets' segments (wet_station_snap()).
+#
 # Writes inst/vignette-data/chinook_sites_values.rds, a list:
 #   - sites: one row per site (site_id, name, wsg_code, kind, target, the
 #     mouth for an ungauged site, km2, window sets)
@@ -41,6 +45,15 @@
 #     distinct use years and their span; provincial records, spawning records),
 #     and the provincial records one per row (stream, date, metres from the
 #     mouth, activity)
+#   - daily: each site's typical year, 1981-2010, on its stream: the
+#     published segment_daily (both sources, and which is the pick) on the
+#     gauged target's snapped segment or the ungauged site's mouth segment;
+#     refused unless the build is the one the ungauged site's report names and
+#     the picked days' window means equal that report's normal
+#   - years: per site, the window mean's year-by-year departure from its
+#     1981-2010 typical flow (log), by route: measured and filled-in (with the
+#     90 % interval) at a gauged site, borrowed at every site; every year held
+#     to its line in the site report's per-year tables
 #   - provenance: wet commit, build date, HYDAT release, the scripts' and the
 #     reports' md5s
 
@@ -93,6 +106,7 @@ normal <- list()
 gauges <- list()
 windows <- list()
 score_rows <- list()
+years <- list()
 reports <- character()
 for (id in site_ids) {
   site <- site_get(id)
@@ -124,6 +138,35 @@ for (id in site_ids) {
       change[[length(change) + 1]] <- data.frame(site_id = id, group = group, statistic = sub("^q_", "", m$v),
         window = m$p, route = "carried", change = m$carried, lo = m$ci_c[1], hi = m$ci_c[2], n_pre = m$n_pre_c,
         n_post = m$n_post_c)
+    }
+
+    # the window mean's departures year by year, each year held to its line in the per-year tables
+    for (w in x$windows$window) {
+      m <- x$mx[[paste("q_mean", w)]]
+      a <- m$a
+      if (site$kind == "extend") {
+        e <- m$e
+        bm <- mean(e$value[e$year %in% x$baseline])
+        for (yy in sort(union(e$year, a$year))) {
+          i <- match(yy, e$year)
+          k <- match(yy, a$year)
+          held(sprintf("  %4d %8s %8s %8s %-8s %9s %9s", yy, fmt(e$value[i], 2), fmt(e$lower[i], 2), fmt(e$upper[i], 2),
+                       if (is.na(i)) "-" else if (is.na(e$donor[i])) "observed" else e$donor[i],
+                       if (is.na(i)) "-" else pc(e$dep[i], FALSE), if (is.na(k)) "-" else pc(a$anomaly[k], FALSE)),
+               rp$lines, paste(id, group, w, yy))
+        }
+        years[[length(years) + 1]] <- data.frame(site_id = id, group = group, window = w, year = e$year,
+          route = ifelse(e$source == "observed", "measured", "filled"), dep = e$dep,
+          lo = log(e$lower / bm), hi = log(e$upper / bm))
+      } else {
+        nq <- x$normal$normal$q_m3s[x$normal$normal$window == w]
+        for (j in seq_len(nrow(a))) {
+          held(sprintf("  %4d %9s %9s %3d", a$year[j], pc(a$anomaly[j], FALSE), fmt(nq * exp(a$anomaly[j]), 3),
+                       as.integer(a$n_donors[j])), rp$lines, paste(id, group, w, a$year[j]))
+        }
+      }
+      years[[length(years) + 1]] <- data.frame(site_id = id, group = group, window = w, year = a$year,
+        route = "borrowed", dep = a$anomaly, lo = NA_real_, hi = NA_real_)
     }
 
     # the scores, held to section 2's rule line and section 3's headline
@@ -286,11 +329,61 @@ if (!identical(as.integer(table(factor(use_obs$stream, levels = use$stream))), u
   stop("the observation rows do not add up to the use table's counts", call. = FALSE)
 }
 
+# ---- each site's typical year, from the published daily flow ----------------------------------
+targets <- unlist(lapply(sites, function(x) if (x$kind == "extend") x$target))
+hcon <- wet:::wet_hydat_connect(wet:::wet_hydat(release))
+gauged_st <- DBI::dbGetQuery(hcon, sprintf(
+  "SELECT STATION_NUMBER station_number, LONGITUDE lon, LATITUDE lat, DRAINAGE_AREA_GROSS drainage_area_gross_km2
+   FROM STATIONS WHERE STATION_NUMBER IN (%s) ORDER BY STATION_NUMBER", paste0("'", targets, "'", collapse = ", ")))
+DBI::dbDisconnect(hcon)
+stopifnot(setequal(gauged_st$station_number, targets))
+conn <- vd_connect()
+sn <- wet_station_snap(conn, gauged_st)
+DBI::dbDisconnect(conn)
+if (!all(sn$accepted %in% TRUE)) stop("a gauged target's snap is not accepted", call. = FALSE)
+catalog <- wet_catalog()
+digest <- wet:::wet_catalog_digest(catalog)
+nm_g <- readRDS(file.path("data", "departure", sprintf("departure_site_gosnell_bulk_%s.rds", release)))$normal
+if (!identical(digest, nm_g$digest)) {
+  stop("the live build (", digest, ") is not the one the Gosnell report read (", nm_g$digest, ")", call. = FALSE)
+}
+dly <- catalog[catalog$dataset == "discharge/fwa/v1/segment_daily" & catalog$scenario == "historical", ]
+duck <- DBI::dbConnect(duckdb::duckdb())
+DBI::dbExecute(duck, "INSTALL httpfs; LOAD httpfs;")
+daily <- do.call(rbind, lapply(sites, function(x) {
+  site <- site_get(x$site_id)
+  lfid <- if (site$kind == "extend") sn$linear_feature_id[sn$station_number == x$target] else nm_g$segment$linear_feature_id
+  parts <- dly[dly$code == site$wsg_code, ]
+  stopifnot(nrow(parts) == 2, length(lfid) == 1)
+  d <- do.call(rbind, lapply(seq_len(nrow(parts)), function(i) {
+    # the source is a Hive key, not a column (as scripts/departure_site.R reads it)
+    y <- DBI::dbGetQuery(duck, sprintf(
+      "SELECT linear_feature_id, doy, q_m3s, pick FROM read_parquet(%s, hive_partitioning = false)
+       WHERE linear_feature_id = %d ORDER BY doy", DBI::dbQuoteString(duck, parts$href[i]), as.integer(lfid)))
+    if (nrow(y) != 365) stop(x$site_id, ": ", nrow(y), " days of ", parts$source[i], " on segment ", lfid, call. = FALSE)
+    y$source <- parts$source[i]
+    y
+  }))
+  data.frame(site_id = x$site_id, d, md5 = dly$md5[match(d$source, dly$source[dly$code == site$wsg_code])])
+}))
+DBI::dbDisconnect(duck, shutdown = TRUE)
+if (anyDuplicated(unique(daily[daily$pick, c("site_id", "doy")]))) stop("two picked sources on one day", call. = FALSE)
+# Gosnell's picked days give the window means its report holds
+gd <- daily[daily$site_id == "gosnell" & daily$pick, ]
+wins <- do.call(rbind, windows)
+wf <- wet_flow_window(data.frame(linear_feature_id = 1L, doy = gd$doy, q_m3s = gd$q_m3s, source = "pick"),
+                      wins[wins$site_id == "gosnell" & wins$group == "BULK", c("window", "start", "end")])
+nb <- do.call(rbind, normal)
+nb <- nb[nb$site_id == "gosnell" & nb$group == "BULK", ]
+if (!isTRUE(all.equal(wf$q_m3s, nb$normal[match(wf$window, nb$window)]))) {
+  stop("Gosnell's published days do not give its report's normal", call. = FALSE)
+}
+
 values <- list(
   sites = do.call(rbind, sites), change = do.call(rbind, change), scores = do.call(rbind, scores),
   snow = do.call(rbind, snow), normal = do.call(rbind, normal),
   gauges = unique(do.call(rbind, gauges)), windows = do.call(rbind, windows), use = use, use_obs = use_obs,
-  score_settings = do.call(rbind, score_rows),
+  score_settings = do.call(rbind, score_rows), daily = daily, years = do.call(rbind, years),
   provenance = list(wet_commit = wet_commit, built = format(Sys.Date()), hydat = release, scripts = md5,
                     reports = reports))
 rownames(values$change) <- NULL
