@@ -15,7 +15,7 @@
 #     chinook_sites_values.rds, `gauges`), with their site and role
 #   - extents: one rectangle per site, the area its own map draws: the target
 #     and its gauges, with a margin
-#   - streams: per site, FWA streams of order 7 and up and the target stream
+#   - streams: per site, FWA streams of order 6 and up and the target stream
 #     (by blue_line_key), simplified and cut to its extent
 #   - lakes: per site, FWA lakes of at least 500 ha, cut to its extent
 #   - places: per site, the places its row of the site table names, from BC
@@ -63,7 +63,7 @@ per_site <- lapply(sites, function(s) {
   pts <- c(sf::st_geometry(targets[targets$site_id == s$site_id, ]),
            sf::st_geometry(gauges[gauges$site_id == s$site_id, ]))
   ext <- vm_extent(sf::st_sf(geom = sf::st_buffer(pts, 1)), margin_m)
-  streams <- vm_streams(conn, ext$wkt, s$blue_line_key, simplify_m, min_order = 7)
+  streams <- vm_streams(conn, ext$wkt, s$blue_line_key, simplify_m, min_order = 6)
   if (!s$blue_line_key %in% streams$blue_line_key) stop(s$site_id, ": the target stream is not drawn", call. = FALSE)
   lakes <- vm_lakes(conn, ext$wkt, simplify_m, min_ha = 500)
   places <- if (length(s$places)) vm_places(ext$sfc, s$places) else NULL
