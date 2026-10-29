@@ -28,15 +28,15 @@ Plan review: `planning/active/review-plan.md`; its findings are folded in above 
 
 ## Phase 2: Per-source desk research
 For each of the five, establish the issue's six points from the source's own documents and API, tagged `[S]`/`[M]`/`[I]`:
-- [ ] Province's hydrometric stations (ENV Aquarius / BC Water Tool / the federal–provincial agreement): which are already in HYDAT, by station number. Checked, not assumed.
-- [ ] Living Lakes Canada, Columbia Basin Water Hub.
-- [ ] Skeena Knowledge Trust (and its hydrometric holdings, if any).
-- [ ] DataStream hubs (Mackenzie, Pacific/Atlantic etc.): whether any discharge parameter exists beside water quality.
-- [ ] UNBC stations (Northern Hydrometeorology Group, Quesnel River Research Centre, etc.).
-- [ ] "Also found" table (decision 1).
+- [x] Province's hydrometric stations (ENV Aquarius / BC Water Tool / the federal–provincial agreement): which are already in HYDAT, by station number. Checked, not assumed.
+- [x] Living Lakes Canada, Columbia Basin Water Hub.
+- [x] Skeena Knowledge Trust (and its hydrometric holdings, if any).
+- [x] DataStream hubs (Mackenzie, Pacific/Atlantic etc.): whether any discharge parameter exists beside water quality.
+- [x] UNBC stations (Northern Hydrometeorology Group, Quesnel River Research Centre, etc.).
+- [x] "Also found" table (decision 1).
 
 ## Phase 3: Probe and counts
-- [ ] `scripts/station_sources_probe.R`: station lists → HYDAT match → per-source counts (total, BC, discharge, not in HYDAT, same site with new years, regulation, record length, and complete Chinook-window years), report under `data/checks/`, snapshots under gitignored `data/station_sources/raw/` with md5s. After the plan review:
+- [x] `scripts/station_sources_probe.R`: station lists → HYDAT match → per-source counts (total, BC, discharge, not in HYDAT, same site with new years, regulation, record length, and complete Chinook-window years), report under `data/checks/`, snapshots under gitignored `data/station_sources/raw/` with md5s. After the plan review:
   - HYDAT through `WET_HYDAT_RELEASE` → `wb_hydat()` (`scripts/wb_fit_lib.R`), refusing any release but 20260717; HYDAT counts recounted on that release, not taken from `runoff_prior_art.md`, which used an unpinned copy.
   - The match is against all of HYDAT's `STATIONS` (stage-only, discontinued, AB/YT/US), first by WSC number where the source stores one, then by location (≤ 1 km) and a normalised stream name (lower case, `Ck`/`Cr` → `creek`, `R` → `river`, the gauge-position words such as `above`, `near`, `at the mouth` dropped). Near misses (≤ 1 km with another name, or the same name at 1–3 km) are listed for a hand check, never dropped.
   - Daily values are read for every non-HYDAT discharge station whose source serves them, and complete window-years come from `wet_window_stats()`. Where a source serves no dailies, the listed period is the `[I]` proxy.
