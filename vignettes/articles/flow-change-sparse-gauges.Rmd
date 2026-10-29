@@ -284,11 +284,14 @@ stopifnot(all(low))
 month_breaks <- day_of(sprintf("%02d-01", 1:12))
 ```
 
-A window is a stretch of the year when salmon use a stream for one thing. Adult Chinook
-migrate upstream from `r md_text(wb$start[1])` to `r md_text(wb$end[1])` and spawn from
-`r md_text(wb$start[2])` to `r md_text(wb$end[2])`, the dates Gottesfeld and Rabnett give
-for the Bulkley River, used here at all four streams. A stream's flow in a window is its
-mean over those days. At every stream, flow peaks inside the migration window, as snow
+A window is a stretch of the year when salmon use a stream for one thing. In the upper
+Bulkley River, the early run of Chinook passes Moricetown Canyon before about July 30, and
+Chinook spawn in August and September
+([Gottesfeld and Rabnett 2007](#ref-gottesfeld2007), p. 355). This article uses the windows
+New Graph's species-timing table sets for the Bulkley from that report, at all four
+streams: adult migration from `r md_text(wb$start[1])` to `r md_text(wb$end[1])`, and
+spawning from `r md_text(wb$start[2])` to `r md_text(wb$end[2])`. A stream's flow in a
+window is its mean over those days. At every stream, flow peaks inside the migration window, as snow
 melts, and is low in the spawning window, under a third of its peak.
 
 ```{r windows, fig.height = 5, fig.cap = "Each stream's typical year (1981–2010), with the two windows shaded: wet's published daily flow at the gauge, or at Gosnell Creek's mouth."}
@@ -378,6 +381,10 @@ stopifnot(abs(morr$pct) < abs(row_of("gosnell", "spawning", "carried")$pct))
 start_of <- function(g) as.Date(paste0("2001-", v$windows$start[v$windows$site_id == "gosnell" & v$windows$group == g &
                                                                  v$windows$window == "spawning"]))
 stopifnot(as.numeric(start_of("MORR") - start_of("BULK")) %in% 25:35)
+# the Morice windows, from the bundle; the spawning window opens in the first week of September and closes in the first of October
+wm <- v$windows[v$windows$site_id == "gosnell" & v$windows$group == "MORR", c("window", "start", "end")]
+stopifnot(identical(wm$window, c("migration", "spawning")), wm$start[2] %in% sprintf("09-%02d", 1:7),
+          wm$end[2] %in% sprintf("10-%02d", 1:7))
 # the ranking: largest at Maxan and Naver, smallest at Swift
 rk <- spw$site_id[order(spw$pct)]
 stopifnot(setequal(rk[1:2], c("maxan", "naver")), rk[length(rk)] == "swift")
@@ -400,9 +407,11 @@ ggplot(dd, aes(pct, site, colour = route)) +
   labs(x = "Change in mean flow (%)", y = NULL)
 ```
 
-Gosnell Creek also has Chinook windows of its own, from studies of the Morice's salmon,
-whose spawning window falls a month later than the Bulkley's. Under them its
-spawning-window drop is smaller,
+Gosnell Creek also has Chinook windows of its own. Morice Chinook spawn from the first
+week of September to the first week of October
+([Bustard and Schell 2002](#ref-bustard2002), p. 27), so the Morice's spawning window,
+`r md_text(wm$start[2])` to `r md_text(wm$end[2])`, falls a month later than the
+Bulkley's. Under these windows Gosnell Creek's spawning-window drop is smaller,
 `r pct(morr$pct)`, and its range reaches no change.
 
 ## How well does the method score?
@@ -499,27 +508,41 @@ cat(wet:::wet_software_cite(c("wet", "cd", "ggplot2", "gq", "sf")), sep = "\n")
 
 Cite `wet` by the DOI above, which resolves to its latest release.
 
-Data: daily flow from the Water Survey of Canada's HYDAT, release `r prov$hydat`; the
-published typical flow from the Pacific Climate Impacts Consortium, University of
-Victoria ([hydromosaic](https://beehive.pacificclimate.org/chyp/): VIC-GL hydrologic model
-output routed with Raven, PNWNAmet forcing), placed on the Freshwater Atlas by New Graph's
-fork of `fwapg` (Norris, S. and Irvine, A. (2026), *fwapg, New Graph Environment's fork*,
-<https://github.com/NewGraphEnvironment/fwapg/tree/newgraph>) and published by `wet`
-(build `r substr(v$normal$digest[1], 1, 7)`); the Chinook windows from Gottesfeld, A. and
-Rabnett, K. (2007), *Skeena Fish Populations and their Habitat*, Skeena Fisheries
-Commission, and for the Morice from Bustard, D. and Schell, C. (2002), *Conserving Morice
-Watershed Fish Populations and their Habitat*,
-<https://waves-vagues.dfo-mpo.gc.ca/Library/315091.pdf>; the spawner surveys from
-Fisheries and Oceans Canada's New Salmon Escapement Database System (NuSEDS), release of
-1 June 2026, <https://open.canada.ca/data/en/dataset/c48669a3-045b-400d-b730-48aafe8c5ee6>,
-and the provincial fish observations (Province of British Columbia, Known BC Fish
-Observations and BC Fish Distributions); the snow from Muñoz-Sabater, J. and others (2021),
-ERA5-Land: a state-of-the-art global reanalysis dataset for land applications, *Earth
-System Science Data* 13, 4349–4383,
-[doi:10.5194/essd-13-4349-2021](https://doi.org/10.5194/essd-13-4349-2021); the stream
-network from the Freshwater Atlas Stream Network (Province of British Columbia, 2021,
-<https://catalogue.data.gov.bc.ca/dataset/freshwater-atlas-stream-network>), held in a
-database by Norris, S. (2024), *fwapg*, <https://github.com/smnorris/fwapg>.
+### Data
+
+- Daily flow: the Water Survey of Canada's HYDAT, release `r prov$hydat`.
+- Typical flow at each stream (the hydrographs, and Gosnell Creek's normal): routed flow
+  from the Pacific Climate Impacts Consortium, University of Victoria
+  ([hydromosaic](https://beehive.pacificclimate.org/chyp/): VIC-GL hydrologic model output
+  routed with Raven, PNWNAmet forcing), placed on the Freshwater Atlas by New Graph's fork
+  of `fwapg` (Norris, S. and Irvine, A. (2026), *fwapg, New Graph Environment's fork*,
+  <https://github.com/NewGraphEnvironment/fwapg/tree/newgraph>) and published by `wet`
+  (build `r substr(v$normal$digest[1], 1, 7)`).
+- Spawner surveys: Fisheries and Oceans Canada's New Salmon Escapement Database System
+  (NuSEDS), release of 1 June 2026,
+  <https://open.canada.ca/data/en/dataset/c48669a3-045b-400d-b730-48aafe8c5ee6>.
+- Fish observations: Province of British Columbia, Known BC Fish Observations and BC Fish
+  Distributions.
+- Snow: ERA5-Land ([Muñoz-Sabater and others 2021](#ref-munoz2021)), summarised per year by
+  `cd`.
+- Streams, lakes and catchments: the Freshwater Atlas Stream Network (Province of British
+  Columbia, 2021, <https://catalogue.data.gov.bc.ca/dataset/freshwater-atlas-stream-network>),
+  held in a database by Norris, S. (2024), *fwapg*, <https://github.com/smnorris/fwapg>.
+- Place names: BC Geographic Names.
+
+### References
+
+- <span id="ref-bustard2002"></span>Bustard, D. and Schell, C. (2002). *Conserving Morice
+  Watershed Fish Populations and Their Habitat*. Stage II Biophysical Profile,
+  Watershed-Based Fish Sustainability Planning. David Bustard and Associates Ltd., for the
+  Community Futures Development Corporation of Nadina.
+  <https://waves-vagues.dfo-mpo.gc.ca/Library/315091.pdf>
+- <span id="ref-gottesfeld2007"></span>Gottesfeld, A.S. and Rabnett, K.A. (2007). *Skeena
+  Fish Populations and Their Habitat*. Skeena Fisheries Commission.
+- <span id="ref-munoz2021"></span>Muñoz-Sabater, J. and others (2021). ERA5-Land: a
+  state-of-the-art global reanalysis dataset for land applications. *Earth System Science
+  Data* 13, 4349–4383.
+  [doi:10.5194/essd-13-4349-2021](https://doi.org/10.5194/essd-13-4349-2021)
 
 ```{r wordcount, include = FALSE}
 f <- knitr::current_input()

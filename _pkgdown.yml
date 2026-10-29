@@ -88,10 +88,10 @@ articles:
   contents:
   - monthly-flow
   - segment-discharge
-  - short-record-flow
+  - articles/flow-change-sparse-gauges
   - station-flow
-# built and linked, but in neither the index nor the navbar until promoted (#126):
-# promote by moving its line into the section above
+# built and linked, but in neither the index nor the navbar: the Maxan article,
+# whose story the article above carries at four streams (#126)
 - title: internal
   contents:
-  - articles/flow-change-sparse-gauges
+  - short-record-flow
