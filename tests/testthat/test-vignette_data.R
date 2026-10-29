@@ -304,6 +304,12 @@ test_that("the Chinook sites' map layers are sf in BC Albers, two regional maps 
     expect_true(any(m$streams$map == mp & m$streams$main), info = mp)
     expect_true(any(m$places$map == mp), info = mp)
   }
-  # each target names the river it flows into
+  # each target names the river it flows into, its river system and its mouth
   expect_false(anyNA(m$targets$into1))
+  expect_false(anyNA(m$targets$system))
+  expect_false(anyNA(m$targets$mouth_x))
+  # the gauges drawn are exactly the values' donors, by site (a rebuilt values bundle needs the map rebuilt)
+  don <- v$gauges[v$gauges$role %in% c("extension donor", "carried donor"), ]
+  expect_setequal(paste(m$gauges$site_id, m$gauges$station_number, m$gauges$role),
+                  paste(don$site_id, don$station_number, don$role))
 })

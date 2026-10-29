@@ -142,23 +142,29 @@ pl_of <- function(name) {
 # the compass point and distance from a place to a stream, as the orientation states them
 compass <- function(name, id) {
   a <- sf::st_coordinates(pl_of(name))
-  b <- sf::st_coordinates(t_of(id))
+  b <- c(t_of(id)$mouth_x, t_of(id)$mouth_y)   # where the stream joins its river, as the sentence says
   deg <- (atan2(b[1] - a[1], b[2] - a[2]) * 180 / pi) %% 360
   c("north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west")[(round(deg / 45) %% 8) + 1]
 }
-km <- function(name, id) as.numeric(sf::st_distance(pl_of(name), t_of(id))) / 1000
+km <- function(name, id) {
+  a <- sf::st_coordinates(pl_of(name))
+  sqrt((a[1] - t_of(id)$mouth_x)^2 + (a[2] - t_of(id)$mouth_y)^2) / 1000
+}
 # the rivers each stream flows into, from the Freshwater Atlas
 stopifnot(t_of("maxan")$into1 == "Bulkley River", t_of("maxan")$into2 == "Skeena River",
           t_of("gosnell")$into1 == "Thautil River", t_of("gosnell")$into2 == "Morice River",
           t_of("naver")$into1 == "Fraser River", t_of("swift")$into1 == "McLennan River",
           t_of("swift")$into2 == "Fraser River")
-# two maps, the Skeena's and the Fraser's
-stopifnot(identical(sort(tg$site_id[tg$map == "skeena"]), c("gosnell", "maxan")),
+# "two in the Skeena system and two in the Fraser", from the top of each stream's watershed code; one map for each
+stopifnot(identical(sort(tg$site_id[tg$system == "Skeena River"]), c("gosnell", "maxan")),
+          identical(sort(tg$site_id[tg$system == "Fraser River"]), c("naver", "swift")),
+          identical(sort(tg$site_id[tg$map == "skeena"]), c("gosnell", "maxan")),
           identical(sort(tg$site_id[tg$map == "fraser"]), c("naver", "swift")))
-# "near Topley, south-east of Smithers"; "south-west of Houston"; "at Hixon, south of Prince George"; "at Valemount"
+# measured from each mouth: "near Topley, south-east of Smithers"; "south-west of Houston";
+# "near Hixon, south of Prince George"; "at Valemount"
 stopifnot(km("Topley", "maxan") < 25, compass("Smithers", "maxan") == "south-east",
           compass("Houston", "gosnell") == "south-west",
-          km("Hixon", "naver") < 5, compass("Prince George", "naver") == "south", km("Valemount", "swift") < 5)
+          km("Hixon", "naver") < 10, compass("Prince George", "naver") == "south", km("Valemount", "swift") < 5)
 # every box the same size
 stopifnot(all(abs(sites$lon_span - sites$lon_span[1]) < 1e-9), all(abs(sites$lat_span - sites$lat_span[1]) < 1e-9))
 ```
@@ -166,7 +172,7 @@ stopifnot(all(abs(sites$lon_span - sites$lon_span[1]) < 1e-9), all(abs(sites$lat
 The four streams are in northern British Columbia, two in the Skeena system and two in
 the Fraser. Maxan Creek flows into the upper Bulkley River near Topley, south-east of
 Smithers, and Gosnell Creek into the Thautil River just above the Morice River,
-south-west of Houston. Naver Creek flows into the Fraser River at Hixon, south of Prince
+south-west of Houston. Naver Creek flows into the Fraser River near Hixon, south of Prince
 George, and Swift Creek into the McLennan River, a Fraser tributary, at Valemount. Each
 borrows its numbers from gauges inside a box of the same size around it.
 
@@ -189,7 +195,7 @@ region <- function(m) {
   pl <- map$places[map$places$map == m, ]
   pxy <- sf::st_coordinates(pl)
   # the rivers the orientation names, each labelled midway along its longest drawn part
-  rv <- s[s$gnis_name %in% unique(c(t$into1, t$into2)) & !s$main, ]
+  rv <- s[s$gnis_name %in% stats::na.omit(unique(c(t$into1, t$into2))) & !s$main, ]
   rv <- rv[!duplicated(rv$gnis_name), ]
   rxy <- do.call(rbind, lapply(seq_len(nrow(rv)), function(k) {
     parts <- sf::st_cast(sf::st_geometry(rv[k, ]), "LINESTRING")
@@ -201,7 +207,11 @@ region <- function(m) {
     data.frame(x = txy[, 1], y = txy[, 2], label = t$name, face = "bold", size = 3.5, col = "black"),
     data.frame(x = pxy[, 1], y = pxy[, 2], label = pl$name, face = "plain", size = 3.1, col = town_sty$label$color),
     if (nrow(rv)) data.frame(x = rxy[, 1], y = rxy[, 2], label = rv$gnis_name, face = "italic", size = 3,
-                             col = lake_sty$stroke$color))
+                             col = lake_sty$stroke$color),
+    # empty labels: the mouths and the gauges, which every label keeps clear of
+    data.frame(x = t$mouth_x, y = t$mouth_y, label = "", face = "plain", size = 3, col = "black"),
+    data.frame(x = sf::st_coordinates(g)[, 1], y = sf::st_coordinates(g)[, 2], label = "", face = "plain", size = 3,
+               col = "black"))
   sb_km <- max(gq::gq_scale_breaks(ext))
   sb <- data.frame(x = ext[["xmax"]] - 0.04 * ex - sb_km * 1000, y = ext[["ymin"]] + 0.05 * ey)
   sb$xend <- sb$x + sb_km * 1000
