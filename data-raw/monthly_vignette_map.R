@@ -1,4 +1,5 @@
-# Map layers for vignettes/monthly-flow.Rmd (#107), which draws them from
+# Map layers for the Bulkley map in vignettes/segment-discharge.Rmd (#107; the
+# monthly-flow article until #149), which draws them from
 # inst/vignette-data/ and never touches fwapg, HYDAT or the network at build.
 #
 #   Rscript data-raw/monthly_vignette_map.R

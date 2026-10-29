@@ -30,12 +30,12 @@
 
 ## Phase 3: Addresses and docs
 
-- [ ] `_pkgdown.yml`: remove `monthly-flow` from the article list, and add `redirects: - ["articles/monthly-flow.html", "articles/segment-discharge.html"]`.
-- [ ] README "Learn more": one line for the merged article.
-- [ ] CLAUDE.md: merge the two vignette paragraphs into one describing the merged article, both bundles and their guards.
-- [ ] Comments that name the monthly article as current: the `data-raw/monthly_vignette_data.R` and `data-raw/monthly_vignette_map.R` headers, `scripts/wb_shape_daily.R:95`, and `research/discharge_publish.md` (what the article reads). Historical mentions stay as written (NEWS, `research/water_balance_method.md:525`, the comment in `test-wet_flow_window.R`).
-- [ ] NEWS.md: a development-version line.
-- [ ] Issue bodies: #145 (the merged title is settled here) and #74 (the recipe half is done; the data-script half is still open).
+- [x] `_pkgdown.yml`: remove `monthly-flow` from the article list, and add `redirects: - ["articles/monthly-flow.html", "articles/segment-discharge.html"]`.
+- [x] README "Learn more": one line for the merged article.
+- [x] CLAUDE.md: merge the two vignette paragraphs into one describing the merged article, both bundles and their guards.
+- [x] Comments that name the monthly article as current: the `data-raw/monthly_vignette_data.R` and `data-raw/monthly_vignette_map.R` headers, `scripts/wb_shape_daily.R:95`, and `research/discharge_publish.md` (what the article reads). Historical mentions stay as written (NEWS, `research/water_balance_method.md:525`, the comment in `test-wet_flow_window.R`).
+- [x] NEWS.md: ~~a development-version line~~ moved to the release step. Here NEWS is written by `/gh-pr-merge`'s release commit (every NEWS change since 0.4.24 is a `Release vX.Y.Z` commit).
+- [x] Issue bodies: #145 (the merged title is settled here) and #74 (the recipe half is done; the data-script half is still open).
 
 ## Phase 4: Verify
 

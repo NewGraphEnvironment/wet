@@ -82,11 +82,14 @@ reference:
   - wet_cv_folds
   - wet_flow_validate
 
+# the monthly-flow article was merged into segment-discharge (#149)
+redirects:
+  - ["articles/monthly-flow.html", "articles/segment-discharge.html"]
+
 articles:
 - title: Articles
   navbar: ~
   contents:
-  - monthly-flow
   - segment-discharge
   - articles/flow-change-sparse-gauges
   - station-flow

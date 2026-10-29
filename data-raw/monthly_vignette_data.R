@@ -1,4 +1,4 @@
-# Data for vignettes/monthly-flow.Rmd (#65), which runs on these files and
+# Data for vignettes/segment-discharge.Rmd (#65; the monthly-flow article until #149), which runs on these files and
 # never touches fwapg, HYDAT, the network or the province run at build.
 #
 #   WET_FWAPG_COMMIT=<sha> Rscript data-raw/monthly_vignette_data.R
@@ -380,7 +380,7 @@ stopifnot(as.integer(rr_all[2]) == n_routed)
 print(table(month = gauges$month, routed = !is.na(gauges$routed_mm))[1:2, ])
 
 # ---- the vignette's recipe ------------------------------------------------------------------------
-# vignettes/monthly-flow.Rmd shows this read for one segment, wet_segment_monthly()
+# vignettes/segment-discharge.Rmd shows this read for one segment, wet_segment_monthly()
 # over every historical part: it must return what the bundle holds
 lfid_recipe <- seg_bulk$linear_feature_id[seg_bulk$station_number == "08EE013"]
 recipe <- wet_segment_monthly(NULL, lfid_recipe, groups = "BULK", catalog = parts)
