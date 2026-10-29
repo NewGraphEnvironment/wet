@@ -60,8 +60,8 @@ targets <- vm_points(tg[c("site_id", "name", "kind", "target", "blue_line_key", 
 conn <- vd_connect()
 bc <- vm_bc(conn)
 per_site <- lapply(sites, function(s) {
-  pts <- rbind(sf::st_geometry(targets[targets$site_id == s$site_id, ]),
-               sf::st_geometry(gauges[gauges$site_id == s$site_id, ]))
+  pts <- c(sf::st_geometry(targets[targets$site_id == s$site_id, ]),
+           sf::st_geometry(gauges[gauges$site_id == s$site_id, ]))
   ext <- vm_extent(sf::st_sf(geom = sf::st_buffer(pts, 1)), margin_m)
   streams <- vm_streams(conn, ext$wkt, s$blue_line_key, simplify_m, min_order = 7)
   if (!s$blue_line_key %in% streams$blue_line_key) stop(s$site_id, ": the target stream is not drawn", call. = FALSE)
