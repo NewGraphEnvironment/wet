@@ -1,0 +1,871 @@
+# Swift Creek Chinook pilot (swift, BULK windows): extended window flows and donor-carried departures (#126)
+
+HYDAT 20260717, approved daily flows only. Rule: #120's, taken over per site in scripts/departure_site.R's header, registered at efc23f1 (amended dc33a61) before any body code.
+Site (scripts/departure_sites.csv): swift, extend; target 08KA012.
+Windows (CH, gottesfeld_rabnett2007SkeenaFish, inst/vignette-data/life_history_bulk.csv): migration 05-01..08-01, spawning 08-01..09-15.
+Box: natural (REGULATED = 0) BC gauges, lon -121.17..-117.37, lat 51.74..53.94. Baseline 1981-2010.
+A complete window-year: at least 80 % of the window's days present, inside the record (wet_window_stats(), min_frac = 0.8).
+Extension fixed at ols, k = 5 (#126's gate); carried departures inverse-distance, k = 5.
+
+## 1. The pool
+
+Natural box gauges in STATIONS: 44; excluded for no drainage area or coordinates: 0.
+Box pool (>= 3 complete migration years): 30. Extension pool (>= 30 and a 5-year run): 11. Departure pool (>= 10 baseline migration years): 13. Short-record (3..10 years): 7.
+Target, complete migration-window years by this definition: 08KA012 14 (1985-1998).
+
+  station  name                                            km2  mig  spw first  last  <81 base 11-25 pool
+  08KA005  Fraser River at Mcbride                      6882.0   72   72  1953  2024   28   30    14 ext dep
+  08KA007  Fraser River at Red Pass                     1700.0   70   71  1956  2025   25   30    15 ext dep
+  08KA001  Dore River Near Mcbride                       408.0   62   64  1950  2025   17   30    15 ext dep
+  08KH010  Horsefly River above Mckinley Creek           789.2   62   63  1956  2024   18   30    14 ext dep
+  08KA009  Mckale River Near 940 m Contour               253.5   51   53  1972  2023    9   30    12 ext dep
+  08NC004  Canoe River Below Kimmel Creek                307.2   51   53  1972  2025    9   27    15 ext dep
+  08LB038  Blue River Near Blue River                    271.7   44   44  1926  2024    3   27    14 ext dep
+  08KA008  Moose River Near Red Pass                     456.5   40   41  1956  1995   25   15     0 ext dep
+  08LA007  Clearwater River at Outlet of Clearwater L   3095.0   40   44  1955  1994   26   14     0 ext dep
+  08LA004  Murtle River above Dawson Falls              1354.0   35   36  1927  1983   32    3     0 ext
+  08LA008  Mahood River at Outlet of Mahood Lake        4761.0   30   32  1954  1984   26    4     0 ext
+  08KA013  Morkill River Below Hellroaring Creek        1263.0   27   27  1998  2024    0   13    14 dep
+  08KH030  Penfold Creek Near the Mouth                  184.5   27   27  1999  2025    0   12    15 dep
+  08LA013  Clearwater River at Outlet of Hobson Lake     900.5   24   24  1960  1983   21    3     0
+  08KH014  Mitchell River at Outlet of Mitchell Lake     250.8   19   21  1962  1982   17    2     0
+  08NB006  Columbia River at Surprise Rapids           14400.0   18   19  1949  1966   18    0     0
+  08KA012  Swift Creek Near the Mouth                    132.5   14   14  1985  1998    0   14     0 dep
+  08KH022  Mackay River at the Mouth                     140.3   14   13  1972  1985    9    5     0
+  08KH029  Camp Creek Near the Mouth                       5.7   14   15  1999  2013    0   12     2 dep
+  08NC001  Wood River Near Donald                        965.9   14   14  1949  1971   14    0     0
+  08LA006  Canim River at Outlet of Canim Lake          3875.0   13   16  1945  1962   13    0     0
+  08LA018  Hobson Creek Below Bois Grenier Creek         161.9   12   12  1973  1984    8    4     0
+  08NC002  Canoe River Near Donald                      3293.0   12   12  1948  1966   12    0     0
+  08KA010  Swift Creek above Barrett Creek               110.6    9    9  1972  1980    9    0     0 SHORT
+  08LA022  Bradley Creek Near Forest Grove               176.5    6    7  1983  1988    0    6     0 SHORT
+  08LB077  Bone Creek Near Blue River                    268.8    6    6  1977  1982    4    2     0 SHORT
+  08KA011  Mclennan River Near the Mouth                 524.4    5    5  1981  1985    0    5     0 SHORT
+  08LA009  Clearwater River at Inlet to Clearwater La   2371.0    5   12  1961  1967    5    0     0 SHORT
+  08NB011  Columbia River at Big Bend Highway Crossin  16600.0    5    5  1945  1949    5    0     0 SHORT
+  08LB037  Thunder River Near Blue River                 173.6    3    3  1926  1928    3    0     0 SHORT
+
+mig, spw: complete years in the migration and spawning windows; first, last, <81, base (1981-2010) and 11-25 count migration years.
+
+## 2. Record extension (question 1)
+
+Extension pool: 11 gauges; 11 hold at least one 5-year block (0 without one). Blocks: 105; dropped for no covering donor 2, for fewer than 3 held-out years 0. Window-years <= 0 dropped from the log score: 0.
+BELOW #120's FLOOR: 11 gauges hold a pseudo-record, fewer than 15; the race is reported and the run goes on (#126's header).
+Scored: 103 blocks at 11 gauges; 4961 held-out block-years, 545 distinct gauge-years.
+
+Migration-window mean, log NSE on held-out years, k = 5. Per gauge the median over its blocks; across gauges:
+
+  method      q25   median      q75
+  ols       -0.21     0.14     0.38
+  move1     -0.67    -0.24     0.07
+  ratio     -0.02     0.17     0.40
+
+#120's rule here: the highest median is ratio (0.171); ratio's is 0.171; margin 0.01. It would pick ratio. The target is extended by ols (fixed at #126's gate), which #120's rule would NOT pick here.
+
+Coverage of the nominal 90 % interval on held-out years: ols 82.7, move1 89.6, ratio 89.7.
+(ols: its own prediction interval; move1 and ratio: 5th-95th percentiles of the other gauges' held-out residuals.)
+
+Per gauge (median NSE over its blocks):
+
+  gauge    blocks     ols   move1   ratio
+  08KA001      11    0.35    0.36    0.17
+  08KA005      13    0.57    0.52    0.60
+  08KA007      14    0.14   -0.37   -0.01
+  08KA008       8   -0.44   -1.09    0.04
+  08KA009       9    0.40    0.04    0.54
+  08KH010      12    0.24   -0.24    0.34
+  08LA004       6    0.45    0.09    0.44
+  08LA007       8   -0.09   -0.35   -1.69
+  08LA008       5   -0.20   -0.10    0.35
+  08LB038       8   -0.31   -0.98   -0.04
+  08NC004       9   -0.23   -1.00   -0.91
+
+Sensitivities (median over gauges of per-gauge median NSE; 'rule' is what #120's rule would pick there; coverage %):
+
+  setting                    gauges blocks     ols   move1   ratio  rule   coverage
+  migration mean, k = 5          11    103    0.14   -0.24    0.17  ratio  ols 83 move1 90 ratio 90
+  k = 3                          11    103    0.14   -0.10    0.17  ratio  ols 83 move1 90 ratio 90
+  k = 8                          11    103    0.14   -0.24    0.17  ratio  ols 83 move1 90 ratio 90
+  spawning mean                  11    106    0.14   -0.28    0.07  ols    ols 85 move1 90 ratio 90
+  migration min7                 11    103    0.42    0.32    0.17  ols    ols 89 move1 90 ratio 90
+  spawning min7                  11    106   -0.17   -0.52   -0.07  ratio  ols 89 move1 89 ratio 90
+  migration cov_day (days)       11    103    0.64    0.56    0.64  ratio  ols 91 move1 90 ratio 90
+  spawning cov_day (days)        11    105   -0.03   -0.67    0.02  ratio  ols 89 move1 90 ratio 90
+  leak-free                      11    103   -0.09   -0.24    0.17  ratio  ols 84 move1 90 ratio 90
+
+Leak-free: run: 27 of 30 box-pool gauges snapped and accepted (wet_station_snap()); 3 unaccepted keep every donor (08NB011, 08NC001, 08NC002).
+
+Other candidates, each over its own held-out years (migration mean, k = 5):
+
+  multi-donor ols                11    103  median NSE 0.06; ols on the same years 0.05
+  (multi-donor: min(k, n - 2) = 3 donors where the chain has them; blocks by donors used: 2: 3, 3: 100)
+  (d) day by day                 11    103  median NSE 0.01; ols on the same years 0.04
+
+Leave-one-year-out at 08KA012 (migration mean, m3/s; fit on the other 13 years):
+
+  year      obs      ols    move1    ratio  donor
+  1985    8.265    9.389    9.473    9.477  08LB038
+  1986   11.228    9.533    9.841    9.721  08LB038
+  1987   10.074    8.110    7.709    8.082  08LB038
+  1988    8.052    8.451    8.003    8.330  08LB038
+  1989   10.010    9.534    9.795    9.694  08LB038
+  1990   10.667    9.223    9.317    9.315  08LB038
+  1991   11.936    9.152    9.237    9.229  08LB038
+  1992    8.187    7.475    6.618    7.356  08LB038
+  1993    5.856    8.284    7.346    7.494  08LB038
+  1994    9.593    9.527    9.762    9.675  08LB038
+  1995    7.764    8.489    8.040    8.350  08LB038
+  1996   10.399   10.446   11.384   10.822  08LB038
+  1997   10.799   14.077   17.553   13.432  08LB038
+  1998    7.631    9.477    9.568    9.560  08LB038
+  RMSE      log    0.177    0.205    0.159
+
+## 3. Donor-carried departures (question 2)
+
+Leave-one-gauge-out at the departure pool (13 gauges on the migration mean), k = 5 donors from the rest; scored on the years both series have, each centred on its mean over them (log NSE; 0 is no departure).
+HEADLINE: median per-gauge NSE 0.51 (quartiles 0.47 to 0.65) over 13 gauges scored; 0 not scored (fewer than 3 years).
+USABLE (departure-pool median >= 0.5, #120's threshold): YES.
+Short-record gauges, scored from the full departure pool: median NSE 0.37 over 6 scored (1 not scored).
+
+By setting (median and quartiles over gauges; short-record median):
+
+  setting                        n     q25  median     q75  short  median
+  migration mean, k = 5         13    0.47    0.51    0.65      6    0.37
+  k = 3                         13    0.28    0.52    0.71      6    0.35
+  k = 8                         13    0.51    0.64    0.70      6    0.37
+  spawning mean                 13    0.25    0.43    0.51      6    0.51
+  migration min7                13   -0.27    0.59    0.74      6    0.55
+  spawning min7                 13    0.12    0.32    0.37      6    0.52
+  migration cov_day (days)      13    0.70    0.81    0.89      6    0.63
+  spawning cov_day (days)       13    0.03    0.37    0.46      6   -0.00
+  leak-free                     13    0.48    0.56    0.65      6    0.38
+
+Per gauge, migration mean, k = 5 (years scored, NSE):
+
+  08KA001  54   0.56   08KA005  69   0.61   08KA007  70   0.47   08KA008  40   0.37
+  08KA009  51   0.69   08KA012  14   0.48   08KA013  27   0.78   08KH010  62   0.51
+  08KH029  14   0.49   08KH030  27   0.82   08LA007  39   0.65   08LB038  41   0.33
+  08NC004  51  -0.20
+
+Short-record gauges, migration mean, k = 5:
+
+  08KA010   9  -0.52   08KA011   5   0.53   08LA009   5   0.90   08LA022   6   0.22
+  08LB037   3  -5.15   08LB077   6   0.79   08NB011   0      -
+
+## 4. The answer at 08KA012
+
+08KA012 extended by ols (fixed at #126's gate), k = 5 covering donors from the extension pool, 1926-2025; 90 % intervals are OLS's prediction interval.
+Donor chain (nearest first): 08LB038, 08KA001, 08KA007, 08KA009, 08KH010.
+Years supplied per donor, migration mean:
+  08KA001 21 years: 1950-1952, 1967-1983, 2025
+  08KA007 11 years: 1956-1966
+  08LB038 30 years: 1926-1928, 1984, 1999-2024
+Limit: each extended year rests on one donor. Per series, the years before 1981 by source, and the earliest years:
+  migration mean: 17 08KA001, 11 08KA007, 3 08LB038; before 1950, 08LB038 supplies every year (chain donors with a value then: 08LB038).
+  spawning mean: 19 08KA001, 12 08KA007, 3 08LB038; before 1926, 08KA001 supplies every year (chain donors with a value then: 08KA001).
+  migration min7: 17 08KA001, 11 08KA007, 3 08LB038; before 1950, 08LB038 supplies every year (chain donors with a value then: 08LB038).
+  spawning min7: 19 08KA001, 12 08KA007, 3 08LB038; before 1926, 08KA001 supplies every year (chain donors with a value then: 08KA001).
+  migration cov_day: 17 08KA001, 11 08KA007, 3 08LB038; before 1950, 08LB038 supplies every year (chain donors with a value then: 08LB038).
+  spawning cov_day: 19 08KA001, 12 08KA007, 3 08LB038; before 1926, 08KA001 supplies every year (chain donors with a value then: 08KA001).
+  migration max: 17 08KA001, 11 08KA007, 3 08LB038; before 1950, 08LB038 supplies every year (chain donors with a value then: 08LB038).
+  spawning max: 19 08KA001, 12 08KA007, 3 08LB038; before 1926, 08KA001 supplies every year (chain donors with a value then: 08KA001).
+
+Before/after: mean departure 2011-2025 minus mean departure before 1981 (log, or days for cov_day);
+extended: 90 % interval from 2000 draws resampling years in each period and adding a held-out residual to each extended year; set.seed(120).
+carried: 90 % interval from 2000 draws resampling years in each period and adding a held-out carried residual to each year; set.seed(126).
+
+  statistic window     pre post    change  % normal      90 % interval     carried  % normal      90 % interval  pre post
+  mean      migration   31   15     0.009       0.9      -13.2..16.4 %       0.015       1.5       -9.5..14.1 %   31   15
+  mean      spawning    34   15    -0.287     -24.9      -43.1..-1.9 %      -0.129     -12.1       -27.8..6.0 %   34   15
+  min7      migration   31   15     0.413      51.1       9.5..110.8 %       0.355      42.6      -0.1..101.8 %   31   15
+  min7      spawning    34   15    -0.194     -17.6      -37.6..11.0 %       0.019       1.9      -19.4..27.9 %   34   15
+  cov_day   migration   31   15    -7.251         -        -13.0..-1.3      -4.019         -         -7.7..-0.4   31   15
+  cov_day   spawning    34   15    -0.004         -          -2.7..2.4       0.383         -          -1.8..2.7   34   15
+  max       migration   31   15    -0.009      -0.9                  -       0.069       7.1                  -   31   15
+  max       spawning    34   15    -0.029      -2.8                  -      -0.117     -11.0                  -   34   15
+
+(% normal: 100 (exp(change) - 1). carried: the same change from the donor-carried departures, which need no target baseline. max is reported, never scored, so neither of its changes has an interval; its per-year values below carry OLS's prediction interval.)
+
+The two routes as centred departures: NSE of the carried against the extension's over the target's observed years; over the record, correlation and mean absolute difference:
+
+  statistic window     obs yrs  obs NSE   rec yrs      r  mean |d|
+  mean      migration       14     0.48        76   0.78     0.085
+  mean      spawning        14     0.43        79   0.81     0.143
+  min7      migration       14     0.68        76   0.74     0.283
+  min7      spawning        14     0.32        79   0.74     0.155
+  cov_day   migration       14     0.70        76   0.92     3.538
+  cov_day   spawning        14     0.13        79   0.63     1.400
+  max       migration       14     0.52        76   0.66     0.116
+  max       spawning        14     0.40        79   0.79     0.192
+
+Trend in cd's anomaly of the extended series (cd_trend(): Theil-Sen slope per year, Mann-Kendall p; % of normal capped at 200, or days):
+
+  statistic window     from  slope/yr       p    n
+  mean      migration  1926    -0.015   0.861   76
+  mean      migration  1981    -0.029   0.883   45
+  mean      spawning   1915    -0.359   0.012   79
+  mean      spawning   1981    -0.958   0.013   45
+  min7      migration  1926     0.440   0.000   76
+  min7      migration  1981     0.021   0.295   45
+  min7      spawning   1915    -0.195   0.134   79
+  min7      spawning   1981    -0.536   0.023   45
+  cov_day   migration  1926    -0.100   0.043   76
+  cov_day   migration  1981    -0.166   0.033   45
+  cov_day   spawning   1915    -0.003   0.556   79
+  cov_day   spawning   1981     0.017   0.456   45
+  max       migration  1926    -0.047   0.353   76
+  max       migration  1981     0.058   0.732   45
+  max       spawning   1915    -0.148   0.431   79
+  max       spawning   1981    -0.351   0.475   45
+
+08KA012 per year, migration mean (m3/s): value with the 90 % interval and the donor; its departure from the extended series' own 1981-2010 mean, and the carried departure (% of normal):
+
+  year    value       lo       hi donor    departure   carried
+  1926     5.90     3.96     8.78 08LB038      -36.7     -42.7
+  1927     7.79     5.73    10.58 08LB038      -16.4     -20.0
+  1928     9.34     6.99    12.48 08LB038        0.2      -0.4
+  1950    10.17     7.38    14.03 08KA001        9.2      10.9
+  1951    11.48     8.04    16.37 08KA001       23.1      23.6
+  1952     7.66     5.46    10.76 08KA001      -17.8     -14.0
+  1956     8.67     7.12    10.55 08KA007       -7.0       4.4
+  1957     9.01     7.40    10.96 08KA007       -3.4      10.0
+  1958     9.56     7.86    11.64 08KA007        2.6      28.8
+  1959    10.31     8.44    12.58 08KA007       10.6      18.8
+  1960     9.31     7.65    11.33 08KA007       -0.1       6.9
+  1961     9.74     8.00    11.86 08KA007        4.5      15.6
+  1962     9.14     7.51    11.12 08KA007       -1.9     -24.8
+  1963     9.66     7.93    11.76 08KA007        3.6       8.6
+  1964     9.99     8.19    12.17 08KA007        7.1      15.3
+  1965     9.46     7.77    11.51 08KA007        1.5      11.2
+  1966     9.91     8.14    12.08 08KA007        6.4      19.6
+  1967    14.55     9.10    23.27 08KA001       56.1      54.4
+  1968    12.39     8.42    18.24 08KA001       33.0      25.5
+  1969    11.13     7.88    15.70 08KA001       19.4      13.2
+  1970     9.86     7.18    13.52 08KA001        5.8       3.0
+  1971     9.88     7.20    13.56 08KA001        6.0       7.6
+  1972    12.59     8.49    18.66 08KA001       35.0      22.8
+  1973     8.78     6.42    12.01 08KA001       -5.7      -8.1
+  1974     9.12     6.68    12.45 08KA001       -2.1       3.9
+  1975     8.92     6.53    12.18 08KA001       -4.3      -6.9
+  1976     9.11     6.68    12.44 08KA001       -2.2      -9.6
+  1977     8.61     6.29    11.80 08KA001       -7.6      -9.7
+  1978     8.27     6.00    11.40 08KA001      -11.3       0.6
+  1979     9.57     7.00    13.09 08KA001        2.7      -0.2
+  1980     7.83     5.61    10.92 08KA001      -16.0     -10.2
+  1981     8.46     6.16    11.61 08KA001       -9.3      -0.7
+  1982    10.64     7.64    14.82 08KA001       14.1       4.6
+  1983     6.72     4.55     9.93 08KA001      -27.9     -17.3
+  1984     9.73     7.27    13.02 08LB038        4.4      -1.9
+  1985     8.26     8.26     8.26 observed     -11.3      -3.6
+  1986    11.23    11.23    11.23 observed      20.5       5.6
+  1987    10.07    10.07    10.07 observed       8.1       2.8
+  1988     8.05     8.05     8.05 observed     -13.6      -6.3
+  1989    10.01    10.01    10.01 observed       7.4       2.2
+  1990    10.67    10.67    10.67 observed      14.5       9.5
+  1991    11.94    11.94    11.94 observed      28.1       7.6
+  1992     8.19     8.19     8.19 observed     -12.1      -2.4
+  1993     5.86     5.86     5.86 observed     -37.2     -16.7
+  1994     9.59     9.59     9.59 observed       2.9       5.9
+  1995     7.76     7.76     7.76 observed     -16.7     -15.3
+  1996    10.40    10.40    10.40 observed      11.6      -3.1
+  1997    10.80    10.80    10.80 observed      15.9      23.8
+  1998     7.63     7.63     7.63 observed     -18.1       9.6
+  1999    12.76     8.95    18.19 08LB038       36.9      10.9
+  2000    11.42     8.29    15.73 08LB038       22.6      -2.8
+  2001     9.17     6.87    12.25 08LB038       -1.6     -13.8
+  2002    10.53     7.79    14.24 08LB038       13.0       9.9
+  2003     8.32     6.19    11.18 08LB038      -10.7      -2.3
+  2004     7.88     5.82    10.68 08LB038      -15.4      -9.0
+  2005     9.70     7.25    12.98 08LB038        4.1       6.5
+  2006     8.94     6.69    11.95 08LB038       -4.1       3.6
+  2007     9.82     7.33    13.16 08LB038        5.4      20.1
+  2008     9.76     7.29    13.07 08LB038        4.7      -4.0
+  2009     8.58     6.40    11.49 08LB038       -8.0      -9.3
+  2010     6.70     4.73     9.49 08LB038      -28.1     -18.2
+  2011    11.16     8.15    15.28 08LB038       19.8       8.4
+  2012    12.13     8.65    16.99 08LB038       30.1      32.4
+  2013     9.76     7.29    13.06 08LB038        4.7      12.6
+  2014    10.42     7.72    14.07 08LB038       11.8       6.4
+  2015     7.67     5.63    10.45 08LB038      -17.7       4.5
+  2016     8.67     6.48    11.60 08LB038       -7.0      -4.2
+  2017    10.16     7.55    13.66 08LB038        9.0       2.0
+  2018     9.75     7.28    13.05 08LB038        4.6       5.3
+  2019     8.35     6.21    11.21 08LB038      -10.4      -6.8
+  2020    11.97     8.57    16.70 08LB038       28.4      22.1
+  2021     9.47     7.09    12.66 08LB038        1.6      21.1
+  2022    11.77     8.47    16.34 08LB038       26.3      18.3
+  2023     7.95     5.87    10.75 08LB038      -14.7      -4.8
+  2024     7.62     5.59    10.40 08LB038      -18.2     -24.5
+  2025     8.42     6.13    11.57 08KA001       -9.6      -3.5
+
+08KA012 per year, spawning mean (m3/s): value with the 90 % interval and the donor; its departure from the extended series' own 1981-2010 mean, and the carried departure (% of normal):
+
+  year    value       lo       hi donor    departure   carried
+  1915     5.95     2.16    16.39 08KA001       99.7     108.2
+  1926     1.78     1.16     2.75 08LB038      -40.1     -46.8
+  1927     2.65     1.76     3.98 08LB038      -11.1     -12.9
+  1928     2.18     1.44     3.30 08LB038      -26.7     -31.5
+  1949     2.92     1.46     5.85 08KA001       -2.0       0.7
+  1950     3.15     1.56     6.35 08KA001        5.7       8.8
+  1951     2.43     1.19     4.95 08KA001      -18.4     -16.4
+  1952     2.26     1.09     4.70 08KA001      -24.0     -22.2
+  1955     3.57     2.22     5.72 08KA007       19.7      32.6
+  1956     1.84     1.12     3.01 08KA007      -38.3      -7.6
+  1957     2.75     1.73     4.38 08KA007       -7.6      -3.3
+  1958     2.15     1.33     3.45 08KA007      -28.0       3.1
+  1959     3.66     2.28     5.88 08KA007       22.9      28.5
+  1960     3.74     2.32     6.02 08KA007       25.5      23.9
+  1961     2.52     1.58     4.02 08KA007      -15.3       5.9
+  1962     3.89     2.41     6.27 08KA007       30.5      23.5
+  1963     3.71     2.31     5.97 08KA007       24.7      28.1
+  1964     2.34     1.46     3.75 08KA007      -21.4     -13.4
+  1965     3.94     2.43     6.36 08KA007       32.1      36.9
+  1966     4.02     2.48     6.50 08KA007       34.8      26.0
+  1967     4.02     1.85     8.73 08KA001       34.9      35.5
+  1968     3.62     1.74     7.57 08KA001       21.7      26.8
+  1969     4.14     1.88     9.12 08KA001       39.0      23.1
+  1970     2.80     1.40     5.61 08KA001       -6.0     -15.2
+  1971     3.87     1.81     8.29 08KA001       30.1      26.9
+  1972     3.21     1.59     6.50 08KA001        7.8      -0.5
+  1973     2.92     1.46     5.86 08KA001       -1.9      -3.6
+  1974     3.32     1.63     6.77 08KA001       11.5      15.1
+  1975     2.22     1.06     4.65 08KA001      -25.4     -23.8
+  1976     4.76     2.00    11.31 08KA001       59.9      30.2
+  1977     3.20     1.58     6.48 08KA001        7.5      10.2
+  1978     2.85     1.42     5.71 08KA001       -4.3       8.6
+  1979     3.21     1.58     6.49 08KA001        7.7       8.9
+  1980     2.53     1.25     5.11 08KA001      -15.2     -20.0
+  1981     3.32     1.63     6.77 08KA001       11.6      25.1
+  1982     3.69     1.76     7.75 08KA001       23.9      22.4
+  1983     2.80     1.40     5.62 08KA001       -5.9     -13.6
+  1984     3.76     2.48     5.69 08LB038       26.1      18.8
+  1985     2.13     2.13     2.13 observed     -28.6     -21.1
+  1986     3.65     3.65     3.65 observed      22.6       1.8
+  1987     4.03     4.03     4.03 observed      35.4      -9.8
+  1988     2.77     2.77     2.77 observed      -6.9       5.8
+  1989     3.52     3.52     3.52 observed      18.2       7.8
+  1990     1.92     1.92     1.92 observed     -35.6       5.7
+  1991     5.63     5.63     5.63 observed      88.9      50.3
+  1992     1.76     1.76     1.76 observed     -40.9     -27.6
+  1993     3.10     3.10     3.10 observed       4.0      -4.3
+  1994     2.06     2.06     2.06 observed     -30.7     -15.8
+  1995     3.34     3.34     3.34 observed      12.0     -11.3
+  1996     3.69     3.69     3.69 observed      24.0      21.6
+  1997     3.94     3.94     3.94 observed      32.2      26.6
+  1998     1.25     1.25     1.25 observed     -58.1     -10.4
+  1999     5.29     3.37     8.30 08LB038       77.7      40.8
+  2000     3.67     2.42     5.54 08LB038       23.1      -4.7
+  2001     3.31     2.20     4.99 08LB038       11.3       7.3
+  2002     2.29     1.52     3.46 08LB038      -23.1     -20.5
+  2003     1.58     1.01     2.46 08LB038      -47.0     -14.1
+  2004     3.99     2.62     6.07 08LB038       33.9      16.3
+  2005     2.13     1.40     3.22 08LB038      -28.6     -17.2
+  2006     1.71     1.11     2.65 08LB038      -42.4     -27.0
+  2007     1.78     1.15     2.74 08LB038      -40.3     -26.2
+  2008     3.25     2.16     4.89 08LB038        9.2      -7.1
+  2009     1.69     1.09     2.62 08LB038      -43.2     -15.2
+  2010     2.30     1.52     3.47 08LB038      -22.8     -20.6
+  2011     2.84     1.89     4.26 08LB038       -4.7      -2.3
+  2012     2.67     1.78     4.02 08LB038      -10.2       3.3
+  2013     2.15     1.42     3.26 08LB038      -27.9       6.1
+  2014     2.34     1.55     3.52 08LB038      -21.5      -8.9
+  2015     2.08     1.37     3.16 08LB038      -30.2     -18.9
+  2016     2.71     1.81     4.07 08LB038       -8.9     -10.5
+  2017     2.01     1.32     3.06 08LB038      -32.5     -14.3
+  2018     2.10     1.39     3.19 08LB038      -29.4     -21.7
+  2019     2.86     1.91     4.30 08LB038       -3.9       8.3
+  2020     2.57     1.71     3.85 08LB038      -13.9       1.8
+  2021     1.82     1.19     2.80 08LB038      -38.9     -13.7
+  2022     3.19     2.12     4.80 08LB038        7.1      24.9
+  2023     1.33     0.83     2.13 08LB038      -55.4     -27.5
+  2024     2.15     1.42     3.26 08LB038      -27.7     -15.8
+  2025     2.44     1.20     4.97 08KA001      -18.0      -7.2
+
+08KA012 per year, migration min7 (m3/s): value with the 90 % interval and the donor; its departure from the extended series' own 1981-2010 mean, and the carried departure (% of normal):
+
+  year    value       lo       hi donor    departure   carried
+  1926     1.51     0.32     7.17 08LB038       -7.5     -46.5
+  1927     1.52     0.35     6.49 08LB038       -7.3     -34.7
+  1928     1.52     0.38     6.04 08LB038       -7.0     -18.6
+  1950     0.49     0.21     1.19 08KA001      -69.8     -61.0
+  1951     0.93     0.42     2.06 08KA001      -43.3     -30.5
+  1952     0.48     0.20     1.15 08KA001      -70.9     -62.3
+  1956     0.84     0.43     1.66 08KA007      -48.5       3.4
+  1957     3.19     1.59     6.37 08KA007       94.7     155.5
+  1958     1.12     0.58     2.18 08KA007      -31.6      57.5
+  1959     0.67     0.34     1.36 08KA007      -58.7     -40.6
+  1960     0.80     0.41     1.59 08KA007      -50.9     -41.2
+  1961     1.00     0.51     1.96 08KA007      -38.6     -25.2
+  1962     0.93     0.47     1.83 08KA007      -43.0     -64.4
+  1963     1.39     0.72     2.70 08KA007      -14.8     -17.3
+  1964     0.73     0.37     1.47 08KA007      -55.1     -48.8
+  1965     1.15     0.59     2.24 08KA007      -29.6     -37.6
+  1966     0.88     0.45     1.73 08KA007      -46.3       2.8
+  1967     0.36     0.14     0.93 08KA001      -77.8     -69.9
+  1968     0.66     0.29     1.53 08KA001      -59.5     -49.7
+  1969     1.38     0.64     3.02 08KA001      -15.4      10.4
+  1970     0.75     0.33     1.70 08KA001      -54.3     -51.0
+  1971     2.28     1.04     5.04 08KA001       39.6      69.8
+  1972     0.59     0.25     1.38 08KA001      -63.8     -54.8
+  1973     0.87     0.39     1.95 08KA001      -46.7     -33.5
+  1974     1.18     0.54     2.58 08KA001      -27.9     -24.6
+  1975     0.50     0.21     1.19 08KA001      -69.7     -54.7
+  1976     2.51     1.13     5.59 08KA001       53.6      52.7
+  1977     1.92     0.88     4.19 08KA001       17.1      23.0
+  1978     1.07     0.49     2.35 08KA001      -34.7     -11.3
+  1979     0.82     0.36     1.84 08KA001      -49.9     -24.2
+  1980     2.80     1.25     6.29 08KA001       71.3     111.2
+  1981     1.34     0.61     2.91 08KA001      -18.3      12.4
+  1982     0.38     0.15     0.95 08KA001      -77.0     -68.2
+  1983     1.13     0.51     2.47 08KA001      -31.2     -21.7
+  1984     1.52     0.36     6.42 08LB038       -7.2     -54.7
+  1985     1.04     1.04     1.04 observed     -36.3     -30.7
+  1986     0.46     0.46     0.46 observed     -72.0     -42.6
+  1987     4.21     4.21     4.21 observed     157.2      47.0
+  1988     2.24     2.24     2.24 observed      36.9       3.1
+  1989     3.98     3.98     3.98 observed     143.2      50.5
+  1990     2.58     2.58     2.58 observed      57.9      33.1
+  1991     1.47     1.47     1.47 observed     -10.4      11.2
+  1992     2.05     2.05     2.05 observed      25.4      32.7
+  1993     0.67     0.67     0.67 observed     -58.9     -26.3
+  1994     2.91     2.91     2.91 observed      78.0      57.8
+  1995     0.84     0.84     0.84 observed     -48.8     -40.5
+  1996     0.77     0.77     0.77 observed     -52.7     -32.8
+  1997     0.89     0.89     0.89 observed     -45.8      -3.2
+  1998     2.35     2.35     2.35 observed      43.5     113.5
+  1999     1.53     0.38     6.24 08LB038       -6.5       0.4
+  2000     1.53     0.37     6.34 08LB038       -6.4     -14.3
+  2001     1.52     0.39     5.90 08LB038       -6.8     -42.2
+  2002     1.52     0.39     5.94 08LB038       -6.9     -43.9
+  2003     1.52     0.37     6.17 08LB038       -7.1     -17.6
+  2004     1.52     0.36     6.40 08LB038       -7.2       3.9
+  2005     1.53     0.39     5.90 08LB038       -6.8      60.6
+  2006     1.52     0.37     6.23 08LB038       -7.2      -6.5
+  2007     1.52     0.39     5.95 08LB038       -7.0      -4.9
+  2008     1.52     0.39     5.90 08LB038       -6.9     -39.2
+  2009     1.52     0.39     5.90 08LB038       -6.8     -33.1
+  2010     1.51     0.26     8.67 08LB038       -7.7     -34.7
+  2011     1.52     0.39     5.93 08LB038       -6.9     -46.2
+  2012     1.54     0.32     7.37 08LB038       -6.1      57.7
+  2013     1.52     0.37     6.26 08LB038       -7.2       1.6
+  2014     1.53     0.39     5.90 08LB038       -6.8     -22.5
+  2015     1.51     0.28     8.05 08LB038       -7.6     -12.1
+  2016     1.53     0.39     5.90 08LB038       -6.8     103.9
+  2017     1.53     0.39     5.95 08LB038       -6.7      21.7
+  2018     1.52     0.36     6.38 08LB038       -7.2      51.0
+  2019     1.52     0.39     5.90 08LB038       -6.8     -38.6
+  2020     1.54     0.32     7.44 08LB038       -6.1      31.3
+  2021     1.52     0.34     6.85 08LB038       -7.4      12.0
+  2022     1.53     0.38     6.20 08LB038       -6.5     -11.7
+  2023     1.51     0.25     9.24 08LB038       -7.8      76.9
+  2024     1.52     0.38     6.09 08LB038       -7.1     -41.2
+  2025     2.09     0.95     4.59 08KA001       27.9      39.8
+
+08KA012 per year, spawning min7 (m3/s): value with the 90 % interval and the donor; its departure from the extended series' own 1981-2010 mean, and the carried departure (% of normal):
+
+  year    value       lo       hi donor    departure   carried
+  1915     2.93     1.50     5.71 08KA001       68.6      77.6
+  1926     1.33     0.95     1.85 08LB038      -23.4     -30.7
+  1927     1.68     1.22     2.33 08LB038       -3.0      -2.4
+  1928     1.33     0.95     1.86 08LB038      -23.3     -30.6
+  1949     1.59     0.94     2.67 08KA001       -8.6     -11.2
+  1950     1.35     0.78     2.31 08KA001      -22.5     -26.3
+  1951     1.23     0.70     2.16 08KA001      -29.4     -33.7
+  1952     1.11     0.61     2.02 08KA001      -36.1     -40.8
+  1955     1.88     1.23     2.88 08KA007        8.4      42.1
+  1956     1.12     0.71     1.78 08KA007      -35.4     -25.8
+  1957     1.77     1.16     2.71 08KA007        2.1      -0.8
+  1958     1.61     1.06     2.46 08KA007       -7.0      10.8
+  1959     2.91     1.77     4.78 08KA007       67.7      69.3
+  1960     2.20     1.41     3.43 08KA007       26.8      30.7
+  1961     1.35     0.88     2.08 08KA007      -22.2      -9.0
+  1962     1.72     1.13     2.62 08KA007       -1.0      -6.3
+  1963     2.75     1.70     4.45 08KA007       58.2      58.3
+  1964     0.98     0.60     1.60 08KA007      -43.3     -44.9
+  1965     1.34     0.86     2.06 08KA007      -23.0     -27.5
+  1966     1.89     1.23     2.89 08KA007        8.7      20.1
+  1967     2.12     1.22     3.67 08KA001       22.0      35.0
+  1968     2.39     1.33     4.29 08KA001       37.8      43.4
+  1969     2.22     1.27     3.89 08KA001       27.8       0.7
+  1970     0.99     0.52     1.90 08KA001      -42.8     -46.2
+  1971     2.41     1.34     4.35 08KA001       39.1      42.6
+  1972     1.42     0.84     2.42 08KA001      -18.1     -17.2
+  1973     1.39     0.81     2.38 08KA001      -19.8     -19.2
+  1974     2.52     1.38     4.60 08KA001       44.9      39.4
+  1975     1.65     0.98     2.77 08KA001       -4.9      -8.5
+  1976     3.32     1.60     6.91 08KA001       91.5      42.5
+  1977     1.59     0.95     2.68 08KA001       -8.1     -13.6
+  1978     1.99     1.16     3.39 08KA001       14.4      18.7
+  1979     2.38     1.33     4.26 08KA001       37.0      40.2
+  1980     1.72     1.02     2.89 08KA001       -0.8     -15.4
+  1981     2.24     1.28     3.94 08KA001       29.2      41.3
+  1982     2.66     1.42     4.98 08KA001       53.4      59.6
+  1983     1.41     0.83     2.40 08KA001      -18.8     -35.0
+  1984     1.99     1.43     2.77 08LB038       14.5       7.5
+  1985     1.50     1.50     1.50 observed     -13.8     -25.8
+  1986     1.46     1.46     1.46 observed     -15.7     -20.0
+  1987     1.70     1.70     1.70 observed      -1.9      -0.5
+  1988     1.56     1.56     1.56 observed     -10.0      -1.6
+  1989     1.68     1.68     1.68 observed      -3.4      -9.2
+  1990     1.11     1.11     1.11 observed     -36.0       8.4
+  1991     2.84     2.84     2.84 observed      63.8      31.4
+  1992     1.36     1.36     1.36 observed     -21.8     -43.6
+  1993     1.99     1.99     1.99 observed      14.6       2.7
+  1994     1.53     1.53     1.53 observed     -12.0     -15.2
+  1995     1.73     1.73     1.73 observed      -0.2      -0.4
+  1996     2.41     2.41     2.41 observed      38.6      39.5
+  1997     2.77     2.77     2.77 observed      59.7      38.0
+  1998     0.86     0.86     0.86 observed     -50.4      -2.7
+  1999     2.57     1.81     3.66 08LB038       48.3       2.9
+  2000     2.35     1.67     3.30 08LB038       35.2       5.8
+  2001     1.52     1.10     2.11 08LB038      -12.4     -24.9
+  2002     1.66     1.20     2.29 08LB038       -4.5      -5.2
+  2003     1.09     0.77     1.55 08LB038      -37.1     -16.1
+  2004     1.61     1.16     2.23 08LB038       -7.5      20.3
+  2005     1.51     1.09     2.09 08LB038      -13.3      -5.4
+  2006     1.23     0.88     1.73 08LB038      -29.1       2.7
+  2007     1.29     0.92     1.80 08LB038      -25.9      -4.5
+  2008     1.75     1.26     2.42 08LB038        0.8     -16.3
+  2009     1.18     0.83     1.66 08LB038      -32.2      -2.8
+  2010     1.53     1.10     2.12 08LB038      -12.0     -31.2
+  2011     1.43     1.03     1.99 08LB038      -17.7       6.5
+  2012     1.39     1.00     1.94 08LB038      -19.8      -1.2
+  2013     1.44     1.03     1.99 08LB038      -17.3      44.1
+  2014     1.59     1.15     2.21 08LB038       -8.2     -26.6
+  2015     1.23     0.87     1.72 08LB038      -29.4     -14.9
+  2016     1.68     1.22     2.33 08LB038       -3.0      -3.0
+  2017     1.31     0.94     1.84 08LB038      -24.3      19.1
+  2018     1.36     0.98     1.90 08LB038      -21.5     -25.1
+  2019     1.74     1.25     2.40 08LB038       -0.0      38.1
+  2020     1.40     1.01     1.95 08LB038      -19.2      13.9
+  2021     1.43     1.03     1.99 08LB038      -17.7       1.5
+  2022     1.43     1.03     1.98 08LB038      -17.8       4.1
+  2023     0.99     0.69     1.42 08LB038      -43.0     -23.6
+  2024     1.39     1.00     1.94 08LB038      -19.7      -7.9
+  2025     1.91     1.12     3.23 08KA001        9.8      23.8
+
+08KA012 per year, migration cov_day (day of the window): value with the 90 % interval and the donor; its departure from the extended series' own 1981-2010 mean, and the carried departure (days):
+
+  year    value       lo       hi donor    departure   carried
+  1926    42.79    37.65    47.92 08LB038       -6.2      -4.8
+  1927    51.71    46.53    56.89 08LB038        2.7       2.2
+  1928    41.51    36.35    46.68 08LB038       -7.5      -5.8
+  1950    61.82    51.33    72.31 08KA001       12.8       8.7
+  1951    54.39    45.01    63.77 08KA001        5.4       3.7
+  1952    55.88    46.32    65.43 08KA001        6.8       4.7
+  1956    41.84    36.22    47.45 08KA007       -7.2      -4.2
+  1957    30.66    24.33    37.00 08KA007      -18.4     -11.5
+  1958    36.25    30.36    42.14 08KA007      -12.8      -5.0
+  1959    55.81    49.97    61.65 08KA007        6.8       4.6
+  1960    65.59    58.91    72.27 08KA007       16.6      13.5
+  1961    39.04    33.32    44.77 08KA007      -10.0      -5.5
+  1962    55.81    49.97    61.65 08KA007        6.8       9.0
+  1963    50.22    44.63    55.81 08KA007        1.2       2.5
+  1964    53.02    47.32    58.71 08KA007        4.0       3.8
+  1965    55.81    49.97    61.65 08KA007        6.8       7.1
+  1966    57.21    51.28    63.13 08KA007        8.2       4.9
+  1967    55.88    46.32    65.43 08KA001        6.8       3.6
+  1968    55.88    46.32    65.43 08KA001        6.8       7.0
+  1969    43.99    35.01    52.97 08KA001       -5.0      -3.0
+  1970    49.93    40.91    58.96 08KA001        0.9       0.3
+  1971    45.47    36.53    54.42 08KA001       -3.6      -3.9
+  1972    41.01    31.87    50.16 08KA001       -8.0      -5.1
+  1973    51.42    42.30    60.53 08KA001        2.4       1.5
+  1974    55.88    46.32    65.43 08KA001        6.8       2.9
+  1975    66.28    54.88    77.68 08KA001       17.2       9.1
+  1976    60.33    50.11    70.56 08KA001       11.3       5.9
+  1977    51.42    42.30    60.53 08KA001        2.4       1.8
+  1978    58.85    48.87    68.82 08KA001        9.8       6.5
+  1979    57.36    47.61    67.11 08KA001        8.3       5.2
+  1980    43.99    35.01    52.97 08KA001       -5.0      -4.9
+  1981    48.45    39.48    57.41 08KA001       -0.6      -2.6
+  1982    52.90    43.67    62.14 08KA001        3.9       4.1
+  1983    49.93    40.91    58.96 08KA001        0.9       1.3
+  1984    65.73    59.60    71.86 08LB038       16.7       7.5
+  1985    46.00    46.00    46.00 observed      -3.0       0.6
+  1986    46.00    46.00    46.00 observed      -3.0      -2.8
+  1987    45.00    45.00    45.00 observed      -4.0      -2.1
+  1988    49.00    49.00    49.00 observed      -0.0      -1.4
+  1989    46.00    46.00    46.00 observed      -3.0      -4.3
+  1990    51.00    51.00    51.00 observed       2.0       2.2
+  1991    56.00    56.00    56.00 observed       7.0       3.6
+  1992    43.00    43.00    43.00 observed      -6.0      -4.3
+  1993    32.00    32.00    32.00 observed     -17.0     -12.6
+  1994    46.00    46.00    46.00 observed      -3.0       1.3
+  1995    46.00    46.00    46.00 observed      -3.0      -0.8
+  1996    63.00    63.00    63.00 observed      14.0       8.2
+  1997    50.00    50.00    50.00 observed       1.0       1.2
+  1998    31.00    31.00    31.00 observed     -18.0      -4.5
+  1999    60.63    54.95    66.31 08LB038       11.6       4.1
+  2000    58.08    52.59    63.57 08LB038        9.0       6.5
+  2001    56.81    51.39    62.22 08LB038        7.8       5.8
+  2002    54.26    48.98    59.53 08LB038        5.2       1.7
+  2003    46.61    41.52    51.70 08LB038       -2.4      -0.7
+  2004    45.34    40.24    50.43 08LB038       -3.7       1.1
+  2005    45.34    40.24    50.43 08LB038       -3.7      -5.7
+  2006    38.96    33.70    44.22 08LB038      -10.1      -3.8
+  2007    44.06    38.95    49.17 08LB038       -5.0      -0.1
+  2008    44.06    38.95    49.17 08LB038       -5.0      -0.6
+  2009    50.43    45.29    55.58 08LB038        1.4       2.8
+  2010    59.36    53.78    64.94 08LB038       10.3       2.0
+  2011    55.53    50.19    60.87 08LB038        6.5       0.8
+  2012    56.81    51.39    62.22 08LB038        7.8       3.5
+  2013    42.79    37.65    47.92 08LB038       -6.2      -3.5
+  2014    44.06    38.95    49.17 08LB038       -5.0       1.9
+  2015    35.14    29.67    40.61 08LB038      -13.9      -7.7
+  2016    41.51    36.35    46.68 08LB038       -7.5      -5.4
+  2017    45.34    40.24    50.43 08LB038       -3.7      -4.9
+  2018    30.04    24.18    35.90 08LB038      -19.0      -8.6
+  2019    38.96    33.70    44.22 08LB038      -10.1      -5.0
+  2020    55.53    50.19    60.87 08LB038        6.5       2.1
+  2021    42.79    37.65    47.92 08LB038       -6.2      -0.4
+  2022    60.63    54.95    66.31 08LB038       11.6       7.7
+  2023    21.12    14.34    27.90 08LB038      -27.9     -15.8
+  2024    47.89    42.79    52.98 08LB038       -1.1       6.4
+  2025    41.01    31.87    50.16 08KA001       -8.0      -4.9
+
+08KA012 per year, spawning cov_day (day of the window): value with the 90 % interval and the donor; its departure from the extended series' own 1981-2010 mean, and the carried departure (days):
+
+  year    value       lo       hi donor    departure   carried
+  1915    21.22    16.71    25.72 08KA001        2.5       2.5
+  1926    19.47    14.21    24.73 08LB038        0.8       2.9
+  1927    21.62    13.92    29.32 08LB038        2.9       9.9
+  1928    17.94    13.04    22.84 08LB038       -0.8      -2.1
+  1949    19.65    15.51    23.79 08KA001        0.9       0.5
+  1950    21.22    16.71    25.72 08KA001        2.5       2.5
+  1951    18.86    14.80    22.92 08KA001        0.2      -0.5
+  1952    16.51    12.26    20.75 08KA001       -2.2      -3.5
+  1955    14.79    12.06    17.52 08KA007       -3.9      -0.7
+  1956    22.36    19.58    25.14 08KA007        3.6       1.7
+  1957    25.38    22.12    28.65 08KA007        6.7       3.1
+  1958    22.36    19.58    25.14 08KA007        3.6       3.6
+  1959    23.87    20.87    26.87 08KA007        5.2       2.7
+  1960    19.33    16.80    21.86 08KA007        0.6      -0.9
+  1961    20.84    18.22    23.46 08KA007        2.1       1.4
+  1962    20.84    18.22    23.46 08KA007        2.1       0.1
+  1963    19.33    16.80    21.86 08KA007        0.6       1.0
+  1964    16.30    13.72    18.89 08KA007       -2.4      -2.3
+  1965    17.82    15.30    20.34 08KA007       -0.9      -1.3
+  1966    16.30    13.72    18.89 08KA007       -2.4      -1.0
+  1967    18.86    14.80    22.92 08KA001        0.2       0.7
+  1968    21.22    16.71    25.72 08KA001        2.5       1.1
+  1969    16.51    12.26    20.75 08KA001       -2.2      -2.6
+  1970    18.08    14.03    22.12 08KA001       -0.6      -0.9
+  1971    17.29    13.18    21.40 08KA001       -1.4      -1.4
+  1972    17.29    13.18    21.40 08KA001       -1.4      -3.4
+  1973    16.51    12.26    20.75 08KA001       -2.2      -3.5
+  1974    19.65    15.51    23.79 08KA001        0.9      -0.2
+  1975    20.43    16.14    24.73 08KA001        1.7       1.6
+  1976    18.86    14.80    22.92 08KA001        0.2      -1.6
+  1977    17.29    13.18    21.40 08KA001       -1.4      -0.8
+  1978    17.29    13.18    21.40 08KA001       -1.4       0.6
+  1979    21.22    16.71    25.72 08KA001        2.5       2.6
+  1980    18.86    14.80    22.92 08KA001        0.2      -0.4
+  1981    18.86    14.80    22.92 08KA001        0.2       0.3
+  1982    22.79    17.71    27.87 08KA001        4.1       3.8
+  1983    18.08    14.03    22.12 08KA001       -0.6      -2.5
+  1984    18.86    13.93    23.79 08LB038        0.2      -1.6
+  1985    19.00    19.00    19.00 observed       0.3      -0.7
+  1986    19.00    19.00    19.00 observed       0.3       0.3
+  1987    12.00    12.00    12.00 observed      -6.7      -1.3
+  1988    18.00    18.00    18.00 observed      -0.7       1.9
+  1989    17.00    17.00    17.00 observed      -1.7      -2.3
+  1990    18.00    18.00    18.00 observed      -0.7      -1.7
+  1991    18.00    18.00    18.00 observed      -0.7       0.2
+  1992    20.00    20.00    20.00 observed       1.3      -2.0
+  1993    24.00    24.00    24.00 observed       5.3       1.9
+  1994    19.00    19.00    19.00 observed       0.3      -1.3
+  1995    17.00    17.00    17.00 observed      -1.7      -0.5
+  1996    17.00    17.00    17.00 observed      -1.7       0.2
+  1997    21.00    21.00    21.00 observed       2.3      -0.5
+  1998    18.00    18.00    18.00 observed      -0.7      -1.3
+  1999    17.63    12.61    22.66 08LB038       -1.1      -0.5
+  2000    17.94    13.04    22.84 08LB038       -0.8      -2.1
+  2001    17.63    12.61    22.66 08LB038       -1.1      -1.8
+  2002    18.86    13.93    23.79 08LB038        0.2       5.0
+  2003    17.94    13.04    22.84 08LB038       -0.8      -0.8
+  2004    22.85    13.29    32.40 08LB038        4.1       4.6
+  2005    19.17    14.10    24.23 08LB038        0.5       1.6
+  2006    17.94    13.04    22.84 08LB038       -0.8       1.8
+  2007    18.86    13.93    23.79 08LB038        0.2       0.7
+  2008    18.86    13.93    23.79 08LB038        0.2       0.9
+  2009    18.55    13.70    23.41 08LB038       -0.2       1.0
+  2010    19.47    14.21    24.73 08LB038        0.8      -1.7
+  2011    17.02    11.59    22.45 08LB038       -1.7       1.1
+  2012    16.72    11.01    22.42 08LB038       -2.0      -3.2
+  2013    19.47    14.21    24.73 08LB038        0.8       2.9
+  2014    19.47    14.21    24.73 08LB038        0.8      -0.4
+  2015    22.54    13.46    31.61 08LB038        3.8       3.5
+  2016    21.31    14.04    28.58 08LB038        2.6       2.3
+  2017    17.63    12.61    22.66 08LB038       -1.1       2.1
+  2018    21.62    13.92    29.32 08LB038        2.9      -0.5
+  2019    20.39    14.28    26.51 08LB038        1.7       2.6
+  2020    17.33    12.13    22.53 08LB038       -1.4      -0.7
+  2021    19.78    14.28    25.28 08LB038        1.1      -1.0
+  2022    16.72    11.01    22.42 08LB038       -2.0      -0.9
+  2023    17.94    13.04    22.84 08LB038       -0.8      -0.6
+  2024    20.70    14.22    27.18 08LB038        2.0       2.9
+  2025    20.43    16.14    24.73 08KA001        1.7       0.7
+
+08KA012 per year, migration max (m3/s): value with the 90 % interval and the donor; its departure from the extended series' own 1981-2010 mean, and the carried departure (% of normal):
+
+  year    value       lo       hi donor    departure   carried
+  1926    22.48    12.96    38.97 08LB038      -17.2     -39.5
+  1927    24.80    15.64    39.30 08LB038       -8.7     -20.9
+  1928    29.20    18.06    47.18 08LB038        7.5      23.6
+  1950    27.83    17.91    43.22 08KA001        2.5      12.8
+  1951    30.82    18.76    50.64 08KA001       13.5      49.7
+  1952    25.73    16.63    39.80 08KA001       -5.2      -9.2
+  1956    26.33    17.94    38.63 08KA007       -3.0     -19.1
+  1957    24.85    16.88    36.59 08KA007       -8.5     -17.2
+  1958    28.32    19.23    41.70 08KA007        4.3       3.1
+  1959    29.86    20.12    44.33 08KA007       10.0       3.8
+  1960    30.47    20.44    45.42 08KA007       12.2       9.1
+  1961    31.15    20.79    46.68 08KA007       14.7       6.8
+  1962    28.86    19.56    42.60 08KA007        6.3     -13.2
+  1963    28.40    19.28    41.82 08KA007        4.6      -6.4
+  1964    29.71    20.04    44.06 08KA007        9.4       3.5
+  1965    27.77    18.89    40.81 08KA007        2.3       7.5
+  1966    28.55    19.37    42.08 08KA007        5.2      20.1
+  1967    33.27    18.87    58.66 08KA001       22.5      61.7
+  1968    32.03    18.86    54.42 08KA001       18.0      47.6
+  1969    28.46    18.18    44.54 08KA001        4.8       5.6
+  1970    30.61    18.73    50.02 08KA001       12.7      25.0
+  1971    26.95    17.45    41.60 08KA001       -0.8     -12.0
+  1972    30.82    18.76    50.64 08KA001       13.5      38.0
+  1973    28.96    18.35    45.69 08KA001        6.6      10.7
+  1974    28.42    18.16    44.46 08KA001        4.7      13.6
+  1975    28.18    18.07    43.94 08KA001        3.8       9.5
+  1976    27.28    17.64    42.18 08KA001        0.5     -16.4
+  1977    26.17    16.95    40.39 08KA001       -3.6      -6.8
+  1978    25.35    16.33    39.35 08KA001       -6.6      -6.3
+  1979    26.95    17.45    41.60 08KA001       -0.8      -3.1
+  1980    23.71    14.82    37.94 08KA001      -12.7     -26.8
+  1981    25.39    16.37    39.40 08KA001       -6.5       2.1
+  1982    28.83    18.31    45.38 08KA001        6.2       6.5
+  1983    24.29    15.39    38.33 08KA001      -10.6     -15.8
+  1984    27.94    17.77    43.93 08LB038        2.9      17.1
+  1985    18.70    18.70    18.70 observed     -31.1      -7.0
+  1986    40.80    40.80    40.80 observed      50.3      20.8
+  1987    33.10    33.10    33.10 observed      21.9      18.3
+  1988    19.80    19.80    19.80 observed     -27.1     -19.3
+  1989    34.10    34.10    34.10 observed      25.6      10.4
+  1990    29.10    29.10    29.10 observed       7.2       5.6
+  1991    31.40    31.40    31.40 observed      15.6      -7.0
+  1992    26.50    26.50    26.50 observed      -2.4     -10.5
+  1993    23.20    23.20    23.20 observed     -14.6     -16.4
+  1994    22.80    22.80    22.80 observed     -16.0     -10.1
+  1995    18.30    18.30    18.30 observed     -32.6     -22.3
+  1996    29.00    29.00    29.00 observed       6.8     -15.3
+  1997    27.10    27.10    27.10 observed      -0.2      20.2
+  1998    27.20    27.20    27.20 observed       0.2     -13.6
+  1999    29.86    18.12    49.21 08LB038       10.0      23.4
+  2000    27.66    17.66    43.30 08LB038        1.9      -0.6
+  2001    27.08    17.40    42.15 08LB038       -0.3     -10.1
+  2002    29.93    18.12    49.44 08LB038       10.2      19.3
+  2003    27.54    17.62    43.06 08LB038        1.4      -3.5
+  2004    24.42    15.26    39.09 08LB038      -10.1     -16.6
+  2005    26.69    17.18    41.47 08LB038       -1.7       5.0
+  2006    27.90    17.76    43.84 08LB038        2.8      -6.8
+  2007    28.57    17.95    45.46 08LB038        5.2      22.1
+  2008    28.00    17.79    44.06 08LB038        3.1      -1.7
+  2009    25.50    16.30    39.89 08LB038       -6.1      -5.3
+  2010    23.88    14.67    38.89 08LB038      -12.0     -22.6
+  2011    25.95    16.67    40.40 08LB038       -4.4      21.7
+  2012    30.93    18.09    52.87 08LB038       13.9      37.3
+  2013    28.21    17.86    44.57 08LB038        3.9      19.1
+  2014    30.16    18.13    50.19 08LB038       11.1      38.3
+  2015    26.03    16.73    40.50 08LB038       -4.1      -1.8
+  2016    25.35    16.17    39.75 08LB038       -6.6     -13.6
+  2017    29.48    18.10    48.03 08LB038        8.6       0.5
+  2018    28.32    17.89    44.83 08LB038        4.3       5.1
+  2019    24.66    15.51    39.21 08LB038       -9.2     -14.9
+  2020    29.28    18.08    47.44 08LB038        7.8      41.3
+  2021    28.20    17.85    44.53 08LB038        3.9      52.8
+  2022    30.63    18.11    51.80 08LB038       12.8      15.0
+  2023    27.87    17.75    43.78 08LB038        2.7     -11.1
+  2024    24.91    15.76    39.38 08LB038       -8.3     -21.0
+  2025    27.78    17.89    43.12 08KA001        2.3      13.5
+
+08KA012 per year, spawning max (m3/s): value with the 90 % interval and the donor; its departure from the extended series' own 1981-2010 mean, and the carried departure (% of normal):
+
+  year    value       lo       hi donor    departure   carried
+  1915     9.03     3.61    22.55 08KA001       27.6      26.1
+  1926     3.59     1.73     7.42 08LB038      -49.3     -57.8
+  1927     6.41     3.25    12.61 08LB038       -9.4      -9.5
+  1928     5.73     2.90    11.30 08LB038      -19.1     -22.0
+  1949     8.47     3.44    20.88 08KA001       19.7      20.2
+  1950     6.57     2.73    15.81 08KA001       -7.2      -0.6
+  1951     3.30     1.17     9.30 08KA001      -53.3     -40.5
+  1952     4.59     1.82    11.56 08KA001      -35.1     -23.9
+  1955    14.96     6.10    36.69 08KA007      111.4      86.2
+  1956     3.77     1.65     8.63 08KA007      -46.7     -10.9
+  1957     6.28     2.91    13.55 08KA007      -11.3     -12.8
+  1958     3.77     1.65     8.63 08KA007      -46.7     -11.6
+  1959     7.76     3.58    16.85 08KA007        9.7       6.1
+  1960     9.04     4.10    19.92 08KA007       27.8      25.0
+  1961     5.50     2.54    11.94 08KA007      -22.2       6.8
+  1962     9.14     4.14    20.17 08KA007       29.2      19.4
+  1963     7.01     3.25    15.13 08KA007       -1.0       2.4
+  1964     6.73     3.12    14.52 08KA007       -4.9       1.4
+  1965     7.29     3.37    15.76 08KA007        3.0      37.0
+  1966     9.14     4.14    20.17 08KA007       29.2      23.6
+  1967     7.92     3.25    19.31 08KA001       11.9       9.2
+  1968     8.69     3.51    21.52 08KA001       22.8      24.4
+  1969    12.98     4.61    36.57 08KA001       83.5      66.4
+  1970     5.74     2.37    13.91 08KA001      -18.8     -12.2
+  1971     9.31     3.70    23.43 08KA001       31.6      23.3
+  1972     8.25     3.36    20.25 08KA001       16.6      15.4
+  1973     7.42     3.06    17.95 08KA001        4.8       3.2
+  1974     8.41     3.42    20.71 08KA001       18.9      34.5
+  1975     3.22     1.13     9.17 08KA001      -54.4     -35.5
+  1976    12.74     4.56    35.60 08KA001       80.1      25.8
+  1977     5.69     2.35    13.80 08KA001      -19.6      -2.3
+  1978     6.00     2.48    14.48 08KA001      -15.2      17.4
+  1979     5.04     2.04    12.43 08KA001      -28.8     -19.1
+  1980     5.76     2.38    13.95 08KA001      -18.6     -19.1
+  1981     5.60     2.31    13.60 08KA001      -20.8       5.6
+  1982    13.18     4.65    37.37 08KA001       86.3      39.5
+  1983     5.21     2.12    12.78 08KA001      -26.3     -14.1
+  1984     8.48     4.27    16.84 08LB038       19.8      21.5
+  1985     3.87     3.87     3.87 observed     -45.3     -15.9
+  1986     6.82     6.82     6.82 observed      -3.6     -12.0
+  1987    18.90    18.90    18.90 observed     167.1      14.1
+  1988     6.00     6.00     6.00 observed     -15.2      -7.4
+  1989     7.92     7.92     7.92 observed      11.9      15.3
+  1990     3.68     3.68     3.68 observed     -48.0      -2.8
+  1991    16.00    16.00    16.00 observed     126.1      67.0
+  1992     4.87     4.87     4.87 observed     -31.2     -29.4
+  1993     7.51     7.51     7.51 observed       6.1      -6.3
+  1994     6.22     6.22     6.22 observed     -12.1     -13.3
+  1995     6.99     6.99     6.99 observed      -1.2     -10.0
+  1996     7.50     7.50     7.50 observed       6.0       5.8
+  1997     7.05     7.05     7.05 observed      -0.4      11.1
+  1998     2.26     2.26     2.26 observed     -68.1     -17.1
+  1999    10.29     5.08    20.83 08LB038       45.4      69.6
+  2000     9.31     4.65    18.65 08LB038       31.6      11.7
+  2001     7.83     3.96    15.48 08LB038       10.6       5.3
+  2002     4.18     2.06     8.46 08LB038      -40.9     -30.6
+  2003     3.24     1.54     6.82 08LB038      -54.2     -25.4
+  2004    13.84     6.52    29.38 08LB038       95.6      13.9
+  2005     4.38     2.18     8.82 08LB038      -38.1     -30.0
+  2006     3.36     1.61     7.03 08LB038      -52.5     -44.4
+  2007     3.43     1.64     7.14 08LB038      -51.6     -35.5
+  2008     6.28     3.19    12.36 08LB038      -11.3      -6.1
+  2009     3.56     1.72     7.38 08LB038      -49.6     -20.7
+  2010     4.51     2.25     9.05 08LB038      -36.3     -24.2
+  2011     9.17     4.58    18.34 08LB038       29.6      25.5
+  2012     6.31     3.21    12.43 08LB038      -10.8       9.8
+  2013     5.29     2.67    10.48 08LB038      -25.2     -20.8
+  2014     6.21     3.16    12.24 08LB038      -12.2     -15.0
+  2015     8.97     4.49    17.90 08LB038       26.7     -22.3
+  2016     6.05     3.07    11.93 08LB038      -14.4     -26.0
+  2017     4.24     2.10     8.57 08LB038      -40.0     -27.7
+  2018     5.76     2.92    11.36 08LB038      -18.6     -19.8
+  2019    12.34     5.93    25.66 08LB038       74.4       9.0
+  2020     7.19     3.65    14.17 08LB038        1.6      16.8
+  2021     4.07     2.00     8.26 08LB038      -42.5     -15.5
+  2022    12.29     5.91    25.54 08LB038       73.7      28.1
+  2023     5.05     2.54    10.04 08LB038      -28.6     -24.2
+  2024     7.80     3.94    15.41 08LB038       10.2     -20.9
+  2025     3.96     1.51    10.40 08KA001      -44.1     -11.2

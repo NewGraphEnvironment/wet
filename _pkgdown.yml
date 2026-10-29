@@ -81,3 +81,17 @@ reference:
   - wet_shape_predict
   - wet_cv_folds
   - wet_flow_validate
+
+articles:
+- title: Articles
+  navbar: ~
+  contents:
+  - monthly-flow
+  - segment-discharge
+  - articles/flow-change-sparse-gauges
+  - station-flow
+# built and linked, but in neither the index nor the navbar: the Maxan article,
+# whose story the article above carries at four streams (#126)
+- title: internal
+  contents:
+  - short-record-flow

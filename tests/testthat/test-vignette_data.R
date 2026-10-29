@@ -1,6 +1,7 @@
 # The vignettes run on data bundled by data-raw/station_vignette_*.R (#27),
 # data-raw/segment_vignette_*.R (#28, #64, #71), data-raw/monthly_vignette_data.R
-# (#65) and data-raw/short_record_vignette_*.R (#130), never on HYDAT, fwapg or the network.
+# (#65), data-raw/short_record_vignette_*.R (#130) and data-raw/life_history_data.R (#126), never on
+# HYDAT, fwapg or the network.
 
 vignette_data <- function(f) system.file("vignette-data", f, package = "wet")
 
@@ -10,7 +11,8 @@ test_that("each vignette's bundled data stays under 500 KB", {
   budget <- list(station = c("station_daily.rds", "station_map.rds", "life_history_bulk.csv"),
                  segment = c("segment_values.rds", "segment_map.rds"),
                  monthly = c("monthly_values.rds", "monthly_map.rds"),
-                 short_record = c("short_record_values.rds", "short_record_map.rds"))
+                 short_record = c("short_record_values.rds", "short_record_map.rds"),
+                 chinook_sites = c("life_history_morr.csv", "chinook_sites_values.rds", "chinook_sites_map.rds"))
   expect_setequal(files, unlist(budget))
   for (v in names(budget)) {
     expect_lt(sum(file.size(vignette_data(budget[[v]]))), 500 * 1024)
@@ -250,3 +252,64 @@ test_that("the short-record map layers are sf in BC Albers, with the three catch
   expect_setequal(m$streams$gnis_name[m$streams$main], c("Bulkley River", "Buck Creek", "Maxan Creek", "Foxy Creek"))
 })
 
+
+test_that("the Chinook sites' values hold four sites, both routes and their provenance", {
+  v <- readRDS(vignette_data("chinook_sites_values.rds"))
+  expect_named(v, c("sites", "change", "scores", "snow", "normal", "gauges", "windows", "use", "use_obs", "score_settings",
+                    "daily", "years", "provenance"))
+  # a typical year of 365 days at every site, one picked source a day
+  expect_setequal(unique(v$daily$site_id), v$sites$site_id)
+  expect_true(all(table(v$daily$site_id[v$daily$pick]) == 365))
+  # year-by-year departures: borrowed at every site, measured and filled only where a gauge exists
+  for (id in v$sites$site_id) {
+    r <- unique(v$years$route[v$years$site_id == id])
+    expect_true("borrowed" %in% r, info = id)
+    expect_equal(all(c("measured", "filled") %in% r), v$sites$kind[v$sites$site_id == id] == "extend", info = id)
+  }
+  expect_equal(v$sites$site_id, c("maxan", "swift", "naver", "gosnell"))
+  expect_equal(v$sites$kind, c("extend", "extend", "extend", "ungauged"))
+  # every site has the carried route in each window; only a gauged one has the extended route
+  for (id in v$sites$site_id) {
+    r <- v$change[v$change$site_id == id & v$change$group == "BULK", ]
+    expect_setequal(paste(r$statistic, r$window)[r$route == "carried"],
+                    paste(rep(c("mean", "min7", "cov_day"), each = 2), c("migration", "spawning")))
+    expect_equal(any(r$route == "extended"), v$sites$kind[v$sites$site_id == id] == "extend", info = id)
+  }
+  expect_true(all(v$change$lo <= v$change$change & v$change$change <= v$change$hi, na.rm = TRUE))
+  # Gosnell runs under the Morice's windows too, and only it has a normal
+  expect_setequal(v$scores$group[v$scores$site_id == "gosnell"], c("BULK", "MORR"))
+  expect_equal(unique(v$normal$site_id), "gosnell")
+  expect_true(all(c("wet_commit", "hydat", "scripts", "reports") %in% names(v$provenance)))
+})
+
+test_that("the Chinook sites' map layers are sf in BC Albers, two regional maps holding every site", {
+  skip_if_not_installed("sf")
+  m <- readRDS(vignette_data("chinook_sites_map.rds"))
+  v <- readRDS(vignette_data("chinook_sites_values.rds"))
+  expect_named(m, c("bc", "targets", "gauges", "extents", "streams", "lakes", "places"))
+  for (nm in names(m)) {
+    expect_s3_class(m[[nm]], "sf")
+    expect_equal(sf::st_crs(m[[nm]])$epsg, 3005L, info = nm)
+  }
+  expect_equal(sort(m$targets$site_id), sort(v$sites$site_id))
+  expect_setequal(m$extents$map, unique(m$targets$map))
+  # every target and every gauge it borrows from inside its map's extent
+  for (k in seq_len(nrow(m$targets))) {
+    ext <- m$extents[m$extents$map == m$targets$map[k], ]
+    expect_equal(lengths(sf::st_within(m$targets[k, ], ext)), 1L, info = m$targets$site_id[k])
+  }
+  for (mp in unique(m$extents$map)) {
+    g <- m$gauges[m$gauges$map == mp, ]
+    expect_true(all(lengths(sf::st_within(g, m$extents[m$extents$map == mp, ])) == 1), info = mp)
+    expect_true(any(m$streams$map == mp & m$streams$main), info = mp)
+    expect_true(any(m$places$map == mp), info = mp)
+  }
+  # each target names the river it flows into, its river system and its mouth
+  expect_false(anyNA(m$targets$into1))
+  expect_false(anyNA(m$targets$system))
+  expect_false(anyNA(m$targets$mouth_x))
+  # the gauges drawn are exactly the values' donors, by site (a rebuilt values bundle needs the map rebuilt)
+  don <- v$gauges[v$gauges$role %in% c("extension donor", "carried donor"), ]
+  expect_setequal(paste(m$gauges$site_id, m$gauges$station_number, m$gauges$role),
+                  paste(don$site_id, don$station_number, don$role))
+})
