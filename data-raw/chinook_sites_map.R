@@ -12,7 +12,8 @@
 #     its mouth, with the map it is drawn on (scripts/departure_sites.csv, `map`)
 #     and the rivers it flows into, from its blue line's watershed code: `into1`
 #     (the stream it joins), `into2` (the one that joins after, NA where `into1`
-#     runs to the sea)
+#     runs to the sea), `system` (the river at the top of its watershed code),
+#     and `mouth_x`, `mouth_y`, the downstream end of its blue line (EPSG:3005)
 #   - gauges: the gauges each site's numbers are borrowed from (inst/vignette-data/
 #     chinook_sites_values.rds, `gauges`, the extension and carried donors), with
 #     their site and map
@@ -79,8 +80,27 @@ stopifnot(nrow(into) == 2 * nrow(tg), !anyNA(into$gnis_name[into$n == 1]))
 tg$into1 <- into$gnis_name[into$n == 1]
 tg$into2 <- into$gnis_name[into$n == 2]
 tg$into1_blk <- as.integer(into$blue_line_key[into$n == 1])
+# the river system: the stream at the top of the watershed code (the Skeena's 400, the Fraser's 100)
+tg$system <- vapply(tg$blue_line_key, function(blk) {
+  DBI::dbGetQuery(conn, sprintf("
+    SELECT max(s.gnis_name) AS gnis_name FROM whse_basemapping.fwa_stream_networks_sp s
+    WHERE s.blue_line_key = s.watershed_key AND s.wscode_ltree = (
+      SELECT subpath(min(wscode_ltree), 0, 1) FROM whse_basemapping.fwa_stream_networks_sp
+      WHERE blue_line_key = %d AND blue_line_key = watershed_key)", as.integer(blk)))$gnis_name
+}, "")
+# the mouth: the downstream end of the blue line's lowest segment
+mouth <- sf::st_read(conn, quiet = TRUE, query = sprintf("
+  SELECT DISTINCT ON (blue_line_key) blue_line_key, ST_StartPoint(ST_LineMerge(ST_Force2D(geom))) AS geom
+  FROM whse_basemapping.fwa_stream_networks_sp WHERE blue_line_key IN (%s)
+  ORDER BY blue_line_key, downstream_route_measure", paste(tg$blue_line_key, collapse = ", ")))
+mxy <- sf::st_coordinates(mouth)[match(tg$blue_line_key, mouth$blue_line_key), ]
+tg$mouth_x <- mxy[, 1]
+tg$mouth_y <- mxy[, 2]
+stopifnot(!anyNA(tg$mouth_x), !anyNA(tg$system))
+# each target inside its own box (scripts/departure_site_lib.R)
+for (k in seq_len(nrow(tg))) site_in_box(sites[[k]], tg$lon[k], tg$lat[k])
 targets <- vm_points(tg[c("site_id", "name", "kind", "target", "blue_line_key", "map", "into1", "into2", "into1_blk",
-                          "lon", "lat")])
+                          "system", "mouth_x", "mouth_y", "lon", "lat")])
 
 bc <- vm_bc(conn)
 maps <- unique(unname(map_of))
