@@ -37,6 +37,14 @@ short_record_series,line,,part,period_mean,Typical flow over the period,#000000,
 chinook_sites_map,polygon,,part,box,Gauges each stream borrows from lie in its box,#f0f0f0,0.6,#636363,0.6,1,,,,,,,,,,,,,ColorBrewer Greys: the donor boxes recede behind the points
 chinook_sites_map,point,,part,target_gauged,Stream with a short gauge record,#d55e00,1,,,,,,,,,,,,,,,,"Okabe-Ito vermillion: the subjects, as short_record_map's"
 chinook_sites_map,point,,part,target_ungauged,Stream never gauged,#cc79a7,1,,,,,,,,,,,,,,,,Okabe-Ito reddish purple: the subject with no record
-chinook_sites_map,point,,part,donor,Gauge a stream's numbers are borrowed from,#0072b2,1,,,,,,,,,,,,,,,,"Okabe-Ito blue: as short_record_map's fill"
+chinook_sites_map,point,,part,donor,Gauge it borrows from,#0072b2,1,,,,,,,,,,,,,,,,"Okabe-Ito blue: as short_record_map's fill"
 chinook_sites_change,point,,part,extended,From the stream's record filled in from neighbours,#d55e00,1,,,,,,,,,,,,,,,,Okabe-Ito vermillion: the stream's own route
 chinook_sites_change,point,,part,carried,From neighbours' departures alone,#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue: the borrowed route
+chinook_sites_window,polygon,,part,migration,Adult migration window,#c6dbef,1,,,,,,,,,,,,,,,,ColorBrewer Blues light: the first window
+chinook_sites_window,polygon,,part,spawning,Spawning window,#fdd0a2,1,,,,,,,,,,,,,,,,ColorBrewer Oranges light: the second window
+chinook_sites_window,line,,part,flow,"Typical flow, 1981-2010",#252525,1,,,,,,,,,,,,,,,,ColorBrewer Greys darkest: the hydrograph itself
+chinook_sites_series,polygon,,part,band,90% range of a filled-in year,#d9d9d9,1,,,,,,,,,,,,,,,,ColorBrewer Greys light: as short_record_series's band
+chinook_sites_series,point,,part,measured,Measured at the stream,#d55e00,1,,,,,,,,,,,,,,,,Okabe-Ito vermillion: the stream's own record
+chinook_sites_series,line,,part,filled,Filled in from one nearby gauge,#636363,1,,,,,,,,,,,,,,,,ColorBrewer Greys dark: as short_record_series's extended
+chinook_sites_series,line,,part,borrowed,Borrowed from nearby gauges' departures,#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue: the borrowed route
+chinook_sites_series,line,,part,period_mean,Typical departure in each period,#000000,1,,,,,,,,,,,,,,,,Okabe-Ito black: the two periods compared

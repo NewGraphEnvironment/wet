@@ -1,4 +1,4 @@
-# Data for vignettes/articles/chinook-sites.Rmd (#126), which runs on this file
+# Data for vignettes/articles/flow-change-sparse-gauges.Rmd (#126), which runs on this file
 # and never touches HYDAT, fwapg, S3 or the network at build.
 #
 #   WET_HYDAT_RELEASE=20260717 Rscript data-raw/chinook_sites_data.R

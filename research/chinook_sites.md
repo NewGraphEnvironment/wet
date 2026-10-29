@@ -1,6 +1,6 @@
 # Chinook pilot sites beyond Maxan: which streams, and what the method finds there
 
-**Verified:** 2026-10-28 · **Issues:** #126 (component of #118; after #120, #121) · **Produced by:** `scripts/chinook_sites_use.R` → `data/checks/chinook_sites_use.txt` (NuSEDS All Areas 2026-06-01, md5 25bb43441645519f18eb4853dd1cf399; fwapg `bcfishobs.observations`; HYDAT 2026-07-17); `scripts/departure_site.R` and `scripts/departure_site_snow.R` per site of `scripts/departure_sites.csv` → `data/checks/departure_site[_snow]_<site>_<group>_20260717.txt`; article `vignettes/articles/chinook-sites.Rmd` (unlisted)
+**Verified:** 2026-10-28 · **Issues:** #126 (component of #118; after #120, #121) · **Produced by:** `scripts/chinook_sites_use.R` → `data/checks/chinook_sites_use.txt` (NuSEDS All Areas 2026-06-01, md5 25bb43441645519f18eb4853dd1cf399; fwapg `bcfishobs.observations`; HYDAT 2026-07-17); `scripts/departure_site.R` and `scripts/departure_site_snow.R` per site of `scripts/departure_sites.csv` → `data/checks/departure_site[_snow]_<site>_<group>_20260717.txt`; article `vignettes/articles/flow-change-sparse-gauges.Rmd` (unlisted)
 
 ## Which streams, and why
 

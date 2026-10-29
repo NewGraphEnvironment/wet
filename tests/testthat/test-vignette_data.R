@@ -256,7 +256,16 @@ test_that("the short-record map layers are sf in BC Albers, with the three catch
 test_that("the Chinook sites' values hold four sites, both routes and their provenance", {
   v <- readRDS(vignette_data("chinook_sites_values.rds"))
   expect_named(v, c("sites", "change", "scores", "snow", "normal", "gauges", "windows", "use", "use_obs", "score_settings",
-                    "provenance"))
+                    "daily", "years", "provenance"))
+  # a typical year of 365 days at every site, one picked source a day
+  expect_setequal(unique(v$daily$site_id), v$sites$site_id)
+  expect_true(all(table(v$daily$site_id[v$daily$pick]) == 365))
+  # year-by-year departures: borrowed at every site, measured and filled only where a gauge exists
+  for (id in v$sites$site_id) {
+    r <- unique(v$years$route[v$years$site_id == id])
+    expect_true("borrowed" %in% r, info = id)
+    expect_equal(all(c("measured", "filled") %in% r), v$sites$kind[v$sites$site_id == id] == "extend", info = id)
+  }
   expect_equal(v$sites$site_id, c("maxan", "swift", "naver", "gosnell"))
   expect_equal(v$sites$kind, c("extend", "extend", "extend", "ungauged"))
   # every site has the carried route in each window; only a gauged one has the extended route
@@ -277,7 +286,13 @@ test_that("the Chinook sites' map layers are sf in BC Albers, with every site an
   skip_if_not_installed("sf")
   m <- readRDS(vignette_data("chinook_sites_map.rds"))
   v <- readRDS(vignette_data("chinook_sites_values.rds"))
-  expect_named(m, c("bc", "boxes", "targets", "gauges"))
+  expect_named(m, c("bc", "boxes", "targets", "gauges", "extents", "streams", "lakes", "places"))
+  # every site's own map has its extent, its target stream and its places
+  for (id in v$sites$site_id) {
+    expect_equal(sum(m$extents$site_id == id), 1L, info = id)
+    expect_true(any(m$streams$site_id == id & m$streams$main), info = id)
+    expect_true(any(m$places$site_id == id), info = id)
+  }
   for (nm in names(m)) {
     expect_s3_class(m[[nm]], "sf")
     expect_equal(sf::st_crs(m[[nm]])$epsg, 3005L, info = nm)
