@@ -73,6 +73,9 @@ per_site <- lapply(sites, function(s) {
   }
   # cut to the extent: a big river comes back whole
   clip <- function(x) {
+    # a simplified polygon can be invalid: repair only those rows (st_make_valid() rewrites valid ones too)
+    bad <- !sf::st_is_valid(x)
+    if (any(bad)) sf::st_geometry(x)[bad] <- sf::st_make_valid(sf::st_geometry(x)[bad])
     x <- suppressWarnings(sf::st_intersection(x, ext$sfc))
     x[!sf::st_is_empty(x), ]
   }
