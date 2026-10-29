@@ -26,6 +26,15 @@ Wrong turns kept:
 - **Donor order:** the "nearest first" line came from one year's list.
 - **The article's own guards:** five review rounds each found sentences broader than their guard checks. Round 3 named the mechanism, and the review ended on an enumeration of every claim against the set it names (`review-enumeration.md`).
 
+## Revision after review by the user (2026-10-28)
+
+The user asked for plain definitions, no reliance on the Maxan article, hydrographs and time series like the other articles, gq-styled maps, and a title that says what the package does. So the article became "How Stream Flow Has Changed Where Gauges Are Few" (`vignettes/articles/flow-change-sparse-gauges.Rmd`). It now has:
+- a map per stream (square extents, rivers of order 6 and up, lakes, and the towns the site table's new `places` column names);
+- "What is a window?" built on each stream's published typical year;
+- each window's flow year by year, by route.
+
+The bundle gained `daily` (published segment_daily at each target's segment) and `years` (every year held to its report line). The revision's review ran three rounds plus an enumeration (`review-revision-*.md`). Round 1 found a part-md5 lookup bug (every site carried the same two) and several sentences broader than their guards. Round 2 found a defect inside a round-1 fix (a caption). Round 3 verified the 32-row enumeration and was clean. Reviewer agents on this task in all: 9 (plan review, five rounds on the first pass, three on the revision).
+
 ## Evidence
 
 `data/logs/126/*` (local, gitignored): `site_*`, `snow_*`, `chinook_sites_use*`, `pkgdown*`, `test.log`. Tracked reports are `data/checks/departure_site*_20260717.txt` and `data/checks/chinook_sites_use.txt`. Review files are `review-plan.md`, `review-round1.md` to `review-round5.md` and `review-enumeration.md` in this directory.
