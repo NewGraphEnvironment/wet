@@ -54,7 +54,7 @@ For each of the five, establish the issue's six points from the source's own doc
 
 ## Validation
 - [x] `/code-check branch` clean (the probe script and docs)
-- [ ] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] PWF checkboxes match landed work
+- [x] `/planning-archive` on completion
 
 Verification: rerun `scripts/station_sources_probe.R` and diff the report (identical given the same snapshots); every probe-derived `[M]` number in the research file greps to a line of the report (a desk measurement, such as an API field check, says its command beside it); every source row has all six points or says "not found" with what was read; each URL's status as recorded (answers, login, dead) matches a curl of it; every issue number cited resolves to the right title.
