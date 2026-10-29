@@ -320,7 +320,8 @@ reshape(q[q$month > 0, c("source", "month", "q_m3s")], idvar = "month",
 ```{r read-check}
 # the recipes are run as written by the data scripts, on this segment
 stopifnot(identical(unique(bs$linear_feature_id[bs$station_number == "08EE013"]), 17094080L),
-          vs$daily$segment == 17094080, identical(vs$daily$group, "BULK"), all(vs$daily$days$basis == "daily"))
+          vs$daily$segment == 17094080, identical(vs$daily$group, "BULK"), all(vs$daily$days$basis == "daily"),
+          identical(vs$daily$window, data.frame(window = "spring", start = "04-15", end = "06-15")))
 ```
 
 `wet_segment_monthly()` returns `linear_feature_id, month, q_m3s, source`,
@@ -382,6 +383,10 @@ stopifnot(identical(unique(ch$source), "gottesfeld_rabnett2007SkeenaFish"))
 md_text <- function(md) {
   d <- as.Date(paste0("2001-", md))
   paste(format(d, "%b"), as.integer(format(d, "%d")))
+}
+span_of <- function(w) {
+  k <- one(which(windows$window == w))
+  paste(md_text(windows$start[k]), "to", md_text(windows$end[k]))
 }
 
 # observed monthly means, 1981-2010: the calibration record (complete years)
@@ -510,6 +515,12 @@ Bulkley at Houston; the Houston gauge sits just downstream and measures it too,
 and the Quick gauge, further down, drains the whole basin above. Buck Creek and
 Quick are among the gauges the water balance is built on. Houston is not: it
 reads only in open water and has no complete year in `r base_text`.
+
+The strips under the hydrographs are the Chinook salmon windows, the weeks
+each life stage spends in these rivers, as Gottesfeld and Rabnett (2007) give
+them for the Skeena: adults migrating upstream from `r span_of("Migration")`,
+spawning from `r span_of("Spawning")`, and fry moving downstream from
+`r span_of("Fry migration")`.
 
 ```{r map, fig.width = map_w, fig.height = map_h, fig.cap = cap_map}
 ggplot() +
@@ -765,7 +776,7 @@ pk <- pk[pk$month %in% 5:6, ]
 stopifnot(max(abs(wb_med)) < 10, max(smv("wet_balance", 1:12, "within")) < 50, 100 * mean(pk$ratio_wb < 1) > 50,
           100 * (stats::median(pk$ratio_wb) - 1) < 0)
 # routed is low in spring and high in summer, at the median and at most of its gauges
-r_spring <- 3:4
+r_spring <- 3:5
 r_summer <- 7:8
 season_med <- function(mo) 100 * (stats::median(both$ratio_r[both$month %in% mo]) - 1)
 by_g <- function(mo) tapply(both$ratio_r[both$month %in% mo], both$station_number[both$month %in% mo], mean)
@@ -794,7 +805,8 @@ cap_err <- paste0(
 )
 ```
 
-Routed PCIC's yearly flow is the closer of the two at most gauges. Month by
+Routed PCIC's yearly flow is the closer of the two at `r n_rt_closer` of the
+`r n_both` gauges both are scored at. Month by
 month the two score about the same: the balance is unbiased, and routed PCIC
 errs with the season. Both
 are scored at the `r nrow(sk)` HYDAT gauges the balance is built on, against
@@ -804,8 +816,8 @@ The balance is scored *held out*: each Water Survey sub-sub-drainage (such as
 08EE) is left out of the fit in turn and predicted from the rest, so a gauge's
 neighbours on the same river cannot vouch for it. Routed PCIC is scored on the
 segment each gauge snapped to: `r n_routed` gauges have routed flow, less
-`r length(far)` whose segment carries under a fifth of the gauge's flow, an
-outlet placed off the gauge's river.
+`r length(far)` whose segment carries under a fifth of the gauge's flow, which
+the routed comparison leaves out and attributes one by one.
 
 ```{r score-table}
 note_score <- c(
@@ -841,29 +853,30 @@ ggplot(sm, aes(date)) +
   labs(x = NULL, y = "Error in mean monthly flow")
 ```
 
-Routed PCIC's yearly flow is closer than the held-out balance's at
-`r n_rt_closer` of the `r n_both` gauges. Where each is weak:
+Where each is weak:
 
-- **The season, routed PCIC.** It is low in March and April and high in July
+- **The season, routed PCIC.** It is low from March to May and high in July
   and August, as if its melt started late and ran on. The shape holds at most
   of its gauges, not only at the median, so it is the model's, not the
   placement's.
-- **Precision, the balance.** Its median monthly error is within ±10% in
-  every month, but in no month are half its gauges within ±`r err_cut`%.
+- **Spread, the balance.** At all `r n_bal_gauges` gauges its median monthly
+  error is within ±10% in every month, but in no month are half of them within
+  ±`r err_cut`%.
   Where a gauge's flow peaks in May or June, the balance more often falls
   short in that month than overshoots.
 - **Headwaters and small basins, the balance.** It averages `r pct(mae_head)`
   yearly error at headwater gauges, whose basin holds no other gauge, against
   `r pct(mae_nest)` at nested ones, and `r pct(mae_small)` on basins under
   `r small_km2` km² against `r pct(mae_large)` on those over
-  `r num(large_km2)` km².
+  `r num(large_km2)` km². By monthly score it is still the stronger source
+  under 1,000 km².
 - **The dry interior, the balance.** In zone `r worst`, the `r worst_name`, its
   `r n_worst` gauges average `r pct(zone_mae[[worst]])`: runoff there is a
   small remainder of precipitation, so a small error in evapotranspiration is
   a large one in runoff.
-- **Large basins and lakes, the balance.** By monthly score it is the
-  stronger source under 1,000 km², and routed PCIC above it and at lake
-  outlets, whose flow a lake holds back and releases later in the year:
+- **Large basins and lake outlets, the balance.** By monthly score routed
+  PCIC is the stronger source over 1,000 km² and at lake outlets, whose flow
+  a lake holds back and releases later in the year:
   routing follows the lake, and the balance's donor gauges are matched
   without regard to it.
 - **The Liard, routed PCIC.** It has no value at `r nrow(none)` gauges, most
@@ -952,10 +965,9 @@ stopifnot(identical(poor_w, "Fry migration"), all(late_july < 0.9),
           length(b003) == 2, all(b003 > 200))
 ```
 
-A Chinook salmon window, the weeks adults migrate upstream, spawn, or the fry
-move downstream (Gottesfeld and Rabnett 2007 for the Skeena;
-[What is a window?](https://newgraphenvironment.github.io/wet/articles/flow-change-sparse-gauges.html#what-is-a-window)
-says how they are set), starts and ends mid-month. Read from monthly means,
+A Chinook window starts and ends mid-month (how windows are set and used:
+[What is a window?](https://newgraphenvironment.github.io/wet/articles/flow-change-sparse-gauges.html#what-is-a-window)).
+Read from monthly means,
 every day takes its month's mean. At the gauges that costs little where flow
 changes slowly: in `r tolower(and_text(good_w))` the gauge's own monthly means
 and daily record agree within `r sprintf("%.0f%%", max(approx_w[good_w]))`.

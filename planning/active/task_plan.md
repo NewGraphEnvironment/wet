@@ -39,10 +39,10 @@
 
 ## Phase 4: Verify
 
-- [ ] Install the branch, build the article and the redirects. `docs/articles/monthly-flow.html` must be a meta refresh to `segment-discharge.html`, and `pkgdown::check_pkgdown()` must pass.
-- [ ] Strip the new render to text. Report its word count against the 1,800–2,000 forecast and the about 2,500 before, and name what set the floor.
-- [ ] Number check: a script pulls every number from the new text and confirms each one appears in the old renders, except the intended moves (yearly routed scores on 279 gauges, and the new table's monthly cells, each derived in the chunk). It lists every exception.
-- [ ] The rendered HTML has no stray `\@ref` and no footnote marker without a footnote section. Read the figures at their published width.
+- [x] Install the branch, build the article and the redirects. `docs/articles/monthly-flow.html` must be a meta refresh to `segment-discharge.html`, and `pkgdown::check_pkgdown()` must pass.
+- [x] Strip the new render to text. Report its word count against the 1,800–2,000 forecast and the about 2,500 before, and name what set the floor.
+- [x] Number check: a script pulls every number from the new text and confirms each one appears in the old renders, except the intended moves (yearly routed scores on 279 gauges, and the new table's monthly cells, each derived in the chunk). It lists every exception.
+- [x] The rendered HTML has no stray `\@ref` and no footnote marker without a footnote section. Read the figures at their published width.
 
 ## Validation
 
