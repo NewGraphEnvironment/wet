@@ -46,7 +46,7 @@ Relates to #28, #59, #65, #71, #107, #145 (article titles and which articles sta
 - **Words.** Body prose by the cap rule: 2,372 → **1,772** (−25 %; forecast 1,800–2,000). Rendered text up to the citation section: 3,203 → 2,341 (pkgdown page: 2,372, with the site's navigation text). The floor came from what was kept: both maps, the hydrographs with their two paragraphs, `pick`'s rule and counts, the scoring method paragraph, and six weakness bullets.
 - **Redirect.** `build_redirects()` wrote `docs/articles/monthly-flow.html`: `<meta http-equiv="refresh" content="0;URL=https://newgraphenvironment.github.io/wet/articles/segment-discharge.html" />`, with `noindex`. After `build_search()`, the sitemap and search index have no `monthly-flow`.
 - **Numbers.** See `review-plan.md`, AC1/AC2. Every new number is an intended move and every number gone is an intended cut.
-- **Figures.** Bulkley map, hydrographs and monthly error figure byte-identical to the old renders. The province map is identical to a fresh render of the old source. The first baseline PNG differed for an environment-only reason, not traced.
+- **Figures.** Bulkley map, hydrographs and monthly error figure byte-identical to the old renders. The province map alternates between two PNGs across renders of the same source (`64727b90…` in the first baseline and after round 3; `0948cf24…` in between, including a fresh render of main's source), so it is render-to-render variation, not the merge. Not traced.
 - **HTML.** No `\@ref` and no `footnote-ref` in the pkgdown page (the kableExtra footnotes are table rows, not pandoc footnotes).
 - **Size.** The merged article reads 505 KB of bundles across seven files; the 500 KB budget is per bundle (G3).
 
