@@ -28,8 +28,8 @@ At #126's review the user asked that article titles and HTML names tell the read
 - [x] Path mentions: `CLAUDE.md` (station-flow paragraph, and the citation and word-cap sentence in the segment-discharge paragraph), header comments in `data-raw/station_vignette_data.R` and `data-raw/station_vignette_map.R`, `scripts/temp_coverage.R:21`, the comment at `vignettes/segment-discharge.Rmd:803`, and the current-state line in `research/station_flow_departure.md`. NEWS and `planning/archive/` keep their historical mentions.
 
 ## Phase 2: Place each stream (writing.md "Orient the reader in one sentence per place")
-- [ ] Move `chinook_sites_map.R`'s receiving-river and mouth queries (`into1`/`into2`/`system`, the blue line's downstream end) into `scripts/vignette_map_lib.R` as one helper. Have `chinook_sites_map.R` call it, and hold the helper's output identical to the tracked `chinook_sites_map.rds` targets columns (parity, without rerunning that script).
-- [ ] `data-raw/station_vignette_map.R`: add each blue line's (Buck Creek, Bulkley) receiving river and mouth, and the places the sentence names (Houston, and Hazelton for the Bulkley's mouth) from BC Geographic Names. Rerun on m1 against fwapg. Every existing layer must be `identical()` to the old bundle.
+- [x] Move `chinook_sites_map.R`'s receiving-river and mouth queries (`into1`/`into2`/`system`, the blue line's downstream end) into `scripts/vignette_map_lib.R` as one helper. Have `chinook_sites_map.R` call it, and hold the helper's output identical to the tracked `chinook_sites_map.rds` targets columns (parity, without rerunning that script).
+- [x] `data-raw/station_vignette_map.R`: add each blue line's (Buck Creek, Bulkley) receiving river and mouth, and the places the sentence names (Houston, and Hazelton for the Bulkley's mouth) from BC Geographic Names. Rerun on m1 against fwapg. Every existing layer must be `identical()` to the old bundle.
 - [ ] The article guards distance and compass direction from the **mouth**, not the gauge, as the comparison article does (`compass()`/`km()`, flow-change-sparse-gauges.Rmd:142–167).
 
 ## Phase 3: Writing pass (every rule in `writing.md`)

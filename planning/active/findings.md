@@ -31,6 +31,12 @@ Relates to #27, #126, #146, #148, #149, #152.
 - "Climate normal": WMO defines climatological standard normals as 30-year averages of climatological data (1981–2010 is one); stream flow is not climatological data, so the title says "1981–2010 Normal" and the prose names the period as WMO's.
 - The comparison article places streams from their mouths (`data-raw/chinook_sites_map.R` receiving-river and mouth queries; `compass()`/`km()` in flow-change-sparse-gauges.Rmd:142–167).
 
+## Phase 2 measurements (2026-10-30, m1, fwapg local)
+
+- `vm_into()` (moved from `data-raw/chinook_sites_map.R`) over the chinook bundle's targets: `into1`, `into2`, `into1_blk`, `system`, `mouth_x`, `mouth_y` all `identical()` to `chinook_sites_map.rds`.
+- `station_map.rds` rebuilt: stations, catchments, streams, places, bc and provenance `identical()` to the old bundle; lakes identical only after sorting, because `vm_lakes()` has no `ORDER BY` (Postgres row order; drawn the same, one fill).
+- Mouths: Buck Creek joins the Bulkley River 0.89 km from Houston; the Bulkley joins the Skeena River 1.15 km from Hazelton (Village), 115 km from Houston.
+
 ## Errors Encountered
 
 | Error | Resolution |

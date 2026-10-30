@@ -15,6 +15,12 @@
 #   - places: Houston, from BC Geographic Names (bcdata)
 #   - bc: the province outline for the keymap, its parts under 2,000 km2
 #     dropped and the rest simplified at 5 km
+#   - mouths: the downstream end of the Bulkley River and Buck Creek, with the
+#     rivers each flows into, from its watershed code (vm_into()); the article
+#     places each stream from its mouth, not its gauge (#145)
+#   - towns: the populated places the article places the mouths by (Houston,
+#     and Hazelton for the Bulkley), from BC Geographic Names near each mouth;
+#     not drawn
 #
 # The list carries a "provenance" attribute naming the HYDAT release.
 #
@@ -43,12 +49,25 @@ ext <- vm_extent(catch, 8000)
 streams <- vm_streams(conn, ext$wkt, blk, simplify_m)
 lakes <- vm_lakes(conn, ext$wkt, simplify_m)
 bc <- vm_bc(conn)
+into <- vm_into(conn, blk)
 DBI::dbDisconnect(conn)
 places <- vm_places(ext$sfc, "Houston")
 stopifnot(nrow(places) == 1)
 
+mouths <- sf::st_sf(stream = names(blk), blue_line_key = unname(blk), into[c("into1", "into2", "system")],
+                    geom = sf::st_sfc(lapply(seq_along(blk), function(i) {
+                      sf::st_point(c(into$mouth_x[i], into$mouth_y[i]))
+                    }), crs = 3005))
+# a name is not a key: look only near the mouths, and keep one populated place per name
+towns <- vm_places(sf::st_union(sf::st_buffer(sf::st_geometry(mouths), 15000)), c("Houston", "Hazelton"))
+kinds <- c("City", "Town", "District Municipality (1)", "Village (1)", "Community", "Locality")
+towns <- towns[towns$feature_type %in% kinds, ]
+towns <- towns[order(towns$name, match(towns$feature_type, kinds)), ]
+towns <- towns[!duplicated(towns$name), ]
+stopifnot(setequal(towns$name, c("Houston", "Hazelton")), nrow(towns) == 2)
+
 layers <- vm_layers(list(stations = vm_points(st), catchments = catch, streams = streams, lakes = lakes,
-                         places = places, bc = bc), hydat)
+                         places = places, bc = bc, mouths = mouths, towns = towns), hydat)
 saveRDS(layers, out, compress = "xz")
 print(vapply(layers, function(x) nrow(sf::st_coordinates(x)), 0))
 message("station_map.rds: ", round(file.size(out) / 1024), " KB")
