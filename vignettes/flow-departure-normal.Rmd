@@ -60,6 +60,9 @@ open_water <- !mapply(touches_ice, ch$start, ch$end)
 stopifnot(identical(ch$life_stage[open_water], c("migration", "spawning", "fry_migration")))
 out <- ch[!open_water, ]
 ch <- ch[open_water, ]
+# fry migration lies inside migration and spawning together (checked below), so it is not shown
+fry <- ch[ch$life_stage == "fry_migration", ]
+ch <- ch[ch$life_stage != "fry_migration", ]
 stage <- sub("_", " ", ch$life_stage)
 windows <- data.frame(window = paste0(toupper(substring(stage, 1, 1)), substring(stage, 2)),
                       start = ch$start, end = ch$end)
@@ -86,13 +89,12 @@ win_days <- stats::setNames(vapply(seq_len(nrow(windows)), function(k) length(da
 need_text <- paste0(round(100 * formals(wet_window_stats)$min_frac), "%")
 left_out <- sub("_", " ", out$life_stage)
 # the recipe chunk below types these dates; fail here if the table moves under it
-stopifnot(identical(windows$start, c("05-01", "08-01", "07-15")),
-          identical(windows$end, c("08-01", "09-15", "09-07")))
-# the sentence names one source for all three windows, and the one window whose
-# citation the table carries over from another watershed's row
-stopifnot(identical(unique(ch$source), "gottesfeld_rabnett2007SkeenaFish"))
-borrowed <- windows$window[grepl("other area", ch$note)]
-stopifnot(identical(borrowed, "Fry migration"))
+stopifnot(identical(windows$start, c("05-01", "08-01")), identical(windows$end, c("08-01", "09-15")))
+# "its fry migration window falls within these two": every fry day is a migration or spawning day
+fry_days <- seq(as.Date(paste0("2001-", fry$start)), as.Date(paste0("2001-", fry$end)), by = "day")
+stopifnot(nrow(fry) == 1, all(fry_days %in% do.call(c, lapply(seq_len(nrow(windows)), days_of))))
+# the limits name one source for both windows, neither carried over from another watershed's row
+stopifnot(identical(unique(ch$source), "gottesfeld_rabnett2007SkeenaFish"), !any(grepl("other area", ch$note)))
 
 baseline <- 1981:2010
 # the title names this period; fail if the article moves to another
@@ -297,8 +299,8 @@ cap_change <- sprintf(paste(
 
 The R package [`wet`](https://newgraphenvironment.github.io/wet/) [@wet] measures stream flow and
 water temperature on British Columbia's Freshwater Atlas. This case study uses its station records at
-two gauges near Houston to ask how summer flow, in the weeks when chinook salmon migrate, spawn and
-move downstream as fry, has departed from its `r base_text` normal: its mean over one of the 30-year
+two gauges near Houston to ask how summer flow, in the weeks when chinook salmon migrate and spawn,
+has departed from its `r base_text` normal: its mean over one of the 30-year
 periods the World Meteorological Organization sets for climate normals
 [@arguez_vose2011DefinitionStandard, p. 699].
 
@@ -454,10 +456,10 @@ ggplot() +
 ## What is a timing window?
 
 A chinook salmon life history timing window is the part of the year when a life stage is in the
-stream. Three are used here: adults migrate upstream from `r span_text("Migration")`, spawn from
-`r span_text("Spawning")`, and fry move downstream from `r span_text("Fry migration")`. The dates
-come from New Graph's species-timing table for the Bulkley, which cites @gottesfeld_rabnett2007SkeenaFish.
-The table's other `r nrow(out)` chinook timing windows, `r and_text(left_out)`, reach into
+stream. Two are used here: adults migrate upstream from `r span_text("Migration")`, and spawn from
+`r span_text("Spawning")`. The dates come from New Graph's species-timing table for the Bulkley,
+which cites @gottesfeld_rabnett2007SkeenaFish. Its fry migration window falls within these two, so it
+is not shown on its own, and its other `r nrow(out)` chinook timing windows, `r and_text(left_out)`, reach into
 November–April, when the gauges can read under ice, so they are left out. A timing window's flow in a
 year is its mean daily flow, counted when `r need_text` of its days have a record.
 
@@ -542,8 +544,6 @@ stopifnot(all(h$year[in_norm] %in% baseline),
           identical(sort(unique(h$year[in_norm & h$station_number == "08EE003"])), sort(unique(norm_years[["08EE003"]]))))
 yr <- yr[order(yr$station_number, yr$period, yr$stat, yr$doy), ]
 yr$date <- as.Date("2001-01-01") + yr$doy - 1
-# the caption: the Bulkley gauge has no winter normal (too few winters on record in 1981-2010),
-# and both gauges have a summer normal and a recent line through every timing window
 # both gauges' normal lines cover every timing window; the recent lines break where a year has no record
 in_win <- yr$doy >= doy_of(as.Date("2001-05-01")) & yr$doy <= doy_of(as.Date("2001-09-15"))
 stopifnot(!anyNA(yr$q[in_win & yr$period == "base"]),
@@ -554,45 +554,62 @@ stopifnot(all(diff(b003$doy) == 1))
 span_003 <- paste(day_text(min(b003$date)), "to", day_text(max(b003$date)))
 span_003 <- gsub(" 2001", "", span_003)
 
-# the ice months, shaded, and the timing windows as bars beneath, as in the segment-discharge article
-ice <- data.frame(start = as.Date(c("2001-01-01", "2001-11-01")), end = as.Date(c("2001-04-30", "2001-12-31")))
-top <- tapply(yr$q, yr$station_number, max, na.rm = TRUE)
+# two panels per gauge: the whole year with the migration window beneath, and July to October with
+# the spawning window, on its own scale so the low summer flow is not dwarfed by the freshet
+zoom <- as.Date(c("2001-07-01", "2001-10-31"))
+views <- c(year = "Whole year", spawn = "July to October")
+yv <- rbind(cbind(yr, view = "year"), cbind(yr[yr$date >= zoom[1] & yr$date <= zoom[2], ], view = "spawn"))
+yv$view <- factor(yv$view, names(views))
+# the ice months, shaded on the whole-year panels only
+ice <- data.frame(view = factor("year", names(views)), start = as.Date(c("2001-01-01", "2001-11-01")),
+                  end = as.Date(c("2001-04-30", "2001-12-31")))
+top <- tapply(yv$q, list(yv$station_number, yv$view), max, na.rm = TRUE)
 strip <- do.call(rbind, lapply(stations, function(st) {
-  data.frame(station_number = st, window = windows$window,
+  data.frame(station_number = st, view = factor(c("year", "spawn"), names(views)), window = windows$window,
              start = as.Date(paste0("2001-", windows$start)), end = as.Date(paste0("2001-", windows$end)),
-             y = -top[[st]] * 0.07 * seq_len(nrow(windows)), h = top[[st]] * 0.04)
+             y = -top[st, c("year", "spawn")] * 0.08, h = top[st, c("year", "spawn")] * 0.05)
 }))
+stopifnot(identical(strip$window[strip$view == "spawn"], rep("Spawning", length(stations))))
 strip$label_x <- strip$end + 4
 # one colour means the last five years here and in the change figure below
 pal_period <- c(base = pal_hydro$values[["median"]], recent = pal_side$values[["below"]])
 lab_period <- c(base = base_text, recent = recent_text)
 cap_hydro <- sprintf(paste(
-  "Daily flow through the year at each gauge: the mean (solid) and median (dashed) day over the",
-  "years of each gauge's %s normal (grey) and over %s (colour). A normal line is drawn on days with",
-  "at least %d of those years on record, so at the Bulkley gauge it runs only from %s; a %s line on",
-  "days all %d years have a record. The shaded months, November to April, are when the gauges can",
-  "read under ice. The chinook timing windows run beneath as bars."
+  "Daily flow at each gauge: the whole year (left), with the migration window beneath, and July to",
+  "October (right), with the spawning window, on its own scale. Lines are the mean (solid) and",
+  "median (dashed) day over the years of each gauge's %s normal (grey) and over %s (colour). A",
+  "normal line is drawn on days with at least %d of those years on record, so at the Bulkley gauge it",
+  "runs only from %s; a %s line on days all %d years have a record. The shaded months, November to",
+  "April, are when the gauges can read under ice."
 ), base_text, recent_text, min_baseline, span_003, recent_text, min_recent)
 ```
 
-The same comparison across the whole year, day by day: the last five years' mean and median day
-against `r base_text`'s.
+The same comparison day by day: the last five years' mean and median day against `r base_text`'s,
+over the whole year and, on its own scale, over the months around spawning, where the spring freshet
+would otherwise flatten the low summer flow.
 
 ```{r hydrograph, fig.height = 6.5, fig.cap = cap_hydro}
+ice2 <- merge(ice, data.frame(station_number = stations))
 ggplot() +
-  geom_rect(data = ice, aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf),
+  geom_rect(data = by_station(ice2), aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf),
             fill = pal_hydro$values[["band"]], alpha = 0.5) +
   geom_rect(data = by_station(strip), aes(xmin = start, xmax = end, ymin = y - h / 2, ymax = y + h / 2),
             fill = pal_hydro$values[["window"]]) +
-  geom_text(data = by_station(strip), aes(x = label_x, y = y, label = window), hjust = 0, size = 2.6) +
-  geom_line(data = by_station(yr), aes(date, q, colour = period, linetype = stat,
-                                       group = interaction(period, stat)), linewidth = 0.6) +
-  facet_wrap(~ station_number, ncol = 1, scales = "free_y", labeller = as_labeller(station_label)) +
+  geom_text(data = by_station(strip), aes(x = label_x, y = y, label = window), hjust = 0, size = 2.4) +
+  geom_line(data = by_station(yv), aes(date, q, colour = period, linetype = stat,
+                                       group = interaction(period, stat)), linewidth = 0.55) +
+  facet_wrap(~ station_number + view, ncol = 2, scales = "free",
+             labeller = labeller(station_number = as_labeller(sub(" \\(.*", "", station_label)),
+                                 view = as_labeller(views), .multi_line = FALSE)) +
   scale_colour_manual(values = pal_period, labels = lab_period, name = NULL) +
   scale_linetype_manual(values = c(mean = "solid", median = "22"),
                         labels = c(mean = "Mean day", median = "Median day"), name = NULL) +
-  scale_x_date(date_breaks = "1 month", date_labels = "%b",
-               limits = as.Date(c("2001-01-01", "2001-12-31")), expand = c(0.01, 0)) +
+  # month initials on the whole-year panels, names on the July-October ones
+  scale_x_date(breaks = function(l) {
+    b <- seq(as.Date(cut(l[1], "month")), l[2], by = "month")
+    b[b >= l[1] & b <= l[2] - 10]   # no label clipped at a panel's right edge
+  }, expand = c(0.01, 0),
+  labels = function(x) if (sum(!is.na(x)) > 6) substr(format(x, "%b"), 1, 1) else format(x, "%b")) +
   # no ticks among the strips below zero: they are rows, not flows
   scale_y_continuous(breaks = function(l) {
     b <- pretty(l)
@@ -635,8 +652,8 @@ library(wet)
 # HYDAT, then ECCC provisional, then real-time, per station
 daily <- wet_station_daily(c("08EE013", "08EE003"))
 
-windows <- data.frame(window = c("Migration", "Spawning", "Fry migration"),
-                      start = c("05-01", "08-01", "07-15"), end = c("08-01", "09-15", "09-07"))
+windows <- data.frame(window = c("Migration", "Spawning"), start = c("05-01", "08-01"),
+                      end = c("08-01", "09-15"))
 stats <- wet_window_stats(daily, windows, stats = "mean")
 
 # normal and departure are cd's, one station per call
@@ -664,8 +681,7 @@ stopifnot(all(kf$frac_provisional[kf$year %in% prov_years] > 0))
 - **Some normals have years missing:** a year is left out of a timing window's normal when the
   window has under `r need_text` of its days, so `r miss_text`.
 - **The timing windows come from the literature, not from observation:** New Graph's species-timing
-  table cites @gottesfeld_rabnett2007SkeenaFish for all three, its `r tolower(borrowed)` citation
-  carried over from a neighbouring watershed's row.
+  table cites @gottesfeld_rabnett2007SkeenaFish for both.
 
 ## Software and citation
 
