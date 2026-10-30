@@ -84,9 +84,9 @@ The two listed flow-change articles read as the same article twice. Their titles
   - Chapman et al. (2018).
   
   Already there: Hansen 2012, Arguez and Vose 2011, Moriasi, Nash and Sutcliffe, Muñoz-Sabater 2021, Schnorbus 2018 and Craig et al. 2020.
-- [ ] **Needs the user:** Better BibTeX answers "No endpoint found" on m1, because Zotero disabled it after its update. Please reinstall the BBT line that matches this Zotero (Plugins → gear → Install Plugin From File), then restart Zotero so the new items get keys. Until then, every phase that does not need a `.bib` runs first.
+- [x] **Needs the user:** Better BibTeX answers "No endpoint found" on m1, because Zotero disabled it after its update. Please reinstall the BBT line that matches this Zotero (Plugins → gear → Install Plugin From File), then restart Zotero so the new items get keys. Until then, every phase that does not need a `.bib` runs first.
 - [x] `vignette_bib.R` accepts a fork's `/tree/<branch>` url (plan review B1).
-- [ ] Run `Rscript data-raw/vignette_bib.R` on all three articles. Commit each `.bib`.
+- [x] Run `Rscript data-raw/vignette_bib.R` on all three articles. Commit each `.bib`.
 
 ## Phase 7: The measured article (`vignettes/flow-departure-normal.Rmd`)
 
@@ -94,18 +94,18 @@ The two listed flow-change articles read as the same article twice. Their titles
 - [x] Make `recent` 2016–2025, with Buck Creek's missing 2016 handled and said once.
 - [x] Recompute the bars, the change figure and the year figure's recent lines, and rewrite every claim and guard from the new numbers.
 - [x] The change range follows Phase 2's outcome.
-- [ ] Cite 1981–2010 in the sentence that defines the normal, in place of the bare WMO sentence:
+- [x] Cite 1981–2010 in the sentence that defines the normal, in place of the bare WMO sentence:
   - Arguez and Vose (2011, p. 699) and WMO-No. 1203;
   - it is the period `wet`'s published flows are normals of: `climr` for the balance, and routed PCIC's 1981–2010 run (Schnorbus 2018, Craig et al. 2020, Werner et al. 2019);
   - it already contains part of the warming (Hansen et al. 2012).
 - [x] One sentence on what the rebuilt article does, linked.
-- [ ] Rerun its `.bib`. This adds Gottesfeld's url and drops the six uncited entries. Keep the 700-word cap.
+- [x] Rerun its `.bib`. This adds Gottesfeld's url and drops the six uncited entries. Keep the 700-word cap.
 
 ## Phase 8: segment-discharge's `.bib` (D)
 
 - [x] Re-key its package citations to `@<pkg>` and R to `@base`.
-- [ ] Run `vignette_bib.R` on it (Chapman's key changes with Better BibTeX's).
-- [ ] Render it and check the reference list matches the old one apart from the keys.
+- [x] Run `vignette_bib.R` on it (Chapman's key changes with Better BibTeX's).
+- [x] Render it and check the reference list matches the old one apart from the keys.
 
 ## Phase 9: Titles and records (E)
 

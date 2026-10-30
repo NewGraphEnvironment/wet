@@ -318,7 +318,7 @@ normals [@arguez_vose2011DefinitionStandard, p. 699; @worldmeteorologicalorganiz
 and the one `wet`'s published flows are normals of: its water balance runs on
 [`climr`](https://bcgov.github.io/climr/)'s `r base_text` climate [@climr], and its routed flow is the
 `r base_text` mean of the Pacific Climate Impacts Consortium's model run
-[@schnorbus2018VICGlacierVICGL; @craig_etal2020Flexiblewatershed; @werner_etal2019Longtermtemporally].
+[@schnorbus2018VICGlacierVICGL; @craig_etal2020Flexiblewatershed; @werner_etal2019longtermtemporally].
 It already holds part of recent warming [@hansen_etal2012Perceptionclimate], so
 [Rebuilding Stream Flow History Where Gauges Are Few](flow-change-sparse-gauges.html) measures change
 from 1951–1980 instead.

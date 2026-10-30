@@ -1,11 +1,48 @@
-% References of vignettes/segment-discharge.Rmd. Entries with a Zotero key are copied from NGE's
-% Better BibTeX exports (knowledge's vignettes, the Skeena reports); chapman, moriasi and nash are
-% written by hand until a script writes this file from Zotero, as knowledge's data-raw/vignette_bib.R does; the
-% R packages are each package's own citation() without its version note, keyed by hand.
+% written by data-raw/vignette_bib.R for segment-discharge.Rmd from the packages' citation() and Zotero (group library); do not edit
 
-@article{chapman_etal2018Wateralloc,
-  title = {A Water Allocation Decision-Support Model and Tool for Predictions in Ungauged Basins in {{Northeast British Columbia}}, {{Canada}}},
-  author = {Chapman, Alan R. and Kerr, Ben and Wilford, David},
+@Manual{DBI,
+  title = {{DBI: R Database Interface}},
+  author = {{R Special Interest Group on Databases (R-SIG-DB)} and Hadley Wickham and Kirill Müller},
+  year = {2026},
+  url = {https://CRAN.R-project.org/package=DBI},
+  doi = {10.32614/CRAN.package.DBI},
+}
+
+@Manual{RPostgres,
+  title = {{RPostgres: C++ Interface to PostgreSQL}},
+  author = {Hadley Wickham and Jeroen Ooms and Kirill Müller},
+  year = {2026},
+  url = {https://CRAN.R-project.org/package=RPostgres},
+  doi = {10.32614/CRAN.package.RPostgres},
+}
+
+@Manual{base,
+  title = {{R: A Language and Environment for Statistical Computing}},
+  author = {{R Core Team}},
+  organization = {R Foundation for Statistical Computing},
+  address = {Vienna, Austria},
+  year = {2025},
+  url = {https://www.R-project.org/},
+}
+
+@Manual{bookdown,
+  title = {{bookdown: Authoring Books and Technical Documents with R Markdown}},
+  author = {Yihui Xie},
+  year = {2026},
+  url = {https://github.com/rstudio/bookdown},
+}
+
+@Manual{cd,
+  title = {{cd: Climate Departure Analysis from ERA5-Land Reanalysis}},
+  author = {Allan Irvine},
+  organization = {New Graph Environment Ltd.},
+  year = {2026},
+  url = {https://github.com/NewGraphEnvironment/cd},
+}
+
+@article{chapman_etal2018WaterAllocation,
+  title = {A {{Water Allocation Decision-Support Model}} and {{Tool}} for {{Predictions}} in {{Ungauged Basins}} in {{Northeast British Columbia}}, {{Canada}}},
+  author = {Chapman, Allan R. and Kerr, Ben and Wilford, David},
   date = {2018},
   journaltitle = {Journal of the American Water Resources Association},
   volume = {54},
@@ -13,6 +50,33 @@
   pages = {676--693},
   doi = {10.1111/1752-1688.12643},
   url = {https://doi.org/10.1111/1752-1688.12643}
+}
+
+@Manual{climr,
+  title = {{climr: Downscaling climate data in R}},
+  author = {Kiri Daust and Colin Mahony and Bruno Tremblay and Ceres Barros},
+  year = {2024},
+  url = {https://bcgov.github.io/climr/},
+}
+
+@article{craig_etal2020Flexiblewatershed,
+  title = {Flexible Watershed Simulation with the {{Raven}} Hydrological Modelling Framework},
+  author = {Craig, James R. and Brown, Genevieve and Chlumsky, Robert and Jenkinson, R. Wayne and Jost, Georg and Lee, Konhee and Mai, Juliane and Serrer, Martin and Sgro, Nicholas and Shafii, Mahyar and Snowdon, Andrew P. and Tolson, Bryan A.},
+  date = {2020-07},
+  journaltitle = {Environmental Modelling \& Software},
+  volume = {129},
+  pages = {104728},
+  issn = {1364-8152},
+  doi = {10.1016/j.envsoft.2020.104728},
+  url = {https://doi.org/10.1016/j.envsoft.2020.104728}
+}
+
+@Manual{duckdb,
+  title = {{duckdb: DBI Package for the DuckDB Database Management System}},
+  author = {Hannes Mühleisen and Mark Raasveldt},
+  year = {2026},
+  url = {https://CRAN.R-project.org/package=duckdb},
+  doi = {10.32614/CRAN.package.duckdb},
 }
 
 @online{environmentandclimatechangecanada2021NationalWater,
@@ -35,40 +99,78 @@
   langid = {english}
 }
 
+@Book{ggplot2,
+  author = {Hadley Wickham},
+  title = {{ggplot2: Elegant Graphics for Data Analysis}},
+  publisher = {Springer-Verlag New York},
+  year = {2016},
+  isbn = {978-3-319-24277-4},
+  url = {https://ggplot2.tidyverse.org},
+}
+
 @misc{gottesfeld_rabnett2007SkeenaFish,
   title = {Skeena {{Fish Populations}} and Their {{Habitat}}},
   author = {Gottesfeld, A and Rabnett, K},
   date = {2007},
-  organization = {Skeena Fisheries Commission}
+  url = {https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/327687.pdf},
+  organization = {{Skeena Fisheries Commission}},
+}
+
+@Manual{gq,
+  title = {{gq: Cartographic Style Management Across Rendering Targets}},
+  author = {Allan Irvine},
+  year = {2026},
+  url = {https://github.com/NewGraphEnvironment/gq},
+}
+
+@Manual{kableExtra,
+  title = {{kableExtra: Construct Complex Table with 'kable' and Pipe Syntax}},
+  author = {Hao Zhu},
+  year = {2024},
+  url = {https://CRAN.R-project.org/package=kableExtra},
+  doi = {10.32614/CRAN.package.kableExtra},
+}
+
+@Manual{knitr,
+  title = {{knitr: A General-Purpose Package for Dynamic Report Generation in {R}}},
+  author = {Yihui Xie},
+  year = {2026},
+  url = {https://yihui.org/knitr/},
 }
 
 @article{moriasi_etal2007Modelevaluation,
   title = {Model Evaluation Guidelines for Systematic Quantification of Accuracy in Watershed Simulations},
-  author = {Moriasi, Daniel N. and Arnold, Jeffrey G. and Van Liew, Michael W. and Bingner, Ronald L. and Harmel, R. Daren and Veith, Tamie L.},
+  author = {Moriasi, D. N. and Arnold, J. G. and Van Liew, M. W. and Bingner, R. L. and Harmel, R. D. and Veith, T. L.},
   date = {2007},
   journaltitle = {Transactions of the ASABE},
   volume = {50},
   number = {3},
   pages = {885--900},
-  doi = {10.13031/2013.23153},
-  url = {https://doi.org/10.13031/2013.23153}
+  issn = {2151-0040},
+  doi = {10.13031/2013.23153}
 }
 
 @article{nash_sutcliffe1970Riverflow,
-  title = {River Flow Forecasting through Conceptual Models Part {{I}}: A Discussion of Principles},
+  title = {River Flow Forecasting through Conceptual Models Part {{I}} — {{A}} Discussion of Principles},
   author = {Nash, J. E. and Sutcliffe, J. V.},
-  date = {1970},
+  date = {1970-04},
   journaltitle = {Journal of Hydrology},
   volume = {10},
   number = {3},
   pages = {282--290},
-  doi = {10.1016/0022-1694(70)90255-6},
-  url = {https://doi.org/10.1016/0022-1694(70)90255-6}
+  issn = {0022-1694},
+  doi = {10.1016/0022-1694(70)90255-6}
+}
+
+@misc{norris2024smnorrisfwapg,
+  title = {{fwapg}},
+  author = {Norris, Simon},
+  date = {2024},
+  url = {https://github.com/smnorris/fwapg},
 }
 
 @misc{norris_irvine2026NewGraphEnvironmentfwapg,
-  title = {{fwapg, New Graph Environment's fork}},
-  version = {7c30f58},
+  title = {{fwapg, newgraph branch}},
   author = {Norris, Simon and Irvine, Allan},
   date = {2026},
   url = {https://github.com/NewGraphEnvironment/fwapg/tree/newgraph},
@@ -87,125 +189,21 @@
   eid = {Volume 1}
 }
 
-@article{craig_etal2020Flexiblewatershed,
-  title = {Flexible Watershed Simulation with the {{Raven}} Hydrological Modelling Framework},
-  author = {Craig, James R. and Brown, Genevieve and Chlumsky, Robert and Jenkinson, R. Wayne and Jost, Georg and Lee, Konhee and Mai, Juliane and Serrer, Martin and Sgro, Nicholas and Shafii, Mahyar and Snowdon, Andrew P. and Tolson, Bryan A.},
-  date = {2020-07},
-  journaltitle = {Environmental Modelling \& Software},
-  volume = {129},
-  pages = {104728},
-  doi = {10.1016/j.envsoft.2020.104728},
-  url = {https://doi.org/10.1016/j.envsoft.2020.104728}
-}
-
-@misc{norris2024smnorrisfwapg,
-  title = {{fwapg}},
-  author = {Norris, Simon},
-  date = {2024},
-  url = {https://github.com/smnorris/fwapg}
-}
-
-@misc{irvine2026wetStream,
-  title = {{wet}: {{Stream Flow}} and {{Water Temperature}} for the {{BC Freshwater Atlas}}},
-  author = {Irvine, Allan},
-  date = {2026},
-  doi = {10.5281/zenodo.23305781},
-  url = {https://github.com/NewGraphEnvironment/wet},
-  organization = {{New Graph Environment Ltd.}}
-}
-
-@misc{irvine2026gq,
-  title = {{gq}: {{Cartographic Style Management Across Rendering Targets}}},
-  author = {Irvine, Allan},
-  date = {2026},
-  url = {https://github.com/NewGraphEnvironment/gq},
-  organization = {{New Graph Environment Ltd.}}
-}
-
-@misc{irvine2026cd,
-  title = {{cd}: {{Climate Departure Analysis}} from {{ERA5-Land Reanalysis}}},
-  author = {Irvine, Allan},
-  date = {2026},
-  url = {https://github.com/NewGraphEnvironment/cd},
-  organization = {{New Graph Environment Ltd.}}
-}
-
-@misc{muhleisen_raasveldt2026duckdb,
-  title = {{duckdb}: {{DBI Package}} for the {{DuckDB Database Management System}}},
-  author = {Mühleisen, Hannes and Raasveldt, Mark},
-  date = {2026},
-  doi = {10.32614/CRAN.package.duckdb},
-  url = {https://CRAN.R-project.org/package=duckdb}
-}
-
-@book{wickham2016ggplot2,
-  title = {{ggplot2}: {{Elegant Graphics}} for {{Data Analysis}}},
-  author = {Wickham, Hadley},
-  date = {2016},
-  publisher = {Springer-Verlag New York},
-  isbn = {978-3-319-24277-4},
-  url = {https://ggplot2.tidyverse.org}
-}
-
-@book{pebesma_bivand2023Spatial,
-  title = {Spatial {{Data Science}}: {{With}} Applications in {{R}}},
-  author = {Pebesma, Edzer and Bivand, Roger},
-  date = {2023},
+@Book{sf,
+  author = {Edzer Pebesma and Roger Bivand},
+  title = {{{Spatial Data Science: With applications in R}}},
+  year = {2023},
   publisher = {{Chapman and Hall/CRC}},
+  url = {https://r-spatial.org/book/},
   doi = {10.1201/9780429459016},
-  url = {https://r-spatial.org/book/}
 }
 
-@misc{daust_etal2024climr,
-  title = {{climr}: {{Downscaling}} Climate Data in {{R}}},
-  author = {Daust, Kiri and Mahony, Colin and Tremblay, Bruno and Barros, Ceres},
-  date = {2024},
-  url = {https://bcgov.github.io/climr/}
+@Manual{wet,
+  title = {{wet: Stream Flow and Water Temperature for the BC Freshwater Atlas}},
+  author = {Allan Irvine},
+  organization = {New Graph Environment Ltd.},
+  year = {2026},
+  url = {https://github.com/NewGraphEnvironment/wet},
+  doi = {10.5281/zenodo.23305781},
 }
 
-@misc{rsigdb_etal2026DBI,
-  title = {{DBI}: {{R Database Interface}}},
-  author = {{R Special Interest Group on Databases (R-SIG-DB)} and Wickham, Hadley and Müller, Kirill},
-  date = {2026},
-  doi = {10.32614/CRAN.package.DBI},
-  url = {https://CRAN.R-project.org/package=DBI}
-}
-
-@misc{wickham_etal2026RPostgres,
-  title = {{RPostgres}: {{C++ Interface}} to {{PostgreSQL}}},
-  author = {Wickham, Hadley and Ooms, Jeroen and Müller, Kirill},
-  date = {2026},
-  doi = {10.32614/CRAN.package.RPostgres},
-  url = {https://CRAN.R-project.org/package=RPostgres}
-}
-
-@misc{xie2026knitr,
-  title = {{knitr}: {{A General-Purpose Package}} for {{Dynamic Report Generation}} in {{R}}},
-  author = {Xie, Yihui},
-  date = {2026},
-  url = {https://yihui.org/knitr/}
-}
-
-@misc{zhu2024kableExtra,
-  title = {{kableExtra}: {{Construct Complex Table}} with {'kable'} and {{Pipe Syntax}}},
-  author = {Zhu, Hao},
-  date = {2024},
-  doi = {10.32614/CRAN.package.kableExtra},
-  url = {https://CRAN.R-project.org/package=kableExtra}
-}
-
-@manual{rcoreteam2025R,
-  title = {R: {{A Language}} and {{Environment}} for {{Statistical Computing}}},
-  author = {{R Core Team}},
-  organization = {R Foundation for Statistical Computing},
-  address = {Vienna, Austria},
-  date = {2025},
-  url = {https://www.R-project.org/}
-}
-
-@misc{xie2026bookdown,
-  title = {{bookdown}: {{Authoring Books}} and {{Technical Documents}} with {{R Markdown}}},
-  author = {Xie, Yihui},
-  date = {2026},
-  url = {https://github.com/rstudio/bookdown}
-}

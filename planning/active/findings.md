@@ -112,7 +112,15 @@ Change from 1951–1980 to 2016–2025, Bulkley windows, % (90% range), carried 
 
 Snow over each target's watershed, 1951–1980 to 2016–2025: peak SWE −6 to −10% (Maxan 260→235 mm, Swift 556→524, Naver 243→223, Gosnell 974→891); 50% melt date 9–17 days earlier (Maxan 12.6, Swift 9.0, Naver 10.5, Gosnell 16.5).
 
+## References (2026-10-30)
+
+- Better BibTeX answered `ready` again at about 22:10Z. The new items' keys: `worldmeteorologicalorganization2017WMOGuidelines`, `werner_etal2019longtermtemporally` (lower-case title words, not the guessed `Longterm`) and `chapman_etal2018WaterAllocation`.
+- BBT exports a report's number as `eid`, which pandoc does not print. So the WMO item's `reportType` was set to "WMO-No. 1203" through the Web API (PATCH, 204), and it prints after sync.
+- segment-discharge: the same 23 works before and after. Differences are metadata only: Chapman's first name is now CrossRef's "Allan", Gottesfeld gains its url, gq loses its publisher, and the fork title names its branch. The fork's commit used to be carried by a hand-written `version` field, which the script drops, so the article prints it where it cites the fork and guards it there.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
+| Better BibTeX: `No endpoint found` after a Zotero update | The user reinstalled BBT; the phases that needed no `.bib` ran first |
+| `segment-discharge.Rmd` citation chunk: `stopifnot` on `version = {<commit>}` in the `.bib` | The script drops `version`; the commit is printed beside the fork's citation instead |

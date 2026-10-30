@@ -244,7 +244,7 @@ places that flow on Freshwater Atlas segments, as
 set out.
 
 **Open water balance** (`wet_balance`). `wet`'s own estimate, after
-@chapman_etal2018Wateralloc:
+@chapman_etal2018WaterAllocation:
 precipitation less actual evapotranspiration from climate normals, averaged
 over each watershed's upstream area and adjusted per
 [hydrologic zone](https://catalogue.data.gov.bc.ca/dataset/bc-hydrologic-zones)
@@ -997,7 +997,7 @@ The software, each cited:
 - [`wet`](https://newgraphenvironment.github.io/wet/) [@wet] builds and publishes the product.
 - [`fwapg`](https://smnorris.github.io/fwapg/) [@norris2024smnorrisfwapg] holds the Freshwater Atlas in
   PostgreSQL, and New Graph's [fork](https://github.com/NewGraphEnvironment/fwapg/tree/newgraph) of it
-  [@norris_irvine2026NewGraphEnvironmentfwapg] places routed PCIC on it.
+  [@norris_irvine2026NewGraphEnvironmentfwapg], at commit `r ps$routed_commit`, places routed PCIC on it.
 - [`climr`](https://github.com/bcgov/climr) [@climr] gives the balance its climate normals,
   and [`cd`](https://newgraphenvironment.github.io/cd/) [@cd] its snow normals.
 - [`duckdb`](https://r.duckdb.org/) [@duckdb] and [`DBI`](https://dbi.r-dbi.org/)
@@ -1017,11 +1017,8 @@ How the balance is built, and each of its choices tested:
 ```{r citation, results = "asis"}
 cat(format(utils::citation("wet"), style = "text"), sep = "\n\n")
 # the Data line names the shipped annual AET (CGIAR floored by Fu-Budyko) and
-# the snow predictors in the monthly shares; the fork's commit is the one
-# segment-discharge.bib carries (its References line)
-bib <- readLines(file.path(dirname(knitr::current_input(dir = TRUE)), "segment-discharge.bib"), warn = FALSE)
-stopifnot(identical(ps$aet, "cfu"), identical(pm$share_spec, "snow"),
-          any(grepl(sprintf("version = {%s}", ps$routed_commit), bib, fixed = TRUE)))
+# the snow predictors in the monthly shares; the fork's commit is printed where the fork is cited
+stopifnot(identical(ps$aet, "cfu"), identical(pm$share_spec, "snow"), grepl("^[0-9a-f]{7,40}$", ps$routed_commit))
 ```
 
 ### Data
