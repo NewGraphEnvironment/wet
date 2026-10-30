@@ -286,7 +286,9 @@ years_text(miss_003), need_text)
 # change in each window's mean flow, from its 1981-2010 mean to the mean of 2016-2025, with the
 # middle 90% of changes from resampling the years of each period (with replacement). At these years it
 # covers 83-87% of no-change records, under the 87% bar (data/checks/departure_interval_coverage.txt),
-# so it is not called a 90% range and no count rests on it
+# so it is not called a 90% range and no count rests on it. That report measured this bundle: a rebuilt
+# one needs the script rerun before this sentence stands
+stopifnot(identical(unname(tools::md5sum(vd("station_daily.rds"))), "2ab0f5833ebbac35161c593ac248b7a3"))
 set.seed(145)
 n_draw <- 5000
 chg <- do.call(rbind, lapply(seq_len(nrow(ref)), function(i) {

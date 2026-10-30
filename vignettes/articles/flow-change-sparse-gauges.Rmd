@@ -145,7 +145,7 @@ rebuild their summer flow history from nearby gauges, and asks how it has change
 `r ref_text`, at four streams in northern British Columbia that chinook salmon use: Maxan
 Creek, with five full summers on record; Swift Creek and Naver Creek, with
 `r sites$obs_n[sites$site_id == "swift"]` and `r sites$obs_n[sites$site_id == "naver"]`; and
-Gosnell Creek, never gauged. Each is run by one method, fixed before any result and scored
+Gosnell Creek, never gauged. One method, fixed before any result, runs at each and is scored
 on gauges it was not given.
 
 **The answer.** In the salmon spawning window, a stream's mean flow over `r rec_text` was
@@ -156,7 +156,8 @@ stays below no change. The lowest seven-day flow in that window fell at
 `r and_text(sub(" Creek$", "", name_of[m7_down]))` creeks and held at Swift Creek. In the
 migration window the borrowed departures show no clear change at any stream. Snow over every
 catchment peaked lower and melted earlier. Borrowed
-departures score worse in the spawning window than in the migration window at all four.
+departures score worse in the spawning window than in the migration window at all four under
+the Bulkley's windows.
 
 ## Where are the four streams?
 
@@ -345,7 +346,7 @@ chinook spawn in August and September
 table sets the Bulkley's windows from that report, used here at all four streams: adult migration from `r md_text(wb$start[1])` to `r md_text(wb$end[1])`, and
 spawning from `r md_text(wb$start[2])` to `r md_text(wb$end[2])`. A stream's flow in a
 window is its mean over those days. At every stream, flow peaks inside the migration window, as snow
-melts, and is low in the spawning window, under a third of its peak.
+melts, and in the spawning window falls under a third of its peak.
 
 ```{r windows, fig.height = 5, fig.cap = "Each stream's typical year (1981–2010), with the two windows shaded: wet's published daily flow at the gauge, or at Gosnell Creek's mouth."}
 ggplot(d) +
@@ -507,10 +508,10 @@ stopifnot(width("migration", "extended") > width("migration", "carried"),
 
 Both routes are scored by hiding a gauge's own record and predicting it from its
 neighbours. A score of 0.5 was set as the method's bar before any stream was run. The
-borrowed departures clear it in the migration window in every box and fall below it in the
-spawning window in every box, `r sprintf("%.2f", min(ss_spw$carried))`–`r sprintf("%.2f", max(ss_spw$carried))`,
-so their ranges there carry that weaker score. The lowest seven-day flow scores
-lower still, below the bar in `r sum(m7_sc < 0.5)` of `r length(m7_sc)` windows and boxes.
+borrowed departures clear it in the migration window in every box and, under the Bulkley's
+windows, fall below it in the spawning window in every box, `r sprintf("%.2f", min(ss_spw$carried))`–`r sprintf("%.2f", max(ss_spw$carried))`,
+so those ranges carry that weaker score. The lowest seven-day flow scores below the bar in
+`r sum(m7_sc < 0.5)` of `r length(m7_sc)` windows and boxes.
 Filling in a record scores poorly only in the upper Fraser, which has `r sc$ext_gauges[sc$site_id == "swift"]`
 long enough records to test it, so Swift Creek's filled-in change is its less certain route.
 
@@ -571,7 +572,7 @@ stopifnot(all(v$normal$pick == "pcic_routed"), all(v$daily$source[v$daily$pick] 
   published spawning-window flow runs a median `r pct(pct_of(nerr$err_median))` above
   measured, and about `r pct(pct_of(nerr$err_q75))` or more above at a quarter of them.
 - **The windows are the Bulkley's** at all four streams. Only the Morice has its own cited
-  windows; Swift and Naver creeks have none yet.
+  windows.
 - **Each filled-in year rests on one neighbouring gauge**, and the earliest years on
   whichever single gauge reaches back that far.
 
