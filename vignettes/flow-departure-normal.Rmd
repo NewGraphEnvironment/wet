@@ -308,60 +308,6 @@ each year from `r min(low_years)`, and `r n_dec` of those `r n_low` window means
 `r base_text` years in ten. At `r short_name("08EE003")`, the normal rests on `r base_003`, the years
 with enough record.
 
-## What is a timing window?
-
-A chinook salmon life history timing window is the part of the year when a life stage is in the
-stream. Three are used here: adults migrate upstream from `r span_text("Migration")`, spawn from
-`r span_text("Spawning")`, and fry move downstream from `r span_text("Fry migration")`. The dates
-come from New Graph's species-timing table for the Bulkley, which cites @gottesfeld_rabnett2007SkeenaFish.
-The table's other `r nrow(out)` chinook timing windows, `r and_text(left_out)`, reach into
-November–April, when the gauges can read under ice, so they are left out. A timing window's flow in a
-year is its mean daily flow, counted when `r need_text` of its days have a record.
-
-## How did the last five years compare with normal?
-
-Each bar is one timing window in one year: its mean flow as a percentage of that window's
-`r base_text` mean, so 100% is normal and lower is drier. Wet years pull the mean up, so a typical year
-sits under it; the dashed line marks the median year.
-
-From `r min(low_years)`, every bar falls below the median year as well as the mean, and `r n_min`
-were drier than any `r base_text` year. The two gauges fall on the same side of normal in every timing
-window and year, partly because one catchment holds the other.
-
-```{r recent, fig.height = 5, fig.cap = cap_recent}
-kf <- by_window(by_station(kf))
-ref <- by_window(by_station(ref))
-ymax <- max(kf$pct) * 1.2
-refs <- rbind(data.frame(ref[c("station_number", "period")], y = 100, line = "mean"),
-              data.frame(ref[c("station_number", "period")], y = ref$median_pct, line = "median"))
-ggplot(kf, aes(year, pct)) +
-  geom_col(aes(fill = side, alpha = status), width = 0.75) +
-  geom_hline(data = refs, aes(yintercept = y, linetype = line), colour = pal_hydro$values[["median"]],
-             linewidth = 0.4) +
-  geom_text(aes(label = pct(pct)), vjust = -0.35, size = 2.7) +
-  # the mean in m3/s, top right, clear of the first year's bars
-  geom_text(data = ref, aes(x = max(recent) + 0.45, y = ymax, label = label), hjust = 1,
-            vjust = 1, size = 2.7, colour = pal_hydro$values[["median"]]) +
-  facet_grid(station_number ~ period, labeller = labeller(
-    station_number = as_labeller(sub(" \\(", "\n(", station_label)),
-    period = as_labeller(window_label))) +
-  scale_fill_manual(values = pal_side$values, labels = pal_side$labels, name = NULL) +
-  scale_alpha_manual(values = c(approved = 1, provisional = 0.45),
-                     labels = c(approved = "Approved", provisional = "Provisional"), name = NULL) +
-  scale_linetype_manual(values = c(mean = "solid", median = "22"),
-                        labels = c(mean = paste(base_text, "mean"),
-                                   median = paste("Median", base_text, "year")), name = NULL) +
-  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, ymax),
-                     expand = expansion(mult = c(0, 0))) +
-  scale_x_continuous(breaks = recent) +
-  labs(x = NULL, y = paste("Percent of", base_text, "mean")) +
-  guides(fill = guide_legend(order = 1), alpha = guide_legend(
-    order = 2, override.aes = list(fill = pal_side$values[["below"]])),
-    linetype = guide_legend(order = 3, override.aes = list(linewidth = 0.5))) +
-  theme(panel.grid.major.x = element_blank(), strip.text.y = element_text(angle = 0, hjust = 0),
-        legend.box = "vertical", legend.spacing.y = unit(0, "pt"), legend.margin = margin(0, 0, 0, 0))
-```
-
 ## Where are the gauges?
 
 ```{r map-data}
@@ -503,6 +449,60 @@ ggplot() +
         legend.background = element_rect(fill = "white", colour = NA),
         legend.margin = margin(4, 6, 4, 6), legend.spacing.y = unit(0, "pt"),
         panel.border = element_rect(fill = NA, colour = pal_hydro$values[["median"]]))
+```
+
+## What is a timing window?
+
+A chinook salmon life history timing window is the part of the year when a life stage is in the
+stream. Three are used here: adults migrate upstream from `r span_text("Migration")`, spawn from
+`r span_text("Spawning")`, and fry move downstream from `r span_text("Fry migration")`. The dates
+come from New Graph's species-timing table for the Bulkley, which cites @gottesfeld_rabnett2007SkeenaFish.
+The table's other `r nrow(out)` chinook timing windows, `r and_text(left_out)`, reach into
+November–April, when the gauges can read under ice, so they are left out. A timing window's flow in a
+year is its mean daily flow, counted when `r need_text` of its days have a record.
+
+## How did the last five years compare with normal?
+
+Each bar is one timing window in one year: its mean flow as a percentage of that window's
+`r base_text` mean, so 100% is normal and lower is drier. Wet years pull the mean up, so a typical year
+sits under it; the dashed line marks the median year.
+
+From `r min(low_years)`, every bar falls below the median year as well as the mean, and `r n_min`
+were drier than any `r base_text` year. The two gauges fall on the same side of normal in every timing
+window and year, partly because one catchment holds the other.
+
+```{r recent, fig.height = 5, fig.cap = cap_recent}
+kf <- by_window(by_station(kf))
+ref <- by_window(by_station(ref))
+ymax <- max(kf$pct) * 1.2
+refs <- rbind(data.frame(ref[c("station_number", "period")], y = 100, line = "mean"),
+              data.frame(ref[c("station_number", "period")], y = ref$median_pct, line = "median"))
+ggplot(kf, aes(year, pct)) +
+  geom_col(aes(fill = side, alpha = status), width = 0.75) +
+  geom_hline(data = refs, aes(yintercept = y, linetype = line), colour = pal_hydro$values[["median"]],
+             linewidth = 0.4) +
+  geom_text(aes(label = pct(pct)), vjust = -0.35, size = 2.7) +
+  # the mean in m3/s, top right, clear of the first year's bars
+  geom_text(data = ref, aes(x = max(recent) + 0.45, y = ymax, label = label), hjust = 1,
+            vjust = 1, size = 2.7, colour = pal_hydro$values[["median"]]) +
+  facet_grid(station_number ~ period, labeller = labeller(
+    station_number = as_labeller(sub(" \\(", "\n(", station_label)),
+    period = as_labeller(window_label))) +
+  scale_fill_manual(values = pal_side$values, labels = pal_side$labels, name = NULL) +
+  scale_alpha_manual(values = c(approved = 1, provisional = 0.45),
+                     labels = c(approved = "Approved", provisional = "Provisional"), name = NULL) +
+  scale_linetype_manual(values = c(mean = "solid", median = "22"),
+                        labels = c(mean = paste(base_text, "mean"),
+                                   median = paste("Median", base_text, "year")), name = NULL) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, ymax),
+                     expand = expansion(mult = c(0, 0))) +
+  scale_x_continuous(breaks = recent) +
+  labs(x = NULL, y = paste("Percent of", base_text, "mean")) +
+  guides(fill = guide_legend(order = 1), alpha = guide_legend(
+    order = 2, override.aes = list(fill = pal_side$values[["below"]])),
+    linetype = guide_legend(order = 3, override.aes = list(linewidth = 0.5))) +
+  theme(panel.grid.major.x = element_blank(), strip.text.y = element_text(angle = 0, hjust = 0),
+        legend.box = "vertical", legend.spacing.y = unit(0, "pt"), legend.margin = margin(0, 0, 0, 0))
 ```
 
 ## What did the year look like?
