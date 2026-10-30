@@ -1,6 +1,10 @@
 ---
 title: "Stream Discharge per Segment"
 output: bookdown::html_vignette2
+bibliography: segment-discharge.bib
+link-citations: true
+nocite: |
+  @nash_sutcliffe1970Riverflow, @moriasi_etal2007Modelevaluation
 vignette: >
   %\VignetteIndexEntry{Stream Discharge per Segment}
   %\VignetteEngine{knitr::rmarkdown}
@@ -80,8 +84,6 @@ pal_gauge <- classes(reg, "gauge", "calibration")
 pal_outline <- classes(reg, "segment_map", "outline")
 pal_src <- classes(reg, "flow_source", c("observed", "pcic_routed", "wet_balance"))
 pal_hydro <- classes(reg_st, "hydrograph", c("band", "median", "window"))
-pal_bmap <- classes(reg, "bulkley_map", c("catchment_quick", "catchment_houston", "catchment_buck", "stream_main",
-                                          "station"))
 
 theme_set(theme_minimal(base_size = 10) +
             theme(legend.position = "bottom", panel.grid.minor = element_blank()))
@@ -141,8 +143,12 @@ n_src <- stats::setNames(reader$rows / 13, reader$source)
 n_with <- sg[["pick_routed"]] + sg[["pick_balance"]]
 n_both_src <- sum(n_src) - n_with
 stopifnot(all(n_src == round(n_src)))
-# the prose: almost every segment has a value, and the balance covers almost all of BC
-stopifnot(sg[["neither"]] < 0.1 * sg[["fwa"]], n_src[["wet_balance"]] > 0.9 * sg[["fwa"]])
+# the prose: a value on 99.9% of the segments with a watershed of their own (a
+# segment without one is in no source's table), the rest almost all connection
+# lines and secondary channels, and the balance covers almost all of BC
+own_pct <- 100 * (sg[["fwa"]] - sg[["neither"]]) / (sg[["fwa"]] - sg[["no_lut"]])
+stopifnot(sg[["no_lut"]] <= sg[["neither"]], round(own_pct, 1) == 99.9,
+          sg[["no_lut_connector"]] > 0.9 * sg[["no_lut"]], n_src[["wet_balance"]] > 0.9 * sg[["fwa"]])
 built <- as.Date(substr(pub$built, 1, 10))
 built_text <- paste(as.integer(format(built, "%d")), format(built, "%B %Y"))
 
@@ -177,20 +183,16 @@ The R package [`wet`](https://newgraphenvironment.github.io/wet/) publishes the 
 segments, in cubic metres per second, for the year, each month and each
 day. Few streams in BC have a gauge, so this gives almost every one of them
 an estimate: what flow a stream carries in the weeks a fish needs it, and how
-that compares with the next stream. It is public at
-`s3://fresh-bc/discharge/fwa/v1/`. The bucket allows no
-listing, so a reader starts from the manifest, <`r pub$manifest`>, which lists
-every part with its rows, size and md5. The build this article reads has
-`r nrow(parts)` parquet parts, `r format(round(sum(parts$bytes) / 1e9, 2), nsmall = 2)`
-GB, built on `r built_text` at `wet` commit `r pub$wet_commit`.
+that compares with the next stream. It has a value on `r pct1(own_pct)` of the
+segments that drain a watershed of their own. Segments without one, almost
+all connection lines and secondary channels, have none. It is public, in
+three datasets:
 
-- **`segment_monthly`**: one row per segment, month and source with a value,
-  `r num(sum(seg_parts$rows))` rows. Month 0 is the annual mean and months
-  1–12 the calendar months.
+- **`segment_monthly`**: each segment's flow from each source, for the year
+  (month 0) and the twelve calendar months.
 - **`watershed_monthly`**: the same per fundamental watershed, the small
   polygon each segment drains, from the water balance only.
-- **`segment_daily`**: `segment_monthly` per day, `r num(sum(day_parts$rows))` rows
-  (29 February folded into 28), one part per source and watershed group.
+- **`segment_daily`**: `segment_monthly` per day (29 February folded into 28).
 
 Each row comes from one of two sources, both over `r base_text`:
 
@@ -209,7 +211,7 @@ the plain mean of the twelve months; weighting them by their days would move
 it by at most `r sprintf("%.1f%%", wtd_diff)` on the Bulkley segments below.
 
 **Open water balance** (`wet_balance`). `wet`'s own estimate, after
-Chapman et al. ([2018](#ref-chapman2018)):
+@chapman_etal2018Wateralloc:
 precipitation less actual evapotranspiration from climate normals, averaged
 over each watershed's upstream area and adjusted per
 [hydrologic zone](https://catalogue.data.gov.bc.ca/dataset/bc-hydrologic-zones)
@@ -232,15 +234,14 @@ liard <- rg["Liard", ]
 nech <- rg["Nechako Reservoir", ]
 nech_bal <- 100 * nech$wet_balance / (nech$wet_balance + nech$pcic_routed)
 # the prose: routed has no value in the Liard, so the balance is picked there;
-# on the Nechako Reservoir it is picked on nearly every segment; and the cut is a fifth
-# and the segments with neither are almost all connection lines and
-# secondary-flow channels with no lut watershed (by FWA edge type)
+# on the Nechako Reservoir it is picked on nearly every segment; the cut is a fifth;
+# and most segments have both sources
 stopifnot(liard$pcic_routed == 0, liard$wet_balance > 0, nech_bal > 90, ps$far_low == 0.2,
-          sg[["far_low"]] > 0, sg[["no_lut_connector"]] > 0.9 * sg[["neither"]])
+          sg[["far_low"]] > 0, n_both_src > 0.5 * sg[["fwa"]])
 pct_of <- function(n) pct(100 * n / sg[["fwa"]])
 ```
 
-`r num(n_both_src)` segments have a value from both sources, and the two
+Most segments, `r pct_of(n_both_src)`, have a value from both sources, and the two
 differ, so one row per segment is marked as the default with `pick`. It is
 chosen once per segment, on annual flow, and the same source is picked for
 every month and day:
@@ -252,12 +253,9 @@ every month and day:
   gives another line's watershed), routed PCIC is kept however low it is;
 - **whichever has a value**, where only one does.
 
-Of the `r num(sg[["fwa"]])` segments in the Freshwater Atlas, `pick` takes
-routed PCIC on `r num(sg[["pick_routed"]])` (`r pct_of(sg[["pick_routed"]])`),
-the balance on `r num(sg[["pick_balance"]])` (`r pct_of(sg[["pick_balance"]])`;
-`r num(sg[["far_low"]])` of them because routed flow is far low), and
-`r num(sg[["neither"]])` have neither, almost all of them connection lines
-and secondary channels with no watershed polygon of their own. The balance takes every segment with a value in the Liard, where
+`pick` takes routed PCIC on `r pct_of(sg[["pick_routed"]])` of the Freshwater
+Atlas's segments and the balance on `r pct_of(sg[["pick_balance"]])`,
+`r pct_of(sg[["far_low"]])` of them because routed flow is far low. The balance takes every segment with a value in the Liard, where
 routed PCIC has none, and `r pct(nech_bal)` of those in the four Nechako
 Reservoir groups, where routed flow is far below the balance's.
 
@@ -280,10 +278,11 @@ drawn <- sum(mp$drawn[names(mp$drawn) != "none"])
 stopifnot(setequal(names(mp$drawn), c("none", "pcic_routed", "wet_balance")))
 cap_pick <- sprintf(paste(
   "The source `pick` takes on main-flow rivers of stream order %d and up (wider for higher orders), %s of",
-  "BC's segments, and the %d calibration gauges. Smaller streams are not drawn, nor the %s segments of",
+  "BC's segments, and the %d calibration gauges. Smaller streams are not drawn, nor the few (under 1%%) of",
   "that order with neither. Labels name the Liard and the Nechako Reservoir; the scale bar is %d km."
-), mp$min_order, pct(100 * drawn / sg[["fwa"]]), nrow(sk), num(mp$drawn[["none"]]), sb_bc_km)
-stopifnot(setequal(map$regions$name, c("Liard", "Nechako Reservoir")))
+), mp$min_order, pct(100 * drawn / sg[["fwa"]]), nrow(sk), sb_bc_km)
+stopifnot(setequal(map$regions$name, c("Liard", "Nechako Reservoir")),
+          mp$drawn[["none"]] < 0.01 * sum(mp$drawn))
 ```
 
 ```{r map-pick, fig.width = 7, fig.height = 6.6, fig.cap = cap_pick}
@@ -388,10 +387,8 @@ stopifnot(nrow(ch) == 3, all(ch$end > ch$start))  # none crosses the new year
 stage <- sub("_", " ", ch$life_stage)
 windows <- data.frame(window = paste0(toupper(substring(stage, 1, 1)), substring(stage, 2)),
                       start = ch$start, end = ch$end)
-# the windows' one source, which the prose cites, and the fry-migration row's
-# citation carried over from another area's row
-stopifnot(identical(unique(ch$source), "gottesfeld_rabnett2007SkeenaFish"),
-          grepl("other area", ch$note[ch$life_stage == "fry_migration"]))
+# the table cites one source for the three windows, which the prose names
+stopifnot(identical(unique(ch$source), "gottesfeld_rabnett2007SkeenaFish"))
 md_text <- function(md) {
   d <- as.Date(paste0("2001-", md))
   paste(format(d, "%b"), as.integer(format(d, "%d")))
@@ -455,142 +452,36 @@ peak_month <- function(src) {
 stopifnot(peak_month("observed") == 5, peak_month("pcic_routed") == 5)
 ```
 
-```{r map-data}
-# the three catchments nest: Buck Creek's inside Houston's, both inside
-# Quick's, so they are drawn largest first, each over the one before
+```{r geography}
+# the prose: the three gauges nest (Buck Creek's FWA catchment inside Houston's,
+# both inside Quick's), and the Bulkley flows north-west from the Houston gauge
+# to the Quick gauge (BC Albers); catchments and gauge points from monthly_map.rds
 catch <- bmap$catchments
-part_of <- c("08EE004" = "catchment_quick", "08EE003" = "catchment_houston", "08EE013" = "catchment_buck")
-catch$part <- part_of[catch$station_number]
-stopifnot(!anyNA(catch$part))
-catch <- catch[match(names(part_of), catch$station_number), ]
-inside <- function(a, b) {
-  as.numeric(sf::st_area(sf::st_intersection(sf::st_geometry(catch[catch$part == a, ]),
-                                             sf::st_geometry(catch[catch$part == b, ])))) /
-    as.numeric(sf::st_area(catch[catch$part == a, ]))
+area_in <- function(a, b) {
+  ca <- sf::st_geometry(catch[catch$station_number == a, ])
+  cb <- sf::st_geometry(catch[catch$station_number == b, ])
+  stopifnot(length(ca) == 1, length(cb) == 1)
+  as.numeric(sf::st_area(sf::st_intersection(ca, cb))) / as.numeric(sf::st_area(ca))
 }
-stopifnot(inside("catchment_buck", "catchment_houston") > 0.99, inside("catchment_houston", "catchment_quick") > 0.99)
-area_of <- function(s) format(round(one(catch$area_km2[catch$station_number == s])), big.mark = ",")
-# the prose: the gauges' areas here are the fit's (wet's accumulated upstream
-# area), within 10% of the FWA catchments drawn
-a_fit <- stats::setNames(g$area_km2[match(c("08EE013", "08EE004"), g$station_number)], c("08EE013", "08EE004"))
-stopifnot(all(abs(a_fit / catch$area_km2[match(names(a_fit), catch$station_number)] - 1) < 0.1))
-
-map_w <- 7
-map_h <- 6
-bb <- sf::st_bbox(sf::st_buffer(sf::st_union(catch), 3000))
-# room below the catchments for the legend and scale bar
-bb[["ymin"]] <- bb[["ymin"]] - 0.2 * (bb[["ymax"]] - bb[["ymin"]])
-bb <- gq::gq_bbox_aspect(bb, asp = map_w / map_h)
-lim_x <- c(bb[["xmin"]], bb[["xmax"]])
-lim_y <- c(bb[["ymin"]], bb[["ymax"]])
-dx <- diff(lim_x)
-dy <- diff(lim_y)
-
-st <- bmap$stations
-xy <- sf::st_coordinates(st)
-# the Houston gauge sits just west of Buck Creek's mouth: its label goes up
-# and to the left, the other two to the right
-left <- st$station_number == "08EE003"
-st_lab <- data.frame(x = xy[, 1] + ifelse(left, -0.012, 0.012) * dx, y = xy[, 2] + ifelse(left, 0.035, 0) * dy,
-                     label = st_label[st$station_number], hjust = ifelse(left, 1, 0))
-pl <- sf::st_coordinates(bmap$places)
-pl_lab <- data.frame(x = pl[, 1], y = pl[, 2] - 0.03 * dy, label = bmap$places$name)
-
-stream_sty <- reg_main$layers$streams_all$classification$classes$WA24111110
-lake_sty <- reg_main$layers$lake
-town_sty <- reg_main$layers$town
-main_streams <- bmap$streams[bmap$streams$main, ]
-
-# scale bar in the lower right, its length from gq
-sb_km <- max(gq::gq_scale_breaks(bb))
-sb <- data.frame(x = lim_x[2] - 0.05 * dx - sb_km * 1000, y = lim_y[1] + 0.05 * dy)
-sb$xend <- sb$x + sb_km * 1000
-
-# keymap: BC with the map extent, in the upper left
-key <- ggplot() +
-  geom_sf(data = bmap$bc, fill = "white", colour = pal_hydro$values[["median"]], linewidth = 0.2) +
-  geom_sf(data = sf::st_as_sfc(bb), fill = NA, colour = pal_bmap$values[["station"]], linewidth = 0.6) +
-  theme_void() +
-  theme(panel.background = element_rect(fill = "white", colour = pal_hydro$values[["median"]],
-                                        linewidth = 0.3))
-key_w <- 0.22 * dx
-key_h <- key_w * 1.05
-
-cap_map <- sprintf(paste(
-  "The three gauges and the land each one drains: Buck Creek at its mouth (%s km²), the Bulkley at Houston",
-  "just downstream (%s km²), and the Bulkley at Quick (%s km²), which drains both. The Bulkley River and",
-  "Buck Creek are drawn heavier than the other streams of order 5 and up near the catchments, with their",
-  "lakes; the towns of Houston and",
-  "Telkwa, a %d km scale bar, and a keymap (upper left) marking the map's extent in BC."
-), area_of("08EE013"), area_of("08EE003"), area_of("08EE004"), sb_km)
-stopifnot(setequal(bmap$places$name, c("Houston", "Telkwa")),
-          setequal(main_streams$gnis_name, c("Bulkley River", "Buck Creek")),
-          all(bmap$streams$stream_order[!bmap$streams$main] >= 5))
-# the prose: the Bulkley flows north-west from Houston past Telkwa (BC Albers)
-xy_st <- stats::setNames(as.data.frame(sf::st_coordinates(st)), c("x", "y"))
-rownames(xy_st) <- st$station_number
-xy_tk <- sf::st_coordinates(bmap$places[bmap$places$name == "Telkwa", ])
-xy_ho <- sf::st_coordinates(bmap$places[bmap$places$name == "Houston", ])
-stopifnot(xy_st["08EE004", "x"] < xy_st["08EE003", "x"], xy_st["08EE004", "y"] > xy_st["08EE003", "y"],
-          xy_tk[1, "X"] < xy_ho[1, "X"], xy_tk[1, "Y"] > xy_ho[1, "Y"])
+stopifnot(area_in("08EE013", "08EE003") > 0.99, area_in("08EE003", "08EE004") > 0.99)
+xy_st <- sf::st_coordinates(bmap$stations)
+rownames(xy_st) <- bmap$stations$station_number
+stopifnot(xy_st["08EE004", "X"] < xy_st["08EE003", "X"], xy_st["08EE004", "Y"] > xy_st["08EE003", "Y"])
 ```
 
-The Bulkley River, in west-central BC, flows north-west from Houston past
-Telkwa to join the Skeena at Hazelton. Three gauges in its basin sit one
-inside the next. Buck Creek joins the
-Bulkley at Houston; the Houston gauge sits just downstream and measures it too,
-and the Quick gauge, further down, drains the whole basin above. Buck Creek and
-Quick are among the gauges the water balance is built on. Houston is not: it
-reads only in open water and has no complete year in `r base_text`.
+The Bulkley River, in west-central BC, flows north-west from Houston to join
+the Skeena at Hazelton. Three gauges in its basin sit one inside the next.
+Buck Creek joins the Bulkley at Houston; the Houston gauge sits just
+downstream and measures it too, and the Quick gauge, further down, drains the
+whole basin above. Buck Creek and Quick are among the gauges the water
+balance is built on. Houston is not: it reads only in open water and has no
+complete year in `r base_text`.
 
-The strips under the hydrographs are the Chinook salmon windows, the weeks
-each life stage spends in these rivers: adults migrating upstream from
-`r span_of("Migration")`, spawning from `r span_of("Spawning")`, and fry moving
-downstream from `r span_of("Fry migration")`. These are the dates New Graph's
-species-timing table sets for the Bulkley from
-[Gottesfeld and Rabnett (2007)](#ref-gottesfeld2007), who give the early run
-passing Moricetown Canyon before about July 30 and spawning in August and
-September (p. 355); the fry-migration row's citation is carried over from
-another area's.
-
-```{r map, fig.width = map_w, fig.height = map_h, fig.cap = cap_map}
-ggplot() +
-  geom_sf(data = catch, aes(fill = part), colour = pal_hydro$values[["median"]], linewidth = 0.25,
-          key_glyph = "rect") +
-  geom_sf(data = bmap$lakes, fill = lake_sty$fill$color, colour = lake_sty$stroke$color,
-          linewidth = 0.15) +
-  geom_sf(data = bmap$streams[!bmap$streams$main, ], colour = stream_sty$color, linewidth = 0.3) +
-  geom_sf(data = main_streams, aes(colour = "stream_main"), linewidth = 0.8, key_glyph = "path") +
-  geom_label(data = pl_lab, aes(x, y, label = label), colour = town_sty$label$color,
-             fontface = "bold", size = 3.4, linewidth = 0, fill = "white", alpha = 0.85,
-             label.padding = unit(1.5, "pt")) +
-  geom_sf(data = st, aes(shape = "station"), fill = pal_bmap$values[["station"]], colour = "black",
-          size = 3, stroke = 0.4) +
-  geom_label(data = st_lab, aes(x, y, label = label, hjust = hjust), size = 3.2,
-             linewidth = 0, fill = "white", alpha = 0.85, label.padding = unit(1.5, "pt")) +
-  geom_segment(data = sb, aes(x = x, xend = xend, y = y, yend = y), linewidth = 1) +
-  geom_text(data = sb, aes(x = (x + xend) / 2, y = y, label = paste(sb_km, "km")),
-            vjust = -0.7, size = 3.2) +
-  # the keymap takes the upper left, which the basin leaves empty; the
-  # gauge labels run to the right along the top
-  annotation_custom(ggplotGrob(key), xmin = lim_x[1] + 0.02 * dx, xmax = lim_x[1] + key_w + 0.02 * dx,
-                    ymin = lim_y[2] - key_h - 0.02 * dy, ymax = lim_y[2] - 0.02 * dy) +
-  scale_fill_manual(values = pal_bmap$values[part_of], labels = pal_bmap$labels[part_of],
-                    breaks = unname(part_of), name = NULL) +
-  scale_colour_manual(values = pal_bmap$values["stream_main"], labels = pal_bmap$labels["stream_main"],
-                      name = NULL) +
-  scale_shape_manual(values = c(station = 21), labels = pal_bmap$labels["station"], name = NULL) +
-  guides(shape = guide_legend(order = 1, override.aes = list(fill = pal_bmap$values[["station"]])),
-         colour = guide_legend(order = 2), fill = guide_legend(order = 3)) +
-  coord_sf(xlim = lim_x, ylim = lim_y, expand = FALSE, datum = NA) +
-  theme_void(base_size = 12) +
-  theme(legend.position = "inside", legend.position.inside = c(0.02, 0.02),
-        legend.justification = c(0, 0), legend.box.just = "left", legend.box = "vertical",
-        legend.box.background = element_rect(fill = "white", colour = NA),
-        legend.background = element_rect(fill = "white", colour = NA),
-        legend.margin = margin(4, 6, 4, 6), legend.spacing.y = unit(0, "pt"),
-        panel.border = element_rect(fill = NA, colour = pal_hydro$values[["median"]]))
-```
+The strips under the hydrographs are the Chinook salmon windows for the
+Bulkley, from New Graph's species-timing table, which cites
+@gottesfeld_rabnett2007SkeenaFish: adults migrating upstream from `r span_of("Migration")`,
+spawning from `r span_of("Spawning")`, and fry moving downstream from
+`r span_of("Fry migration")`.
 
 ```{r hydro-cap}
 cap_hyd <- paste0(
@@ -852,9 +743,9 @@ the routed comparison leaves out and attributes one by one.
 ```{r score-table}
 note_score <- c(
   "PCIC does not list the gauges it calibrated to, so its errors may be partly in sample.",
-  paste0("Nash–Sutcliffe efficiency (<a href=\"#ref-nash1970\">Nash and Sutcliffe 1970</a>): how much closer a source's twelve months come to ",
+  paste0("Nash–Sutcliffe efficiency (<a href=\"#ref-nash_sutcliffe1970Riverflow\">Nash and Sutcliffe 1970</a>): how much closer a source's twelve months come to ",
          "the gauge's than a flat line at the gauge's annual mean. 1 is a perfect match; 0 is no closer than ",
-         "the flat line. Ratings follow <a href=\"#ref-moriasi2007\">Moriasi and others (2007)</a>: very good above ",
+         "the flat line. Ratings follow <a href=\"#ref-moriasi_etal2007Modelevaluation\">Moriasi and others (2007)</a>: very good above ",
          sprintf("%.2f, good above %.2f, satisfactory above %.2f.", nse_bands[["very good"]], nse_bands[["good"]],
                  nse_bands[["satisfactory"]]))
 )
@@ -1083,7 +974,7 @@ Bulkley gauges were routed again from the sub-basin days there, and the
 balance's months and days were made again from the fit at
 `r paste(pm$shape_stations, collapse = " and ")`; the build's own check of
 its published flows, [its report](`r gh(pub$report)`), covers the rest. The
-province counts are from the segment table that build was cut from. The
+province shares are from the segment table that build was cut from. The
 gauges' daily flows are HYDAT's. The scores compare routed PCIC as
 published, and the balance held out by its fit on HYDAT
 `r substr(ps$hydat_release, 1, 10)`, with HYDAT's observed runoff.
@@ -1105,34 +996,36 @@ published, and the balance held out by its fit on HYDAT
 stopifnot(nzchar(ps$wet_commit), nzchar(map$provenance$wet_commit), nzchar(pm$wet_commit), nzchar(ps$routed_commit))
 ```
 
-```{r citation, results = "asis"}
-# the citation record each package ships (inst/CITATION, or its DESCRIPTION):
-# the first DOI it carries (wet's is its concept DOI), the version, and the commit when
-# the install recorded a full git hash (a build from a checkout records none)
-cat(wet:::wet_software_cite(c("wet", "duckdb", "ggplot2", "gq", "sf")), sep = "\n")
-# the Data line names the shipped annual AET (CGIAR floored by Fu-Budyko) and
-# the snow predictors in the monthly shares
-stopifnot(identical(ps$aet, "cfu"), identical(pm$share_spec, "snow"))
-```
+The product is made with the PostgreSQL tools [`fwapg`](https://smnorris.github.io/fwapg/) and New
+Graph's [fork](https://github.com/NewGraphEnvironment/fwapg/tree/newgraph) of it
+[@norris_irvine2026NewGraphEnvironmentfwapg], and the R package
+[`wet`](https://newgraphenvironment.github.io/wet/); the recipes above read it with
+[`duckdb`](https://r.duckdb.org/), and the figures are drawn with
+[`ggplot2`](https://ggplot2.tidyverse.org/), [`gq`](https://newgraphenvironment.github.io/gq/) and
+[`sf`](https://r-spatial.github.io/sf/). How the balance is built, and each of its choices tested:
+[the water balance method](`r gh("research/water_balance_method.md")`). To cite this package:
 
-Cite `wet` by the DOI above, which resolves to its latest release. How the
-balance is built, and each of its choices tested:
-[the water balance method](`r gh("research/water_balance_method.md")`).
+```{r citation, results = "asis"}
+cat(format(utils::citation("wet"), style = "text"), sep = "\n\n")
+# the Data line names the shipped annual AET (CGIAR floored by Fu-Budyko) and
+# the snow predictors in the monthly shares; the fork's commit is the one
+# segment-discharge.bib carries
+stopifnot(identical(ps$aet, "cfu"), identical(pm$share_spec, "snow"), identical(ps$routed_commit, "7c30f58"))
+```
 
 ### Data
 
+- The product: `s3://fresh-bc/discharge/fwa/v1/`. The bucket allows no listing,
+  so a reader starts from its manifest, <`r pub$manifest`>, as
+  `wet_catalog()` does. This article reads the build of `r built_text`.
 - Routed flow: the Pacific Climate Impacts Consortium, University of Victoria
   ([hydromosaic](https://beehive.pacificclimate.org/chyp/): VIC-GL hydrologic
   model output routed with Raven, PNWNAmet forcing), placed on the Freshwater
-  Atlas by New Graph's fork of `fwapg` (Norris, S. and Irvine, A. (2026),
-  *fwapg, New Graph Environment's fork*,
-  <https://github.com/NewGraphEnvironment/fwapg/tree/newgraph>) at commit
-  `r ps$routed_commit`.
-- Stream network: the Freshwater Atlas Stream Network (Province of British
-  Columbia, Ministry of Forests, Lands, Natural Resource Operations and Rural
-  Development, 2021, <https://catalogue.data.gov.bc.ca/dataset/freshwater-atlas-stream-network>),
-  held in a database by Norris, S. (2024), *fwapg*, <https://github.com/smnorris/fwapg>.
-- Gauge records: the Water Survey of Canada's HYDAT, release
+  Atlas by New Graph's fork of `fwapg` [@norris_irvine2026NewGraphEnvironmentfwapg].
+- Stream network: the Province of British Columbia's Freshwater Atlas Stream
+  Network, through DataBC [@flnrord2021FreshwaterAtlasb].
+- Gauge records: the Water Survey of Canada's HYDAT
+  [@environmentandclimatechangecanada2021NationalWater], release
   `r substr(ps$hydat_release, 1, 10)`.
 - Climate normals, 1981–2010, for the balance: the R package
   [`climr`](https://github.com/bcgov/climr).
@@ -1145,30 +1038,13 @@ balance is built, and each of its choices tested:
   Climate Change Service), through the R package
   [`cd`](https://newgraphenvironment.github.io/cd/).
 - Hydrologic zones: the province's BC Hydrologic Zones.
-- Chinook windows: New Graph's species-timing table, from
-  [Gottesfeld and Rabnett (2007)](#ref-gottesfeld2007).
-- Place names: BC Geographic Names.
+- Chinook windows: New Graph's species-timing table
+  [@gottesfeld_rabnett2007SkeenaFish].
 
-### References
+## References
 
-- <span id="ref-chapman2018"></span>Chapman, A.R., Kerr, B. and Wilford, D.
-  (2018). A water allocation decision-support model and tool for predictions in
-  ungauged basins in Northeast British Columbia, Canada. *Journal of the
-  American Water Resources Association* 54(3), 676–693.
-  [doi:10.1111/1752-1688.12643](https://doi.org/10.1111/1752-1688.12643)
-  ([PDF](https://www2.gov.bc.ca/assets/gov/environment/air-land-water/water/northeast-water-strategy/chapman_et_al-2018-jawra.pdf))
-- <span id="ref-gottesfeld2007"></span>Gottesfeld, A.S. and Rabnett, K.A.
-  (2007). *Skeena Fish Populations and Their Habitat*. Skeena Fisheries
-  Commission.
-- <span id="ref-moriasi2007"></span>Moriasi, D.N., Arnold, J.G., Van Liew,
-  M.W., Bingner, R.L., Harmel, R.D. and Veith, T.L. (2007). Model evaluation
-  guidelines for systematic quantification of accuracy in watershed
-  simulations. *Transactions of the ASABE* 50(3), 885–900.
-  [doi:10.13031/2013.23153](https://doi.org/10.13031/2013.23153)
-- <span id="ref-nash1970"></span>Nash, J.E. and Sutcliffe, J.V. (1970). River
-  flow forecasting through conceptual models part I: a discussion of
-  principles. *Journal of Hydrology* 10(3), 282–290.
-  [doi:10.1016/0022-1694(70)90255-6](https://doi.org/10.1016/0022-1694(70)90255-6)
+::: {#refs}
+:::
 
 ```{r wordcount, include = FALSE}
 f <- knitr::current_input()
