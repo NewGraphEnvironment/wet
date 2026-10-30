@@ -927,6 +927,9 @@ knitr::kable(tab, row.names = FALSE, align = "llrrrrrrr",
 ## Limits
 
 ```{r limits}
+# the bullet on segments without a value: the unmatched are almost all connection
+# lines and secondary channels (by FWA edge type)
+stopifnot(sg[["no_lut_connector"]] > 0.9 * sg[["no_lut"]])
 # the coverage bullet: basins other than the Liard have balance parts and no routed part
 no_rt <- setdiff(seg_parts$code[seg_parts$source == "wet_balance"], seg_parts$code[seg_parts$source == "pcic_routed"])
 stopifnot(length(no_rt) > 1)
@@ -943,7 +946,8 @@ stopifnot(isTRUE(ps$keep_adjust), isFALSE(ps$gate_pass), identical(ps$pooled_var
 - **Segments without a value.** The balance reaches a segment through
   `fwapg`'s lookup matching segments to watershed polygons, and both sources
   are published only on matched segments, so the `r pct_of(sg[["no_lut"]])` of
-  segments matched to none have no value.
+  segments matched to none, almost all connection lines and secondary
+  channels, have no value.
 - **In-sample at the gauges.** On a calibration gauge's own segment the
   published balance is the gauge's own monthly pattern at the balance's
   annual flow (08NM240 and 08NM241, on one watershed, share the mean of
@@ -1003,7 +1007,8 @@ The software, each cited:
   [`kableExtra`](https://haozhu233.github.io/kableExtra/) [@zhu2024kableExtra] make the tables, and
   [`ggplot2`](https://ggplot2.tidyverse.org/) [@wickham2016ggplot2],
   [`gq`](https://newgraphenvironment.github.io/gq/) [@irvine2026gq] and
-  [`sf`](https://r-spatial.github.io/sf/) [@pebesma_bivand2023Spatial] the figures, all in R
+  [`sf`](https://r-spatial.github.io/sf/) [@pebesma_bivand2023Spatial] the figures;
+  [`bookdown`](https://pkgs.rstudio.com/bookdown/) [@xie2026bookdown] renders the article, all in R
   [@rcoreteam2025R].
 
 How the balance is built, and each of its choices tested:

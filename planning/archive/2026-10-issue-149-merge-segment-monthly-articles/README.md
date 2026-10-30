@@ -51,6 +51,29 @@ Two review rounds ran (`review-user-round1.md`, `review-user-round2.md`).
 
 The lessons were added to soul#578 as rules 9 to 13. Review cost for this pass was two more agents, eight in all for the branch.
 
+## After the PR opened: the user's second review
+
+The user's second read changed seven things:
+- **Plain term:** "windows" became "chinook salmon life history timing windows" (then "timing window"), and species names are lower case.
+- **Every package cited:** each package the code and recipes use is cited inline, author-year, ours included: `wet`, both `fwapg`s, `climr`, `cd`, `duckdb`, `DBI`, `RPostgres`, `knitr`, `kableExtra`, `ggplot2`, `gq`, `sf`, `bookdown` and R. The credits are a list with one role per line.
+- **High-level PCIC method:** routed PCIC is one sentence each for PCIC (VIC-GL, Schnorbus 2018; Raven, Craig et al. 2020) and the fork, which links its research notes.
+- **Coverage sentence removed:** the 99.9 % was the user's example of a digestible form, not content to add.
+- **Map up front:** the province map moved up under the opening paragraph.
+
+Body prose went from 1,830 to 1,775 words. Two review rounds ran (`review-user2-round1.md`, `review-user2-round2.md`):
+- **Round 1 found 5:**
+  - four packages were uncited;
+  - "the balance's inputs come through climr and cd" was overstated, since AET and the DEM do not;
+  - sf's publisher was split by single braces;
+  - a guard comment pointed at a deleted sentence;
+  - "almost every stream" was guarded over matched segments with an exact 99.9 pin. It is now guarded over every segment but the unmatched connectors, at 99.8 % and above 99 %.
+- **Round 2 enumerated every changed item and found 3:**
+  - the Limits bullet had lost "almost all connection lines and secondary channels" and its guard, a defect inside round 1's fix;
+  - `'kable'` was title-cased;
+  - `bookdown` was uncited.
+
+All are fixed. The review copy went to the user as a private claude.ai artifact instead of a PDF, which soul#580 proposes as the standing route, and the lessons went to soul#578 as rules 14 to 18. Review cost for this pass was two more agents, ten in all for the branch.
+
 ## Owed
 
 - [ ] After the deploy, fetch `https://newgraphenvironment.github.io/wet/articles/monthly-flow.html` and confirm it redirects. Check the deploy provenance on `gh-pages` first.
