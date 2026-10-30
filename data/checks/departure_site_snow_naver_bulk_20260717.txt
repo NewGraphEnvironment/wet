@@ -83,6 +83,19 @@ The site run's change at 08KE014, mean log departure 2011-2025 minus before 1981
   migration      0.166   55   15    -0.027   26   14
   spawning      -0.336   42   14    -0.530   27   14
 
+Each watershed's mean over 1951-1980 and 2016-2025 (#152):
+
+  gauge     swe 51-80  swe 16-25   change  doy 51-80  doy 16-25   change  ref  rec
+  08KE009       318.7      293.7    -25.0      129.0      118.8    -10.2   30   10
+  08KH006       477.4      459.4    -18.0      141.0      131.5     -9.5   30   10
+  08KE014       243.1      222.5    -20.6      119.9      109.5    -10.5   30   10
+
+The site run's change at 08KE014 over the same periods (its section 5):
+
+  window      extended  ref  rec   carried  ref  rec
+  migration     -0.002   30   10    -0.114   26    9
+  spawning      -0.515   30    9    -0.613   27    9
+
 ## 4. Parity with the shipped snow normals
 
 Normals: data/snow/snow_19812010_4816dbcca8.tif. Rebuilt from the bands read here in tempdir(), its cache key reproduces the shipped file's name, so the normals were built from these bands.

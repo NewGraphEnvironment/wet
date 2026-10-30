@@ -869,3 +869,28 @@ Trend in cd's anomaly of the extended series (cd_trend(): Theil-Sen slope per ye
   2023     5.05     2.54    10.04 08LB038      -28.6     -24.2
   2024     7.80     3.94    15.41 08LB038       10.2     -20.9
   2025     3.96     1.51    10.40 08KA001      -44.1     -11.2
+
+## 5. The change from 1951-1980 to 2016-2025 (#152)
+
+Each route's mean over its 2016-2025 years minus its mean over its 1951-1980 years (log, or days for cov_day); 90 % interval from 2000 draws resampling years in each period and adding a held-out residual to each extended year, or to every carried year; set.seed(152).
+cover: the share of 1000 simulated series with no change whose interval covers zero (each period normal with the series' own SD there, 500 draws each, the same residual pool); set.seed(1520). The comparison article calls the interval a 90 % range only where every cover it draws on is at least 0.87.
+
+  statistic window     ref  rec  extended  % normal      90 % interval  cover    ref  rec   carried  % normal      90 % interval  cover
+  mean      migration   27   10    -0.041      -4.0      -18.8..13.8 %  0.995     27   10    -0.049      -4.8       -16.5..9.6 %  0.977
+  mean      spawning    28   10    -0.321     -27.5       -47.3..0.4 %  0.997     28   10    -0.166     -15.3       -32.0..5.1 %  1.000
+  min7      migration   27   10     0.439      55.1       8.4..125.2 %  1.000     27   10     0.401      49.3      -1.9..123.3 %  0.981
+  min7      spawning    28   10    -0.200     -18.1      -42.1..16.1 %  1.000     28   10     0.010       1.0      -22.9..31.5 %  0.998
+  cov_day   migration   27   10    -8.969         -        -15.9..-1.7  0.917     27   10    -4.893         -          -9.5..0.0  0.937
+  cov_day   spawning    28   10     0.305         -          -2.6..3.3  1.000     28   10     0.862         -          -1.6..3.4  1.000
+  max       migration   27   10    -0.028      -2.7                  -      -     27   10    -0.002      -0.2                  -      -
+  max       spawning    28   10    -0.076      -7.3                  -      -     28   10    -0.166     -15.3                  -      -
+
+The gauges the 1951-1980 years rest on (extended: years per source; carried: every donor named in those years):
+  migration mean: extended 16 08KA001, 11 08KA007; carried 08KA001, 08KA007, 08KA008, 08NC004.
+  spawning mean: extended 16 08KA001, 12 08KA007; carried 08KA001, 08KA007, 08KA008, 08NC004.
+  migration min7: extended 16 08KA001, 11 08KA007; carried 08KA001, 08KA007, 08KA008, 08NC004.
+  spawning min7: extended 16 08KA001, 12 08KA007; carried 08KA001, 08KA007, 08KA008, 08NC004.
+  migration cov_day: extended 16 08KA001, 11 08KA007; carried 08KA001, 08KA007, 08KA008, 08NC004.
+  spawning cov_day: extended 16 08KA001, 12 08KA007; carried 08KA001, 08KA007, 08KA008, 08NC004.
+  migration max: extended 16 08KA001, 11 08KA007; carried 08KA001, 08KA007, 08KA008, 08NC004.
+  spawning max: extended 16 08KA001, 12 08KA007; carried 08KA001, 08KA007, 08KA008, 08NC004.

@@ -888,3 +888,28 @@ Gosnell Creek per year, spawning max: the carried departure (% of normal):
   2022     -48.1             5
   2023     -70.4             5
   2024      40.7             5
+
+## 5. The change from 1951-1980 to 2016-2025 (#152)
+
+Each route's mean over its 2016-2025 years minus its mean over its 1951-1980 years (log, or days for cov_day); 90 % interval from 2000 draws resampling years in each period and adding a held-out residual to each extended year, or to every carried year; set.seed(152).
+cover: the share of 1000 simulated series with no change whose interval covers zero (each period normal with the series' own SD there, 500 draws each, the same residual pool); set.seed(1520). The comparison article calls the interval a 90 % range only where every cover it draws on is at least 0.87.
+
+  statistic window     ref  rec  extended  % normal      90 % interval  cover    ref  rec   carried  % normal      90 % interval  cover
+  mean      migration    -    -         -         -                  -      -     21    9    -0.088      -8.4       -23.6..9.5 %  0.980
+  mean      spawning     -    -         -         -                  -      -     21    9    -0.256     -22.6      -49.6..15.1 %  0.977
+  min7      migration    -    -         -         -                  -      -     21    9     0.117      12.5      -27.9..81.4 %  0.987
+  min7      spawning     -    -         -         -                  -      -     21    9    -0.376     -31.3      -57.4..10.0 %  0.993
+  cov_day   migration    -    -         -         -                  -      -     21    9    -7.668         -         -16.4..0.2  0.996
+  cov_day   spawning     -    -         -         -                  -      -     20    9     1.703         -          -1.6..5.4  0.976
+  max       migration    -    -         -         -                  -      -     21    9     0.004       0.4                  -      -
+  max       spawning     -    -         -         -                  -      -     21    9    -0.171     -15.7                  -      -
+
+The gauges the 1951-1980 years rest on (extended: years per source; carried: every donor named in those years):
+  migration mean: carried 08ED001, 08ED002, 08EE003, 08EE013, 08EE020.
+  spawning mean: carried 08ED001, 08ED002, 08EE003, 08EE013, 08EE020.
+  migration min7: carried 08ED001, 08ED002, 08EE003, 08EE013, 08EE020.
+  spawning min7: carried 08ED001, 08ED002, 08EE003, 08EE013, 08EE020.
+  migration cov_day: carried 08ED001, 08ED002, 08EE003, 08EE013, 08EE020.
+  spawning cov_day: carried 08ED001, 08ED002, 08EE003, 08EE013, 08EE020.
+  migration max: carried 08ED001, 08ED002, 08EE003, 08EE013, 08EE020.
+  spawning max: carried 08ED001, 08ED002, 08EE003, 08EE013, 08EE020.

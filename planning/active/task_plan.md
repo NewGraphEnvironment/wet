@@ -28,7 +28,7 @@ The two listed flow-change articles read as the same article twice. Their titles
 
 ## Phase 2: Does the 90% range hold its coverage at ten years?
 
-- [ ] Rebuilt article: coverage measured inside each site run (Phase 3), because the residual pools its interval draws from exist only there (correction, findings.md).
+- [x] Rebuilt article: coverage measured inside each site run (Phase 3), because the residual pools its interval draws from exist only there (correction, findings.md).
 - [x] Measured article: write `scripts/departure_interval_coverage.R`.
   - Register its rule in the header, committed before any body code.
   - It simulates the measured article's percentile bootstrap of a ratio of means (30 or 18 baseline years against 9 or 10 recent), lognormal per gauge and window. The rebuilt article's coverage is measured in the site runs.
@@ -38,15 +38,15 @@ The two listed flow-change articles read as the same article twice. Their titles
 
 ## Phase 3: The site runs gain the new periods (B1, B3)
 
-- [ ] `scripts/departure_site.R`: register the #152 addition in the header before the body code. It adds a new report section with the change from 1951–1980 to 2016–2025:
+- [x] `scripts/departure_site.R`: register the #152 addition in the header before the body code. It adds a new report section with the change from 1951–1980 to 2016–2025:
   - both routes, every statistic and window;
   - each period's years;
   - a 90% interval from 2000 draws under `set.seed(152)`, taken after #126's draws;
   - the gauges the 1951–1980 years rest on.
   
   `mx_core` and #126's own pre-1981/2011–2025 lines stay as they are, so the parity gate against #120 still holds.
-- [ ] `scripts/departure_site_snow.R`: register and add snow before and after over 1951–1980 against 2016–2025, beside the new flow change. The fits and the parity gate are unchanged.
-- [ ] Commit, then on m4 check out the branch in its clean main checkout. Rerun from a frozen copy:
+- [x] `scripts/departure_site_snow.R`: register and add snow before and after over 1951–1980 against 2016–2025, beside the new flow change. The fits and the parity gate are unchanged.
+- [x] Commit, then on m4 check out the branch in its clean main checkout. Rerun from a frozen copy:
   - `departure_site.R` for maxan, swift, naver and gosnell (two window sets for gosnell);
   - then `departure_site_snow.R` for each.
   

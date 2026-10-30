@@ -96,6 +96,22 @@ The rebuilt article's interval adds held-out residuals drawn from pools (`cr$res
 
 They get citation keys only once Better BibTeX is running again and Zotero has synced and restarted.
 
+## Phase 3: the site runs on m4 (2026-10-30, 21:50–22:04Z, logs `data/logs/152/` on m4)
+
+Every site and snow report changed by additions only (25 and 13 lines), so the parity gates held and neither the published build nor cd's layers drifted. Coverage of every interval with one: 0.904–1.000, so the rebuilt article's ranges stay "90% ranges".
+
+Change from 1951–1980 to 2016–2025, Bulkley windows, % (90% range), carried / extended:
+
+| site | spawning mean | migration mean | spawning min7 | migration min7 |
+|---|---|---|---|---|
+| Maxan | −45 (−67..−11) / −57 (−76..−28) | −16 (−35..7) / −28 (−46..−5) | −40 (−63..−2) / −58 (−78..−21) | −17 / +4 |
+| Swift | −15 (−32..5) / −28 (−47..0) | −5 / −4 | +1 / −18 | +49 (−2..123) / +55 (8..125) |
+| Naver | −46 (−69..−5) / −40 (−67..6) | −11 / 0 | −33 (−56..5) / −25 | −20 / +14 |
+| Gosnell | −35 (−56..−3) | −4 | −26 (−49..13) | +38 |
+| Gosnell, Morice windows | −23 (−50..15) | −8 | −31 (−57..10) | +12 |
+
+Snow over each target's watershed, 1951–1980 to 2016–2025: peak SWE −6 to −10% (Maxan 260→235 mm, Swift 556→524, Naver 243→223, Gosnell 974→891); 50% melt date 9–17 days earlier (Maxan 12.6, Swift 9.0, Naver 10.5, Gosnell 16.5).
+
 ## Errors Encountered
 
 | Error | Resolution |
