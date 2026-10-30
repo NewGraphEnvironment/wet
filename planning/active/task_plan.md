@@ -110,8 +110,8 @@ The two listed flow-change articles read as the same article twice. Their titles
 ## Phase 9: Titles and records (E)
 
 - [x] README "Learn more" lines get the new titles (and lose "how it has trended since", plan review). `_pkgdown.yml` names paths only (checked, no change).
-- [ ] Revise `CLAUDE.md`'s article paragraphs for the new titles, periods and `.bib`. `wet_software_cite()` stays for `short-record-flow`.
-- [ ] Revise `research/chinook_sites.md` and `research/station_flow_departure.md` for the new periods and results.
+- [x] Revise `CLAUDE.md`'s article paragraphs for the new titles, periods and `.bib`. `wet_software_cite()` stays for `short-record-flow`.
+- [x] Revise `research/chinook_sites.md` and `research/station_flow_departure.md` for the new periods and results.
 
 ## Owed at the end (reported, done after merge)
 
