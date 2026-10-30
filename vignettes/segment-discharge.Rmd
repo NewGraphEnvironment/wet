@@ -73,7 +73,6 @@ stopifnot(length(ps$routed_period) == 1, grepl(ps$routed_period, ps$routed, fixe
 # vignette; assert each class set, because a malformed CSV row adds a layer silently
 reg <- gq::gq_reg_custom(system.file("cartography", "wet_segment.csv", package = "wet"))
 reg_st <- gq::gq_reg_custom(system.file("cartography", "wet_station.csv", package = "wet"))
-reg_main <- gq::gq_reg_main()
 classes <- function(r, layer, expect) {
   x <- gq::gq_tmap_classes(r$layers[[layer]])
   stopifnot(identical(names(x$values), expect))
