@@ -519,7 +519,8 @@ key_h <- key_w * 1.05
 cap_map <- sprintf(paste(
   "The three gauges and the land each one drains: Buck Creek at its mouth (%s km²), the Bulkley at Houston",
   "just downstream (%s km²), and the Bulkley at Quick (%s km²), which drains both. The Bulkley River and",
-  "Buck Creek are drawn heavier than the other streams of order 5 and up; lakes, the towns of Houston and",
+  "Buck Creek are drawn heavier than the other streams of order 5 and up near the catchments, with their",
+  "lakes; the towns of Houston and",
   "Telkwa, a %d km scale bar, and a keymap (upper left) marking the map's extent in BC."
 ), area_of("08EE013"), area_of("08EE003"), area_of("08EE004"), sb_km)
 stopifnot(setequal(bmap$places$name, c("Houston", "Telkwa")),
@@ -889,7 +890,8 @@ Where each is weak:
   most of its gauges, not only at the median (low in spring at
   `r pct(100 * mean(g_low))`, high in summer at `r pct(100 * mean(g_high))`),
   so it is the model's, not the placement's: a misplaced outlet changes one
-  gauge's flow, not the season at most of them.
+  gauge's flow; it would not lower the spring at most gauges and raise the
+  summer at most of them.
 - **Spread, the balance.** Across all `r n_bal_gauges` gauges its median
   monthly error is within ±10% in every month, but in no month are half of the
   gauges within ±`r err_cut`%.
