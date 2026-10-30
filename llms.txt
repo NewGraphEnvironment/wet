@@ -63,13 +63,14 @@ xtabs(round(q_m3s) ~ source + month, q)
   what the published yearly, monthly and daily flow is, which source to
   use, how to read it, a year at three Bulkley gauges, and how well each
   source matches the gauges.
-- [Chinook Flow at Two
-  Stations](https://newgraphenvironment.github.io/wet/articles/station-flow.html):
-  how recent flow in three Chinook salmon windows at two stations in the
-  Bulkley compares with its 1981–2010 normal.
+- [How Stream Flow Has Departed from Its 1981–2010
+  Normal](https://newgraphenvironment.github.io/wet/articles/flow-departure-normal.html):
+  a case study at two gauges near Houston, in the Bulkley, of how recent
+  flow in the timing windows chinook salmon use compares with 1981–2010
+  and how it has trended since.
 - [How Stream Flow Has Changed Where Gauges Are
   Few](https://newgraphenvironment.github.io/wet/articles/flow-change-sparse-gauges.html):
-  how summer flow has changed at four streams Chinook salmon use, gauged
+  how summer flow has changed at four streams chinook salmon use, gauged
   for a few summers or never, filled in from nearby gauges.
 - [Water temperature
   functions](https://newgraphenvironment.github.io/wet/reference/index.html#water-temperature):
@@ -305,5 +306,5 @@ out.
   Segment](https://newgraphenvironment.github.io/wet/articles/segment-discharge.md):
 - [How Stream Flow Has Changed Where Gauges Are
   Few](https://newgraphenvironment.github.io/wet/articles/flow-change-sparse-gauges.md):
-- [Chinook Flow at Two
-  Stations](https://newgraphenvironment.github.io/wet/articles/station-flow.md):
+- [How Stream Flow Has Departed from Its 1981–2010 Normal: A Case
+  Study](https://newgraphenvironment.github.io/wet/articles/flow-departure-normal.md):
