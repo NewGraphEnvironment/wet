@@ -1,0 +1,29 @@
+# Progress — Merge the segment-discharge and monthly-flow articles into one article on the published product (#149)
+
+## Session 2026-10-29
+
+- Plan-mode exploration — phases approved by user (gate: keep the segment-discharge address, score on 279 gauges, Fixes #80, take #74's recipe fix)
+- Created branch `149-merge-the-segment-discharge-and-monthly` off origin/main
+- Scaffolded PWF baseline from issue #149 with approved phases
+- Next: start Phase 1
+- Phase 1: rendered both articles from the installed 0.4.29 into the scratchpad. Body prose is 829 + 1,543 = 2,372 words. The Plan review was spawned at 23:22Z.
+- Phase 2: wrote the merged `vignettes/segment-discharge.Rmd` and removed `vignettes/monthly-flow.Rmd`. Body prose is 1,740 words by the cap rule (2,372 before, forecast 1,800–2,000); rendered text up to the citation section is 2,296 words (3,203 before). The cap is now 2,000.
+  - New guards: both bundles name one build, read date, fit, AET and routed run. The yearly and monthly rows score the same gauges, with the same observed and held-out runoff and the same 11 far-low gauges in both bundles. Month by month the two sources score about the same (median NSE within 0.05, gauge-months within ±20 % within 5 points); this guards the corrected lead sentence of "How good it is".
+  - Guards removed with their sentences: #80's `n_both_src > 0.5 * n_with`; monthly-flow's check that `windows` has the shape `wet_flow_window()` and `wet_window_stats()` document (the paragraph about window tables is cut and the windows link to the flow-change article); `r_closer` (the months where routed has more gauges within ±20 %); `n_un`, `n_un_10` and `un_winter` (the balance in winter at the gauges routed PCIC does not reach); and the 12-row month table's and the NSE group table's formatting checks.
+  - Corrected during the render: my first lead said the balance is "less precise" month by month, but the table it introduces gives routed 40 % and the balance 42 % of gauge-months within ±20 %, with median NSE 0.82 for both. It now says the two score about the same month by month, and a guard holds that.
+  - #74's recipe fix: the duckdb group read runs `INSTALL httpfs; LOAD httpfs;`.
+- Phase 3: `_pkgdown.yml` lists one article and redirects `articles/monthly-flow.html`. README "Learn more" has one line, and CLAUDE.md one paragraph for the merged article. The data-raw headers, `research/discharge_publish.md` and `scripts/station_snap_sweep.R`'s comment name the merged article. `scripts/wb_shape_daily.R:95` is left alone: the script is in its own `shape_code_md5`, so even a comment edit would stale `shape_daily.rds` for the monthly data script. Updated the bodies of #145 (title settled here) and #74 (the recipe half is done). The NEWS line moves to the release step, as this repo writes NEWS there.
+- Plan review delivered (Plan agent, `review-plan.md`). Verified and fixed: the far-low sentence (the routed report attributes 6 to placement or snap, 1 to PCIC runoff and 4 unresolved, not all to placement), the ±10 % claim scoped to all 315 gauges, window dates before the hydrographs, the small/large-basin bullets, the repeated "closer at most gauges", routed "low from March to May", `research/water_balance_method.md:81`, and a guard that the bundled daily read used the recipe's window.
+- Phase 4: built the page and the redirect with pkgdown 2.2.0, ran the number check both ways with signs, compared figure md5s, and checked search and sitemap. Body prose is 1,772 words.
+- `/code-check branch` round 1 (`review-round1.md`) found 3 issues, all fixed. The lead claimed "the balance is unbiased" beside a table showing it +9.3 %; the claim is gone. "Both are scored at the 315" was wrong for routed PCIC, which is scored at 279. The setup now also holds `province_run` equal, matching CLAUDE.md's "one fit". Re-rendered: 1,775 words.
+- Round 2 (`review-round2.md`) found 3 bugs and 6 fragile items, all verified and fixed. Bugs: "the shape holds at most of its gauges" (each half does, at 66 % and 68 %, but both together at only 46 %); "a window starts and ends mid-month" (migration covers whole months); "at all 315 gauges its median…" read as a per-gauge claim. Fragile: "or the subset routed PCIC reaches" (round 1's fix; it is scored at 279 of the 290 it reaches); "every one of them" (now "almost every", guarded under a tenth); the stated reason routed days need not average to their month (now clamping, rounding and the February fold); "on the Bulkley River"; `research/discharge_publish.md`'s "both data scripts"; CLAUDE.md's colour and bundle lists. Two of these sit inside earlier fixes (round 1's rewording, and the plan review's "at all 315"), so the loop now ends only on an enumeration. Body prose is 1,805 words.
+- Round 3 (`review-round3.md`) was the terminating enumeration: all 104 factual claims from "What it is" to "Limits", plus every caption, the score footnote and the provenance paragraph. Result: 63 supported by their guard, 24 definitional, 11 true but unguarded, 6 false or overstated, plus 2 doc items. All 8 are fixed:
+  - The Limits bullet now says the *monthly* scores are not split by region (the yearly ones are, by zone).
+  - The held-out neighbours are those "in the same sub-sub-drainage", not "on the same river".
+  - Migration "spans whole months … from 1 May to 1 August" (both ends inclusive; costs under 1 %).
+  - A read takes the segment id and its group, which the days need.
+  - `coverage` is NA on routed rows, now guarded.
+  - The pick map's 6 % counts only the rivers drawn.
+  - `research/discharge_publish.md` names three bundles and the three scripts that read the parts.
+  - CLAUDE.md names the `gq_reg_main()` styles.
+  Each fix was checked with a re-render and a probe of the value it states (routed coverage all NA, drawn counts, `wet_segment_daily()`'s `groups` requirement). The four figures' images are unchanged. Body prose is 1,827 words.

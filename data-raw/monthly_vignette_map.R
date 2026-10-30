@@ -1,5 +1,9 @@
-# Map layers for vignettes/monthly-flow.Rmd (#107), which draws them from
-# inst/vignette-data/ and never touches fwapg, HYDAT or the network at build.
+# Map layers for the Bulkley gauges in vignettes/segment-discharge.Rmd (#107; the
+# monthly-flow article until #149), which reads them from inst/vignette-data/
+# and never touches fwapg, HYDAT or the network at build. Since #149 the article
+# draws no Bulkley map: it reads only the stations and catchments, to guard its
+# sentences on how the gauges nest and which way the Bulkley flows; the other
+# layers are kept so the bundle still holds what a map of the three would need.
 #
 #   Rscript data-raw/monthly_vignette_map.R
 #

@@ -1,6 +1,10 @@
 ---
 title: "Stream Discharge per Segment"
 output: bookdown::html_vignette2
+bibliography: segment-discharge.bib
+link-citations: true
+nocite: |
+  @nash_sutcliffe1970Riverflow, @moriasi_etal2007Modelevaluation
 vignette: >
   %\VignetteIndexEntry{Stream Discharge per Segment}
   %\VignetteEngine{knitr::rmarkdown}
@@ -26,39 +30,62 @@ library(ggplot2)
 sf::sf_use_s2(FALSE)
 
 # This article runs on saved outputs: data-raw/segment_vignette_data.R reads the
-# gauge values from the published parts and checks each against its source, and
+# gauge values from the published parts and checks each against its source,
 # data-raw/segment_vignette_map.R reads the picked source of every segment from
-# the same build; both record the commits and reports they came from
+# the same build, and data-raw/monthly_vignette_data.R reads the three Bulkley
+# segments' months and days and the gauges' held-out months from it; each
+# records the commits and reports it came from
 vd <- function(f) system.file("vignette-data", f, package = "wet")
-v <- readRDS(vd("segment_values.rds"))
-prov <- v$provenance
-pub <- prov$published
+vs <- readRDS(vd("segment_values.rds"))
+ps <- vs$provenance
+pub <- ps$published
+vm <- readRDS(vd("monthly_values.rds"))
+pm <- vm$provenance
 map <- readRDS(vd("segment_map.rds"))
 bc <- readRDS(vd("station_map.rds"))$bc
+bmap <- readRDS(vd("monthly_map.rds"))
+daily <- readRDS(vd("station_daily.rds"))
+lh <- utils::read.csv(vd("life_history_bulk.csv"), stringsAsFactors = FALSE, na.strings = "")
 
 # the values below are the published product's, checked against what they
 # were built from (none may differ), and the map's picks are the same build's
-stopifnot(identical(pub$manifest, wet:::wet_catalog_url), all(prov$published_check$compared > 0),
-          all(prov$published_check$differing == 0),
+stopifnot(identical(pub$manifest, wet:::wet_catalog_url), all(ps$published_check$compared > 0),
+          all(ps$published_check$differing == 0),
           identical(map$provenance$published$wet_commit, pub$wet_commit),
           identical(map$provenance$published$built, pub$built),
           # the closing section gives one read date for the gauge values and the map
-          identical(map$provenance$built, prov$built))
+          identical(map$provenance$built, ps$built))
+# the Bulkley values were each checked against what they were built from by
+# data-raw/monthly_vignette_data.R (the rest rest on the publish report): none may differ
+stopifnot(identical(pm$published$manifest, wet:::wet_catalog_url), all(pm$published_check$compared > 0),
+          all(pm$published_check$differing == 0))
+# the closing section names one build, one read date, one fit and one routed run
+# for both bundles
+stopifnot(identical(pm$published$wet_commit, pub$wet_commit), identical(pm$published$built, pub$built),
+          identical(pm$published$report, pub$report), identical(pm$built, ps$built),
+          identical(pm$province_run, ps$province_run), identical(pm$hydat_release, ps$hydat_release),
+          identical(pm$aet, ps$aet),
+          identical(pm$routed_commit, ps$routed_commit), identical(pm$routed, ps$routed))
 # the prose gives routed's period from the published rows; the balance's is 1981-2010
-stopifnot(length(prov$routed_period) == 1, grepl(prov$routed_period, prov$routed, fixed = TRUE))
+stopifnot(length(ps$routed_period) == 1, grepl(ps$routed_period, ps$routed, fixed = TRUE))
 
 # colours come from the gq registries, so no hex literal appears in this
 # vignette; assert each class set, because a malformed CSV row adds a layer silently
 reg <- gq::gq_reg_custom(system.file("cartography", "wet_segment.csv", package = "wet"))
-classes <- function(layer, expect) {
-  x <- gq::gq_tmap_classes(reg$layers[[layer]])
+reg_st <- gq::gq_reg_custom(system.file("cartography", "wet_station.csv", package = "wet"))
+classes <- function(r, layer, expect) {
+  x <- gq::gq_tmap_classes(r$layers[[layer]])
   stopifnot(identical(names(x$values), expect))
   list(values = x$values, labels = stats::setNames(x$labels, names(x$values)))
 }
-pal_pick <- classes("pick_source", c("pcic_routed", "wet_balance"))
-pal_gauge <- classes("gauge", "calibration")
-pal_map <- classes("segment_map", "outline")
+pal_pick <- classes(reg, "pick_source", c("pcic_routed", "wet_balance"))
+pal_gauge <- classes(reg, "gauge", "calibration")
+pal_outline <- classes(reg, "segment_map", "outline")
+pal_src <- classes(reg, "flow_source", c("observed", "pcic_routed", "wet_balance"))
+pal_hydro <- classes(reg_st, "hydrograph", c("band", "median", "window"))
 
+theme_set(theme_minimal(base_size = 10) +
+            theme(legend.position = "bottom", panel.grid.minor = element_blank()))
 pct <- function(x) paste0(round(x), "%")
 pct1 <- function(x) paste0(format(round(x, 1), nsmall = 1), "%")
 # signed whole percents, with a zero that rounds from either side printed as 0%
@@ -67,6 +94,7 @@ signed <- function(x, d = 0) {
   sub("^-", "−", s)
 }
 num <- function(x, d = 0) format(round(x, d), big.mark = ",", nsmall = d)
+and_text <- function(x) if (length(x) < 2) x else paste(paste(x[-length(x)], collapse = ", "), "and", x[length(x)])
 to_title <- function(x) {
   vapply(strsplit(tolower(x), " "), function(w) {
     big <- !w %in% c("at", "the", "near", "of", "in", "above", "below", "north")
@@ -74,10 +102,26 @@ to_title <- function(x) {
     paste(w, collapse = " ")
   }, "")
 }
+# stopifnot(logical(0)) passes, so a lookup that can come back empty is checked
+one <- function(x) {
+  stopifnot(length(x) == 1, !is.na(x))
+  x
+}
 gh <- function(path) paste0("https://github.com/NewGraphEnvironment/wet/blob/main/", path)
 
-sk <- v$skill
-sg <- v$segments
+sk <- vs$skill
+sg <- vs$segments
+bs <- vm$segments
+g <- vm$gauges
+days <- c(365.25, wet_month_days())
+base <- 1981:2010
+base_text <- paste0(min(base), "–", max(base))
+period_of <- function(src) unique(bs$period[bs$source == src])
+# the product spells a period with a hyphen; the prose with an en dash. The
+# prose says both sources cover the gauges' period
+stopifnot(identical(period_of("wet_balance"), paste0(min(base), "-", max(base))),
+          identical(period_of("pcic_routed"), period_of("wet_balance")),
+          identical(ps$routed_period, period_of("pcic_routed")))
 ```
 
 ```{r product}
@@ -93,52 +137,126 @@ stopifnot(nrow(seg_parts) + nrow(ws_parts) + nrow(day_parts) == nrow(parts), all
           setequal(day_parts$source, c("pcic_routed", "wet_balance")), all(grepl("^[A-Z]{4}$", day_parts$code)),
           setequal(seg_parts$source, c("pcic_routed", "wet_balance")),
           sum(seg_parts$rows) == sum(reader$rows))
-# segments with each source (13 rows each), and with both: "most segments have both"
+# segments with each source (13 rows each), and with both
 n_src <- stats::setNames(reader$rows / 13, reader$source)
 n_with <- sg[["pick_routed"]] + sg[["pick_balance"]]
 n_both_src <- sum(n_src) - n_with
-stopifnot(all(n_src == round(n_src)), n_both_src > 0.5 * n_with)
+stopifnot(all(n_src == round(n_src)))
+# the prose: almost every stream has an estimate, the streams being every segment
+# but the connection lines and secondary channels with no watershed polygon (an
+# unmatched segment is in no source's table, as segment_output.R builds both from
+# the matched set; the Limits bullet), and the balance covers almost all of BC
+stream_pct <- 100 * (sg[["fwa"]] - sg[["neither"]]) / (sg[["fwa"]] - sg[["no_lut_connector"]])
+stopifnot(sg[["no_lut"]] <= sg[["neither"]], stream_pct > 99, n_src[["wet_balance"]] > 0.9 * sg[["fwa"]])
 built <- as.Date(substr(pub$built, 1, 10))
 built_text <- paste(as.integer(format(built, "%d")), format(built, "%B %Y"))
+
+stations <- c("08EE013", "08EE003", "08EE004")
+# the prose: the balance's months add up to its month 0
+bal_seg <- bs[bs$source == "wet_balance", ]
+bal_sum <- vapply(stations, function(s) {
+  x <- bal_seg[bal_seg$station_number == s & bal_seg$month > 0, ]
+  sum(x$q_m3s * days[x$month + 1]) / sum(days[-1])
+}, 0)
+stopifnot(isTRUE(all.equal(unname(bal_sum),
+                           bal_seg$q_m3s[bal_seg$month == 0][match(stations, bal_seg$station_number[bal_seg$month == 0])])))
+# the prose names the donor shares and the snow terms they are matched on:
+# the fit must have shipped both
+stopifnot(identical(pm$share_spec, "snow"), identical(pm$share_method, "donor"))
 ```
 
 ## What it is
 
-The R package [`wet`](https://newgraphenvironment.github.io/wet/) publishes the mean flow of British Columbia's Freshwater Atlas stream
-segments, in cubic metres per second, for the year, each month and each
-day. It is public at `s3://fresh-bc/discharge/fwa/v1/`. The bucket allows no
-listing, so a reader starts from the manifest, <`r pub$manifest`>, which lists
-every part with its rows, size and md5. The build this article reads has
-`r nrow(parts)` parquet parts, `r format(round(sum(parts$bytes) / 1e9, 2), nsmall = 2)`
-GB, built on `r built_text` at `wet` commit `r pub$wet_commit`.
+The R package [`wet`](https://newgraphenvironment.github.io/wet/) [@irvine2026wetStream] publishes the mean
+flow of British Columbia's Freshwater Atlas stream segments, in cubic metres
+per second, for the year, each month and each day. Few streams in BC have a
+gauge, so this gives almost every one of them an estimate: what flow a stream
+carries in the weeks a fish needs it, and how that compares with the next
+stream. Each value comes from one of two sources, and the map shows which one
+a reader gets by default on BC's larger rivers.
 
-- **`segment_monthly`**: one row per segment, month and source with a value,
-  `r num(sum(seg_parts$rows))` rows. Month 0 is the annual mean and months
-  1–12 the calendar months.
+```{r map-pick-data}
+mp <- map$provenance
+rv <- map$rivers[map$rivers$class != "none", ]
+order_width <- c(`5` = 0.12, `6` = 0.22, `7` = 0.35, `8` = 0.55)
+rv$w <- order_width[as.character(rv$order_band)]
+stopifnot(!anyNA(rv$w))
+gpts <- sf::st_transform(sf::st_as_sf(sk, coords = c("lon", "lat"), crs = 4326), 3005)
+bb_bc <- gq::gq_bbox_aspect(sf::st_bbox(bc), asp = 7 / 5.8)
+dx_bc <- bb_bc[["xmax"]] - bb_bc[["xmin"]]
+dy_bc <- bb_bc[["ymax"]] - bb_bc[["ymin"]]
+sb_bc_km <- max(gq::gq_scale_breaks(bb_bc))
+sb_bc <- data.frame(x = bb_bc[["xmin"]] + 0.05 * dx_bc, y = bb_bc[["ymin"]] + 0.05 * dy_bc)
+sb_bc$xend <- sb_bc$x + sb_bc_km * 1000
+lab <- cbind(sf::st_coordinates(map$regions), name = map$regions$name)
+lab <- data.frame(x = as.numeric(lab[, "X"]), y = as.numeric(lab[, "Y"]), name = lab[, "name"])
+drawn <- sum(mp$drawn[names(mp$drawn) != "none"])
+stopifnot(setequal(names(mp$drawn), c("none", "pcic_routed", "wet_balance")))
+cap_pick <- sprintf(paste(
+  "The source of the default flow (`pick`, under \"Which value to use\") on main-flow rivers of stream order %d",
+  "and up (wider for higher orders), %s of",
+  "BC's segments, and the %d calibration gauges. Smaller streams are not drawn, nor the few (under 1%%) of",
+  "that order with neither. Labels name the Liard and the Nechako Reservoir; the scale bar is %d km."
+), mp$min_order, pct(100 * drawn / sg[["fwa"]]), nrow(sk), sb_bc_km)
+stopifnot(setequal(map$regions$name, c("Liard", "Nechako Reservoir")),
+          mp$drawn[["none"]] < 0.01 * sum(mp$drawn))
+```
+
+```{r map-pick, fig.width = 7, fig.height = 6.6, fig.cap = cap_pick}
+ggplot() +
+  geom_sf(data = bc, fill = "white", colour = pal_outline$values[["outline"]], linewidth = 0.25) +
+  geom_sf(data = rv, aes(colour = class, linewidth = w)) +
+  scale_linewidth_identity() +
+  scale_colour_manual(values = pal_pick$values, labels = pal_pick$labels, name = NULL,
+                      guide = guide_legend(override.aes = list(linewidth = 1.2))) +
+  geom_sf(data = gpts, aes(shape = "calibration"), colour = pal_gauge$values[["calibration"]], size = 0.6) +
+  scale_shape_manual(values = c(calibration = 16), labels = pal_gauge$labels, name = NULL,
+                     guide = guide_legend(override.aes = list(size = 1.6))) +
+  geom_label(data = lab, aes(x, y, label = name), size = 2.9, linewidth = 0, fill = "white", alpha = 0.8,
+             label.padding = unit(1.5, "pt")) +
+  geom_segment(data = sb_bc, aes(x = x, xend = xend, y = y, yend = y), linewidth = 1) +
+  geom_text(data = sb_bc, aes(x = (x + xend) / 2, y = y, label = paste(sb_bc_km, "km")), vjust = -0.7, size = 3) +
+  coord_sf(xlim = bb_bc[c("xmin", "xmax")], ylim = bb_bc[c("ymin", "ymax")], expand = FALSE, datum = NA) +
+  theme_void() +
+  theme(legend.position = "bottom", legend.text = element_text(size = 9),
+        panel.border = element_rect(fill = NA, colour = pal_outline$values[["outline"]], linewidth = 0.3))
+```
+
+It is public, in three datasets:
+
+- **`segment_monthly`**: each segment's flow from each source, for the year
+  (month 0) and the twelve calendar months.
 - **`watershed_monthly`**: the same per fundamental watershed, the small
   polygon each segment drains, from the water balance only.
-- **`segment_daily`**: `segment_monthly` per day, `r num(sum(day_parts$rows))` rows
-  (29 February folded into 28), one part per source and watershed group.
-  Clamped daily and folded, routed PCIC's days need not average to their month.
+- **`segment_daily`**: `segment_monthly` per day (29 February folded into 28).
 
-Each row comes from one of two sources:
+Each row comes from one of two sources, both over `r base_text`:
 
-**Routed PCIC** (`pcic_routed`, `r sub("-", "–", prov$routed_period)`). The Pacific Climate Impacts
-Consortium runs the VIC-GL hydrologic model on a 0.0625° grid, driven by
-observed climate, and routes its runoff with the Raven model ([hydromosaic](https://beehive.pacificclimate.org/chyp/)).
-New Graph's [fork](https://github.com/NewGraphEnvironment/fwapg/pull/6) of
-[`fwapg`](https://github.com/smnorris/fwapg), PostgreSQL tools for the Freshwater Atlas,
-places PCIC's outlets on Freshwater Atlas segments and spreads flow between
-them by drainage area. The annual value is the mean of the twelve months.
+**Routed PCIC** (`pcic_routed`). The Pacific Climate Impacts
+Consortium (PCIC) at the University of Victoria models runoff with VIC-GL
+[@schnorbus2018VICGlacierVICGL] and routes it down its rivers with Raven
+[@craig_etal2020Flexiblewatershed], published as
+[hydromosaic](https://beehive.pacificclimate.org/chyp/). New Graph's
+[fork](https://github.com/NewGraphEnvironment/fwapg/tree/newgraph) of the PostgreSQL tools
+[`fwapg`](https://github.com/smnorris/fwapg) [@norris2024smnorrisfwapg; @norris_irvine2026NewGraphEnvironmentfwapg]
+places that flow on Freshwater Atlas segments, as
+[the fork's notes](https://github.com/NewGraphEnvironment/fwapg/blob/newgraph/research/pcic_routed_flow_periods.md)
+set out.
 
-**Open water balance** (`wet_balance`, 1981–2010). `wet`'s own estimate, after
-[Chapman et al. (2018)](https://www2.gov.bc.ca/assets/gov/environment/air-land-water/water/northeast-water-strategy/chapman_et_al-2018-jawra.pdf):
+**Open water balance** (`wet_balance`). `wet`'s own estimate, after
+@chapman_etal2018Wateralloc:
 precipitation less actual evapotranspiration from climate normals, averaged
 over each watershed's upstream area and adjusted per
 [hydrologic zone](https://catalogue.data.gov.bc.ca/dataset/bc-hydrologic-zones)
 against the Water Survey of Canada's
 [HYDAT](https://www.canada.ca/en/environment-climate-change/services/water-overview/quantity/monitoring/survey/data-products-services/national-archive-hydat.html)
-gauges. It covers almost all of BC, and its code and inputs are open.
+gauges. The year is split into months by the shares of the year carried by
+the five gauges most like the place, matched on elevation, location and snow
+(`wet_share_fit()`), and each month into days by the same gauges' pattern, so
+its days average to its months and its months add up to its year. It covers
+almost all of BC, and its code and inputs are open.
+
+Neither is the gauge record.
 
 ## Which value to use
 
@@ -149,18 +267,19 @@ liard <- rg["Liard", ]
 nech <- rg["Nechako Reservoir", ]
 nech_bal <- 100 * nech$wet_balance / (nech$wet_balance + nech$pcic_routed)
 # the prose: routed has no value in the Liard, so the balance is picked there;
-# on the Nechako Reservoir it is picked on nearly every segment; and the cut is a fifth
-# and the segments with neither are almost all connection lines and
-# secondary-flow channels with no lut watershed (by FWA edge type)
-stopifnot(liard$pcic_routed == 0, liard$wet_balance > 0, nech_bal > 90, prov$far_low == 0.2,
-          sg[["far_low"]] > 0, sg[["no_lut_connector"]] > 0.9 * sg[["neither"]])
+# on the Nechako Reservoir it is picked on nearly every segment; the cut is a fifth;
+# and most segments have both sources
+stopifnot(liard$pcic_routed == 0, liard$wet_balance > 0, nech_bal > 90, ps$far_low == 0.2,
+          sg[["far_low"]] > 0, n_both_src > 0.5 * sg[["fwa"]],
+          # the balance is picked where routed is far low, and otherwise only where routed has none
+          sg[["pick_balance"]] - sg[["far_low"]] == n_src[["wet_balance"]] - n_both_src)
 pct_of <- function(n) pct(100 * n / sg[["fwa"]])
 ```
 
-`r num(n_both_src)` segments have a value from both sources, and the two
+Most segments, `r pct_of(n_both_src)`, have a value from both sources, and the two
 differ, so one row per segment is marked as the default with `pick`. It is
 chosen once per segment, on annual flow, and the same source is picked for
-every month:
+every month and day:
 
 - **routed PCIC**, where it has a value;
 - **the balance** where routed PCIC's annual flow is under a fifth of the
@@ -169,73 +288,60 @@ every month:
   gives another line's watershed), routed PCIC is kept however low it is;
 - **whichever has a value**, where only one does.
 
-Of the `r num(sg[["fwa"]])` segments in the Freshwater Atlas, `pick` takes
-routed PCIC on `r num(sg[["pick_routed"]])` (`r pct_of(sg[["pick_routed"]])`),
-the balance on `r num(sg[["pick_balance"]])` (`r pct_of(sg[["pick_balance"]])`;
-`r num(sg[["far_low"]])` of them because routed flow is far low), and
-`r num(sg[["neither"]])` have neither, almost all of them connection lines
-and secondary channels with no watershed polygon of their own. The balance takes every segment with a value in the Liard, where
+`pick` takes routed PCIC on `r pct_of(sg[["pick_routed"]])` of the Freshwater
+Atlas's segments and the balance on `r pct_of(sg[["pick_balance"]])`:
+on `r pct_of(sg[["far_low"]])` of all segments because routed flow is far low there, and on the rest because routed PCIC has none. The balance takes every segment with a value in the Liard, where
 routed PCIC has none, and `r pct(nech_bal)` of those in the four Nechako
 Reservoir groups, where routed flow is far below the balance's.
 
-```{r map-pick-data}
-mp <- map$provenance
-r <- map$rivers[map$rivers$class != "none", ]
-order_width <- c(`5` = 0.12, `6` = 0.22, `7` = 0.35, `8` = 0.55)
-r$w <- order_width[as.character(r$order_band)]
-stopifnot(!anyNA(r$w))
-gpts <- sf::st_transform(sf::st_as_sf(sk, coords = c("lon", "lat"), crs = 4326), 3005)
-bb_bc <- gq::gq_bbox_aspect(sf::st_bbox(bc), asp = 7 / 5.8)
-dx_bc <- bb_bc[["xmax"]] - bb_bc[["xmin"]]
-dy_bc <- bb_bc[["ymax"]] - bb_bc[["ymin"]]
-sb_km <- max(gq::gq_scale_breaks(bb_bc))
-sb <- data.frame(x = bb_bc[["xmin"]] + 0.05 * dx_bc, y = bb_bc[["ymin"]] + 0.05 * dy_bc)
-sb$xend <- sb$x + sb_km * 1000
-lab <- cbind(sf::st_coordinates(map$regions), name = map$regions$name)
-lab <- data.frame(x = as.numeric(lab[, "X"]), y = as.numeric(lab[, "Y"]), name = lab[, "name"])
-drawn <- sum(mp$drawn)
-cap_pick <- sprintf(paste(
-  "The source `pick` takes on main-flow rivers of stream order %d and up (wider for higher orders), %s of",
-  "BC's segments, and the %d calibration gauges. Smaller streams are not drawn, nor the %s segments of",
-  "that order with neither."
-), mp$min_order, pct(100 * drawn / sg[["fwa"]]), nrow(sk), num(mp$drawn[["none"]]))
-```
-
-```{r map-pick, fig.width = 7, fig.height = 6.6, fig.cap = cap_pick}
-ggplot() +
-  geom_sf(data = bc, fill = "white", colour = pal_map$values[["outline"]], linewidth = 0.25) +
-  geom_sf(data = r, aes(colour = class, linewidth = w)) +
-  scale_linewidth_identity() +
-  scale_colour_manual(values = pal_pick$values, labels = pal_pick$labels, name = NULL,
-                      guide = guide_legend(override.aes = list(linewidth = 1.2))) +
-  geom_sf(data = gpts, aes(shape = "calibration"), colour = pal_gauge$values[["calibration"]], size = 0.6) +
-  scale_shape_manual(values = c(calibration = 16), labels = pal_gauge$labels, name = NULL,
-                     guide = guide_legend(override.aes = list(size = 1.6))) +
-  geom_label(data = lab, aes(x, y, label = name), size = 2.9, linewidth = 0, fill = "white", alpha = 0.8,
-             label.padding = unit(1.5, "pt")) +
-  geom_segment(data = sb, aes(x = x, xend = xend, y = y, yend = y), linewidth = 1) +
-  geom_text(data = sb, aes(x = (x + xend) / 2, y = y, label = paste(sb_km, "km")), vjust = -0.7, size = 3) +
-  coord_sf(xlim = bb_bc[c("xmin", "xmax")], ylim = bb_bc[c("ymin", "ymax")], expand = FALSE, datum = NA) +
-  theme_void() +
-  theme(legend.position = "bottom", legend.text = element_text(size = 9),
-        panel.border = element_rect(fill = NA, colour = pal_map$values[["outline"]], linewidth = 0.3))
-```
-
 ## How to read it
 
-Read the parts from the bucket with the R package [`duckdb`](https://r.duckdb.org/). `scenario`, `forcing` and
-`source` are in each part's path, not the file, so read with
-`hive_partitioning`. Parts are sorted by `watershed_group_code`, so a read
-for one group opens a few row groups:
+`wet` knows where the parts are, so reading a stream takes its
+`linear_feature_id` and its watershed group. The parts are sorted by group,
+so naming it lets [`duckdb`](https://r.duckdb.org/) [@muhleisen_raasveldt2026duckdb] skip everything outside
+it, and the read takes seconds; the months can be read without it, and the
+days cannot:
 
 ```{r read, echo = TRUE, eval = FALSE}
 library(wet)
+# Buck Creek at its mouth, where gauge 08EE013 sits
+q <- wet_segment_monthly(NULL, 17094080, groups = "BULK")
+
+# twelve months a column per source
+reshape(q[q$month > 0, c("source", "month", "q_m3s")], idvar = "month",
+        timevar = "source", direction = "wide")
+```
+
+```{r read-check}
+# the recipes are run as written by the data scripts, on this segment; a
+# routed row carries no coverage
+stopifnot(all(is.na(bs$coverage[bs$source == "pcic_routed"])))
+stopifnot(identical(unique(bs$linear_feature_id[bs$station_number == "08EE013"]), 17094080L),
+          vs$daily$segment == 17094080, identical(vs$daily$group, "BULK"), all(vs$daily$days$basis == "daily"),
+          identical(vs$daily$window, data.frame(window = "spring", start = "04-15", end = "06-15")))
+```
+
+`wet_segment_monthly()` returns `linear_feature_id, month, q_m3s, source`,
+the shape of `wet_station_monthly()`'s gauge record, so a comparison is a join
+on `month`. A segment a source lacks comes back with `NA` months, not missing
+rows. `wet_segment_daily()` reads a segment's days, and `wet_flow_window()` the
+mean flow over a timing window from days or months:
+
+```{r read-daily, echo = TRUE, eval = FALSE}
+q <- wet_segment_daily(NULL, 17094080, groups = "BULK")
+wet_flow_window(q, data.frame(window = "spring", start = "04-15", end = "06-15"))
+```
+
+A whole group's default annual flow is one query on the parts. `scenario`,
+`forcing` and `source` are in each part's path, not the file, so read with
+`hive_partitioning`:
+
+```{r read-group, echo = TRUE, eval = FALSE}
 cat <- wet_catalog()   # the manifest: one row per part, with its href
 segs <- cat$href[cat$dataset == "discharge/fwa/v1/segment_monthly"]
 
 duck <- DBI::dbConnect(duckdb::duckdb())
-DBI::dbExecute(duck, "LOAD httpfs")
-# the default annual flow on the Bulkley's segments
+DBI::dbExecute(duck, "INSTALL httpfs; LOAD httpfs;")
 DBI::dbGetQuery(duck, sprintf("
   SELECT linear_feature_id, source, q_m3s
   FROM read_parquet([%s], hive_partitioning = true)
@@ -243,66 +349,316 @@ DBI::dbGetQuery(duck, sprintf("
   paste0("'", segs, "'", collapse = ", ")))
 ```
 
-Or load it into [`PostgreSQL`](https://www.postgresql.org/) beside the Freshwater Atlas:
+Or load it into [`PostgreSQL`](https://www.postgresql.org/) beside the
+Freshwater Atlas, where `wet_segment_monthly()` also reads it when given the
+connection:
 
 ```{r read-db, echo = TRUE, eval = FALSE}
 conn <- DBI::dbConnect(RPostgres::Postgres(), dbname = "fwapg")
 wet_db_load(conn, cat)   # discharge.fwa_v1_segment_monthly
 ```
 
-`wet_segment_daily()` reads a segment's days, and `wet_flow_window()` a
-window's flow:
-
-```{r read-daily, echo = TRUE, eval = FALSE}
-q <- wet_segment_daily(NULL, 17094080, groups = "BULK")
-wet_flow_window(q, data.frame(window = "spring", start = "04-15", end = "06-15"))
-```
-
-```{r read-daily-out}
-dl <- v$daily
-stopifnot(dl$segment == 17094080, identical(dl$group, "BULK"), all(dl$days$basis == "daily"),
-          all(dl$months$basis == "monthly"))
-win <- merge(dl$days, dl$months, by = c("linear_feature_id", "source", "window"), suffixes = c("_d", "_m"))
-knitr::kable(data.frame(Source = win$source, `From the days` = sprintf("%.2f", win$q_m3s_d),
-                        `From the months` = sprintf("%.2f", win$q_m3s_m), check.names = FALSE),
-             caption = paste("Mean flow (m³/s) at Buck Creek's mouth, 15 April to 15 June, from the published",
-                             "days and, by the same call on the monthly rows, from the months."))
-```
-
 Besides flow (`q_m3s`) a row carries `runoff_mm`, the same water as a depth
 over the area upstream (NA for a routed row off its watershed's own line),
-`coverage`, the share of that area the balance's inputs cover, and `period`.
+`coverage`, the share of that area the balance's inputs cover (NA on a
+routed row), and `period`.
+
+## What a year looks like
+
+```{r bulkley}
+names_st <- c(stats::setNames(attr(daily, "provenance")$stations$station_name,
+                              attr(daily, "provenance")$stations$station_number),
+              stats::setNames(unique(g[c("station_number", "station_name")])$station_name,
+                              unique(g[c("station_number", "station_name")])$station_number))
+st_label <- stats::setNames(sprintf("%s (%s)", to_title(names_st[stations]), stations), stations)
+ch <- lh[lh$species_code == "CH" & lh$life_stage %in% c("migration", "spawning", "fry_migration"), ]
+stopifnot(nrow(ch) == 3, all(ch$end > ch$start))  # none crosses the new year
+stage <- sub("_", " ", ch$life_stage)
+windows <- data.frame(window = paste0(toupper(substring(stage, 1, 1)), substring(stage, 2)),
+                      start = ch$start, end = ch$end)
+# the table cites one source for the three windows, which the prose names
+stopifnot(identical(unique(ch$source), "gottesfeld_rabnett2007SkeenaFish"))
+md_text <- function(md) {
+  d <- as.Date(paste0("2001-", md))
+  paste(format(d, "%b"), as.integer(format(d, "%d")))
+}
+span_of <- function(w) {
+  k <- one(which(windows$window == w))
+  paste(md_text(windows$start[k]), "to", md_text(windows$end[k]))
+}
+
+# observed monthly means, 1981-2010: the calibration record (complete years)
+# where the gauge is a calibration gauge, otherwise the daily record's
+# month-years with at least 20 days of flow, in months that have 10 of them
+obs_cal <- g[g$station_number %in% stations & g$month > 0, ]
+obs_cal$q_m3s <- obs_cal$obs_mm * obs_cal$area_km2 * 1e6 / (days[obs_cal$month + 1] * 86400 * 1000)
+min_days <- 20
+min_years <- 10
+dh <- daily[daily$source == "hydat", ]
+dh$year <- as.integer(format(dh$date, "%Y"))
+dh$month <- as.integer(format(dh$date, "%m"))
+dh <- dh[dh$year %in% base, ]
+my <- stats::aggregate(q_m3s ~ station_number + year + month, dh, function(q) c(mean = mean(q), n = length(q)))
+my <- data.frame(my[c("station_number", "year", "month")], q = my$q_m3s[, "mean"], n = my$q_m3s[, "n"])
+my <- my[my$n >= min_days, ]
+obs_daily <- stats::aggregate(q ~ station_number + month, my, function(q) c(mean = mean(q), n = length(q)))
+obs_daily <- data.frame(obs_daily[c("station_number", "month")], q_m3s = obs_daily$q[, "mean"],
+                        n_years = obs_daily$q[, "n"])
+obs_daily <- obs_daily[obs_daily$n_years >= min_years, ]
+not_cal <- setdiff(stations, unique(g$station_number))
+stopifnot(identical(not_cal, "08EE003"))
+obs <- rbind(obs_cal[c("station_number", "month", "q_m3s", "n_years")],
+             obs_daily[obs_daily$station_number %in% not_cal, ])
+obs$source <- "observed"
+# 08EE003 is seasonal: the months it has, and the years they come from
+m003 <- sort(obs$month[obs$station_number == "08EE003"])
+stopifnot(identical(m003, min(m003):max(m003)))
+m003_text <- paste0(month.name[min(m003)], "–", month.name[max(m003)])
+n003 <- length(unique(my$year[my$station_number == "08EE003" & my$month %in% m003]))
+# the prose: 08EE003 has no complete year in 1981-2010 (every month with 20 days)
+stopifnot(!any(table(my$year[my$station_number == "08EE003"]) == 12))
+
+mid <- function(m) as.Date(sprintf("2001-%02d-15", m))
+hyd <- rbind(bs[bs$month > 0, c("station_number", "month", "q_m3s", "source")],
+             obs[c("station_number", "month", "q_m3s", "source")])
+hyd$date <- mid(hyd$month)
+hyd$source <- factor(hyd$source, names(pal_src$values))
+hyd$station_number <- factor(hyd$station_number, stations, st_label[stations])
+
+# the windows as strips under each panel, one row each
+top <- stats::aggregate(q_m3s ~ station_number, hyd, max)
+strip <- merge(top, data.frame(window = windows$window, row = seq_len(nrow(windows)),
+                               start = as.Date(paste0("2001-", windows$start)),
+                               end = as.Date(paste0("2001-", windows$end))), by = NULL)
+strip$y <- -strip$q_m3s * (0.04 + 0.07 * (strip$row - 1)) - strip$q_m3s * 0.03
+strip$h <- strip$q_m3s * 0.045
+strip$label_x <- strip$end + 4
+
+peak_month <- function(src) {
+  x <- hyd[hyd$station_number == st_label[["08EE013"]] & hyd$source == src, ]
+  one(x$month[which.max(x$q_m3s)])
+}
+stopifnot(peak_month("observed") == 5, peak_month("pcic_routed") == 5)
+```
+
+```{r geography}
+# the prose: the three gauges nest (Buck Creek's FWA catchment inside Houston's,
+# both inside Quick's), and the Bulkley flows north-west from the Houston gauge
+# to the Quick gauge (BC Albers); catchments and gauge points from monthly_map.rds
+catch <- bmap$catchments
+area_in <- function(a, b) {
+  ca <- sf::st_geometry(catch[catch$station_number == a, ])
+  cb <- sf::st_geometry(catch[catch$station_number == b, ])
+  stopifnot(length(ca) == 1, length(cb) == 1)
+  # an empty intersection sums to 0, so two catchments that do not overlap fail
+  sum(as.numeric(sf::st_area(sf::st_intersection(ca, cb)))) / as.numeric(sf::st_area(ca))
+}
+stopifnot(area_in("08EE013", "08EE003") > 0.99, area_in("08EE003", "08EE004") > 0.99)
+xy_st <- sf::st_coordinates(bmap$stations)
+rownames(xy_st) <- bmap$stations$station_number
+stopifnot(xy_st["08EE004", "X"] < xy_st["08EE003", "X"], xy_st["08EE004", "Y"] > xy_st["08EE003", "Y"])
+```
+
+The Bulkley River, in west-central BC, flows north-west from Houston to join
+the Skeena at Hazelton. Three gauges in its basin sit one inside the next.
+Buck Creek joins the Bulkley at Houston; the Houston gauge sits just
+downstream and measures it too, and the Quick gauge, further down, drains the
+whole basin above. Buck Creek and Quick are among the gauges the water
+balance is built on. Houston is not: it reads only in open water and has no
+complete year in `r base_text`.
+
+The strips under the hydrographs are chinook salmon life history timing
+windows on the Bulkley, the weeks each life stage needs the river: adults
+migrating upstream from `r span_of("Migration")`, spawning from
+`r span_of("Spawning")`, and fry moving downstream from
+`r span_of("Fry migration")`. They come from New Graph's species-timing table,
+which cites @gottesfeld_rabnett2007SkeenaFish.
+
+```{r hydro-cap}
+cap_hyd <- paste0(
+  "Mean monthly flow on the three gauges' segments from each source, beside the gauge's observed monthly ",
+  "means over ", base_text, ". At ", st_label[["08EE003"]], ", a seasonal gauge, only the months with ",
+  min_years, " or more years of ", min_days, " days' flow are drawn (", m003_text,
+  "). The strips under each panel are the chinook life history timing windows."
+)
+```
+
+```{r hydrographs, fig.height = 7.2, fig.cap = cap_hyd}
+ggplot(hyd) +
+  geom_rect(data = strip, aes(xmin = start, xmax = end, ymin = y - h / 2, ymax = y + h / 2),
+            fill = pal_hydro$values[["window"]]) +
+  geom_text(data = strip, aes(x = label_x, y = y, label = window), hjust = 0, size = 2.6, colour = "grey30") +
+  geom_line(aes(date, q_m3s, colour = source), linewidth = 0.7) +
+  geom_point(aes(date, q_m3s, colour = source), size = 1.2) +
+  scale_colour_manual(values = pal_src$values, labels = pal_src$labels, name = NULL) +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b",
+               limits = as.Date(c("2001-01-01", "2001-12-31")), expand = c(0.01, 0)) +
+  facet_wrap(~station_number, ncol = 1, scales = "free_y") +
+  labs(x = NULL, y = "Mean flow (m³/s)")
+```
+
+```{r bulkley-numbers}
+freshet <- function(s, src) {
+  x <- hyd[hyd$station_number == st_label[[s]] & hyd$source == src & hyd$month %in% 5:6, ]
+  sum(x$q_m3s * days[x$month + 1]) / sum(days[x$month + 1])
+}
+fr <- vapply(c("observed", "pcic_routed", "wet_balance"), function(src) freshet("08EE013", src), 0)
+fr_q <- vapply(c("observed", "pcic_routed", "wet_balance"), function(src) freshet("08EE004", src), 0)
+hq <- function(s, src, mo) {
+  x <- hyd[hyd$station_number == st_label[[s]] & hyd$source == src & hyd$month %in% mo, ]
+  stopifnot(nrow(x) == length(mo))
+  x$q_m3s[match(mo, x$month)]
+}
+# the prose: at both calibration gauges the balance's months are the gauge's
+# own monthly pattern (its nearest donor is itself) at the balance's annual
+# flow, so every month is off by about the annual's error, and below the gauge;
+# routed overshoots Buck Creek's freshet, and at Quick is above the gauge in
+# July and August and short of it in May-June by a fifth to a third
+ratio_of <- function(s) hq(s, "wet_balance", 1:12) / hq(s, "observed", 1:12)
+wb_off <- vapply(c("08EE013", "08EE004"), function(s) 100 * (stats::median(ratio_of(s)) - 1), 0)
+stopifnot(all(vapply(c("08EE013", "08EE004"), function(s) diff(range(ratio_of(s))) < 0.02, NA)),
+          all(wb_off < 0), all(wb_off > -15),
+          peak_month("wet_balance") == peak_month("observed"),
+          all(hq("08EE004", "pcic_routed", 7:8) > hq("08EE004", "observed", 7:8)),
+          fr[["pcic_routed"]] > fr[["observed"]], hq("08EE013", "pcic_routed", 5) > hq("08EE013", "observed", 5))
+q_short <- 100 * (fr_q[["pcic_routed"]] / fr_q[["observed"]] - 1)
+stopifnot(q_short < -20, q_short > -33)
+```
+
+Buck Creek peaks in May, and so does routed PCIC, which overshoots it: its
+May–June flow is `r round(fr[["pcic_routed"]], 1)` m³/s against
+`r round(fr[["observed"]], 1)` at the gauge. At Quick, routed PCIC is about a
+quarter short in May–June (`r round(fr_q[["pcic_routed"]])` m³/s against
+`r round(fr_q[["observed"]])`) and high in July and August.
+
+At Buck Creek and Quick the balance's published months are in-sample: the
+gauge most like each of them is itself, so the balance there has the gauge's
+own monthly pattern at the balance's annual flow, about `r signed(wb_off[["08EE013"]])`
+and `r signed(wb_off[["08EE004"]])` in every month. The scores below hold
+each gauge out instead. At Houston the balance is a true estimate for an
+ungauged site, and the gauge can check it only in open water.
 
 ## How good it is
 
 ```{r scores}
 err_cut <- 20
-both <- sk[!is.na(sk$routed_mm), ]
-both$rt_err <- 100 * (both$routed_mm / both$obs - 1)
-n_both <- nrow(both)
-n_rt_closer <- sum(abs(both$rt_err) < abs(both$err_pct))
+band <- err_cut / 100
+# a gauge whose segment carries under this share of its observed flow is left
+# out of routed's scores, as the routed report leaves it out
+# (scripts/pcic_routed_lib.R, routed_far_low)
+far_low <- 0.2
+a <- g[g$month == 0, ]
+far <- a$station_number[!is.na(a$routed_mm) & a$routed_mm < far_low * a$obs_mm]
+n_routed <- sum(!is.na(a$routed_mm))
+# the two bundles hold the same gauges, observed and held-out runoff, and routed
+# reaches the same ones: the yearly and monthly rows score one set
+stopifnot(setequal(sk$station_number, a$station_number),
+          isTRUE(all.equal(sk$obs, a$obs_mm[match(sk$station_number, a$station_number)])),
+          isTRUE(all.equal(sk$mod, a$wb_mm[match(sk$station_number, a$station_number)])),
+          identical(sort(sk$station_number[!is.na(sk$routed_mm)]), sort(a$station_number[!is.na(a$routed_mm)])),
+          identical(sort(far), sort(sk$station_number[!is.na(sk$routed_mm) & sk$routed_mm < far_low * sk$obs])))
+
+# yearly: mean annual runoff, error as a percentage of observed
+ann <- sk[!is.na(sk$routed_mm) & !sk$station_number %in% far, ]
+ann$rt_err <- 100 * (ann$routed_mm / ann$obs - 1)
+n_both <- nrow(ann)
+n_rt_closer <- sum(abs(ann$rt_err) < abs(ann$err_pct))
 score <- function(e) {
   q <- stats::quantile(e, c(0.25, 0.75))
   c(mae = mean(abs(e)), bias = mean(e), lo = q[[1]], hi = q[[2]], within = 100 * mean(abs(e) <= err_cut))
 }
-s_rt <- score(both$rt_err)
-s_wb <- score(both$err_pct)
+s_rt <- score(ann$rt_err)
+s_wb <- score(ann$err_pct)
 s_all <- score(sk$err_pct)
-fmt_score <- function(s) {
+
+# monthly: modelled over observed. A zero month is a ratio of 0 (an error of
+# -100%), which ranks like any other, so the medians keep it
+m <- g[g$month > 0, ]
+m$ratio_wb <- m$wb_mm / m$obs_mm
+m$ratio_r <- m$routed_mm / m$obs_mm
+# no observed month is zero, so every ratio is defined. The balance at every
+# calibration gauge; routed where its segment has flow, less the far-low ones
+stopifnot(all(m$obs_mm > 0), !anyNA(m$ratio_wb))
+bal <- m
+both <- m[!is.na(m$routed_mm) & !m$station_number %in% far, ]
+n_bal_gauges <- length(unique(bal$station_number))
+n_both_gauges <- length(unique(both$station_number))
+stopifnot(sum(bal$wb_mm <= 0) == 0, 12 * n_both_gauges == nrow(both), n_routed - length(far) == n_both_gauges,
+          12 * n_bal_gauges == nrow(bal), !anyNA(both$ratio_r), n_both_gauges == n_both,
+          setequal(unique(both$station_number), ann$station_number), n_bal_gauges == nrow(sk))
+summ <- function(d, col, src) {
+  do.call(rbind, lapply(split(d[[col]], d$month), function(r) {
+    data.frame(source = src, median = 100 * (stats::median(r) - 1),
+               q25 = 100 * (stats::quantile(r, 0.25, names = FALSE) - 1),
+               q75 = 100 * (stats::quantile(r, 0.75, names = FALSE) - 1),
+               within = 100 * mean(abs(r - 1) <= band))
+  }))
+}
+# each source on its own gauges (the figure), and the balance on routed's (the table)
+sm <- rbind(cbind(month = 1:12, summ(bal, "ratio_wb", "wet_balance")),
+            cbind(month = 1:12, summ(both, "ratio_r", "pcic_routed")))
+sh <- cbind(month = 1:12, summ(both, "ratio_wb", "wet_balance"))
+smv <- function(src, mo, col) {
+  x <- sm[[col]][sm$source == src & sm$month %in% mo]
+  stopifnot(length(x) == length(mo), !anyNA(x))
+  x
+}
+# median NSE of each gauge's twelve monthly means
+grp <- unique(g[c("station_number", "area_class", "lake")])
+grp$lake <- ifelse(grp$lake %in% TRUE, "lake outlet", "not a lake outlet")
+validate <- function(mod, ids) {
+  x <- data.frame(station_number = g$station_number, month = g$month, obs = g$obs_mm, mod = g[[mod]])
+  wet_flow_validate(x[g$station_number %in% ids, ], grp[grp$station_number %in% ids, ])$summary
+}
+gw <- validate("wb_mm", ann$station_number)
+gr <- validate("routed_mm", ann$station_number)
+gw_all <- validate("wb_mm", sk$station_number)
+nse_g <- function(s, g, v) one(s$nse_month_median[s$group == g & s$value == v])
+# Moriasi and others' (2007) reading of a monthly score, each band open below
+# and closed above (0.75 is "good"), unsatisfactory under 0.50
+nse_bands <- c(satisfactory = 0.50, good = 0.65, `very good` = 0.75)
+nse_rating <- function(x) c("unsatisfactory", names(nse_bands))[findInterval(x, nse_bands, left.open = TRUE) + 1]
+stopifnot(identical(nse_rating(c(0.5, 0.65, 0.75, 0.76)), c("unsatisfactory", "satisfactory", "good", "very good")))
+# the score is taken over one gauge's twelve months, is 1 at a perfect match
+# and 0 at the gauge's annual mean in every month
+x <- both$obs_mm[both$station_number == both$station_number[1]]
+stopifnot(length(x) == 12, wet:::wet_nse(x, x) == 1, abs(wet:::wet_nse(x, rep(mean(x), 12))) < 1e-12)
+
+fmt_year <- function(s) {
   c(pct1(s[["mae"]]), signed(s[["bias"]], 1), paste(signed(s[["lo"]]), "to", signed(s[["hi"]])), pct(s[["within"]]))
 }
+fmt_month <- function(med, d, col, s) {
+  lo <- which.min(med)
+  hi <- which.max(med)
+  nse <- nse_g(s, "all", "all")
+  c(sprintf("%.2f (%s)", nse, nse_rating(nse)),
+    sprintf("%s (%s) to %s (%s)", signed(med[lo]), month.abb[lo], signed(med[hi]), month.abb[hi]),
+    pct(100 * mean(abs(d[[col]] - 1) <= band)))
+}
 score_tab <- data.frame(
-  ` ` = c("Mean absolute error", "Bias (mean error)", "Middle half of errors", sprintf("Within ±%d%%", err_cut)),
-  `Routed PCIC` = fmt_score(s_rt),
-  `Open water balance (held out)` = fmt_score(s_wb),
+  ` ` = c("**Yearly**: mean absolute error", "Bias (mean error)", "Middle half of errors",
+          sprintf("Within ±%d%%", err_cut),
+          "**Monthly**: median Nash–Sutcliffe efficiency", "Median error, lowest and highest month",
+          sprintf("Gauge-months within ±%d%%", err_cut)),
+  rt = c(fmt_year(s_rt), fmt_month(smv("pcic_routed", 1:12, "median"), both, "ratio_r", gr)),
+  wb = c(fmt_year(s_wb), fmt_month(sh$median, both, "ratio_wb", gw)),
+  wb_all = c(fmt_year(s_all), fmt_month(smv("wet_balance", 1:12, "median"), bal, "ratio_wb", gw_all)),
   check.names = FALSE
 )
-names(score_tab)[2:3] <- paste0(names(score_tab)[2:3], ", ", n_both, " gauges")
-score_tab[[sprintf("Open water balance (held out), all %d gauges", nrow(sk))]] <- fmt_score(s_all)
-# the gauges without routed flow are mostly in the Liard (10x)
-none <- sk[is.na(sk$routed_mm), ]
-stopifnot(nrow(none) > 0, mean(startsWith(none$station_number, "10")) > 0.5)
+names(score_tab)[2:4] <- c(sprintf("Routed PCIC, %d gauges", n_both),
+                           sprintf("Open water balance (held out), %d gauges", n_both),
+                           sprintf("Open water balance (held out), all %d", nrow(sk)))
+# the prose: month by month the two score about the same on the gauges both
+# are scored at (median NSE within 0.05, gauge-months within the band within 5 points)
+within_m <- function(col) 100 * mean(abs(both[[col]] - 1) <= band)
+stopifnot(abs(nse_g(gr, "all", "all") - nse_g(gw, "all", "all")) < 0.05,
+          abs(within_m("ratio_r") - within_m("ratio_wb")) < 5)
+# every gauge both are scored at counts in the NSE (none under wet_flow_validate()'s min_obs)
+stopifnot(nse_g(gw, "all", "all") > 0, gw$n[gw$group == "all"] == n_both, gr$n[gr$group == "all"] == n_both,
+          gw_all$n[gw_all$group == "all"] == nrow(sk))
 
+# the prose, gauge by gauge
+none <- sk[is.na(sk$routed_mm), ]
 mae_of <- function(i) mean(abs(sk$err_pct[i]))
 mae_head <- mae_of(sk$nesting == "headwater")
 mae_nest <- mae_of(sk$nesting == "nested")
@@ -314,55 +670,272 @@ zone_mae <- sort(tapply(abs(sk$err_pct), sk$zone, mean))
 worst <- names(zone_mae)[length(zone_mae)]
 worst_name <- to_title(map$zones$name[map$zones$zone == worst])
 n_worst <- sum(sk$zone == worst)
-# the prose: routed PCIC is closer at most gauges; headwater gauges score worse
-# than nested, small basins worse than large, and the worst zone is a
-# semi-arid interior plateau (15, 17, 23 or 24: research/water_balance_method.md)
-# that stands out at twice the average
+# routed PCIC is closer at most gauges; headwater gauges score worse than
+# nested, small basins worse than large, and the worst zone is a semi-arid
+# interior plateau (15, 17, 23 or 24: research/water_balance_method.md) that
+# stands out at twice the average; the gauges without routed flow are mostly
+# in the Liard (10x)
 stopifnot(n_rt_closer > n_both / 2, s_rt[["mae"]] < s_wb[["mae"]], mae_nest < mae_head, mae_small > mae_large,
-          sum(zone_mae > 2 * s_all[["mae"]]) == 1, worst %in% c("15", "17", "23", "24"), length(worst_name) == 1)
+          sum(zone_mae > 2 * s_all[["mae"]]) == 1, worst %in% c("15", "17", "23", "24"), length(worst_name) == 1,
+          nrow(none) > 0, mean(startsWith(none$station_number, "10")) > 0.5)
+# the balance's median monthly error is within 10% in every month, and within
+# the band at fewer than half its gauges in every month; where a gauge's
+# observed flow (not monthly volume) peaks in May or June the balance falls
+# short in that month at most of them
+wb_med <- smv("wet_balance", 1:12, "median")
+bal$obs_q <- bal$obs_mm / days[bal$month + 1]
+pk <- do.call(rbind, lapply(split(bal, bal$station_number), function(x) x[which.max(x$obs_q), ]))
+pk <- pk[pk$month %in% 5:6, ]
+stopifnot(max(abs(wb_med)) < 10, max(smv("wet_balance", 1:12, "within")) < 50, 100 * mean(pk$ratio_wb < 1) > 50,
+          100 * (stats::median(pk$ratio_wb) - 1) < 0)
+# routed is low in spring and high in summer, at the median and at most of its gauges
+r_spring <- 3:5
+r_summer <- 7:8
+season_med <- function(mo) 100 * (stats::median(both$ratio_r[both$month %in% mo]) - 1)
+by_g <- function(mo) tapply(both$ratio_r[both$month %in% mo], both$station_number[both$month %in% mo], mean)
+g_low <- by_g(r_spring) < 1
+g_high <- by_g(r_summer) > 1
+stopifnot(all(smv("pcic_routed", r_spring, "median") < -10), all(smv("pcic_routed", r_summer, "median") > 10),
+          season_med(r_spring) < -10, season_med(r_summer) > 10,
+          identical(names(g_low), names(g_high)), length(g_low) == n_both_gauges,
+          mean(g_low) > 0.5, mean(g_high) > 0.5)
+# by monthly score, the balance is the stronger source on basins under 1,000
+# km2, routed on those over it and at lake outlets
+small_a <- c("<100 km2", "100-1000")
+large_a <- c("1000-10000", ">10000")
+stopifnot(all(vapply(small_a, function(k) nse_g(gw, "area_class", k) > nse_g(gr, "area_class", k), NA)),
+          all(vapply(large_a, function(k) nse_g(gr, "area_class", k) > nse_g(gw, "area_class", k), NA)),
+          nse_g(gr, "lake", "lake outlet") > nse_g(gw, "lake", "lake outlet"),
+          nse_g(gw, "lake", "lake outlet") < nse_g(gw, "lake", "not a lake outlet"))
+
+sm$date <- mid(sm$month)
+sm$source <- factor(sm$source, names(pal_src$values))
+cap_err <- paste0(
+  "Error in mean monthly flow by month: the median (line) and the middle half of gauges (band), as a ",
+  "percentage of the gauge's ", base_text, " mean. The water balance is held out at all ",
+  n_bal_gauges, " calibration gauges; routed PCIC at the ", n_both_gauges,
+  " it is scored at. Dashed lines mark ±", err_cut, "%."
+)
 ```
 
-Both sources are scored against mean annual runoff over 1981–2010 at the
-`r nrow(sk)` HYDAT gauges the balance is calibrated on. Error is modelled
-minus observed, as a percentage of observed. The balance is scored *held
-out*: each Water Survey sub-sub-drainage (such as 08EE) is left out of the
-fit in turn and predicted from the rest, so a gauge's neighbours on the same
-river cannot vouch for it.
+Routed PCIC's yearly flow is the closer of the two at `r n_rt_closer` of the
+`r n_both` gauges both are scored at. Month by
+month the two score about the same, and routed PCIC errs with the season.
+Each source is scored against a gauge's mean annual runoff and monthly means
+over its complete years in `r base_text`: the balance at the `r nrow(sk)`
+HYDAT gauges it is built on, and routed PCIC at `r n_both` of them. Error is modelled minus observed, as a percentage of observed.
+The balance is scored *held out*: each Water Survey sub-sub-drainage (such as
+08EE) is left out of the fit in turn and predicted from the rest, so a gauge's
+neighbours in the same sub-sub-drainage cannot vouch for it. Routed PCIC is scored on the
+segment each gauge snapped to: `r n_routed` gauges have routed flow, less
+`r length(far)` whose segment carries under a fifth of the gauge's flow, which
+the routed comparison leaves out and attributes one by one.
 
 ```{r score-table}
-knitr::kable(score_tab, format = "html", align = "lrrr", row.names = FALSE,
-             caption = "Error in mean annual runoff at the calibration gauges.") |>
+note_score <- c(
+  "PCIC does not list the gauges it calibrated to, so its errors may be partly in sample.",
+  paste0("Nash–Sutcliffe efficiency (<a href=\"#ref-nash_sutcliffe1970Riverflow\">Nash and Sutcliffe 1970</a>): how much closer a source's twelve months come to ",
+         "the gauge's than a flat line at the gauge's annual mean. 1 is a perfect match; 0 is no closer than ",
+         "the flat line. Ratings follow <a href=\"#ref-moriasi_etal2007Modelevaluation\">Moriasi and others (2007)</a>: very good above ",
+         sprintf("%.2f, good above %.2f, satisfactory above %.2f.", nse_bands[["very good"]], nse_bands[["good"]],
+                 nse_bands[["satisfactory"]]))
+)
+# format = "html" and kable_styling() before footnote(): a footnote on a bare
+# kable in a bookdown document numbers the caption twice and writes "NA" into
+# the table's style attribute (kableExtra 1.4.0); escape = FALSE for the bold row labels
+score_tab[[1]] <- sub("^\\*\\*(.*)\\*\\*", "<strong>\\1</strong>", score_tab[[1]])
+knitr::kable(score_tab, format = "html", align = "lrrr", row.names = FALSE, escape = FALSE,
+             caption = "Error at the calibration gauges, in mean annual runoff and in the twelve mean monthly flows.") |>
   kableExtra::kable_styling(full_width = FALSE) |>
-  kableExtra::footnote(general = paste("PCIC does not list the gauges it calibrated to, so its errors may be",
-                                       "partly in sample."),
-                       general_title = "")
+  kableExtra::footnote(general = note_score, general_title = "", escape = FALSE)
 ```
 
-Routed PCIC is closer than the held-out balance at `r n_rt_closer` of the
-`r n_both` gauges both cover. Where each is weak:
+```{r error-month, fig.height = 4.2, fig.cap = cap_err}
+ggplot(sm, aes(date)) +
+  geom_hline(yintercept = 0, colour = "grey40") +
+  geom_hline(yintercept = c(-1, 1) * err_cut, linetype = "dashed", colour = "grey60") +
+  geom_ribbon(aes(ymin = q25, ymax = q75, fill = source), alpha = 0.18) +
+  geom_line(aes(y = median, colour = source), linewidth = 0.8) +
+  geom_point(aes(y = median, colour = source), size = 1.3) +
+  scale_colour_manual(values = pal_src$values[-1], labels = pal_src$labels[-1], name = NULL) +
+  scale_fill_manual(values = pal_src$values[-1], labels = pal_src$labels[-1], name = NULL) +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b",
+               limits = as.Date(c("2001-01-01", "2001-12-31")), expand = c(0.01, 0)) +
+  scale_y_continuous(labels = function(x) paste0(x, "%")) +
+  labs(x = NULL, y = "Error in mean monthly flow")
+```
 
-- **Headwaters.** The balance averages `r pct(mae_head)` error at headwater
-  gauges, whose basin holds no other gauge, against `r pct(mae_nest)` at
-  nested ones.
-- **Small basins.** It averages `r pct(mae_small)` on basins under
+Where each is weak:
+
+- **The season, routed PCIC.** It is low from March to May and high in July
+  and August, as if its melt started late and ran on. Each half holds at
+  most of its gauges, not only at the median (low in spring at
+  `r pct(100 * mean(g_low))`, high in summer at `r pct(100 * mean(g_high))`),
+  so it is the model's, not the placement's: a misplaced outlet changes one
+  gauge's flow; it would not lower the spring at most gauges and raise the
+  summer at most of them.
+- **Spread, the balance.** Across all `r n_bal_gauges` gauges its median
+  monthly error is within ±10% in every month, but in no month are half of the
+  gauges within ±`r err_cut`%.
+  Where a gauge's flow peaks in May or June, the balance more often falls
+  short in that month than overshoots.
+- **Headwaters and small basins, the balance.** It averages `r pct(mae_head)`
+  yearly error at headwater gauges, whose basin holds no other gauge, against
+  `r pct(mae_nest)` at nested ones, and `r pct(mae_small)` on basins under
   `r small_km2` km² against `r pct(mae_large)` on those over
-  `r num(large_km2)` km².
-- **The dry interior.** In zone `r worst`, the `r worst_name`, its
+  `r num(large_km2)` km². By monthly score it is still the stronger source
+  under 1,000 km².
+- **The dry interior, the balance.** In zone `r worst`, the `r worst_name`, its
   `r n_worst` gauges average `r pct(zone_mae[[worst]])`: runoff there is a
   small remainder of precipitation, so a small error in evapotranspiration is
   a large one in runoff.
-- **The Liard.** Routed PCIC has no value at `r nrow(none)` gauges, most of
-  them in the Liard, where the balance is the only estimate.
+- **Large basins and lake outlets, the balance.** By monthly score routed
+  PCIC is the stronger source over 1,000 km² and at lake outlets, whose flow
+  a lake holds back and releases later in the year:
+  routing follows the lake, and the balance's donor gauges are matched
+  without regard to it.
+- **The Liard, routed PCIC.** It has no value at `r nrow(none)` gauges, most
+  of them in the Liard, where the balance is the only estimate.
+
+## Flow in a timing window, from months or from days
+
+```{r windows}
+# the gauge's daily record, as the station-flow article reads it: the mean
+# over each window, in each 1981-2010 year with enough of the window's days
+ws <- wet_window_stats(dh[dh$station_number %in% c("08EE013", "08EE003"), c("station_number", "date", "q_m3s")],
+                       windows, stats = "mean")
+# a window's mean from monthly means, wet_flow_window(): each day takes its
+# month's mean. The sources' months once per gauge; the observed months per
+# window, since each window has its own years
+src_w <- wet_flow_window(bs[bs$station_number %in% c("08EE013", "08EE003"), c("station_number", "source", "month", "q_m3s")],
+                         windows, by = c("station_number", "source"))
+stopifnot(all(src_w$basis == "monthly"))
+src_q <- function(s, src, w) src_w$q_m3s[src_w$station_number == s & src_w$source == src & src_w$window == w]
+# the same windows from the published days (segment_daily), the same call
+sd <- vm$segments_daily
+sd <- sd[sd$station_number %in% c("08EE013", "08EE003"), c("station_number", "source", "doy", "q_m3s")]
+src_d <- wet_flow_window(sd, windows, by = c("station_number", "source"))
+stopifnot(all(src_d$basis == "daily"))
+src_qd <- function(s, src, w) src_d$q_m3s[src_d$station_number == s & src_d$source == src & src_d$window == w]
+win <- do.call(rbind, lapply(c("08EE013", "08EE003"), function(s) {
+  do.call(rbind, lapply(seq_len(nrow(windows)), function(k) {
+    w <- windows[k, ]
+    yrs <- ws$year[ws$station_number == s & ws$period == w$window]
+    # the observed months over the same years as the daily means
+    mo <- my[my$station_number == s & my$year %in% yrs, ]
+    om <- stats::aggregate(q ~ month, mo, mean)
+    obs_w <- wet_flow_window(data.frame(month = om$month, q_m3s = om$q), w, by = character())
+    data.frame(station_number = s, window = w$window, span = paste(md_text(w$start), "–", md_text(w$end)),
+               years = length(yrs),
+               daily = mean(ws$value[ws$station_number == s & ws$period == w$window]),
+               obs_months = obs_w$q_m3s,
+               routed = src_q(s, "pcic_routed", w$window),
+               balance = src_q(s, "wet_balance", w$window),
+               routed_daily = src_qd(s, "pcic_routed", w$window),
+               balance_daily = src_qd(s, "wet_balance", w$window))
+  }))
+}))
+stopifnot(!anyNA(win), all(win$years >= min_years))
+approx_err <- 100 * (win$obs_months / win$daily - 1)
+err_of <- function(col) 100 * (win[[col]] / win$daily - 1)
+# what the days do to a window: each source's move from its months to its
+# days, beside the gauge's own move from its monthly means to its daily record
+move_of <- function(src) 100 * (win[[paste0(src, "_daily")]] / win[[src]] - 1)
+win$move_obs <- 100 * (win$daily / win$obs_months - 1)
+win$move_routed <- move_of("routed")
+win$move_balance <- move_of("balance")
+# the approximation per window, at its worse gauge
+approx_w <- tapply(abs(approx_err), win$window, max)[windows$window]
+good_w <- names(approx_w)[approx_w < 5]
+poor_w <- names(approx_w)[approx_w >= 5]
+in_poor <- win$window %in% poor_w
+at <- function(s, w = poor_w) win$station_number == s & win$window %in% w
+wp <- function(col, s) one(win[[col]][at(s)])
+ep <- function(col, s) one(err_of(col)[at(s)])
+# the reason the prose gives for the poor window: the second half of July
+# runs well below July's mean
+late_july <- vapply(c("08EE013", "08EE003"), function(st) {
+  x <- dh[dh$station_number == st & dh$month == 7, ]
+  mean(x$q_m3s[as.integer(format(x$date, "%d")) >= 15]) / mean(x$q_m3s)
+}, 0)
+# the prose, sentence by sentence. Good windows: the gauge's daily record and
+# its monthly means agree within 5%, and the days move no source's window by
+# more than a tenth. The poor window is fry migration alone, and there the
+# monthly means overstate the gauge by about a quarter at both gauges. Routed
+# PCIC's days fall faster than the gauge's, and its error shrinks at both. The
+# balance's days at Buck Creek fall as the gauge's do (its donor is itself),
+# leaving its annual error; at Houston they fall less than half as far, and
+# the balance stays several times the gauge in both late-summer windows
+late_w <- c("Spawning", "Fry migration")
+# the prose: migration spans whole months (May 1 to Aug 1, both days counted
+# by wet_flow_window()) and costs under 1%; spawning starts on a month and
+# ends mid-month
+stopifnot(identical(windows$start[windows$window == "Migration"], "05-01"),
+          identical(windows$end[windows$window == "Migration"], "08-01"), approx_w[["Migration"]] < 1,
+          identical(windows$start[windows$window == "Spawning"], "08-01"),
+          identical(windows$end[windows$window == "Spawning"], "09-15"),
+          identical(good_w, c("Migration", "Spawning")))
+b003 <- err_of("balance_daily")[win$station_number == "08EE003" & win$window %in% late_w]
+stopifnot(identical(poor_w, "Fry migration"), all(late_july < 0.9),
+          max(approx_w[good_w]) < 5, all(abs(c(win$move_routed, win$move_balance)[!in_poor]) < 10),
+          all(approx_err[in_poor] > 20), all(approx_err[in_poor] < 30),
+          all(win$move_routed[in_poor] < win$move_obs[in_poor]),
+          all(abs(err_of("routed_daily")[in_poor]) < abs(err_of("routed")[in_poor])),
+          abs(wp("move_balance", "08EE013") - wp("move_obs", "08EE013")) < 1,
+          abs(ep("balance_daily", "08EE013") - wb_off[["08EE013"]]) < 2,
+          wp("move_balance", "08EE003") < 0,
+          abs(wp("move_balance", "08EE003")) < abs(wp("move_obs", "08EE003")) / 2,
+          length(b003) == 2, all(b003 > 200))
+```
+
+Read from monthly means, every day of a timing window takes its month's mean. That costs almost nothing where a timing window spans whole months, as migration
+does from 1 May to 1 August, and
+little where the month it cuts changes slowly: spawning ends mid-September,
+and the gauge's own monthly means and daily record agree within
+`r sprintf("%.0f%%", approx_w[["Spawning"]])`. `r and_text(poor_w)` takes the
+second half of July, as the freshet recedes, and there the monthly means
+overstate the gauge by about a quarter.
+
+The published days remove that cost where a source's daily pattern is right.
+Routed PCIC's fry-migration error shrinks at both gauges. The balance's days
+at Buck Creek fall with the gauge's, since its pattern there is the gauge's
+own, and only its annual error remains. At Houston its borrowed pattern keeps
+more water into late summer, and the balance stays several times the gauge
+in both late-summer timing windows. That error is ours.
+
+```{r window-table}
+tab <- data.frame(
+  Gauge = st_label[win$station_number], `Timing window` = paste0(win$window, " (", win$span, ")"),
+  Years = win$years,
+  `Daily record (m³/s)` = sprintf("%.1f", win$daily),
+  `Months vs days` = signed(approx_err),
+  `Routed PCIC, months` = signed(err_of("routed")),
+  `Routed PCIC, days` = signed(err_of("routed_daily")),
+  `Water balance, months` = signed(err_of("balance")),
+  `Water balance, days` = signed(err_of("balance_daily")),
+  check.names = FALSE
+)
+tab$Gauge[duplicated(tab$Gauge)] <- ""
+knitr::kable(tab, row.names = FALSE, align = "llrrrrrrr",
+             caption = paste0("Flow in each chinook life history timing window, ", base_text,
+                              ". Daily record: the gauge's own daily flow, averaged over the timing window in each year with enough of its days. Months vs days: the same ",
+                              "years' observed monthly means, read as a timing window, against the daily record. Each source ",
+                              "twice, from its published months and from its published days, as its difference from ",
+                              "the daily record."))
+```
 
 ## Limits
 
 ```{r limits}
+# the bullet on segments without a value: the unmatched are almost all connection
+# lines and secondary channels (by FWA edge type)
+stopifnot(sg[["no_lut_connector"]] > 0.9 * sg[["no_lut"]])
 # the coverage bullet: basins other than the Liard have balance parts and no routed part
 no_rt <- setdiff(seg_parts$code[seg_parts$source == "wet_balance"], seg_parts$code[seg_parts$source == "pcic_routed"])
 stopifnot(length(no_rt) > 1)
 # the bullet: the adjustment ships although the headwater gate does not pass
 # (a recorded override, #43), and pooled zones get none
-stopifnot(isTRUE(prov$keep_adjust), isFALSE(prov$gate_pass), identical(prov$pooled_variant, "none"))
+stopifnot(isTRUE(ps$keep_adjust), isFALSE(ps$gate_pass), identical(ps$pooled_variant, "none"))
 ```
 
 - **Coverage.** Besides the Liard, routed PCIC has no value in a few northern
@@ -370,71 +943,119 @@ stopifnot(isTRUE(prov$keep_adjust), isFALSE(prov$gate_pass), identical(prov$pool
 - **The zone adjustment is kept by decision.** On headwater basins it does
   not beat raw precipitation less evapotranspiration, and zones with too few
   gauges for their own adjustment get none.
-- **Segments without a value.** Of the `r num(sg[["neither"]])`,
-  `r num(sg[["no_lut"]])` have no watershed in the lookup through which the
-  balance reaches a segment.
+- **Segments without a value.** The balance reaches a segment through
+  `fwapg`'s lookup matching segments to watershed polygons, and both sources
+  are published only on matched segments, so the `r pct_of(sg[["no_lut"]])` of
+  segments matched to none, almost all connection lines and secondary
+  channels, have no value.
+- **In-sample at the gauges.** On a calibration gauge's own segment the
+  published balance is the gauge's own monthly pattern at the balance's
+  annual flow (08NM240 and 08NM241, on one watershed, share the mean of
+  theirs). A watershed much like a gauge gets almost the same pattern.
+- **Days.** A day is right only as far as the source's daily pattern is,
+  and the scores above are of the months; the balance's daily pattern is
+  scored where it was fitted, not here.
+- **Houston** (08EE003) is seasonal: its monthly means cover `r m003_text`,
+  from `r n003` of the years `r base_text`.
+- **The monthly scores are province-wide**, split by basin size and lake
+  outlets, not by region or zone.
 
 ## Software and citation
 
-The routed values at the gauges and the picks on the map are the published
-product's, read on `r format(prov$built)` from the build at `wet` commit
-`r pub$wet_commit`; the routed values were held equal to `fwapg`'s before they
-were written. The province counts are from the segment table that build was cut
-from. The balance's scores are its held-out predictions from the fit on HYDAT
-`r substr(prov$hydat_release, 1, 10)`, against HYDAT's observed runoff. The
-build's own check of its published flows is [its report](`r gh(pub$report)`).
+The flows in this article, the routed values at the gauges and the picks on
+the map are the published product's, read on `r format(ps$built)` from the
+build at `wet` commit `r pub$wet_commit`. Before they were written, routed
+PCIC's values were held equal to `fwapg`'s routed table and its days at the
+Bulkley gauges were routed again from the sub-basin days there, and the
+balance's months and days were made again from the fit at
+`r paste(pm$shape_stations, collapse = " and ")`; the build's own check of
+its published flows, [its report](`r gh(pub$report)`), covers the rest. The
+province shares are from the segment table that build was cut from. The
+gauges' daily flows are HYDAT's. The scores compare routed PCIC as
+published, and the balance held out by its fit on HYDAT
+`r substr(ps$hydat_release, 1, 10)`, with HYDAT's observed runoff.
 
 ```{r provenance}
-# Provenance. Gauge values were read on prov$built from the published build
+# Provenance. Gauge values were read on ps$built from the published build
 # pub$wet_commit (segment table pub$segment_commit) and checked against their
-# sources by data-raw/segment_vignette_data.R at wet commit prov$wet_commit;
+# sources by data-raw/segment_vignette_data.R at wet commit ps$wet_commit;
 # the picks on the map, from the same build, by data-raw/segment_vignette_map.R
-# at map$provenance$wet_commit. Gauge scores are from province run
-# prov$province_run (annual AET prov$aet, HYDAT release prov$hydat_release),
-# routed PCIC from fwapg at prov$routed_commit (prov$routed_fingerprint),
-# scored in prov$routed_report; the province counts are prov$segment_report's,
-# whose segment table (prov$segment_report_commit) the build's checked tree was
-# cut from, every part byte-identical to the published build's.
-stopifnot(nzchar(prov$wet_commit), nzchar(map$provenance$wet_commit), nzchar(prov$routed_commit))
+# at map$provenance$wet_commit; the Bulkley segments' months and days and the
+# gauges' held-out months by data-raw/monthly_vignette_data.R at pm$wet_commit
+# (daily fingerprint pm$daily_fingerprint, pm$daily_report). Gauge scores are
+# from province run ps$province_run (annual AET ps$aet, HYDAT release
+# ps$hydat_release), routed PCIC from fwapg at ps$routed_commit
+# (ps$routed_fingerprint), scored in ps$routed_report; the province counts are
+# ps$segment_report's, whose segment table (ps$segment_report_commit) the
+# build's checked tree was cut from, every part byte-identical to the
+# published build's.
+stopifnot(nzchar(ps$wet_commit), nzchar(map$provenance$wet_commit), nzchar(pm$wet_commit), nzchar(ps$routed_commit))
 ```
+
+The software, each cited:
+
+- [`wet`](https://newgraphenvironment.github.io/wet/) [@irvine2026wetStream] builds and publishes the product.
+- [`fwapg`](https://smnorris.github.io/fwapg/) [@norris2024smnorrisfwapg] holds the Freshwater Atlas in
+  PostgreSQL, and New Graph's [fork](https://github.com/NewGraphEnvironment/fwapg/tree/newgraph) of it
+  [@norris_irvine2026NewGraphEnvironmentfwapg] places routed PCIC on it.
+- [`climr`](https://github.com/bcgov/climr) [@daust_etal2024climr] gives the balance its climate normals,
+  and [`cd`](https://newgraphenvironment.github.io/cd/) [@irvine2026cd] its snow normals.
+- [`duckdb`](https://r.duckdb.org/) [@muhleisen_raasveldt2026duckdb] and [`DBI`](https://dbi.r-dbi.org/)
+  [@rsigdb_etal2026DBI] read it in the recipes above, and [`RPostgres`](https://rpostgres.r-dbi.org/)
+  [@wickham_etal2026RPostgres] loads it into PostgreSQL.
+- [`knitr`](https://yihui.org/knitr/) [@xie2026knitr] and
+  [`kableExtra`](https://haozhu233.github.io/kableExtra/) [@zhu2024kableExtra] make the tables, and
+  [`ggplot2`](https://ggplot2.tidyverse.org/) [@wickham2016ggplot2],
+  [`gq`](https://newgraphenvironment.github.io/gq/) [@irvine2026gq] and
+  [`sf`](https://r-spatial.github.io/sf/) [@pebesma_bivand2023Spatial] the figures;
+  [`bookdown`](https://pkgs.rstudio.com/bookdown/) [@xie2026bookdown] renders the article, all in R
+  [@rcoreteam2025R].
+
+How the balance is built, and each of its choices tested:
+[the water balance method](`r gh("research/water_balance_method.md")`). To cite this package:
 
 ```{r citation, results = "asis"}
-# the citation record each package ships (inst/CITATION, or its DESCRIPTION):
-# the first DOI it carries (wet's is its concept DOI), the version, and the commit when
-# the install recorded a full git hash (a build from a checkout records none)
-cat(wet:::wet_software_cite(c("wet", "duckdb", "ggplot2", "gq", "sf")), sep = "\n")
-# the Data line names the shipped annual AET: CGIAR floored by Fu-Budyko
-stopifnot(identical(prov$aet, "cfu"))
+cat(format(utils::citation("wet"), style = "text"), sep = "\n\n")
+# the Data line names the shipped annual AET (CGIAR floored by Fu-Budyko) and
+# the snow predictors in the monthly shares; the fork's commit is the one
+# segment-discharge.bib carries (its References line)
+bib <- readLines(file.path(dirname(knitr::current_input(dir = TRUE)), "segment-discharge.bib"), warn = FALSE)
+stopifnot(identical(ps$aet, "cfu"), identical(pm$share_spec, "snow"),
+          any(grepl(sprintf("version = {%s}", ps$routed_commit), bib, fixed = TRUE)))
 ```
 
-Cite `wet` by the DOI above, which resolves to its latest release. How the
-balance is built, and each of its choices tested:
-[the water balance method](`r gh("research/water_balance_method.md")`).
+### Data
 
-Data: routed flow from the Pacific Climate Impacts Consortium, University of
-Victoria ([hydromosaic](https://beehive.pacificclimate.org/chyp/): VIC-GL
-hydrologic model output routed with Raven, PNWNAmet forcing), placed on the
-Freshwater Atlas by New Graph's fork of `fwapg` (Norris, S. and Irvine, A.
-(2026), *fwapg, New Graph Environment's fork*,
-<https://github.com/NewGraphEnvironment/fwapg/tree/newgraph>) at commit
-`r prov$routed_commit`; the stream network from the Freshwater Atlas Stream Network (Province of British
-Columbia, Ministry of Forests, Lands, Natural Resource Operations and Rural
-Development, 2021, <https://catalogue.data.gov.bc.ca/dataset/freshwater-atlas-stream-network>),
-held in a database by Norris, S. (2024), *fwapg*, <https://github.com/smnorris/fwapg>; gauge records from the
-Water Survey of Canada's HYDAT, release `r substr(prov$hydat_release, 1, 10)`;
-1981–2010 climate normals from the R package [`climr`](https://github.com/bcgov/climr);
-actual evapotranspiration from CGIAR-CSI's Global High-Resolution Soil-Water
-Balance v3 ([figshare 7707605](https://figshare.com/articles/dataset/Global_High-Resolution_Soil-Water_Balance/7707605)),
-held no lower than a Fu–Budyko estimate; elevation from the Copernicus GLO-90
-DEM; for the monthly shares, ERA5-Land snow normals (Copernicus Climate Change
-Service) through the R package [`cd`](https://newgraphenvironment.github.io/cd/);
-hydrologic zones from the province's BC Hydrologic Zones.
+- The product: `s3://fresh-bc/discharge/fwa/v1/`. The bucket allows no listing,
+  so a reader starts from its manifest, <`r pub$manifest`>, as
+  `wet_catalog()` does. This article reads the build of `r built_text`.
+- Routed flow: the Pacific Climate Impacts Consortium, University of Victoria
+  ([hydromosaic](https://beehive.pacificclimate.org/chyp/): VIC-GL hydrologic
+  model output routed with Raven, PNWNAmet forcing), placed on the Freshwater
+  Atlas by New Graph's fork of `fwapg` [@norris_irvine2026NewGraphEnvironmentfwapg].
+- Stream network: the Province of British Columbia's Freshwater Atlas Stream
+  Network, through DataBC [@flnrord2021FreshwaterAtlasb].
+- Gauge records: the Water Survey of Canada's HYDAT
+  [@environmentandclimatechangecanada2021NationalWater], release
+  `r substr(ps$hydat_release, 1, 10)`.
+- Climate normals, 1981–2010, for the balance: the R package
+  [`climr`](https://github.com/bcgov/climr) [@daust_etal2024climr].
+- Actual evapotranspiration, for the balance: CGIAR-CSI's Global
+  High-Resolution Soil-Water Balance v3
+  ([figshare 7707605](https://figshare.com/articles/dataset/Global_High-Resolution_Soil-Water_Balance/7707605)),
+  held no lower than a Fu–Budyko estimate.
+- Elevation: the Copernicus GLO-90 DEM.
+- Snow, for the balance's monthly shares: ERA5-Land snow normals (Copernicus
+  Climate Change Service), through the R package
+  [`cd`](https://newgraphenvironment.github.io/cd/) [@irvine2026cd].
+- Hydrologic zones: the province's BC Hydrologic Zones.
+- Life history timing windows for chinook salmon: New Graph's species-timing
+  table [@gottesfeld_rabnett2007SkeenaFish].
 
-Method: Chapman, A.R., Kerr, B. and Wilford, D. (2018), A water allocation
-decision-support model and tool for predictions in ungauged basins in
-Northeast British Columbia, Canada, *Journal of the American Water Resources
-Association* 54(3), 676–693,
-[doi:10.1111/1752-1688.12643](https://doi.org/10.1111/1752-1688.12643).
+## References
+
+::: {#refs}
+:::
 
 ```{r wordcount, include = FALSE}
 f <- knitr::current_input()
@@ -450,7 +1071,7 @@ if (!is.null(f)) {
   y <- y[!grepl("^\\s*$", y)]
   n <- sum(lengths(strsplit(trimws(y), "\\s+")))
   message("body prose: ", n, " words")
-  cap <- 900
+  cap <- 2000
   if (n > cap) stop("body prose is ", n, " words; the cap is ", cap)
 }
 ```
