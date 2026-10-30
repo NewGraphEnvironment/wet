@@ -10,7 +10,7 @@ The main lesson came from review. Merging moved sentences into new company and r
 - **Scores on 279 gauges, not 290** (yearly): routed PCIC MAE 24.2 → 21.5 %, bias +1.4 → +5.1 %, within ±20 % 63 → 66 %. Balance on the same gauges 27.6 → 27.2 %. Routed is closer at 168 of 279. Monthly, the two sources score about the same: median NSE 0.82 and 0.82, gauge-months within ±20 % 40 % and 42 %. My first lead said otherwise, the table contradicted it, and the lead was corrected.
 - **Numbers, both ways, sign-aware:** every new number is an intended move (the 279-gauge scores, the 315-gauge NSE of 0.81). Every number gone belongs to a cut table or sentence.
 - **Figures:** the Bulkley map, the hydrographs and the monthly error figure are byte-identical to the old renders. The province map alternates between two PNGs across renders of the same source, including main's, so its variation predates the merge (not traced).
-- **Review cost:** five agents in all. One Plan review (`review-plan.md`) and three code-check rounds: round 1 found 3, round 2 found 9 (2 inside earlier fixes), and round 3's enumeration found 8, all fixed.
+- **Review cost:** four agents in all. One Plan review (`review-plan.md`) and three code-check rounds: round 1 found 3, round 2 found 9 (2 inside earlier fixes), and round 3's enumeration found 8, all fixed.
 
 ## Owed
 
