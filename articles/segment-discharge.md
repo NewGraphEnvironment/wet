@@ -388,7 +388,7 @@ To cite this package:
 Irvine A (2026). *wet: Stream Flow and Water Temperature for the BC
 Freshwater Atlas*. New Graph Environment Ltd.
 <doi:10.5281/zenodo.23305781> <https://doi.org/10.5281/zenodo.23305781>.
-Version 0.4.29, <https://github.com/NewGraphEnvironment/wet>.
+Version 0.4.30, <https://github.com/NewGraphEnvironment/wet>.
 
 ### Data
 

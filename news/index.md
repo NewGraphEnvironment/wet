@@ -1,5 +1,24 @@
 # Changelog
 
+## wet 0.4.30
+
+- The “Monthly Flow per Segment” article is merged into “Stream
+  Discharge per Segment”, one article for the yearly, monthly and daily
+  values
+  ([\#149](https://github.com/NewGraphEnvironment/wet/issues/149)); the
+  old address redirects to it. It opens with a province map of which
+  source gives each river’s default flow, scores routed PCIC and the
+  held-out water balance on the same 279 gauges in one table (and the
+  balance on all 315), shows both sources through the year at three
+  Bulkley gauges with the chinook salmon life history timing windows,
+  and says what reading a timing window from monthly means rather than
+  the published days costs. Routed PCIC is described at a high level,
+  with VIC-GL, Raven and the `fwapg` fork’s notes cited, and every
+  package the article uses is cited inline from
+  `vignettes/segment-discharge.bib`. A build check for a claim the
+  article no longer made is gone
+  ([\#80](https://github.com/NewGraphEnvironment/wet/issues/80)).
+
 ## wet 0.4.29
 
 - A new article, “How Stream Flow Has Changed Where Gauges Are Few”,
