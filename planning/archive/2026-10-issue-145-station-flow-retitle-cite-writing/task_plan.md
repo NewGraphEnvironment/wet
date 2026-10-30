@@ -56,7 +56,7 @@ At #126's review the user asked that article titles and HTML names tell the read
 - [x] Tests pass
 - [x] `/code-check branch` clean (three-round floor; final round an enumeration of every claim sentence against its guard)
 - [x] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] `/planning-archive` on completion
 
 How each change is proved:
 - Install the branch, then render with `pkgdown::build_article("flow-departure-normal")`; every `stopifnot()` passes. In the HTML: every `citation` links to an entry under `#refs`, there is no `???` or unresolved `@key`, and there are no footnotes.
