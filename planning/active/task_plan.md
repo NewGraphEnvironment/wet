@@ -78,7 +78,7 @@ The two listed flow-change articles read as the same article twice. Their titles
 
 ## Phase 6: References (B4, C4, D: Zotero)
 
-- [ ] Add the missing works to the group library through the Web API:
+- [x] Add the missing works to the group library through the Web API (WPDHK5RW, IAXTU7FP, MD7D8CDK):
   - WMO-No. 1203 (2017);
   - Werner et al. (2019), PNWNAmet;
   - Chapman et al. (2018).

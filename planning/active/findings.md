@@ -88,6 +88,14 @@ The rebuilt article's interval adds held-out residuals drawn from pools (`cr$res
 
 `data/checks/departure_interval_coverage.txt`: the percentile bootstrap of a ratio of means at the article's own years (18 or 29–30 baseline against 9–10 recent) covers 0.834–0.867, under the 0.87 bar at all four gauge-windows. So the measured article calls the bar "the middle 90% of resampled changes" and no count rests on it. A synthetic check of the rebuilt article's interval (20 against 10 years, residual SD half the series') covered 0.92, and 0.87 with no residual; its own coverage comes from the site runs.
 
+## Zotero items added (2026-10-30, Web API, group 4733734)
+
+- WPDHK5RW: WMO (2017), *WMO Guidelines on the Calculation of Climate Normals*, WMO-No. 1203, url library.wmo.int/idurl/4/55797. No ISBN: a search snippet gave 978-92-63-11203-3, but neither WMO's record (a JS app) nor the NCEI copy (404 to WebFetch) could be opened to confirm it.
+- IAXTU7FP: Werner et al. (2019), Scientific Data 6, 180299, doi 10.1038/sdata.2018.299 (CrossRef).
+- MD7D8CDK: Chapman, Kerr and Wilford (2018), JAWRA 54(3) 676–693, doi 10.1111/1752-1688.12643 (CrossRef).
+
+They get citation keys only once Better BibTeX is running again and Zotero has synced and restarted.
+
 ## Errors Encountered
 
 | Error | Resolution |
