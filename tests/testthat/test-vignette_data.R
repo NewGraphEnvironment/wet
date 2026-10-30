@@ -255,8 +255,14 @@ test_that("the short-record map layers are sf in BC Albers, with the three catch
 
 test_that("the Chinook sites' values hold four sites, both routes and their provenance", {
   v <- readRDS(vignette_data("chinook_sites_values.rds"))
-  expect_named(v, c("sites", "change", "scores", "snow", "normal", "gauges", "windows", "use", "use_obs", "score_settings",
-                    "daily", "years", "provenance"))
+  expect_named(v, c("sites", "change", "scores", "snow", "snow_change", "normal", "gauges", "windows", "use", "use_obs",
+                    "score_settings", "daily", "years", "periods", "provenance"))
+  # the comparison periods (#152), and every change and snow mean over exactly them
+  expect_equal(v$periods, list(ref = 1951:1980, recent = 2016:2025))
+  expect_true(all(v$change$n_pre <= 30 & v$change$n_post <= 10))
+  expect_true(all(v$snow_change$n_ref == 30 & v$snow_change$n_recent == 10))
+  # a measured coverage for every change with an interval
+  expect_true(all(is.na(v$change$lo) | !is.na(v$change$cover)))
   # a typical year of 365 days at every site, one picked source a day
   expect_setequal(unique(v$daily$site_id), v$sites$site_id)
   expect_true(all(table(v$daily$site_id[v$daily$pick]) == 365))
