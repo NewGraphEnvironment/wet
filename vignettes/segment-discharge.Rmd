@@ -523,7 +523,8 @@ cap_map <- sprintf(paste(
   "Telkwa, a %d km scale bar, and a keymap (upper left) marking the map's extent in BC."
 ), area_of("08EE013"), area_of("08EE003"), area_of("08EE004"), sb_km)
 stopifnot(setequal(bmap$places$name, c("Houston", "Telkwa")),
-          setequal(main_streams$gnis_name, c("Bulkley River", "Buck Creek")))
+          setequal(main_streams$gnis_name, c("Bulkley River", "Buck Creek")),
+          all(bmap$streams$stream_order[!bmap$streams$main] >= 5))
 # the prose: the Bulkley flows north-west from Houston past Telkwa (BC Albers)
 xy_st <- stats::setNames(as.data.frame(sf::st_coordinates(st)), c("x", "y"))
 rownames(xy_st) <- st$station_number
@@ -888,7 +889,7 @@ Where each is weak:
   most of its gauges, not only at the median (low in spring at
   `r pct(100 * mean(g_low))`, high in summer at `r pct(100 * mean(g_high))`),
   so it is the model's, not the placement's: a misplaced outlet changes one
-  gauge's size, not the season at all of them.
+  gauge's flow, not the season at most of them.
 - **Spread, the balance.** Across all `r n_bal_gauges` gauges its median
   monthly error is within ±10% in every month, but in no month are half of the
   gauges within ±`r err_cut`%.
