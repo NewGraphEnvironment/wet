@@ -84,6 +84,10 @@ Every stream reaches 1951–1980 with at least 20 years by either route, so no p
 
 The rebuilt article's interval adds held-out residuals drawn from pools (`cr$resid`, `run_for()$r`) that exist only inside a `departure_site.R` run and are not saved. So its coverage is measured inside the site run (registered in the header with the #152 addition, `set.seed(1520)`), and `scripts/departure_interval_coverage.R` measures only the measured article's interval, from its committed bundle. The 0.87 rule is the same in both.
 
+## Phase 2: the measured article's interval coverage (2026-10-30)
+
+`data/checks/departure_interval_coverage.txt`: the percentile bootstrap of a ratio of means at the article's own years (18 or 29–30 baseline against 9–10 recent) covers 0.834–0.867, under the 0.87 bar at all four gauge-windows. So the measured article calls the bar "the middle 90% of resampled changes" and no count rests on it. A synthetic check of the rebuilt article's interval (20 against 10 years, residual SD half the series') covered 0.92, and 0.87 with no residual; its own coverage comes from the site runs.
+
 ## Errors Encountered
 
 | Error | Resolution |
