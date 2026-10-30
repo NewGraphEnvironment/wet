@@ -49,7 +49,7 @@
 - [x] Tests pass (`devtools::test()`; no R/ change expected)
 - [x] `/code-check` clean (once over the branch with `/code-check branch`)
 - [x] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] `/planning-archive` on completion
 
 ## Owed at the end (reported, done after merge)
 
