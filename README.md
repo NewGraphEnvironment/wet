@@ -41,7 +41,7 @@ xtabs(round(q_m3s) ~ source + month, q)
 
 - [Stream Discharge per Segment](https://newgraphenvironment.github.io/wet/articles/segment-discharge.html): what the published yearly, monthly and daily flow is, which source to use, how to read it, a year at three Bulkley gauges, and how well each source matches the gauges.
 - [How Stream Flow Has Departed from Its 1981–2010 Normal](https://newgraphenvironment.github.io/wet/articles/flow-departure-normal.html): a case study at two gauges near Houston, in the Bulkley, of how recent flow in the timing windows chinook salmon use compares with 1981–2010 and how it has trended since.
-- [How Stream Flow Has Changed Where Gauges Are Few](https://newgraphenvironment.github.io/wet/articles/flow-change-sparse-gauges.html): how summer flow has changed at four streams Chinook salmon use, gauged for a few summers or never, filled in from nearby gauges.
+- [How Stream Flow Has Changed Where Gauges Are Few](https://newgraphenvironment.github.io/wet/articles/flow-change-sparse-gauges.html): how summer flow has changed at four streams chinook salmon use, gauged for a few summers or never, filled in from nearby gauges.
 - [Water temperature functions](https://newgraphenvironment.github.io/wet/reference/index.html#water-temperature): daily station temperature, gap filling and growing-season degree days.
 - [Function reference](https://newgraphenvironment.github.io/wet/reference/)
 
