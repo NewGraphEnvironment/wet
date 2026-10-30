@@ -61,20 +61,20 @@ The two listed flow-change articles read as the same article twice. Their titles
 
 ## Phase 5: The rebuilt article (`vignettes/articles/flow-change-sparse-gauges.Rmd`)
 
-- [ ] Title: "Rebuilding Stream Flow History Where Gauges Are Few".
-- [ ] The answer, change figure, years figure and their guards move to 1951–1980 against 2016–2025. Each count is held to Phase 2's outcome.
-- [ ] Add the lowest seven-day flow beside the window mean at all four streams (B2).
-- [ ] Add measured snow (B3):
+- [x] Title: "Rebuilding Stream Flow History Where Gauges Are Few".
+- [x] The answer, change figure, years figure and their guards move to 1951–1980 against 2016–2025. Each count is held to Phase 2's outcome.
+- [x] Add the lowest seven-day flow beside the window mean at all four streams (B2).
+- [x] Add measured snow (B3):
   - the snow change over the two periods;
   - the fits at each site's snow gauges, beside the borrowed departures;
   - the ERA5-Land grid caveat (about 0.1° cells);
   - Muñoz-Sabater et al. (2021) and `cd` cited.
-- [ ] Say why each period was chosen, cited:
+- [x] Say why each period was chosen, cited:
   - Hansen et al. (2012) for 1951–1980;
   - ERA5-Land snow starts in 1950;
   - one sentence on what the measured article does differently, linked.
-- [ ] Switch to pandoc citations (`bibliography:`, `::: {#refs}`). Drop the hand-typed references and the `wet_software_cite()` call. Software is cited inline at first mention.
-- [ ] Do the writing-conventions pass. Keep the 1,000-word cap, with a `stopifnot()` behind every quoted number.
+- [x] Switch to pandoc citations (`bibliography:`, `::: {#refs}`). Drop the hand-typed references and the `wet_software_cite()` call. Software is cited inline at first mention.
+- [x] Do the writing-conventions pass. Keep the 1,000-word cap, with a `stopifnot()` behind every quoted number.
 
 ## Phase 6: References (B4, C4, D: Zotero)
 

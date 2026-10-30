@@ -1,6 +1,8 @@
 ---
-title: "How Stream Flow Has Changed Where Gauges Are Few"
+title: "Rebuilding Stream Flow History Where Gauges Are Few"
 output: bookdown::html_document2
+bibliography: flow-change-sparse-gauges.bib
+link-citations: true
 ---
 
 ```{r setup, include = FALSE}
@@ -65,7 +67,19 @@ wlab <- stats::setNames(sprintf("%s (%s – %s)", c("Migration", "Spawning"), md
 ```
 
 ```{r numbers}
+# the comparison periods, as section 5 of every site report names them
+per_ref <- v$periods$ref
+per_rec <- v$periods$recent
+stopifnot(identical(per_ref, 1951:1980), identical(per_rec, 2016:2025))
+span <- function(y) paste0(min(y), "–", max(y))
+ref_text <- span(per_ref)
+rec_text <- span(per_rec)
 ch <- v$change
+# every range this article draws on (mean and min7, both routes, both window sets) covers at least 0.87
+# of simulated no-change series, the bar registered in scripts/departure_site.R's header, so it is
+# called a 90% range
+drawn <- ch[ch$statistic %in% c("mean", "min7"), ]
+stopifnot(!anyNA(drawn$cover), all(drawn$cover >= 0.87))
 ch$pct <- pct_of(ch$change)
 ch$pct_lo <- pct_of(ch$lo)
 ch$pct_hi <- pct_of(ch$hi)
@@ -80,11 +94,25 @@ low_spw <- spw[spw$pct_hi < 0, ]
 # the opening: Maxan measured for five summers; Gosnell never gauged; Swift and Naver under twenty
 stopifnot(sites$obs_n[sites$site_id == "maxan"] == 5, identical(sites$kind, c("extend", "extend", "extend", "ungauged")),
           all(sites$obs_n[sites$site_id %in% c("swift", "naver")] < 20))
-# "no stream's mean flow shows a clear change by either route" in the migration window, both window sets
-mig_all <- ch[ch$statistic == "mean" & ch$window == "migration", ]
+# "the borrowed departures show no clear change in the migration window at any stream", both window sets
+mig_all <- ch[ch$statistic == "mean" & ch$window == "migration" & ch$route == "carried", ]
 stopifnot(all(mig_all$pct_lo < 0), all(mig_all$pct_hi > 0))
-# "since 2011": every route's years since 2011 run to 2024 or 2025
-stopifnot(all(ch$n_post %in% 14:15))
+# "the filled-in record at Maxan Creek falls in the migration window too": its range stays below zero
+mx_mig <- row_of("maxan", "migration", "extended")
+stopifnot(mx_mig$pct_hi < 0)
+# years per period: 20-30 of 1951-1980 and 9 or 10 of 2016-2025 on every route
+stopifnot(all(ch$n_pre >= 20 & ch$n_pre <= 30), all(ch$n_post %in% 9:10))
+# the lowest seven-day flow in the spawning window, borrowed: "fell at three streams and held at Swift Creek"
+m7 <- do.call(rbind, lapply(ids, row_of, w = "spawning", route = "carried", s = "min7"))
+m7_down <- m7$site_id[m7$pct < -10]
+stopifnot(identical(sort(m7_down), sort(c("maxan", "naver", "gosnell"))), abs(m7$pct[m7$site_id == "swift"]) < 5)
+# snow over each stream's own catchment: "peaked 6-10% lower and half had melted 9-17 days earlier"
+tgt <- c(maxan = "08EE018", swift = "08KA012", naver = "08KE014", gosnell = "gosnell")
+sc_t <- v$snow_change[v$snow_change$group == "BULK" & v$snow_change$gauge == tgt[v$snow_change$site_id], ]
+stopifnot(setequal(sc_t$site_id, ids))
+swe_pct <- 100 * (sc_t$swe_recent / sc_t$swe_ref - 1)
+melt_days <- sc_t$doy_ref - sc_t$doy_recent
+stopifnot(all(swe_pct < 0), all(melt_days > 0))
 # held-out scores by window, from the reports' tables, under the Bulkley windows
 ssc <- v$score_settings[v$score_settings$group == "BULK", ]
 ss_mig <- ssc[ssc$setting == "migration mean, k = 5", ]
@@ -112,21 +140,23 @@ stopifnot(all(grepl("^BULK", sites$windows)), identical(sites$windows != "BULK",
 ```
 
 Many streams that matter to salmon were gauged for only a few summers, or never. This
-article uses the R package [`wet`](https://newgraphenvironment.github.io/wet/) to ask how
-their summer flow has changed since before 1981, at four streams in northern British
-Columbia that Chinook salmon use: Maxan Creek, with five full summers on record; Swift
-Creek and Naver Creek, with `r sites$obs_n[sites$site_id == "swift"]` and
-`r sites$obs_n[sites$site_id == "naver"]`; and Gosnell Creek, never gauged. Each is run the
-same way, with the method fixed before any result, and each is scored on how well the
-method predicts gauges it was not given.
+article uses the R package [`wet`](https://newgraphenvironment.github.io/wet/) [@wet] to
+rebuild their summer flow history from nearby gauges, and asks how it has changed since
+`r ref_text`, at four streams in northern British Columbia that chinook salmon use: Maxan
+Creek, with five full summers on record; Swift Creek and Naver Creek, with
+`r sites$obs_n[sites$site_id == "swift"]` and `r sites$obs_n[sites$site_id == "naver"]`; and
+Gosnell Creek, never gauged. Each is run by one method, fixed before any result and scored
+on gauges it was not given.
 
-**The answer.** In the salmon spawning window, a stream's mean flow in a typical year since
-2011 was lower than before 1981 at all four streams, by `r pct(min(abs(spw$pct)))` to
+**The answer.** In the salmon spawning window, a stream's mean flow over `r rec_text` was
+lower than over `r ref_text` at all four streams, by `r pct(min(abs(spw$pct)))` to
 `r pct(max(abs(spw$pct)))` from nearby gauges' departures; at
 `r and_text(sub(" Creek$", "", name_of[low_spw$site_id]))` creeks that route's 90% range
-stays below no change. In the migration window no stream's mean flow shows a clear change.
-Borrowing departures, the one route every stream has, scores worse in the spawning window
-than in the migration window at all four under these windows.
+stays below no change. The lowest seven-day flow in that window fell at
+`r and_text(sub(" Creek$", "", name_of[m7_down]))` creeks and held at Swift Creek. In the
+migration window the borrowed departures show no clear change at any stream. Snow over every
+catchment peaked lower and melted earlier. Borrowed
+departures score worse in the spawning window than in the migration window at all four.
 
 ## Where are the four streams?
 
@@ -174,7 +204,7 @@ the Fraser. Maxan Creek flows into the upper Bulkley River near Topley, south-ea
 Smithers, and Gosnell Creek into the Thautil River just above the Morice River,
 south-west of Houston. Naver Creek flows into the Fraser River near Hixon, south of Prince
 George, and Swift Creek into the McLennan River, a Fraser tributary, at Valemount. Each
-borrows its numbers from gauges inside a box of the same size around it.
+borrows from gauges in a same-sized box around it.
 
 ```{r region-data}
 map_w <- 7
@@ -263,11 +293,6 @@ region("fraser")
 ```
 
 ```{r use}
-gauged <- sites[sites$kind == "extend" & sites$site_id != "maxan", ]
-yr <- function(id, col) gauged[[col]][gauged$site_id == id]
-# "inside the 1981–2010 baseline" for Swift; "before it" for Naver and Maxan
-stopifnot(yr("swift", "obs_first") >= 1981, yr("swift", "obs_last") <= 2010, yr("naver", "obs_last") < 1981,
-          sites$obs_last[sites$site_id == "maxan"] < 1981)
 # the Chinook records, from the tracked use report
 u <- v$use
 use_of <- function(stream) {
@@ -288,15 +313,11 @@ stopifnot(any(v$use_obs$stream == "Swift Creek" & grepl("^Major spawning", v$use
 stopifnot(gs$nus_use == 1, gs$nus_first == 2001, gs$nus_last == 2001, gs$obs == 3, gs$obs_spawning == 0)
 ```
 
-Fisheries and Oceans Canada's spawner surveys find Chinook in Swift Creek in most years
+Fisheries and Oceans Canada's spawner surveys find chinook in Swift Creek in most years
 since 1970, and the provincial records place a major spawning site within five kilometres
-of its mouth; they find Chinook in Naver Creek in most years since the mid-1980s. Gosnell
+of its mouth; they find chinook in Naver Creek in most years since the mid-1980s. Gosnell
 Creek's record is thinner: one survey that found adults, in 2001, and three provincial
-records of fish seen. The gauged streams' records sit in different places: Swift Creek's
-`r yr("swift", "obs_n")` full summers fall between `r yr("swift", "obs_first")` and
-`r yr("swift", "obs_last")`, inside the 1981–2010 baseline, while Naver Creek's
-`r yr("naver", "obs_n")` fall between `r yr("naver", "obs_first")` and
-`r yr("naver", "obs_last")`, before it, as do Maxan Creek's five.
+records of fish seen.
 
 ## What is a window?
 
@@ -318,11 +339,10 @@ month_breaks <- day_of(sprintf("%02d-01", 1:12))
 ```
 
 A window is a stretch of the year when salmon use a stream for one thing. In the upper
-Bulkley River, the early run of Chinook passes Moricetown Canyon before about July 30, and
-Chinook spawn in August and September
-([Gottesfeld and Rabnett 2007](#ref-gottesfeld2007), p. 355). This article uses the windows
-New Graph's species-timing table sets for the Bulkley from that report, at all four
-streams: adult migration from `r md_text(wb$start[1])` to `r md_text(wb$end[1])`, and
+Bulkley River, the early run of chinook passes Moricetown Canyon before about July 30, and
+chinook spawn in August and September
+[@gottesfeld_rabnett2007SkeenaFish, p. 355]. New Graph's species-timing
+table sets the Bulkley's windows from that report, used here at all four streams: adult migration from `r md_text(wb$start[1])` to `r md_text(wb$end[1])`, and
 spawning from `r md_text(wb$start[2])` to `r md_text(wb$end[2])`. A stream's flow in a
 window is its mean over those days. At every stream, flow peaks inside the migration window, as snow
 melts, and is low in the spawning window, under a third of its peak.
@@ -340,12 +360,19 @@ ggplot(d) +
   labs(x = NULL, y = "Flow (m³/s)")
 ```
 
+## Which years are compared?
+
+Each stream's last ten years, `r rec_text`, are compared with `r ref_text`, the three decades
+before global warming sped up [@hansen_etal2012Perceptionclimate]; ERA5-Land's snow covers all of
+it. [Measured Stream Flow Against Its 1981–2010 Normal](flow-departure-normal.html) instead measures
+this decade at two long-record gauges against 1981–2010, a period already holding part of the
+warming.
+
 ## How has flow changed?
 
-Two routes fill in the years a stream was not measured. Where a stream has a record,
-each missing year comes from one nearby gauge, through a fit between the two streams'
-flows over the years both were measured. Every stream, gauged or not, can also borrow
-nearby gauges' departures from their own typical flow, year by year.
+Two routes fill in the years a stream was not measured. A gauged stream's missing year comes
+from one nearby gauge, through a fit between the two over their shared years. Any stream can
+also borrow nearby gauges' departures from their own typical flow, year by year.
 
 ```{r years-data}
 yy <- v$years[v$years$group == "BULK", ]
@@ -367,20 +394,21 @@ yl <- do.call(rbind, lapply(split(yy, list(yy$site_id, yy$window, yy$route == "b
 # 7. the change caption's "to 2024, or 2025 where recorded"
 last <- tapply(yy$year, list(yy$site_id, yy$window, yy$route == "borrowed"), max)
 stopifnot(all(last[!is.na(last)] %in% 2024:2025))
-# the period lines: each route's mean departure before 1981 and since 2011; their difference is the change
+# the period lines: the borrowed route's mean departure over each comparison period; their
+# difference is the change the change figure draws
 per <- do.call(rbind, lapply(split(yy, list(yy$site_id, yy$window), drop = TRUE), function(x) {
   b <- x[x$route == "borrowed", ]
-  data.frame(site = x$site[1], wlab = x$wlab[1], x = c(min(b$year), 2011) - 0.5,
-             xend = c(1980, max(b$year)) + 0.5,
-             y = pct_of(c(mean(b$dep[b$year < 1981]), mean(b$dep[b$year >= 2011]))))
+  data.frame(site_id = x$site_id[1], window = x$window[1], site = x$site[1], wlab = x$wlab[1],
+             x = c(min(per_ref), min(per_rec)) - 0.5, xend = c(max(per_ref), max(b$year)) + 0.5,
+             y = pct_of(c(mean(b$dep[b$year %in% per_ref]), mean(b$dep[b$year %in% per_rec]))))
 }))
 for (id in ids) for (w in wb$window) {
-  b <- yy[yy$site_id == id & yy$window == w & yy$route == "borrowed", ]
-  stopifnot(isTRUE(all.equal(mean(b$dep[b$year >= 2011]) - mean(b$dep[b$year < 1981]), row_of(id, w, "carried")$change)))
+  py <- log1p(per$y[per$site_id == id & per$window == w] / 100)
+  stopifnot(length(py) == 2, isTRUE(all.equal(py[2] - py[1], row_of(id, w, "carried")$change)))
 }
 ```
 
-```{r years, fig.height = 8.5, fig.cap = "Each window's mean flow, year by year, as a share of its 1981–2010 typical flow (log scale). Large orange points are measured summers; the grey line fills the other years from one nearby gauge, with its 90% range; the blue line is borrowed from nearby gauges' year-to-year departures. A small point is a year with no neighbouring year on its line. Black lines are the borrowed route's typical departure before 1981 and since 2011."}
+```{r years, fig.height = 8.5, fig.cap = "Each window's mean flow, year by year, as a share of its 1981–2010 typical flow (log scale). Large orange points are measured summers; the grey line fills the other years from one nearby gauge, with its 90% range; the blue line is borrowed from nearby gauges' year-to-year departures. A small point is a year with no neighbouring year on its line. Black lines are the borrowed route's typical departure over 1951–1980 and 2016–2025."}
 ggplot(yy, aes(year)) +
   geom_hline(yintercept = 0, colour = pal_series$values[["band"]]) +
   geom_ribbon(data = yl[yl$line == "filled", ], aes(ymin = pct_of(lo), ymax = pct_of(hi), fill = "band")) +
@@ -421,31 +449,39 @@ stopifnot(identical(wm$window, c("migration", "spawning")), wm$start[2] %in% spr
 # the ranking: largest at Maxan and Naver, smallest at Swift
 rk <- spw$site_id[order(spw$pct)]
 stopifnot(setequal(rk[1:2], c("maxan", "naver")), rk[length(rk)] == "swift")
+# the seven-day low flow's held-out scores, borrowed, under the Bulkley windows: "below the bar in
+# N of the eight", and its spawning-window drop at the three streams where it fell
+m7_sc <- ssc$carried[ssc$setting %in% c("migration min7", "spawning min7")]
+stopifnot(length(m7_sc) == 8)
+m7_fell <- m7[m7$site_id %in% m7_down, ]
 ```
 
 The spawning-window drop is largest at Maxan and Naver creeks and smallest at Swift
 Creek, and filling in each gauged stream's own record gives drops in the same direction
-(`r pct(min(abs(ext$pct)))`–`r pct(max(abs(ext$pct)))`).
+(`r pct(min(abs(ext$pct)))`–`r pct(max(abs(ext$pct)))`). At three of them the
+spawning window's lowest seven-day flow, its driest week, fell by `r pct(min(abs(m7_fell$pct)))`
+to `r pct(max(abs(m7_fell$pct)))`.
 
-```{r change, fig.height = 4.2, fig.cap = "Change in each window's mean flow, from the years before 1981 to the years since 2011 (to 2024, or 2025 where recorded), with its 90% range, by each route the legend names."}
-dd <- ch[ch$group == "BULK" & ch$statistic == "mean", ]
+```{r change, fig.height = 6.5, fig.cap = "Change in each window's mean flow (top) and its lowest seven-day flow (bottom), from 1951–1980 to 2016–2025 (to 2024 where 2025 is not yet approved), with its 90% range, by each route the legend names."}
+dd <- ch[ch$group == "BULK" & ch$statistic %in% c("mean", "min7"), ]
 dd$site <- factor(name_of[dd$site_id], levels = rev(name_of[ids]))
 dd$wlab <- factor(wlab[dd$window], levels = wlab)
+dd$stat <- factor(c(mean = "Mean flow", min7 = "Lowest seven-day flow")[dd$statistic],
+                  levels = c("Mean flow", "Lowest seven-day flow"))
 ggplot(dd, aes(pct, site, colour = route)) +
   geom_vline(xintercept = 0, colour = pal_series$values[["filled"]]) +
   geom_errorbarh(aes(xmin = pct_lo, xmax = pct_hi), height = 0, position = position_dodge(width = 0.5)) +
   geom_point(size = 2, position = position_dodge(width = 0.5)) +
-  facet_wrap(~wlab) +
+  facet_wrap(~ stat + wlab, ncol = 2, scales = "free_x", labeller = labeller(.multi_line = FALSE)) +
   scale_colour_manual(values = pal_change$values, labels = pal_change$labels, name = NULL) +
-  labs(x = "Change in mean flow (%)", y = NULL)
+  labs(x = "Change (%)", y = NULL)
 ```
 
-Gosnell Creek also has Chinook windows of its own. Morice Chinook spawn from the first
-week of September to the first week of October
-([Bustard and Schell 2002](#ref-bustard2002), p. 27), so the Morice's spawning window,
-`r md_text(wm$start[2])` to `r md_text(wm$end[2])`, falls a month later than the
-Bulkley's. Under these windows Gosnell Creek's spawning-window drop is smaller,
-`r pct(morr$pct)`, and its range reaches no change.
+The Morice has windows of its own: chinook spawn there from the first week of September to
+the first week of October [@bustard_schell2002ConservingMorice, p. 27], so its spawning window,
+`r md_text(wm$start[2])` to `r md_text(wm$end[2])`, falls a month later than the Bulkley's.
+Under it Gosnell Creek's spawning-window drop is smaller, `r pct(morr$pct)`, and its range
+reaches no change.
 
 ## How well does the method score?
 
@@ -471,13 +507,12 @@ stopifnot(width("migration", "extended") > width("migration", "carried"),
 
 Both routes are scored by hiding a gauge's own record and predicting it from its
 neighbours. A score of 0.5 was set as the method's bar before any stream was run. The
-borrowed departures clear it in the migration window in every box, and under these
-spawning windows fall below it in every box, `r sprintf("%.2f", min(ss_spw$carried))`–`r sprintf("%.2f", max(ss_spw$carried))`;
-their ranges in the change figure carry that weaker score. Filling in a record scores
-about the same in the Bulkley, Cottonwood and Morice boxes, and poorly in the upper
-Fraser, where only `r sc$ext_gauges[sc$site_id == "swift"]` gauges have records long
-enough to test it; there, Swift Creek's change from its filled-in record is the less
-certain of its two routes.
+borrowed departures clear it in the migration window in every box and fall below it in the
+spawning window in every box, `r sprintf("%.2f", min(ss_spw$carried))`–`r sprintf("%.2f", max(ss_spw$carried))`,
+so their ranges there carry that weaker score. The lowest seven-day flow scores
+lower still, below the bar in `r sum(m7_sc < 0.5)` of `r length(m7_sc)` windows and boxes.
+Filling in a record scores poorly only in the upper Fraser, which has `r sc$ext_gauges[sc$site_id == "swift"]`
+long enough records to test it, so Swift Creek's filled-in change is its less certain route.
 
 ## Does snow explain it?
 
@@ -497,14 +532,29 @@ melt_spw <- v$snow[v$snow$group == "BULK" & v$snow$series == "carried" & v$snow$
 stopifnot(setequal(melt_spw$site_id, ids))
 r2_melt <- max(melt_spw$r2)
 stopifnot(r2_melt < min(r2_mig))
+# the measured snow gauges' own records: two per stream, migration-window flow rising with peak snow at
+# every one, and peak snow explaining less in the spawning window
+og <- v$snow[v$snow$group == "BULK" & v$snow$series == "observed" & v$snow$predictor == "swe", ]
+og_mig <- og[og$window == "migration", ]
+og_spw <- og[og$window == "spawning", ]
+stopifnot(nrow(og_mig) == 2 * length(ids), all(table(og_mig$site_id) == 2), all(og_mig$lo > 0))
+stopifnot(max(og_spw$r2) < min(og_mig$r2) + 0.1)
 ```
 
-The migration-window departures borrowed for each stream follow the winter's snow: in
-years with more peak snow over its catchment they are higher, at all four with a 90%
-range above zero, and peak snow alone accounts for
-`r round(100 * r2_mig[1])`–`r round(100 * r2_mig[2])`% of their year-to-year spread. In
-the spawning window it accounts for at most `r round(100 * r2_spw)`%, and the melt date
-for at most `r round(100 * r2_melt)`%.
+Snow itself changed: over `r rec_text`, peak snow over each catchment held
+`r pct(min(abs(swe_pct)))` to `r pct(max(abs(swe_pct)))` less water than over `r ref_text`, and
+half had melted `r round(min(melt_days))` to `r round(max(melt_days))` days earlier
+(ERA5-Land [@munoz-sabater_etal2021ERA5Landstateoftheart], summarised per year by
+[`cd`](https://newgraphenvironment.github.io/cd/) [@cd]).
+
+Migration-window flow rises with peak snow: the borrowed departures at all four streams, with
+90% ranges above zero and `r round(100 * r2_mig[1])`–`r round(100 * r2_mig[2])`% of their
+year-to-year spread explained, and measured flow at all `r nrow(og_mig)` snow gauges, two near
+each stream (named in advance at Maxan Creek, elsewhere the nearest two with long records),
+`r round(100 * min(og_mig$r2))`–`r round(100 * max(og_mig$r2))`%. In the spawning window peak
+snow explains at most `r round(100 * r2_spw)`% of the borrowed departures and
+`r round(100 * max(og_spw$r2))`% of measured flow, and the melt date at most
+`r round(100 * r2_melt)`%. ERA5-Land's 0.1° cells are coarse for catchments this size.
 
 ## Where could it be wrong?
 
@@ -527,55 +577,47 @@ stopifnot(all(v$normal$pick == "pcic_routed"), all(v$daily$source[v$daily$pick] 
 
 ## Software and citation
 
-The flows in this article are from HYDAT release `r prov$hydat`; Gosnell Creek's typical
-flow and the hydrographs are `wet`'s published daily flow (for these four streams, routed
-PCIC's); the streams, lakes and catchments are the Freshwater Atlas's, through `fwapg`;
-place names are BC Geographic Names'. The data were bundled at `wet` commit
-`r prov$wet_commit`. How each stream was chosen, and how the method is run and scored, is
-set out in
+The flows in this article are from HYDAT release `r prov$hydat`
+[@environmentandclimatechangecanada2021NationalWater]. Gosnell Creek's typical flow and the
+hydrographs are `wet`'s published daily flow (build `r substr(v$normal$digest[1], 1, 7)`; for these
+four streams, routed flow from the Pacific Climate Impacts Consortium
+[@pacificclimateimpactsconsortiumGriddedHydrologic], placed on the Freshwater Atlas by New Graph's
+fork of `fwapg` [@norris_irvine2026NewGraphEnvironmentfwapg]). Snow is ERA5-Land's
+[@munoz-sabater_etal2021ERA5Landstateoftheart], summarised per year by `cd`. Spawner surveys are
+Fisheries and Oceans Canada's NuSEDS [@fisheriesandoceanscanadaNuSEDSNewSalmon], release of 1 June
+2026; fish observations are the Province of British Columbia's [@moe2024KnownBC]. The streams, lakes
+and catchments are the Freshwater Atlas's [@flnrord2021FreshwaterAtlasb], held in PostgreSQL by
+`fwapg` [@norris2024smnorrisfwapg], and place names are BC Geographic Names'. How each stream was
+chosen, and how the method is run and scored, is set out in
 [`wet`'s research notes](https://github.com/NewGraphEnvironment/wet/blob/main/research/chinook_sites.md).
 
-```{r citation, results = "asis"}
-cat(wet:::wet_software_cite(c("wet", "cd", "ggplot2", "gq", "sf")), sep = "\n")
+The software, each cited:
+
+- [`wet`](https://newgraphenvironment.github.io/wet/) [@wet] reads the gauge records, fills in and
+  borrows the window flows, and scores them.
+- [`cd`](https://newgraphenvironment.github.io/cd/) [@cd] summarises ERA5-Land's snow per year.
+- [`ggplot2`](https://ggplot2.tidyverse.org/) [@ggplot2], [`gq`](https://newgraphenvironment.github.io/gq/)
+  [@gq] and [`sf`](https://r-spatial.github.io/sf/) [@sf] make the figures and maps;
+  [`knitr`](https://yihui.org/knitr/) [@knitr] and [`bookdown`](https://pkgs.rstudio.com/bookdown/)
+  [@bookdown] render the article, all in R [@base].
+
+```{r versions, results = "asis"}
+# our packages' version, and the commit where the install recorded a full git hash
+# (a build from a checkout records none); the data were bundled at prov$wet_commit
+ours <- vapply(c("wet", "cd", "gq"), function(p) {
+  sha <- utils::packageDescription(p)$RemoteSha
+  sha <- if (!is.null(sha) && grepl("^[0-9a-f]{40}$", sha)) paste0(", commit ", substr(sha, 1, 7)) else ""
+  sprintf("`%s` %s%s", p, utils::packageVersion(p), sha)
+}, "")
+cat("The data were bundled at `wet` commit `", prov$wet_commit, "`; this build ran on ", and_text(ours),
+    ". To cite `wet`:\n\n", sep = "")
+cat(format(utils::citation("wet"), style = "text"), sep = "\n\n")
 ```
 
-Cite `wet` by the DOI above, which resolves to its latest release.
+## References
 
-### Data
-
-- Daily flow: the Water Survey of Canada's HYDAT, release `r prov$hydat`.
-- Typical flow at each stream (the hydrographs, and Gosnell Creek's normal): routed flow
-  from the Pacific Climate Impacts Consortium, University of Victoria
-  ([hydromosaic](https://beehive.pacificclimate.org/chyp/): VIC-GL hydrologic model output
-  routed with Raven, PNWNAmet forcing), placed on the Freshwater Atlas by New Graph's fork
-  of `fwapg` (Norris, S. and Irvine, A. (2026), *fwapg, New Graph Environment's fork*,
-  <https://github.com/NewGraphEnvironment/fwapg/tree/newgraph>) and published by `wet`
-  (build `r substr(v$normal$digest[1], 1, 7)`).
-- Spawner surveys: Fisheries and Oceans Canada's New Salmon Escapement Database System
-  (NuSEDS), release of 1 June 2026,
-  <https://open.canada.ca/data/en/dataset/c48669a3-045b-400d-b730-48aafe8c5ee6>.
-- Fish observations: Province of British Columbia, Known BC Fish Observations and BC Fish
-  Distributions.
-- Snow: ERA5-Land ([Muñoz-Sabater and others 2021](#ref-munoz2021)), summarised per year by
-  `cd`.
-- Streams, lakes and catchments: the Freshwater Atlas Stream Network (Province of British
-  Columbia, 2021, <https://catalogue.data.gov.bc.ca/dataset/freshwater-atlas-stream-network>),
-  held in a database by Norris, S. (2024), *fwapg*, <https://github.com/smnorris/fwapg>.
-- Place names: BC Geographic Names.
-
-### References
-
-- <span id="ref-bustard2002"></span>Bustard, D. and Schell, C. (2002). *Conserving Morice
-  Watershed Fish Populations and Their Habitat*. Stage II Biophysical Profile,
-  Watershed-Based Fish Sustainability Planning. David Bustard and Associates Ltd., for the
-  Community Futures Development Corporation of Nadina.
-  <https://waves-vagues.dfo-mpo.gc.ca/Library/315091.pdf>
-- <span id="ref-gottesfeld2007"></span>Gottesfeld, A.S. and Rabnett, K.A. (2007). *Skeena
-  Fish Populations and Their Habitat*. Skeena Fisheries Commission.
-- <span id="ref-munoz2021"></span>Muñoz-Sabater, J. and others (2021). ERA5-Land: a
-  state-of-the-art global reanalysis dataset for land applications. *Earth System Science
-  Data* 13, 4349–4383.
-  [doi:10.5194/essd-13-4349-2021](https://doi.org/10.5194/essd-13-4349-2021)
+::: {#refs}
+:::
 
 ```{r wordcount, include = FALSE}
 f <- knitr::current_input()
