@@ -650,6 +650,9 @@ When a message to the user names an issue or a PR, make the number a link the us
 click: `[repo#12](https://github.com/<owner>/<repo>/issues/12)`,
 `[repo PR #13](https://github.com/<owner>/<repo>/pull/13)`.
 
+- **Say what each one is** in a few words, unless its sentence already does: a list of bare
+  links fails this. A `Stop` hook, `settings/hooks/reply_links-check.py`, holds a reply that
+  breaks either half; its no-context check is a heuristic, so a reply it misjudges may stand.
 - Issues under `/issues/N`, pull requests under `/pull/N`; when unsure, ask `gh` for the URL.
 - **Cross-repo references carry the repo** (`other#12`): a bare `#N` is a working link to the
   wrong repo, and naming the collision in prose afterwards does not fix it; re-qualify the link.
@@ -658,7 +661,7 @@ click: `[repo#12](https://github.com/<owner>/<repo>/issues/12)`,
 - Scope is messages to the user, and PR and issue bodies read from outside the repo; commit
   messages autolink already. An upstream item in our repos' GitHub text is backticked, never linked.
 
-*7 lines of evidence for this rule are in `conventions/agent-operations.md`.*
+*11 lines of evidence for this rule are in `conventions/agent-operations.md`.*
 
 ### Surface upstream defects; do not work around them
 
@@ -831,8 +834,12 @@ directly when it matters — the deploy commit, not the run status:
 
 ```bash
 git fetch -q origin gh-pages && git log -1 --format='%s' FETCH_HEAD
-# "Deploying to gh-pages from @ owner/repo@<sha> 🚀"  <- the last NON-BOT commit? A bot commit never deploys
+# "Deploying to gh-pages from @ owner/repo@<sha> 🚀"  <- the last commit that started a run?
 ```
+
+Compare it with the last commit that started a run, not with the tip: a bot commit and a
+housekeeping push tagged `[skip ci]` start none, so a site built from the commit below them
+is current when they touch nothing the site publishes.
 
 GitHub can create a workflow run minutes after the push that triggered it, and
 out of order with a later push, so a parent commit's run can deploy over its child's with
@@ -865,15 +872,18 @@ the same in the status column, so a routine follow-up push turns a green merge i
 something the next person has to go read a log about — and the log does not exist.
 
 The routine follow-up is the one that bites, because it is the one nobody counts as a
-push: a `CLAUDE.md` drift sync, a typo fix, a `.gitignore` line. `/compact-prep` step 6
-runs `claude_md_drift.sh apply`, which **pushes**, and after `/gh-pr-merge` that lands
-seconds after the merge.
+push: a typo fix, a `.gitignore` line, an untagged `CLAUDE.md` drift sync. `/compact-prep`
+step 6 runs `claude_md_drift.sh apply`, which **pushes**, and after `/gh-pr-merge` that
+lands seconds after the merge. A housekeeping push carries `[skip ci]`, starts no run and
+cancels nothing only where soul's `ci_skip.sh` admits it: every commit touches only
+`CLAUDE.md`, `comms/`, `planning/`, `research/` or `.claude/`, in an R package whose shape
+it admits. Anywhere else the sync pushes untagged, and this rule holds.
 
 Order them: watch the merge's runs to completion, *then* push anything else.
 
 Where a push has already gone out and cancelled something, `/gh-pr-merge` step 10 has the
 reading: `cancelled`/`skipped` is `⊘ superseded` unless its annotation reports a timeout, and the thing to confirm
-is that the newest **non-bot** SHA's run passed. Do not re-dispatch the cancelled one.
+is that the newest SHA that started a run passed. Do not re-dispatch the cancelled one.
 
 *3 lines of evidence for this rule are in `conventions/ci-monitoring.md`.*
 
@@ -896,10 +906,8 @@ download of package 'pak' failed
 Error in loadNamespace(x) : there is no package called 'pak'
 ```
 
-That is `setup-r-dependencies` failing before the package was ever built. Seen
-2026-09-02 on a tagged spacehakr release, where the same workflow had passed on the merge
-commit minutes earlier with identical content — the natural but wrong reading is "the
-release is broken".
+That is `setup-r-dependencies` failing before the package was ever built. On a release
+commit the natural but wrong reading is "the release is broken".
 
 **Read which step failed before drawing a conclusion**, especially on a release commit
 where the instinct is to distrust the tag:
@@ -911,6 +919,13 @@ gh run view <id> --log-failed | grep -iE 'error|fatal' | head
 If it died in dependency setup, rerun once. If it dies the same way again it is the
 upstream CDN, and the honest move is to say so and stop — not to keep spending runs on
 something no change in the repo can fix.
+
+A job that failed with **no steps** never started, and `--log-failed` answers `log not found`.
+Read why from its check run's annotations, `gh api repos/<owner>/<repo>/check-runs/<job id>/annotations
+--jq '.[].message'`: a refusal for failed payments or a spending limit is the account owner's to fix, and a
+re-run before they fix it is refused the same way.
+
+*6 lines of evidence for this rule are in `conventions/ci-monitoring.md`.*
 
 ## A timed-out run reads `cancelled`
 Read a `cancelled` run's annotations before calling it superseded: its job ids from `gh run view <id> --json jobs --jq '.jobs[].databaseId'`, then `gh api repos/<o>/<r>/check-runs/<job id>/annotations`. A timeout says "The job has exceeded the maximum execution time", and its `--log-failed` is empty.
@@ -1000,6 +1015,9 @@ A script that reads a file, transforms it, and writes it **back to the same path
 
 ### `glue()` trims common leading whitespace
 - `glue::glue()` strips the common indentation of its input, so a template whose output must preserve exact indentation (XML, YAML, Makefiles, Python) comes out subtly wrong — valid-looking, wrongly indented.
+
+### A `glue()` named argument shadows caller variables in the arguments after it
+Compute each value before the call and pass the result.
 
 ### `f(g(x)) <- v` needs a `g<-`, not an evaluated `g(x)`
 - R parses **any** call on the left of `<-` as a replacement function, all the way down.
@@ -1176,7 +1194,7 @@ Record a flag in the `withCallingHandlers()` handler, `invokeRestart("muffleWarn
 testthat 3e captures the first message the expression emits and matches the regexp against **that one**.
 
 ### `pak` refuses to install a package that needs no compiler
-`pak::pak()` routes through `pkgbuild::check_build_tools()`, which fails with *"Could not find tools necessary to compile a package"* whenever `xcode-select -p` points at `/Applications/Xcode.app/...` while the Command Line Tools are what is actually installed — **regardless of whether the package has any compiled code**.
+Install a pure-R package with `R CMD INSTALL <checkout>` when `pak::pak()` reports missing build tools: on macOS its check fails whenever `xcode-select -p` names Xcode.app and only the Command Line Tools are installed.
 
 ### `as.integer("NaN")` is `0`, and `as.integer(NaN)` is `NA`
 The string round trip is the bug.
@@ -1223,6 +1241,9 @@ End every `ORDER BY` on a unique key, order any fetch whose rows are summed, and
 ### `sprintf("%g", x)` writes `Inf` and `NA` into SQL as bare words, which Postgres reads as column names
 A numeric formatter such as `sprintf("%.10g", x)` has no SQL form for non-finite values.
 
+### Verify a float-formatting fix in its consumer, not through `as.numeric()`
+Compare where the literal is parsed (in Postgres, `SELECT <literal>::float8 = <stored>`) or compare IEEE 754 bytes: R's `as.numeric()` is not correctly rounded, so a correct `%.17g` string can fail to round-trip through R.
+
 ### An `information_schema` lookup by the literal table name misses what Postgres resolves
 `WHERE table_schema = 's' AND table_name = 'T'` compares the text you passed.
 
@@ -1261,6 +1282,9 @@ Read the exit status off the result: `st <- attr(out, "status")`, which is `NULL
 
 ### Forked `parallel::mclapply()` workers segfault in `glm.fit` under macOS Accelerate BLAS
 Fit models in parallel on socket workers (`parallel::makeCluster()` with `parLapply()`), not forks.
+
+### `clusterApply()` returns `NULL` for no tasks, not an empty list
+Guard an empty input before naming or indexing a `clusterApply()` or `clusterApplyLB()` result: given zero tasks both return `NULL`, where `parLapply()` and `lapply()` return `list()`.
 
 ### `c(name = x)` keeps `x`'s own name, so a value from a named vector becomes `name.X`
 Strip the name before you label it: `c(axis = unname(v[1]))` or `c(axis = v[[1]])`.
@@ -1321,6 +1345,9 @@ Keep helper and ad hoc scripts out of `data/`, which pkgload treats as package d
 
 ### `ifelse()` with an all-NA test returns a logical vector, whatever `yes` and `no` are
 Resolve NA before an `ifelse()` whose result must keep a type (`blocked <- !is.na(blocked) & blocked`), or use `dplyr::if_else(..., missing = )`.
+
+### `sub()` takes one replacement, not one per element
+Paste a per-element suffix on instead (`paste0(sub("]$", "", x), suffix)`): a `replacement` longer than one is used as its first element everywhere, with only a warning.
 
 # Code Check — Shell
 Tool-level traps in bash, sed, git and `gh`, and in the host toolchain those commands depend on.
@@ -1393,6 +1420,9 @@ Never chain a destructive setup and its undo (`git stash && slow && git stash po
 ### `git checkout <path>` restores from the index, not from HEAD
 After a `git add`, `git checkout <path>` reinstates the broken *staged* copy — so the "fix" reproduces the failure and reads as though the edit was wrong.
 
+### Six git plumbing calls whose default answers a different question
+Pass the flag that names the question you mean: `git log -m` and `--name-only`, `update-ref HEAD`, a checkout over an ignored file, `rev-parse --git-path` and a check of the `*_HEAD` files each succeed having answered or written something else.
+
 ### A value validated with one numeric grammar and consumed with another
 Normalise a numeric string once (digits only and at most 9 of them, then `x=$((10#$x))`, then a bounded range): `test` reads base 10, `$(( ))` reads a leading zero as octal and wraps past 2^63.
 
@@ -1412,7 +1442,7 @@ An assertion around something that might hang can only pass or hang, never fail 
 `aws s3 cp` gives one exit 1 and 404 text for a missing key and a missing bucket, so probe `s3api head-bucket` then `head-object`: only a 404 from a reachable bucket means absent; a 403 is permissions.
 
 ### An S3 multipart ETag depends on the uploader's part size, so try every size that gives its part count
-Verify an upload by comparing each object's ETag with its file, and for a multipart ETag (`<md5 of the part md5s>-N`) try every part size whose `ceiling(size / part) == N`: the size is the uploading machine's `multipart_chunksize`, which differs between machines.
+Verify an upload by comparing each object's ETag with its file, trying for a multipart ETag every part size that gives its part count: the size is the uploader's `multipart_chunksize`, which differs between machines.
 
 ### A verification command can be shadowed by a shell function or alias
 - The shell is initialized from the user's profile, so `diff`, `grep`, `ls`, `cat` and friends may resolve to a wrapper rather than the binary you assume.
@@ -1462,6 +1492,9 @@ Write `n=$(grep -c …) || n=0`, never `|| echo 0` inside the substitution: `gre
 ### macOS `/usr/bin/awk` aborts when a regex meets a byte slice that cuts a multibyte character
 Test a `substr()` slice with `==`, never with `~`, `match()` or `sub()`: the stock macOS awk counts bytes in `substr()` but converts a regex operand to wide characters, and a partial UTF-8 sequence kills the whole program.
 
+### macOS `sed` dies on an invalid byte, and GNU sed misparses it
+Parse logs with `LC_ALL=C sed`: a regex that scans an invalid UTF-8 byte exits 1 on macOS and misparses silently with GNU sed.
+
 ### A variable in a sed replacement is parsed, so its `\` and `&` are not literal
 Never interpolate data into the replacement half of `sed "s#…#$var#"`: sed reads `\(` as `(`, and `&` as the whole match, so the line written is not the value held.
 
@@ -1484,7 +1517,7 @@ Count instead: `while :; do left=0; for i in $ids; do done_yet "$i" || left=$((l
 Write `cd "$D" || exit 1` (or `cd "$D" && …`), never `cd "$D"; …`: without the guard, a missing directory prints one error and the rest of the line runs wherever the shell stood, including its file writes.
 
 ### macOS `/bin/bash` 3.2 quote-matches a heredoc inside `$( )`, so an apostrophe in the body is a syntax error
-Pass multi-line text through a file (`--body-file`, `-F`) rather than `"$(cat <<'EOF' … EOF)"`: bash 3.2 scans the command substitution for balanced quotes before it sees the heredoc, so `it's` in a quoted heredoc body fails with ``unexpected EOF while looking for matching `''``, while …`
+Pass multi-line text through a file (`--body-file`, `-F`), never `"$(cat <<'EOF' … EOF)"`: bash 3.2 matches quotes inside `$( )` before it reads the heredoc, so an unpaired apostrophe in the body is a syntax error.
 
 ### A skill's bash blocks run as separate calls, and its `$` + digits are replaced by its arguments
 Open every block after the first with guards on what it inherits: re-set its variables, confirm the path is the expected tree, and refuse edits or commits the previous block did not check.
@@ -1527,6 +1560,9 @@ Run a long Python command with `PYTHONUNBUFFERED=1` (or `python -u`) when its ou
 
 ### `aws s3` progress lines end in `\r`, so a line-based count of a saved log reads zero
 Translate before counting: `tr '\r' '\n' < log | grep -c '^upload:'`.
+
+### `a && b || c` runs `c` when any step before the `||` fails
+Give each setup step its own `|| exit 1` and branch with `if`: in `a && b || c`, `c` runs when `a` fails as well as when `b` does, so a failed setup reaches the fallback with its variable unset.
 
 # Code Check — Spatial
 terra, sf, bcdata, GDAL/OGR CLIs.
@@ -2121,6 +2157,14 @@ something and the issue did not:
 Vigilance does not catch this, because the drift happens exactly when attention
 moves to the merge. `/gh-pr-merge` reconciles at that moment — see its step 3b.
 
+## Work owed between two open issues stays in both bodies
+
+A task whichever PR merges second must do stays in both issue bodies until it is done, and
+the merge that does it ticks both copies. Never write "moved to #M": a move bets on a merge
+order nobody has decided. `/gh-pr-merge` 3b re-reads the other issue before writing a pointer to it.
+
+*4 lines of evidence for this rule are in `conventions/feature-workflow.md`.*
+
 ## Public-repo text describes the package, and points nowhere private
 
 In a public repo, issues, PRs, comments, commit messages, NEWS and roxygen describe
@@ -2280,6 +2324,14 @@ field code, fiscal year, and the consultant by name.
 The visibility filter was working correctly the whole time. It rests on an
 assumption pkgdown breaks: that a private repo's `CLAUDE.md` stays private.
 
+Pages from a private repo's **branch root** goes further and publishes the repository itself.
+With `main` `/` as the source and legacy Jekyll building it, the repository's files are served,
+`CLAUDE.md`, `planning/`, `research/` and `comms/` among them. Serve a site from `/docs` or `gh-pages`, and
+check a private repo's Pages source with `gh api repos/<owner>/<repo>/pages --jq .source`:
+`gh-pages` at `/` is the built site, the default branch at `/` is the repository.
+
+*4 lines of evidence for this rule are in `conventions/pkgdown-publishing.md`.*
+
 ### Remove it before the build, not after
 
 There are three copies, not one:
@@ -2398,6 +2450,17 @@ Same family as the cross-reference gotcha already noted for vignettes (`\@ref(fi
 to a literal): bookdown output formats do not carry all of bookdown's machinery through pkgdown,
 and each missing piece fails quietly in its own way. Verify anything structural — footnotes,
 cross-references, numbered captions — against the built page the first time you use it.
+
+## Tables in an article: a footnote goes through kableExtra on an HTML kable
+
+Write a table that needs a note as `knitr::kable(x, format = "html", caption = ) |>
+kableExtra::kable_styling(full_width = FALSE) |> kableExtra::footnote(general = , general_title = "")`,
+with `kableExtra` in `Suggests`. A pandoc footnote is dropped (above), and a note long enough to
+need one does not belong in the caption. Both pieces matter: `footnote()` on a bare `kable()`
+numbers the caption twice ("Table 2: Table 3:") and writes `NA` into the table's `style`
+attribute, and adding `kable_styling()` without `format = "html"` still doubles the caption.
+
+*3 lines of evidence for this rule are in `conventions/pkgdown-publishing.md`.*
 
 
 # Planning Conventions
@@ -3174,6 +3237,218 @@ Make every README figure of the package's output from a committed script that ru
 ### Leave out what another file already keeps
 Leave out roadmaps, changelogs, function tables, version strings in prose, counts of published things, and internal hosts or private repos, because each is kept elsewhere and goes stale in a README.
 
+
+# Reference Management Conventions
+
+How references flow between Claude Code, Zotero, and technical writing at New Graph Environment.
+
+## Tool Routing
+
+Three tools, different purposes. Use the right one.
+
+| Need | Tool | Why |
+|------|------|-----|
+| Search by keyword, read metadata/fulltext, semantic search | **MCP `zotero_*` tools** | pyzotero, works with Zotero item keys |
+| Look up by citation key (e.g., `irvine2020ParsnipRiver`) | **`/zotero-lookup` skill** | Citation keys are a BBT feature — pyzotero can't resolve them |
+| Create items, attach PDFs, deduplicate | **`/zotero-api` skill** | Connector API for writes, JS console for attachments |
+
+**Citation keys vs item keys:** Citation keys (like `irvine2020ParsnipRiver`) come from Better BibTeX. Item keys (like `K7WALMSY`) are native Zotero. The MCP works with item keys. `/zotero-lookup` bridges citation keys to item data.
+
+**BBT citation key storage:** As of Feb 2025+, BBT stores citation keys as a `citationKey` field directly in `zotero.sqlite` (via Zotero's item data system), not in a separate BBT database. The old `better-bibtex.sqlite` and `better-bibtex.migrated` files are stale and no longer updated. Query citation keys with: `SELECT idv.value FROM items i JOIN itemData id ON i.itemID = id.itemID JOIN itemDataValues idv ON id.valueID = idv.valueID JOIN fields f ON id.fieldID = f.fieldID WHERE f.fieldName = 'citationKey'`.
+
+**BBT citekey format is locally patched to strip `&`:** the `citekeyFormat` pref (`extensions.zotero.translators.better-bibtex.citekeyFormat` in `~/Library/Application Support/Zotero/Profiles/*/prefs.js`) has a `.replace(find = "&", replace = "")` segment added by hand. Without it, institutional authors containing `&` (e.g. "BC Species & Ecosystem Explorer", "WA Dept of Fish & Wildlife") leak `&` into the citekey, and pandoc's `@key` parser stops at `&` — so cites render broken in any bookdown/quarto build even though biblatex accepts the key. Reapply via Zotero → Tools → Run JavaScript: `Zotero.Prefs.set("translators.better-bibtex.citekeyFormat", val)` (also patch `citekeyFormatEditing` to match). Survives Zotero/BBT auto-updates; reverts only on a profile reset or a manual edit via the BBT preferences UI. Detect drift: `grep citekeyFormat ~/Library/Application\ Support/Zotero/Profiles/*/prefs.js` should show the `.replace(find = "&", ...)` chain. Teammates on Skeena/Fraser/restoration machines that hit the same `@key`-breaks-at-`&` drift should run the same `Zotero.Prefs.set`.
+
+## Which routes are live by default
+
+Measured 2026-09-04 on a freshly provisioned machine. Four of the six routes below were
+dead, and each dead end costs a session time it has no reason to expect:
+
+| route | state on a default setup |
+|---|---|
+| **Web API** | **works** — the route to use for writes; targets a collection directly via `"collections": [...]` and needs Zotero neither open nor restarted for the write itself |
+| **read-only SQLite** | works, and remains the best route for *searching* (`/zotero-lookup`) |
+| MCP `zotero_*` | unavailable until an API key is configured — the install script registers the server but never configures a key |
+| Local API | `403 Local API is not enabled`, with and without the `Zotero-Allowed-Request` header |
+| Connector `saveItems` | HTTP 500 on a minimal item with exactly the documented headers — a defect, not a permission; reads on the same port (`ping`, `getSelectedCollection`) are fine, and `getSelectedCollection` returns the whole collection tree in one call |
+| JS runner (`zotero_run_js.sh`) | `osascript is not allowed assistive access` until the terminal has Accessibility |
+
+**Zotero's server takes about 30 s after launch to respond.** An early failure does not
+mean it is not running, which is exactly the wrong conclusion to draw at that moment —
+wait and retry once before diagnosing.
+
+The key's location, the password-manager item that holds it and the local port are
+infrastructure identity and stay in machine-local memory, not here.
+
+**`immutable=1` serves a stale snapshot, so it cannot confirm a write landed.** The
+read-only URI the skills prescribe —
+`sqlite3 "file:$HOME/Zotero/zotero.sqlite?mode=ro&immutable=1"` — is right for
+*searching* outside a sync, and it is exactly wrong for *verifying*: `immutable` tells SQLite
+the file cannot change, so it skips the rollback journal and the change counter and serves
+whatever it first mapped. A write made through the Web API is invisible to it for as long as the process
+lives, which reads as "the write failed" rather than "this reader cannot see it". Copy
+the file first when the question is whether something landed, and note that a Web API
+create also needs Zotero to **sync** before it is in the local database at all.
+
+Three skills prescribe that URI (`zotero-lookup`, `zotero-api`, `lit-search`) and none
+of them says this, which is why it is here rather than in one of them.
+
+**A copy of the live file needs a consistency check**. Zotero holds
+`zotero.sqlite` in exclusive locking mode, so a normal read-only connection blocks, an
+`immutable=1` read during a sync can fail as malformed, and the header change counter does
+not move per commit. Accept a copy only when the live file's mtime and size are unchanged
+across it, the rollback journal is absent or has a zero header, and the copy passes
+`PRAGMA quick_check`.
+
+## Citation keys are BBT-auto-derived
+
+**Never set `Citation Key:` in the `extra` field.** BBT honours it as a manual override,
+and that breaks the convention that every key follows one formula: stable, reproducible,
+the same key for the same paper on every collaborator's machine. Leave `extra` empty, or
+use it only for other Zotero-supported fields (`Original Date:`, `tex.shorttitle:`).
+Ten items created with hand-set keys in one lit review (cd#58, 2026-05-05) had to be
+PATCHed clean after the user caught it.
+
+- **Web API-created items get no key until Zotero restarts.** Sync alone does not trigger
+  BBT. On macOS:
+  ```bash
+  osascript -e 'tell application "Zotero" to quit'; sleep 3; open -a Zotero; sleep 30
+  ```
+  Thirty seconds covered seven fresh items (cd#61); scale the wait with the batch.
+- **Corporate-author guard.** CrossRef sometimes returns no individual authors (a paper
+  bylined to a working group), so the POST lands with empty `creators` and BBT falls back
+  to a `<title-prefix><year>` key. PATCH the individual authors from the paper's roster
+  into `creators` before triggering the restart.
+- **BBT and Zotero version lines are paired** — BBT 8.x for Zotero 7, 9.x for Zotero 8/9.
+  If Zotero auto-disables BBT after an update, keys silently stop generating for new
+  items; reinstall the matching line via Plugin Manager → gear → "Install Plugin From
+  File…" from the BBT releases page.
+
+A key is unique within one library, not across them: 12 of 327 keys shared between
+libraries named different works, so resolve a key within its library.
+
+`/lit-search` and `/zotero-api` point here; this is the authority.
+
+## Adding References Workflow
+
+### 1. Search and flag
+
+When research turns up a reference:
+- **DOI available:** Tell the user — Zotero's magic wand (DOI lookup) is the fastest path
+- **ResearchGate link:** Flag to user for manual check — programmatic fetch is blocked (403), but full text is often there
+- **BC gov report:** Search [ACAT](https://a100.gov.bc.ca/pub/acat/), for.gov.bc.ca library, EIRS viewer
+- **Paywalled:** Note it, move on. Don't waste time trying to bypass.
+- **The polite-pool `mailto:` is sanctioned** for CrossRef, Unpaywall and OpenAlex only: their requests may carry the operator's email (the `User-Agent` in `/zotero-api`) with no disclosure each time, and a subagent brief that will call them says so.
+
+### 2. Add to Zotero
+
+**Preferred order:**
+1. DOI magic wand in Zotero UI (fastest, most complete metadata)
+2. Web API POST with `collections` array (grey literature, local PDFs — targets collection directly, no UI interaction needed)
+3. `saveItems` via `/zotero-api` (batch creation from structured data — requires UI collection selection)
+4. JS console script for group library (when connector can't target the right collection)
+
+**Collection targeting:** `saveItems` drops items into whatever collection is selected in Zotero's UI. Always confirm with the user before calling it. **Web API bypasses this** — include `"collections": ["KEY"]` in the POST body. Find collection keys with `?q=name` search on the collections endpoint.
+
+### 3. Attach PDFs
+
+`saveItems` attachments silently fail. Don't use them. Instead:
+
+1. **Web API S3 upload (preferred):** Create attachment item → get upload auth → build S3 body (Python: prefix + file bytes + suffix) → POST to S3 → register with uploadKey. Works without Zotero running. See `/zotero-api` skill section 4.
+2. **JS console fallback:** Download with `curl`, attach via `item_attach_pdf.js` in Zotero JS console.
+3. Verify attachment exists via MCP: `zotero_get_item_children`
+
+### 4. Verify
+
+After manual adds, confirm via MCP:
+- `zotero_search_items` — find by title
+- `zotero_get_item_metadata` — check fields are complete
+- `zotero_get_item_children` — confirm PDF attached
+
+### 5. Clean up
+
+If duplicates were created (common with `saveItems` retries):
+- Run `collection_dedup.js` via Zotero JS console
+- It keeps the copy with the most attachments, trashes the rest
+
+## In Reports (bookdown)
+
+### Bibliography generation
+
+```yaml
+# index.Rmd — dynamic bib from Zotero via Better BibTeX; the filter drops local `file` paths
+bibliography: "`r rbbt::bbt_write_bib('references.bib', overwrite = TRUE, filter = function(b) gsub('[[:space:]]+file = [{][^}]*[}],?', '', b))`"
+```
+
+`rbbt` pulls from BBT, which syncs with Zotero. Edit references in Zotero → rebuild report → bibliography updates.
+
+**Library targeting:** rbbt must know which Zotero library to search. This is set globally in `~/.Rprofile`:
+
+```r
+# default library — NewGraphEnvironment group (libraryID 9, group 4733734)
+options(rbbt.default.library_id = 9)
+```
+
+Without this option, rbbt searches only the personal library (libraryID 1) and won't find group library references. The library IDs map to Zotero's internal numbering — use `/zotero-lookup` with `SELECT DISTINCT libraryID FROM citationkey` against the BBT database to discover available libraries.
+
+### Citation syntax
+
+- `[@key2020]` — parenthetical: (Author 2020)
+- `@key2020` — narrative: Author (2020)
+- `[@key1; @key2]` — multiple
+- `nocite:` in YAML — include uncited references
+
+### Cite primary sources
+
+When a review paper references an older study, trace back to the original and cite it. Don't attribute findings to the review when the original exists. (See LLM Agent Conventions in `newgraph.md`.)
+
+**When the original is unavailable** (paywalled, out of print, can't locate): use secondary citation format in the prose and include bib entries for both sources:
+
+> Smith et al. (2003; as cited in Doctor 2022) found that...
+
+Both `@smith2003` and `@doctor2022` go in the `.bib` file. The reader can then track down the original themselves. Flag incomplete metadata on the primary entry — it's better to have a partial reference than none at all.
+
+## In articles (pkgdown)
+
+An article's citations follow `writing.md`, "Name, link and cite the software": a `.bib` written by
+script from the Zotero group library and the packages' own `citation()`, pandoc author-year
+citations, and a `::: {#refs}` list. Every literature reference an article cites is in the group
+library first.
+
+## PDF Fallback Chain
+
+When you need a PDF and the obvious URL doesn't work:
+
+1. DOI resolver → publisher site (often has OA link)
+2. Europe PMC (`europepmc.org/backend/ptpmcrender.fcgi?accid=PMC{ID}&blobtype=pdf`) — ncbi blocks curl
+3. SciELO — needs `User-Agent: Mozilla/5.0` header
+4. ResearchGate — flag to user for manual download
+5. Semantic Scholar — sometimes has OA links
+6. Ask user for institutional access
+
+Always verify downloads: `file paper.pdf` should say "PDF document", not HTML.
+
+**US federal reports (USFWS HSI, FWS/OBS): fetch from the Internet Archive's `doi-report_*` items**
+(`archive.org/download/<item>/<item>.pdf`; plain urllib works). The USFWS digital library is retired and DTIC
+refuses scripted downloads; govinfo scans are signed, so OCR them with `ocrmypdf --invalidate-digital-signatures`.
+
+*5 lines of evidence for this rule are in `conventions/references.md`.*
+
+## Searching Paper Content (ragnar)
+
+### Setup (per project)
+- `scripts/rag_build.R` — maps citation keys to Zotero PDF attachment keys, builds DuckDB
+- `data/rag/` gitignored — store is local, not committed
+- Dependencies: ragnar, Ollama with nomic-embed-text model
+- See `/lit-search` skill for full recipe
+
+### Query
+`ragnar_store_connect()` then `ragnar_retrieve()` — returns chunks with source file attribution.
+
+### Anti-patterns
+- NEVER write abstracts manually — if CrossRef has no abstract, leave blank
+- NEVER cite specific numbers without verifying from the source PDF via ragnar search
+- NEVER paraphrase equations — copy exact notation and cite page/section
+
 # Writing for the Reader
 Anything an outside reader sees answers their questions in their order and carries nothing that served only its authors.
 
@@ -3185,14 +3460,32 @@ Make each heading a question the reader brings, in their order, within any secti
 ### Open with the answer
 State the finding, with its numbers, in a sentence or two before any method, so a reader who stops there has the right answer.
 
+### Orient the reader in one sentence per place
+Say where each place is by the river it joins and the nearest town with a compass direction, checked against the Freshwater Atlas, and show the places on regional maps with keymaps.
+
+### Write each article to stand alone
+Never use a sibling article as the reference point: describe each method, bar and comparison on its own terms, and carry the sentence the reader needs rather than the sibling's figure or paragraph.
+
 ### Define a term in its own place, before it is used
 Give a term the article depends on its own short section before its first use, with its rule, why it exists, and how many cases fall each way.
 
 ### Prefer a plain phrase to a term
 Name a quantity by what it does for the reader ("the score; lower is better"), and keep a term only if the article reuses it, giving it its own place.
 
+### Species common names in lower case
+Write chinook salmon, coho and steelhead in lower case in prose and captions: it is our house style.
+
 ### Choose the form that lands with the reader
 Pick a sentence, table, figure or map by which one tells the reader the story fastest, and judge it by its effect on the reader, not by a preference for prose.
+
+### A sentence beside a table says what it shows, never what it holds
+Say the pattern beside a figure or table and leave its values to it: restated medians, shares and month names are read twice, and a statistic the table does not hold has no source on the page.
+
+### A caption names every mark the figure draws
+When a figure gains a mark, its caption gains a phrase, or the new mark reads as one the caption already names.
+
+### Define, read and cite every statistic you name
+Give every statistic an article names, at the table that carries it, what it compares, how to read its values, a source, and a published rating scale beside the values where one exists.
 
 ### Cut what serves the authors
 Remove what the authors needed and the reader does not: parity with superseded products, paths to internal research, and how a decision was reached.
@@ -3203,11 +3496,14 @@ Describe each weakness in one sentence about what the product does, with no advi
 ### State each claim by the code's definition
 Describe a set the code defines by that definition, never by its best-known member or a nearby proxy, or the sentence and its guard cover the proxy, not the set.
 
+### Check that each guard covers the set its sentence names
+Give each claim a guard over the whole set its sentence names, at the precision written, and re-read the guard whenever the sentence moves or is reworded, as "State each claim by the code's definition" asks of the sentence.
+
 ### When explaining a decision, list every check and the way it points
 Count the checks from the data, not the conclusion, give each its direction, and call a choice the evidence did not make a decision.
 
 ### Name, link and cite the software
-Set a software name in code font, link its first mention and say what it is, and end an article with a "Software and citation" section.
+Cite every package an article uses inline at its first mention, ours included, data to its publisher and each claim to the page that says it, from one `.bib` of Zotero entries and the packages' own `citation()`.
 
 ### Measure the simplification
 Report word and line counts before and after a rewrite, against the forecast, and name what set the floor.
