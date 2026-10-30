@@ -67,6 +67,19 @@ Relates to #110, #137, #145, #149
 - Better BibTeX on m1: `curl -A curl/8 http://127.0.0.1:23119/better-bibtex/cayw?probe=true` returns "No endpoint found": Zotero answers, BBT is not loaded.
 - Group library (libraryID 9) already holds hansen_etal2012Perceptionclimate, arguez_vose2011DefinitionStandard, moriasi_etal2007Modelevaluation, nash_sutcliffe1970Riverflow, munoz-sabater_etal2021ERA5Landstateoftheart, schnorbus2018VICGlacierVICGL, craig_etal2020Flexiblewatershed. Missing: WMO-No. 1203, Werner et al. 2019 (PNWNAmet), Chapman et al. 2018 (`chapman_etal2018Wateralloc` is hand-written in segment-discharge.bib).
 
+## Phase 1: the count (A), measured on m4 2026-10-30
+
+Years in 1951–1980 / 2016–2025 per series, from `data/departure/departure_site_*_20260717.rds` (`mx[[...]]`), with the gauges the 1951–1980 years rest on (carried: the `donors` strings of those years; extended: `e$donor` counts):
+
+| site (windows) | carried 1951–80 / 2016–25 | carried donors, 1951–80 | extended 1951–80 / 2016–25 | extension donors, 1951–80 |
+|---|---|---|---|---|
+| maxan (BULK) | 20–21 / 9 | 08EE008, 08EE013, 08EE003, 08JA016, 08EE020 | 30 / 9 (5 observed) | 08EE004 10–11, 08EE008 11–12, 08EE013 3 |
+| swift (BULK) | 27–28 / 10 | 08KA008, 08KA007, 08KA001, 08NC004 | 27–28 / 10 | 08KA001 16, 08KA007 11–12 |
+| naver (BULK) | 26–28 / 9 | 08KE009, 08KE016, 08KD006, 08KD007 (08KD001 in spawning min7) | 30 / 9–10 (18 observed) | 08KE009 8–9, 08KH006 2–3, 08KD001 1 (cov_day spawning: 08KD001 10, 08KH006 2) |
+| gosnell (BULK, MORR) | 20–21 / 9 | 08ED002, 08ED001, 08EE020, 08EE013, 08EE003 | — | — |
+
+Every stream reaches 1951–1980 with at least 20 years by either route, so no period decision goes back to the user. The early years lean on few gauges: at Maxan the filled-in record rests on the Bulkley at Quick (08EE004) and Telkwa (08EE008); at Gosnell the borrowed years before about 1960 rest on 08ED002 alone (a donor string of weight 1.0000).
+
 ## Errors Encountered
 
 | Error | Resolution |

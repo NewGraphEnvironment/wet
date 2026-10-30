@@ -24,7 +24,7 @@ The two listed flow-change articles read as the same article twice. Their titles
 
 ## Phase 1: The count (A), recorded
 
-- [ ] On m4, per site, window and route: count the years in 1951–1980 and 2016–2025, and name the gauges each 1951–1980 year rests on (extension donors from `mx$e`, carried donors from `mx$a$donors`). Write the counts to `findings.md`.
+- [x] On m4, per site, window and route: count the years in 1951–1980 and 2016–2025, and name the gauges each 1951–1980 year rests on (extension donors from `mx$e`, carried donors from `mx$a$donors`). Write the counts to `findings.md`.
 
 ## Phase 2: Does the 90% range hold its coverage at ten years?
 
