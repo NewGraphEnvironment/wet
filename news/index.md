@@ -1,5 +1,21 @@
 # Changelog
 
+## wet 0.4.31
+
+- The “Chinook Flow at Two Stations” article is now “How Stream Flow Has
+  Departed from Its 1981–2010 Normal: A Case Study”
+  ([\#145](https://github.com/NewGraphEnvironment/wet/issues/145)), and
+  its old address redirects to it. It opens with the answer: over
+  2022–2026, mean flow in the chinook salmon migration and spawning
+  windows at Buck Creek and the Bulkley near Houston was 25–62 % below
+  its 1981–2010 normal. It then shows where the gauges are, each
+  window’s flow in each of the last five years, the mean and median day
+  over the whole year and over July to October, and each window’s change
+  in mean flow. The trend tests and the year-by-year strip are gone. Its
+  references are written by a new `data-raw/vignette_bib.R` from each
+  package’s own [`citation()`](https://rdrr.io/r/utils/citation.html)
+  and the Zotero group library.
+
 ## wet 0.4.30
 
 - The “Monthly Flow per Segment” article is merged into “Stream

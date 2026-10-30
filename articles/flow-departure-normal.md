@@ -202,13 +202,13 @@ The software, each cited:
   2026a](#ref-bookdown)) render the article, all in R ([R Core Team
   2025](#ref-base)).
 
-This build ran on `wet` 0.4.30, `cd` 0.6.13, commit 86989e3, `gq` 0.16.1
+This build ran on `wet` 0.4.31, `cd` 0.6.13, commit 86989e3, `gq` 0.16.1
 and commit aa082d0. To cite `wet`:
 
 Irvine A (2026). *wet: Stream Flow and Water Temperature for the BC
 Freshwater Atlas*. New Graph Environment Ltd.
 <doi:10.5281/zenodo.23305781> <https://doi.org/10.5281/zenodo.23305781>.
-Version 0.4.30, <https://github.com/NewGraphEnvironment/wet>.
+Version 0.4.31, <https://github.com/NewGraphEnvironment/wet>.
 
 ### Data
 

@@ -174,12 +174,12 @@ each stream was chosen, and how the method is run and scored, is set out
 in [`wet`’s research
 notes](https://github.com/NewGraphEnvironment/wet/blob/main/research/chinook_sites.md).
 
-- `wet` 0.4.30,
+- `wet` 0.4.31,
   [doi:10.5281/zenodo.23305781](https://doi.org/10.5281/zenodo.23305781).
   Irvine A (2026). *wet: Stream Flow and Water Temperature for the BC
   Freshwater Atlas*. New Graph Environment Ltd.
   <doi:10.5281/zenodo.23305781>
-  <https://doi.org/10.5281/zenodo.23305781>. Version 0.4.30,
+  <https://doi.org/10.5281/zenodo.23305781>. Version 0.4.31,
   <https://github.com/NewGraphEnvironment/wet>.
 - `cd` 0.6.13,
   [doi:10.5281/zenodo.23264994](https://doi.org/10.5281/zenodo.23264994),
