@@ -98,7 +98,8 @@ vm_into <- function(conn, blks) {
     r <- DBI::dbGetQuery(conn, sprintf("
       WITH t AS (SELECT DISTINCT wscode_ltree FROM whse_basemapping.fwa_stream_networks_sp
                  WHERE blue_line_key = %d AND blue_line_key = watershed_key AND gnis_name IS NOT NULL),
-           up AS (SELECT n, subpath(t.wscode_ltree, 0, nlevel(t.wscode_ltree) - n) AS code FROM t, (VALUES (1), (2)) v(n))
+           up AS (SELECT n, subpath(t.wscode_ltree, 0, nlevel(t.wscode_ltree) - n) AS code
+                  FROM t, (VALUES (1), (2)) v(n))
       SELECT up.n, max(s.gnis_name) AS gnis_name, min(s.blue_line_key) AS blue_line_key
       FROM up JOIN whse_basemapping.fwa_stream_networks_sp s
         ON s.wscode_ltree = up.code AND s.blue_line_key = s.watershed_key
