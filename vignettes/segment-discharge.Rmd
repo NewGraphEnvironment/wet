@@ -276,7 +276,8 @@ sb_bc <- data.frame(x = bb_bc[["xmin"]] + 0.05 * dx_bc, y = bb_bc[["ymin"]] + 0.
 sb_bc$xend <- sb_bc$x + sb_bc_km * 1000
 lab <- cbind(sf::st_coordinates(map$regions), name = map$regions$name)
 lab <- data.frame(x = as.numeric(lab[, "X"]), y = as.numeric(lab[, "Y"]), name = lab[, "name"])
-drawn <- sum(mp$drawn)
+drawn <- sum(mp$drawn[names(mp$drawn) != "none"])
+stopifnot(setequal(names(mp$drawn), c("none", "pcic_routed", "wet_balance")))
 cap_pick <- sprintf(paste(
   "The source `pick` takes on main-flow rivers of stream order %d and up (wider for higher orders), %s of",
   "BC's segments, and the %d calibration gauges. Smaller streams are not drawn, nor the %s segments of",
@@ -307,9 +308,10 @@ ggplot() +
 ## How to read it
 
 `wet` knows where the parts are, so reading a stream takes its
-`linear_feature_id` and nothing else. The parts are sorted by watershed group,
-so naming the stream's group as well lets [`duckdb`](https://r.duckdb.org/)
-skip everything outside it, and the read takes seconds:
+`linear_feature_id` and its watershed group. The parts are sorted by group,
+so naming it lets [`duckdb`](https://r.duckdb.org/) skip everything outside
+it, and the read takes seconds; the months can be read without it, and the
+days cannot:
 
 ```{r read, echo = TRUE, eval = FALSE}
 library(wet)
@@ -322,7 +324,9 @@ reshape(q[q$month > 0, c("source", "month", "q_m3s")], idvar = "month",
 ```
 
 ```{r read-check}
-# the recipes are run as written by the data scripts, on this segment
+# the recipes are run as written by the data scripts, on this segment; a
+# routed row carries no coverage
+stopifnot(all(is.na(bs$coverage[bs$source == "pcic_routed"])))
 stopifnot(identical(unique(bs$linear_feature_id[bs$station_number == "08EE013"]), 17094080L),
           vs$daily$segment == 17094080, identical(vs$daily$group, "BULK"), all(vs$daily$days$basis == "daily"),
           identical(vs$daily$window, data.frame(window = "spring", start = "04-15", end = "06-15")))
@@ -367,7 +371,8 @@ wet_db_load(conn, cat)   # discharge.fwa_v1_segment_monthly
 
 Besides flow (`q_m3s`) a row carries `runoff_mm`, the same water as a depth
 over the area upstream (NA for a routed row off its watershed's own line),
-`coverage`, the share of that area the balance's inputs cover, and `period`.
+`coverage`, the share of that area the balance's inputs cover (NA on a
+routed row), and `period`.
 
 ## What a year looks like
 
@@ -817,7 +822,7 @@ over its complete years in `r base_text`: the balance at the `r nrow(sk)`
 HYDAT gauges it is built on, and routed PCIC at `r n_both` of them. Error is modelled minus observed, as a percentage of observed.
 The balance is scored *held out*: each Water Survey sub-sub-drainage (such as
 08EE) is left out of the fit in turn and predicted from the rest, so a gauge's
-neighbours on the same river cannot vouch for it. Routed PCIC is scored on the
+neighbours in the same sub-sub-drainage cannot vouch for it. Routed PCIC is scored on the
 segment each gauge snapped to: `r n_routed` gauges have routed flow, less
 `r length(far)` whose segment carries under a fifth of the gauge's flow, which
 the routed comparison leaves out and attributes one by one.
@@ -956,8 +961,9 @@ late_july <- vapply(c("08EE013", "08EE003"), function(st) {
 # leaving its annual error; at Houston they fall less than half as far, and
 # the balance stays several times the gauge in both late-summer windows
 late_w <- c("Spawning", "Fry migration")
-# the prose: migration covers whole months (May 1 to Aug 1) and costs under
-# 1%; spawning starts on a month and ends mid-month
+# the prose: migration spans whole months (May 1 to Aug 1, both days counted
+# by wet_flow_window()) and costs under 1%; spawning starts on a month and
+# ends mid-month
 stopifnot(identical(windows$start[windows$window == "Migration"], "05-01"),
           identical(windows$end[windows$window == "Migration"], "08-01"), approx_w[["Migration"]] < 1,
           identical(windows$start[windows$window == "Spawning"], "08-01"),
@@ -979,7 +985,8 @@ stopifnot(identical(poor_w, "Fry migration"), all(late_july < 0.9),
 Read from monthly means, every day of a window takes its month's mean (how
 windows are set and used:
 [What is a window?](https://newgraphenvironment.github.io/wet/articles/flow-change-sparse-gauges.html#what-is-a-window)).
-That costs nothing where a window covers whole months, as migration does, and
+That costs almost nothing where a window spans whole months, as migration
+does from 1 May to 1 August, and
 little where the month it cuts changes slowly: spawning ends mid-September,
 and the gauge's own monthly means and daily record agree within
 `r sprintf("%.0f%%", approx_w[["Spawning"]])`. `r and_text(poor_w)` takes the
@@ -1042,8 +1049,8 @@ stopifnot(isTRUE(ps$keep_adjust), isFALSE(ps$gate_pass), identical(ps$pooled_var
   scored where it was fitted, not here.
 - **Houston** (08EE003) is seasonal: its monthly means cover `r m003_text`,
   from `r n003` of the years `r base_text`.
-- **The scores are province-wide**, split by basin size and lake outlets, not
-  by region.
+- **The monthly scores are province-wide**, split by basin size and lake
+  outlets, not by region or zone.
 
 ## Software and citation
 

@@ -17,3 +17,13 @@
 - Phase 4: built the page and the redirect with pkgdown 2.2.0, ran the number check both ways with signs, compared figure md5s, and checked search and sitemap. Body prose is 1,772 words.
 - `/code-check branch` round 1 (`review-round1.md`) found 3 issues, all fixed. The lead claimed "the balance is unbiased" beside a table showing it +9.3 %; the claim is gone. "Both are scored at the 315" was wrong for routed PCIC, which is scored at 279. The setup now also holds `province_run` equal, matching CLAUDE.md's "one fit". Re-rendered: 1,775 words.
 - Round 2 (`review-round2.md`) found 3 bugs and 6 fragile items, all verified and fixed. Bugs: "the shape holds at most of its gauges" (each half does, at 66 % and 68 %, but both together at only 46 %); "a window starts and ends mid-month" (migration covers whole months); "at all 315 gauges its median…" read as a per-gauge claim. Fragile: "or the subset routed PCIC reaches" (round 1's fix; it is scored at 279 of the 290 it reaches); "every one of them" (now "almost every", guarded under a tenth); the stated reason routed days need not average to their month (now clamping, rounding and the February fold); "on the Bulkley River"; `research/discharge_publish.md`'s "both data scripts"; CLAUDE.md's colour and bundle lists. Two of these sit inside earlier fixes (round 1's rewording, and the plan review's "at all 315"), so the loop now ends only on an enumeration. Body prose is 1,805 words.
+- Round 3 (`review-round3.md`) was the terminating enumeration: all 104 factual claims from "What it is" to "Limits", plus every caption, the score footnote and the provenance paragraph. Result: 63 supported by their guard, 24 definitional, 11 true but unguarded, 6 false or overstated, plus 2 doc items. All 8 are fixed:
+  - The Limits bullet now says the *monthly* scores are not split by region (the yearly ones are, by zone).
+  - The held-out neighbours are those "in the same sub-sub-drainage", not "on the same river".
+  - Migration "spans whole months … from 1 May to 1 August" (both ends inclusive; costs under 1 %).
+  - A read takes the segment id and its group, which the days need.
+  - `coverage` is NA on routed rows, now guarded.
+  - The pick map's 6 % counts only the rivers drawn.
+  - `research/discharge_publish.md` names three bundles and the three scripts that read the parts.
+  - CLAUDE.md names the `gq_reg_main()` styles.
+  Each fix was checked with a re-render and a probe of the value it states (routed coverage all NA, drawn counts, `wet_segment_daily()`'s `groups` requirement). The four figures' images are unchanged. Body prose is 1,827 words.
