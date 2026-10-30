@@ -43,7 +43,7 @@ if (!grepl("^[0-9a-f]{7,40}$", commit)) {
 tolerance <- 1000
 num_features <- 5
 timeout <- "300s"  # per statement; the largest catchments take about 11 s
-vignette <- c("08EE013", "08EE003", "08EE004")  # station-flow and segment-discharge maps
+vignette <- c("08EE013", "08EE003", "08EE004")  # flow-departure-normal and segment-discharge maps
 release <- wb_release()
 out_txt <- wb_report("station_snap_sweep", release)
 out_rds <- file.path("data", "snap_sweep", sprintf("station_snap_sweep_%s.rds", release))

@@ -44,7 +44,7 @@ test_that("the species windows are complete, unique month-days", {
 test_that("the map layers are sf in BC Albers, with both stations and their catchments", {
   skip_if_not_installed("sf")
   m <- readRDS(vignette_data("station_map.rds"))
-  expect_named(m, c("stations", "catchments", "streams", "lakes", "places", "bc"))
+  expect_named(m, c("stations", "catchments", "streams", "lakes", "places", "bc", "mouths", "towns"))
   for (nm in names(m)) {
     expect_s3_class(m[[nm]], "sf")
     expect_equal(sf::st_crs(m[[nm]])$epsg, 3005L, info = nm)

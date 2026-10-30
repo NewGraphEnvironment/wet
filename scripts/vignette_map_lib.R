@@ -1,6 +1,6 @@
 # Map layers shared by the vignette map data scripts
 # (data-raw/station_vignette_map.R, #27; data-raw/monthly_vignette_map.R, #107;
-# data-raw/short_record_vignette_map.R, #130):
+# data-raw/short_record_vignette_map.R, #130; data-raw/chinook_sites_map.R, #126):
 # the stations from HYDAT, each one's catchment from its FWA snap, and the
 # context in an extent (streams, lakes, place names, the province outline),
 # all sf in EPSG:3005. Sourced after load_all(); the scripts choose the
@@ -84,6 +84,50 @@ vm_bc <- function(conn) {
     SELECT ST_SimplifyPreserveTopology(ST_Collect(d.geom), 5000) AS geom
     FROM (SELECT (ST_Dump(ST_Union(geom))).geom FROM whse_basemapping.fwa_bcboundary) d
     WHERE ST_Area(d.geom) >= 2e9")
+}
+
+# The rivers each blue line flows into, from its watershed code: `into1` (the
+# stream it joins), `into2` (the one that joins after, NA where `into1` runs to
+# the sea), `into1_blk` (into1's blue line), `system` (the river at the top of
+# the code), and `mouth_x`, `mouth_y`, the downstream end of the blue line
+# (EPSG:3005), one row per key in the order given (from
+# data-raw/chinook_sites_map.R, #126; shared with station_vignette_map.R, #145)
+vm_into <- function(conn, blks) {
+  into <- do.call(rbind, lapply(blks, function(blk) {
+    # a stream that joins a river running to the sea (Naver into the Fraser) has no second level
+    r <- DBI::dbGetQuery(conn, sprintf("
+      WITH t AS (SELECT DISTINCT wscode_ltree FROM whse_basemapping.fwa_stream_networks_sp
+                 WHERE blue_line_key = %d AND blue_line_key = watershed_key AND gnis_name IS NOT NULL),
+           up AS (SELECT n, subpath(t.wscode_ltree, 0, nlevel(t.wscode_ltree) - n) AS code
+                  FROM t, (VALUES (1), (2)) v(n))
+      SELECT up.n, max(s.gnis_name) AS gnis_name, min(s.blue_line_key) AS blue_line_key
+      FROM up JOIN whse_basemapping.fwa_stream_networks_sp s
+        ON s.wscode_ltree = up.code AND s.blue_line_key = s.watershed_key
+      GROUP BY up.n ORDER BY up.n", as.integer(blk)))
+    if (!1 %in% r$n) stop("blue line ", blk, " flows into no named stream", call. = FALSE)
+    merge(data.frame(n = 1:2), r, all.x = TRUE)
+  }))
+  stopifnot(nrow(into) == 2 * length(blks), !anyNA(into$gnis_name[into$n == 1]))
+  out <- data.frame(into1 = into$gnis_name[into$n == 1], into2 = into$gnis_name[into$n == 2],
+                    into1_blk = as.integer(into$blue_line_key[into$n == 1]))
+  # the river system: the stream at the top of the watershed code (the Skeena's 400, the Fraser's 100)
+  out$system <- vapply(blks, function(blk) {
+    DBI::dbGetQuery(conn, sprintf("
+      SELECT max(s.gnis_name) AS gnis_name FROM whse_basemapping.fwa_stream_networks_sp s
+      WHERE s.blue_line_key = s.watershed_key AND s.wscode_ltree = (
+        SELECT subpath(wscode_ltree, 0, 1) FROM whse_basemapping.fwa_stream_networks_sp
+        WHERE blue_line_key = %d AND blue_line_key = watershed_key LIMIT 1)", as.integer(blk)))$gnis_name
+  }, "")
+  # the mouth: the downstream end of the blue line's lowest segment
+  mouth <- sf::st_read(conn, quiet = TRUE, query = sprintf("
+    SELECT DISTINCT ON (blue_line_key) blue_line_key, ST_StartPoint(ST_LineMerge(ST_Force2D(geom))) AS geom
+    FROM whse_basemapping.fwa_stream_networks_sp WHERE blue_line_key IN (%s)
+    ORDER BY blue_line_key, downstream_route_measure", paste(blks, collapse = ", ")))
+  mxy <- sf::st_coordinates(mouth)[match(blks, mouth$blue_line_key), , drop = FALSE]
+  out$mouth_x <- mxy[, 1]
+  out$mouth_y <- mxy[, 2]
+  stopifnot(!anyNA(out$mouth_x), !anyNA(out$system))
+  out
 }
 
 # Named places from BC Geographic Names (bcdata), kept only inside the

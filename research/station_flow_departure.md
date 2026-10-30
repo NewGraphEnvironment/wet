@@ -1,6 +1,6 @@
 # Station flow departure: sources, seams and what a departure rests on
 
-**Verified:** 2026-09-28 (species windows and Chinook open-water 2026-10-01) · **Issues:** #25 (from #6; feeds knowledge#25, cd#92, cd#95, water-temp-bc#19), #27 (vignette) · **Produced by:** `scripts/station_departure.R` → `data/checks/station_departure_report.txt`, HYDAT 2026-07-17; species windows by `vignettes/station-flow.Rmd` on `data-raw/station_vignette_data.R`'s bundle (retrieved 2026-10-01) and `data-raw/station_vignette_map.R`'s map layers
+**Verified:** 2026-09-28 (species windows and Chinook open-water 2026-10-01) · **Issues:** #25 (from #6; feeds knowledge#25, cd#92, cd#95, water-temp-bc#19), #27 (vignette) · **Produced by:** `scripts/station_departure.R` → `data/checks/station_departure_report.txt`, HYDAT 2026-07-17; species windows by `vignettes/flow-departure-normal.Rmd` (`station-flow.Rmd` until #145) on `data-raw/station_vignette_data.R`'s bundle (retrieved 2026-10-01) and `data-raw/station_vignette_map.R`'s map layers
 
 ## Sources and where they meet
 

@@ -62,41 +62,8 @@ stopifnot(!anyNA(tg$lon), !anyNA(tg$lat))
 tg$map <- unname(map_of[tg$site_id])
 
 conn <- vd_connect()
-# the rivers each target stream flows into: the streams whose watershed code is its own, one and two levels up
-into <- do.call(rbind, lapply(tg$blue_line_key, function(blk) {
-  # a stream that joins a river running to the sea (Naver into the Fraser) has no second level
-  r <- DBI::dbGetQuery(conn, sprintf("
-    WITH t AS (SELECT DISTINCT wscode_ltree FROM whse_basemapping.fwa_stream_networks_sp
-               WHERE blue_line_key = %d AND blue_line_key = watershed_key AND gnis_name IS NOT NULL),
-         up AS (SELECT n, subpath(t.wscode_ltree, 0, nlevel(t.wscode_ltree) - n) AS code FROM t, (VALUES (1), (2)) v(n))
-    SELECT up.n, max(s.gnis_name) AS gnis_name, min(s.blue_line_key) AS blue_line_key
-    FROM up JOIN whse_basemapping.fwa_stream_networks_sp s
-      ON s.wscode_ltree = up.code AND s.blue_line_key = s.watershed_key
-    GROUP BY up.n ORDER BY up.n", as.integer(blk)))
-  if (!1 %in% r$n) stop("blue line ", blk, " flows into no named stream", call. = FALSE)
-  merge(data.frame(n = 1:2), r, all.x = TRUE)
-}))
-stopifnot(nrow(into) == 2 * nrow(tg), !anyNA(into$gnis_name[into$n == 1]))
-tg$into1 <- into$gnis_name[into$n == 1]
-tg$into2 <- into$gnis_name[into$n == 2]
-tg$into1_blk <- as.integer(into$blue_line_key[into$n == 1])
-# the river system: the stream at the top of the watershed code (the Skeena's 400, the Fraser's 100)
-tg$system <- vapply(tg$blue_line_key, function(blk) {
-  DBI::dbGetQuery(conn, sprintf("
-    SELECT max(s.gnis_name) AS gnis_name FROM whse_basemapping.fwa_stream_networks_sp s
-    WHERE s.blue_line_key = s.watershed_key AND s.wscode_ltree = (
-      SELECT subpath(wscode_ltree, 0, 1) FROM whse_basemapping.fwa_stream_networks_sp
-      WHERE blue_line_key = %d AND blue_line_key = watershed_key LIMIT 1)", as.integer(blk)))$gnis_name
-}, "")
-# the mouth: the downstream end of the blue line's lowest segment
-mouth <- sf::st_read(conn, quiet = TRUE, query = sprintf("
-  SELECT DISTINCT ON (blue_line_key) blue_line_key, ST_StartPoint(ST_LineMerge(ST_Force2D(geom))) AS geom
-  FROM whse_basemapping.fwa_stream_networks_sp WHERE blue_line_key IN (%s)
-  ORDER BY blue_line_key, downstream_route_measure", paste(tg$blue_line_key, collapse = ", ")))
-mxy <- sf::st_coordinates(mouth)[match(tg$blue_line_key, mouth$blue_line_key), ]
-tg$mouth_x <- mxy[, 1]
-tg$mouth_y <- mxy[, 2]
-stopifnot(!anyNA(tg$mouth_x), !anyNA(tg$system))
+# the rivers each target stream flows into, its river system and its mouth (scripts/vignette_map_lib.R)
+tg <- cbind(tg, vm_into(conn, tg$blue_line_key))
 # each target inside its own box (scripts/departure_site_lib.R)
 for (k in seq_len(nrow(tg))) site_in_box(sites[[k]], tg$lon[k], tg$lat[k])
 targets <- vm_points(tg[c("site_id", "name", "kind", "target", "blue_line_key", "map", "into1", "into2", "into1_blk",

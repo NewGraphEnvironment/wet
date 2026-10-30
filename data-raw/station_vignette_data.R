@@ -1,4 +1,4 @@
-# Data for vignettes/station-flow.Rmd (#27), which runs on these files and
+# Data for vignettes/flow-departure-normal.Rmd (#27, #145), which runs on these files and
 # never touches HYDAT, S3 or the network at build.
 #
 #   Rscript data-raw/station_vignette_data.R
