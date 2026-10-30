@@ -54,10 +54,10 @@ The two listed flow-change articles read as the same article twice. Their titles
 
 ## Phase 4: The bundle (`data-raw/chinook_sites_data.R`)
 
-- [ ] `change` becomes 1951–1980 against 2016–2025, with min7 kept, every row held to the new section's lines.
-- [ ] `years` gets period lines on the new periods.
-- [ ] New: snow before and after at each site (peak SWE, 50% melt date), held to the snow report's new lines.
-- [ ] Update the header. Run on m4 at the committed tree (`vd_commit()`) and commit `inst/vignette-data/chinook_sites_values.rds`.
+- [x] `change` becomes 1951–1980 against 2016–2025, with min7 kept, every row held to the new section's lines.
+- [x] `years` stays identical; the bundle gains `periods`, which the article's period lines read (plan review).
+- [x] New: snow before and after at each site (peak SWE, 50% melt date), held to the snow report's new lines.
+- [x] Update the header. Run on m4 at the committed tree (`vd_commit()`) and commit `inst/vignette-data/chinook_sites_values.rds`.
 
 ## Phase 5: The rebuilt article (`vignettes/articles/flow-change-sparse-gauges.Rmd`)
 
