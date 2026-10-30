@@ -403,13 +403,18 @@ hz_km <- round(sqrt(sum(hz^2)) / 1000, -1)
 hz_deg <- (atan2(hz[1], hz[2]) * 180 / pi) %% 360
 hz_dir <- c("north", "north-east", "east", "south-east", "south", "south-west", "west",
             "north-west")[(round(hz_deg / 45) %% 8) + 1]
-# the caption: drawn streams are order 5 and up, plus the two gauged streams whole; lakes 100 ha and up;
-# the thin streams and the lakes only near the catchments (data-raw/station_vignette_map.R queries them in
-# a box 8 km beyond them, so they stop short of the frame)
+# the caption: drawn streams are order 5 and up, plus the two gauged streams whole; lakes 100 ha and up
 stopifnot(all(map$streams$stream_order >= 5 | map$streams$main), all(map$lakes$area_ha >= 100))
+# data-raw/station_vignette_map.R selects the thin streams and the lakes in a box 8 km beyond the
+# catchments, but a lake comes back whole; the caption says they are drawn only near the catchments,
+# so both are cut to that box here
 near <- sf::st_as_sfc(sf::st_bbox(sf::st_buffer(sf::st_union(map$catchments), 8000)))
-stopifnot(all(lengths(sf::st_intersects(map$streams[!map$streams$main, ], near)) > 0),
-          all(lengths(sf::st_intersects(map$lakes, near)) > 0))
+cut_near <- function(x) {
+  x <- suppressWarnings(sf::st_intersection(x, near))
+  x[!sf::st_is_empty(x), ]
+}
+thin_streams <- cut_near(map$streams[!map$streams$main, ])
+lakes_near <- cut_near(map$lakes)
 
 map_w <- 7
 map_h <- 6.5
@@ -473,9 +478,9 @@ about `r hz_km` km `r hz_dir` of Houston.
 ggplot() +
   geom_sf(data = catch, aes(fill = part), colour = pal_hydro$values[["median"]], linewidth = 0.25,
           key_glyph = "rect") +
-  geom_sf(data = map$lakes, fill = lake_sty$fill$color, colour = lake_sty$stroke$color,
+  geom_sf(data = lakes_near, fill = lake_sty$fill$color, colour = lake_sty$stroke$color,
           linewidth = 0.15) +
-  geom_sf(data = map$streams[!map$streams$main, ], colour = stream_sty$color, linewidth = 0.35) +
+  geom_sf(data = thin_streams, colour = stream_sty$color, linewidth = 0.35) +
   geom_sf(data = main_streams, aes(colour = "stream_main"), linewidth = 0.9, key_glyph = "path") +
   geom_label(data = pl_lab, aes(x, y, label = label), colour = town_sty$label$color,
              fontface = "bold", size = 3.6, linewidth = 0, fill = "white", alpha = 0.85,
