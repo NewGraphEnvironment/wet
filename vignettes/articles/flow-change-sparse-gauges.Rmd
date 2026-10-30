@@ -97,15 +97,14 @@ stopifnot(sites$obs_n[sites$site_id == "maxan"] == 5, identical(sites$kind, c("e
 # "the borrowed departures show no clear change in the migration window at any stream", both window sets
 mig_all <- ch[ch$statistic == "mean" & ch$window == "migration" & ch$route == "carried", ]
 stopifnot(all(mig_all$pct_lo < 0), all(mig_all$pct_hi > 0))
-# "the filled-in record at Maxan Creek falls in the migration window too": its range stays below zero
-mx_mig <- row_of("maxan", "migration", "extended")
-stopifnot(mx_mig$pct_hi < 0)
 # years per period: 20-30 of 1951-1980 and 9 or 10 of 2016-2025 on every route
 stopifnot(all(ch$n_pre >= 20 & ch$n_pre <= 30), all(ch$n_post %in% 9:10))
 # the lowest seven-day flow in the spawning window, borrowed: "fell at three streams and held at Swift Creek"
 m7 <- do.call(rbind, lapply(ids, row_of, w = "spawning", route = "carried", s = "min7"))
 m7_down <- m7$site_id[m7$pct < -10]
 stopifnot(identical(sort(m7_down), sort(c("maxan", "naver", "gosnell"))), abs(m7$pct[m7$site_id == "swift"]) < 5)
+# "clearly only at Maxan Creek": of the three, only Maxan's range stays below no change
+stopifnot(identical(m7$site_id[m7$pct_hi < 0], "maxan"))
 # snow over each stream's own catchment: "peaked 6-10% lower and half had melted 9-17 days earlier"
 tgt <- c(maxan = "08EE018", swift = "08KA012", naver = "08KE014", gosnell = "gosnell")
 sc_t <- v$snow_change[v$snow_change$group == "BULK" & v$snow_change$gauge == tgt[v$snow_change$site_id], ]
@@ -152,8 +151,9 @@ on gauges it was not given.
 lower than over `r ref_text` at all four streams, by `r pct(min(abs(spw$pct)))` to
 `r pct(max(abs(spw$pct)))` from nearby gauges' departures; at
 `r and_text(sub(" Creek$", "", name_of[low_spw$site_id]))` creeks that route's 90% range
-stays below no change. The lowest seven-day flow in that window fell at
-`r and_text(sub(" Creek$", "", name_of[m7_down]))` creeks and held at Swift Creek. In the
+stays below no change. Borrowed, the lowest seven-day flow in that window fell at
+`r and_text(sub(" Creek$", "", name_of[m7_down]))` creeks, clearly only at Maxan, and held at
+Swift. In the
 migration window the borrowed departures show no clear change at any stream. Snow over every
 catchment peaked lower and melted earlier. Borrowed
 departures score worse in the spawning window than in the migration window at all four under
@@ -459,9 +459,9 @@ m7_fell <- m7[m7$site_id %in% m7_down, ]
 
 The spawning-window drop is largest at Maxan and Naver creeks and smallest at Swift
 Creek, and filling in each gauged stream's own record gives drops in the same direction
-(`r pct(min(abs(ext$pct)))`–`r pct(max(abs(ext$pct)))`). At three of them the
-spawning window's lowest seven-day flow, its driest week, fell by `r pct(min(abs(m7_fell$pct)))`
-to `r pct(max(abs(m7_fell$pct)))`.
+(`r pct(min(abs(ext$pct)))`–`r pct(max(abs(ext$pct)))`). Borrowed, the spawning
+window's lowest seven-day flow fell by `r pct(min(abs(m7_fell$pct)))` to
+`r pct(max(abs(m7_fell$pct)))` at `r and_text(sub(" Creek$", "", name_of[m7_down]))` creeks.
 
 ```{r change, fig.height = 6.5, fig.cap = "Change in each window's mean flow (top) and its lowest seven-day flow (bottom), from 1951–1980 to 2016–2025 (to 2024 where 2025 is not yet approved), with its 90% range, by each route the legend names."}
 dd <- ch[ch$group == "BULK" & ch$statistic %in% c("mean", "min7"), ]
@@ -512,13 +512,15 @@ borrowed departures clear it in the migration window in every box and, under the
 windows, fall below it in the spawning window in every box, `r sprintf("%.2f", min(ss_spw$carried))`–`r sprintf("%.2f", max(ss_spw$carried))`,
 so those ranges carry that weaker score. The lowest seven-day flow scores below the bar in
 `r sum(m7_sc < 0.5)` of `r length(m7_sc)` windows and boxes.
-Filling in a record scores poorly only in the upper Fraser, which has `r sc$ext_gauges[sc$site_id == "swift"]`
-long enough records to test it, so Swift Creek's filled-in change is its less certain route.
+Filling in a record scores about the same in the other boxes and poorly in the upper Fraser,
+with `r sc$ext_gauges[sc$site_id == "swift"]` long enough records to test it, so Swift Creek's
+filled-in change is its less certain route.
 
 ## Does snow explain it?
 
 ```{r snow}
-sn <- v$snow[v$snow$group == "BULK" & v$snow$series == "carried" & v$snow$predictor == "swe", ]
+# every snow claim holds under both window sets (the Bulkley's, and the Morice's at Gosnell Creek)
+sn <- v$snow[v$snow$series == "carried" & v$snow$predictor == "swe", ]
 sn_mig <- sn[sn$window == "migration", ]
 sn_spw <- sn[sn$window == "spawning", ]
 stopifnot(setequal(sn_mig$site_id, ids), setequal(sn_spw$site_id, ids))
@@ -528,17 +530,19 @@ r2_mig <- range(sn_mig$r2)
 r2_spw <- max(sn_spw$r2)
 stopifnot(r2_spw < min(r2_mig) / 2)
 # the melt date, the other snow predictor, over the spawning window
-melt_spw <- v$snow[v$snow$group == "BULK" & v$snow$series == "carried" & v$snow$predictor == "doy" &
+melt_spw <- v$snow[v$snow$series == "carried" & v$snow$predictor == "doy" &
                      v$snow$window == "spawning", ]
 stopifnot(setequal(melt_spw$site_id, ids))
 r2_melt <- max(melt_spw$r2)
 stopifnot(r2_melt < min(r2_mig))
 # the measured snow gauges' own records: two per stream, migration-window flow rising with peak snow at
 # every one, and peak snow explaining less in the spawning window
-og <- v$snow[v$snow$group == "BULK" & v$snow$series == "observed" & v$snow$predictor == "swe", ]
+og <- v$snow[v$snow$series == "observed" & v$snow$predictor == "swe", ]
 og_mig <- og[og$window == "migration", ]
 og_spw <- og[og$window == "spawning", ]
-stopifnot(nrow(og_mig) == 2 * length(ids), all(table(og_mig$site_id) == 2), all(og_mig$lo > 0))
+n_snow_gauges <- length(unique(og_mig$gauge))
+stopifnot(n_snow_gauges == 2 * length(ids), all(tapply(og_mig$gauge, og_mig$site_id, function(g) length(unique(g))) == 2),
+          all(og_mig$lo > 0))
 stopifnot(max(og_spw$r2) < min(og_mig$r2) + 0.1)
 ```
 
@@ -550,7 +554,7 @@ half had melted `r round(min(melt_days))` to `r round(max(melt_days))` days earl
 
 Migration-window flow rises with peak snow: the borrowed departures at all four streams, with
 90% ranges above zero and `r round(100 * r2_mig[1])`–`r round(100 * r2_mig[2])`% of their
-year-to-year spread explained, and measured flow at all `r nrow(og_mig)` snow gauges, two near
+year-to-year spread explained, and measured flow at all `r n_snow_gauges` snow gauges, two near
 each stream (named in advance at Maxan Creek, elsewhere the nearest two with long records),
 `r round(100 * min(og_mig$r2))`–`r round(100 * max(og_mig$r2))`%. In the spawning window peak
 snow explains at most `r round(100 * r2_spw)`% of the borrowed departures and
