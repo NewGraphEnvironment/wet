@@ -56,7 +56,7 @@ Change, Bulkley windows unless named, carried / extended, with the 90 % range:
 | Gosnell, Morice windows | -23 % (-50..+15) | -8 % | -31 % (-57..+10) | +12 % |
 
 - **The spawning-window drop holds** on the earlier reference: it is largest at Maxan and Naver and smallest at Swift. The carried range clears no change at Maxan, Naver and Gosnell, as against before 1981.
-- **The migration window** shows no clear change on the carried route at any site. Maxan's extended route, whose 1951–1980 years rest on the Bulkley at Quick (08EE004) and Telkwa (08EE008), falls by 28 %, with a range below zero.
+- **The migration window** shows no clear change on the carried route at any site. Maxan's extended route, whose 1951–1980 years rest on the Bulkley at Quick (08EE004) and Goathorn Creek near Telkwa (08EE008), falls by 28 %, with a range below zero.
 - **The lowest seven-day flow** in the spawning window, carried, falls at Maxan, Naver and Gosnell (the range clears no change only at Maxan) and holds at Swift (+1 %; extended, -18 %). Its carried held-out scores are below #120's 0.5 bar in 7 of the 8 site-windows (0.23–0.59), so it is the weakest statistic the article shows.
 - **Snow** over each target's watershed, 1951–1980 to 2016–2025:
   - peak SWE fell 6–9 % (Maxan 260 → 235 mm, Swift 555 → 524, Naver 243 → 223, Gosnell 974 → 891);

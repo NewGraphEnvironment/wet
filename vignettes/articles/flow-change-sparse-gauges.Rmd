@@ -46,6 +46,8 @@ pal_map <- classes("chinook_sites_map", c("box", "target_gauged", "target_ungaug
 pal_change <- classes("chinook_sites_change", c("extended", "carried"))
 pal_window <- classes("chinook_sites_window", c("migration", "spawning", "flow"))
 pal_series <- classes("chinook_sites_series", c("band", "measured", "filled", "borrowed", "period_mean"))
+# the years figure's band is OLS's prediction band, whose held-out coverage is 83-85%: never a "90% range"
+stopifnot(!grepl("90", pal_series$labels[["band"]]))
 stream_sty <- reg_main$layers$streams_all$classification$classes$WA24111110
 lake_sty <- reg_main$layers$lake
 town_sty <- reg_main$layers$town
@@ -105,7 +107,7 @@ m7_down <- m7$site_id[m7$pct < -10]
 stopifnot(identical(sort(m7_down), sort(c("maxan", "naver", "gosnell"))), abs(m7$pct[m7$site_id == "swift"]) < 5)
 # "clearly only at Maxan Creek": of the three, only Maxan's range stays below no change
 stopifnot(identical(m7$site_id[m7$pct_hi < 0], "maxan"))
-# snow over each stream's own catchment: "peaked 6-10% lower and half had melted 9-17 days earlier"
+# snow over each stream's own catchment: "held 6% to 9% less water and half had melted 9 to 16 days earlier"
 tgt <- c(maxan = "08EE018", swift = "08KA012", naver = "08KE014", gosnell = "gosnell")
 sc_t <- v$snow_change[v$snow_change$group == "BULK" & v$snow_change$gauge == tgt[v$snow_change$site_id], ]
 stopifnot(setequal(sc_t$site_id, ids))
@@ -124,15 +126,12 @@ stopifnot(all(ss_spw$carried < 0.5), all(ss_mig$carried >= 0.5),
           all(v$score_settings$carried[v$score_settings$setting == "migration mean, k = 5"] >= 0.5))
 sc <- v$scores[v$scores$group == "BULK", ]
 stopifnot(identical(sc$site_id, ids))
-# "about as well across the Cottonwood, Morice and Bulkley boxes, and worse in the upper Fraser":
-# Naver and Gosnell within 0.15 of Maxan on both routes in both windows; Swift's filled-in record 0.2 or more below
+# "filling in a record scores poorly in the upper Fraser ... so Swift Creek's filled-in change is its less
+# certain route": in every row the change figure draws (mean and min7, both windows), Swift's filled-in score
+# is below the bar and below its borrowed score
 ss_of <- function(id, setting, col) ssc[[col]][ssc$site_id == id & ssc$setting == setting]
-for (st in c("migration mean, k = 5", "spawning mean")) {
-  for (id in c("naver", "gosnell")) {
-    stopifnot(abs(ss_of(id, st, "ols") - ss_of("maxan", st, "ols")) <= 0.15,
-              abs(ss_of(id, st, "carried") - ss_of("maxan", st, "carried")) <= 0.15)
-  }
-  stopifnot(ss_of("swift", st, "ols") <= ss_of("maxan", st, "ols") - 0.2)
+for (st in c("migration mean, k = 5", "spawning mean", "migration min7", "spawning min7")) {
+  stopifnot(ss_of("swift", st, "ols") < 0.5, ss_of("swift", st, "ols") < ss_of("swift", st, "carried"))
 }
 # "the windows are the Bulkley's at all four; only the Morice has its own"
 stopifnot(all(grepl("^BULK", sites$windows)), identical(sites$windows != "BULK", sites$site_id == "gosnell"))
@@ -156,7 +155,7 @@ stays below no change. Borrowed, the window's lowest seven-day flow fell at
 Swift. In the
 migration window borrowed mean flow shows no clear change at any stream. Snow over every
 catchment peaked lower and melted earlier. Borrowed mean flow scores worse in the spawning
-window than in the migration window at all four under the Bulkley's windows.
+window than in the migration window at all four under Bulkley windows.
 
 ## Where are the four streams?
 
@@ -498,17 +497,13 @@ knitr::kable(tab, row.names = FALSE, align = "lrrrrr",
 stopifnot(sc$ols[sc$site_id == "swift"] < 0.2)
 # "only N gauges" and "few long records": the upper Fraser box has the fewest
 stopifnot(sc$ext_gauges[sc$site_id == "swift"] < min(sc$ext_gauges[sc$site_id != "swift"]))
-# "the less certain of its two routes": Swift's filled-in range wider than its borrowed one, in both windows
-width <- function(w, route) with(row_of("swift", w, route), pct_hi - pct_lo)
-stopifnot(width("migration", "extended") > width("migration", "carried"),
-          width("spawning", "extended") > width("spawning", "carried"))
 ```
 
 Both routes are scored by hiding a gauge's own record and predicting it from its
 neighbours. A score of 0.5 was set as the method's bar before any stream was run. The
 borrowed departures clear it in the migration window in every box and, under the Bulkley's
 windows, fall below it in the spawning window in every box, `r sprintf("%.2f", min(ss_spw$carried))`–`r sprintf("%.2f", max(ss_spw$carried))`,
-so those ranges carry that weaker score. The lowest seven-day flow scores below the bar in
+so those ranges carry that weaker score. Borrowed, the lowest seven-day flow scores below the bar in
 `r sum(m7_sc < 0.5)` of `r length(m7_sc)` windows and boxes.
 Filling in a record scores poorly in the upper Fraser, with
 `r sc$ext_gauges[sc$site_id == "swift"]` long enough records to test it, so Swift Creek's filled-in
