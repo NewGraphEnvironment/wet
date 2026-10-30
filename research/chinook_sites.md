@@ -43,7 +43,7 @@ The method is #120's, fixed at what shipped for Maxan: extension by OLS, k = 5, 
 
 The comparison article now measures change from 1951–1980 to 2016–2025. 1951–1980 comes before global warming sped up (Hansen et al. 2012, who chose it for that reason), and ERA5-Land's snow reaches back to 1950. Section 5 of each site report (registered at b66b577 before any body code) gives both routes over those periods, computed after #126's draws and outside the parity gate's `mx_core`. The rerun changed every report by additions only. Each period has 20–30 years of 1951–1980 and 9 or 10 of 2016–2025: approved HYDAT ends in 2024 for most series, and in 2025 for every Swift series and some of Naver's filled-in ones.
 
-**The intervals hold their coverage.** Each interval was put through 1000 simulated no-change series, normal with the series' own SD in each period and the same residual pool. They covered 0.904–1.000. The article calls an interval a 90 % range only above 0.87, so every range it draws on qualifies. Not tested: autocorrelated years, and donor sets that differ between the periods. The measured article's percentile bootstrap of a ratio of means has no residual. It covers only 0.834–0.867 at its 9 or 10 recent years (`data/checks/departure_interval_coverage.txt`), so that article does not call its range a 90 % range.
+**The intervals hold their coverage.** Each interval was put through 1000 simulated no-change series, normal with the series' own SD in each period and the same residual pool. They covered 0.904–1.000. The article calls a change interval a 90 % range only above 0.87, so every change range it draws on qualifies; it does not call the years figure's OLS band a 90 % range, because its held-out coverage in the site reports is 83–85 %. Not tested: autocorrelated years, and donor sets that differ between the periods. The measured article's percentile bootstrap of a ratio of means has no residual. It covers only 0.834–0.867 at its 9 or 10 recent years (`data/checks/departure_interval_coverage.txt`), so that article does not call its range a 90 % range.
 
 Change, Bulkley windows unless named, carried / extended, with the 90 % range:
 
@@ -59,8 +59,8 @@ Change, Bulkley windows unless named, carried / extended, with the 90 % range:
 - **The migration window** shows no clear change on the carried route at any site. Maxan's extended route, whose 1951–1980 years rest on the Bulkley at Quick (08EE004) and Telkwa (08EE008), falls by 28 %, with a range below zero.
 - **The lowest seven-day flow** in the spawning window, carried, falls at Maxan, Naver and Gosnell (the range clears no change only at Maxan) and holds at Swift (+1 %; extended, -18 %). Its carried held-out scores are below #120's 0.5 bar in 7 of the 8 site-windows (0.23–0.59), so it is the weakest statistic the article shows.
 - **Snow** over each target's watershed, 1951–1980 to 2016–2025:
-  - peak SWE fell 6–9 % (Maxan 260 → 235 mm, Swift 556 → 524, Naver 243 → 223, Gosnell 974 → 891);
+  - peak SWE fell 6–9 % (Maxan 260 → 235 mm, Swift 555 → 524, Naver 243 → 223, Gosnell 974 → 891);
   - the 50 % melt date came 9–16 days earlier.
   
-  At the measured snow gauges, migration-window flow rises with peak SWE at all eight, with a range above zero and R² 0.25–0.62. In the spawning window R² is at most 0.31.
+  At the measured snow gauges, migration-window flow rises with peak SWE at all eight, with a range above zero and R² 0.25–0.62. In the spawning window R² is at most 0.31. The 50 % melt date explains more there at two gauges: 64–66 % of measured spawning-window flow at the Nanika (08ED001) and Morice (08ED002), Gosnell's snow gauges, under the Bulkley windows. Elsewhere it explains at most a third, and 18–19 % at those two gauges under the Morice's later windows.
 
