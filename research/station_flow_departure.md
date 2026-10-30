@@ -1,6 +1,6 @@
 # Station flow departure: sources, seams and what a departure rests on
 
-**Verified:** 2026-09-28 (species windows and Chinook open-water 2026-10-01) · **Issues:** #25 (from #6; feeds knowledge#25, cd#92, cd#95, water-temp-bc#19), #27 (vignette) · **Produced by:** `scripts/station_departure.R` → `data/checks/station_departure_report.txt`, HYDAT 2026-07-17; species windows by `vignettes/flow-departure-normal.Rmd` (`station-flow.Rmd` until #145) on `data-raw/station_vignette_data.R`'s bundle (retrieved 2026-10-01) and `data-raw/station_vignette_map.R`'s map layers
+**Verified:** 2026-09-28 (species windows and Chinook open-water 2026-10-01; 2016–2025 section 2026-10-30) · **Issues:** #25 (from #6; feeds knowledge#25, cd#92, cd#95, water-temp-bc#19), #27 (vignette), #152 · **Produced by:** `scripts/station_departure.R` → `data/checks/station_departure_report.txt`, HYDAT 2026-07-17; species windows by `vignettes/flow-departure-normal.Rmd` (`station-flow.Rmd` until #145) on `data-raw/station_vignette_data.R`'s bundle (retrieved 2026-10-01) and `data-raw/station_vignette_map.R`'s map layers
 
 ## Sources and where they meet
 
@@ -66,6 +66,18 @@ The revised vignette keeps only the Chinook windows that stay in open water: mig
 - **08EE003's 1981–2010 baseline is 1981–1998** (18 years) in all three windows. It has no window with 80% of its days in 1999–2010: only a few spot values a year in 2000–2009, and a record from September 2010 that is continuous except for two provisional gaps in 2025 (1–8 July and 3–11 August). Its three 2025 windows rest on 80–91% of their days (37 of 46, 85 of 93 and 46 of 55), which `wet_window_stats()` accepts at `min_frac = 0.8`.
 - **The catchments are nested.** Buck Creek's FWA catchment (567 km²) lies inside 08EE003's (2,315 km²): 24% of its area. FWA area against HYDAT gross area is 0.997 and 0.998. For each window and recent year (15 pairs), the two stations fall on the same side of the mean, partly by construction.
 - **Trends** use the three windows, 2 variables, 2 starts and 2 stations: 24 slopes, 2 significant at p < 0.05, both negative. These are 08EE013 spawning mean and 08EE003 migration mean, both since 2000. Fry migration shares 38 of its 55 days with spawning, so the tests are not independent.
+
+## Chinook open-water windows, 2016–2025 (#152)
+
+The measured article (`vignettes/flow-departure-normal.Rmd`, "Measured Stream Flow Against Its 1981–2010 Normal: Two Long-Record Gauges") moved from the last five years on record to 2016–2025, the decade the comparison article ends on. 2026 is dropped. Its 1981–2010 normal is cited as a WMO standard normal (Arguez and Vose 2011, p. 699; WMO-No. 1203) and as the period wet's published flows are normals of. It already holds part of the warming (Hansen et al. 2012), which is why the comparison article measures from 1951–1980.
+
+- **Change in the window mean, 2016–2025 against 1981–2010:**
+  - Bulkley near Houston (08EE003): -7 % (migration), -8 % (spawning);
+  - Buck Creek (08EE013): -5 % (migration), -48 % (spawning).
+  
+  Every window at both gauges was below normal in each year from 2023, and 11 of those 12 window means were drier than nine baseline years in ten. Before 2023 the decade swings both ways. The two gauges fall on the same side of normal in 17 of the 18 window-years both recorded; 2019's spawning window splits them.
+- **Buck Creek has no 2016** in either window (no days in the bundle), so it has 9 recent years.
+- **The resampled range is not a 90 % interval.** At these years it covers 0.834–0.867 of simulated no-change records, under the 0.87 bar (`scripts/departure_interval_coverage.R` → `data/checks/departure_interval_coverage.txt`). The article calls it "the middle 90 % of changes from resampling" and rests no count on it.
 
 ## Departures at an ungauged site: the Maxan pilot (#120)
 

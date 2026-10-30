@@ -1,6 +1,6 @@
 # Chinook pilot sites beyond Maxan: which streams, and what the method finds there
 
-**Verified:** 2026-10-28 · **Issues:** #126 (component of #118; after #120, #121) · **Produced by:** `scripts/chinook_sites_use.R` → `data/checks/chinook_sites_use.txt` (NuSEDS All Areas 2026-06-01, md5 25bb43441645519f18eb4853dd1cf399; fwapg `bcfishobs.observations`; HYDAT 2026-07-17); `scripts/departure_site.R` and `scripts/departure_site_snow.R` per site of `scripts/departure_sites.csv` → `data/checks/departure_site[_snow]_<site>_<group>_20260717.txt`; article `vignettes/articles/flow-change-sparse-gauges.Rmd` (listed in place of the Maxan article)
+**Verified:** 2026-10-28 (the 1951–1980 against 2016–2025 section 2026-10-30) · **Issues:** #126 (component of #118; after #120, #121), #152 · **Produced by:** `scripts/chinook_sites_use.R` → `data/checks/chinook_sites_use.txt` (NuSEDS All Areas 2026-06-01, md5 25bb43441645519f18eb4853dd1cf399; fwapg `bcfishobs.observations`; HYDAT 2026-07-17); `scripts/departure_site.R` and `scripts/departure_site_snow.R` per site of `scripts/departure_sites.csv` → `data/checks/departure_site[_snow]_<site>_<group>_20260717.txt`; article `vignettes/articles/flow-change-sparse-gauges.Rmd` (listed in place of the Maxan article)
 
 ## Which streams, and why
 
@@ -38,3 +38,29 @@ The method is #120's, fixed at what shipped for Maxan: extension by OLS, k = 5, 
 - **Gosnell's normal** is routed PCIC (`pick`) on mouth segment 139028198: 34.4 m³/s in the migration window and 8.7 in the spawning window (Bulkley windows). Its error at the 29 departure-pool gauges of its box with an accepted snap, as log(published / observed 1981–2010), has a median of +0.04 (migration) and +0.19 (spawning). In the spawning window that is a median of +21 % and an upper quartile of +60 %. The water balance's station-set flag marks a gauge as partly in sample only where its pick is the balance, and 25 of the 29 picks are routed PCIC, so the flag does not separate in-sample from out-of-sample here. The spawning-window normal is the weak part. The result at Gosnell itself is untested.
 - **Naver's years since 1999** rest, for the migration-window mean, on 08KH006 to 2024 (2025 on 08KH001), and for the spawning-window mean on 08KC001 (08KG001 in 2008–2010 and 2013); not on the Quesnel at Likely or the West Road as the issue guessed. #120's donor rule needs a donor that covers every one of the target's 1956–1975 years.
 - **Snow gauges** were chosen by the header's rule. One amendment was made after a run: an accepted snap is required, because Naver's second gauge by the rule, 08KD001, has none.
+
+## 1951–1980 against 2016–2025 (#152)
+
+The comparison article now measures change from 1951–1980 to 2016–2025. 1951–1980 comes before global warming sped up (Hansen et al. 2012, who chose it for that reason), and ERA5-Land's snow reaches back to 1950. Section 5 of each site report (registered at b66b577 before any body code) gives both routes over those periods, computed after #126's draws and outside the parity gate's `mx_core`. The rerun changed every report by additions only. Each period has 20–30 years of 1951–1980 and 9 or 10 of 2016–2025: approved HYDAT ends in 2024 at Maxan's and Gosnell's donors, and in 2025 at Swift's.
+
+**The intervals hold their coverage.** Each interval was put through 1000 simulated no-change series, normal with the series' own SD in each period and the same residual pool. They covered 0.904–1.000. The article calls an interval a 90 % range only above 0.87, so every range it draws on qualifies. Not tested: autocorrelated years, and donor sets that differ between the periods. The measured article's percentile bootstrap of a ratio of means has no residual. It covers only 0.834–0.867 at its 9 or 10 recent years (`data/checks/departure_interval_coverage.txt`), so that article does not call its range a 90 % range.
+
+Change, Bulkley windows unless named, carried / extended, with the 90 % range:
+
+| site | spawning mean | migration mean | spawning min7 | migration min7 |
+|---|---|---|---|---|
+| Maxan | -45 % (-67..-11) / -57 % (-76..-28) | -16 % (-35..+7) / -28 % (-46..-5) | -40 % (-63..-2) / -58 % (-78..-21) | -17 % / +4 % |
+| Swift | -15 % (-32..+5) / -28 % (-47..0) | -5 % / -4 % | +1 % / -18 % | +49 % (-2..+123) / +55 % (+8..+125) |
+| Naver | -46 % (-69..-5) / -40 % (-67..+6) | -11 % / 0 % | -33 % (-56..+5) / -25 % | -20 % / +14 % |
+| Gosnell | -35 % (-56..-3) | -4 % | -26 % (-49..+13) | +38 % |
+| Gosnell, Morice windows | -23 % (-50..+15) | -8 % | -31 % (-57..+10) | +12 % |
+
+- **The spawning-window drop holds** on the earlier reference: it is largest at Maxan and Naver and smallest at Swift. The carried range clears no change at Maxan, Naver and Gosnell, as against before 1981.
+- **The migration window** shows no clear change on the carried route at any site. Maxan's extended route, whose 1951–1980 years rest on the Bulkley at Quick (08EE004) and Telkwa (08EE008), falls by 28 %, with a range below zero.
+- **The lowest seven-day flow** in the spawning window falls at Maxan, Naver and Gosnell and holds at Swift. Its carried held-out scores are below #120's 0.5 bar in 7 of the 8 site-windows (0.23–0.59), so it is the weakest statistic the article shows.
+- **Snow** over each target's watershed, 1951–1980 to 2016–2025:
+  - peak SWE fell 6–9 % (Maxan 260 → 235 mm, Swift 556 → 524, Naver 243 → 223, Gosnell 974 → 891);
+  - the 50 % melt date came 9–16 days earlier.
+  
+  At the measured snow gauges, migration-window flow rises with peak SWE at all eight, with a range above zero and R² 0.25–0.62. In the spawning window R² is at most 0.31.
+
