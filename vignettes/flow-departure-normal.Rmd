@@ -98,8 +98,6 @@ baseline <- 1981:2010
 # the title names this period; fail if the article moves to another
 stopifnot(identical(baseline, 1981:2010))
 min_baseline <- 10
-trend_start <- c(1981, 2000)
-alpha <- 0.05
 base_text <- paste0(min(baseline), "–", max(baseline))
 last_year <- as.integer(format(max(daily$date), "%Y"))
 recent <- (last_year - 4):last_year
@@ -118,15 +116,9 @@ classes <- function(layer, expect) {
 }
 pal_hydro <- classes("hydrograph", c("band", "median", "window"))
 pal_hydro$labels <- sub("^Baseline", base_text, pal_hydro$labels)
-# ordinal classes, so a data refresh needs no registry edit
-pal_year <- classes("recent_year", c("latest_4", "latest_3", "latest_2", "latest_1", "latest"))
-names(pal_year$values) <- names(pal_year$labels) <- pal_year$labels <- as.character(recent)
-pal_dep <- classes("departure_class", paste0("d", 1:8))
-pal_trend <- classes("trend_start", as.character(trend_start))
 pal_side <- classes("recent_departure", c("below", "above"))
 pal_map <- classes("station_map", c("catchment_main", "catchment_buck", "stream_main", "station"))
 # labels that restate a variable are built from it, not read from the registry
-pal_trend$labels[] <- paste("Since", names(pal_trend$values))
 pal_side$labels[] <- paste(c("Below", "Above"), "the", base_text, "mean")
 
 theme_set(theme_minimal(base_size = 10) +
@@ -152,7 +144,7 @@ and_text <- function(x) sub(", ([^,]*)$", " and \\1", paste(x, collapse = ", "))
 ```
 
 ```{r stats}
-stats <- wet_window_stats(daily, windows, stats = c("mean", "min7"))
+stats <- wet_window_stats(daily, windows, stats = "mean")
 
 # baseline years per station and window; every one must clear min_baseline,
 # because nothing below says what happens to a window that does not
@@ -185,7 +177,7 @@ miss_text <- vapply(stations, function(st) {
 }, "")
 miss_text <- paste(miss_text[!is.na(miss_text)], collapse = "; ")
 
-# baseline, departure and trend from cd, one station per call
+# baseline and departure from cd, one station per call
 cols_flag <- c("variable", "period", "year", "value", "n_days", "frac_provisional")
 dep <- lapply(stations, function(st) {
   x <- stats[stats$station_number == st, ]
@@ -194,13 +186,11 @@ dep <- lapply(stations, function(st) {
   b <- suppressWarnings(cd::cd_baseline(x, baseline))
   a <- merge(cd::cd_anomaly(x, b), x[cols_flag], by = c("variable", "period", "year"))
   list(baseline = cbind(station_number = st, b),
-       anomaly = cbind(station_number = st, a),
-       trend = cbind(station_number = st, cd::cd_trend(a, trend_start = trend_start)))
+       anomaly = cbind(station_number = st, a))
 })
 pick <- function(k) do.call(rbind, lapply(dep, `[[`, k))
 base <- pick("baseline")
 anom <- pick("anomaly")
-trend <- as.data.frame(pick("trend"))
 ```
 
 ```{r recent-data}
@@ -278,38 +268,32 @@ cap_recent <- sprintf(paste(
 years_text(miss_003), need_text)
 ```
 
-```{r trend-data}
-tr <- trend[trend$variable %in% c("q_mean", "q_min7"), ]
-tr$variable <- factor(tr$variable, c("q_mean", "q_min7"), c("Window mean", "Lowest 7-day mean"))
-tr$trend_start <- factor(tr$trend_start, names(pal_trend$values))
-tr$sig <- factor(ifelse(tr$mk_pvalue < alpha, "sig", "ns"), c("sig", "ns"))
-n_tested <- nrow(tr)
-n_sig <- sum(tr$sig == "sig")
-n_neg <- sum(tr$sig == "sig" & tr$slope < 0)
-sign_text <- if (n_sig == 0) {
-  ""
-} else if (n_neg == n_sig) {
-  ", all of them downward"
-} else {
-  sprintf(", %d of them downward", n_neg)
-}
-# "the timing windows overlap": fry migration and spawning share days
-shared <- length(intersect(days_of(which(windows$window == "Fry migration")),
-                           days_of(which(windows$window == "Spawning"))))
-stopifnot(shared > 0)
-# "about what chance alone gives": within one of the expected count
-stopifnot(abs(n_sig - alpha * n_tested) <= 1)
-# where 08EE003's "from 2000" trends really start: the first year of each fitted series
-a3 <- anom[anom$station_number == "08EE003" & anom$year >= trend_start[2] & !is.na(anom$anomaly) &
-             anom$variable %in% c("q_mean", "q_min7"), ]
-start_003 <- sort(unique(tapply(a3$year, paste(a3$period, a3$variable), min)))
-stopifnot(length(start_003) > 0, all(start_003 > trend_start[2]))
-cap_trend <- sprintf(paste(
-  "Theil–Sen slope of each timing window's departure from normal, in percentage points of the %s",
-  "mean per year, for the window mean (left) and its lowest seven-day mean (right); one colour for",
-  "the trend from %s, another for the trend from %s. A point is filled where the Mann–Kendall p is",
-  "below %s and hollow otherwise; the vertical line is no trend."
-), base_text, trend_start[1], trend_start[2], alpha)
+```{r change-data}
+# change in each window's mean flow, from its 1981-2010 mean to the mean of the last five years,
+# with a 90% range from resampling the years of each period (with replacement)
+set.seed(145)
+n_draw <- 5000
+chg <- do.call(rbind, lapply(seq_len(nrow(ref)), function(i) {
+  st <- ref$station_number[i]
+  w <- ref$period[i]
+  b <- qb$value[qb$station_number == st & qb$period == w]
+  r <- kf$value[kf$station_number == st & kf$period == w]
+  stopifnot(length(r) == length(recent), isTRUE(all.equal(mean(b), ref$mean_q[i])))
+  draws <- replicate(n_draw, mean(sample(r, replace = TRUE)) / mean(sample(b, replace = TRUE)))
+  q <- stats::quantile(100 * (draws - 1), c(0.05, 0.95), names = FALSE)
+  data.frame(station_number = st, period = w, pct = 100 * (mean(r) / mean(b) - 1), lo = q[1], hi = q[2])
+}))
+stopifnot(nrow(chg) == nrow(windows) * length(stations))
+# "below its normal in every timing window at both gauges, by <min>-<max>"
+stopifnot(all(chg$pct < 0))
+chg_range <- range(abs(chg$pct))
+# "for N of the six the whole 90% range is a drop"
+n_clear <- sum(chg$hi < 0)
+cap_change <- sprintf(paste(
+  "Change in each chinook timing window's mean flow, from its %s mean to the mean of %s, at each",
+  "gauge (point), with a 90%% range from resampling the years in each period (bar); the vertical line",
+  "is no change."
+), base_text, recent_text)
 ```
 
 The R package [`wet`](https://newgraphenvironment.github.io/wet/) [@wet] measures stream flow and
@@ -319,12 +303,12 @@ move downstream as fry, has departed from its `r base_text` normal: its mean ove
 periods the World Meteorological Organization sets for climate normals
 [@arguez_vose2011DefinitionStandard, p. 699].
 
-**The answer.** Flow was below normal in every timing window at both gauges in
-`r years_text(low_years)`, and `r n_dec` of those `r n_low` window means were drier than nine
-`r base_text` years in ten. `r up_years` was above normal in some windows. Of
-`r n_tested` trends since `r trend_start[1]` and since `r trend_start[2]`, `r n_sig` pass the trend
-test`r sign_text`, about as many as chance alone would. At `r short_name("08EE003")`, the normal rests
-on `r base_003`, the years with enough record.
+**The answer.** Over `r recent_text`, mean flow in every timing window at both gauges was below
+its `r base_text` normal, by `r pct(chg_range[1])` to `r pct(chg_range[2])`, and for `r n_clear` of the
+`r nrow(chg)` the whole 90% range is a drop. Every window at both gauges was below normal in
+each year from `r min(low_years)`, and `r n_dec` of those `r n_low` window means were drier than nine
+`r base_text` years in ten. At `r short_name("08EE003")`, the normal rests on `r base_003`, the years
+with enough record.
 
 ## What is a timing window?
 
@@ -523,7 +507,7 @@ ggplot() +
         panel.border = element_rect(fill = NA, colour = pal_hydro$values[["median"]]))
 ```
 
-## What did the summers look like day by day?
+## What did the year look like?
 
 ```{r hydro-data}
 doy_of <- function(date) {
@@ -532,141 +516,98 @@ doy_of <- function(date) {
   leap <- (y %% 4 == 0 & y %% 100 != 0) | y %% 400 == 0
   ifelse(leap & j > 59, j - 1L, j)
 }
-# May to October: the windows open on 1 May, and earlier days can still be ice readings
-season <- doy_of(as.Date(c("2001-05-01", "2001-10-31")))
-# a log axis drops zero flows; none fall in the season drawn, so a break means no record
-zero <- daily$q_m3s == 0 & as.integer(format(daily$date, "%m")) %in% 5:10
-stopifnot(!any(zero))
-h <- daily[format(daily$date, "%m-%d") != "02-29" & daily$q_m3s > 0, ]
+h <- daily[format(daily$date, "%m-%d") != "02-29", ]
 h$doy <- doy_of(h$date)
 h$year <- as.integer(format(h$date, "%Y"))
-h <- h[h$doy >= season[1] & h$doy <= season[2], ]
-
-# the same baseline years as the window means: a year counts at a station when
-# one of its windows has the share of days wet_window_stats() requires
-hb <- h[h$status == "approved" & paste(h$station_number, h$year) %in% paste(qb$station_number, qb$year), ]
-band <- do.call(rbind, lapply(split(hb, list(hb$station_number, hb$doy), drop = TRUE), function(d) {
-  q <- stats::quantile(d$q_m3s, c(0.25, 0.5, 0.75), names = FALSE)
-  data.frame(station_number = d$station_number[1], doy = d$doy[1], n = nrow(d),
-             lo = q[1], med = q[2], hi = q[3])
-}))
-band <- band[band$n >= min_baseline, ]
-lines <- h[h$year %in% recent, ]
-# every day of the season, so a gap in the record breaks the line rather than bridging it
-grid <- expand.grid(station_number = stations, year = recent, doy = season[1]:season[2],
-                    stringsAsFactors = FALSE)
-lines <- merge(grid, lines[c("station_number", "year", "doy", "q_m3s")], all.x = TRUE)
-lines <- lines[order(lines$station_number, lines$year, lines$doy), ]
-lines$year <- factor(lines$year, names(pal_year$values))
-
-# the windows as strips below the data, on the same log axis
-floor_q <- vapply(stations, function(st) {
-  min(band$lo[band$station_number == st], lines$q_m3s[lines$station_number == st], na.rm = TRUE)
-}, 0)
-strip <- do.call(rbind, lapply(stations, function(st) {
-  do.call(rbind, lapply(seq_len(nrow(windows)), function(k) {
-    data.frame(station_number = st, window = windows$window[k],
-               x = doy_of(as.Date(paste0("2001-", windows$start[k]))),
-               xend = doy_of(as.Date(paste0("2001-", windows$end[k]))),
-               y = floor_q[[st]] / 1.6^k)
+# the mean and median day of each period, on days with at least `need` years of record;
+# every day of the year is kept, so a day without enough years breaks the line
+min_recent <- length(recent) - 1
+day_stats <- function(d, period, need) {
+  out <- do.call(rbind, lapply(split(d, list(d$station_number, d$doy), drop = TRUE), function(x) {
+    data.frame(station_number = x$station_number[1], doy = x$doy[1], n = nrow(x),
+               mean = mean(x$q_m3s), median = stats::median(x$q_m3s))
   }))
+  out[out$n < need, c("mean", "median")] <- NA
+  grid <- expand.grid(station_number = stations, doy = 1:365, stringsAsFactors = FALSE)
+  out <- merge(grid, out, all.x = TRUE)
+  rbind(data.frame(out[c("station_number", "doy")], period = period, stat = "mean", q = out$mean),
+        data.frame(out[c("station_number", "doy")], period = period, stat = "median", q = out$median))
+}
+yr <- rbind(day_stats(h[h$year %in% baseline, ], "base", min_baseline),
+            day_stats(h[h$year %in% recent, ], "recent", min_recent))
+yr <- yr[order(yr$station_number, yr$period, yr$stat, yr$doy), ]
+yr$date <- as.Date("2001-01-01") + yr$doy - 1
+# the caption: the Bulkley gauge has no winter normal (too few winters on record in 1981-2010),
+# and both gauges have a summer normal and a recent line through every timing window
+winter <- yr$doy < doy_of(as.Date("2001-04-01"))
+stopifnot(all(is.na(yr$q[yr$station_number == "08EE003" & yr$period == "base" & winter])),
+          !anyNA(yr$q[yr$doy >= doy_of(as.Date("2001-05-01")) & yr$doy <= doy_of(as.Date("2001-09-15"))]))
+
+# the ice months, shaded, and the timing windows as bars beneath, as in the segment-discharge article
+ice <- data.frame(start = as.Date(c("2001-01-01", "2001-11-01")), end = as.Date(c("2001-04-30", "2001-12-31")))
+top <- tapply(yr$q, yr$station_number, max, na.rm = TRUE)
+strip <- do.call(rbind, lapply(stations, function(st) {
+  data.frame(station_number = st, window = windows$window,
+             start = as.Date(paste0("2001-", windows$start)), end = as.Date(paste0("2001-", windows$end)),
+             y = -top[[st]] * 0.07 * seq_len(nrow(windows)), h = top[[st]] * 0.04)
 }))
-month_start <- doy_of(as.Date(sprintf("2001-%02d-01", 5:10)))
+strip$label_x <- strip$end + 4
+# one colour means the last five years here and in the change figure below
+pal_period <- c(base = pal_hydro$values[["median"]], recent = pal_side$values[["below"]])
+lab_period <- c(base = base_text, recent = recent_text)
 cap_hydro <- sprintf(paste(
-  "Daily flow, May to October, %s (one line per year, broken where a day has no record), over the",
-  "%s median day (grey line) and middle half (band), both drawn only on days with at least %d years.",
-  "The chinook timing windows run beneath as bars. Log scale."
-), recent_text, base_text, min_baseline)
+  "Daily flow through the year at each gauge: the mean (solid) and median (dashed) day over %s",
+  "(grey) and over %s (colour). A %s line is drawn on days with at least %d years of record and a",
+  "%s line on days with at least %d, so the Bulkley gauge, with too few winters on record, has no",
+  "winter normal. The shaded months, November to April, are when the gauges can read under ice. The",
+  "chinook timing windows run beneath as bars."
+), base_text, recent_text, base_text, min_baseline, recent_text, min_recent)
 ```
 
-The same five years, day by day, against the middle half of `r base_text` flows on each day.
+The same comparison across the whole year, day by day: the last five years' mean and median day
+against `r base_text`'s.
 
 ```{r hydrograph, fig.height = 6.5, fig.cap = cap_hydro}
 ggplot() +
-  geom_ribbon(data = by_station(band), aes(doy, ymin = lo, ymax = hi, fill = "band")) +
-  geom_line(data = by_station(band), aes(doy, med, colour = "median"), linewidth = 0.5) +
-  geom_line(data = by_station(lines), aes(doy, q_m3s, colour = year, group = year), linewidth = 0.45) +
-  geom_segment(data = by_station(strip), aes(x = x, xend = xend, y = y, yend = y),
-               colour = pal_hydro$values[["window"]], linewidth = 1.8) +
-  geom_text(data = by_station(strip), aes(x = season[1] - 3, y = y, label = window), hjust = 1,
-            size = 2.7) +
+  geom_rect(data = ice, aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf),
+            fill = pal_hydro$values[["band"]], alpha = 0.5) +
+  geom_rect(data = by_station(strip), aes(xmin = start, xmax = end, ymin = y - h / 2, ymax = y + h / 2),
+            fill = pal_hydro$values[["window"]]) +
+  geom_text(data = by_station(strip), aes(x = label_x, y = y, label = window), hjust = 0, size = 2.6) +
+  geom_line(data = by_station(yr), aes(date, q, colour = period, linetype = stat,
+                                       group = interaction(period, stat)), linewidth = 0.6) +
   facet_wrap(~ station_number, ncol = 1, scales = "free_y", labeller = as_labeller(station_label)) +
-  # no ticks among the strips: they are rows, not flows
-  scale_y_log10(breaks = function(l) {
-    b <- 10^(floor(log10(l[1])):ceiling(log10(l[2])))
-    b[b >= l[1] * 1.6^(nrow(windows) + 0.5)]
-  }, labels = function(x) format(x, drop0trailing = TRUE, scientific = FALSE)) +
-  scale_x_continuous(breaks = month_start, labels = month.abb[5:10],
-                     limits = c(season[1] - 45, season[2]), expand = c(0, 0)) +
-  scale_fill_manual(values = pal_hydro$values["band"], labels = pal_hydro$labels["band"], name = NULL) +
-  scale_colour_manual(values = c(pal_hydro$values["median"], pal_year$values),
-                      labels = c(pal_hydro$labels["median"], pal_year$labels), name = NULL) +
-  labs(x = NULL, y = "Discharge (m³/s)") +
-  guides(fill = guide_legend(order = 1), colour = guide_legend(order = 2, nrow = 1)) +
-  theme(panel.grid.major.x = element_blank(), legend.box = "vertical",
-        legend.spacing.y = unit(0, "pt"), legend.margin = margin(0, 0, 0, 0))
+  scale_colour_manual(values = pal_period, labels = lab_period, name = NULL) +
+  scale_linetype_manual(values = c(mean = "solid", median = "22"),
+                        labels = c(mean = "Mean day", median = "Median day"), name = NULL) +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b",
+               limits = as.Date(c("2001-01-01", "2001-12-31")), expand = c(0.01, 0)) +
+  labs(x = NULL, y = "Mean flow (m³/s)") +
+  theme(panel.grid.major.x = element_blank())
 ```
 
-## How did every year since `r min(baseline)` compare?
+## How much has mean flow changed?
 
-```{r heat-data}
-heat <- merge(stats[stats$variable == "q_mean" & stats$year >= min(baseline),
-                    c("station_number", "period", "year")],
-              anom[anom$variable == "q_mean", c("station_number", "period", "year", "anomaly")],
-              all.x = TRUE)
-heat$class <- factor(as.character(cut(heat$anomaly, c(-Inf, -75, -50, -25, 0, 25, 50, 100, Inf),
-                                      labels = paste0("d", 1:8))), names(pal_dep$values))
-gap <- setdiff(min(baseline):last_year, heat$year[heat$station_number == "08EE003"])
-cap_heat <- sprintf(paste(
-  "How far each timing window's mean flow sat above or below its %s mean, in %%, one cell per window",
-  "and year, coloured by class. Blank cells have under %s of their days, or none."
-), base_text, need_text)
-```
+Each point is the change in a timing window's mean flow, from its `r base_text` mean to the mean of
+`r recent_text`. Its range comes from resampling the years in each period, and with only five recent
+years, one of them wet, the ranges are wide.
 
-Every year since `r min(baseline)`, for context. `r short_name("08EE003")` has no window with `r need_text` of its days in
-`r years_text(gap)`.
-
-```{r heat, fig.height = 3.6, fig.cap = cap_heat}
-ggplot(by_window(by_station(heat), rev = TRUE), aes(year, period)) +
-  geom_tile(aes(fill = class), colour = "white", linewidth = 0.2) +
-  facet_wrap(~ station_number, ncol = 1, labeller = as_labeller(station_label)) +
-  scale_fill_manual(values = pal_dep$values, labels = pal_dep$labels, name = NULL, drop = FALSE,
-                    na.translate = FALSE) +
-  scale_x_continuous(expand = c(0, 0)) +
-  labs(x = NULL, y = NULL) +
-  guides(fill = guide_legend(nrow = 2)) +
-  theme(panel.grid = element_blank())
-```
-
-## Is flow trending?
-
-The trend is the yearly change in each timing window's departure from normal, in percentage points
-of the `r base_text` mean, from `r trend_start[1]` and from `r trend_start[2]`, for the window mean and
-its lowest seven-day mean; negative is drying. It is Theil–Sen's slope, the median of the slopes
-between every pair of years, so one extreme year moves it little
-[@theil1950RankInvariantMethod; @sen1968EstimatesRegression]. Mann–Kendall's test gives p, the chance
-of a trend at least that consistent if flow had none [@mann1945NonparametricTests;
-@kendall1975RankCorrelation]. Of `r n_tested` slopes, `r n_sig` have p below `r alpha``r sign_text`,
-about what chance alone gives (`r round(alpha * n_tested)`), and the tests are not independent:
-the timing windows overlap, and one gauge drains into the other. At `r short_name("08EE003")`, "from
-`r trend_start[2]`" starts in `r and_text(start_003)`.
-
-```{r trend, fig.height = 4, fig.cap = cap_trend}
-ggplot(by_window(by_station(tr), rev = TRUE), aes(slope, period, colour = trend_start, shape = sig)) +
+```{r change, fig.height = 2.4, fig.cap = cap_change}
+cd_plot <- chg
+cd_plot$station_number <- factor(cd_plot$station_number, rev(stations))
+cd_plot <- by_window(cd_plot)
+ggplot(cd_plot, aes(pct, station_number)) +
   geom_vline(xintercept = 0, colour = pal_hydro$values[["median"]], linewidth = 0.3) +
-  geom_point(position = position_dodge(width = 0.6), size = 2) +
-  facet_grid(station_number ~ variable,
-             labeller = labeller(station_number = as_labeller(sub(" \\(", "\n(", station_label)))) +
-  scale_colour_manual(values = pal_trend$values, labels = pal_trend$labels, name = NULL) +
-  scale_shape_manual(values = c(sig = 16, ns = 1),
-                     labels = c(sig = paste("p <", alpha), ns = paste("p ≥", alpha)), name = NULL) +
-  labs(x = "Slope (percentage points of normal per year)", y = NULL) +
-  theme(strip.text.y = element_text(angle = 0, hjust = 0))
+  geom_errorbarh(aes(xmin = lo, xmax = hi), height = 0, colour = pal_side$values[["below"]]) +
+  geom_point(size = 2.2, colour = pal_side$values[["below"]]) +
+  facet_wrap(~ period, nrow = 1) +
+  scale_y_discrete(labels = function(x) sub(" \\(.*", "", station_label[x])) +
+  labs(x = "Change in mean flow (%)", y = NULL)
 ```
 
 ## How were the numbers made?
 
-These calls produced the window statistics, with normal, departure and trend from the R package
+These calls produced the window statistics, with normal and departure from the R package
 [`cd`](https://newgraphenvironment.github.io/cd/) [@cd]. They read HYDAT, the
 [water-temp-bc](https://github.com/NewGraphEnvironment/water-temp-bc) archive and ECCC's real-time feed
 (through [`tidyhydat`](https://docs.ropensci.org/tidyhydat/) [@tidyhydat]), so the article runs on a
@@ -680,13 +621,12 @@ daily <- wet_station_daily(c("08EE013", "08EE003"))
 
 windows <- data.frame(window = c("Migration", "Spawning", "Fry migration"),
                       start = c("05-01", "08-01", "07-15"), end = c("08-01", "09-15", "09-07"))
-stats <- wet_window_stats(daily, windows, stats = c("mean", "min7"))
+stats <- wet_window_stats(daily, windows, stats = "mean")
 
-# normal, departure and trend are cd's, one station per call
+# normal and departure are cd's, one station per call
 buck <- stats[stats$station_number == "08EE013", names(stats) != "station_number"]
 base <- cd::cd_baseline(buck, 1981:2010)
 departure <- cd::cd_anomaly(buck, base)
-trend <- cd::cd_trend(departure, trend_start = c(1981, 2000))
 ```
 
 ## What does it not show?
@@ -722,12 +662,10 @@ The software, each cited:
 
 - [`wet`](https://newgraphenvironment.github.io/wet/) [@wet] reads the gauge records and makes the
   timing-window statistics.
-- [`cd`](https://newgraphenvironment.github.io/cd/) [@cd] takes the normal, the departures and the
-  trends, with [`Kendall`](https://CRAN.R-project.org/package=Kendall) [@Kendall] for the trend
-  test and [`zyp`](https://CRAN.R-project.org/package=zyp) [@zyp] for the slope.
+- [`cd`](https://newgraphenvironment.github.io/cd/) [@cd] takes the normal and the departures.
 - [`tidyhydat`](https://docs.ropensci.org/tidyhydat/) [@tidyhydat] reads the ECCC real-time feed.
-- [`fwapg`](https://smnorris.github.io/fwapg/) [@norris2024smnorrisfwapg] holds the Freshwater Atlas
-  in PostgreSQL, from which the catchments and stream mouths were drawn.
+- [`fwapg`](https://smnorris.github.io/fwapg/) [@norris2024smnorrisfwapg] loads the Freshwater Atlas
+  into PostgreSQL and delineates each gauge's catchment from it.
 - [`ggplot2`](https://ggplot2.tidyverse.org/) [@ggplot2], [`gq`](https://newgraphenvironment.github.io/gq/)
   [@gq] and [`sf`](https://r-spatial.github.io/sf/) [@sf] make the figures and the map;
   [`knitr`](https://yihui.org/knitr/) [@knitr] and [`bookdown`](https://pkgs.rstudio.com/bookdown/)
@@ -753,12 +691,8 @@ cat(format(utils::citation("wet"), style = "text"), sep = "\n\n")
   [water-temp-bc](https://github.com/NewGraphEnvironment/water-temp-bc), and its real-time feed.
 - Timing windows for chinook salmon: New Graph's species-timing table
   [@gottesfeld_rabnett2007SkeenaFish].
-- Streams and stream mouths: the Province of British Columbia's Freshwater Atlas Stream Network,
-  through DataBC [@flnrord2021FreshwaterAtlasb].
-- Catchments, lakes and the province outline: the Freshwater Atlas's watersheds, lakes and
-  boundary, from the same publisher.
-- Place names: BC Geographic Names, through DataBC.
-- Gauge locations: HYDAT's station table.
+- Streams, lakes and catchments: the Province of British Columbia's Freshwater Atlas, through DataBC
+  [@flnrord2021FreshwaterAtlasb].
 
 ## References
 

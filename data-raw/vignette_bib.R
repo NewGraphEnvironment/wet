@@ -86,6 +86,13 @@ bib_write <- function(rmd) {
   names(entries) <- got
   # any field whose value starts with / is a local path (urls and dois are https)
   if (any(grepl("file = |= \\{/", entries))) stop("a local path is left in an entry", call. = FALSE)
+  # every reference links somewhere a reader can open; an attachment's url does not export, so a
+  # Zotero item whose link sits only on its attached file needs the url set on the item itself
+  no_link <- !grepl("\n  (url|doi) = \\{[^}]+\\}", entries)
+  if (any(no_link)) {
+    stop("no url or doi (set one on the Zotero item): ", paste(names(entries)[no_link], collapse = ", "),
+         call. = FALSE)
+  }
   out <- sub("\\.Rmd$", ".bib", rmd)
   writeLines(c(paste0("% written by data-raw/vignette_bib.R for ", basename(rmd),
                       " from the packages' citation() and Zotero (group library); do not edit"),
