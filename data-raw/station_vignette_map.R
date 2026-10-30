@@ -1,4 +1,4 @@
-# Map layers for vignettes/station-flow.Rmd (#27), which draws them from
+# Map layers for vignettes/flow-departure-normal.Rmd (#27, #145), which draws them from
 # inst/vignette-data/ and never touches fwapg, HYDAT or the network at build.
 #
 #   Rscript data-raw/station_vignette_map.R

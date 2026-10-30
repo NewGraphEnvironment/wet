@@ -1,8 +1,8 @@
 ---
-title: "Chinook Flow at Two Stations"
+title: "How Stream Flow Has Departed from Its 1981–2010 Normal: A Case Study"
 output: bookdown::html_vignette2
 vignette: >
-  %\VignetteIndexEntry{Chinook Flow at Two Stations}
+  %\VignetteIndexEntry{How Stream Flow Has Departed from Its 1981–2010 Normal: A Case Study}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

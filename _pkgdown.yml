@@ -82,9 +82,11 @@ reference:
   - wet_cv_folds
   - wet_flow_validate
 
-# the monthly-flow article was merged into segment-discharge (#149)
+# the monthly-flow article was merged into segment-discharge (#149), and the
+# station-flow article renamed for what it measures (#145)
 redirects:
   - ["articles/monthly-flow.html", "articles/segment-discharge.html"]
+  - ["articles/station-flow.html", "articles/flow-departure-normal.html"]
 
 articles:
 - title: Articles
@@ -92,7 +94,7 @@ articles:
   contents:
   - segment-discharge
   - articles/flow-change-sparse-gauges
-  - station-flow
+  - flow-departure-normal
 # built and linked, but in neither the index nor the navbar: the Maxan article,
 # whose story the article above carries at four streams (#126)
 - title: internal

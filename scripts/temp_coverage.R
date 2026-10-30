@@ -18,7 +18,7 @@ report <- file.path("data", "checks", "temp_coverage_report.txt")
 valid <- eval(formals(wet_temp_daily)$valid)
 min_hours <- formals(wet_temp_daily)$min_hours
 decades <- list(2003:2012, 2011:2020, 2014:2023, 2016:2025)
-# the Chinook open-water windows of vignettes/station-flow.Rmd
+# the Chinook open-water windows of vignettes/flow-departure-normal.Rmd
 windows <- data.frame(window = c("ch_migration", "ch_spawning", "ch_fry_migration"),
                       start = c("05-01", "08-01", "07-15"), end = c("08-01", "09-15", "09-07"))
 

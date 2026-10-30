@@ -800,7 +800,7 @@ Where each is weak:
 ## Flow in a timing window, from months or from days
 
 ```{r windows}
-# the gauge's daily record, as the station-flow article reads it: the mean
+# the gauge's daily record, as the flow-departure-normal article reads it: the mean
 # over each window, in each 1981-2010 year with enough of the window's days
 ws <- wet_window_stats(dh[dh$station_number %in% c("08EE013", "08EE003"), c("station_number", "date", "q_m3s")],
                        windows, stats = "mean")

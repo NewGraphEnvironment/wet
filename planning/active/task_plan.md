@@ -22,10 +22,10 @@ At #126's review the user asked that article titles and HTML names tell the read
 - [ ] File a soul issue: `/zotero-api` SKILL.md §4 reads the key from `~/.zotero-api-key`, while cyclops materializes it to `~/.config/newgraph/zotero-api-key` (or `scripts/op/read-secret.sh 'Zotero API Key'`). That's why sessions report "no key" and ask. soul#184 / soul#177 named "three competing homes" and closed with the skill still stale. Rewrite memory `zotero_mcp_unconfigured_m1.md` so it names the Web API key and route on m1, not just the MCP gap.
 
 ## Phase 1: Title and address
-- [ ] `git mv vignettes/station-flow.Rmd vignettes/flow-departure-normal.Rmd`; new `title:` and `VignetteIndexEntry`.
-- [ ] `_pkgdown.yml`: the article list entry, and a `redirects:` entry `articles/station-flow.html` → `articles/flow-departure-normal.html` (as #149 did for monthly-flow).
-- [ ] `README.md` "Learn more" line: new title, address and plain description (chinook in lower case).
-- [ ] Path mentions: `CLAUDE.md` (station-flow paragraph, and the citation and word-cap sentence in the segment-discharge paragraph), header comments in `data-raw/station_vignette_data.R` and `data-raw/station_vignette_map.R`, `scripts/temp_coverage.R:21`, the comment at `vignettes/segment-discharge.Rmd:803`, and the current-state line in `research/station_flow_departure.md`. NEWS and `planning/archive/` keep their historical mentions.
+- [x] `git mv vignettes/station-flow.Rmd vignettes/flow-departure-normal.Rmd`; new `title:` and `VignetteIndexEntry`.
+- [x] `_pkgdown.yml`: the article list entry, and a `redirects:` entry `articles/station-flow.html` → `articles/flow-departure-normal.html` (as #149 did for monthly-flow).
+- [x] `README.md` "Learn more" line: new title, address and plain description (chinook in lower case).
+- [x] Path mentions: `CLAUDE.md` (station-flow paragraph, and the citation and word-cap sentence in the segment-discharge paragraph), header comments in `data-raw/station_vignette_data.R` and `data-raw/station_vignette_map.R`, `scripts/temp_coverage.R:21`, the comment at `vignettes/segment-discharge.Rmd:803`, and the current-state line in `research/station_flow_departure.md`. NEWS and `planning/archive/` keep their historical mentions.
 
 ## Phase 2: Place each stream (writing.md "Orient the reader in one sentence per place")
 - [ ] Move `chinook_sites_map.R`'s receiving-river and mouth queries (`into1`/`into2`/`system`, the blue line's downstream end) into `scripts/vignette_map_lib.R` as one helper. Have `chinook_sites_map.R` call it, and hold the helper's output identical to the tracked `chinook_sites_map.rds` targets columns (parity, without rerunning that script).
