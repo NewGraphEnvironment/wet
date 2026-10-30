@@ -236,6 +236,13 @@ low <- kr[kr$year %in% low_years, ]
 stopifnot(is.numeric(low[["value"]]), !anyNA(low[["value"]]))
 n_low <- nrow(low)
 n_dec <- sum(low$value < low$q10)
+# "drier than nine baseline years in ten", read as the share of that window's baseline years
+# wetter than the bar; the quantile count must agree with it (08EE003 has only 18 years)
+share_wetter <- vapply(seq_len(nrow(low)), function(i) {
+  v <- qb$value[qb$station_number == low$station_number[i] & qb$period == low$period[i]]
+  mean(v > low$value[i])
+}, 0)
+stopifnot(n_dec == sum(share_wetter >= 0.9))
 # the opening says "N of those were drier than nine years in ten": at least one
 stopifnot(n_dec > 0)
 n_min <- sum(low$value < low$q_min)
@@ -415,6 +422,11 @@ cut_near <- function(x) {
 }
 thin_streams <- cut_near(map$streams[!map$streams$main, ])
 lakes_near <- cut_near(map$lakes)
+# the caption names both layers: each must survive the cut, as lines and polygons (a feature
+# touching the box edge would come back a point, a mark the caption does not name)
+stopifnot(nrow(thin_streams) > 0, nrow(lakes_near) > 0,
+          all(sf::st_geometry_type(thin_streams) %in% c("LINESTRING", "MULTILINESTRING")),
+          all(sf::st_geometry_type(lakes_near) %in% c("POLYGON", "MULTIPOLYGON")))
 
 map_w <- 7
 map_h <- 6.5

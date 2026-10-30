@@ -53,9 +53,9 @@ At #126's review the user asked that article titles and HTML names tell the read
 
 ## Validation
 
-- [ ] Tests pass
-- [ ] `/code-check branch` clean (three-round floor; final round an enumeration of every claim sentence against its guard)
-- [ ] PWF checkboxes match landed work
+- [x] Tests pass
+- [x] `/code-check branch` clean (three-round floor; final round an enumeration of every claim sentence against its guard)
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
 How each change is proved:
