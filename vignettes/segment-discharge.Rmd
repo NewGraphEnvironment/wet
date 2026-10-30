@@ -237,7 +237,9 @@ nech_bal <- 100 * nech$wet_balance / (nech$wet_balance + nech$pcic_routed)
 # on the Nechako Reservoir it is picked on nearly every segment; the cut is a fifth;
 # and most segments have both sources
 stopifnot(liard$pcic_routed == 0, liard$wet_balance > 0, nech_bal > 90, ps$far_low == 0.2,
-          sg[["far_low"]] > 0, n_both_src > 0.5 * sg[["fwa"]])
+          sg[["far_low"]] > 0, n_both_src > 0.5 * sg[["fwa"]],
+          # the balance is picked where routed is far low, and otherwise only where routed has none
+          sg[["pick_balance"]] - sg[["far_low"]] == n_src[["wet_balance"]] - n_both_src)
 pct_of <- function(n) pct(100 * n / sg[["fwa"]])
 ```
 
@@ -254,8 +256,8 @@ every month and day:
 - **whichever has a value**, where only one does.
 
 `pick` takes routed PCIC on `r pct_of(sg[["pick_routed"]])` of the Freshwater
-Atlas's segments and the balance on `r pct_of(sg[["pick_balance"]])`,
-`r pct_of(sg[["far_low"]])` of all segments because routed flow is far low there. The balance takes every segment with a value in the Liard, where
+Atlas's segments and the balance on `r pct_of(sg[["pick_balance"]])`:
+on `r pct_of(sg[["far_low"]])` of all segments because routed flow is far low there, and on the rest because routed PCIC has none. The balance takes every segment with a value in the Liard, where
 routed PCIC has none, and `r pct(nech_bal)` of those in the four Nechako
 Reservoir groups, where routed flow is far below the balance's.
 
@@ -1011,8 +1013,10 @@ Graph's [fork](https://github.com/NewGraphEnvironment/fwapg/tree/newgraph) of it
 cat(format(utils::citation("wet"), style = "text"), sep = "\n\n")
 # the Data line names the shipped annual AET (CGIAR floored by Fu-Budyko) and
 # the snow predictors in the monthly shares; the fork's commit is the one
-# segment-discharge.bib carries
-stopifnot(identical(ps$aet, "cfu"), identical(pm$share_spec, "snow"), identical(ps$routed_commit, "7c30f58"))
+# segment-discharge.bib carries (its References line)
+bib <- readLines(file.path(dirname(knitr::current_input(dir = TRUE)), "segment-discharge.bib"), warn = FALSE)
+stopifnot(identical(ps$aet, "cfu"), identical(pm$share_spec, "snow"),
+          any(grepl(sprintf("version = {%s}", ps$routed_commit), bib, fixed = TRUE)))
 ```
 
 ### Data

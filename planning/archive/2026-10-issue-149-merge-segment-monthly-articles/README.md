@@ -25,6 +25,32 @@ The user asked for the article to be checked against NewGraphEnvironment/soul#57
 
 Two review rounds ran (`review-578-round1.md`, `review-578-round2.md`). Round 1 found a defect inside the fix: the restored reason said "the season at all of them". Round 2 enumerated all 23 changed claims and found 2 overstated: the reason again, and a caption claiming every order-5+ stream when the map's fetch extent is narrower than its frame. Both are fixed. The extent gap is filed as wet#151, and the evidence was added to soul#578's body. Review cost for this pass: two more agents, six in all for the branch.
 
+## After the PR opened: the user's review of the merged article
+
+The user read the article and asked for less of what serves its authors. Changes:
+- **Counts out:** row, part, size and md5 counts are gone from the prose, and segment counts became shares.
+- **Coverage as a share:** coverage is now "99.9 % of segments matched to a watershed polygon". Measured, 92.4 % of all segments have a value. The unmatched 7.5 % are almost all connection lines and secondary channels, and neither source is published on them.
+- **Product address moved:** the bucket, manifest and build moved from the opening to the Data list.
+- **Data credit:** the Freshwater Atlas is credited to the Province, through DataBC, not to `fwapg`.
+- **Citations:** references come from `vignettes/segment-discharge.bib` through pandoc, and only `citation("wet")` is printed, as the organisation's knowledge articles do. The other three articles are wet#152.
+- **Bulkley map dropped:** it repeated the setting "Chinook Flow at Two Stations" already maps. Its catchments and gauge points in `monthly_map.rds` still guard the sentences on nesting and flow direction. wet#151 was closed, and the registry's `bulkley_map` rows were removed.
+- **Windows' sourcing:** cut to one sentence.
+
+Body prose went from 1,886 to 1,830 words.
+
+Two review rounds ran (`review-user-round1.md`, `review-user-round2.md`).
+- **Round 1 found 4, all fixed:**
+  - "5 % of them" was a share of all segments, read as a share of the balance's;
+  - the coverage wording named a different set than its guard counts;
+  - the nesting guard passed on catchments that do not overlap (`stopifnot(numeric(0) > 0.99)`), which a disjoint-polygon probe confirmed;
+  - two counts were left in Limits.
+- **Round 2 enumerated all 28 changed claims and found 3 fragile items, all fixed:**
+  - the 5 % read as extra to the 28 % (round 1's fix), so a guard now ties the balance's share to far-low plus routed-missing;
+  - the References' fork commit lived in the `.bib`, which the guard never read; it now reads the `.bib`, checked both ways;
+  - CLAUDE.md still said "province counts".
+
+The lessons were added to soul#578 as rules 9 to 13. Review cost for this pass was two more agents, eight in all for the branch.
+
 ## Owed
 
 - [ ] After the deploy, fetch `https://newgraphenvironment.github.io/wet/articles/monthly-flow.html` and confirm it redirects. Check the deploy provenance on `gh-pages` first.
