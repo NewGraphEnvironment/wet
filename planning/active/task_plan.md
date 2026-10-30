@@ -89,15 +89,15 @@ The two listed flow-change articles read as the same article twice. Their titles
 
 ## Phase 7: The measured article (`vignettes/flow-departure-normal.Rmd`)
 
-- [ ] Title and `VignetteIndexEntry`: "Measured Stream Flow Against Its 1981–2010 Normal: Two Long-Record Gauges".
-- [ ] Make `recent` 2016–2025, with Buck Creek's missing 2016 handled and said once.
-- [ ] Recompute the bars, the change figure and the year figure's recent lines, and rewrite every claim and guard from the new numbers.
-- [ ] The change range follows Phase 2's outcome.
+- [x] Title and `VignetteIndexEntry`: "Measured Stream Flow Against Its 1981–2010 Normal: Two Long-Record Gauges".
+- [x] Make `recent` 2016–2025, with Buck Creek's missing 2016 handled and said once.
+- [x] Recompute the bars, the change figure and the year figure's recent lines, and rewrite every claim and guard from the new numbers.
+- [x] The change range follows Phase 2's outcome.
 - [ ] Cite 1981–2010 in the sentence that defines the normal, in place of the bare WMO sentence:
   - Arguez and Vose (2011, p. 699) and WMO-No. 1203;
   - it is the period `wet`'s published flows are normals of: `climr` for the balance, and routed PCIC's 1981–2010 run (Schnorbus 2018, Craig et al. 2020, Werner et al. 2019);
   - it already contains part of the warming (Hansen et al. 2012).
-- [ ] One sentence on what the rebuilt article does, linked.
+- [x] One sentence on what the rebuilt article does, linked.
 - [ ] Rerun its `.bib`. This adds Gottesfeld's url and drops the six uncited entries. Keep the 700-word cap.
 
 ## Phase 8: segment-discharge's `.bib` (D)

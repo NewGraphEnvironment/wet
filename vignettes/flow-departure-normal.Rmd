@@ -1,10 +1,10 @@
 ---
-title: "How Stream Flow Has Departed from Its 1981–2010 Normal: A Case Study"
+title: "Measured Stream Flow Against Its 1981–2010 Normal: Two Long-Record Gauges"
 output: bookdown::html_vignette2
 bibliography: flow-departure-normal.bib
 link-citations: true
 vignette: >
-  %\VignetteIndexEntry{How Stream Flow Has Departed from Its 1981–2010 Normal: A Case Study}
+  %\VignetteIndexEntry{Measured Stream Flow Against Its 1981–2010 Normal: Two Long-Record Gauges}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -101,8 +101,9 @@ baseline <- 1981:2010
 stopifnot(identical(baseline, 1981:2010))
 min_baseline <- 10
 base_text <- paste0(min(baseline), "–", max(baseline))
-last_year <- as.integer(format(max(daily$date), "%Y"))
-recent <- (last_year - 4):last_year
+# the last ten years, the decade the sibling article ends on too
+recent <- 2016:2025
+last_year <- max(recent)
 recent_text <- paste0(min(recent), "–", max(recent))
 # every window must be over in the last year, or its last bar is a part-year
 stopifnot(all(as.Date(paste0(last_year, "-", windows$end)) <= max(daily$date)))
@@ -197,7 +198,14 @@ anom <- pick("anomaly")
 
 ```{r recent-data}
 kf <- anom[anom$variable == "q_mean" & anom$year %in% recent, ]
-stopifnot(nrow(kf) == length(recent) * nrow(windows) * length(stations), !anyNA(kf$anomaly))
+stopifnot(!anyNA(kf$anomaly))
+# the recent years each gauge lacks: Buck Creek has no 2016 in either window, and nothing else is missing
+miss_recent <- lapply(stats::setNames(stations, stations), function(st) {
+  setdiff(recent, kf$year[kf$station_number == st])
+})
+stopifnot(identical(miss_recent[["08EE013"]], 2016L), length(miss_recent[["08EE003"]]) == 0,
+          nrow(kf) == (length(recent) * length(stations) - 1) * nrow(windows))
+n_recent <- vapply(miss_recent, function(m) length(recent) - length(m), 0L)
 kf$pct <- 100 + kf$anomaly
 kf$side <- ifelse(kf$pct < 100, "below", "above")
 kf$status <- ifelse(kf$frac_provisional > 0, "provisional", "approved")
@@ -241,13 +249,17 @@ n_min <- sum(low$value < low$q_min)
 stopifnot(n_min > 0)   # "and N were drier than any 1981-2010 year"
 # "every bar from those years falls below the median year as well as the mean"
 stopifnot(all(low$pct < low$median_pct))
-up <- kr[kr$pct >= 100, ]
-up_years <- sort(unique(up$year))
-# the opening names one year as the exception, the only one with a bar above normal
-stopifnot(length(up_years) == 1, identical(sort(c(low_years, up_years)), recent))
-agree <- stats::aggregate(side ~ period + year, kr, function(s) length(unique(s)) == 1)
-# "the two gauges fall on the same side of normal in every timing window and year"
-stopifnot(all(agree$side))
+# "before <first low year> the decade swings both ways": in every window at both gauges, some
+# earlier year sits above normal and some below
+early <- kr[kr$year < min(low_years), ]
+swing <- stats::aggregate(pct ~ station_number + period, early, function(p) any(p >= 100) && any(p < 100))
+stopifnot(nrow(swing) == nrow(windows) * length(stations), all(swing$pct))
+# "the two gauges fall on the same side of normal in all but N of the M window-years both recorded"
+both <- stats::aggregate(side ~ period + year, kr, function(s) if (length(s) == 2) length(unique(s)) == 1 else NA)
+both <- both[!is.na(both$side), ]
+n_both <- nrow(both)
+n_split <- sum(!both$side)
+stopifnot(n_split == 1)   # the prose says "all but one"
 med_range <- range(ref$median_pct)
 # "a typical year sits under the mean": every median below it, as printed
 stopifnot(round(med_range[2]) < 100)
@@ -271,9 +283,10 @@ years_text(miss_003), need_text)
 ```
 
 ```{r change-data}
-# change in each window's mean flow, from its 1981-2010 mean to the mean of the last five years,
-# with the middle 90% of changes from resampling the years of each period (with replacement); with
-# five recent years that is narrower than a 90% confidence interval would be, so no count rests on it
+# change in each window's mean flow, from its 1981-2010 mean to the mean of 2016-2025, with the
+# middle 90% of changes from resampling the years of each period (with replacement). At these years it
+# covers 83-87% of no-change records, under the 87% bar (data/checks/departure_interval_coverage.txt),
+# so it is not called a 90% range and no count rests on it
 set.seed(145)
 n_draw <- 5000
 chg <- do.call(rbind, lapply(seq_len(nrow(ref)), function(i) {
@@ -281,7 +294,7 @@ chg <- do.call(rbind, lapply(seq_len(nrow(ref)), function(i) {
   w <- ref$period[i]
   b <- qb$value[qb$station_number == st & qb$period == w]
   r <- kf$value[kf$station_number == st & kf$period == w]
-  stopifnot(length(r) == length(recent), isTRUE(all.equal(mean(b), ref$mean_q[i])))
+  stopifnot(length(r) == n_recent[[st]], isTRUE(all.equal(mean(b), ref$mean_q[i])))
   draws <- replicate(n_draw, mean(sample(r, replace = TRUE)) / mean(sample(b, replace = TRUE)))
   q <- stats::quantile(100 * (draws - 1), c(0.05, 0.95), names = FALSE)
   data.frame(station_number = st, period = w, pct = 100 * (mean(r) / mean(b) - 1), lo = q[1], hi = q[2])
@@ -298,11 +311,17 @@ cap_change <- sprintf(paste(
 ```
 
 The R package [`wet`](https://newgraphenvironment.github.io/wet/) [@wet] measures stream flow and
-water temperature on British Columbia's Freshwater Atlas. This case study uses its station records at
-two gauges near Houston to ask how summer flow, in the weeks when chinook salmon migrate and spawn,
-has departed from its `r base_text` normal: its mean over one of the 30-year
-periods the World Meteorological Organization sets for climate normals
-[@arguez_vose2011DefinitionStandard, p. 699].
+water temperature on British Columbia's Freshwater Atlas. This case study measures summer flow at two
+long-record gauges near Houston, in the weeks when chinook salmon migrate and spawn, against its
+`r base_text` normal. That period is one of the World Meteorological Organization's 30-year standard
+normals [@arguez_vose2011DefinitionStandard, p. 699; @worldmeteorologicalorganization2017WMOGuidelines],
+and the one `wet`'s published flows are normals of: its water balance runs on
+[`climr`](https://bcgov.github.io/climr/)'s `r base_text` climate [@climr], and its routed flow is the
+`r base_text` mean of the Pacific Climate Impacts Consortium's model run
+[@schnorbus2018VICGlacierVICGL; @craig_etal2020Flexiblewatershed; @werner_etal2019Longtermtemporally].
+It already holds part of recent warming [@hansen_etal2012Perceptionclimate], so
+[Rebuilding Stream Flow History Where Gauges Are Few](flow-change-sparse-gauges.html) measures change
+from 1951–1980 instead.
 
 **The answer.** Over `r recent_text`, mean flow in every timing window at both gauges was below
 its `r base_text` normal, by `r pct(chg_range[1])` to `r pct(chg_range[2])`. Every window at both gauges was below normal in
@@ -463,15 +482,17 @@ is not shown on its own, and its other `r nrow(out)` chinook timing windows, `r 
 November–April, when the gauges can read under ice, so they are left out. A timing window's flow in a
 year is its mean daily flow, counted when `r need_text` of its days have a record.
 
-## How did the last five years compare with normal?
+## How did the last ten years compare with normal?
 
 Each bar is one timing window in one year: its mean flow as a percentage of that window's
 `r base_text` mean, so 100% is normal and lower is drier. Wet years pull the mean up, so a typical year
 sits under it; the dashed line marks the median year.
 
-From `r min(low_years)`, every bar falls below the median year as well as the mean, and `r n_min`
-were drier than any `r base_text` year. The two gauges fall on the same side of normal in every timing
-window and year, partly because one catchment holds the other.
+Before `r min(low_years)` the decade swings both ways in every timing window. From `r min(low_years)`,
+every bar falls below the median year as well as the mean, and `r n_min` were drier than any
+`r base_text` year. The two gauges fall on the same side of normal in
+all but one of the `r n_both` timing-window years both recorded, partly because one catchment holds the
+other.
 
 ```{r recent, fig.height = 5, fig.cap = cap_recent}
 kf <- by_window(by_station(kf))
@@ -523,13 +544,14 @@ h$year <- as.integer(format(h$date, "%Y"))
 # every day of the year is kept, so a day without enough years breaks the line. The 1981-2010
 # line uses only the years each gauge's window normals use (qb: 1981-1998 at the Bulkley gauge),
 # so it is the normal the rest of the article describes
-min_recent <- length(recent)
+# a recent line counts a day only where every one of that gauge's recent years has it
 day_stats <- function(d, period, need) {
   out <- do.call(rbind, lapply(split(d, list(d$station_number, d$doy), drop = TRUE), function(x) {
     data.frame(station_number = x$station_number[1], doy = x$doy[1], n = nrow(x),
                mean = mean(x$q_m3s), median = stats::median(x$q_m3s))
   }))
-  out[out$n < need, c("mean", "median")] <- NA
+  nd <- if (length(need) == 1) need else need[out$station_number]
+  out[out$n < nd, c("mean", "median")] <- NA
   grid <- expand.grid(station_number = stations, doy = 1:365, stringsAsFactors = FALSE)
   out <- merge(grid, out, all.x = TRUE)
   rbind(data.frame(out[c("station_number", "doy")], period = period, stat = "mean", q = out$mean),
@@ -538,8 +560,8 @@ day_stats <- function(d, period, need) {
 norm_years <- split(qb$year, qb$station_number)
 in_norm <- paste(h$station_number, h$year) %in% paste(qb$station_number, qb$year)
 yr <- rbind(day_stats(h[in_norm, ], "base", min_baseline),
-            day_stats(h[h$year %in% recent, ], "recent", min_recent))
-# each line averages only its period's years: the normal's, and all five recent ones
+            day_stats(h[h$year %in% recent, ], "recent", n_recent))
+# each line averages only its period's years: the normal's, and every recent one the gauge has
 stopifnot(all(h$year[in_norm] %in% baseline),
           identical(sort(unique(h$year[in_norm & h$station_number == "08EE003"])), sort(unique(norm_years[["08EE003"]]))))
 yr <- yr[order(yr$station_number, yr$period, yr$stat, yr$doy), ]
@@ -571,7 +593,7 @@ strip <- do.call(rbind, lapply(stations, function(st) {
 }))
 stopifnot(identical(strip$window[strip$view == "spawn"], rep("Spawning", length(stations))))
 strip$label_x <- strip$end + 4
-# one colour means the last five years here and in the change figure below
+# one colour means the last ten years here and in the change figure below
 pal_period <- c(base = pal_hydro$values[["median"]], recent = pal_side$values[["below"]])
 lab_period <- c(base = base_text, recent = recent_text)
 cap_hydro <- sprintf(paste(
@@ -579,12 +601,13 @@ cap_hydro <- sprintf(paste(
   "October (right), with the spawning window, on its own scale. Lines are the mean (solid) and",
   "median (dashed) day over the years of each gauge's %s normal (grey) and over %s (colour). A",
   "normal line is drawn on days with at least %d of those years on record, so at the Bulkley gauge it",
-  "runs only from %s; a %s line on days all %d years have a record. The shaded months, November to",
-  "April, are when the gauges can read under ice."
-), base_text, recent_text, min_baseline, span_003, recent_text, min_recent)
+  "runs only from %s; a %s line on days each of the gauge's recent years has a record (%d at Buck",
+  "Creek, which has no 2016). The shaded months, November to April, are when the gauges can read",
+  "under ice."
+), base_text, recent_text, min_baseline, span_003, recent_text, n_recent[["08EE013"]])
 ```
 
-The same comparison day by day: the last five years' mean and median day against `r base_text`'s,
+The same comparison day by day: the last ten years' mean and median day against `r base_text`'s,
 over the whole year and, on its own scale, over the months around spawning, where the spring freshet
 would otherwise flatten the low summer flow.
 
@@ -622,8 +645,9 @@ ggplot() +
 ## How much has mean flow changed?
 
 Each point is the change in a timing window's mean flow, from its `r base_text` mean to the mean of
-`r recent_text`. Its bar spans the middle 90% of changes from resampling the years in each period;
-with only five recent years, one of them wet, the bars are wide.
+`r recent_text`. Its bar spans the middle 90% of changes from resampling the years in each period.
+With ten recent years or fewer, that bar is narrower than a 90% confidence interval: it shows the
+spread of the resamples, not a test.
 
 ```{r change, fig.height = 2.4, fig.cap = cap_change}
 cd_plot <- chg
@@ -668,13 +692,13 @@ departure <- cd::cd_anomaly(buck, base)
 hydat_end <- max(daily$date[daily$source == "hydat"])
 n_prov <- length(unique(kf$year[kf$status == "provisional"]))
 stopifnot(n_prov > 0)   # the bullet says the latest years are provisional
-# "N of the five years rest on provisional flows": every bar in those years has provisional days
+# "N of the ten years rest on provisional flows": every bar in those years has provisional days
 prov_years <- unique(kf$year[kf$status == "provisional"])
 stopifnot(all(kf$frac_provisional[kf$year %in% prov_years] > 0))
 ```
 
 - **The latest years are provisional:** approved HYDAT flows end in
-  `r format(hydat_end, "%B %Y")`, so `r n_prov` of the five years rest on provisional flows, which may be
+  `r format(hydat_end, "%B %Y")`, so `r n_prov` of the ten years `r if (n_prov == 1) "rests" else "rest"` on provisional flows, which may be
   revised.
 - **Some bars have days missing:** `r nrow(part)` of the `r nrow(kf)` bars rest on
   `r pct(part_share[1])`–`r pct(part_share[2])` of their days: `r part_text`.
