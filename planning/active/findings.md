@@ -1,0 +1,73 @@
+# Findings — Next pass on the two flow-change articles (#152)
+
+## Issue context
+
+**If we do it:** the two listed flow-change articles say plainly what each does differently. One measures flow at long-record gauges; the other rebuilds flow history where gauges are few. Each compares periods chosen for a stated, cited reason, and both cite from a script-written `.bib`. The rebuilt article also gains what only the stored Maxan article said: snow fitted at measured gauges, and the lowest seven-day flow. **If we never do:** the titles read as the same article twice, "since 2011 against before 1981" and "the last five years against 1981–2010" sit side by side with no reason given for either, and the comparison article keeps hand-typed references.
+
+**Scope changed 2026-10-30 (user):** this issue is now the next pass on both listed flow-change articles, so each is edited once:
+- the comparison article, which this issue held already;
+- `vignettes/flow-departure-normal.Rmd`, shipped in #145.
+
+The stored Maxan article (`vignettes/short-record-flow.Rmd`) stays as it is. It is not published, and #148 is closed. Two of its findings move here (part B).
+
+## Decided (user, 2026-10-30)
+
+- **Titles:**
+  - "Measured Stream Flow Against Its 1981–2010 Normal: Two Long-Record Gauges" for `flow-departure-normal`;
+  - "Rebuilding Stream Flow History Where Gauges Are Few" for `flow-change-sparse-gauges`.
+
+  Each title says what the article does (measuring; rebuilding), not the species or the place. **The addresses stay as they are** (user, 2026-10-30): `articles/flow-departure-normal.html` and `articles/flow-change-sparse-gauges.html` still describe the articles, and renaming them again would stack a second redirect on today's. Only the titles change: each article's `title:`, its `VignetteIndexEntry`, the README's "Learn more" lines and `_pkgdown.yml` if it names them.
+- **Periods:**
+  - Rebuilt article: **1951–1980 against the last 10 years**. 1951–1980 is the three decades before warming accelerated, the reference Hansen et al. (2012) used and `cd` uses. It also starts when ERA5-Land's snow does (1950).
+  - Measured article: **the last 10 years against the 1981–2010 normal**. It cannot reach 1951–1980: Buck Creek's record starts in 1973.
+- **Every use of 1981–2010 is cited as tightly as possible, with real references.** Give the reason in one sentence and back each part with a source a reader can open:
+  - 1981–2010 is a WMO climatological standard normal period: Arguez and Vose (2011, p. 699), and WMO-No. 1203 (2017) for the definition.
+  - It is the period `wet`'s published flows are normals of: the water balance runs on `climr`'s 1981–2010 normals, and routed PCIC is the 1981–2010 run. Cite `climr` and PCIC's data and model papers.
+  - Say plainly that it already contains part of the warming, citing Hansen et al. (2012), which is why the rebuilt article measures change from 1951–1980 instead.
+- **Moved from the stored Maxan article:** measured snow, and the lowest seven-day flow (below). Not moved: Foxy Creek, Maxan's catchment area, its own five-summer scores, and the small-flow caveat. Maxan's chinook use stays with #137.
+
+## Proposed
+
+### A. Count first: can every stream reach 1951–1980?
+
+Before any edit, count each of the four streams' years in 1951–1980, per route (filled record and borrowed departures), from `scripts/departure_site.R`'s series. Name the gauges each early year rests on. Early years lean on one or two long gauges (Maxan's on the Bulkley at Quick). If a stream has too few years, decide the period with the user before writing. The site reports' "years before 1981 by source" lines are the starting point.
+
+### B. Rebuilt article (`vignettes/articles/flow-change-sparse-gauges.Rmd`, new title)
+
+1. **Change, 1951–1980 against the last 10 years**, with `scripts/departure_site.R` re-run for the new periods and its reports regenerated. The 90% range's method must hold its coverage at the recent period's ten years, or be labelled as resamples, and no count may rest on a range that does not (measured in #145's review: a percentile bootstrap of five years covered 82%).
+2. **The lowest seven-day flow** beside the window mean at all four streams. All four site reports already compute it (`min7`); at Maxan the spawning window's fell about two thirds.
+3. **Snow, measured.** The snow itself changed: at Maxan, half the snowmelt came about ten days earlier in 2011–2025 than in 1950–1980, and peak snowpack held less water. Add the fits at the measured snow gauges (08EE003 and 08EE013 for Maxan; each site's `snow_gauges`), not only the borrowed departures, from `data/checks/departure_site_snow_*_20260717.txt`. Include the grid caveat: ERA5-Land cells of about 0.1°, coarse for a small watershed. Cite ERA5-Land (Muñoz-Sabater et al. 2021) and `cd`: hourly reanalysis from 1950, aggregated to annual layers over British Columbia, published as COGs with a STAC catalogue.
+4. **Citations from a `.bib`:** `data-raw/vignette_bib.R vignettes/articles/flow-change-sparse-gauges.Rmd`. Add Hansen et al. (2012) (PNAS, doi 10.1073/pnas.1205276109) and WMO-No. 1203 to the group library first.
+5. The pass against the organisation's writing conventions, as #145 did; keep the word cap and a guard on every quoted number.
+
+### C. Measured article (`vignettes/flow-departure-normal.Rmd`, new title)
+
+1. **The last 10 years against the 1981–2010 normal:** the bars, the change figure and the year figure's recent lines. Recompute every quoted number. Its change range takes the same method as B1.
+2. The tight 1981–2010 citation above, in the sentence that defines the normal. It replaces the bare WMO sentence.
+3. One sentence saying what the rebuilt article does differently, and linking it (writing.md "Write each article to stand alone": the sentence, not a reliance on it).
+4. **Rerun `data-raw/vignette_bib.R` on it** once Better BibTeX answers again: it went down after a Zotero update on 2026-10-30. The committed `.bib` lacks the Gottesfeld and Rabnett 2007 url, which was set on the Zotero item after the last export, and still holds six entries the article no longer cites (Theil, Sen, Mann, Kendall 1975, and the `Kendall`/`zyp` packages).
+
+### D. segment-discharge
+
+Run `data-raw/vignette_bib.R` on `vignettes/segment-discharge.Rmd` so its hand-written `.bib` comes from Zotero too. Add Chapman, Moriasi and Nash to the group library first. This re-keys its package entries to `@<pkg>` and R to `@base`.
+
+### E. The helper
+
+`wet_software_cite()` stays while the stored Maxan article calls it; that article is not being edited. Update `CLAUDE.md`'s article paragraphs for the new titles and periods.
+
+Relates to #110, #137, #145, #149
+
+
+## Gate exploration (2026-10-30)
+
+- The site series live on m4 only (`data/departure/`, gitignored); m1 has none. The #126 runs and logs (`data/logs/126/`) are m4's.
+- Years per series (m4, `mx[[...]]`): carried 1951–1980: maxan 20–21, gosnell 21, naver 26–28, swift 27–28; extended 1951–1980: maxan 30 (5 observed), naver 30 (18 observed), swift 27–28. 2016–2025: 9 at maxan/gosnell/naver carried (last 2024), 10 at swift (last 2025) and naver's extended migration mean.
+- `departure_site.R`'s parity gate compares `mx_core` (pre < 1981, post 2011–2025, `diff`, `ci`, `carried`) with the pilot's `mx`, so the new periods are added after `mx_core`, never inside it.
+- Measured article bundle `station_daily.rds` ends 2026-09-30; 08EE013 has no 2016 window-year in either window.
+- Better BibTeX on m1: `curl -A curl/8 http://127.0.0.1:23119/better-bibtex/cayw?probe=true` returns "No endpoint found": Zotero answers, BBT is not loaded.
+- Group library (libraryID 9) already holds hansen_etal2012Perceptionclimate, arguez_vose2011DefinitionStandard, moriasi_etal2007Modelevaluation, nash_sutcliffe1970Riverflow, munoz-sabater_etal2021ERA5Landstateoftheart, schnorbus2018VICGlacierVICGL, craig_etal2020Flexiblewatershed. Missing: WMO-No. 1203, Werner et al. 2019 (PNWNAmet), Chapman et al. 2018 (`chapman_etal2018Wateralloc` is hand-written in segment-discharge.bib).
+
+## Errors Encountered
+
+| Error | Resolution |
+|-------|------------|
