@@ -403,8 +403,13 @@ hz_km <- round(sqrt(sum(hz^2)) / 1000, -1)
 hz_deg <- (atan2(hz[1], hz[2]) * 180 / pi) %% 360
 hz_dir <- c("north", "north-east", "east", "south-east", "south", "south-west", "west",
             "north-west")[(round(hz_deg / 45) %% 8) + 1]
-# the caption: drawn streams are order 5 and up, plus the two gauged streams whole; lakes 100 ha and up
+# the caption: drawn streams are order 5 and up, plus the two gauged streams whole; lakes 100 ha and up;
+# the thin streams and the lakes only near the catchments (data-raw/station_vignette_map.R queries them in
+# a box 8 km beyond them, so they stop short of the frame)
 stopifnot(all(map$streams$stream_order >= 5 | map$streams$main), all(map$lakes$area_ha >= 100))
+near <- sf::st_as_sfc(sf::st_bbox(sf::st_buffer(sf::st_union(map$catchments), 8000)))
+stopifnot(all(lengths(sf::st_intersects(map$streams[!map$streams$main, ], near)) > 0),
+          all(lengths(sf::st_intersects(map$lakes, near)) > 0))
 
 map_w <- 7
 map_h <- 6.5
@@ -452,9 +457,9 @@ key_h <- key_w * 1.05
 cap_map <- sprintf(paste(
   "The two gauges (points) and the land each one drains (shaded). Buck Creek's catchment (%s km²)",
   "lies inside the Bulkley gauge's (%s km²), so the two records are not independent. The Bulkley",
-  "River and Buck Creek are drawn heavy, other streams of order 5 and up thin, and lakes of 100 ha",
-  "and up in blue; Houston is labelled, the bar is %s km, and the inset places the map in British",
-  "Columbia."
+  "River and Buck Creek are drawn heavy; other streams of order 5 and up (thin) and lakes of 100 ha",
+  "and up (blue) are drawn only near the catchments. Houston is labelled, the bar is %s km, and the",
+  "inset places the map in British Columbia."
 ), format(round(catch$area_km2[catch$part == "catchment_buck"]), big.mark = ","),
 format(round(catch$area_km2[catch$part == "catchment_main"]), big.mark = ","), sb_km)
 ```
@@ -701,8 +706,8 @@ The software, each cited:
 - [`wet`](https://newgraphenvironment.github.io/wet/) [@wet] reads the gauge records and makes the
   timing-window statistics.
 - [`cd`](https://newgraphenvironment.github.io/cd/) [@cd] takes the normal, the departures and the
-  trends, with [`Kendall`](https://CRAN.R-project.org/package=Kendall) [@Kendall] and
-  [`zyp`](https://CRAN.R-project.org/package=zyp) [@zyp] for the trend tests.
+  trends, with [`Kendall`](https://CRAN.R-project.org/package=Kendall) [@Kendall] for the trend
+  test and [`zyp`](https://CRAN.R-project.org/package=zyp) [@zyp] for the slope.
 - [`tidyhydat`](https://docs.ropensci.org/tidyhydat/) [@tidyhydat] reads the ECCC real-time feed.
 - [`fwapg`](https://smnorris.github.io/fwapg/) [@norris2024smnorrisfwapg] holds the Freshwater Atlas
   in PostgreSQL, from which the catchments and stream mouths were drawn.
