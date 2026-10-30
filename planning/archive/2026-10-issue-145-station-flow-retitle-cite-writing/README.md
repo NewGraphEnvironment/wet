@@ -12,7 +12,7 @@ At the plan gate the user asked for climate in the title. "Climate normal" is WM
 
 ## Measurement
 
-- **Word count:** body prose went from 581 to 699 words (the cap was raised from 600 to 700 at the gate); the file from 704 to 785 lines. The first full draft came to 751. Cutting captions' restatements and the recipe's repeated software list brought it under. The floor was set by the answer-first opening, the timing-window section, the place sentence and 23 inline citations, each `[@key]` counting as a word.
+- **Word count:** body prose went from 581 to 699 words in the first pass (the cap was raised from 600 to 700 at the gate), and to 627 after the user's review; the file from 704 to 751 lines. The first full draft came to 751 words. Cutting captions' restatements and the recipe's repeated software list brought it under. The floor was set by the answer-first opening, the timing-window section, the place sentence and the inline citations, each `[@key]` counting as a word.
 - **Parity:** `vm_into()` against `chinook_sites_map.rds`: all six columns `identical()`. `station_map.rds` rebuilt with every old layer `identical()`, except lakes, which match only after sorting: `vm_lakes()` has no `ORDER BY`.
 - **Mouths:** Buck Creek's is 0.89 km from Houston; the Bulkley's is 1.15 km from Hazelton, 115 km north-west of Houston.
 - **`knitr::write_bib()`** writes each package's DESCRIPTION entry: wet without its DOI, ggplot2's manual rather than its book. This contradicts `writing.md`, so the script uses `utils::citation(pkg)[[1]]`. Recorded in soul#27.
@@ -29,6 +29,22 @@ At the plan gate the user asked for climate in the title. "Climate normal" is WM
 | 5 | 2 low, plus an enumeration of every figure mark against its caption | 2 | n |
 
   The loop ended on round 5's enumeration. Each new guard was shown to fire on the case it exists for. The mechanism the rounds named: a guard checked that what was drawn, counted or sorted lay in the sentence's set, while the sentence claimed the set itself.
+
+## Revision after the user's review (2026-10-30)
+
+Read as a review copy (a private claude.ai artifact), the article was revised:
+- The year-by-year departure strip and the Theil–Sen/Mann–Kendall trends were dropped, with their four statistics citations.
+- The day-by-day figure became the 1981–2010 mean and median day against the 2022–2026 ones, in segment-discharge's style, then split per gauge into the whole year (with the migration window) and July to October on its own scale (with the spawning window).
+- A change figure, in flow-change-sparse-gauges' form, gives each window's change in mean flow from 1981–2010 to 2022–2026.
+- Fry migration was dropped: it falls within migration and spawning together, which a guard checks day by day.
+- The map moved above the bars.
+- `fwapg` is described as software, not the Atlas, and the Data list was cut to four lines.
+
+Review round 6 (`review-round6.md`) found six issues in that revision, all fixed. Chief among them, the 1981–2010 line at the Bulkley gauge had averaged years outside its normal (2010 and single spot readings in 2000–2009); it now uses only the normal's years. Also, a percentile bootstrap of five years undercovers: simulated, its "90%" range held the truth 82% of the time. So the bar is described as the middle 90% of resampled changes, and no count rests on it. The later moves (the map first, two windows, the split figure) were checked by rendering and reading, with no reviewer agent, at the user's request.
+
+## Owed
+
+- The `.bib` was not regenerated after the revision: Better BibTeX stopped answering after Zotero's 10.0.7 auto-update. It lacks the Gottesfeld and Rabnett url (now on the Zotero item) and holds six entries the article no longer cites. Tracked in wet#152. Better BibTeX's key migration and key drift: soul#595.
 
 ## Evidence
 
