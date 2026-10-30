@@ -142,14 +142,12 @@ n_src <- stats::setNames(reader$rows / 13, reader$source)
 n_with <- sg[["pick_routed"]] + sg[["pick_balance"]]
 n_both_src <- sum(n_src) - n_with
 stopifnot(all(n_src == round(n_src)))
-# the prose: almost every stream has an estimate (99.9% of the segments linked to
-# a watershed polygon in fwa_streams_watersheds_lut; an unlinked segment is in no
-# source's table, as segment_output.R builds both from the linked set), the
-# unlinked almost all connection lines and secondary channels (the Limits
-# bullet), and the balance covers almost all of BC
-own_pct <- 100 * (sg[["fwa"]] - sg[["neither"]]) / (sg[["fwa"]] - sg[["no_lut"]])
-stopifnot(sg[["no_lut"]] <= sg[["neither"]], round(own_pct, 1) == 99.9,
-          sg[["no_lut_connector"]] > 0.9 * sg[["no_lut"]], n_src[["wet_balance"]] > 0.9 * sg[["fwa"]])
+# the prose: almost every stream has an estimate, the streams being every segment
+# but the connection lines and secondary channels with no watershed polygon (an
+# unmatched segment is in no source's table, as segment_output.R builds both from
+# the matched set; the Limits bullet), and the balance covers almost all of BC
+stream_pct <- 100 * (sg[["fwa"]] - sg[["neither"]]) / (sg[["fwa"]] - sg[["no_lut_connector"]])
+stopifnot(sg[["no_lut"]] <= sg[["neither"]], stream_pct > 99, n_src[["wet_balance"]] > 0.9 * sg[["fwa"]])
 built <- as.Date(substr(pub$built, 1, 10))
 built_text <- paste(as.integer(format(built, "%d")), format(built, "%B %Y"))
 
@@ -990,17 +988,25 @@ published, and the balance held out by its fit on HYDAT
 stopifnot(nzchar(ps$wet_commit), nzchar(map$provenance$wet_commit), nzchar(pm$wet_commit), nzchar(ps$routed_commit))
 ```
 
-The product is made with the PostgreSQL tools [`fwapg`](https://smnorris.github.io/fwapg/)
-[@norris2024smnorrisfwapg] and New Graph's
-[fork](https://github.com/NewGraphEnvironment/fwapg/tree/newgraph) of it
-[@norris_irvine2026NewGraphEnvironmentfwapg], and the R package
-[`wet`](https://newgraphenvironment.github.io/wet/) [@irvine2026wetStream]; the balance's inputs come
-through [`climr`](https://github.com/bcgov/climr) [@daust_etal2024climr] and
-[`cd`](https://newgraphenvironment.github.io/cd/) [@irvine2026cd]; the recipes above read it with
-[`duckdb`](https://r.duckdb.org/) [@muhleisen_raasveldt2026duckdb], and the figures are drawn with
-[`ggplot2`](https://ggplot2.tidyverse.org/) [@wickham2016ggplot2],
-[`gq`](https://newgraphenvironment.github.io/gq/) [@irvine2026gq] and
-[`sf`](https://r-spatial.github.io/sf/) [@pebesma_bivand2023Spatial]. How the balance is built, and each of its choices tested:
+The software, each cited:
+
+- [`wet`](https://newgraphenvironment.github.io/wet/) [@irvine2026wetStream] builds and publishes the product.
+- [`fwapg`](https://smnorris.github.io/fwapg/) [@norris2024smnorrisfwapg] holds the Freshwater Atlas in
+  PostgreSQL, and New Graph's [fork](https://github.com/NewGraphEnvironment/fwapg/tree/newgraph) of it
+  [@norris_irvine2026NewGraphEnvironmentfwapg] places routed PCIC on it.
+- [`climr`](https://github.com/bcgov/climr) [@daust_etal2024climr] gives the balance its climate normals,
+  and [`cd`](https://newgraphenvironment.github.io/cd/) [@irvine2026cd] its snow normals.
+- [`duckdb`](https://r.duckdb.org/) [@muhleisen_raasveldt2026duckdb] and [`DBI`](https://dbi.r-dbi.org/)
+  [@rsigdb_etal2026DBI] read it in the recipes above, and [`RPostgres`](https://rpostgres.r-dbi.org/)
+  [@wickham_etal2026RPostgres] loads it into PostgreSQL.
+- [`knitr`](https://yihui.org/knitr/) [@xie2026knitr] and
+  [`kableExtra`](https://haozhu233.github.io/kableExtra/) [@zhu2024kableExtra] make the tables, and
+  [`ggplot2`](https://ggplot2.tidyverse.org/) [@wickham2016ggplot2],
+  [`gq`](https://newgraphenvironment.github.io/gq/) [@irvine2026gq] and
+  [`sf`](https://r-spatial.github.io/sf/) [@pebesma_bivand2023Spatial] the figures, all in R
+  [@rcoreteam2025R].
+
+How the balance is built, and each of its choices tested:
 [the water balance method](`r gh("research/water_balance_method.md")`). To cite this package:
 
 ```{r citation, results = "asis"}
