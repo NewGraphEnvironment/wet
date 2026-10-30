@@ -33,6 +33,11 @@
 # shipped normals grid. The per-year tables. A year whose cover is below 1 is
 # refused.
 #
+# New in #152, deciding nothing: snow before and after over the comparison
+# article's periods, 1951-1980 against 2016-2025 (each watershed's mean peak
+# SWE and 50 % melt date), beside the site run's change over the same periods
+# (its `p152`, both routes). #121's and #126's lines are unchanged.
+#
 # ---- what changes per site ----------------------------------------------------------------------
 #
 # The series:

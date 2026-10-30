@@ -118,6 +118,27 @@
 # pooled), under set.seed(126) after the extension's bootstrap, so the
 # extension's draws are #120's. For an ungauged site this is the headline.
 #
+# New in #152, at every site, deciding nothing here: the change on both routes
+# from 1951-1980 to 2016-2025 (the periods the comparison article uses, set by
+# the user at #152's gate), for every statistic and window, computed after
+# #126's draws so that neither #120's nor #126's move. Each route's change is
+# its mean over the 2016-2025 years minus its mean over the 1951-1980 years,
+# with a 90 % interval from 2000 draws that resample years within each period
+# and add a held-out residual as #120 (extended years only) and #126 (every
+# carried year) do, under set.seed(152). Reported with each period's years,
+# and the gauges the 1951-1980 years rest on: the extension donors with the
+# years each supplies, and the carried donors named in any of those years.
+# Then the interval's coverage, measured: for each change with an interval,
+# 1000 simulated series with no change, each period's years drawn normal with
+# the series' own standard deviation over that period's years (an extended
+# series keeps which years are observed), each put through the same interval
+# with 500 draws and the same residual pool; the share of the 1000 whose
+# interval covers zero, under set.seed(1520). The comparison article calls the
+# interval a 90 % range only if every coverage it draws on is at least 0.87;
+# otherwise it calls it the middle 90 % of resampled changes and rests no count
+# on it. The rds gains `p152` in each `mx` entry, after the parity gate's
+# `mx_core` is taken, so the gate is unchanged.
+#
 # ---- the parity gate ----------------------------------------------------------------------------
 #
 # The maxan row under the BULK windows must reproduce #120's run. Its `mx`

@@ -28,7 +28,8 @@ The two listed flow-change articles read as the same article twice. Their titles
 
 ## Phase 2: Does the 90% range hold its coverage at ten years?
 
-- [ ] Write `scripts/departure_interval_coverage.R`.
+- [ ] Rebuilt article: coverage measured inside each site run (Phase 3), because the residual pools its interval draws from exist only there (correction, findings.md).
+- [ ] Measured article: write `scripts/departure_interval_coverage.R`.
   - Register its rule in the header, committed before any body code.
   - It simulates each article's interval at the period lengths it uses: the measured article's percentile bootstrap of a ratio of means (30 or 18 baseline years against 9 or 10 recent), and the rebuilt article's year-resampling bootstrap (20–30 against 9–10).
   - Rule: coverage of 87% or more keeps the name "90% range". Under 87%, each article calls it "the middle 90% of resampled changes" and cuts every count that rests on it.

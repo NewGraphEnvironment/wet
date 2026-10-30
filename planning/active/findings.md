@@ -78,7 +78,11 @@ Years in 1951–1980 / 2016–2025 per series, from `data/departure/departure_si
 | naver (BULK) | 26–28 / 9 | 08KE009, 08KE016, 08KD006, 08KD007 (08KD001 in spawning min7) | 30 / 9–10 (18 observed) | 08KE009 8–9, 08KH006 2–3, 08KD001 1 (cov_day spawning: 08KD001 10, 08KH006 2) |
 | gosnell (BULK, MORR) | 20–21 / 9 | 08ED002, 08ED001, 08EE020, 08EE013, 08EE003 | — | — |
 
-Every stream reaches 1951–1980 with at least 20 years by either route, so no period decision goes back to the user. The early years lean on few gauges: at Maxan the filled-in record rests on the Bulkley at Quick (08EE004) and Telkwa (08EE008); at Gosnell the borrowed years before about 1960 rest on 08ED002 alone (a donor string of weight 1.0000).
+Every stream reaches 1951–1980 with at least 20 years by either route, so no period decision goes back to the user. The early years lean on few gauges: at Maxan the filled-in record rests on the Bulkley at Quick (08EE004) and Telkwa (08EE008); at Gosnell some borrowed years rest on 08ED002 alone (a donor string of weight 1.0000).
+
+## Plan correction: Phase 2 split (2026-10-30)
+
+The rebuilt article's interval adds held-out residuals drawn from pools (`cr$resid`, `run_for()$r`) that exist only inside a `departure_site.R` run and are not saved. So its coverage is measured inside the site run (registered in the header with the #152 addition, `set.seed(1520)`), and `scripts/departure_interval_coverage.R` measures only the measured article's interval, from its committed bundle. The 0.87 rule is the same in both.
 
 ## Errors Encountered
 
