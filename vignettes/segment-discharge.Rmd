@@ -142,9 +142,10 @@ n_src <- stats::setNames(reader$rows / 13, reader$source)
 n_with <- sg[["pick_routed"]] + sg[["pick_balance"]]
 n_both_src <- sum(n_src) - n_with
 stopifnot(all(n_src == round(n_src)))
-# the prose: a value on 99.9% of the segments with a watershed of their own (a
-# segment without one is in no source's table), the rest almost all connection
-# lines and secondary channels, and the balance covers almost all of BC
+# the prose: a value on 99.9% of the segments linked to a watershed polygon in
+# fwa_streams_watersheds_lut (an unlinked segment is in no source's table:
+# segment_output.R builds both from the linked set), the unlinked almost all
+# connection lines and secondary channels, and the balance covers almost all of BC
 own_pct <- 100 * (sg[["fwa"]] - sg[["neither"]]) / (sg[["fwa"]] - sg[["no_lut"]])
 stopifnot(sg[["no_lut"]] <= sg[["neither"]], round(own_pct, 1) == 99.9,
           sg[["no_lut_connector"]] > 0.9 * sg[["no_lut"]], n_src[["wet_balance"]] > 0.9 * sg[["fwa"]])
@@ -183,9 +184,9 @@ segments, in cubic metres per second, for the year, each month and each
 day. Few streams in BC have a gauge, so this gives almost every one of them
 an estimate: what flow a stream carries in the weeks a fish needs it, and how
 that compares with the next stream. It has a value on `r pct1(own_pct)` of the
-segments that drain a watershed of their own. Segments without one, almost
-all connection lines and secondary channels, have none. It is public, in
-three datasets:
+segments matched to a watershed polygon. Segments matched to none, almost
+all connection lines and secondary channels, have no value.
+It is public, in three datasets:
 
 - **`segment_monthly`**: each segment's flow from each source, for the year
   (month 0) and the twelve calendar months.
@@ -254,7 +255,7 @@ every month and day:
 
 `pick` takes routed PCIC on `r pct_of(sg[["pick_routed"]])` of the Freshwater
 Atlas's segments and the balance on `r pct_of(sg[["pick_balance"]])`,
-`r pct_of(sg[["far_low"]])` of them because routed flow is far low. The balance takes every segment with a value in the Liard, where
+`r pct_of(sg[["far_low"]])` of all segments because routed flow is far low there. The balance takes every segment with a value in the Liard, where
 routed PCIC has none, and `r pct(nech_bal)` of those in the four Nechako
 Reservoir groups, where routed flow is far below the balance's.
 
@@ -460,7 +461,8 @@ area_in <- function(a, b) {
   ca <- sf::st_geometry(catch[catch$station_number == a, ])
   cb <- sf::st_geometry(catch[catch$station_number == b, ])
   stopifnot(length(ca) == 1, length(cb) == 1)
-  as.numeric(sf::st_area(sf::st_intersection(ca, cb))) / as.numeric(sf::st_area(ca))
+  # an empty intersection sums to 0, so two catchments that do not overlap fail
+  sum(as.numeric(sf::st_area(sf::st_intersection(ca, cb)))) / as.numeric(sf::st_area(ca))
 }
 stopifnot(area_in("08EE013", "08EE003") > 0.99, area_in("08EE003", "08EE004") > 0.99)
 xy_st <- sf::st_coordinates(bmap$stations)
@@ -948,9 +950,10 @@ stopifnot(isTRUE(ps$keep_adjust), isFALSE(ps$gate_pass), identical(ps$pooled_var
 - **The zone adjustment is kept by decision.** On headwater basins it does
   not beat raw precipitation less evapotranspiration, and zones with too few
   gauges for their own adjustment get none.
-- **Segments without a value.** Of the `r num(sg[["neither"]])`,
-  `r num(sg[["no_lut"]])` have no watershed in the lookup through which the
-  balance reaches a segment.
+- **Segments without a value.** The balance reaches a segment through
+  `fwapg`'s lookup matching segments to watershed polygons, and both sources
+  are published only on matched segments, so the `r pct_of(sg[["no_lut"]])` of
+  segments matched to none have no value.
 - **In-sample at the gauges.** On a calibration gauge's own segment the
   published balance is the gauge's own monthly pattern at the balance's
   annual flow (08NM240 and 08NM241, on one watershed, share the mean of
