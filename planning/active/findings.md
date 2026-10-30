@@ -31,6 +31,13 @@ Relates to #27, #126, #146, #148, #149, #152.
 - "Climate normal": WMO defines climatological standard normals as 30-year averages of climatological data (1981–2010 is one); stream flow is not climatological data, so the title says "1981–2010 Normal" and the prose names the period as WMO's.
 - The comparison article places streams from their mouths (`data-raw/chinook_sites_map.R` receiving-river and mouth queries; `compass()`/`km()` in flow-change-sparse-gauges.Rmd:142–167).
 
+## Phase 0: Zotero (2026-10-30, m1)
+
+- Web API key at `~/.config/newgraph/zotero-api-key` verified (cyclops `verify-key.sh --from file`: HTTP 200).
+- Created in group 4733734, collection `statistics` (LP4R4VYR): Mann 1945 (TNK2RP5H, `mann1945NonparametricTests`), Sen 1968 (UTZ4K2QG, `sen1968EstimatesRegression`), Theil 1950 (VKB34D98, `theil1950RankInvariantMethod`), Kendall 1975 4th ed. (XBCBNKW6, `kendall1975RankCorrelation`). Mann and Sen metadata held to Crossref.
+- WMO normals: cite `arguez_vose2011DefinitionStandard` (already in the library; BAMS 92:699–704, doi 10.1175/2010BAMS2955.1) instead of adding WMO-No. 1203.
+- **The "Zotero answers with an empty reply" failure was curl's user agent.** m1's `~/.curlrc` sets a browser UA, and Zotero 7 drops browser-looking requests. With `-A curl/8`, ping returns 200 and BBT `ready`; rbbt (R's curl) exports. BBT's JSON-RPC `item.search` errors (`Invalid condition 'groupStart'`); the Web API's `data.citationKey` gave the keys after sync. Filed in soul#590 with the stale key path in `/zotero-api`.
+
 ## Phase 2 measurements (2026-10-30, m1, fwapg local)
 
 - `vm_into()` (moved from `data-raw/chinook_sites_map.R`) over the chinook bundle's targets: `into1`, `into2`, `into1_blk`, `system`, `mouth_x`, `mouth_y` all `identical()` to `chinook_sites_map.rds`.
@@ -41,3 +48,5 @@ Relates to #27, #126, #146, #148, #149, #152.
 
 | Error | Resolution |
 |-------|------------|
+| curl to 127.0.0.1:23119: empty reply (exit 52) with Zotero listening | `~/.curlrc` browser user agent; `curl -A curl/8`, or rbbt |
+| BBT JSON-RPC `item.search`: `Invalid condition 'groupStart'` | Read `data.citationKey` from the Web API after Zotero syncs |
