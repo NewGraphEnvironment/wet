@@ -11,3 +11,11 @@
 - Tests: 398 test blocks, 0 failed, 5 skipped (22:15Z)
 - `/code-check branch`: four rounds (review-round1..4.md). Round 3 found a defect inside round 2's fix, so the loop ended on round 4's 97-row enumeration of every quantified claim against its guard; its four mismatches were fixed and each re-checked
 - Next: archive, PR
+
+## Review copies (2026-10-30)
+
+Private claude.ai artifacts, rendered from d13db76 with soul#580's conversion script (its style regex fixed to skip head scripts):
+- measured article: https://claude.ai/artifact/B8i7CKZiceS1EckXJ97RTB
+- rebuilt article: https://claude.ai/artifact/MTTpB7PA9jpp5a2i9vG1gE
+
+A revision republishes to these URLs (Artifact tool `url`), not new ones.
