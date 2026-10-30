@@ -31,7 +31,7 @@ The two listed flow-change articles read as the same article twice. Their titles
 - [ ] Rebuilt article: coverage measured inside each site run (Phase 3), because the residual pools its interval draws from exist only there (correction, findings.md).
 - [x] Measured article: write `scripts/departure_interval_coverage.R`.
   - Register its rule in the header, committed before any body code.
-  - It simulates each article's interval at the period lengths it uses: the measured article's percentile bootstrap of a ratio of means (30 or 18 baseline years against 9 or 10 recent), and the rebuilt article's year-resampling bootstrap (20–30 against 9–10).
+  - It simulates the measured article's percentile bootstrap of a ratio of means (30 or 18 baseline years against 9 or 10 recent), lognormal per gauge and window. The rebuilt article's coverage is measured in the site runs.
   - Rule: coverage of 87% or more keeps the name "90% range". Under 87%, each article calls it "the middle 90% of resampled changes" and cuts every count that rests on it.
   - Report: `data/checks/departure_interval_coverage.txt`.
 - [x] Run it and commit the report (measured article: 0.834–0.867, under 0.87, so resamples, no count). The outcome feeds Phases 4, 5 and 7.
@@ -85,6 +85,7 @@ The two listed flow-change articles read as the same article twice. Their titles
   
   Already there: Hansen 2012, Arguez and Vose 2011, Moriasi, Nash and Sutcliffe, Muñoz-Sabater 2021, Schnorbus 2018 and Craig et al. 2020.
 - [ ] **Needs the user:** Better BibTeX answers "No endpoint found" on m1, because Zotero disabled it after its update. Please reinstall the BBT line that matches this Zotero (Plugins → gear → Install Plugin From File), then restart Zotero so the new items get keys. Until then, every phase that does not need a `.bib` runs first.
+- [x] `vignette_bib.R` accepts a fork's `/tree/<branch>` url (plan review B1).
 - [ ] Run `Rscript data-raw/vignette_bib.R` on all three articles. Commit each `.bib`.
 
 ## Phase 7: The measured article (`vignettes/flow-departure-normal.Rmd`)
