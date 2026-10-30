@@ -673,11 +673,14 @@ trend <- cd::cd_trend(departure, trend_start = c(1981, 2000))
 hydat_end <- max(daily$date[daily$source == "hydat"])
 n_prov <- length(unique(kf$year[kf$status == "provisional"]))
 stopifnot(n_prov > 0)   # the bullet says the latest years are provisional
+# "N of the five years rest on provisional flows": every bar in those years has provisional days
+prov_years <- unique(kf$year[kf$status == "provisional"])
+stopifnot(all(kf$frac_provisional[kf$year %in% prov_years] > 0))
 ```
 
 - **The latest years are provisional:** approved HYDAT flows end in
-  `r format(hydat_end, "%B %Y")`, so `r n_prov` of the five years rest partly on provisional flows, which
-  may be revised.
+  `r format(hydat_end, "%B %Y")`, so `r n_prov` of the five years rest on provisional flows, which may be
+  revised.
 - **Some bars have days missing:** `r nrow(part)` of the `r nrow(kf)` bars rest on
   `r pct(part_share[1])`–`r pct(part_share[2])` of their days: `r part_text`.
 - **Some normals have years missing:** a year is left out of a timing window's normal when the
