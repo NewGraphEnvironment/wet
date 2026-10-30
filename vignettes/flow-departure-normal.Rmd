@@ -226,6 +226,8 @@ ref$label <- sprintf("Mean %s m³/s", vapply(signif(ref$mean_q, 2), format, "", 
 kr <- merge(kf, ref, by = c("station_number", "period"))
 low_years <- recent[vapply(recent, function(y) all(kr$pct[kr$year == y] < 100), TRUE)]
 stopifnot(length(low_years) >= 2)
+# "From <first low year>, every bar falls below ...": the low years run unbroken to the last year
+stopifnot(identical(low_years, min(low_years):last_year))
 # "below normal in every timing window at both gauges in <low_years>": every window
 # and station is in kr for each of those years
 stopifnot(all(table(kr$year[kr$year %in% low_years]) == nrow(windows) * length(stations)))
@@ -726,8 +728,10 @@ cat(format(utils::citation("wet"), style = "text"), sep = "\n\n")
   [water-temp-bc](https://github.com/NewGraphEnvironment/water-temp-bc), and its real-time feed.
 - Timing windows for chinook salmon: New Graph's species-timing table
   [@gottesfeld_rabnett2007SkeenaFish].
-- Streams, catchments and stream mouths: the Province of British Columbia's Freshwater Atlas Stream
-  Network, through DataBC [@flnrord2021FreshwaterAtlasb].
+- Streams and stream mouths: the Province of British Columbia's Freshwater Atlas Stream Network,
+  through DataBC [@flnrord2021FreshwaterAtlasb].
+- Catchments, lakes and the province outline: the Freshwater Atlas's watersheds, lakes and
+  boundary, from the same publisher.
 - Place names: BC Geographic Names, through DataBC.
 - Gauge locations: HYDAT's station table.
 

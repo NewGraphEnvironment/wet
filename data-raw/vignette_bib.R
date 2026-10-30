@@ -48,7 +48,7 @@ bib_package <- function(key) {
 }
 
 bib_write <- function(rmd) {
-  keys <- sort(unique(rbbt::bbt_detect_citations(rmd)))
+  keys <- sort(unique(rbbt::bbt_detect_citations(rmd)), method = "radix")
   if (!length(keys)) stop("no citation in ", rmd, call. = FALSE)
   is_pkg <- vapply(keys, function(k) nzchar(system.file(package = k)), TRUE)
   pkg <- vapply(keys[is_pkg], bib_package, "")
@@ -89,8 +89,8 @@ bib_write <- function(rmd) {
   out <- sub("\\.Rmd$", ".bib", rmd)
   writeLines(c(paste0("% written by data-raw/vignette_bib.R for ", basename(rmd),
                       " from the packages' citation() and Zotero (group library); do not edit"),
-               "", paste0(entries[sort(names(entries))], "\n")), out)
-  message(sprintf("%s: %d entries (%s)", out, length(entries), paste(sort(names(entries)), collapse = ", ")))
+               "", paste0(entries[sort(names(entries), method = "radix")], "\n")), out)
+  message(sprintf("%s: %d entries (%s)", out, length(entries), paste(sort(names(entries), method = "radix"), collapse = ", ")))
   invisible(out)
 }
 
