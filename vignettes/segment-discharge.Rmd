@@ -167,7 +167,7 @@ stopifnot(identical(pm$share_spec, "snow"), identical(pm$share_method, "donor"))
 
 ## What it is
 
-The R package [`wet`](https://newgraphenvironment.github.io/wet/) [@irvine2026wetStream] publishes the mean
+The R package [`wet`](https://newgraphenvironment.github.io/wet/) [@wet] publishes the mean
 flow of British Columbia's Freshwater Atlas stream segments, in cubic metres
 per second, for the year, each month and each day. Few streams in BC have a
 gauge, so this gives almost every one of them an estimate: what flow a stream
@@ -298,7 +298,7 @@ Reservoir groups, where routed flow is far below the balance's.
 
 `wet` knows where the parts are, so reading a stream takes its
 `linear_feature_id` and its watershed group. The parts are sorted by group,
-so naming it lets [`duckdb`](https://r.duckdb.org/) [@muhleisen_raasveldt2026duckdb] skip everything outside
+so naming it lets [`duckdb`](https://r.duckdb.org/) [@duckdb] skip everything outside
 it, and the read takes seconds; the months can be read without it, and the
 days cannot:
 
@@ -994,22 +994,22 @@ stopifnot(nzchar(ps$wet_commit), nzchar(map$provenance$wet_commit), nzchar(pm$we
 
 The software, each cited:
 
-- [`wet`](https://newgraphenvironment.github.io/wet/) [@irvine2026wetStream] builds and publishes the product.
+- [`wet`](https://newgraphenvironment.github.io/wet/) [@wet] builds and publishes the product.
 - [`fwapg`](https://smnorris.github.io/fwapg/) [@norris2024smnorrisfwapg] holds the Freshwater Atlas in
   PostgreSQL, and New Graph's [fork](https://github.com/NewGraphEnvironment/fwapg/tree/newgraph) of it
   [@norris_irvine2026NewGraphEnvironmentfwapg] places routed PCIC on it.
-- [`climr`](https://github.com/bcgov/climr) [@daust_etal2024climr] gives the balance its climate normals,
-  and [`cd`](https://newgraphenvironment.github.io/cd/) [@irvine2026cd] its snow normals.
-- [`duckdb`](https://r.duckdb.org/) [@muhleisen_raasveldt2026duckdb] and [`DBI`](https://dbi.r-dbi.org/)
-  [@rsigdb_etal2026DBI] read it in the recipes above, and [`RPostgres`](https://rpostgres.r-dbi.org/)
-  [@wickham_etal2026RPostgres] loads it into PostgreSQL.
-- [`knitr`](https://yihui.org/knitr/) [@xie2026knitr] and
-  [`kableExtra`](https://haozhu233.github.io/kableExtra/) [@zhu2024kableExtra] make the tables, and
-  [`ggplot2`](https://ggplot2.tidyverse.org/) [@wickham2016ggplot2],
-  [`gq`](https://newgraphenvironment.github.io/gq/) [@irvine2026gq] and
-  [`sf`](https://r-spatial.github.io/sf/) [@pebesma_bivand2023Spatial] the figures;
-  [`bookdown`](https://pkgs.rstudio.com/bookdown/) [@xie2026bookdown] renders the article, all in R
-  [@rcoreteam2025R].
+- [`climr`](https://github.com/bcgov/climr) [@climr] gives the balance its climate normals,
+  and [`cd`](https://newgraphenvironment.github.io/cd/) [@cd] its snow normals.
+- [`duckdb`](https://r.duckdb.org/) [@duckdb] and [`DBI`](https://dbi.r-dbi.org/)
+  [@DBI] read it in the recipes above, and [`RPostgres`](https://rpostgres.r-dbi.org/)
+  [@RPostgres] loads it into PostgreSQL.
+- [`knitr`](https://yihui.org/knitr/) [@knitr] and
+  [`kableExtra`](https://haozhu233.github.io/kableExtra/) [@kableExtra] make the tables, and
+  [`ggplot2`](https://ggplot2.tidyverse.org/) [@ggplot2],
+  [`gq`](https://newgraphenvironment.github.io/gq/) [@gq] and
+  [`sf`](https://r-spatial.github.io/sf/) [@sf] the figures;
+  [`bookdown`](https://pkgs.rstudio.com/bookdown/) [@bookdown] renders the article, all in R
+  [@base].
 
 How the balance is built, and each of its choices tested:
 [the water balance method](`r gh("research/water_balance_method.md")`). To cite this package:
@@ -1039,7 +1039,7 @@ stopifnot(identical(ps$aet, "cfu"), identical(pm$share_spec, "snow"),
   [@environmentandclimatechangecanada2021NationalWater], release
   `r substr(ps$hydat_release, 1, 10)`.
 - Climate normals, 1981–2010, for the balance: the R package
-  [`climr`](https://github.com/bcgov/climr) [@daust_etal2024climr].
+  [`climr`](https://github.com/bcgov/climr) [@climr].
 - Actual evapotranspiration, for the balance: CGIAR-CSI's Global
   High-Resolution Soil-Water Balance v3
   ([figshare 7707605](https://figshare.com/articles/dataset/Global_High-Resolution_Soil-Water_Balance/7707605)),
@@ -1047,7 +1047,7 @@ stopifnot(identical(ps$aet, "cfu"), identical(pm$share_spec, "snow"),
 - Elevation: the Copernicus GLO-90 DEM.
 - Snow, for the balance's monthly shares: ERA5-Land snow normals (Copernicus
   Climate Change Service), through the R package
-  [`cd`](https://newgraphenvironment.github.io/cd/) [@irvine2026cd].
+  [`cd`](https://newgraphenvironment.github.io/cd/) [@cd].
 - Hydrologic zones: the province's BC Hydrologic Zones.
 - Life history timing windows for chinook salmon: New Graph's species-timing
   table [@gottesfeld_rabnett2007SkeenaFish].

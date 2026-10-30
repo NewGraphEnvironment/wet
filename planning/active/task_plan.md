@@ -103,7 +103,8 @@ The two listed flow-change articles read as the same article twice. Their titles
 
 ## Phase 8: segment-discharge's `.bib` (D)
 
-- [ ] Re-key its package citations to `@<pkg>` and R to `@base`, then run `vignette_bib.R` on it.
+- [x] Re-key its package citations to `@<pkg>` and R to `@base`.
+- [ ] Run `vignette_bib.R` on it (Chapman's key changes with Better BibTeX's).
 - [ ] Render it and check the reference list matches the old one apart from the keys.
 
 ## Phase 9: Titles and records (E)
