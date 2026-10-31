@@ -2,10 +2,10 @@
 # short-record gauge's window flows extended from its long-record neighbours,
 # and donor-carried departures scored held out at every gauge in the site's
 # box; at a stream with no gauge, carried departures alone, laid on wet's
-# published flow there. The rule below is #120's (scripts/departure_pilot.R's
-# header), taken over per site and fixed at what shipped for Maxan. It was
-# committed in this header alone, before any body code (planning/archive,
-# issue 126).
+# published flow there. The rule below is #120's (the header of
+# scripts/departure_pilot.R, retired in #146), taken over per site and fixed
+# at what shipped for Maxan. It was committed in this header alone, before any
+# body code (planning/archive, issue 126).
 #
 #   WET_HYDAT_RELEASE=20260717 Rscript scripts/departure_site.R <site_id>
 #
@@ -136,19 +136,22 @@
 # interval covers zero, under set.seed(1520). The comparison article calls the
 # interval a 90 % range only if every coverage it draws on is at least 0.87;
 # otherwise it calls it the middle 90 % of resampled changes and rests no count
-# on it. The rds gains `p152` in each `mx` entry, after the parity gate's
-# `mx_core` is taken, so the gate is unchanged.
+# on it. The rds gains `p152` in each `mx` entry; no line #120's report
+# prints depends on it.
 #
 # ---- the parity gate ----------------------------------------------------------------------------
 #
-# The maxan row under the BULK windows must reproduce #120's run. Its `mx`
-# must be identical() to data/departure/departure_pilot_20260717.rds's
-# `mx`, whose code_md5 must be the current scripts/departure_pilot.R's (rerun
-# the pilot otherwise). The extension it uses must be OLS, and these lines of
-# the tracked data/checks/departure_pilot_20260717.txt must appear verbatim in
-# the site report: the pool counts line, section 2's three method rows, and
-# section 3's HEADLINE and short-record lines. The run stops before writing
-# anything otherwise.
+# The maxan row under the BULK windows must reproduce #120's run, whose
+# tracked report data/checks/departure_pilot_20260717.txt is its record since
+# scripts/departure_pilot.R was retired (#146). Every table row of that
+# report must appear verbatim in the site report, at the precision it prints
+# (section 4's change table without the carried change's % normal and
+# interval, which the site report adds), and so must its pool counts line and
+# section 3's HEADLINE and short-record lines (site_parity_pilot() in
+# scripts/departure_site_lib.R; tests/testthat/test-departure_site_parity.R
+# holds the tracked site report to it). The run stops before writing anything
+# otherwise. Until #146 the gate also compared `mx` bit for bit with the
+# pilot's saved series.
 #
 # ---- what it refuses ----------------------------------------------------------------------------
 #
@@ -820,9 +823,6 @@ for (cb in combos) {
                             rec_r = stats::cor(re, ra), rec_n = length(rec), obs_n = length(ov),
                             rec_mad = mean(abs((re - mean(re)) - (ra - mean(ra)))))
 }
-# the parity gate compares this with #120's mx before anything else is added to it
-mx_core <- mx
-
 # new in #126: the carried change's interval, after the extension's draws
 set.seed(126)
 for (nm in names(mx)) {
@@ -906,17 +906,6 @@ for (nm in names(mx)) {
   p$cover_c <- cover_of(a$anomaly, rep(TRUE, nrow(a)), p$res_c, p$i1_c, p$i2_c)
   if (!is.null(p$lv)) p$cover <- cover_of(p$lv, p$ext, p$res_e, p$i1, p$i2)
   mx[[nm]]$p152 <- p
-}
-
-# ---- the parity gate (maxan, BULK) -----------------------------------------------------------
-if (site$site_id == "maxan" && wname == "BULK") {
-  prds <- file.path("data", "departure", sprintf("departure_pilot_%s.rds", release))
-  if (!file.exists(prds)) stop("parity: no ", prds, "; run scripts/departure_pilot.R", call. = FALSE)
-  pr <- readRDS(prds)
-  if (!identical(pr$code_md5, unname(tools::md5sum("scripts/departure_pilot.R")))) {
-    stop("parity: ", prds, " was written by another scripts/departure_pilot.R; rerun the pilot", call. = FALSE)
-  }
-  if (!identical(mx_core, pr$mx)) stop("parity: mx differs from #120's", call. = FALSE)
 }
 
 # ---- the report's answer ---------------------------------------------------------------------
@@ -1129,15 +1118,12 @@ for (m in mx) {
               paste(p$donors_c, collapse = ", ")))
 }
 
-# the parity gate's verbatim lines
+# ---- the parity gate (maxan, BULK): #120's tracked report, before anything is written ----------
 if (site$site_id == "maxan" && wname == "BULK") {
-  tracked <- readLines(file.path("data", "checks", sprintf("departure_pilot_%s.txt", release)))
-  want <- c(grep("^Box pool \\(>= 3", tracked, value = TRUE),
-            grep("^  (ols|move1|ratio) +[-0-9.]+ +[-0-9.]+ +[-0-9.]+$", tracked, value = TRUE)[1:3],
-            grep("^HEADLINE: ", tracked, value = TRUE), grep("^Short-record gauges, scored", tracked, value = TRUE))
-  if (length(want) != 6 || !all(want %in% out)) {
-    stop("parity: lines of the tracked pilot report missing from this run: ",
-         paste(setdiff(want, out), collapse = " | "), call. = FALSE)
+  miss <- site_parity_pilot(out, readLines(file.path("data", "checks", sprintf("departure_pilot_%s.txt", release))))
+  if (length(miss)) {
+    stop("parity: ", length(miss), " lines of the tracked pilot report missing from this run, the first: ",
+         paste(utils::head(miss, 3), collapse = " | "), call. = FALSE)
   }
 }
 

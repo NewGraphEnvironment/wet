@@ -125,7 +125,9 @@ site_parity_pilot <- function(out, tracked) {
   site_change <- if (is.null(site_change)) character() else
     sub(" +$", "", paste0(substr(site_change, 1, 82), substring(site_change, 112)))
   prose <- grep("^(Box pool \\(>= 3|HEADLINE: |Short-record gauges, scored)", tracked, value = TRUE)
-  if (length(prose) != 3) stop("the tracked pilot report lacks one of the three prose lines the gate reads", call. = FALSE)
+  if (length(prose) != 3) {
+    stop("the tracked pilot report lacks one of the three prose lines the gate reads", call. = FALSE)
+  }
   c(setdiff(c(prose, setdiff(rows, change)), out), setdiff(change, site_change))
 }
 
