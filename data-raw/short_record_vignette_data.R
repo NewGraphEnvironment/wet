@@ -10,7 +10,8 @@
 #   - data/departure/departure_site_maxan_bulk_20260717.rds (scripts/departure_site.R)
 #   - data/departure/departure_site_snow_maxan_bulk_20260717.rds (scripts/departure_site_snow.R)
 # and refuses unless each one's code_md5 is the md5 of its script as committed
-# here, and R/, scripts/, data-raw/ and data/checks/ hold nothing uncommitted
+# here, its site row is today's, and R/, scripts/, data-raw/ and data/checks/
+# hold nothing uncommitted
 # (vd_commit()), so the commit the bundle names rebuilds it. Every number the
 # article can quote is held to its line in the tracked report it came from,
 # data/checks/departure_site_maxan_bulk_20260717.txt or
@@ -65,8 +66,10 @@ read_series <- function(script) {
   if (!file.exists(f)) stop("no ", f, ": run scripts/", script, ".R ", site$site_id, " first", call. = FALSE)
   x <- readRDS(f)
   md5 <- unname(tools::md5sum(file.path("scripts", paste0(script, ".R"))))
-  if (!identical(x$code_md5, md5) || !identical(x$release, release) || !identical(x$site$site_id, site$site_id)) {
-    stop(f, " was made by another scripts/", script, ".R, release or site: rerun it", call. = FALSE)
+  # the site row is read from scripts/departure_sites.csv, which no md5 covers, so the run's own copy
+  # of it must be today's
+  if (!identical(x$code_md5, md5) || !identical(x$release, release) || !identical(x$site, site)) {
+    stop(f, " was made by another scripts/", script, ".R, release or site row: rerun it", call. = FALSE)
   }
   x
 }
@@ -290,7 +293,7 @@ provenance <- list(
 )
 values <- list(extended = extended, carried = carried, change = change, scores = scores, snow = snow,
                departures = departures, snow_change = snow_change, fits = fits, gauges = gauges,
-               site = site[c("site_id", "name", "wsg_code", "target_station", "blue_line_key", "snow_gauges")],
+               site = srun$site[c("site_id", "name", "wsg_code", "target_station", "blue_line_key", "snow_gauges")],
                provenance = provenance)
 dir.create(dirname(out), recursive = TRUE, showWarnings = FALSE)
 saveRDS(values, out, compress = "xz")
