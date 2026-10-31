@@ -34,8 +34,8 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/segment-discharge.html">Stream Discharge per Segment</a></li>
-    <li><a class="dropdown-item" href="../articles/flow-change-sparse-gauges.html">How Stream Flow Has Changed Where Gauges Are Few</a></li>
-    <li><a class="dropdown-item" href="../articles/flow-departure-normal.html">How Stream Flow Has Departed from Its 1981–2010 Normal: A Case Study</a></li>
+    <li><a class="dropdown-item" href="../articles/flow-change-sparse-gauges.html">Rebuilding Stream Flow History Where Gauges Are Few</a></li>
+    <li><a class="dropdown-item" href="../articles/flow-departure-normal.html">Measured Stream Flow Against Its 1981–2010 Normal: Two Long-Record Gauges</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
@@ -72,14 +72,14 @@
 <h2 id="what-it-is">What it is<a class="anchor" aria-label="anchor" href="#what-it-is"></a>
 </h2>
 <p>The R package <a href="https://newgraphenvironment.github.io/wet/"><code>wet</code></a>
-<span class="citation">(<a href="#ref-irvine2026wetStream">Irvine
-2026c</a>)</span> publishes the mean flow of British Columbia’s
-Freshwater Atlas stream segments, in cubic metres per second, for the
-year, each month and each day. Few streams in BC have a gauge, so this
-gives almost every one of them an estimate: what flow a stream carries
-in the weeks a fish needs it, and how that compares with the next
-stream. Each value comes from one of two sources, and the map shows
-which one a reader gets by default on BC’s larger rivers.</p>
+<span class="citation">(<a href="#ref-wet">Irvine 2026c</a>)</span>
+publishes the mean flow of British Columbia’s Freshwater Atlas stream
+segments, in cubic metres per second, for the year, each month and each
+day. Few streams in BC have a gauge, so this gives almost every one of
+them an estimate: what flow a stream carries in the weeks a fish needs
+it, and how that compares with the next stream. Each value comes from
+one of two sources, and the map shows which one a reader gets by default
+on BC’s larger rivers.</p>
 <div class="figure">
 <img src="segment-discharge_files/figure-html/map-pick-1.png" class="r-plt" alt="The source of the default flow (`pick`, under &quot;Which value to use&quot;) on main-flow rivers of stream order 5 and up (wider for higher orders), 6% of BC's segments, and the 315 calibration gauges. Smaller streams are not drawn, nor the few (under 1%) of that order with neither. Labels name the Liard and the Nechako Reservoir; the scale bar is 600 km." width="100%"><p class="caption">
 The source of the default flow (<code>pick</code>, under “Which value to
@@ -117,7 +117,7 @@ of the PostgreSQL tools <a href="https://github.com/smnorris/fwapg" class="exter
 fork’s notes</a> set out.</p>
 <p><strong>Open water balance</strong> (<code>wet_balance</code>).
 <code>wet</code>‘s own estimate, after <span class="citation">Chapman et
-al. (<a href="#ref-chapman_etal2018Wateralloc">2018</a>)</span>:
+al. (<a href="#ref-chapman_etal2018WaterAllocation">2018</a>)</span>:
 precipitation less actual evapotranspiration from climate normals,
 averaged over each watershed’s upstream area and adjusted per <a href="https://catalogue.data.gov.bc.ca/dataset/bc-hydrologic-zones" class="external-link">hydrologic
 zone</a> against the Water Survey of Canada’s <a href="https://www.canada.ca/en/environment-climate-change/services/water-overview/quantity/monitoring/survey/data-products-services/national-archive-hydat.html" class="external-link">HYDAT</a>
@@ -160,10 +160,9 @@ routed flow is far below the balance’s.</p>
 </h2>
 <p><code>wet</code> knows where the parts are, so reading a stream takes
 its <code>linear_feature_id</code> and its watershed group. The parts
-are sorted by group, so naming it lets <a href="https://r.duckdb.org/" class="external-link"><code>duckdb</code></a> <span class="citation">(<a href="#ref-muhleisen_raasveldt2026duckdb">Mühleisen
-and Raasveldt 2026</a>)</span> skip everything outside it, and the read
-takes seconds; the months can be read without it, and the days
-cannot:</p>
+are sorted by group, so naming it lets <a href="https://r.duckdb.org/" class="external-link"><code>duckdb</code></a> <span class="citation">(<a href="#ref-duckdb">Mühleisen and Raasveldt
+2026</a>)</span> skip everything outside it, and the read takes seconds;
+the months can be read without it, and the days cannot:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/NewGraphEnvironment/wet" class="external-link">wet</a></span><span class="op">)</span></span>
 <span><span class="co"># Buck Creek at its mouth, where gauge 08EE013 sits</span></span>
@@ -619,39 +618,36 @@ fit on HYDAT 2026-07-17, with HYDAT’s observed runoff.</p>
 <ul>
 <li>
 <a href="https://newgraphenvironment.github.io/wet/"><code>wet</code></a>
-<span class="citation">(<a href="#ref-irvine2026wetStream">Irvine
-2026c</a>)</span> builds and publishes the product.</li>
+<span class="citation">(<a href="#ref-wet">Irvine 2026c</a>)</span>
+builds and publishes the product.</li>
 <li>
 <a href="https://smnorris.github.io/fwapg/" class="external-link"><code>fwapg</code></a>
 <span class="citation">(<a href="#ref-norris2024smnorrisfwapg">Norris
 2024</a>)</span> holds the Freshwater Atlas in PostgreSQL, and New
 Graph’s <a href="https://github.com/NewGraphEnvironment/fwapg/tree/newgraph" class="external-link">fork</a>
 of it <span class="citation">(<a href="#ref-norris_irvine2026NewGraphEnvironmentfwapg">Norris and Irvine
-2026</a>)</span> places routed PCIC on it.</li>
+2026</a>)</span>, at commit 7c30f58, places routed PCIC on it.</li>
 <li>
 <a href="https://github.com/bcgov/climr" class="external-link"><code>climr</code></a>
-<span class="citation">(<a href="#ref-daust_etal2024climr">Daust et al.
+<span class="citation">(<a href="#ref-climr">Daust et al.
 2024</a>)</span> gives the balance its climate normals, and <a href="https://newgraphenvironment.github.io/cd/" class="external-link"><code>cd</code></a>
-<span class="citation">(<a href="#ref-irvine2026cd">Irvine
-2026a</a>)</span> its snow normals.</li>
+<span class="citation">(<a href="#ref-cd">Irvine 2026a</a>)</span> its
+snow normals.</li>
 <li>
-<a href="https://r.duckdb.org/" class="external-link"><code>duckdb</code></a> <span class="citation">(<a href="#ref-muhleisen_raasveldt2026duckdb">Mühleisen
-and Raasveldt 2026</a>)</span> and <a href="https://dbi.r-dbi.org/" class="external-link"><code>DBI</code></a> <span class="citation">(<a href="#ref-rsigdb_etal2026DBI">R Special Interest
-Group on Databases (R-SIG-DB) et al. 2026</a>)</span> read it in the
-recipes above, and <a href="https://rpostgres.r-dbi.org/" class="external-link"><code>RPostgres</code></a> <span class="citation">(<a href="#ref-wickham_etal2026RPostgres">Wickham et
-al. 2026</a>)</span> loads it into PostgreSQL.</li>
+<a href="https://r.duckdb.org/" class="external-link"><code>duckdb</code></a> <span class="citation">(<a href="#ref-duckdb">Mühleisen and Raasveldt
+2026</a>)</span> and <a href="https://dbi.r-dbi.org/" class="external-link"><code>DBI</code></a> <span class="citation">(<a href="#ref-DBI">R Special Interest Group on
+Databases (R-SIG-DB) et al. 2026</a>)</span> read it in the recipes
+above, and <a href="https://rpostgres.r-dbi.org/" class="external-link"><code>RPostgres</code></a> <span class="citation">(<a href="#ref-RPostgres">Wickham et al.
+2026</a>)</span> loads it into PostgreSQL.</li>
 <li>
-<a href="https://yihui.org/knitr/" class="external-link"><code>knitr</code></a> <span class="citation">(<a href="#ref-xie2026knitr">Xie 2026b</a>)</span> and
-<a href="https://haozhu233.github.io/kableExtra/" class="external-link"><code>kableExtra</code></a>
-<span class="citation">(<a href="#ref-zhu2024kableExtra">Zhu
-2024</a>)</span> make the tables, and <a href="https://ggplot2.tidyverse.org/" class="external-link"><code>ggplot2</code></a> <span class="citation">(<a href="#ref-wickham2016ggplot2">Wickham
-2016</a>)</span>, <a href="https://newgraphenvironment.github.io/gq/" class="external-link"><code>gq</code></a>
-<span class="citation">(<a href="#ref-irvine2026gq">Irvine
-2026b</a>)</span> and <a href="https://r-spatial.github.io/sf/" class="external-link"><code>sf</code></a> <span class="citation">(<a href="#ref-pebesma_bivand2023Spatial">Pebesma and
-Bivand 2023</a>)</span> the figures; <a href="https://pkgs.rstudio.com/bookdown/" class="external-link"><code>bookdown</code></a>
-<span class="citation">(<a href="#ref-xie2026bookdown">Xie
-2026a</a>)</span> renders the article, all in R <span class="citation">(<a href="#ref-rcoreteam2025R">R Core Team
-2025</a>)</span>.</li>
+<a href="https://yihui.org/knitr/" class="external-link"><code>knitr</code></a> <span class="citation">(<a href="#ref-knitr">Xie 2026b</a>)</span> and <a href="https://haozhu233.github.io/kableExtra/" class="external-link"><code>kableExtra</code></a>
+<span class="citation">(<a href="#ref-kableExtra">Zhu 2024</a>)</span>
+make the tables, and <a href="https://ggplot2.tidyverse.org/" class="external-link"><code>ggplot2</code></a> <span class="citation">(<a href="#ref-ggplot2">Wickham 2016</a>)</span>, <a href="https://newgraphenvironment.github.io/gq/" class="external-link"><code>gq</code></a>
+<span class="citation">(<a href="#ref-gq">Irvine 2026b</a>)</span> and
+<a href="https://r-spatial.github.io/sf/" class="external-link"><code>sf</code></a> <span class="citation">(<a href="#ref-sf">Pebesma and Bivand 2023</a>)</span>
+the figures; <a href="https://pkgs.rstudio.com/bookdown/" class="external-link"><code>bookdown</code></a>
+<span class="citation">(<a href="#ref-bookdown">Xie 2026a</a>)</span>
+renders the article, all in R <span class="citation">(<a href="#ref-base">R Core Team 2025</a>)</span>.</li>
 </ul>
 <p>How the balance is built, and each of its choices tested: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/research/water_balance_method.md" class="external-link">the
 water balance method</a>. To cite this package:</p>
@@ -675,7 +671,7 @@ the Freshwater Atlas by New Graph’s fork of <code>fwapg</code> <span class="ci
 Stream Network, through DataBC <span class="citation">(<a href="#ref-flnrord2021FreshwaterAtlasb">FLNRORD 2021</a>)</span>.</li>
 <li>Gauge records: the Water Survey of Canada’s HYDAT <span class="citation">(<a href="#ref-environmentandclimatechangecanada2021NationalWater">Environment
 and Climate Change Canada 2021</a>)</span>, release 2026-07-17.</li>
-<li>Climate normals, 1981–2010, for the balance: the R package <a href="https://github.com/bcgov/climr" class="external-link"><code>climr</code></a> <span class="citation">(<a href="#ref-daust_etal2024climr">Daust et al.
+<li>Climate normals, 1981–2010, for the balance: the R package <a href="https://github.com/bcgov/climr" class="external-link"><code>climr</code></a> <span class="citation">(<a href="#ref-climr">Daust et al.
 2024</a>)</span>.</li>
 <li>Actual evapotranspiration, for the balance: CGIAR-CSI’s Global
 High-Resolution Soil-Water Balance v3 (<a href="https://figshare.com/articles/dataset/Global_High-Resolution_Soil-Water_Balance/7707605" class="external-link">figshare
@@ -683,8 +679,7 @@ High-Resolution Soil-Water Balance v3 (<a href="https://figshare.com/articles/da
 <li>Elevation: the Copernicus GLO-90 DEM.</li>
 <li>Snow, for the balance’s monthly shares: ERA5-Land snow normals
 (Copernicus Climate Change Service), through the R package <a href="https://newgraphenvironment.github.io/cd/" class="external-link"><code>cd</code></a>
-<span class="citation">(<a href="#ref-irvine2026cd">Irvine
-2026a</a>)</span>.</li>
+<span class="citation">(<a href="#ref-cd">Irvine 2026a</a>)</span>.</li>
 <li>Hydrologic zones: the province’s BC Hydrologic Zones.</li>
 <li>Life history timing windows for chinook salmon: New Graph’s
 species-timing table <span class="citation">(<a href="#ref-gottesfeld_rabnett2007SkeenaFish">Gottesfeld and Rabnett
@@ -696,10 +691,11 @@ species-timing table <span class="citation">(<a href="#ref-gottesfeld_rabnett200
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent">
-<div id="ref-chapman_etal2018Wateralloc" class="csl-entry">
-Chapman, Alan R., Ben Kerr, and David Wilford. 2018. <span>“A Water
-Allocation Decision-Support Model and Tool for Predictions in Ungauged
-Basins in <span>Northeast British Columbia</span>,
+<div id="ref-chapman_etal2018WaterAllocation" class="csl-entry">
+Chapman, Allan R., Ben Kerr, and David Wilford. 2018. <span>“A
+<span>Water Allocation Decision-Support Model</span> and
+<span>Tool</span> for <span>Predictions</span> in <span>Ungauged
+Basins</span> in <span>Northeast British Columbia</span>,
 <span>Canada</span>.”</span> <em>Journal of the American Water Resources
 Association</em> 54 (3): 676–93. <a href="https://doi.org/10.1111/1752-1688.12643" class="external-link">https://doi.org/10.1111/1752-1688.12643</a>.
 </div>
@@ -709,10 +705,10 @@ Craig, James R., Genevieve Brown, Robert Chlumsky, et al. 2020.
 Hydrological Modelling Framework.”</span> <em>Environmental Modelling
 &amp; Software</em> 129 (July): 104728. <a href="https://doi.org/10.1016/j.envsoft.2020.104728" class="external-link">https://doi.org/10.1016/j.envsoft.2020.104728</a>.
 </div>
-<div id="ref-daust_etal2024climr" class="csl-entry">
+<div id="ref-climr" class="csl-entry">
 Daust, Kiri, Colin Mahony, Bruno Tremblay, and Ceres Barros. 2024.
-<em><span class="nocase">climr</span>: <span>Downscaling</span> Climate
-Data in <span>R</span></em>. <a href="https://bcgov.github.io/climr/" class="external-link">https://bcgov.github.io/climr/</a>.
+<em><span class="nocase">climr: Downscaling climate data in
+R</span></em>. <a href="https://bcgov.github.io/climr/" class="external-link">https://bcgov.github.io/climr/</a>.
 </div>
 <div id="ref-environmentandclimatechangecanada2021NationalWater" class="csl-entry">
 Environment and Climate Change Canada. 2021. <span>“National <span>Water
@@ -726,62 +722,59 @@ Lands, Natural Resource Operations and Rural Development. <a href="https://catal
 </div>
 <div id="ref-gottesfeld_rabnett2007SkeenaFish" class="csl-entry">
 Gottesfeld, A, and K Rabnett. 2007. <em>Skeena <span>Fish
-Populations</span> and Their <span>Habitat</span></em>. Skeena Fisheries
-Commission.
+Populations</span> and Their <span>Habitat</span></em>. <span>Skeena
+Fisheries Commission</span>. <a href="https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/327687.pdf" class="external-link">https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/327687.pdf</a>.
 </div>
-<div id="ref-irvine2026cd" class="csl-entry">
-Irvine, Allan. 2026a. <em><span class="nocase">cd</span>: <span>Climate
-Departure Analysis</span> from <span>ERA5-Land Reanalysis</span></em>.
-<span>New Graph Environment Ltd.</span> <a href="https://github.com/NewGraphEnvironment/cd" class="external-link">https://github.com/NewGraphEnvironment/cd</a>.
+<div id="ref-cd" class="csl-entry">
+Irvine, Allan. 2026a. <em><span class="nocase">cd: Climate Departure
+Analysis from ERA5-Land Reanalysis</span></em>. New Graph Environment
+Ltd. <a href="https://github.com/NewGraphEnvironment/cd" class="external-link">https://github.com/NewGraphEnvironment/cd</a>.
 </div>
-<div id="ref-irvine2026gq" class="csl-entry">
-Irvine, Allan. 2026b. <em><span class="nocase">gq</span>:
-<span>Cartographic Style Management Across Rendering
-Targets</span></em>. <span>New Graph Environment Ltd.</span> <a href="https://github.com/NewGraphEnvironment/gq" class="external-link">https://github.com/NewGraphEnvironment/gq</a>.
+<div id="ref-gq" class="csl-entry">
+Irvine, Allan. 2026b. <em><span class="nocase">gq: Cartographic Style
+Management Across Rendering Targets</span></em>. <a href="https://github.com/NewGraphEnvironment/gq" class="external-link">https://github.com/NewGraphEnvironment/gq</a>.
 </div>
-<div id="ref-irvine2026wetStream" class="csl-entry">
-Irvine, Allan. 2026c. <em><span class="nocase">wet</span>: <span>Stream
-Flow</span> and <span>Water Temperature</span> for the <span>BC
-Freshwater Atlas</span></em>. <span>New Graph Environment Ltd.</span> <a href="https://doi.org/10.5281/zenodo.23305781" class="external-link">https://doi.org/10.5281/zenodo.23305781</a>.
+<div id="ref-wet" class="csl-entry">
+Irvine, Allan. 2026c. <em><span class="nocase">wet: Stream Flow and
+Water Temperature for the BC Freshwater Atlas</span></em>. New Graph
+Environment Ltd. <a href="https://doi.org/10.5281/zenodo.23305781" class="external-link">https://doi.org/10.5281/zenodo.23305781</a>.
 </div>
 <div id="ref-moriasi_etal2007Modelevaluation" class="csl-entry">
-Moriasi, Daniel N., Jeffrey G. Arnold, Michael W. Van Liew, Ronald L.
-Bingner, R. Daren Harmel, and Tamie L. Veith. 2007. <span>“Model
-Evaluation Guidelines for Systematic Quantification of Accuracy in
-Watershed Simulations.”</span> <em>Transactions of the ASABE</em> 50
-(3): 885–900. <a href="https://doi.org/10.13031/2013.23153" class="external-link">https://doi.org/10.13031/2013.23153</a>.
+Moriasi, D. N., J. G. Arnold, M. W. Van Liew, R. L. Bingner, R. D.
+Harmel, and T. L. Veith. 2007. <span>“Model Evaluation Guidelines for
+Systematic Quantification of Accuracy in Watershed Simulations.”</span>
+<em>Transactions of the ASABE</em> 50 (3): 885–900. <a href="https://doi.org/10.13031/2013.23153" class="external-link">https://doi.org/10.13031/2013.23153</a>.
 </div>
-<div id="ref-muhleisen_raasveldt2026duckdb" class="csl-entry">
-Mühleisen, Hannes, and Mark Raasveldt. 2026. <em><span class="nocase">duckdb</span>: <span>DBI Package</span> for the
-<span>DuckDB Database Management System</span></em>. <a href="https://doi.org/10.32614/CRAN.package.duckdb" class="external-link">https://doi.org/10.32614/CRAN.package.duckdb</a>.
+<div id="ref-duckdb" class="csl-entry">
+Mühleisen, Hannes, and Mark Raasveldt. 2026. <em><span class="nocase">duckdb: DBI Package for the DuckDB Database Management
+System</span></em>. <a href="https://doi.org/10.32614/CRAN.package.duckdb" class="external-link">https://doi.org/10.32614/CRAN.package.duckdb</a>.
 </div>
 <div id="ref-nash_sutcliffe1970Riverflow" class="csl-entry">
 Nash, J. E., and J. V. Sutcliffe. 1970. <span>“River Flow Forecasting
-Through Conceptual Models Part <span>I</span>: A Discussion of
-Principles.”</span> <em>Journal of Hydrology</em> 10 (3): 282–90. <a href="https://doi.org/10.1016/0022-1694(70)90255-6" class="external-link">https://doi.org/10.1016/0022-1694(70)90255-6</a>.
+Through Conceptual Models Part <span>I</span> — <span>A</span>
+Discussion of Principles.”</span> <em>Journal of Hydrology</em> 10 (3):
+282–90. <a href="https://doi.org/10.1016/0022-1694(70)90255-6" class="external-link">https://doi.org/10.1016/0022-1694(70)90255-6</a>.
 </div>
 <div id="ref-norris2024smnorrisfwapg" class="csl-entry">
 Norris, Simon. 2024. <em><span class="nocase">fwapg</span></em>. <a href="https://github.com/smnorris/fwapg" class="external-link">https://github.com/smnorris/fwapg</a>.
 </div>
 <div id="ref-norris_irvine2026NewGraphEnvironmentfwapg" class="csl-entry">
 Norris, Simon, and Allan Irvine. 2026. <em><span class="nocase">fwapg,
-New Graph Environment’s fork</span></em>. Version 7c30f58. <span>New
-Graph Environment Ltd.</span> <a href="https://github.com/NewGraphEnvironment/fwapg/tree/newgraph" class="external-link">https://github.com/NewGraphEnvironment/fwapg/tree/newgraph</a>.
+newgraph branch</span></em>. <span>New Graph Environment Ltd.</span> <a href="https://github.com/NewGraphEnvironment/fwapg/tree/newgraph" class="external-link">https://github.com/NewGraphEnvironment/fwapg/tree/newgraph</a>.
 </div>
-<div id="ref-pebesma_bivand2023Spatial" class="csl-entry">
-Pebesma, Edzer, and Roger Bivand. 2023. <em>Spatial <span>Data
-Science</span>: <span>With</span> Applications in <span>R</span></em>.
-<span>Chapman and Hall/CRC</span>. <a href="https://doi.org/10.1201/9780429459016" class="external-link">https://doi.org/10.1201/9780429459016</a>.
+<div id="ref-sf" class="csl-entry">
+Pebesma, Edzer, and Roger Bivand. 2023. <em><span class="nocase">Spatial
+Data Science: With applications in R</span></em>. <span>Chapman and
+Hall/CRC</span>. <a href="https://doi.org/10.1201/9780429459016" class="external-link">https://doi.org/10.1201/9780429459016</a>.
 </div>
-<div id="ref-rcoreteam2025R" class="csl-entry">
-R Core Team. 2025. <em>R: <span>A Language</span> and
-<span>Environment</span> for <span>Statistical Computing</span></em>. R
-Foundation for Statistical Computing. <a href="https://www.R-project.org/" class="external-link">https://www.R-project.org/</a>.
+<div id="ref-base" class="csl-entry">
+R Core Team. 2025. <em><span class="nocase">R: A Language and
+Environment for Statistical Computing</span></em>. R Foundation for
+Statistical Computing. <a href="https://www.R-project.org/" class="external-link">https://www.R-project.org/</a>.
 </div>
-<div id="ref-rsigdb_etal2026DBI" class="csl-entry">
+<div id="ref-DBI" class="csl-entry">
 R Special Interest Group on Databases (R-SIG-DB), Hadley Wickham, and
-Kirill Müller. 2026. <em><span>DBI</span>: <span>R Database
-Interface</span></em>. <a href="https://doi.org/10.32614/CRAN.package.DBI" class="external-link">https://doi.org/10.32614/CRAN.package.DBI</a>.
+Kirill Müller. 2026. <em><span>DBI: R Database Interface</span></em>. <a href="https://doi.org/10.32614/CRAN.package.DBI" class="external-link">https://doi.org/10.32614/CRAN.package.DBI</a>.
 </div>
 <div id="ref-schnorbus2018VICGlacierVICGL" class="csl-entry">
 Schnorbus, Markus A. 2018. <em><span>VIC-Glacier</span>
@@ -789,29 +782,24 @@ Schnorbus, Markus A. 2018. <em><span>VIC-Glacier</span>
 Model Changes and Upgrades</em>. Pacific Climate Impacts Consortium,
 University of Victoria. <a href="https://hdl.handle.net/1828/21631" class="external-link">https://hdl.handle.net/1828/21631</a>.
 </div>
-<div id="ref-wickham2016ggplot2" class="csl-entry">
-Wickham, Hadley. 2016. <em><span class="nocase">ggplot2</span>:
-<span>Elegant Graphics</span> for <span>Data Analysis</span></em>.
-Springer-Verlag New York. <a href="https://ggplot2.tidyverse.org" class="external-link">https://ggplot2.tidyverse.org</a>.
+<div id="ref-ggplot2" class="csl-entry">
+Wickham, Hadley. 2016. <em><span class="nocase">ggplot2: Elegant
+Graphics for Data Analysis</span></em>. Springer-Verlag New York. <a href="https://ggplot2.tidyverse.org" class="external-link">https://ggplot2.tidyverse.org</a>.
 </div>
-<div id="ref-wickham_etal2026RPostgres" class="csl-entry">
-Wickham, Hadley, Jeroen Ooms, and Kirill Müller. 2026.
-<em><span>RPostgres</span>: <span>C++ Interface</span> to
-<span>PostgreSQL</span></em>. <a href="https://doi.org/10.32614/CRAN.package.RPostgres" class="external-link">https://doi.org/10.32614/CRAN.package.RPostgres</a>.
+<div id="ref-RPostgres" class="csl-entry">
+Wickham, Hadley, Jeroen Ooms, and Kirill Müller. 2026. <em><span class="nocase">RPostgres: C++ Interface to PostgreSQL</span></em>. <a href="https://doi.org/10.32614/CRAN.package.RPostgres" class="external-link">https://doi.org/10.32614/CRAN.package.RPostgres</a>.
 </div>
-<div id="ref-xie2026bookdown" class="csl-entry">
-Xie, Yihui. 2026a. <em><span class="nocase">bookdown</span>:
-<span>Authoring Books</span> and <span>Technical Documents</span> with
-<span>R Markdown</span></em>. <a href="https://github.com/rstudio/bookdown" class="external-link">https://github.com/rstudio/bookdown</a>.
+<div id="ref-bookdown" class="csl-entry">
+Xie, Yihui. 2026a. <em><span class="nocase">bookdown: Authoring Books
+and Technical Documents with R Markdown</span></em>. <a href="https://github.com/rstudio/bookdown" class="external-link">https://github.com/rstudio/bookdown</a>.
 </div>
-<div id="ref-xie2026knitr" class="csl-entry">
-Xie, Yihui. 2026b. <em><span class="nocase">knitr</span>: <span>A
-General-Purpose Package</span> for <span>Dynamic Report
-Generation</span> in <span>R</span></em>. <a href="https://yihui.org/knitr/" class="external-link">https://yihui.org/knitr/</a>.
+<div id="ref-knitr" class="csl-entry">
+Xie, Yihui. 2026b. <em><span class="nocase">knitr: A General-Purpose
+Package for Dynamic Report Generation in <span>R</span></span></em>. <a href="https://yihui.org/knitr/" class="external-link">https://yihui.org/knitr/</a>.
 </div>
-<div id="ref-zhu2024kableExtra" class="csl-entry">
-Zhu, Hao. 2024. <em><span class="nocase">kableExtra</span>:
-<span>Construct Complex Table</span> with <span class="nocase">’kable’</span> and <span>Pipe Syntax</span></em>. <a href="https://doi.org/10.32614/CRAN.package.kableExtra" class="external-link">https://doi.org/10.32614/CRAN.package.kableExtra</a>.
+<div id="ref-kableExtra" class="csl-entry">
+Zhu, Hao. 2024. <em><span class="nocase">kableExtra: Construct Complex
+Table with ’kable’ and Pipe Syntax</span></em>. <a href="https://doi.org/10.32614/CRAN.package.kableExtra" class="external-link">https://doi.org/10.32614/CRAN.package.kableExtra</a>.
 </div>
 </div>
 </div>

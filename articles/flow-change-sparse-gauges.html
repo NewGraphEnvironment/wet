@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>How Stream Flow Has Changed Where Gauges Are Few • wet</title>
+<title>Rebuilding Stream Flow History Where Gauges Are Few • wet</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="How Stream Flow Has Changed Where Gauges Are Few">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Rebuilding Stream Flow History Where Gauges Are Few">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -34,8 +34,8 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/segment-discharge.html">Stream Discharge per Segment</a></li>
-    <li><a class="dropdown-item" href="../articles/flow-change-sparse-gauges.html">How Stream Flow Has Changed Where Gauges Are Few</a></li>
-    <li><a class="dropdown-item" href="../articles/flow-departure-normal.html">How Stream Flow Has Departed from Its 1981–2010 Normal: A Case Study</a></li>
+    <li><a class="dropdown-item" href="../articles/flow-change-sparse-gauges.html">Rebuilding Stream Flow History Where Gauges Are Few</a></li>
+    <li><a class="dropdown-item" href="../articles/flow-departure-normal.html">Measured Stream Flow Against Its 1981–2010 Normal: Two Long-Record Gauges</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
@@ -59,7 +59,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.png" class="logo" alt=""><h1>How Stream Flow Has Changed Where Gauges Are Few</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Rebuilding Stream Flow History Where Gauges Are Few</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/vignettes/articles/flow-change-sparse-gauges.Rmd" class="external-link"><code>vignettes/articles/flow-change-sparse-gauges.Rmd</code></a></small>
@@ -70,20 +70,23 @@
     
 <p>Many streams that matter to salmon were gauged for only a few
 summers, or never. This article uses the R package <a href="https://newgraphenvironment.github.io/wet/"><code>wet</code></a>
-to ask how their summer flow has changed since before 1981, at four
-streams in northern British Columbia that Chinook salmon use: Maxan
-Creek, with five full summers on record; Swift Creek and Naver Creek,
-with 14 and 18; and Gosnell Creek, never gauged. Each is run the same
-way, with the method fixed before any result, and each is scored on how
-well the method predicts gauges it was not given.</p>
-<p><strong>The answer.</strong> In the salmon spawning window, a
-stream’s mean flow in a typical year since 2011 was lower than before
-1981 at all four streams, by 12% to 46% from nearby gauges’ departures;
-at Maxan, Naver and Gosnell creeks that route’s 90% range stays below no
-change. In the migration window no stream’s mean flow shows a clear
-change. Borrowing departures, the one route every stream has, scores
-worse in the spawning window than in the migration window at all four
-under these windows.</p>
+<span class="citation">(<a href="#ref-wet">Irvine 2026c</a>)</span> to
+rebuild their summer flow history from nearby gauges, and asks how it
+has changed since 1951–1980, at four streams in northern British
+Columbia that chinook salmon use: Maxan Creek, with five full summers on
+record; Swift Creek and Naver Creek, with 14 and 18; and Gosnell Creek,
+never gauged. One method, fixed before any result, runs at each and is
+scored on gauges it was not given.</p>
+<p><strong>The answer.</strong> In the chinook salmon life history
+timing window for spawning, mean flow over 2016–2025 was lower than over
+1951–1980 at all four streams, by 15% to 46% from nearby gauges’
+departures; at Maxan, Naver and Gosnell creeks that route’s 90% range
+stays below no change. Borrowed, the window’s lowest seven-day flow fell
+at Maxan, Naver and Gosnell creeks, clearly only at Maxan, and held at
+Swift. In the migration window borrowed mean flow shows no clear change
+at any stream. Snow over every catchment peaked lower and melted
+earlier. Borrowed mean flow scores worse in the spawning window than in
+the migration window at all four under Bulkley windows.</p>
 <div class="section level2">
 <h2 id="where-are-the-four-streams">Where are the four streams?<a class="anchor" aria-label="anchor" href="#where-are-the-four-streams"></a>
 </h2>
@@ -93,8 +96,7 @@ River near Topley, south-east of Smithers, and Gosnell Creek into the
 Thautil River just above the Morice River, south-west of Houston. Naver
 Creek flows into the Fraser River near Hixon, south of Prince George,
 and Swift Creek into the McLennan River, a Fraser tributary, at
-Valemount. Each borrows its numbers from gauges inside a box of the same
-size around it.</p>
+Valemount. Each borrows from gauges in a same-sized box around it.</p>
 <div class="figure">
 <img src="flow-change-sparse-gauges_files/figure-html/skeena-1.png" class="r-plt" alt="Maxan and Gosnell creeks in the Skeena system, with the gauges each borrows from. The inset locates the map in British Columbia." width="100%"><p class="caption">
 Maxan and Gosnell creeks in the Skeena system, with the gauges each
@@ -107,71 +109,82 @@ Swift and Naver creeks in the Fraser system, with the gauges each
 borrows from. The inset locates the map in British Columbia.
 </p>
 </div>
-<p>Fisheries and Oceans Canada’s spawner surveys find Chinook in Swift
-Creek in most years since 1970, and the provincial records place a major
-spawning site within five kilometres of its mouth; they find Chinook in
-Naver Creek in most years since the mid-1980s. Gosnell Creek’s record is
-thinner: one survey that found adults, in 2001, and three provincial
-records of fish seen. The gauged streams’ records sit in different
-places: Swift Creek’s 14 full summers fall between 1985 and 1998, inside
-the 1981–2010 baseline, while Naver Creek’s 18 fall between 1956 and
-1975, before it, as do Maxan Creek’s five.</p>
+<p>Fisheries and Oceans Canada’s spawner surveys find chinook in Swift
+Creek in most years since 1970, with a major spawning site within five
+kilometres of its mouth in the provincial records, and in Naver Creek in
+most years since the mid-1980s. Gosnell Creek’s record is thinner:
+adults found in one survey, in 2001, and three provincial records.</p>
 </div>
 <div class="section level2">
-<h2 id="what-is-a-window">What is a window?<a class="anchor" aria-label="anchor" href="#what-is-a-window"></a>
+<h2 id="what-is-a-chinook-salmon-life-history-timing-window">What is a chinook salmon life history timing window?<a class="anchor" aria-label="anchor" href="#what-is-a-chinook-salmon-life-history-timing-window"></a>
 </h2>
-<p>A window is a stretch of the year when salmon use a stream for one
-thing. In the upper Bulkley River, the early run of Chinook passes
-Moricetown Canyon before about July 30, and Chinook spawn in August and
-September (<a href="#ref-gottesfeld2007">Gottesfeld and Rabnett
-2007</a>, p. 355). This article uses the windows New Graph’s
-species-timing table sets for the Bulkley from that report, at all four
-streams: adult migration from May 1 to August 1, and spawning from
-August 1 to September 15. A stream’s flow in a window is its mean over
-those days. At every stream, flow peaks inside the migration window, as
-snow melts, and is low in the spawning window, under a third of its
-peak.</p>
+<p>A chinook salmon life history timing window, or window for short, is
+a stretch of the year when chinook use a stream for a part of their life
+cycle. In the upper Bulkley River, the early run of chinook passes
+Moricetown Canyon before about July 30, and chinook spawn in August and
+September <span class="citation">(<a href="#ref-gottesfeld_rabnett2007SkeenaFish">Gottesfeld and Rabnett
+2007, 355</a>)</span>. New Graph’s species-timing table sets the
+Bulkley’s windows from that report, used here at all four streams: adult
+migration from May 1 to August 1, and spawning from August 1 to
+September 15. A window’s flow in a year is its mean daily flow. At every
+stream, flow peaks inside the migration window, as snow melts, and in
+the spawning window falls under a third of its peak.</p>
 <div class="figure">
-<img src="flow-change-sparse-gauges_files/figure-html/windows-1.png" class="r-plt" alt="Each stream's typical year (1981–2010), with the two windows shaded: wet's published daily flow at the gauge, or at Gosnell Creek's mouth." width="100%"><p class="caption">
-Each stream’s typical year (1981–2010), with the two windows shaded:
-wet’s published daily flow at the gauge, or at Gosnell Creek’s mouth.
+<img src="flow-change-sparse-gauges_files/figure-html/windows-1.png" class="r-plt" alt="Each stream's typical year (1981–2010), with the two chinook salmon life history timing windows shaded: wet's published daily flow at the gauge, or at Gosnell Creek's mouth." width="100%"><p class="caption">
+Each stream’s typical year (1981–2010), with the two chinook salmon life
+history timing windows shaded: wet’s published daily flow at the gauge,
+or at Gosnell Creek’s mouth.
 </p>
 </div>
+</div>
+<div class="section level2">
+<h2 id="which-years-are-compared">Which years are compared?<a class="anchor" aria-label="anchor" href="#which-years-are-compared"></a>
+</h2>
+<p>Each stream’s last ten years, 2016–2025, are compared with 1951–1980,
+the three decades before global warming sped up <span class="citation">(<a href="#ref-hansen_etal2012Perceptionclimate">Hansen
+et al. 2012</a>)</span>; ERA5-Land’s snow covers all of it. <a href="flow-departure-normal.html">Measured Stream Flow Against Its
+1981–2010 Normal</a> instead measures this decade at two long-record
+gauges against 1981–2010, a period already holding part of the
+warming.</p>
 </div>
 <div class="section level2">
 <h2 id="how-has-flow-changed">How has flow changed?<a class="anchor" aria-label="anchor" href="#how-has-flow-changed"></a>
 </h2>
-<p>Two routes fill in the years a stream was not measured. Where a
-stream has a record, each missing year comes from one nearby gauge,
-through a fit between the two streams’ flows over the years both were
-measured. Every stream, gauged or not, can also borrow nearby gauges’
-departures from their own typical flow, year by year.</p>
+<p>Two routes fill in the years a stream was not measured. A gauged
+stream’s missing year comes from one nearby gauge, through a fit between
+the two over their shared years. Any stream can also borrow nearby
+gauges’ departures from their own typical flow, year by year.</p>
 <div class="figure">
-<img src="flow-change-sparse-gauges_files/figure-html/years-1.png" class="r-plt" alt="Each window's mean flow, year by year, as a share of its 1981–2010 typical flow (log scale). Large orange points are measured summers; the grey line fills the other years from one nearby gauge, with its 90% range; the blue line is borrowed from nearby gauges' year-to-year departures. A small point is a year with no neighbouring year on its line. Black lines are the borrowed route's typical departure before 1981 and since 2011." width="100%"><p class="caption">
-Each window’s mean flow, year by year, as a share of its 1981–2010
-typical flow (log scale). Large orange points are measured summers; the
-grey line fills the other years from one nearby gauge, with its 90%
-range; the blue line is borrowed from nearby gauges’ year-to-year
-departures. A small point is a year with no neighbouring year on its
-line. Black lines are the borrowed route’s typical departure before 1981
-and since 2011.
+<img src="flow-change-sparse-gauges_files/figure-html/years-1.png" class="r-plt" alt="Each chinook salmon life history timing window's mean flow, year by year, as a share of its 1981–2010 typical flow (log scale). Large orange points are measured summers; the grey line fills the other years from one nearby gauge, with the band its fitted relation predicts; the blue line is borrowed from nearby gauges' year-to-year departures. A small point is a year with no neighbouring year on its line. Black lines are the borrowed route's typical departure over 1951–1980 and 2016–2025." width="100%"><p class="caption">
+Each chinook salmon life history timing window’s mean flow, year by
+year, as a share of its 1981–2010 typical flow (log scale). Large orange
+points are measured summers; the grey line fills the other years from
+one nearby gauge, with the band its fitted relation predicts; the blue
+line is borrowed from nearby gauges’ year-to-year departures. A small
+point is a year with no neighbouring year on its line. Black lines are
+the borrowed route’s typical departure over 1951–1980 and 2016–2025.
 </p>
 </div>
-<p>The spawning-window drop is largest at Maxan and Naver creeks and
-smallest at Swift Creek, and filling in each gauged stream’s own record
-gives drops in the same direction (25%–56%).</p>
+<p>The drop in the chinook salmon life history timing window for
+spawning is largest at Maxan and Naver creeks and smallest at Swift
+Creek, and filling in each gauged stream’s own record gives drops in the
+same direction (27%–57%), clear of no change only at Maxan. Borrowed,
+the spawning window’s lowest seven-day flow fell by 26% to 40% at Maxan,
+Naver and Gosnell creeks, again clear only at Maxan.</p>
 <div class="figure">
-<img src="flow-change-sparse-gauges_files/figure-html/change-1.png" class="r-plt" alt="Change in each window's mean flow, from the years before 1981 to the years since 2011 (to 2024, or 2025 where recorded), with its 90% range, by each route the legend names." width="100%"><p class="caption">
-Change in each window’s mean flow, from the years before 1981 to the
-years since 2011 (to 2024, or 2025 where recorded), with its 90% range,
+<img src="flow-change-sparse-gauges_files/figure-html/change-1.png" class="r-plt" alt="Change in each chinook salmon life history timing window's mean flow (top) and its lowest seven-day flow (bottom), from 1951–1980 to 2016–2025 (to 2024 where 2025 is not yet approved), with its 90% range, by each route the legend names." width="100%"><p class="caption">
+Change in each chinook salmon life history timing window’s mean flow
+(top) and its lowest seven-day flow (bottom), from 1951–1980 to
+2016–2025 (to 2024 where 2025 is not yet approved), with its 90% range,
 by each route the legend names.
 </p>
 </div>
-<p>Gosnell Creek also has Chinook windows of its own. Morice Chinook
-spawn from the first week of September to the first week of October (<a href="#ref-bustard2002">Bustard and Schell 2002</a>, p. 27), so the
-Morice’s spawning window, September 1 to October 7, falls a month later
-than the Bulkley’s. Under these windows Gosnell Creek’s spawning-window
-drop is smaller, 23%, and its range reaches no change.</p>
+<p>The Morice has windows of its own: chinook spawn there from the first
+week of September to the first week of October <span class="citation">(<a href="#ref-bustard_schell2002ConservingMorice">Bustard and Schell 2002,
+27</a>)</span>, so its spawning window, September 1 to October 7, falls
+a month later than the Bulkley’s. Under it Gosnell Creek’s
+spawning-window drop is smaller, 23%, and its range reaches no
+change.</p>
 </div>
 <div class="section level2">
 <h2 id="how-well-does-the-method-score">How well does the method score?<a class="anchor" aria-label="anchor" href="#how-well-does-the-method-score"></a>
@@ -235,22 +248,31 @@ window’s; Gosnell Creek has no record of its own to fill in.</caption>
 <p>Both routes are scored by hiding a gauge’s own record and predicting
 it from its neighbours. A score of 0.5 was set as the method’s bar
 before any stream was run. The borrowed departures clear it in the
-migration window in every box, and under these spawning windows fall
-below it in every box, 0.42–0.49; their ranges in the change figure
-carry that weaker score. Filling in a record scores about the same in
-the Bulkley, Cottonwood and Morice boxes, and poorly in the upper
-Fraser, where only 11 gauges have records long enough to test it; there,
-Swift Creek’s change from its filled-in record is the less certain of
-its two routes.</p>
+chinook salmon life history timing window for migration in every box
+and, under the Bulkley’s windows, fall below it in the spawning window
+in every box, 0.42–0.49, so those ranges carry that weaker score.
+Borrowed, the lowest seven-day flow scores below the bar in 7 of 8
+windows and boxes. Filling in a record scores poorly in the upper
+Fraser, with 11 long enough records to test it, so Swift Creek’s
+filled-in change is its less certain route.</p>
 </div>
 <div class="section level2">
 <h2 id="does-snow-explain-it">Does snow explain it?<a class="anchor" aria-label="anchor" href="#does-snow-explain-it"></a>
 </h2>
-<p>The migration-window departures borrowed for each stream follow the
-winter’s snow: in years with more peak snow over its catchment they are
-higher, at all four with a 90% range above zero, and peak snow alone
-accounts for 41–51% of their year-to-year spread. In the spawning window
-it accounts for at most 16%, and the melt date for at most 23%.</p>
+<p>Snow itself changed: over 2016–2025, peak snow over each catchment
+held 6% to 9% less water than over 1951–1980, and half had melted 9 to
+16 days earlier (ERA5-Land <span class="citation">(<a href="#ref-munoz-sabater_etal2021ERA5Landstateoftheart">Muñoz-Sabater et
+al. 2021</a>)</span>, summarised per year by <a href="https://newgraphenvironment.github.io/cd/" class="external-link"><code>cd</code></a>
+<span class="citation">(<a href="#ref-cd">Irvine 2026a</a>)</span>).</p>
+<p>Flow in the chinook salmon life history timing window for migration
+rises with peak snow: the borrowed departures at all four streams, with
+90% ranges above zero and 41–51% of their spread explained, and measured
+flow at all 8 snow gauges near the streams (named in advance at Maxan
+Creek, elsewhere the nearest two with long records), 25–62%. In the
+spawning window peak snow explains at most 16% of the borrowed
+departures and 31% of measured flow; the melt date explains at most 23%
+of the borrowed departures but 64–66% of measured flow on the Nanika and
+Morice. ERA5-Land’s 0.1° cells are coarse here.</p>
 </div>
 <div class="section level2">
 <h2 id="where-could-it-be-wrong">Where could it be wrong?<a class="anchor" aria-label="anchor" href="#where-could-it-be-wrong"></a>
@@ -260,13 +282,12 @@ it accounts for at most 16%, and the melt date for at most 23%.</p>
 <strong>Gosnell Creek’s flow is never measured.</strong> Its
 departures are tested only at the gauges around it, and its typical flow
 is <code>wet</code>’s published flow for the stream. At 29 gauges in its
-box with ten or more years of the 1981–2010 baseline, that published
-spawning-window flow runs a median 21% above measured, and about 60% or
-more above at a quarter of them.</li>
+box with ten or more baseline years, that published flow in the chinook
+salmon life history timing window for spawning runs a median 21% above
+measured, and about 60% or more above at a quarter of them.</li>
 <li>
 <strong>The windows are the Bulkley’s</strong> at all four streams.
-Only the Morice has its own cited windows; Swift and Naver creeks have
-none yet.</li>
+Only the Morice has its own cited windows.</li>
 <li>
 <strong>Each filled-in year rests on one neighbouring
 gauge</strong>, and the earliest years on whichever single gauge reaches
@@ -276,89 +297,143 @@ back that far.</li>
 <div class="section level2">
 <h2 id="software-and-citation">Software and citation<a class="anchor" aria-label="anchor" href="#software-and-citation"></a>
 </h2>
-<p>The flows in this article are from HYDAT release 20260717; Gosnell
-Creek’s typical flow and the hydrographs are <code>wet</code>‘s
-published daily flow (for these four streams, routed PCIC’s); the
-streams, lakes and catchments are the Freshwater Atlas’s, through
-<code>fwapg</code>; place names are BC Geographic Names’. The data were
-bundled at <code>wet</code> commit 964f70b. How each stream was chosen,
-and how the method is run and scored, is set out in <a href="https://github.com/NewGraphEnvironment/wet/blob/main/research/chinook_sites.md" class="external-link"><code>wet</code>’s
+<p>The flows in this article are from HYDAT release 20260717 <span class="citation">(<a href="#ref-environmentandclimatechangecanada2021NationalWater">Environment
+and Climate Change Canada 2021</a>)</span>. Gosnell Creek’s typical flow
+and the hydrographs are <code>wet</code>‘s published daily flow (build
+0f4f8ca; for these four streams, routed flow from the Pacific Climate
+Impacts Consortium <span class="citation">(<a href="#ref-pacificclimateimpactsconsortiumGriddedHydrologic">Pacific
+Climate Impacts Consortium, n.d.</a>)</span>, placed on the Freshwater
+Atlas by New Graph’s fork of <code>fwapg</code> <span class="citation">(<a href="#ref-norris_irvine2026NewGraphEnvironmentfwapg">Norris and Irvine
+2026</a>)</span>). Snow is ERA5-Land’s <span class="citation">(<a href="#ref-munoz-sabater_etal2021ERA5Landstateoftheart">Muñoz-Sabater et
+al. 2021</a>)</span>, summarised per year by <code>cd</code>. Spawner
+surveys are Fisheries and Oceans Canada’s NuSEDS <span class="citation">(<a href="#ref-fisheriesandoceanscanadaNuSEDSNewSalmon">Fisheries and Oceans
+Canada, n.d.</a>)</span>, release of 1 June 2026; fish observations are
+the Province of British Columbia’s <span class="citation">(<a href="#ref-moe2024KnownBC">MoE 2024</a>)</span>. The streams, lakes and
+catchments are the Freshwater Atlas’s <span class="citation">(<a href="#ref-flnrord2021FreshwaterAtlasb">FLNRORD 2021</a>)</span>, held
+in PostgreSQL by <code>fwapg</code> <span class="citation">(<a href="#ref-norris2024smnorrisfwapg">Norris 2024</a>)</span>, and place
+names are BC Geographic Names’. How each stream was chosen, and how the
+method is run and scored, is set out in <a href="https://github.com/NewGraphEnvironment/wet/blob/main/research/chinook_sites.md" class="external-link"><code>wet</code>’s
 research notes</a>.</p>
+<p>The software, each cited:</p>
 <ul>
 <li>
-<code>wet</code> 0.4.31, <a href="https://doi.org/10.5281/zenodo.23305781" class="external-link">doi:10.5281/zenodo.23305781</a>.
-Irvine A (2026). <em>wet: Stream Flow and Water Temperature for the BC
-Freshwater Atlas</em>. New Graph Environment Ltd. <a href="doi:10.5281/zenodo.23305781" class="uri">doi:10.5281/zenodo.23305781</a> <a href="https://doi.org/10.5281/zenodo.23305781" class="external-link uri">https://doi.org/10.5281/zenodo.23305781</a>. Version 0.4.31,
-<a href="https://github.com/NewGraphEnvironment/wet" class="external-link uri">https://github.com/NewGraphEnvironment/wet</a>.</li>
+<a href="https://newgraphenvironment.github.io/wet/"><code>wet</code></a>
+<span class="citation">(<a href="#ref-wet">Irvine 2026c</a>)</span>
+reads the gauge records, fills in and borrows the window flows, and
+scores them.</li>
 <li>
-<code>cd</code> 0.6.13, <a href="https://doi.org/10.5281/zenodo.23264994" class="external-link">doi:10.5281/zenodo.23264994</a>,
-commit <code>86989e3</code>. Irvine A (2026). <em>cd: How far any BC
-watershed’s climate has shifted from your chosen baseline</em>. New
-Graph Environment Ltd. <a href="doi:10.5281/zenodo.23264994" class="uri">doi:10.5281/zenodo.23264994</a> <a href="https://doi.org/10.5281/zenodo.23264994" class="external-link uri">https://doi.org/10.5281/zenodo.23264994</a>. Version 0.6.13,
-<a href="https://github.com/NewGraphEnvironment/cd" class="external-link uri">https://github.com/NewGraphEnvironment/cd</a>.</li>
+<a href="https://newgraphenvironment.github.io/cd/" class="external-link"><code>cd</code></a>
+<span class="citation">(<a href="#ref-cd">Irvine 2026a</a>)</span>
+summarises ERA5-Land’s snow per year.</li>
 <li>
-<code>ggplot2</code> 4.0.3. Wickham H (2016). <em>ggplot2: Elegant
-Graphics for Data Analysis</em>. Springer-Verlag New York. ISBN
-978-3-319-24277-4. <a href="https://ggplot2.tidyverse.org" class="external-link uri">https://ggplot2.tidyverse.org</a>.</li>
-<li>
-<code>gq</code> 0.16.1, <a href="https://doi.org/10.5281/zenodo.23524719" class="external-link">doi:10.5281/zenodo.23524719</a>,
-commit <code>aa082d0</code>. Irvine A (2026). <em>gq: Cartographic Style
-Management Across Rendering Targets</em>. New Graph Environment Ltd. <a href="doi:10.5281/zenodo.23524719" class="uri">doi:10.5281/zenodo.23524719</a> <a href="https://doi.org/10.5281/zenodo.23524719" class="external-link uri">https://doi.org/10.5281/zenodo.23524719</a>. Version 0.16.1,
-<a href="https://github.com/NewGraphEnvironment/gq" class="external-link uri">https://github.com/NewGraphEnvironment/gq</a>.</li>
-<li>
-<code>sf</code> 1.1-3, <a href="https://doi.org/10.1201/9780429459016" class="external-link">doi:10.1201/9780429459016</a>.
-Pebesma E, Bivand R (2023). <em>Spatial Data Science: With applications
-in R</em>. Chapman and Hall/CRC. <a href="doi:10.1201/9780429459016" class="uri">doi:10.1201/9780429459016</a> <a href="https://doi.org/10.1201/9780429459016" class="external-link uri">https://doi.org/10.1201/9780429459016</a>. <a href="https://r-spatial.org/book/" class="external-link uri">https://r-spatial.org/book/</a>.</li>
+<a href="https://ggplot2.tidyverse.org/" class="external-link"><code>ggplot2</code></a>
+<span class="citation">(<a href="#ref-ggplot2">Wickham 2016</a>)</span>,
+<a href="https://newgraphenvironment.github.io/gq/" class="external-link"><code>gq</code></a>
+<span class="citation">(<a href="#ref-gq">Irvine 2026b</a>)</span> and
+<a href="https://r-spatial.github.io/sf/" class="external-link"><code>sf</code></a> <span class="citation">(<a href="#ref-sf">Pebesma and Bivand 2023</a>)</span>
+make the figures and maps; <a href="https://yihui.org/knitr/" class="external-link"><code>knitr</code></a> <span class="citation">(<a href="#ref-knitr">Xie 2026b</a>)</span> and <a href="https://pkgs.rstudio.com/bookdown/" class="external-link"><code>bookdown</code></a>
+<span class="citation">(<a href="#ref-bookdown">Xie 2026a</a>)</span>
+render the article, all in R <span class="citation">(<a href="#ref-base">R Core Team 2025</a>)</span>.</li>
 </ul>
-<p>Cite <code>wet</code> by the DOI above, which resolves to its latest
-release.</p>
-<div class="section level3">
-<h3 id="data">Data<a class="anchor" aria-label="anchor" href="#data"></a>
-</h3>
-<ul>
-<li>Daily flow: the Water Survey of Canada’s HYDAT, release
-20260717.</li>
-<li>Typical flow at each stream (the hydrographs, and Gosnell Creek’s
-normal): routed flow from the Pacific Climate Impacts Consortium,
-University of Victoria (<a href="https://beehive.pacificclimate.org/chyp/" class="external-link">hydromosaic</a>: VIC-GL
-hydrologic model output routed with Raven, PNWNAmet forcing), placed on
-the Freshwater Atlas by New Graph’s fork of <code>fwapg</code> (Norris,
-S. and Irvine, A. (2026), <em>fwapg, New Graph Environment’s fork</em>,
-<a href="https://github.com/NewGraphEnvironment/fwapg/tree/newgraph" class="external-link uri">https://github.com/NewGraphEnvironment/fwapg/tree/newgraph</a>)
-and published by <code>wet</code> (build 0f4f8ca).</li>
-<li>Spawner surveys: Fisheries and Oceans Canada’s New Salmon Escapement
-Database System (NuSEDS), release of 1 June 2026, <a href="https://open.canada.ca/data/en/dataset/c48669a3-045b-400d-b730-48aafe8c5ee6" class="external-link uri">https://open.canada.ca/data/en/dataset/c48669a3-045b-400d-b730-48aafe8c5ee6</a>.</li>
-<li>Fish observations: Province of British Columbia, Known BC Fish
-Observations and BC Fish Distributions.</li>
-<li>Snow: ERA5-Land (<a href="#ref-munoz2021">Muñoz-Sabater and others
-2021</a>), summarised per year by <code>cd</code>.</li>
-<li>Streams, lakes and catchments: the Freshwater Atlas Stream Network
-(Province of British Columbia, 2021, <a href="https://catalogue.data.gov.bc.ca/dataset/freshwater-atlas-stream-network" class="external-link uri">https://catalogue.data.gov.bc.ca/dataset/freshwater-atlas-stream-network</a>),
-held in a database by Norris, S. (2024), <em>fwapg</em>, <a href="https://github.com/smnorris/fwapg" class="external-link uri">https://github.com/smnorris/fwapg</a>.</li>
-<li>Place names: BC Geographic Names.</li>
-</ul>
+<p>The data were bundled at <code>wet</code> commit
+<code>52facd0</code>; this build ran on <code>wet</code> 0.4.31,
+<code>cd</code> 0.6.13, commit 86989e3, <code>gq</code> 0.16.1 and
+commit aa082d0. To cite <code>wet</code>:</p>
+<p>Irvine A (2026). <em>wet: Stream Flow and Water Temperature for the
+BC Freshwater Atlas</em>. New Graph Environment Ltd. <a href="doi:10.5281/zenodo.23305781" class="uri">doi:10.5281/zenodo.23305781</a> <a href="https://doi.org/10.5281/zenodo.23305781" class="external-link uri">https://doi.org/10.5281/zenodo.23305781</a>. Version 0.4.31,
+<a href="https://github.com/NewGraphEnvironment/wet" class="external-link uri">https://github.com/NewGraphEnvironment/wet</a>.</p>
 </div>
-<div class="section level3">
-<h3 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
-</h3>
-<ul>
-<li>
-<span id="ref-bustard2002"></span>Bustard, D. and Schell, C. (2002).
-<em>Conserving Morice Watershed Fish Populations and Their Habitat</em>.
-Stage II Biophysical Profile, Watershed-Based Fish Sustainability
-Planning. David Bustard and Associates Ltd., for the Community Futures
-Development Corporation of Nadina. <a href="https://waves-vagues.dfo-mpo.gc.ca/Library/315091.pdf" class="external-link uri">https://waves-vagues.dfo-mpo.gc.ca/Library/315091.pdf</a>
-</li>
-<li>
-<span id="ref-gottesfeld2007"></span>Gottesfeld, A.S. and Rabnett,
-K.A. (2007). <em>Skeena Fish Populations and Their Habitat</em>. Skeena
-Fisheries Commission.</li>
-<li>
-<span id="ref-munoz2021"></span>Muñoz-Sabater, J. and others (2021).
-ERA5-Land: a state-of-the-art global reanalysis dataset for land
-applications. <em>Earth System Science Data</em> 13, 4349–4383. <a href="https://doi.org/10.5194/essd-13-4349-2021" class="external-link">doi:10.5194/essd-13-4349-2021</a>
-</li>
-</ul>
+<div class="section level2">
+<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-bustard_schell2002ConservingMorice" class="csl-entry">
+Bustard, D, and C Schell. 2002. <em>Conserving <span>Morice Watershed
+Fish Populations</span> and Their <span>Habitat</span></em>.
+<span>Community Futures Development Corporation of Nadina</span>. <a href="https://waves-vagues.dfo-mpo.gc.ca/Library/315091.pdf" class="external-link">https://waves-vagues.dfo-mpo.gc.ca/Library/315091.pdf</a>.
+</div>
+<div id="ref-environmentandclimatechangecanada2021NationalWater" class="csl-entry">
+Environment and Climate Change Canada. 2021. <span>“National <span>Water
+Data Archive</span>: <span>HYDAT</span>.”</span> Service description.
+<span>Environment and Climate Change Canada (ECCC)</span>. <a href="https://www.canada.ca/en/environment-climate-change/services/water-overview/quantity/monitoring/survey/data-products-services/national-archive-hydat.html" class="external-link">https://www.canada.ca/en/environment-climate-change/services/water-overview/quantity/monitoring/survey/data-products-services/national-archive-hydat.html</a>.
+</div>
+<div id="ref-fisheriesandoceanscanadaNuSEDSNewSalmon" class="csl-entry">
+Fisheries and Oceans Canada. n.d. <span>“<span>NuSEDS-New Salmon
+Escapement Database System</span> - <span>Open Government
+Portal</span>.”</span> <a href="https://open.canada.ca/data/en/dataset/c48669a3-045b-400d-b730-48aafe8c5ee6" class="external-link">https://open.canada.ca/data/en/dataset/c48669a3-045b-400d-b730-48aafe8c5ee6</a>.
+</div>
+<div id="ref-flnrord2021FreshwaterAtlasb" class="csl-entry">
+FLNRORD. 2021. <span>“Freshwater <span>Atlas Stream Network</span> -
+<span>Data Catalogue</span>.”</span> Published by Ministry of Forests,
+Lands, Natural Resource Operations and Rural Development. <a href="https://catalogue.data.gov.bc.ca/dataset/freshwater-atlas-stream-network" class="external-link">https://catalogue.data.gov.bc.ca/dataset/freshwater-atlas-stream-network</a>.
+</div>
+<div id="ref-gottesfeld_rabnett2007SkeenaFish" class="csl-entry">
+Gottesfeld, A, and K Rabnett. 2007. <em>Skeena <span>Fish
+Populations</span> and Their <span>Habitat</span></em>. <span>Skeena
+Fisheries Commission</span>. <a href="https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/327687.pdf" class="external-link">https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/327687.pdf</a>.
+</div>
+<div id="ref-hansen_etal2012Perceptionclimate" class="csl-entry">
+Hansen, James, Makiko Sato, and Reto Ruedy. 2012. <span>“Perception of
+Climate Change.”</span> <em>Proceedings of the National Academy of
+Sciences</em> 109 (37). <a href="https://doi.org/10.1073/pnas.1205276109" class="external-link">https://doi.org/10.1073/pnas.1205276109</a>.
+</div>
+<div id="ref-cd" class="csl-entry">
+Irvine, Allan. 2026a. <em><span class="nocase">cd: Climate Departure
+Analysis from ERA5-Land Reanalysis</span></em>. New Graph Environment
+Ltd. <a href="https://github.com/NewGraphEnvironment/cd" class="external-link">https://github.com/NewGraphEnvironment/cd</a>.
+</div>
+<div id="ref-gq" class="csl-entry">
+Irvine, Allan. 2026b. <em><span class="nocase">gq: Cartographic Style
+Management Across Rendering Targets</span></em>. <a href="https://github.com/NewGraphEnvironment/gq" class="external-link">https://github.com/NewGraphEnvironment/gq</a>.
+</div>
+<div id="ref-wet" class="csl-entry">
+Irvine, Allan. 2026c. <em><span class="nocase">wet: Stream Flow and
+Water Temperature for the BC Freshwater Atlas</span></em>. New Graph
+Environment Ltd. <a href="https://doi.org/10.5281/zenodo.23305781" class="external-link">https://doi.org/10.5281/zenodo.23305781</a>.
+</div>
+<div id="ref-moe2024KnownBC" class="csl-entry">
+MoE. 2024. <span>“Known <span>BC Fish Observations</span> and <span>BC
+Fish Distributions</span>.”</span> <a href="https://catalogue.data.gov.bc.ca/dataset/known-bc-fish-observations-and-bc-fish-distributions" class="external-link">https://catalogue.data.gov.bc.ca/dataset/known-bc-fish-observations-and-bc-fish-distributions</a>.
+</div>
+<div id="ref-munoz-sabater_etal2021ERA5Landstateoftheart" class="csl-entry">
+Muñoz-Sabater, Joaquín, Emanuel Dutra, Anna Agustí-Panareda, et al.
+2021. <span>“<span>ERA5-Land</span>: A State-of-the-Art Global
+Reanalysis Dataset for Land Applications.”</span> <em>Earth System
+Science Data</em> 13 (9): 4349–83. <a href="https://doi.org/10.5194/essd-13-4349-2021" class="external-link">https://doi.org/10.5194/essd-13-4349-2021</a>.
+</div>
+<div id="ref-norris2024smnorrisfwapg" class="csl-entry">
+Norris, Simon. 2024. <em><span class="nocase">fwapg</span></em>. <a href="https://github.com/smnorris/fwapg" class="external-link">https://github.com/smnorris/fwapg</a>.
+</div>
+<div id="ref-norris_irvine2026NewGraphEnvironmentfwapg" class="csl-entry">
+Norris, Simon, and Allan Irvine. 2026. <em><span class="nocase">fwapg,
+newgraph branch</span></em>. <span>New Graph Environment Ltd.</span> <a href="https://github.com/NewGraphEnvironment/fwapg/tree/newgraph" class="external-link">https://github.com/NewGraphEnvironment/fwapg/tree/newgraph</a>.
+</div>
+<div id="ref-pacificclimateimpactsconsortiumGriddedHydrologic" class="csl-entry">
+Pacific Climate Impacts Consortium. n.d. <span>“Gridded <span>Hydrologic
+Model Output</span>.”</span> <a href="https://data.pacificclimate.org/portal/hydro_model_out/map/" class="external-link">https://data.pacificclimate.org/portal/hydro_model_out/map/</a>.
+</div>
+<div id="ref-sf" class="csl-entry">
+Pebesma, Edzer, and Roger Bivand. 2023. <em><span class="nocase">Spatial
+Data Science: With applications in R</span></em>. <span>Chapman and
+Hall/CRC</span>. <a href="https://doi.org/10.1201/9780429459016" class="external-link">https://doi.org/10.1201/9780429459016</a>.
+</div>
+<div id="ref-base" class="csl-entry">
+R Core Team. 2025. <em><span class="nocase">R: A Language and
+Environment for Statistical Computing</span></em>. R Foundation for
+Statistical Computing. <a href="https://www.R-project.org/" class="external-link">https://www.R-project.org/</a>.
+</div>
+<div id="ref-ggplot2" class="csl-entry">
+Wickham, Hadley. 2016. <em><span class="nocase">ggplot2: Elegant
+Graphics for Data Analysis</span></em>. Springer-Verlag New York. <a href="https://ggplot2.tidyverse.org" class="external-link">https://ggplot2.tidyverse.org</a>.
+</div>
+<div id="ref-bookdown" class="csl-entry">
+Xie, Yihui. 2026a. <em><span class="nocase">bookdown: Authoring Books
+and Technical Documents with R Markdown</span></em>. <a href="https://github.com/rstudio/bookdown" class="external-link">https://github.com/rstudio/bookdown</a>.
+</div>
+<div id="ref-knitr" class="csl-entry">
+Xie, Yihui. 2026b. <em><span class="nocase">knitr: A General-Purpose
+Package for Dynamic Report Generation in <span>R</span></span></em>. <a href="https://yihui.org/knitr/" class="external-link">https://yihui.org/knitr/</a>.
+</div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

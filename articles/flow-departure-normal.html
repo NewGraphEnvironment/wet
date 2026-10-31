@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>How Stream Flow Has Departed from Its 1981–2010 Normal: A Case Study • wet</title>
+<title>Measured Stream Flow Against Its 1981–2010 Normal: Two Long-Record Gauges • wet</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="How Stream Flow Has Departed from Its 1981–2010 Normal: A Case Study">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Measured Stream Flow Against Its 1981–2010 Normal: Two Long-Record Gauges">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -34,8 +34,8 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/segment-discharge.html">Stream Discharge per Segment</a></li>
-    <li><a class="dropdown-item" href="../articles/flow-change-sparse-gauges.html">How Stream Flow Has Changed Where Gauges Are Few</a></li>
-    <li><a class="dropdown-item" href="../articles/flow-departure-normal.html">How Stream Flow Has Departed from Its 1981–2010 Normal: A Case Study</a></li>
+    <li><a class="dropdown-item" href="../articles/flow-change-sparse-gauges.html">Rebuilding Stream Flow History Where Gauges Are Few</a></li>
+    <li><a class="dropdown-item" href="../articles/flow-departure-normal.html">Measured Stream Flow Against Its 1981–2010 Normal: Two Long-Record Gauges</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
@@ -59,7 +59,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.png" class="logo" alt=""><h1>How Stream Flow Has Departed from Its 1981–2010 Normal: A Case Study</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Measured Stream Flow Against Its 1981–2010 Normal: Two Long-Record Gauges</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/vignettes/flow-departure-normal.Rmd" class="external-link"><code>vignettes/flow-departure-normal.Rmd</code></a></small>
@@ -71,18 +71,28 @@
 <p>The R package <a href="https://newgraphenvironment.github.io/wet/"><code>wet</code></a>
 <span class="citation">(<a href="#ref-wet">Irvine 2026c</a>)</span>
 measures stream flow and water temperature on British Columbia’s
-Freshwater Atlas. This case study uses its station records at two gauges
-near Houston to ask how summer flow, in the weeks when chinook salmon
-migrate and spawn, has departed from its 1981–2010 normal: its mean over
-one of the 30-year periods the World Meteorological Organization sets
-for climate normals <span class="citation">(<a href="#ref-arguez_vose2011DefinitionStandard">Arguez and Vose 2011,
-699</a>)</span>.</p>
-<p><strong>The answer.</strong> Over 2022–2026, mean flow in every
-timing window at both gauges was below its 1981–2010 normal, by 25% to
-62%. Every window at both gauges was below normal in each year from
-2023, and 13 of those 16 window means were drier than nine 1981–2010
-years in ten. At Bulkley River near Houston, the normal rests on
-1981–1998, the years with enough record.</p>
+Freshwater Atlas. This case study measures summer flow at two
+long-record gauges near Houston, in the weeks when chinook salmon
+migrate and spawn, against its 1981–2010 normal. That period is one of
+the World Meteorological Organization’s 30-year standard normals <span class="citation">(<a href="#ref-arguez_vose2011DefinitionStandard">Arguez and Vose 2011,
+699</a>; <a href="#ref-worldmeteorologicalorganization2017WMOGuidelines">World
+Meteorological Organization 2017</a>)</span>, and the one
+<code>wet</code>’s published flows are normals of: its water balance
+runs on <a href="https://bcgov.github.io/climr/" class="external-link"><code>climr</code></a>’s 1981–2010
+climate <span class="citation">(<a href="#ref-climr">Daust et al.
+2024</a>)</span>, and its routed flow is the 1981–2010 mean of the
+Pacific Climate Impacts Consortium’s model run <span class="citation">(<a href="#ref-schnorbus2018VICGlacierVICGL">Schnorbus
+2018</a>; <a href="#ref-craig_etal2020Flexiblewatershed">Craig et al.
+2020</a>; <a href="#ref-werner_etal2019longtermtemporally">Werner et al.
+2019</a>)</span>. It already holds part of recent warming <span class="citation">(<a href="#ref-hansen_etal2012Perceptionclimate">Hansen
+et al. 2012</a>)</span>, so <a href="flow-change-sparse-gauges.html">Rebuilding Stream Flow History
+Where Gauges Are Few</a> measures change from 1951–1980 instead.</p>
+<p><strong>The answer.</strong> Over 2016–2025, mean flow in every
+chinook salmon life history timing window at both gauges was below its
+1981–2010 normal, by 5% to 48%. Every window at both gauges was below
+normal in each year from 2023, and 11 of those 12 window means were
+drier than nine 1981–2010 years in ten. At Bulkley River near Houston,
+the normal rests on 1981–1998, the years with enough record.</p>
 <div class="section level2">
 <h2 id="where-are-the-gauges">Where are the gauges?<a class="anchor" aria-label="anchor" href="#where-are-the-gauges"></a>
 </h2>
@@ -104,84 +114,91 @@ Columbia.
 </div>
 </div>
 <div class="section level2">
-<h2 id="what-is-a-timing-window">What is a timing window?<a class="anchor" aria-label="anchor" href="#what-is-a-timing-window"></a>
+<h2 id="what-is-a-chinook-salmon-life-history-timing-window">What is a chinook salmon life history timing window?<a class="anchor" aria-label="anchor" href="#what-is-a-chinook-salmon-life-history-timing-window"></a>
 </h2>
-<p>A chinook salmon life history timing window is the part of the year
-when a life stage is in the stream. Two are used here: adults migrate
-upstream from May 1 to August 1, and spawn from August 1 to September
-15. The dates come from New Graph’s species-timing table for the
-Bulkley, which cites <span class="citation">Gottesfeld and Rabnett (<a href="#ref-gottesfeld_rabnett2007SkeenaFish">2007</a>)</span>. Its fry
-migration window falls within these two, so it is not shown on its own,
-and its other 2 chinook timing windows, incubation and emergence, reach
-into November–April, when the gauges can read under ice, so they are
-left out. A timing window’s flow in a year is its mean daily flow,
-counted when 80% of its days have a record.</p>
+<p>A chinook salmon life history timing window, or window for short, is
+a stretch of the year when chinook use a stream for a part of their life
+cycle. In the upper Bulkley River, the early run of chinook passes
+Moricetown Canyon before about July 30, and chinook spawn in August and
+September <span class="citation">(<a href="#ref-gottesfeld_rabnett2007SkeenaFish">Gottesfeld and Rabnett
+2007, 355</a>)</span>. New Graph’s species-timing table sets the
+Bulkley’s windows from that report: adult migration from May 1 to August
+1, and spawning from August 1 to September 15. Its fry migration window
+falls within these two, so it is not shown on its own, and its other 2
+chinook windows, incubation and emergence, reach into November–April,
+when the gauges can read under ice, so they are left out. A window’s
+flow in a year is its mean daily flow, counted when 80% of its days have
+a record.</p>
 </div>
 <div class="section level2">
-<h2 id="how-did-the-last-five-years-compare-with-normal">How did the last five years compare with normal?<a class="anchor" aria-label="anchor" href="#how-did-the-last-five-years-compare-with-normal"></a>
+<h2 id="how-did-the-last-ten-years-compare-with-normal">How did the last ten years compare with normal?<a class="anchor" aria-label="anchor" href="#how-did-the-last-ten-years-compare-with-normal"></a>
 </h2>
-<p>Each bar is one timing window in one year: its mean flow as a
-percentage of that window’s 1981–2010 mean, so 100% is normal and lower
-is drier. Wet years pull the mean up, so a typical year sits under it;
-the dashed line marks the median year.</p>
-<p>From 2023, every bar falls below the median year as well as the mean,
-and 6 were drier than any 1981–2010 year. The two gauges fall on the
-same side of normal in every timing window and year, partly because one
-catchment holds the other.</p>
+<p>Each bar is one chinook salmon life history timing window in one
+year: its mean flow as a percentage of that window’s 1981–2010 mean, so
+100% is normal and lower is drier. Wet years pull the mean up, so a
+typical year sits under it; the dashed line marks the median year.</p>
+<p>Before 2023 the decade swings both ways in every window. From 2023,
+every bar falls below the median year as well as the mean, and 5 were
+drier than any 1981–2010 year. The two gauges fall on the same side of
+normal in all but one of the 18 window-years both recorded, partly
+because one catchment holds the other.</p>
 <div class="figure">
-<img src="flow-departure-normal_files/figure-html/recent-1.png" class="r-plt" alt="Mean flow in each chinook timing window, 2022–2026, as a percentage of its 1981–2010 mean (solid line, given in m³/s at the top right of each panel). Each bar is labelled with its percentage, coloured by whether it falls below or above the mean, and paler where any of its days are provisional. The dashed line is the median 1981–2010 year. At Bulkley River near Houston (08EE003), the 1981–2010 normal rests on 1981–1998: no window in 1999–2010 has 80% of its days." width="100%"><p class="caption">
-Mean flow in each chinook timing window, 2022–2026, as a percentage of
-its 1981–2010 mean (solid line, given in m³/s at the top right of each
-panel). Each bar is labelled with its percentage, coloured by whether it
-falls below or above the mean, and paler where any of its days are
-provisional. The dashed line is the median 1981–2010 year. At Bulkley
-River near Houston (08EE003), the 1981–2010 normal rests on 1981–1998:
-no window in 1999–2010 has 80% of its days.
+<img src="flow-departure-normal_files/figure-html/recent-1.png" class="r-plt" alt="Mean flow in each chinook salmon life history timing window, 2016–2025, as a percentage of its 1981–2010 mean (solid line, given in m³/s at the top right of each panel). Each bar is labelled with its percentage, coloured by whether it falls below or above the mean, and paler where any of its days are provisional. The dashed line is the median 1981–2010 year. At Bulkley River near Houston (08EE003), the 1981–2010 normal rests on 1981–1998: no window in 1999–2010 has 80% of its days." width="100%"><p class="caption">
+Mean flow in each chinook salmon life history timing window, 2016–2025,
+as a percentage of its 1981–2010 mean (solid line, given in m³/s at the
+top right of each panel). Each bar is labelled with its percentage,
+coloured by whether it falls below or above the mean, and paler where
+any of its days are provisional. The dashed line is the median 1981–2010
+year. At Bulkley River near Houston (08EE003), the 1981–2010 normal
+rests on 1981–1998: no window in 1999–2010 has 80% of its days.
 </p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="what-did-the-year-look-like">What did the year look like?<a class="anchor" aria-label="anchor" href="#what-did-the-year-look-like"></a>
 </h2>
-<p>The same comparison day by day: the last five years’ mean and median
+<p>The same comparison day by day: the last ten years’ mean and median
 day against 1981–2010’s, over the whole year and, on its own scale, over
 the months around spawning, where the spring freshet would otherwise
 flatten the low summer flow.</p>
 <div class="figure">
-<img src="flow-departure-normal_files/figure-html/hydrograph-1.png" class="r-plt" alt="Daily flow at each gauge: the whole year (left), with the migration window beneath, and July to October (right), with the spawning window, on its own scale. Lines are the mean (solid) and median (dashed) day over the years of each gauge's 1981–2010 normal (grey) and over 2022–2026 (colour). A normal line is drawn on days with at least 10 of those years on record, so at the Bulkley gauge it runs only from 1 May to 8 November; a 2022–2026 line on days all 5 years have a record. The shaded months, November to April, are when the gauges can read under ice." width="100%"><p class="caption">
-Daily flow at each gauge: the whole year (left), with the migration
-window beneath, and July to October (right), with the spawning window,
-on its own scale. Lines are the mean (solid) and median (dashed) day
-over the years of each gauge’s 1981–2010 normal (grey) and over
-2022–2026 (colour). A normal line is drawn on days with at least 10 of
-those years on record, so at the Bulkley gauge it runs only from 1 May
-to 8 November; a 2022–2026 line on days all 5 years have a record. The
-shaded months, November to April, are when the gauges can read under
-ice.
+<img src="flow-departure-normal_files/figure-html/hydrograph-1.png" class="r-plt" alt="Daily flow at each gauge: the whole year (left), with the chinook salmon life history timing window for migration beneath, and July to October (right), with the one for spawning, on its own scale. Lines are the mean (solid) and median (dashed) day over the years of each gauge's 1981–2010 normal (grey) and over 2016–2025 (colour). A normal line is drawn on days with at least 10 of those years on record, so at the Bulkley gauge it runs only from 1 May to 8 November; a 2016–2025 line on days each of the gauge's recent years has a record (9 at Buck Creek, which has no 2016). The shaded months, November to April, are when the gauges can read under ice." width="100%"><p class="caption">
+Daily flow at each gauge: the whole year (left), with the chinook salmon
+life history timing window for migration beneath, and July to October
+(right), with the one for spawning, on its own scale. Lines are the mean
+(solid) and median (dashed) day over the years of each gauge’s 1981–2010
+normal (grey) and over 2016–2025 (colour). A normal line is drawn on
+days with at least 10 of those years on record, so at the Bulkley gauge
+it runs only from 1 May to 8 November; a 2016–2025 line on days each of
+the gauge’s recent years has a record (9 at Buck Creek, which has no
+2016). The shaded months, November to April, are when the gauges can
+read under ice.
 </p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="how-much-has-mean-flow-changed">How much has mean flow changed?<a class="anchor" aria-label="anchor" href="#how-much-has-mean-flow-changed"></a>
 </h2>
-<p>Each point is the change in a timing window’s mean flow, from its
-1981–2010 mean to the mean of 2022–2026. Its bar spans the middle 90% of
-changes from resampling the years in each period; with only five recent
-years, one of them wet, the bars are wide.</p>
+<p>Each point is the change in a chinook salmon life history timing
+window’s mean flow, from its 1981–2010 mean to the mean of 2016–2025.
+Its bar spans the middle 90% of changes from resampling the years in
+each period. With ten recent years or fewer, that bar is narrower than a
+90% confidence interval: it shows the spread of the resamples, not a
+test.</p>
 <div class="figure">
-<img src="flow-departure-normal_files/figure-html/change-1.png" class="r-plt" alt="Change in each chinook timing window's mean flow, from its 1981–2010 mean to the mean of 2022–2026, at each gauge (point); the bar spans the middle 90% of changes from resampling the years in each period, and the vertical line is no change." width="100%"><p class="caption">
-Change in each chinook timing window’s mean flow, from its 1981–2010
-mean to the mean of 2022–2026, at each gauge (point); the bar spans the
-middle 90% of changes from resampling the years in each period, and the
-vertical line is no change.
+<img src="flow-departure-normal_files/figure-html/change-1.png" class="r-plt" alt="Change in each chinook salmon life history timing window's mean flow, from its 1981–2010 mean to the mean of 2016–2025, at each gauge (point); the bar spans the middle 90% of changes from resampling the years in each period, and the vertical line is no change." width="100%"><p class="caption">
+Change in each chinook salmon life history timing window’s mean flow,
+from its 1981–2010 mean to the mean of 2016–2025, at each gauge (point);
+the bar spans the middle 90% of changes from resampling the years in
+each period, and the vertical line is no change.
 </p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="how-were-the-numbers-made">How were the numbers made?<a class="anchor" aria-label="anchor" href="#how-were-the-numbers-made"></a>
 </h2>
-<p>These calls produced the window statistics, with normal and departure
-from the R package <a href="https://newgraphenvironment.github.io/cd/" class="external-link"><code>cd</code></a>
+<p>These calls produced each chinook salmon life history timing window’s
+mean flow, with normal and departure from the R package <a href="https://newgraphenvironment.github.io/cd/" class="external-link"><code>cd</code></a>
 <span class="citation">(<a href="#ref-cd">Irvine 2026a</a>)</span>. They
 read HYDAT, the <a href="https://github.com/NewGraphEnvironment/water-temp-bc" class="external-link">water-temp-bc</a>
 archive and ECCC’s real-time feed (through <a href="https://docs.ropensci.org/tidyhydat/" class="external-link"><code>tidyhydat</code></a>
@@ -209,19 +226,20 @@ output.</p>
 <ul>
 <li>
 <strong>The latest years are provisional:</strong> approved HYDAT
-flows end in March 2025, so 2 of the five years rest on provisional
+flows end in March 2025, so 1 of the ten years rests on provisional
 flows, which may be revised.</li>
 <li>
-<strong>Some bars have days missing:</strong> 2 of the 20 bars rest
+<strong>Some bars have days missing:</strong> 2 of the 38 bars rest
 on 80%–91% of their days: Bulkley River near Houston in 2025 (migration
 and spawning).</li>
 <li>
 <strong>Some normals have years missing:</strong> a year is left out
-of a timing window’s normal when the window has under 80% of its days,
-so Buck Creek at the Mouth lacks 1984 in spawning; Bulkley River near
-Houston lacks 1999–2010 in every timing window.</li>
+of a chinook salmon life history timing window’s normal when the window
+has under 80% of its days, so Buck Creek at the Mouth lacks 1984 in
+spawning; Bulkley River near Houston lacks 1999–2010 in every
+window.</li>
 <li>
-<strong>The timing windows come from the literature, not from
+<strong>The windows come from the literature, not from
 observation:</strong> New Graph’s species-timing table cites <span class="citation">Gottesfeld and Rabnett (<a href="#ref-gottesfeld_rabnett2007SkeenaFish">2007</a>)</span> for
 both.</li>
 </ul>
@@ -231,15 +249,15 @@ both.</li>
 </h2>
 <p>The flows in this article are cached from HYDAT release 2026-07-17,
 with provisional and real-time flows retrieved 1 October 2026. The
-timing windows are New Graph’s species-timing table at commit c97c4d0,
-and the catchments, the stream mouths and the rivers they join are the
-Freshwater Atlas’s.</p>
+chinook salmon life history timing windows are New Graph’s
+species-timing table at commit c97c4d0, and the catchments, the stream
+mouths and the rivers they join are the Freshwater Atlas’s.</p>
 <p>The software, each cited:</p>
 <ul>
 <li>
 <a href="https://newgraphenvironment.github.io/wet/"><code>wet</code></a>
 <span class="citation">(<a href="#ref-wet">Irvine 2026c</a>)</span>
-reads the gauge records and makes the timing-window statistics.</li>
+reads the gauge records and makes the window statistics.</li>
 <li>
 <a href="https://newgraphenvironment.github.io/cd/" class="external-link"><code>cd</code></a>
 <span class="citation">(<a href="#ref-cd">Irvine 2026a</a>)</span> takes
@@ -303,6 +321,17 @@ Arguez, Anthony, and Russell S. Vose. 2011. <span>“The
 Normals</span>.”</span> <em>Bulletin of the American Meteorological
 Society</em> 92 (6): 699–704. <a href="https://doi.org/10.1175/2010BAMS2955.1" class="external-link">https://doi.org/10.1175/2010BAMS2955.1</a>.
 </div>
+<div id="ref-craig_etal2020Flexiblewatershed" class="csl-entry">
+Craig, James R., Genevieve Brown, Robert Chlumsky, et al. 2020.
+<span>“Flexible Watershed Simulation with the <span>Raven</span>
+Hydrological Modelling Framework.”</span> <em>Environmental Modelling
+&amp; Software</em> 129 (July): 104728. <a href="https://doi.org/10.1016/j.envsoft.2020.104728" class="external-link">https://doi.org/10.1016/j.envsoft.2020.104728</a>.
+</div>
+<div id="ref-climr" class="csl-entry">
+Daust, Kiri, Colin Mahony, Bruno Tremblay, and Ceres Barros. 2024.
+<em><span class="nocase">climr: Downscaling climate data in
+R</span></em>. <a href="https://bcgov.github.io/climr/" class="external-link">https://bcgov.github.io/climr/</a>.
+</div>
 <div id="ref-environmentandclimatechangecanada2021NationalWater" class="csl-entry">
 Environment and Climate Change Canada. 2021. <span>“National <span>Water
 Data Archive</span>: <span>HYDAT</span>.”</span> Service description.
@@ -316,7 +345,12 @@ Lands, Natural Resource Operations and Rural Development. <a href="https://catal
 <div id="ref-gottesfeld_rabnett2007SkeenaFish" class="csl-entry">
 Gottesfeld, A, and K Rabnett. 2007. <em>Skeena <span>Fish
 Populations</span> and Their <span>Habitat</span></em>. <span>Skeena
-Fisheries Commission</span>.
+Fisheries Commission</span>. <a href="https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/327687.pdf" class="external-link">https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/327687.pdf</a>.
+</div>
+<div id="ref-hansen_etal2012Perceptionclimate" class="csl-entry">
+Hansen, James, Makiko Sato, and Reto Ruedy. 2012. <span>“Perception of
+Climate Change.”</span> <em>Proceedings of the National Academy of
+Sciences</em> 109 (37). <a href="https://doi.org/10.1073/pnas.1205276109" class="external-link">https://doi.org/10.1073/pnas.1205276109</a>.
 </div>
 <div id="ref-cd" class="csl-entry">
 Irvine, Allan. 2026a. <em><span class="nocase">cd: Climate Departure
@@ -345,9 +379,26 @@ R Core Team. 2025. <em><span class="nocase">R: A Language and
 Environment for Statistical Computing</span></em>. R Foundation for
 Statistical Computing. <a href="https://www.R-project.org/" class="external-link">https://www.R-project.org/</a>.
 </div>
+<div id="ref-schnorbus2018VICGlacierVICGL" class="csl-entry">
+Schnorbus, Markus A. 2018. <em><span>VIC-Glacier</span>
+(<span>VIC-GL</span>): <span>Description</span> of <span>VIC</span>
+Model Changes and Upgrades</em>. Pacific Climate Impacts Consortium,
+University of Victoria. <a href="https://hdl.handle.net/1828/21631" class="external-link">https://hdl.handle.net/1828/21631</a>.
+</div>
+<div id="ref-werner_etal2019longtermtemporally" class="csl-entry">
+Werner, A. T., M. A. Schnorbus, R. R. Shrestha, et al. 2019. <span>“A
+Long-Term, Temporally Consistent, Gridded Daily Meteorological Dataset
+for Northwestern <span>North America</span>.”</span> <em>Scientific
+Data</em> 6 (January): 180299. <a href="https://doi.org/10.1038/sdata.2018.299" class="external-link">https://doi.org/10.1038/sdata.2018.299</a>.
+</div>
 <div id="ref-ggplot2" class="csl-entry">
 Wickham, Hadley. 2016. <em><span class="nocase">ggplot2: Elegant
 Graphics for Data Analysis</span></em>. Springer-Verlag New York. <a href="https://ggplot2.tidyverse.org" class="external-link">https://ggplot2.tidyverse.org</a>.
+</div>
+<div id="ref-worldmeteorologicalorganization2017WMOGuidelines" class="csl-entry">
+World Meteorological Organization. 2017. <em><span>WMO Guidelines</span>
+on the <span>Calculation</span> of <span>Climate Normals</span></em>.
+WMO-No. 1203. World Meteorological Organization. <a href="https://library.wmo.int/idurl/4/55797" class="external-link">https://library.wmo.int/idurl/4/55797</a>.
 </div>
 <div id="ref-bookdown" class="csl-entry">
 Xie, Yihui. 2026a. <em><span class="nocase">bookdown: Authoring Books

@@ -3,13 +3,13 @@
 ## What it is
 
 The R package [`wet`](https://newgraphenvironment.github.io/wet/)
-([Irvine 2026c](#ref-irvine2026wetStream)) publishes the mean flow of
-British Columbia’s Freshwater Atlas stream segments, in cubic metres per
-second, for the year, each month and each day. Few streams in BC have a
-gauge, so this gives almost every one of them an estimate: what flow a
-stream carries in the weeks a fish needs it, and how that compares with
-the next stream. Each value comes from one of two sources, and the map
-shows which one a reader gets by default on BC’s larger rivers.
+([Irvine 2026c](#ref-wet)) publishes the mean flow of British Columbia’s
+Freshwater Atlas stream segments, in cubic metres per second, for the
+year, each month and each day. Few streams in BC have a gauge, so this
+gives almost every one of them an estimate: what flow a stream carries
+in the weeks a fish needs it, and how that compares with the next
+stream. Each value comes from one of two sources, and the map shows
+which one a reader gets by default on BC’s larger rivers.
 
 ![The source of the default flow (\`pick\`, under "Which value to use")
 on main-flow rivers of stream order 5 and up (wider for higher orders),
@@ -50,9 +50,10 @@ notes](https://github.com/NewGraphEnvironment/fwapg/blob/newgraph/research/pcic_
 set out.
 
 **Open water balance** (`wet_balance`). `wet`‘s own estimate, after
-Chapman et al. ([2018](#ref-chapman_etal2018Wateralloc)): precipitation
-less actual evapotranspiration from climate normals, averaged over each
-watershed’s upstream area and adjusted per [hydrologic
+Chapman et al. ([2018](#ref-chapman_etal2018WaterAllocation)):
+precipitation less actual evapotranspiration from climate normals,
+averaged over each watershed’s upstream area and adjusted per
+[hydrologic
 zone](https://catalogue.data.gov.bc.ca/dataset/bc-hydrologic-zones)
 against the Water Survey of Canada’s
 [HYDAT](https://www.canada.ca/en/environment-climate-change/services/water-overview/quantity/monitoring/survey/data-products-services/national-archive-hydat.html)
@@ -93,9 +94,9 @@ far below the balance’s.
 `wet` knows where the parts are, so reading a stream takes its
 `linear_feature_id` and its watershed group. The parts are sorted by
 group, so naming it lets [`duckdb`](https://r.duckdb.org/) ([Mühleisen
-and Raasveldt 2026](#ref-muhleisen_raasveldt2026duckdb)) skip everything
-outside it, and the read takes seconds; the months can be read without
-it, and the days cannot:
+and Raasveldt 2026](#ref-duckdb)) skip everything outside it, and the
+read takes seconds; the months can be read without it, and the days
+cannot:
 
 ``` r
 
@@ -349,36 +350,34 @@ HYDAT 2026-07-17, with HYDAT’s observed runoff.
 The software, each cited:
 
 - [`wet`](https://newgraphenvironment.github.io/wet/) ([Irvine
-  2026c](#ref-irvine2026wetStream)) builds and publishes the product.
+  2026c](#ref-wet)) builds and publishes the product.
 - [`fwapg`](https://smnorris.github.io/fwapg/) ([Norris
   2024](#ref-norris2024smnorrisfwapg)) holds the Freshwater Atlas in
   PostgreSQL, and New Graph’s
   [fork](https://github.com/NewGraphEnvironment/fwapg/tree/newgraph) of
   it ([Norris and Irvine
-  2026](#ref-norris_irvine2026NewGraphEnvironmentfwapg)) places routed
-  PCIC on it.
+  2026](#ref-norris_irvine2026NewGraphEnvironmentfwapg)), at commit
+  7c30f58, places routed PCIC on it.
 - [`climr`](https://github.com/bcgov/climr) ([Daust et al.
-  2024](#ref-daust_etal2024climr)) gives the balance its climate
-  normals, and [`cd`](https://newgraphenvironment.github.io/cd/)
-  ([Irvine 2026a](#ref-irvine2026cd)) its snow normals.
+  2024](#ref-climr)) gives the balance its climate normals, and
+  [`cd`](https://newgraphenvironment.github.io/cd/) ([Irvine
+  2026a](#ref-cd)) its snow normals.
 - [`duckdb`](https://r.duckdb.org/) ([Mühleisen and Raasveldt
-  2026](#ref-muhleisen_raasveldt2026duckdb)) and
-  [`DBI`](https://dbi.r-dbi.org/) ([R Special Interest Group on
-  Databases (R-SIG-DB) et al. 2026](#ref-rsigdb_etal2026DBI)) read it in
-  the recipes above, and [`RPostgres`](https://rpostgres.r-dbi.org/)
-  ([Wickham et al. 2026](#ref-wickham_etal2026RPostgres)) loads it into
-  PostgreSQL.
-- [`knitr`](https://yihui.org/knitr/) ([Xie 2026b](#ref-xie2026knitr))
-  and [`kableExtra`](https://haozhu233.github.io/kableExtra/) ([Zhu
-  2024](#ref-zhu2024kableExtra)) make the tables, and
+  2026](#ref-duckdb)) and [`DBI`](https://dbi.r-dbi.org/) ([R Special
+  Interest Group on Databases (R-SIG-DB) et al. 2026](#ref-DBI)) read it
+  in the recipes above, and [`RPostgres`](https://rpostgres.r-dbi.org/)
+  ([Wickham et al. 2026](#ref-RPostgres)) loads it into PostgreSQL.
+- [`knitr`](https://yihui.org/knitr/) ([Xie 2026b](#ref-knitr)) and
+  [`kableExtra`](https://haozhu233.github.io/kableExtra/) ([Zhu
+  2024](#ref-kableExtra)) make the tables, and
   [`ggplot2`](https://ggplot2.tidyverse.org/) ([Wickham
-  2016](#ref-wickham2016ggplot2)),
+  2016](#ref-ggplot2)),
   [`gq`](https://newgraphenvironment.github.io/gq/) ([Irvine
-  2026b](#ref-irvine2026gq)) and [`sf`](https://r-spatial.github.io/sf/)
-  ([Pebesma and Bivand 2023](#ref-pebesma_bivand2023Spatial)) the
-  figures; [`bookdown`](https://pkgs.rstudio.com/bookdown/) ([Xie
-  2026a](#ref-xie2026bookdown)) renders the article, all in R ([R Core
-  Team 2025](#ref-rcoreteam2025R)).
+  2026b](#ref-gq)) and [`sf`](https://r-spatial.github.io/sf/) ([Pebesma
+  and Bivand 2023](#ref-sf)) the figures;
+  [`bookdown`](https://pkgs.rstudio.com/bookdown/) ([Xie
+  2026a](#ref-bookdown)) renders the article, all in R ([R Core Team
+  2025](#ref-base)).
 
 How the balance is built, and each of its choices tested: [the water
 balance
@@ -412,7 +411,7 @@ Version 0.4.31, <https://github.com/NewGraphEnvironment/wet>.
   release 2026-07-17.
 - Climate normals, 1981–2010, for the balance: the R package
   [`climr`](https://github.com/bcgov/climr) ([Daust et al.
-  2024](#ref-daust_etal2024climr)).
+  2024](#ref-climr)).
 - Actual evapotranspiration, for the balance: CGIAR-CSI’s Global
   High-Resolution Soil-Water Balance v3 ([figshare
   7707605](https://figshare.com/articles/dataset/Global_High-Resolution_Soil-Water_Balance/7707605)),
@@ -421,7 +420,7 @@ Version 0.4.31, <https://github.com/NewGraphEnvironment/wet>.
 - Snow, for the balance’s monthly shares: ERA5-Land snow normals
   (Copernicus Climate Change Service), through the R package
   [`cd`](https://newgraphenvironment.github.io/cd/) ([Irvine
-  2026a](#ref-irvine2026cd)).
+  2026a](#ref-cd)).
 - Hydrologic zones: the province’s BC Hydrologic Zones.
 - Life history timing windows for chinook salmon: New Graph’s
   species-timing table ([Gottesfeld and Rabnett
@@ -429,10 +428,10 @@ Version 0.4.31, <https://github.com/NewGraphEnvironment/wet>.
 
 ## References
 
-Chapman, Alan R., Ben Kerr, and David Wilford. 2018. “A Water Allocation
-Decision-Support Model and Tool for Predictions in Ungauged Basins in
-Northeast British Columbia, Canada.” *Journal of the American Water
-Resources Association* 54 (3): 676–93.
+Chapman, Allan R., Ben Kerr, and David Wilford. 2018. “A Water
+Allocation Decision-Support Model and Tool for Predictions in Ungauged
+Basins in Northeast British Columbia, Canada.” *Journal of the American
+Water Resources Association* 54 (3): 676–93.
 <https://doi.org/10.1111/1752-1688.12643>.
 
 Craig, James R., Genevieve Brown, Robert Chlumsky, et al. 2020.
@@ -441,7 +440,7 @@ Framework.” *Environmental Modelling & Software* 129 (July): 104728.
 <https://doi.org/10.1016/j.envsoft.2020.104728>.
 
 Daust, Kiri, Colin Mahony, Bruno Tremblay, and Ceres Barros. 2024.
-*climr: Downscaling Climate Data in R*.
+*climr: Downscaling climate data in R*.
 <https://bcgov.github.io/climr/>.
 
 Environment and Climate Change Canada. 2021. “National Water Data
@@ -456,23 +455,23 @@ Rural Development.
 
 Gottesfeld, A, and K Rabnett. 2007. *Skeena Fish Populations and Their
 Habitat*. Skeena Fisheries Commission.
+<https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/327687.pdf>.
 
 Irvine, Allan. 2026a. *cd: Climate Departure Analysis from ERA5-Land
 Reanalysis*. New Graph Environment Ltd.
 <https://github.com/NewGraphEnvironment/cd>.
 
 Irvine, Allan. 2026b. *gq: Cartographic Style Management Across
-Rendering Targets*. New Graph Environment Ltd.
-<https://github.com/NewGraphEnvironment/gq>.
+Rendering Targets*. <https://github.com/NewGraphEnvironment/gq>.
 
 Irvine, Allan. 2026c. *wet: Stream Flow and Water Temperature for the BC
 Freshwater Atlas*. New Graph Environment Ltd.
 <https://doi.org/10.5281/zenodo.23305781>.
 
-Moriasi, Daniel N., Jeffrey G. Arnold, Michael W. Van Liew, Ronald L.
-Bingner, R. Daren Harmel, and Tamie L. Veith. 2007. “Model Evaluation
-Guidelines for Systematic Quantification of Accuracy in Watershed
-Simulations.” *Transactions of the ASABE* 50 (3): 885–900.
+Moriasi, D. N., J. G. Arnold, M. W. Van Liew, R. L. Bingner, R. D.
+Harmel, and T. L. Veith. 2007. “Model Evaluation Guidelines for
+Systematic Quantification of Accuracy in Watershed Simulations.”
+*Transactions of the ASABE* 50 (3): 885–900.
 <https://doi.org/10.13031/2013.23153>.
 
 Mühleisen, Hannes, and Mark Raasveldt. 2026. *duckdb: DBI Package for
@@ -480,18 +479,18 @@ the DuckDB Database Management System*.
 <https://doi.org/10.32614/CRAN.package.duckdb>.
 
 Nash, J. E., and J. V. Sutcliffe. 1970. “River Flow Forecasting Through
-Conceptual Models Part I: A Discussion of Principles.” *Journal of
+Conceptual Models Part I — A Discussion of Principles.” *Journal of
 Hydrology* 10 (3): 282–90.
 <https://doi.org/10.1016/0022-1694(70)90255-6>.
 
 Norris, Simon. 2024. *fwapg*. <https://github.com/smnorris/fwapg>.
 
-Norris, Simon, and Allan Irvine. 2026. *fwapg, New Graph Environment’s
-fork*. Version 7c30f58. New Graph Environment Ltd.
+Norris, Simon, and Allan Irvine. 2026. *fwapg, newgraph branch*. New
+Graph Environment Ltd.
 <https://github.com/NewGraphEnvironment/fwapg/tree/newgraph>.
 
 Pebesma, Edzer, and Roger Bivand. 2023. *Spatial Data Science: With
-Applications in R*. Chapman and Hall/CRC.
+applications in R*. Chapman and Hall/CRC.
 <https://doi.org/10.1201/9780429459016>.
 
 R Core Team. 2025. *R: A Language and Environment for Statistical
