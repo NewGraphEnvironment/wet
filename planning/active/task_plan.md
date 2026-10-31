@@ -62,10 +62,10 @@ All four were approved with the plan by the user, 2026-10-30.
 - [x] Repoint the comments that name them: `scripts/departure_snow_lib.R`, `scripts/station_sources_probe.R`, `research/station_flow_departure.md` (the #120 and #121 "Produced by" lines: retired in #146, recoverable from git at the commit before it), and `CLAUDE.md`'s station-departure, #126 and short-record paragraphs and the Database line (`departure_site.R` now reads the bare `PG*` variables in the pilot's place)
 
 ## Phase 4: The short-record article onto the site run
-- [ ] `data-raw/short_record_vignette_data.R`: read `departure_site_maxan_bulk_20260717.rds` and `departure_site_snow_maxan_bulk_20260717.rds` (held to the md5s of `departure_site.R` and `departure_site_snow.R`) and their tracked reports. Narrow the change-table and snow-change patterns to the section-4 table and the first table of section 3, and re-index the change row's fields. Take the target and the snow gauges from `site_get("maxan")`. The bundle gains `site` (site_id, name, wsg_code, target_station, blue_line_key, snow_gauges), and its provenance names the site scripts and reports
-- [ ] `data-raw/short_record_vignette_map.R`: the catchment gauges and Maxan's blue line come from `values$site`
-- [ ] `vignettes/short-record-flow.Rmd`: `maxan` and the catchment parts come from `v$site`
-- [ ] `tests/testthat/test-vignette_data.R`: the bundle's names now include `site`, and its target and snow gauges match the site row
+- [x] `data-raw/short_record_vignette_data.R`: read `departure_site_maxan_bulk_20260717.rds` and `departure_site_snow_maxan_bulk_20260717.rds` (held to the md5s of `departure_site.R` and `departure_site_snow.R`) and their tracked reports. Narrow the change-table and snow-change patterns to the section-4 table and the first table of section 3, and re-index the change row's fields. Take the target and the snow gauges from `site_get("maxan")`. The bundle gains `site` (site_id, name, wsg_code, target_station, blue_line_key, snow_gauges), and its provenance names the site scripts and reports
+- [x] `data-raw/short_record_vignette_map.R`: the catchment gauges and Maxan's blue line come from `values$site`
+- [x] `vignettes/short-record-flow.Rmd`: `maxan` and the catchment parts come from `v$site`
+- [x] `tests/testthat/test-vignette_data.R`: the bundle's names now include `site`, and its target and snow gauges match the site row
 - [ ] On m4 (branch checked out in the clean main checkout): rerun `departure_site.R` and `departure_site_snow.R` for maxan, swift, naver and gosnell, from frozen copies; every tracked site report must come out byte-identical (`git status` clean under `data/checks/`)
 - [ ] On m4: run the short-record data and map scripts. Assert every element of the new bundle is `identical()` to the old one, apart from `provenance` and the new `site`, and the map layers likewise. Commit the bundles
 
