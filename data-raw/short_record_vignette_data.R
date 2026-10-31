@@ -10,9 +10,9 @@
 #   - data/departure/departure_site_maxan_bulk_20260717.rds (scripts/departure_site.R)
 #   - data/departure/departure_site_snow_maxan_bulk_20260717.rds (scripts/departure_site_snow.R)
 # and refuses unless each one's code_md5 is the md5 of its script as committed
-# here, its site row is today's, and R/, scripts/, data-raw/ and data/checks/
-# hold nothing uncommitted
-# (vd_commit()), so the commit the bundle names rebuilds it. Every number the
+# here, its site row and window dates are today's, and R/, scripts/,
+# data-raw/ and data/checks/ hold nothing uncommitted (vd_commit()), so the
+# commit the bundle names rebuilds it. Every number the
 # article can quote is held to its line in the tracked report it came from,
 # data/checks/departure_site_maxan_bulk_20260717.txt or
 # departure_site_snow_maxan_bulk_20260717.txt, at the precision the report
@@ -50,7 +50,7 @@
 devtools::load_all(quiet = TRUE)
 source("scripts/wb_fit_lib.R")  # wb_release(), wb_hydat()
 source("scripts/vignette_data_lib.R")  # vd_commit()
-source("scripts/departure_site_lib.R")  # site_get()
+source("scripts/departure_site_lib.R")  # site_get(), site_windows()
 
 wet_commit <- vd_commit()
 release <- wb_release()
@@ -59,6 +59,8 @@ hydat <- wb_hydat(release)
 out <- file.path("inst", "vignette-data", "short_record_values.rds")
 site <- site_get("maxan")
 wname <- site$windows[1]   # BULK, the windows the article cites
+# the windows' dates as the site scripts read them (inst/vignette-data/life_history_bulk.csv), which no md5 covers
+site_win <- site_windows(site)[[wname]][c("window", "start", "end")]
 
 # ---- the two series files, each held to the script that made it ------------------------------
 read_series <- function(script) {
@@ -66,10 +68,11 @@ read_series <- function(script) {
   if (!file.exists(f)) stop("no ", f, ": run scripts/", script, ".R ", site$site_id, " first", call. = FALSE)
   x <- readRDS(f)
   md5 <- unname(tools::md5sum(file.path("scripts", paste0(script, ".R"))))
-  # the site row is read from scripts/departure_sites.csv, which no md5 covers, so the run's own copy
-  # of it must be today's
-  if (!identical(x$code_md5, md5) || !identical(x$release, release) || !identical(x$site, site)) {
-    stop(f, " was made by another scripts/", script, ".R, release or site row: rerun it", call. = FALSE)
+  # the site row and the window dates are read from files no md5 covers (scripts/departure_sites.csv,
+  # the life-history CSV), so the run's own copies of them must be today's
+  if (!identical(x$code_md5, md5) || !identical(x$release, release) || !identical(x$site, site) ||
+        !identical(x$windows, site_win)) {
+    stop(f, " was made by another scripts/", script, ".R, release, site row or windows: rerun it", call. = FALSE)
   }
   x
 }
