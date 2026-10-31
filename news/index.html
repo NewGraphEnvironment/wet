@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.32</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.33</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,9 +36,13 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/v0.4.33/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.33" id="wet-0433">wet 0.4.33<a class="anchor" aria-label="anchor" href="#wet-0433"></a></h2>
+<ul><li>Maxan Creek now runs from its row of the Chinook site table, like Swift, Naver and Gosnell creeks, so the record extension, the borrowed departures and the snow regression have one code path (<a href="https://github.com/NewGraphEnvironment/wet/issues/146" class="external-link">#146</a>). The two Maxan pilot scripts are retired. Their reports stay as the record, and the site runs must reproduce them line by line before writing anything (<code>tests/testthat/test-departure_site_parity.R</code>). The short-record article’s data now come from the site run, with the same values.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.32" id="wet-0432">wet 0.4.32<a class="anchor" aria-label="anchor" href="#wet-0432"></a></h2>
 <ul><li>The two flow-change articles now say what each does (<a href="https://github.com/NewGraphEnvironment/wet/issues/152" class="external-link">#152</a>), at unchanged addresses. “Measured Stream Flow Against Its 1981–2010 Normal: Two Long-Record Gauges” compares 2016–2025 at Buck Creek and the Bulkley near Houston with the 1981–2010 normal, cited as a WMO standard normal and as the period <code>wet</code>‘s published flows are normals of; mean flow was 5–48 % below normal in every window, and every window at both gauges was below normal in each year from 2023. “Rebuilding Stream Flow History Where Gauges Are Few” compares 1951–1980, the decades before warming sped up, with 2016–2025 at Maxan, Swift, Naver and Gosnell creeks, and adds the lowest seven-day flow and snow: peak snow over each catchment held 6–9 % less water and melted 9–16 days earlier. Both articles define the chinook salmon life history timing window from what the fish do. A resampled range is called a 90 % range only where its coverage, measured on simulated no-change series, reaches 0.87 (<code>scripts/departure_interval_coverage.R</code>). All three articles’ references are now written by <code>data-raw/vignette_bib.R</code>.</li>

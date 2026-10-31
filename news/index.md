@@ -1,5 +1,17 @@
 # Changelog
 
+## wet 0.4.33
+
+- Maxan Creek now runs from its row of the Chinook site table, like
+  Swift, Naver and Gosnell creeks, so the record extension, the borrowed
+  departures and the snow regression have one code path
+  ([\#146](https://github.com/NewGraphEnvironment/wet/issues/146)). The
+  two Maxan pilot scripts are retired. Their reports stay as the record,
+  and the site runs must reproduce them line by line before writing
+  anything (`tests/testthat/test-departure_site_parity.R`). The
+  short-record article’s data now come from the site run, with the same
+  values.
+
 ## wet 0.4.32
 
 - The two flow-change articles now say what each does
