@@ -117,7 +117,7 @@ The flows in this article are from HYDAT release 2026-07-17; the snow is
 ERA5-Land, summarised per year by the R package
 [`cd`](https://newgraphenvironment.github.io/cd/) (its layers at commit
 349f9d7); the catchments and streams are the Freshwater Atlas’s, through
-`fwapg`. The data were bundled at `wet` commit be14851. How the record
+`fwapg`. The data were bundled at `wet` commit 13e2b3e. How the record
 is filled and scored is set out in [`wet`’s research
 notes](https://github.com/NewGraphEnvironment/wet/blob/main/research/station_flow_departure.md).
 
