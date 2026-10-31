@@ -1,5 +1,26 @@
 # Changelog
 
+## wet 0.4.32
+
+- The two flow-change articles now say what each does
+  ([\#152](https://github.com/NewGraphEnvironment/wet/issues/152)), at
+  unchanged addresses. “Measured Stream Flow Against Its 1981–2010
+  Normal: Two Long-Record Gauges” compares 2016–2025 at Buck Creek and
+  the Bulkley near Houston with the 1981–2010 normal, cited as a WMO
+  standard normal and as the period `wet`‘s published flows are normals
+  of; mean flow was 5–48 % below normal in every window, and every
+  window at both gauges was below normal in each year from 2023.
+  “Rebuilding Stream Flow History Where Gauges Are Few” compares
+  1951–1980, the decades before warming sped up, with 2016–2025 at
+  Maxan, Swift, Naver and Gosnell creeks, and adds the lowest seven-day
+  flow and snow: peak snow over each catchment held 6–9 % less water and
+  melted 9–16 days earlier. Both articles define the chinook salmon life
+  history timing window from what the fish do. A resampled range is
+  called a 90 % range only where its coverage, measured on simulated
+  no-change series, reaches 0.87
+  (`scripts/departure_interval_coverage.R`). All three articles’
+  references are now written by `data-raw/vignette_bib.R`.
+
 ## wet 0.4.31
 
 - The “Chinook Flow at Two Stations” article is now “How Stream Flow Has
