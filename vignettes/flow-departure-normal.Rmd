@@ -476,7 +476,7 @@ ggplot() +
 
 ## What is a chinook salmon life history timing window?
 
-A chinook salmon life history timing window, or window for short, is a stretch of the year when chinook use a stream for one thing.
+A chinook salmon life history timing window, or window for short, is a stretch of the year when chinook use a stream for a part of their life cycle.
 In the upper Bulkley River, the early run of chinook passes Moricetown Canyon before about July 30, and
 chinook spawn in August and September [@gottesfeld_rabnett2007SkeenaFish, p. 355]. New Graph's
 species-timing table sets the Bulkley's windows from that report: adult migration from
