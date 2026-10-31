@@ -94,8 +94,29 @@ test_that("a tracked report without the parts the gate reads is refused, not pas
   expect_error(e$site_parity_pilot(site, character()), "no table rows")
   no_change <- pilot[!grepl("^  statistic window +pre post +change", pilot)]
   expect_error(e$site_parity_pilot(site, no_change), "change table")
-  expect_error(e$site_parity_pilot(site, pilot[!grepl("^HEADLINE: ", pilot)]), "prose lines")
+  # an exemption that no longer matches one line, or matches two, is refused
+  expect_error(e$site_parity_pilot(site, pilot[!grepl("^USABLE ", pilot)]), "exemptions")
+  expect_error(e$site_parity_pilot(site, c(pilot, "USABLE twice")), "exemptions")
   expect_error(e$site_parity_snow(site, character()), "no table rows")
+})
+
+test_that("a result in a prose line is caught, and an exempt line is not compared", {
+  e <- parity_lib()
+  pilot <- tracked_report("departure_pilot_20260717.txt")
+  site <- tracked_report("departure_site_maxan_bulk_20260717.txt")
+  # the donor chain, which no table row prints
+  i <- grep("^Donor chain \\(nearest first\\): ", site)
+  expect_length(i, 1)
+  bad <- site
+  bad[i] <- sub("08ED002, 08ED001", "08ED001, 08ED002", bad[i])
+  expect_identical(e$site_parity_pilot(bad, pilot), grep("^Donor chain ", pilot, value = TRUE))
+  # the snow report's cd provenance rows are exempt: a republish of the layers moves them alone
+  snow <- tracked_report("departure_snow_20260717.txt")
+  site_snow <- tracked_report("departure_site_snow_maxan_bulk_20260717.txt")
+  j <- grep("^  swe_max: https://", site_snow)
+  ok <- site_snow
+  ok[j] <- sub("CD_SHA [0-9a-f]+", "CD_SHA 0000", ok[j])
+  expect_identical(e$site_parity_snow(ok, snow), character())
 })
 
 test_that("a changed snow fit is caught", {

@@ -92,26 +92,44 @@ site_windows <- function(site, dir = file.path("inst", "vignette-data")) {
 #
 # The pilot scripts are retired; their tracked reports are the record the
 # maxan row under the BULK windows must reproduce. Each helper returns the
-# tracked lines a run's output lacks (character() when it reproduces them),
-# comparing table rows (lines that start with two spaces) with trailing spaces
-# stripped, so at the precision the reports print. It refuses a tracked report
-# without the parts it compares rather than passing it.
+# tracked lines a run's output lacks (character() when it reproduces them):
+# every non-blank line, trailing spaces stripped, so at the precision the
+# reports print, except the lines named below, which the site report words
+# differently (titles, provenance, the pilot's own naming). Each exemption
+# must match exactly one tracked line, so the list cannot grow silently. The
+# comparison is by set, not by order. It refuses a tracked report without
+# the parts it compares rather than passing it.
 
-site_rows <- function(x) {
-  x <- sub(" +$", "", x)
-  x[startsWith(x, "  ")]
+site_parity_exempt <- list(
+  pilot = c("^# ", "^HYDAT 20260717, ", "^Windows \\(CH, ", "^Pilot gauges, complete ",
+            "^The rule: the highest median ", "^Sensitivities \\(median over gauges", "^Leave-one-year-out at ", "^USABLE ", "^## 4\\. ",
+            "^08EE018 extended by ", "^90 % interval from 2000 draws ", "^\\(% normal: ",
+            "^The two routes as centred departures"),
+  # the cd rows name the layers' run, which a republish moves without moving a value
+  snow = c("^# ", "^HYDAT 20260717\\. ", "^Pilot series: ", "^Its window statistics for ", "^Snow: wet_snow_annual",
+           "^Houston \\(08EE003\\) contains ", "^Response: ", "^## 3\\. ", "^The pilot's change at ",
+           "^  swe_max: https://", "^  snowmelt_doy_50: https://", "^  snowmelt_rate_peak: https://")
+)
+
+# the tracked lines the gate compares: non-blank, stripped, less each exemption (one line apiece)
+site_parity_lines <- function(tracked, exempt, what) {
+  x <- sub(" +$", "", tracked)
+  x <- x[nzchar(x)]
+  if (!any(startsWith(x, "  "))) stop("the tracked ", what, " report has no table rows", call. = FALSE)
+  hit <- vapply(exempt, function(e) sum(grepl(e, x)), 0L)
+  if (any(hit != 1)) {
+    stop("the tracked ", what, " report: exemptions matching other than one line: ",
+         paste(exempt[hit != 1], collapse = ", "), call. = FALSE)
+  }
+  x[!Reduce(`|`, lapply(exempt, grepl, x = x))]
 }
 
-# The pilot report (data/checks/departure_pilot_20260717.txt): every table
-# row; section 4's change table, whose site rows add the carried change's
-# % normal and interval in characters 83-111, compared with those removed; and
-# the three prose lines the gate named before #146 (the pool counts, the
-# carried headline, the short-record line).
+# The pilot report (data/checks/departure_pilot_20260717.txt): section 4's
+# change table, whose site rows add the carried change's % normal and interval
+# in characters 83-111, is compared with those removed.
 site_parity_pilot <- function(out, tracked) {
   out <- sub(" +$", "", out)
-  tracked <- sub(" +$", "", tracked)
-  rows <- site_rows(tracked)
-  if (!length(rows)) stop("the tracked pilot report has no table rows", call. = FALSE)
+  want <- site_parity_lines(tracked, site_parity_exempt$pilot, "pilot")
   # the change table: its header, then rows to the first blank line
   table_of <- function(x, head) {
     i <- grep(head, x)
@@ -119,21 +137,16 @@ site_parity_pilot <- function(out, tracked) {
     end <- which(x == "" & seq_along(x) > i)[1]
     x[i:(if (is.na(end)) length(x) else end - 1)]
   }
-  change <- table_of(tracked, "^  statistic window +pre post +change +% normal +90 % interval +carried +pre post$")
+  change <- table_of(sub(" +$", "", tracked),
+                     "^  statistic window +pre post +change +% normal +90 % interval +carried +pre post$")
   if (is.null(change)) stop("the tracked pilot report has no single change table", call. = FALSE)
   site_change <- table_of(out, "^  statistic window +pre post +change +% normal +90 % interval +carried +% normal")
   site_change <- if (is.null(site_change)) character() else
     sub(" +$", "", paste0(substr(site_change, 1, 82), substring(site_change, 112)))
-  prose <- grep("^(Box pool \\(>= 3|HEADLINE: |Short-record gauges, scored)", tracked, value = TRUE)
-  if (length(prose) != 3) {
-    stop("the tracked pilot report lacks one of the three prose lines the gate reads", call. = FALSE)
-  }
-  c(setdiff(c(prose, setdiff(rows, change)), out), setdiff(change, site_change))
+  c(setdiff(setdiff(want, change), out), setdiff(change, site_change))
 }
 
-# The snow report (data/checks/departure_snow_20260717.txt): every table row
+# The snow report (data/checks/departure_snow_20260717.txt)
 site_parity_snow <- function(out, tracked) {
-  rows <- site_rows(tracked)
-  if (!length(rows)) stop("the tracked snow report has no table rows", call. = FALSE)
-  setdiff(rows, sub(" +$", "", out))
+  setdiff(site_parity_lines(tracked, site_parity_exempt$snow, "snow"), sub(" +$", "", out))
 }

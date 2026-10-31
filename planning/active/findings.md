@@ -28,6 +28,24 @@ scratch copy (test file and lib copied, `data/checks` linked), `testthat::test_f
 | no guard on a tracked report with no rows | 1 |
 | no guard on missing prose lines | 1 |
 
+## Plan review (2026-10-30, Plan agent): what was acted on
+
+No blockers. Acted on: (a) the gate compared table rows and three prose lines, so prose lines carrying
+results (donor chain, pool and block counts, coverage) went unguarded, where the old `identical(mx)`
+protected the donor chain; the helpers now compare every non-blank line, less an exemption list in
+which each pattern must match exactly one tracked line; (b) the snow report's cd provenance rows are
+exempt, so a cd republish with unchanged values does not fail the gate; (c) the article diff against
+main will differ in the commit stamp and the software citation (expected); (d) Gosnell's report reads
+the live published build's digest, so a republish since #152 would move it for reasons outside #146.
+Not acted on: an ordered-subsequence check (set-based compare loses nothing on today's reports: the
+only duplicated row is the per-year table header); keying the article's remaining literals (labels,
+nudges, Buck in `share_inside`) on the row, which would add a second source of truth for one site's
+cartography.
+
+Mutation table after (a)-(b), blocks failed of 6: none 0; no column cut 4; change table not compared 1;
+no exemption guard 1; table rows only (prose ungated) 2; snow always passes 2; cd row not exempt 1;
+no empty-report guard 1.
+
 ## Errors Encountered
 
 | Error | Resolution |
