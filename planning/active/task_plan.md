@@ -77,7 +77,7 @@ All four were approved with the plan by the user, 2026-10-30.
 
 ## Validation
 - [x] Tests pass (`devtools::test()`), lintr clean on touched R
-- [ ] `/code-check` clean (once over the branch with `/code-check branch`)
+- [x] `/code-check` clean (once over the branch with `/code-check branch`)
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 

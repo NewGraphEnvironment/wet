@@ -60,6 +60,25 @@ unchanged; m4's tree clean after.
 row order (`vm_lakes()` has no `ORDER BY`) and one vertex more on Tahtsa Reach and Ootsa Lake. Not caused
 by #146; the committed map kept.
 
+## Code-check (branch), 2026-10-31
+
+| Round | Findings | Fixed | Accepted | Inside previous fix? |
+|-------|----------|-------|----------|----------------------|
+| 1 | 1 fragile: read_series() accepted a series whose site row (unhashed CSV) was not today's | 1 (8b8f7fb) | 0 | — |
+| 2 | Clean; a note that the helpers' comment overstated what they refuse | comment (8e63080) | 0 | n |
+| 3 | 1 fragile: the same mechanism on the window dates (life-history CSV via site_windows()) | 1 (13e2b3e) | 0 | y (same mechanism, one input over) |
+
+Ended by enumeration. Mechanism: a series file is trusted on its writer's md5, which does not cover every
+input. Every input `departure_site.R` and `departure_site_snow.R` read (listed from the code by grep, 12
+in all) and its cover when `short_record_vignette_data.R` accepts a maxan series: script code (md5);
+HYDAT (release; the cache refuses another VERSION); site row and window dates (`identical()`, rounds 1
+and 3; the window check fires on a doctored date, run on m4); fwapg snaps, cd's layers and catalog,
+`R/` code, `departure_snow_lib.R`'s watershed table (unhashed, but every bundled value is held to its line
+in the tracked site report, which the gates hold to #120's and #121's); the normals grid (parity table
+only, feeds no bundled value); the published catalog, `chinook_sites_use.txt` and the stations rds
+(ungauged sites only). Out of scope, predating the branch: `departure_site_snow.R` reading the site rds
+and `chinook_sites_data.R` check md5 and release only.
+
 ## Errors Encountered
 
 | Error | Resolution |
