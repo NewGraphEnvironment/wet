@@ -12,7 +12,7 @@
 # ---- decided at the plan gate (user, 2026-10-28), pinned after plan review -------------------
 #
 # Windows: the CH migration (05-01..08-01) and spawning (08-01..09-15) rows of
-#   inst/vignette-data/life_history_bulk.csv, as scripts/departure_pilot.R.
+#   inst/vignette-data/life_history_bulk.csv, as #120's pilot.
 # A complete window-year is a row wet_window_stats() returns at its default
 #   min_frac = 0.8. A source that serves no daily values gets its listed
 #   period of record instead, a proxy the report marks as such.

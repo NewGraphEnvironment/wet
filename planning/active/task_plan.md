@@ -58,8 +58,8 @@ All four were approved with the plan by the user, 2026-10-30.
 - [x] `scripts/departure_site_snow.R`: the same with `site_parity_snow()` and the snow report
 
 ## Phase 3: Retire the pilot scripts
-- [ ] `git rm scripts/departure_pilot.R scripts/departure_snow.R`; the reports `data/checks/departure_pilot_20260717.txt` and `departure_snow_20260717.txt` stay
-- [ ] Repoint the comments that name them: `scripts/departure_snow_lib.R`, `scripts/station_sources_probe.R`, `research/station_flow_departure.md` (the #120 and #121 "Produced by" lines: retired in #146, recoverable from git at the commit before it), and `CLAUDE.md`'s station-departure, #126 and short-record paragraphs and the Database line (`departure_site.R` now reads the bare `PG*` variables in the pilot's place)
+- [x] `git rm scripts/departure_pilot.R scripts/departure_snow.R`; the reports `data/checks/departure_pilot_20260717.txt` and `departure_snow_20260717.txt` stay
+- [x] Repoint the comments that name them: `scripts/departure_snow_lib.R`, `scripts/station_sources_probe.R`, `research/station_flow_departure.md` (the #120 and #121 "Produced by" lines: retired in #146, recoverable from git at the commit before it), and `CLAUDE.md`'s station-departure, #126 and short-record paragraphs and the Database line (`departure_site.R` now reads the bare `PG*` variables in the pilot's place)
 
 ## Phase 4: The short-record article onto the site run
 - [ ] `data-raw/short_record_vignette_data.R`: read `departure_site_maxan_bulk_20260717.rds` and `departure_site_snow_maxan_bulk_20260717.rds` (held to the md5s of `departure_site.R` and `departure_site_snow.R`) and their tracked reports. Narrow the change-table and snow-change patterns to the section-4 table and the first table of section 3, and re-index the change row's fields. Take the target and the snow gauges from `site_get("maxan")`. The bundle gains `site` (site_id, name, wsg_code, target_station, blue_line_key, snow_gauges), and its provenance names the site scripts and reports
