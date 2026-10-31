@@ -558,14 +558,12 @@ default: pick it, say so, move on.
 Never post to a venue outside NGE's own repositories without the user's explicit
 approval for that specific post — upstream GitHub issues and PR comments, mailing
 lists, forums, third-party trackers. **Drafting is welcome and expected**: write the
-comment, show it, wait. It is the sending that needs the word, because an upstream comment
-is published under the organisation's name, is indexed immediately, and cannot be
-unpublished.
+comment, show it, wait. The sending needs the word: an upstream comment is published under
+our name, indexed at once, and cannot be unpublished.
 
 - Our own repos are unaffected; filing and editing issues there needs no asking.
 - **Reading upstream is unrestricted and worth doing.**
-- Offer the draft in the reply, and say plainly that nothing has been posted when the work
-  obviously produced something postable.
+- Offer the draft in the reply, and say plainly that nothing has been posted.
 
 *4 lines of evidence for this rule are in `conventions/agent-operations.md`.*
 
@@ -577,27 +575,32 @@ diagnose their design, offer rather than propose, and leave them every road to l
 
 - **Fix on our fork the same day,** one concern per branch from upstream's default branch,
   no planning files and no `#N` in its commits, the draft in a fork issue labelled
-  `upstream-draft`. Pin our packages
-  to the fork's integration branch until upstream holds every fix on it, their way.
+  `upstream-draft`. Pin our packages to the fork's integration branch until upstream holds
+  every fix on it, their way.
 - **Upstream gets a short issue that offers:** thanks, a reprex, the options as we see them,
-  and a pull request if it helps. Send one when asked, or first only where the history shows
-  outside pull requests merged routinely. One open item per maintainer, timed around their load.
-- **About 200 words, no session link, no SRED line.** A design change goes in as a question.
-- **Say plainly that Claude Code helped.** Commits keep `Co-Authored-By` and drop
-  `Claude-Session:`, and the pull request offers an `Assisted-by` reword. Where AI-assisted
-  contributions are unwelcome, send no code.
-- **Never ping by accident:** backtick upstream references in issues and pull requests in our repos,
-  and keep them out of commit messages. In a fork checkout `gh` targets upstream, so a write
-  meant for our fork passes `--repo`.
+  and a pull request if it helps. Send one when asked, or first only where outside pull
+  requests are routinely merged. One open item per maintainer, timed around their load.
+- **About 200 words, no SRED line.** A design change goes in as a question.
+- **Say plainly that Claude Code helped,** in a sentence from the `upstream-draft` on, and offer
+  an `Assisted-by` reword in the pull request. Where AI-assisted contributions are unwelcome,
+  send no code.
+- **Never ping by accident:** in our repos' issues and pull requests an upstream item is
+  backticked, never a URL, link or bare `#N` (a fork's reached upstream's once), unless the user
+  wants the ping; commit messages name none, even backticked. An edit cannot take a ping
+  back. In a fork checkout `gh` targets upstream, so pass `--repo` for our fork.
 - **Homework before, notes after:** who contributes, stated policy, AI use, current load,
-  response pace. Keep it in soul's `research/upstream-projects.md`, revised after every reply,
-  merge or silence; steps and wording are in the reference file.
+  response pace, kept in soul's `research/upstream-projects.md`, revised after every reply,
+  merge or silence.
 - Raise upstream only what would help their other users. If a maintainer would rather not
   hear from us, keep the fork or move on.
 
-Posting still needs the user's word on the exact text (above).
+*28 lines of evidence for this rule are in `conventions/agent-operations.md`.*
 
-*22 lines of evidence for this rule are in `conventions/agent-operations.md`.*
+### Credit Claude, link no session
+
+Nothing we write carries a session link. In our repos, commits end with `Co-Authored-By`, PR
+bodies with "Generated with Claude Code", and issues with no Claude line bar an
+`upstream-draft`'s sentence.
 
 ### Auto mode refuses a production write whatever the chat says
 
@@ -667,7 +670,7 @@ click: `[repo#12](https://github.com/<owner>/<repo>/issues/12)`,
 - Before sending a report with many numbers, spot-check two or three through `gh`: the ones
   typed from memory or whose type you inferred.
 - Scope is messages to the user, and PR and issue bodies read from outside the repo; commit
-  messages autolink already. An upstream item in our repos' GitHub text is backticked, never linked.
+  messages autolink already. An upstream item in our repos' GitHub text is backticked (§4, pings).
 
 *11 lines of evidence for this rule are in `conventions/agent-operations.md`.*
 
@@ -2206,9 +2209,8 @@ organisation, and it names internal work as it does so.
   Describe the dependency in words ("work on a downstream estimate is in progress"), or
   leave it out.
 - **One exception: the R&D tracking cross-reference.** `/gh-pr-push` writes it into PR
-  bodies from the repo's `CLAUDE.md`, which is where its repo and issue number are
-  configured. Both stay: they are deliberate claim tagging, and they are the only private
-  pointers this rule allows.
+  bodies, resolved from the tracking issues' titles. It stays: it is deliberate claim
+  tagging, and the only private pointer this rule allows.
 - **A scrub covers the surfaces you were editing; re-grep the others before merging.** The
   issue body is drafted at plan time and the code later, so scrubbing the tree and the PR
   body leaves the body untouched. `/gh-pr-merge` step 3b is the moment to grep it, then
