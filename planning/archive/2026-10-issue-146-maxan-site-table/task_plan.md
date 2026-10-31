@@ -78,8 +78,8 @@ All four were approved with the plan by the user, 2026-10-30.
 ## Validation
 - [x] Tests pass (`devtools::test()`), lintr clean on touched R
 - [x] `/code-check` clean (once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] PWF checkboxes match landed work
+- [x] `/planning-archive` on completion
 
 How each change is proved:
 - Helpers: the new test passes on the tracked reports, and fails on a doctored copy of each kind (a mutation table in findings.md).
