@@ -70,7 +70,7 @@ All four were approved with the plan by the user, 2026-10-30.
 - [ ] On m4: run the short-record data and map scripts. Assert every element of the new bundle is `identical()` to the old one, apart from `provenance` and the new `site`, and the map layers likewise. Commit the bundles
 
 ## Phase 5: departure_pcic.R takes a site id
-- [ ] `scripts/departure_pcic.R`: `site <- site_get("maxan")`; `box <- site$box`; `maxan <- site$target_station`; one header line says so; `Rscript` check that both are `identical()` to the literals they replace
+- [x] `scripts/departure_pcic.R`: `site <- site_get("maxan")`; `box <- site$box`; `maxan <- site$target_station`; one header line says so; `Rscript` check that both are `identical()` to the literals they replace
 
 ## Owed at the end (reported, done after merge)
 - [ ] m4: put the main checkout back on `main` and pull (this also clears the pull owed since #152)
