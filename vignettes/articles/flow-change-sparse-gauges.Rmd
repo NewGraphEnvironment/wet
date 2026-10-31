@@ -146,7 +146,7 @@ Creek, with five full summers on record; Swift Creek and Naver Creek, with
 Gosnell Creek, never gauged. One method, fixed before any result, runs at each and is scored
 on gauges it was not given.
 
-**The answer.** In the salmon spawning window, mean flow over `r rec_text` was
+**The answer.** In the chinook salmon life history timing window for spawning, mean flow over `r rec_text` was
 lower than over `r ref_text` at all four streams, by `r pct(min(abs(spw$pct)))` to
 `r pct(max(abs(spw$pct)))` from nearby gauges' departures; at
 `r and_text(sub(" Creek$", "", name_of[low_spw$site_id]))` creeks that route's 90% range
@@ -317,7 +317,7 @@ since 1970, with a major spawning site within five kilometres of its mouth in th
 records, and in Naver Creek in most years since the mid-1980s. Gosnell Creek's record is
 thinner: adults found in one survey, in 2001, and three provincial records.
 
-## What is a window?
+## What is a chinook salmon life history timing window?
 
 ```{r windows-data}
 d <- v$daily[v$daily$pick, ]
@@ -336,7 +336,7 @@ stopifnot(all(low))
 month_breaks <- day_of(sprintf("%02d-01", 1:12))
 ```
 
-A window is a stretch of the year when salmon use a stream for one thing. In the upper
+A chinook salmon life history timing window, or window for short, is a stretch of the year when chinook use a stream for one thing. In the upper
 Bulkley River, the early run of chinook passes Moricetown Canyon before about July 30, and
 chinook spawn in August and September
 [@gottesfeld_rabnett2007SkeenaFish, p. 355]. New Graph's species-timing
@@ -344,7 +344,7 @@ table sets the Bulkley's windows from that report, used here at all four streams
 spawning from `r md_text(wb$start[2])` to `r md_text(wb$end[2])`. A window's flow in a year is its mean daily flow. At every stream, flow peaks inside the migration window, as snow
 melts, and in the spawning window falls under a third of its peak.
 
-```{r windows, fig.height = 5, fig.cap = "Each stream's typical year (1981–2010), with the two windows shaded: wet's published daily flow at the gauge, or at Gosnell Creek's mouth."}
+```{r windows, fig.height = 5, fig.cap = "Each stream's typical year (1981–2010), with the two chinook salmon life history timing windows shaded: wet's published daily flow at the gauge, or at Gosnell Creek's mouth."}
 ggplot(d) +
   geom_rect(data = shade, aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf, fill = window), alpha = 0.8) +
   geom_line(aes(doy, q_m3s, colour = "flow"), linewidth = 0.5) +
@@ -405,7 +405,7 @@ for (id in ids) for (w in wb$window) {
 }
 ```
 
-```{r years, fig.height = 8.5, fig.cap = "Each window's mean flow, year by year, as a share of its 1981–2010 typical flow (log scale). Large orange points are measured summers; the grey line fills the other years from one nearby gauge, with the band its fitted relation predicts; the blue line is borrowed from nearby gauges' year-to-year departures. A small point is a year with no neighbouring year on its line. Black lines are the borrowed route's typical departure over 1951–1980 and 2016–2025."}
+```{r years, fig.height = 8.5, fig.cap = "Each chinook salmon life history timing window's mean flow, year by year, as a share of its 1981–2010 typical flow (log scale). Large orange points are measured summers; the grey line fills the other years from one nearby gauge, with the band its fitted relation predicts; the blue line is borrowed from nearby gauges' year-to-year departures. A small point is a year with no neighbouring year on its line. Black lines are the borrowed route's typical departure over 1951–1980 and 2016–2025."}
 ggplot(yy, aes(year)) +
   geom_hline(yintercept = 0, colour = pal_series$values[["band"]]) +
   geom_ribbon(data = yl[yl$line == "filled", ], aes(ymin = pct_of(lo), ymax = pct_of(hi), fill = "band")) +
@@ -453,14 +453,14 @@ stopifnot(length(m7_sc) == 8)
 m7_fell <- m7[m7$site_id %in% m7_down, ]
 ```
 
-The spawning-window drop is largest at Maxan and Naver creeks and smallest at Swift
+The drop in the chinook salmon life history timing window for spawning is largest at Maxan and Naver creeks and smallest at Swift
 Creek, and filling in each gauged stream's own record gives drops in the same direction
 (`r pct(min(abs(ext$pct)))`–`r pct(max(abs(ext$pct)))`), clear of no change only at Maxan.
 Borrowed, the spawning window's lowest seven-day flow fell by `r pct(min(abs(m7_fell$pct)))` to
 `r pct(max(abs(m7_fell$pct)))` at `r and_text(sub(" Creek$", "", name_of[m7_down]))` creeks,
 again clear only at Maxan.
 
-```{r change, fig.height = 6.5, fig.cap = "Change in each window's mean flow (top) and its lowest seven-day flow (bottom), from 1951–1980 to 2016–2025 (to 2024 where 2025 is not yet approved), with its 90% range, by each route the legend names."}
+```{r change, fig.height = 6.5, fig.cap = "Change in each chinook salmon life history timing window's mean flow (top) and its lowest seven-day flow (bottom), from 1951–1980 to 2016–2025 (to 2024 where 2025 is not yet approved), with its 90% range, by each route the legend names."}
 dd <- ch[ch$group == "BULK" & ch$statistic %in% c("mean", "min7"), ]
 dd$site <- factor(name_of[dd$site_id], levels = rev(name_of[ids]))
 dd$wlab <- factor(wlab[dd$window], levels = wlab)
@@ -501,7 +501,7 @@ stopifnot(sc$ext_gauges[sc$site_id == "swift"] < min(sc$ext_gauges[sc$site_id !=
 
 Both routes are scored by hiding a gauge's own record and predicting it from its
 neighbours. A score of 0.5 was set as the method's bar before any stream was run. The
-borrowed departures clear it in the migration window in every box and, under the Bulkley's
+borrowed departures clear it in the chinook salmon life history timing window for migration in every box and, under the Bulkley's
 windows, fall below it in the spawning window in every box, `r sprintf("%.2f", min(ss_spw$carried))`–`r sprintf("%.2f", max(ss_spw$carried))`,
 so those ranges carry that weaker score. Borrowed, the lowest seven-day flow scores below the bar in
 `r sum(m7_sc < 0.5)` of `r length(m7_sc)` windows and boxes.
@@ -558,7 +558,7 @@ half had melted `r round(min(melt_days))` to `r round(max(melt_days))` days earl
 (ERA5-Land [@munoz-sabater_etal2021ERA5Landstateoftheart], summarised per year by
 [`cd`](https://newgraphenvironment.github.io/cd/) [@cd]).
 
-Migration-window flow rises with peak snow: the borrowed departures at all four streams, with
+Flow in the chinook salmon life history timing window for migration rises with peak snow: the borrowed departures at all four streams, with
 90% ranges above zero and `r round(100 * r2_mig[1])`–`r round(100 * r2_mig[2])`% of their
 spread explained, and measured flow at all `r n_snow_gauges` snow gauges near the
 streams (named in advance at Maxan Creek, elsewhere the nearest two with long records),
@@ -580,7 +580,7 @@ stopifnot(all(v$normal$pick == "pcic_routed"), all(v$daily$source[v$daily$pick] 
 - **Gosnell Creek's flow is never measured.** Its departures are tested only at the
   gauges around it, and its typical flow is `wet`'s published flow for the stream. At
   `r nerr$err_n` gauges in its box with ten or more baseline years, that
-  published spawning-window flow runs a median `r pct(pct_of(nerr$err_median))` above
+  published flow in the chinook salmon life history timing window for spawning runs a median `r pct(pct_of(nerr$err_median))` above
   measured, and about `r pct(pct_of(nerr$err_q75))` or more above at a quarter of them.
 - **The windows are the Bulkley's** at all four streams. Only the Morice has its own cited
   windows.
@@ -645,7 +645,7 @@ if (!is.null(f)) {
   y <- y[!grepl("^\\s*$", y)]
   n <- sum(lengths(strsplit(trimws(y), "\\s+")))
   message("body prose: ", n, " words")
-  cap <- 1000
+  cap <- 1060   # 1000 until #152 restated the window's full name per section
   if (n > cap) stop("body prose is ", n, " words; the cap is ", cap)
 }
 ```

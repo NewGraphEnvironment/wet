@@ -173,7 +173,7 @@ miss_text <- vapply(stations, function(st) {
   if (!length(m)) return(NA_character_)
   parts <- vapply(unique(m), function(k) {
     w <- names(m)[m == k]
-    where <- if (length(w) == nrow(windows)) "every timing window" else tolower(and_text(w))
+    where <- if (length(w) == nrow(windows)) "every window" else tolower(and_text(w))
     sprintf("%s in %s", years_text(as.integer(strsplit(k, " ")[[1]])), where)
   }, "")
   sprintf("%s lacks %s", short_name(st), paste(parts, collapse = ", and "))
@@ -273,7 +273,7 @@ part_text <- paste(vapply(split(part, paste(part$station_number, part$year)), fu
 part_share <- range(100 * part$n_days / win_days[part$period])
 
 cap_recent <- sprintf(paste(
-  "Mean flow in each chinook timing window, %s, as a percentage of its %s mean (solid line, given",
+  "Mean flow in each chinook salmon life history timing window, %s, as a percentage of its %s mean (solid line, given",
   "in m³/s at the top right of each panel). Each bar is labelled with its percentage, coloured by",
   "whether it falls below or above the mean, and paler where any of its days are provisional. The",
   "dashed line is the median %s year. At %s, the %s normal rests on %s: no window in %s has %s",
@@ -306,7 +306,7 @@ stopifnot(nrow(chg) == nrow(windows) * length(stations))
 stopifnot(all(chg$pct < 0))
 chg_range <- range(abs(chg$pct))
 cap_change <- sprintf(paste(
-  "Change in each chinook timing window's mean flow, from its %s mean to the mean of %s, at each",
+  "Change in each chinook salmon life history timing window's mean flow, from its %s mean to the mean of %s, at each",
   "gauge (point); the bar spans the middle 90%% of changes from resampling the years in each period,",
   "and the vertical line is no change."
 ), base_text, recent_text)
@@ -325,7 +325,7 @@ It already holds part of recent warming [@hansen_etal2012Perceptionclimate], so
 [Rebuilding Stream Flow History Where Gauges Are Few](flow-change-sparse-gauges.html) measures change
 from 1951–1980 instead.
 
-**The answer.** Over `r recent_text`, mean flow in every timing window at both gauges was below
+**The answer.** Over `r recent_text`, mean flow in every chinook salmon life history timing window at both gauges was below
 its `r base_text` normal, by `r pct(chg_range[1])` to `r pct(chg_range[2])`. Every window at both gauges was below normal in
 each year from `r min(low_years)`, and `r n_dec` of those `r n_low` window means were drier than nine
 `r base_text` years in ten. At `r short_name("08EE003")`, the normal rests on `r base_003`, the years
@@ -474,26 +474,27 @@ ggplot() +
         panel.border = element_rect(fill = NA, colour = pal_hydro$values[["median"]]))
 ```
 
-## What is a timing window?
+## What is a chinook salmon life history timing window?
 
-A chinook salmon life history timing window is the part of the year when a life stage is in the
-stream. Two are used here: adults migrate upstream from `r span_text("Migration")`, and spawn from
-`r span_text("Spawning")`. The dates come from New Graph's species-timing table for the Bulkley,
-which cites @gottesfeld_rabnett2007SkeenaFish. Its fry migration window falls within these two, so it
-is not shown on its own, and its other `r nrow(out)` chinook timing windows, `r and_text(left_out)`, reach into
-November–April, when the gauges can read under ice, so they are left out. A timing window's flow in a
-year is its mean daily flow, counted when `r need_text` of its days have a record.
+A chinook salmon life history timing window, or window for short, is a stretch of the year when chinook use a stream for one thing.
+In the upper Bulkley River, the early run of chinook passes Moricetown Canyon before about July 30, and
+chinook spawn in August and September [@gottesfeld_rabnett2007SkeenaFish, p. 355]. New Graph's
+species-timing table sets the Bulkley's windows from that report: adult migration from
+`r span_text("Migration")`, and spawning from `r span_text("Spawning")`. Its fry migration window falls
+within these two, so it is not shown on its own, and its other `r nrow(out)` chinook windows,
+`r and_text(left_out)`, reach into November–April, when the gauges can read under ice, so they are left
+out. A window's flow in a year is its mean daily flow, counted when `r need_text` of its days have a record.
 
 ## How did the last ten years compare with normal?
 
-Each bar is one timing window in one year: its mean flow as a percentage of that window's
+Each bar is one chinook salmon life history timing window in one year: its mean flow as a percentage of that window's
 `r base_text` mean, so 100% is normal and lower is drier. Wet years pull the mean up, so a typical year
 sits under it; the dashed line marks the median year.
 
-Before `r min(low_years)` the decade swings both ways in every timing window. From `r min(low_years)`,
+Before `r min(low_years)` the decade swings both ways in every window. From `r min(low_years)`,
 every bar falls below the median year as well as the mean, and `r n_min` were drier than any
 `r base_text` year. The two gauges fall on the same side of normal in
-all but one of the `r n_both` timing-window years both recorded, partly because one catchment holds the
+all but one of the `r n_both` window-years both recorded, partly because one catchment holds the
 other.
 
 ```{r recent, fig.height = 5, fig.cap = cap_recent}
@@ -527,6 +528,7 @@ ggplot(kf, aes(year, pct)) +
     order = 2, override.aes = list(fill = pal_side$values[["below"]])),
     linetype = guide_legend(order = 3, override.aes = list(linewidth = 0.5))) +
   theme(panel.grid.major.x = element_blank(), strip.text.y = element_text(angle = 0, hjust = 0),
+        axis.text.x = element_text(angle = 45, hjust = 1),
         legend.box = "vertical", legend.spacing.y = unit(0, "pt"), legend.margin = margin(0, 0, 0, 0))
 ```
 
@@ -599,8 +601,8 @@ strip$label_x <- strip$end + 4
 pal_period <- c(base = pal_hydro$values[["median"]], recent = pal_side$values[["below"]])
 lab_period <- c(base = base_text, recent = recent_text)
 cap_hydro <- sprintf(paste(
-  "Daily flow at each gauge: the whole year (left), with the migration window beneath, and July to",
-  "October (right), with the spawning window, on its own scale. Lines are the mean (solid) and",
+  "Daily flow at each gauge: the whole year (left), with the chinook salmon life history timing window for migration beneath, and July",
+  "to October (right), with the one for spawning, on its own scale. Lines are the mean (solid) and",
   "median (dashed) day over the years of each gauge's %s normal (grey) and over %s (colour). A",
   "normal line is drawn on days with at least %d of those years on record, so at the Bulkley gauge it",
   "runs only from %s; a %s line on days each of the gauge's recent years has a record (%d at Buck",
@@ -646,7 +648,7 @@ ggplot() +
 
 ## How much has mean flow changed?
 
-Each point is the change in a timing window's mean flow, from its `r base_text` mean to the mean of
+Each point is the change in a chinook salmon life history timing window's mean flow, from its `r base_text` mean to the mean of
 `r recent_text`. Its bar spans the middle 90% of changes from resampling the years in each period.
 With ten recent years or fewer, that bar is narrower than a 90% confidence interval: it shows the
 spread of the resamples, not a test.
@@ -666,7 +668,7 @@ ggplot(cd_plot, aes(pct, station_number)) +
 
 ## How were the numbers made?
 
-These calls produced the window statistics, with normal and departure from the R package
+These calls produced each chinook salmon life history timing window's mean flow, with normal and departure from the R package
 [`cd`](https://newgraphenvironment.github.io/cd/) [@cd]. They read HYDAT, the
 [water-temp-bc](https://github.com/NewGraphEnvironment/water-temp-bc) archive and ECCC's real-time feed
 (through [`tidyhydat`](https://docs.ropensci.org/tidyhydat/) [@tidyhydat]), so the article runs on a
@@ -704,22 +706,22 @@ stopifnot(all(kf$frac_provisional[kf$year %in% prov_years] > 0))
   revised.
 - **Some bars have days missing:** `r nrow(part)` of the `r nrow(kf)` bars rest on
   `r pct(part_share[1])`–`r pct(part_share[2])` of their days: `r part_text`.
-- **Some normals have years missing:** a year is left out of a timing window's normal when the
+- **Some normals have years missing:** a year is left out of a chinook salmon life history timing window's normal when the
   window has under `r need_text` of its days, so `r miss_text`.
-- **The timing windows come from the literature, not from observation:** New Graph's species-timing
+- **The windows come from the literature, not from observation:** New Graph's species-timing
   table cites @gottesfeld_rabnett2007SkeenaFish for both.
 
 ## Software and citation
 
 The flows in this article are cached from HYDAT release `r prov$hydat`, with provisional and real-time
-flows retrieved `r day_text(prov$retrieved)`. The timing windows are New Graph's species-timing table
+flows retrieved `r day_text(prov$retrieved)`. The chinook salmon life history timing windows are New Graph's species-timing table
 at commit `r substr(prov$knowledge_sha, 1, 7)`, and the catchments, the stream mouths and the rivers
 they join are the Freshwater Atlas's.
 
 The software, each cited:
 
 - [`wet`](https://newgraphenvironment.github.io/wet/) [@wet] reads the gauge records and makes the
-  timing-window statistics.
+  window statistics.
 - [`cd`](https://newgraphenvironment.github.io/cd/) [@cd] takes the normal and the departures.
 - [`tidyhydat`](https://docs.ropensci.org/tidyhydat/) [@tidyhydat] reads the ECCC real-time feed.
 - [`fwapg`](https://smnorris.github.io/fwapg/) [@norris2024smnorrisfwapg] loads the Freshwater Atlas
@@ -771,7 +773,7 @@ if (!is.null(f)) {
   y <- y[!grepl("^\\s*$", y)]
   n <- sum(lengths(strsplit(trimws(y), "\\s+")))
   message("body prose: ", n, " words")
-  cap <- 700   # 600 until #145, which added the answer, the timing-window section and citations
+  cap <- 750   # 600 until #145 (the answer, the window section, citations); 700 until #152 restated the window's full name per section
   if (n > cap) stop("body prose is ", n, " words; the cap is ", cap)
 }
 ```
