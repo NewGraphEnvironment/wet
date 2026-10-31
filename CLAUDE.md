@@ -594,7 +594,7 @@ diagnose their design, offer rather than propose, and leave them every road to l
 - Raise upstream only what would help their other users. If a maintainer would rather not
   hear from us, keep the fork or move on.
 
-*28 lines of evidence for this rule are in `conventions/agent-operations.md`.*
+*32 lines of evidence for this rule are in `conventions/agent-operations.md`.*
 
 ### Credit Claude, link no session
 
@@ -3399,6 +3399,8 @@ options(rbbt.default.library_id = 9)
 ```
 
 Without this option, rbbt searches only the personal library (libraryID 1) and won't find group library references. The library IDs map to Zotero's internal numbering — use `/zotero-lookup` with `SELECT DISTINCT libraryID FROM citationkey` against the BBT database to discover available libraries.
+
+Set `options(cred.zotero_library = "NewGraphEnvironment")` in the same `~/.Rprofile`, so cred's audit and store builds read the library the bibliography cites. Without it, a key present in two libraries warns and resolves to nothing. cred takes the group name rather than a libraryID because the internal number can differ between machines (cred#40).
 
 ### Citation syntax
 
