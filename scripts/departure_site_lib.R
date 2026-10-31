@@ -87,3 +87,51 @@ site_windows <- function(site, dir = file.path("inst", "vignette-data")) {
   names(out) <- site$windows
   out
 }
+
+# ---- parity with #120's and #121's tracked reports (#146) ---------------------------------------
+#
+# The pilot scripts are retired; their tracked reports are the record the
+# maxan row under the BULK windows must reproduce. Each helper returns the
+# tracked lines a run's output lacks (character() when it reproduces them),
+# comparing table rows (lines that start with two spaces) with trailing spaces
+# stripped, so at the precision the reports print. It refuses a tracked report
+# without the parts it compares rather than passing it.
+
+site_rows <- function(x) {
+  x <- sub(" +$", "", x)
+  x[startsWith(x, "  ")]
+}
+
+# The pilot report (data/checks/departure_pilot_20260717.txt): every table
+# row; section 4's change table, whose site rows add the carried change's
+# % normal and interval in characters 83-111, compared with those removed; and
+# the three prose lines the gate named before #146 (the pool counts, the
+# carried headline, the short-record line).
+site_parity_pilot <- function(out, tracked) {
+  out <- sub(" +$", "", out)
+  tracked <- sub(" +$", "", tracked)
+  rows <- site_rows(tracked)
+  if (!length(rows)) stop("the tracked pilot report has no table rows", call. = FALSE)
+  # the change table: its header, then rows to the first blank line
+  table_of <- function(x, head) {
+    i <- grep(head, x)
+    if (length(i) != 1) return(NULL)
+    end <- which(x == "" & seq_along(x) > i)[1]
+    x[i:(if (is.na(end)) length(x) else end - 1)]
+  }
+  change <- table_of(tracked, "^  statistic window +pre post +change +% normal +90 % interval +carried +pre post$")
+  if (is.null(change)) stop("the tracked pilot report has no single change table", call. = FALSE)
+  site_change <- table_of(out, "^  statistic window +pre post +change +% normal +90 % interval +carried +% normal")
+  site_change <- if (is.null(site_change)) character() else
+    sub(" +$", "", paste0(substr(site_change, 1, 82), substring(site_change, 112)))
+  prose <- grep("^(Box pool \\(>= 3|HEADLINE: |Short-record gauges, scored)", tracked, value = TRUE)
+  if (length(prose) != 3) stop("the tracked pilot report lacks one of the three prose lines the gate reads", call. = FALSE)
+  c(setdiff(c(prose, setdiff(rows, change)), out), setdiff(change, site_change))
+}
+
+# The snow report (data/checks/departure_snow_20260717.txt): every table row
+site_parity_snow <- function(out, tracked) {
+  rows <- site_rows(tracked)
+  if (!length(rows)) stop("the tracked snow report has no table rows", call. = FALSE)
+  setdiff(rows, sub(" +$", "", out))
+}

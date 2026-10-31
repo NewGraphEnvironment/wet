@@ -50,8 +50,8 @@ All four were approved with the plan by the user, 2026-10-30.
   byte-identical. Its provenance names the commit it was built at.
 
 ## Phase 1: Parity helpers and their test (test first)
-- [ ] `tests/testthat/test-departure_site_parity.R` (repo-tree test, skipping when `scripts/` or `data/checks/` is absent, as `test-publish_report_live.R` does): the tracked Maxan site reports pass against the tracked pilot and snow reports; one digit changed in a table row, a missing row, and a changed carried value in the change table each fail
-- [ ] `scripts/departure_site_lib.R`: `site_parity_pilot(out, tracked)` and `site_parity_snow(out, tracked)`, each returning the tracked lines the run's output lacks. They check every table row, with trailing spaces stripped. For the pilot they also check the six prose lines the current gate names, and match the change table after removing characters 83–111 of the site row
+- [x] `tests/testthat/test-departure_site_parity.R` (repo-tree test, skipping when `scripts/` or `data/checks/` is absent, as `test-publish_report_live.R` does): the tracked Maxan site reports pass against the tracked pilot and snow reports; one digit changed in a table row, a missing row, and a changed carried value in the change table each fail
+- [x] `scripts/departure_site_lib.R`: `site_parity_pilot(out, tracked)` and `site_parity_snow(out, tracked)`, each returning the tracked lines the run's output lacks. They check every table row, with trailing spaces stripped. For the pilot they also check the six prose lines the current gate names, and match the change table after removing characters 83–111 of the site row
 
 ## Phase 2: The site scripts' gates read the reports
 - [ ] `scripts/departure_site.R`: drop the rds/md5 gate and `mx_core`; the maxan BULK run stops before writing unless `site_parity_pilot(out, <tracked pilot report>)` is empty; rewrite the header's parity section and its references to `departure_pilot.R` (retired; the tracked report is #120's record)

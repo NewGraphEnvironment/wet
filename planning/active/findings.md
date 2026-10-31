@@ -13,6 +13,21 @@
 Relates to #120, #121, #122, #126, #130.
 
 
+## Parity helpers: mutation table (Phase 1, 2026-10-30)
+
+`tests/testthat/test-departure_site_parity.R` against `scripts/departure_site_lib.R`, each mutation in a
+scratch copy (test file and lib copied, `data/checks` linked), `testthat::test_file()` blocks failed of 5:
+
+| mutation | blocks red |
+|---|---|
+| none | 0 |
+| no column cut (site change rows compared whole) | 3 |
+| prose lines not compared | 1 |
+| change table not compared | 1 |
+| snow helper always passes | 1 |
+| no guard on a tracked report with no rows | 1 |
+| no guard on missing prose lines | 1 |
+
 ## Errors Encountered
 
 | Error | Resolution |
