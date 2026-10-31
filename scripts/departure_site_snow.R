@@ -33,6 +33,11 @@
 # shipped normals grid. The per-year tables. A year whose cover is below 1 is
 # refused.
 #
+# New in #152, deciding nothing: snow before and after over the comparison
+# article's periods, 1951-1980 against 2016-2025 (each watershed's mean peak
+# SWE and 50 % melt date), beside the site run's change over the same periods
+# (its `p152`, both routes). #121's and #126's lines are unchanged.
+#
 # ---- what changes per site ----------------------------------------------------------------------
 #
 # The series:
@@ -419,6 +424,29 @@ for (w in windows$window) {
   say(sprintf("  %-10s %9s %4s %4s %9s %4d %4d", w, if (is.null(m$e)) "-" else fmt(m$diff, 3),
               if (is.null(m$e)) "-" else m$n_pre, if (is.null(m$e)) "-" else m$n_post, fmt(m$carried, 3), m$n_pre_c,
               m$n_post_c))
+}
+# new in #152: the same over the comparison article's periods
+ref_years <- 1951:1980
+recent_years <- 2016:2025
+say("", "Each watershed's mean over 1951-1980 and 2016-2025 (#152):", "",
+    sprintf("  %-8s %10s %10s %8s %10s %10s %8s %4s %4s", "gauge", "swe 51-80", "swe 16-25", "change", "doy 51-80",
+            "doy 16-25", "change", "ref", "rec"))
+for (id in names(snow)) {
+  sw <- snow[[id]]
+  a <- sw[sw$year %in% ref_years, ]
+  b <- sw[sw$year %in% recent_years, ]
+  say(sprintf("  %-8s %10s %10s %8s %10s %10s %8s %4d %4d", id, fmt(mean(a$swe_max), 1), fmt(mean(b$swe_max), 1),
+              fmt(mean(b$swe_max) - mean(a$swe_max), 1), fmt(mean(a$snowmelt_doy_50), 1),
+              fmt(mean(b$snowmelt_doy_50), 1), fmt(mean(b$snowmelt_doy_50) - mean(a$snowmelt_doy_50), 1), nrow(a),
+              nrow(b)))
+}
+say("", sprintf("The site run's change at %s over the same periods (its section 5):", target), "",
+    sprintf("  %-10s %9s %4s %4s %9s %4s %4s", "window", "extended", "ref", "rec", "carried", "ref", "rec"))
+for (w in windows$window) {
+  p <- pr$mx[[paste("q_mean", w)]]$p152
+  ext <- !is.null(p$lv)
+  say(sprintf("  %-10s %9s %4s %4s %9s %4d %4d", w, if (ext) fmt(p$diff, 3) else "-", if (ext) length(p$i1) else "-",
+              if (ext) length(p$i2) else "-", fmt(p$carried, 3), length(p$i1_c), length(p$i2_c)))
 }
 
 say("", "## 4. Parity with the shipped snow normals", "")

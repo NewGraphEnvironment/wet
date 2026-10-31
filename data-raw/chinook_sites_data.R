@@ -24,14 +24,17 @@
 #   - sites: one row per site (site_id, name, wsg_code, kind, target, the
 #     mouth for an ungauged site, km2, window sets)
 #   - change: per site, window set, statistic (mean, min7, cov_day) and
-#     window, each route's change 2011-2025 against the years before 1981
-#     (log, or days), % of normal and its 90 % interval, and years per period
+#     window, each route's change from 1951-1980 to 2016-2025 (log, or days),
+#     its 90 % interval, years per period and the interval's measured
+#     coverage (section 5 of the site report, #152)
 #   - scores: per site and window set, the extension race in the box (median
 #     NSE of ols, move1 and ratio, what #120's rule would pick, gauges, below
 #     #120's floor) and the carried departures held out (median and quartiles,
 #     gauges, usable, short-record median)
 #   - snow: the one-predictor snow fits (swe, doy) for every series: slope,
 #     90 % interval, R2, n
+#   - snow_change: each snow watershed's mean peak SWE (mm) and 50 % melt
+#     date (day of year) over 1951-1980 and 2016-2025, with years per period
 #   - normal: the ungauged site's published window normal per source and the
 #     pick, and the normal's error at its box gauges per window
 #   - gauges: every gauge a site's numbers rest on, with its role (target,
@@ -54,6 +57,7 @@
 #     1981-2010 typical flow (log), by route: measured and filled-in (with the
 #     90 % interval) at a gauged site, borrowed at every site; every year held
 #     to its line in the site report's per-year tables
+#   - periods: the comparison periods, ref 1951-1980 and recent 2016-2025
 #   - provenance: wet commit, build date, HYDAT release, the scripts' and the
 #     reports' md5s
 
@@ -98,8 +102,11 @@ report_of <- function(kind, site_id, group) {
   list(path = f, lines = readLines(f), md5 = unname(tools::md5sum(f)))
 }
 
+# the comparison periods, as section 5 of every site report names them (#152)
+periods <- list(ref = 1951:1980, recent = 2016:2025)
 sites <- list()
 change <- list()
+snow_change <- list()
 scores <- list()
 snow <- list()
 normal <- list()
@@ -118,26 +125,43 @@ for (id in site_ids) {
     rs <- report_of("snow", id, group)
     reports[c(rp$path, rs$path)] <- c(rp$md5, rs$md5)
 
-    # the change, each route, held to section 4's table
+    # the change from 1951-1980 to 2016-2025, each route, with its interval's coverage, held to
+    # section 5's table (#152)
+    held(sprintf("## 5. The change from %d-%d to %d-%d (#152)", min(periods$ref), max(periods$ref),
+                 min(periods$recent), max(periods$recent)), rp$lines, paste(id, group, "section 5"))
     for (m in x$mx) {
       if (m$v == "q_max") next
       days <- is_days(m$v)
-      if (site$kind == "extend") {
-        held(sprintf("  %-9s %-9s %4d %4d %9s %9s %18s   %9s %9s %18s %4d %4d", sub("^q_", "", m$v), m$p, m$n_pre, m$n_post,
-                     fmt(m$diff, 3), if (days) "-" else pc(m$diff, FALSE), ci_txt(m$ci, days),
-                     fmt(m$carried, 3), if (days) "-" else pc(m$carried, FALSE), ci_txt(m$ci_c, days), m$n_pre_c, m$n_post_c),
-             rp$lines, paste(id, group, m$v, m$p))
+      p <- m$p152
+      ext <- !is.null(p$lv)
+      held(sprintf("  %-9s %-9s %4s %4s %9s %9s %18s %6s   %4d %4d %9s %9s %18s %6s", sub("^q_", "", m$v), m$p,
+                   if (ext) length(p$i1) else "-", if (ext) length(p$i2) else "-", if (ext) fmt(p$diff, 3) else "-",
+                   if (ext && !days) pc(p$diff, FALSE) else "-", if (ext) ci_txt(p$ci, days) else "-",
+                   if (ext) fmt(p$cover, 3) else "-", length(p$i1_c), length(p$i2_c), fmt(p$carried, 3),
+                   if (days) "-" else pc(p$carried, FALSE), ci_txt(p$ci_c, days), fmt(p$cover_c, 3)),
+           rp$lines, paste(id, group, m$v, m$p))
+      if (ext) {
         change[[length(change) + 1]] <- data.frame(site_id = id, group = group, statistic = sub("^q_", "", m$v),
-          window = m$p, route = "extended", change = m$diff, lo = m$ci[1], hi = m$ci[2], n_pre = m$n_pre,
-          n_post = m$n_post)
-      } else {
-        held(sprintf("  %-9s %-9s %4d %4d %9s %9s %18s %8d", sub("^q_", "", m$v), m$p, m$n_pre_c, m$n_post_c,
-                     fmt(m$carried, 3), if (days) "-" else pc(m$carried, FALSE), ci_txt(m$ci_c, days), m$n_resid_c),
-             rp$lines, paste(id, group, m$v, m$p))
+          window = m$p, route = "extended", change = p$diff, lo = p$ci[1], hi = p$ci[2], n_pre = length(p$i1),
+          n_post = length(p$i2), cover = p$cover)
       }
       change[[length(change) + 1]] <- data.frame(site_id = id, group = group, statistic = sub("^q_", "", m$v),
-        window = m$p, route = "carried", change = m$carried, lo = m$ci_c[1], hi = m$ci_c[2], n_pre = m$n_pre_c,
-        n_post = m$n_post_c)
+        window = m$p, route = "carried", change = p$carried, lo = p$ci_c[1], hi = p$ci_c[2], n_pre = length(p$i1_c),
+        n_post = length(p$i2_c), cover = p$cover_c)
+    }
+
+    # snow over the same periods at each watershed, held to the snow report's #152 table
+    for (g in names(s$snow)) {
+      sw <- s$snow[[g]]
+      a <- sw[sw$year %in% periods$ref, ]
+      b <- sw[sw$year %in% periods$recent, ]
+      held(sprintf("  %-8s %10s %10s %8s %10s %10s %8s %4d %4d", g, fmt(mean(a$swe_max), 1), fmt(mean(b$swe_max), 1),
+                   fmt(mean(b$swe_max) - mean(a$swe_max), 1), fmt(mean(a$snowmelt_doy_50), 1),
+                   fmt(mean(b$snowmelt_doy_50), 1), fmt(mean(b$snowmelt_doy_50) - mean(a$snowmelt_doy_50), 1), nrow(a),
+                   nrow(b)), rs$lines, paste(id, group, "snow change", g))
+      snow_change[[length(snow_change) + 1]] <- data.frame(site_id = id, group = group, gauge = g,
+        swe_ref = mean(a$swe_max), swe_recent = mean(b$swe_max), doy_ref = mean(a$snowmelt_doy_50),
+        doy_recent = mean(b$snowmelt_doy_50), n_ref = nrow(a), n_recent = nrow(b))
     }
 
     # the window mean's departures year by year, each year held to its line in the per-year tables
@@ -381,12 +405,13 @@ if (!isTRUE(all.equal(wf$q_m3s, nb$normal[match(wf$window, nb$window)]))) {
 
 values <- list(
   sites = do.call(rbind, sites), change = do.call(rbind, change), scores = do.call(rbind, scores),
-  snow = do.call(rbind, snow), normal = do.call(rbind, normal),
+  snow = do.call(rbind, snow), snow_change = do.call(rbind, snow_change), normal = do.call(rbind, normal),
   gauges = unique(do.call(rbind, gauges)), windows = do.call(rbind, windows), use = use, use_obs = use_obs,
-  score_settings = do.call(rbind, score_rows), daily = daily, years = do.call(rbind, years),
+  score_settings = do.call(rbind, score_rows), daily = daily, years = do.call(rbind, years), periods = periods,
   provenance = list(wet_commit = wet_commit, built = format(Sys.Date()), hydat = release, scripts = md5,
                     reports = reports))
 rownames(values$change) <- NULL
 rownames(values$snow) <- NULL
+rownames(values$snow_change) <- NULL
 saveRDS(values, out, compress = "xz")
 message("chinook_sites_values.rds: ", round(file.size(out) / 1024), " KB; ", nrow(values$change), " change rows")

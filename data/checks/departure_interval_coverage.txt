@@ -1,0 +1,12 @@
+# The measured article's change range: coverage at its own years (#152)
+
+Inputs: inst/vignette-data/station_daily.rds (md5 2ab0f5833ebbac35161c593ac248b7a3); baseline 1981-2010, recent 2016-2025.
+Rule (this script's header): 2000 simulated records with no change per gauge and window, lognormal with the gauge's own 1981-2010 log mean and SD; the article's interval with 1000 draws; set.seed(152). A 90 % range only if every coverage is at least 0.87.
+
+  gauge    window       base recent  sdlog  cover
+  08EE003  Migration      18     10  0.246  0.867
+  08EE003  Spawning       18     10  0.835  0.853
+  08EE013  Migration      30      9  0.358  0.867
+  08EE013  Spawning       29      9  0.736  0.834
+
+OUTCOME: coverage below 0.87 at 4 of 4, so the article calls it the middle 90 % of resampled changes and rests no count on it.

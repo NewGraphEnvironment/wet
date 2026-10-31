@@ -118,6 +118,27 @@
 # pooled), under set.seed(126) after the extension's bootstrap, so the
 # extension's draws are #120's. For an ungauged site this is the headline.
 #
+# New in #152, at every site, deciding nothing here: the change on both routes
+# from 1951-1980 to 2016-2025 (the periods the comparison article uses, set by
+# the user at #152's gate), for every statistic and window, computed after
+# #126's draws so that neither #120's nor #126's move. Each route's change is
+# its mean over the 2016-2025 years minus its mean over the 1951-1980 years,
+# with a 90 % interval from 2000 draws that resample years within each period
+# and add a held-out residual as #120 (extended years only) and #126 (every
+# carried year) do, under set.seed(152). Reported with each period's years,
+# and the gauges the 1951-1980 years rest on: the extension donors with the
+# years each supplies, and the carried donors named in any of those years.
+# Then the interval's coverage, measured: for each change with an interval,
+# 1000 simulated series with no change, each period's years drawn normal with
+# the series' own standard deviation over that period's years (an extended
+# series keeps which years are observed), each put through the same interval
+# with 500 draws and the same residual pool; the share of the 1000 whose
+# interval covers zero, under set.seed(1520). The comparison article calls the
+# interval a 90 % range only if every coverage it draws on is at least 0.87;
+# otherwise it calls it the middle 90 % of resampled changes and rests no count
+# on it. The rds gains `p152` in each `mx` entry, after the parity gate's
+# `mx_core` is taken, so the gate is unchanged.
+#
 # ---- the parity gate ----------------------------------------------------------------------------
 #
 # The maxan row under the BULK windows must reproduce #120's run. Its `mx`
@@ -821,6 +842,72 @@ for (nm in names(mx)) {
   mx[[nm]]$n_resid_c <- length(res_c)
 }
 
+# new in #152: the change from 1951-1980 to 2016-2025 on both routes, after #126's draws
+ref_years <- 1951:1980
+recent_years <- 2016:2025
+# the interval as #120 and #126 draw it: resample years in each period, a residual added to each
+# year that gets one (extended years, or every carried year)
+interval_of <- function(y, add, res, i1, i2, n = n_boot) {
+  if (!length(res) || length(i1) < 2 || length(i2) < 2) return(c(NA_real_, NA_real_))
+  b <- vapply(seq_len(n), function(k) {
+    ip <- i1[sample.int(length(i1), replace = TRUE)]
+    iq <- i2[sample.int(length(i2), replace = TRUE)]
+    z <- y + ifelse(add, sample(res, length(y), replace = TRUE), 0)
+    mean(z[iq]) - mean(z[ip])
+  }, 0)
+  stats::quantile(b, c(q_lo, q_hi), names = FALSE)
+}
+# its coverage: series with no change, each period normal with the series' own SD there, put through
+# the same interval (vectorised over draws: column j is draw j)
+cover_of <- function(y, add, res, i1, i2, n_sim = 1000, n_draw = 500) {
+  if (!length(res) || length(i1) < 2 || length(i2) < 2) return(NA_real_)
+  one <- function(z, a, n) {
+    m <- z + matrix(sample(res, n * n_draw, replace = TRUE), n) * a
+    idx <- matrix(sample.int(n, n * n_draw, replace = TRUE), n) + rep((seq_len(n_draw) - 1) * n, each = n)
+    colMeans(matrix(m[idx], n))
+  }
+  n1 <- length(i1)
+  n2 <- length(i2)
+  s1 <- stats::sd(y[i1])
+  s2 <- stats::sd(y[i2])
+  mean(vapply(seq_len(n_sim), function(k) {
+    d <- one(stats::rnorm(n2, 0, s2), add[i2], n2) - one(stats::rnorm(n1, 0, s1), add[i1], n1)
+    q <- stats::quantile(d, c(q_lo, q_hi), names = FALSE)
+    q[1] <= 0 && q[2] >= 0
+  }, TRUE))
+}
+set.seed(152)
+for (nm in names(mx)) {
+  m <- mx[[nm]]
+  cr <- crun_for(m$v, m$p)
+  a <- m$a
+  p <- list(res_c = if (is.null(cr)) numeric() else cr$resid, i1_c = which(a$year %in% ref_years),
+            i2_c = which(a$year %in% recent_years))
+  p$carried <- mean(a$anomaly[p$i2_c]) - mean(a$anomaly[p$i1_c])
+  p$ci_c <- interval_of(a$anomaly, rep(TRUE, nrow(a)), p$res_c, p$i1_c, p$i2_c)
+  p$donors_c <- sort(unique(sub(":.*", "", unlist(strsplit(a$donors[p$i1_c], " ")))))
+  if (!is.null(m$e)) {
+    e <- m$e
+    p$res_e <- if (m$v == "q_max") numeric() else run_for(m$v, m$p)$r[[paste0("r_", ship)]]
+    p$lv <- tr_of(m$v)(e$value)
+    p$ext <- e$source == "extended"
+    p$i1 <- which(e$year %in% ref_years)
+    p$i2 <- which(e$year %in% recent_years)
+    p$diff <- mean(p$lv[p$i2]) - mean(p$lv[p$i1])
+    p$ci <- interval_of(p$lv, p$ext, p$res_e, p$i1, p$i2)
+    p$donors_e <- table(ifelse(is.na(e$donor[p$i1]), "observed", e$donor[p$i1]))
+  }
+  mx[[nm]]$p152 <- p
+}
+set.seed(1520)
+for (nm in names(mx)) {
+  p <- mx[[nm]]$p152
+  a <- mx[[nm]]$a
+  p$cover_c <- cover_of(a$anomaly, rep(TRUE, nrow(a)), p$res_c, p$i1_c, p$i2_c)
+  if (!is.null(p$lv)) p$cover <- cover_of(p$lv, p$ext, p$res_e, p$i1, p$i2)
+  mx[[nm]]$p152 <- p
+}
+
 # ---- the parity gate (maxan, BULK) -----------------------------------------------------------
 if (site$site_id == "maxan" && wname == "BULK") {
   prds <- file.path("data", "departure", sprintf("departure_pilot_%s.rds", release))
@@ -1011,6 +1098,35 @@ if (site$kind == "extend") {
   }
   pub_out <- list(normal = normal, sources = wf, pick = pk$source, segment = mouth$segment, digest = pub$digest,
                   parts = pub$mouth_parts, error = err, km2 = mouth$km2)
+}
+
+say("", sprintf("## 5. The change from %d-%d to %d-%d (#152)", min(ref_years), max(ref_years), min(recent_years),
+                max(recent_years)), "",
+    sprintf("Each route's mean over its %d-%d years minus its mean over its %d-%d years (log, or days for cov_day); 90 %% interval from %d draws resampling years in each period and adding a held-out residual to each extended year, or to every carried year; set.seed(152).",
+            min(recent_years), max(recent_years), min(ref_years), max(ref_years), n_boot),
+    "cover: the share of 1000 simulated series with no change whose interval covers zero (each period normal with the series' own SD there, 500 draws each, the same residual pool); set.seed(1520). The comparison article calls the interval a 90 % range only where every cover it draws on is at least 0.87.",
+    "", sprintf("  %-9s %-9s %4s %4s %9s %9s %18s %6s   %4s %4s %9s %9s %18s %6s", "statistic", "window", "ref", "rec",
+                "extended", "% normal", "90 % interval", "cover", "ref", "rec", "carried", "% normal", "90 % interval",
+                "cover"))
+for (m in mx) {
+  days <- is_days(m$v)
+  p <- m$p152
+  ext <- !is.null(p$lv)
+  say(sprintf("  %-9s %-9s %4s %4s %9s %9s %18s %6s   %4d %4d %9s %9s %18s %6s", sub("^q_", "", m$v), m$p,
+              if (ext) length(p$i1) else "-", if (ext) length(p$i2) else "-", if (ext) fmt(p$diff, 3) else "-",
+              if (ext && !days) pc(p$diff, FALSE) else "-", if (ext) ci_txt(p$ci, days) else "-",
+              if (ext) fmt(p$cover, 3) else "-", length(p$i1_c), length(p$i2_c), fmt(p$carried, 3),
+              if (days) "-" else pc(p$carried, FALSE), ci_txt(p$ci_c, days), fmt(p$cover_c, 3)))
+}
+say("", sprintf("The gauges the %d-%d years rest on (extended: years per source; carried: every donor named in those years):",
+                min(ref_years), max(ref_years)))
+for (m in mx) {
+  p <- m$p152
+  say(sprintf("  %s %s: %scarried %s.", m$p, sub("^q_", "", m$v),
+              if (is.null(p$donors_e)) "" else sprintf("extended %s; ",
+                                                     paste(sprintf("%d %s", as.integer(p$donors_e), names(p$donors_e)),
+                                                           collapse = ", ")),
+              paste(p$donors_c, collapse = ", ")))
 }
 
 # the parity gate's verbatim lines

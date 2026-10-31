@@ -1,13 +1,5 @@
 % written by data-raw/vignette_bib.R for flow-departure-normal.Rmd from the packages' citation() and Zotero (group library); do not edit
 
-@Manual{Kendall,
-  title = {{Kendall: Kendall Rank Correlation and Mann-Kendall Trend Test}},
-  author = {A.I. McLeod},
-  year = {2025},
-  url = {https://CRAN.R-project.org/package=Kendall},
-  doi = {10.32614/CRAN.package.Kendall},
-}
-
 @article{arguez_vose2011DefinitionStandard,
   title = {The {{Definition}} of the {{Standard WMO Climate Normal}}: {{The Key}} to {{Deriving Alternative Climate Normals}}},
   author = {Arguez, Anthony and Vose, Russell S.},
@@ -46,6 +38,25 @@
   url = {https://github.com/NewGraphEnvironment/cd},
 }
 
+@Manual{climr,
+  title = {{climr: Downscaling climate data in R}},
+  author = {Kiri Daust and Colin Mahony and Bruno Tremblay and Ceres Barros},
+  year = {2024},
+  url = {https://bcgov.github.io/climr/},
+}
+
+@article{craig_etal2020Flexiblewatershed,
+  title = {Flexible Watershed Simulation with the {{Raven}} Hydrological Modelling Framework},
+  author = {Craig, James R. and Brown, Genevieve and Chlumsky, Robert and Jenkinson, R. Wayne and Jost, Georg and Lee, Konhee and Mai, Juliane and Serrer, Martin and Sgro, Nicholas and Shafii, Mahyar and Snowdon, Andrew P. and Tolson, Bryan A.},
+  date = {2020-07},
+  journaltitle = {Environmental Modelling \& Software},
+  volume = {129},
+  pages = {104728},
+  issn = {1364-8152},
+  doi = {10.1016/j.envsoft.2020.104728},
+  url = {https://doi.org/10.1016/j.envsoft.2020.104728}
+}
+
 @online{environmentandclimatechangecanada2021NationalWater,
   type = {service description},
   title = {National {{Water Data Archive}}: {{HYDAT}}},
@@ -79,6 +90,7 @@
   title = {Skeena {{Fish Populations}} and Their {{Habitat}}},
   author = {Gottesfeld, A and Rabnett, K},
   date = {2007},
+  url = {https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/327687.pdf},
   organization = {{Skeena Fisheries Commission}},
 }
 
@@ -89,13 +101,17 @@
   url = {https://github.com/NewGraphEnvironment/gq},
 }
 
-@book{kendall1975RankCorrelation,
-  title = {Rank {{Correlation Methods}}},
-  author = {Kendall, Maurice G.},
-  date = {1975},
-  edition = {4},
-  publisher = {Charles Griffin},
-  location = {London}
+@article{hansen_etal2012Perceptionclimate,
+  title = {Perception of Climate Change},
+  author = {Hansen, James and Sato, Makiko and Ruedy, Reto},
+  date = {2012-08-06},
+  journaltitle = {Proceedings of the National Academy of Sciences},
+  volume = {109},
+  number = {37},
+  issn = {0027-8424},
+  doi = {10.1073/pnas.1205276109},
+  url = {https://doi.org/10.1073/pnas.1205276109},
+  langid = {english},
 }
 
 @Manual{knitr,
@@ -105,18 +121,6 @@
   url = {https://yihui.org/knitr/},
 }
 
-@article{mann1945NonparametricTests,
-  title = {Nonparametric {{Tests Against Trend}}},
-  author = {Mann, Henry B.},
-  date = {1945},
-  journaltitle = {Econometrica},
-  volume = {13},
-  number = {3},
-  pages = {245--259},
-  doi = {10.2307/1907187},
-  url = {https://doi.org/10.2307/1907187}
-}
-
 @misc{norris2024smnorrisfwapg,
   title = {{fwapg}},
   author = {Norris, Simon},
@@ -124,16 +128,16 @@
   url = {https://github.com/smnorris/fwapg},
 }
 
-@article{sen1968EstimatesRegression,
-  title = {Estimates of the {{Regression Coefficient Based}} on {{Kendall}}'s {{Tau}}},
-  author = {Sen, Pranab Kumar},
-  date = {1968},
-  journaltitle = {Journal of the American Statistical Association},
-  volume = {63},
-  number = {324},
-  pages = {1379--1389},
-  doi = {10.1080/01621459.1968.10480934},
-  url = {https://doi.org/10.1080/01621459.1968.10480934}
+@report{schnorbus2018VICGlacierVICGL,
+  title = {{{VIC-Glacier}} ({{VIC-GL}}): {{Description}} of {{VIC}} Model Changes and Upgrades},
+  author = {Schnorbus, Markus A.},
+  date = {2018-02-01},
+  eprint = {1828/21631},
+  eprinttype = {hdl},
+  institution = {Pacific Climate Impacts Consortium, University of Victoria},
+  location = {Victoria, BC},
+  url = {https://hdl.handle.net/1828/21631},
+  eid = {Volume 1}
 }
 
 @Book{sf,
@@ -143,15 +147,6 @@
   publisher = {{Chapman and Hall/CRC}},
   url = {https://r-spatial.org/book/},
   doi = {10.1201/9780429459016},
-}
-
-@article{theil1950RankInvariantMethod,
-  title = {A {{Rank-Invariant Method}} of {{Linear}} and {{Polynomial Regression Analysis}}},
-  author = {Theil, Henri},
-  date = {1950},
-  journaltitle = {Proceedings of the Koninklijke Nederlandse Akademie van Wetenschappen},
-  volume = {53},
-  pages = {386--392}
 }
 
 @Article{tidyhydat,
@@ -166,6 +161,17 @@
   journal = {The Journal of Open Source Software},
 }
 
+@article{werner_etal2019longtermtemporally,
+  title = {A Long-Term, Temporally Consistent, Gridded Daily Meteorological Dataset for Northwestern {{North America}}},
+  author = {Werner, A. T. and Schnorbus, M. A. and Shrestha, R. R. and Cannon, A. J. and Zwiers, F. W. and Dayon, G. and Anslow, F.},
+  date = {2019-01-15},
+  journaltitle = {Scientific Data},
+  volume = {6},
+  pages = {180299},
+  doi = {10.1038/sdata.2018.299},
+  url = {https://doi.org/10.1038/sdata.2018.299}
+}
+
 @Manual{wet,
   title = {{wet: Stream Flow and Water Temperature for the BC Freshwater Atlas}},
   author = {Allan Irvine},
@@ -175,11 +181,15 @@
   doi = {10.5281/zenodo.23305781},
 }
 
-@Manual{zyp,
-  title = {{zyp: Zhang + Yue-Pilon Trends Package}},
-  author = {David Bronaugh and Arelia Schoeneberg},
-  year = {2023},
-  url = {https://CRAN.R-project.org/package=zyp},
-  doi = {10.32614/CRAN.package.zyp},
+@report{worldmeteorologicalorganization2017WMOGuidelines,
+  type = {WMO-No. 1203},
+  title = {{{WMO Guidelines}} on the {{Calculation}} of {{Climate Normals}}},
+  author = {{World Meteorological Organization}},
+  date = {2017},
+  institution = {World Meteorological Organization},
+  location = {Geneva},
+  url = {https://library.wmo.int/idurl/4/55797},
+  eid = {WMO-No. 1203},
+  langid = {english}
 }
 

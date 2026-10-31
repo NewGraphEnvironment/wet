@@ -63,18 +63,22 @@ bib_write <- function(rmd) {
     lit <- gsub("\n  organization = \\{([^{}\n]*)\\}(,?)(?=\n)", "\n  organization = {{\\1}}\\2", lit, perl = TRUE)
     # software held in Zotero as a repository: pandoc prints @software's full date ("Released
     # January 1") and re-cases its title ("Smnorris/Fwapg"), so it becomes @misc dated by year,
-    # titled by the repository's own name, braced
+    # titled by the repository's own name, braced; a url naming a branch (a fork's
+    # .../tree/<branch>) adds the branch to the title, so the fork and its upstream read apart
     sw <- grepl("^@software\\{", lit)
-    repo <- sub("^.*\n  url = \\{https://github\\.com/[^/]+/([^/}]+)/?\\},?\n.*$", "\\1", lit[sw])
+    url_re <- "^.*\n  url = \\{https://github\\.com/[^/]+/([^/}]+)(/tree/([^/}]+))?/?\\},?\n.*$"
+    repo <- sub(url_re, "\\1", lit[sw])
+    branch <- sub(url_re, "\\3", lit[sw])
     no_repo <- repo == lit[sw]
     if (any(no_repo)) stop("software without a GitHub url: ", paste(names(lit)[sw][no_repo], collapse = ", "))
     lit[sw] <- sub("^@software\\{", "@misc{", lit[sw])
     lit[sw] <- sub("\n  date = \\{([0-9]{4})[^}]*\\}", "\n  date = {\\1}", lit[sw])
-    lit[sw] <- mapply(function(e, r) {
+    lit[sw] <- mapply(function(e, r, b) {
       at <- regexpr("\\n  title = \\{[^\\n]*\\},(?=\\n)", e, perl = TRUE)
       if (at < 0) stop("no title line in a software entry", call. = FALSE)
-      paste0(substr(e, 1, at - 1), "\n  title = {{", r, "}},", substr(e, at + attr(at, "match.length"), nchar(e)))
-    }, lit[sw], repo, USE.NAMES = FALSE)
+      ttl <- if (nzchar(b)) paste0(r, ", ", b, " branch") else r
+      paste0(substr(e, 1, at - 1), "\n  title = {{", ttl, "}},", substr(e, at + attr(at, "match.length"), nchar(e)))
+    }, lit[sw], repo, branch, USE.NAMES = FALSE)
   }
   entries <- c(pkg, lit)
   got <- c(keys[is_pkg], names(lit))
