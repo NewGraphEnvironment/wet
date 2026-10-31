@@ -97,8 +97,10 @@ site_windows <- function(site, dir = file.path("inst", "vignette-data")) {
 # reports print, except the lines named below, which the site report words
 # differently (titles, provenance, the pilot's own naming). Each exemption
 # must match exactly one tracked line, so the list cannot grow silently. The
-# comparison is by set, not by order. It refuses a tracked report without
-# the parts it compares rather than passing it.
+# comparison is by set, not by order. It refuses a tracked report with no
+# table rows, an exemption that matches other than one line, or (the pilot's)
+# no single change table; it does not check that the tracked report is
+# complete, which only a hand edit to the committed file could undo.
 
 site_parity_exempt <- list(
   pilot = c("^# ", "^HYDAT 20260717, ", "^Windows \\(CH, ", "^Pilot gauges, complete ",
