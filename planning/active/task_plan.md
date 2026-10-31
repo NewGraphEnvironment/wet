@@ -76,7 +76,7 @@ All four were approved with the plan by the user, 2026-10-30.
 - [ ] m4: put the main checkout back on `main` and pull (this also clears the pull owed since #152)
 
 ## Validation
-- [ ] Tests pass (`devtools::test()`), lintr clean on touched R
+- [x] Tests pass (`devtools::test()`), lintr clean on touched R
 - [ ] `/code-check` clean (once over the branch with `/code-check branch`)
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion

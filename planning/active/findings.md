@@ -46,7 +46,23 @@ Mutation table after (a)-(b), blocks failed of 6: none 0; no column cut 4; chang
 no exemption guard 1; table rows only (prose ungated) 2; snow always passes 2; cd row not exempt 1;
 no empty-report guard 1.
 
+## Script gates fire before writing (m4, 2026-10-31, at 6765184)
+
+Frozen copies against a doctored tracked report, restored by an EXIT trap: `departure_site.R maxan` with
+one digit of 1931's migration mean changed in `departure_pilot_20260717.txt` exits 1 ("parity: 1 lines of
+the tracked pilot report missing ...: 1931 6.06 ..."); `departure_site_snow.R maxan` with one slope digit
+changed in `departure_snow_20260717.txt` exits 1 likewise. Both left the site report and rds mtimes
+unchanged; m4's tree clean after.
+
+## Map rebuild churn (filed as #155)
+
+`short_record_map.rds` rebuilt on m4 and on m1 differs from the committed file only in the lakes layer:
+row order (`vm_lakes()` has no `ORDER BY`) and one vertex more on Tahtsa Reach and Ootsa Lake. Not caused
+by #146; the committed map kept.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
+| First site-gate mutation never applied: `perl -pi -e 's/.../ if !$done++ && /.../'` spends `$done` on line 1 | plain `s/^  1931     6\.05 /  1931     6.06 /`; check `git diff --stat` shows the edit before reading the run's exit |
+| Map comparison read "streams" as the differing layer | the 4th layer is `lakes`; index layers by name |
