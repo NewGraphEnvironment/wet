@@ -30,7 +30,7 @@ vd <- function(f) system.file("vignette-data", f, package = "wet")
 v <- readRDS(vd("short_record_values.rds"))
 map <- readRDS(vd("short_record_map.rds"))
 prov <- v$provenance
-maxan <- "08EE018"
+maxan <- v$site$target_station   # the site row's target (scripts/departure_sites.csv)
 
 to_title <- function(x) {
   vapply(strsplit(tolower(x), " "), function(w) {
@@ -130,8 +130,10 @@ about two thirds. The migration-window change is small and uncertain:
 
 ```{r map-data}
 catch <- map$catchments
-catch$part <- c("08EE003" = "catchment_main", "08EE013" = "catchment_buck",
-                "08EE018" = "catchment_maxan")[catch$station_number]
+# the site row's two snow gauges, the Bulkley near Houston and Buck Creek, then its target
+catch$part <- stats::setNames(c("catchment_main", "catchment_buck", "catchment_maxan"),
+                              c(v$site$snow_gauges, maxan))[catch$station_number]
+stopifnot(!anyNA(catch$part))
 catch <- catch[order(match(catch$part, c("catchment_main", "catchment_buck", "catchment_maxan"))), ]
 # the caption says Maxan's and Buck Creek's catchments lie inside the Bulkley gauge's
 share_inside <- function(id) {

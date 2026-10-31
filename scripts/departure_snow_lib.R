@@ -1,5 +1,6 @@
 # The pilot gauges' watersheds on fwapg (#121), shared by
-# data-raw/snow_pilot_data.R and scripts/departure_snow.R. Needs wet loaded
+# data-raw/snow_pilot_data.R and scripts/departure_site_snow.R (and, until
+# #146 retired it, scripts/departure_snow.R). Needs wet loaded
 # (wet_station_snap(), wet_hydat_connect()).
 
 # Each gauge's fundamental watershed and its upstream polygon count, measured

@@ -8,7 +8,8 @@
 #   - stations: every gauge the article names (inst/vignette-data/short_record_values.rds,
 #     `gauges`), from HYDAT STATIONS, with gross drainage area and role
 #   - catchments: the upstream watersheds of Maxan Creek (08EE018), Buck Creek
-#     (08EE013) and the Bulkley near Houston (08EE003), from each one's FWA
+#     (08EE013) and the Bulkley near Houston (08EE003), the site row's target
+#     and snow gauges (values$site, #146), from each one's FWA
 #     snap (wet_station_snap()) and fwapg's fwa_watershedatmeasure()
 #   - streams: order >= 5 in the map extent, plus the whole of the Bulkley
 #     River, Buck Creek, Maxan Creek and Foxy Creek (Maxan's tributary, which the
@@ -31,9 +32,11 @@ sf::sf_use_s2(FALSE)
 
 values <- readRDS(file.path("inst", "vignette-data", "short_record_values.rds"))
 gauges <- values$gauges
-catchment_ids <- c("08EE003", "08EE013", "08EE018")   # the three the snow fits sample
-blk <- c(bulkley = 360873822L, buck = 360886221L, maxan = 360881038L,   # by key: GNIS names repeat across BC
-         foxy = 360877225L)
+site <- values$site
+catchment_ids <- c(site$snow_gauges, site$target_station)   # the three the snow fits sample
+# by key, since GNIS names repeat across BC: the target's stream from its site row, and the
+# streams the article names around it
+blk <- c(bulkley = 360873822L, buck = 360886221L, maxan = site$blue_line_key, foxy = 360877225L)
 hydat <- wb_hydat(wb_release())
 out <- file.path("inst", "vignette-data", "short_record_map.rds")
 simplify_m <- 50

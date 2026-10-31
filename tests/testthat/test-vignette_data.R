@@ -218,7 +218,11 @@ test_that("the monthly map holds the three Bulkley gauges and their nested catch
 test_that("the short-record values carry Maxan's series, its scores and their provenance", {
   v <- readRDS(vignette_data("short_record_values.rds"))
   expect_named(v, c("extended", "carried", "change", "scores", "snow", "departures", "snow_change", "fits",
-                    "gauges", "provenance"))
+                    "gauges", "site", "provenance"))
+  # Maxan's row of scripts/departure_sites.csv (#146)
+  expect_identical(v$site$site_id, "maxan")
+  expect_identical(v$site$target_station, "08EE018")
+  expect_identical(v$site$snow_gauges, c("08EE003", "08EE013"))
   # Maxan's five measured summers, each window filled to 1931-2024
   for (w in c("migration", "spawning")) {
     e <- v$extended[v$extended$window == w, ]

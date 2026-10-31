@@ -1,0 +1,87 @@
+# Findings — Move the Maxan pilot onto the site table and retire departure_pilot.R and departure_snow.R (#146)
+
+## Issue context
+
+**If we do it:** Maxan's pilot, snow regression, data, map and article run from the same site table as the #126 sites, so there is one code path for the method, and a fix lands once. **If we never do:** `scripts/departure_pilot.R` and `scripts/departure_snow.R` stay as copies of `scripts/departure_site.R` and `scripts/departure_site_snow.R`, and an edit to one silently diverges from the other.
+
+#126 generalised the Maxan pilot (#120) and snow regression (#121) to `scripts/departure_sites.csv`. Maxan has a row there only for the parity gates, which make `departure_site.R maxan` reproduce the pilot's series exactly and `departure_site_snow.R maxan` the snow fits.
+
+- Point `data-raw/short_record_vignette_data.R` and `data-raw/short_record_vignette_map.R` at the site runs (`departure_site_maxan_bulk_20260717.rds`), and key the article's hard-coded gauges and labels on the site row.
+- Retire `scripts/departure_pilot.R` and `scripts/departure_snow.R`, keeping their tracked reports as #120's and #121's record. Turn the parity gates into a test against those reports.
+- `scripts/departure_pcic.R` (#122) copies the Maxan box too; give it a site id.
+
+Relates to #120, #121, #122, #126, #130.
+
+
+## Parity helpers: mutation table (Phase 1, 2026-10-30)
+
+`tests/testthat/test-departure_site_parity.R` against `scripts/departure_site_lib.R`, each mutation in a
+scratch copy (test file and lib copied, `data/checks` linked), `testthat::test_file()` blocks failed of 5:
+
+| mutation | blocks red |
+|---|---|
+| none | 0 |
+| no column cut (site change rows compared whole) | 3 |
+| prose lines not compared | 1 |
+| change table not compared | 1 |
+| snow helper always passes | 1 |
+| no guard on a tracked report with no rows | 1 |
+| no guard on missing prose lines | 1 |
+
+## Plan review (2026-10-30, Plan agent): what was acted on
+
+No blockers. Acted on: (a) the gate compared table rows and three prose lines, so prose lines carrying
+results (donor chain, pool and block counts, coverage) went unguarded, where the old `identical(mx)`
+protected the donor chain; the helpers now compare every non-blank line, less an exemption list in
+which each pattern must match exactly one tracked line; (b) the snow report's cd provenance rows are
+exempt, so a cd republish with unchanged values does not fail the gate; (c) the article diff against
+main will differ in the commit stamp and the software citation (expected); (d) Gosnell's report reads
+the live published build's digest, so a republish since #152 would move it for reasons outside #146.
+Not acted on: an ordered-subsequence check (set-based compare loses nothing on today's reports: the
+only duplicated row is the per-year table header); keying the article's remaining literals (labels,
+nudges, Buck in `share_inside`) on the row, which would add a second source of truth for one site's
+cartography.
+
+Mutation table after (a)-(b), blocks failed of 6: none 0; no column cut 4; change table not compared 1;
+no exemption guard 1; table rows only (prose ungated) 2; snow always passes 2; cd row not exempt 1;
+no empty-report guard 1.
+
+## Script gates fire before writing (m4, 2026-10-31, at 6765184)
+
+Frozen copies against a doctored tracked report, restored by an EXIT trap: `departure_site.R maxan` with
+one digit of 1931's migration mean changed in `departure_pilot_20260717.txt` exits 1 ("parity: 1 lines of
+the tracked pilot report missing ...: 1931 6.06 ..."); `departure_site_snow.R maxan` with one slope digit
+changed in `departure_snow_20260717.txt` exits 1 likewise. Both left the site report and rds mtimes
+unchanged; m4's tree clean after.
+
+## Map rebuild churn (filed as #155)
+
+`short_record_map.rds` rebuilt on m4 and on m1 differs from the committed file only in the lakes layer:
+row order (`vm_lakes()` has no `ORDER BY`) and one vertex more on Tahtsa Reach and Ootsa Lake. Not caused
+by #146; the committed map kept.
+
+## Code-check (branch), 2026-10-31
+
+| Round | Findings | Fixed | Accepted | Inside previous fix? |
+|-------|----------|-------|----------|----------------------|
+| 1 | 1 fragile: read_series() accepted a series whose site row (unhashed CSV) was not today's | 1 (8b8f7fb) | 0 | — |
+| 2 | Clean; a note that the helpers' comment overstated what they refuse | comment (8e63080) | 0 | n |
+| 3 | 1 fragile: the same mechanism on the window dates (life-history CSV via site_windows()) | 1 (13e2b3e) | 0 | y (same mechanism, one input over) |
+
+Ended by enumeration. Mechanism: a series file is trusted on its writer's md5, which does not cover every
+input. Every input `departure_site.R` and `departure_site_snow.R` read (listed from the code by grep, 12
+in all) and its cover when `short_record_vignette_data.R` accepts a maxan series: script code (md5);
+HYDAT (release; the cache refuses another VERSION); site row and window dates (`identical()`, rounds 1
+and 3; the window check fires on a doctored date, run on m4); fwapg snaps, cd's layers and catalog,
+`R/` code, `departure_snow_lib.R`'s watershed table (unhashed, but every bundled value is held to its line
+in the tracked site report, which the gates hold to #120's and #121's); the normals grid (parity table
+only, feeds no bundled value); the published catalog, `chinook_sites_use.txt` and the stations rds
+(ungauged sites only). Out of scope, predating the branch: `departure_site_snow.R` reading the site rds
+and `chinook_sites_data.R` check md5 and release only.
+
+## Errors Encountered
+
+| Error | Resolution |
+|-------|------------|
+| First site-gate mutation never applied: `perl -pi -e 's/.../ if !$done++ && /.../'` spends `$done` on line 1 | plain `s/^  1931     6\.05 /  1931     6.06 /`; check `git diff --stat` shows the edit before reading the run's exit |
+| Map comparison read "streams" as the differing layer | the 4th layer is `lakes`; index layers by name |

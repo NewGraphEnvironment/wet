@@ -3,17 +3,23 @@
 #
 #   WET_HYDAT_RELEASE=20260717 Rscript data-raw/short_record_vignette_data.R
 #
-# Reads the series the Maxan pilot and the snow regression save after their
-# reports (both gitignored):
-#   - data/departure/departure_pilot_20260717.rds (scripts/departure_pilot.R, #120)
-#   - data/departure/departure_snow_20260717.rds (scripts/departure_snow.R, #121)
+# Maxan is a row of scripts/departure_sites.csv (#146): the target, its snow
+# gauges and its windows (BULK) come from site_get("maxan"). Reads the series
+# the site run and its snow regression save after their reports (both
+# gitignored):
+#   - data/departure/departure_site_maxan_bulk_20260717.rds (scripts/departure_site.R)
+#   - data/departure/departure_site_snow_maxan_bulk_20260717.rds (scripts/departure_site_snow.R)
 # and refuses unless each one's code_md5 is the md5 of its script as committed
-# here, and R/, scripts/, data-raw/ and data/checks/ hold nothing uncommitted
-# (vd_commit()), so the commit the bundle names rebuilds it. Every number the
+# here, its site row and window dates are today's, and R/, scripts/,
+# data-raw/ and data/checks/ hold nothing uncommitted (vd_commit()), so the
+# commit the bundle names rebuilds it. Every number the
 # article can quote is held to its line in the tracked report it came from,
-# data/checks/departure_pilot_20260717.txt or departure_snow_20260717.txt, at
-# the precision the report prints; the held-out scores, which the series
-# files do not carry, are read from those lines.
+# data/checks/departure_site_maxan_bulk_20260717.txt or
+# departure_site_snow_maxan_bulk_20260717.txt, at the precision the report
+# prints; the held-out scores, which the series files do not carry, are read
+# from those lines. Those two reports reproduce #120's and #121's
+# (tests/testthat/test-departure_site_parity.R), which these values came from
+# until #146 retired the pilot scripts.
 #
 # Writes inst/vignette-data/short_record_values.rds, a list:
 #   - extended: Maxan's (08EE018) migration- and spawning-window mean flow,
@@ -36,35 +42,48 @@
 #     2011-2025
 #   - fits: the one-predictor snow fits (slope, 90 % interval, R2, n)
 #   - gauges: every gauge the article names, from HYDAT STATIONS, with its role
+#   - site: the site row's site_id, name, wsg_code, target_station,
+#     blue_line_key and snow_gauges, which the map script and the article key on
 #   - provenance: wet commit, build date, HYDAT release, cd's layer SHA, the
 #     two scripts' md5s and the two reports' md5s
 
 devtools::load_all(quiet = TRUE)
 source("scripts/wb_fit_lib.R")  # wb_release(), wb_hydat()
 source("scripts/vignette_data_lib.R")  # vd_commit()
+source("scripts/departure_site_lib.R")  # site_get(), site_windows()
 
 wet_commit <- vd_commit()
 release <- wb_release()
 if (release != "20260717") stop("the article's data are HYDAT 20260717's, not ", release, call. = FALSE)
 hydat <- wb_hydat(release)
 out <- file.path("inst", "vignette-data", "short_record_values.rds")
+site <- site_get("maxan")
+wname <- site$windows[1]   # BULK, the windows the article cites
+# the windows' dates as the site scripts read them (inst/vignette-data/life_history_bulk.csv), which no md5 covers
+site_win <- site_windows(site)[[wname]][c("window", "start", "end")]
 
 # ---- the two series files, each held to the script that made it ------------------------------
 read_series <- function(script) {
-  f <- file.path("data", "departure", sprintf("%s_%s.rds", script, release))
-  if (!file.exists(f)) stop("no ", f, ": run scripts/", script, ".R first", call. = FALSE)
+  f <- file.path("data", "departure", sprintf("%s_%s_%s_%s.rds", script, site$site_id, tolower(wname), release))
+  if (!file.exists(f)) stop("no ", f, ": run scripts/", script, ".R ", site$site_id, " first", call. = FALSE)
   x <- readRDS(f)
   md5 <- unname(tools::md5sum(file.path("scripts", paste0(script, ".R"))))
-  if (!identical(x$code_md5, md5) || !identical(x$release, release)) {
-    stop(f, " was made by another scripts/", script, ".R or release: rerun it", call. = FALSE)
+  # the site row and the window dates are read from files no md5 covers (scripts/departure_sites.csv,
+  # the life-history CSV), so the run's own copies of them must be today's
+  if (!identical(x$code_md5, md5) || !identical(x$release, release) || !identical(x$site, site) ||
+        !identical(x$windows, site_win)) {
+    stop(f, " was made by another scripts/", script, ".R, release, site row or windows: rerun it", call. = FALSE)
   }
   x
 }
-pilot <- read_series("departure_pilot")
-snow_rds <- read_series("departure_snow")
-pilot_report <- file.path("data", "checks", sprintf("departure_pilot_%s.txt", release))
-snow_report <- file.path("data", "checks", sprintf("departure_snow_%s.txt", release))
-pr <- readLines(pilot_report)
+srun <- read_series("departure_site")
+snow_rds <- read_series("departure_site_snow")
+report_of <- function(script) {
+  file.path("data", "checks", sprintf("%s_%s_%s_%s.txt", script, site$site_id, tolower(wname), release))
+}
+flow_report <- report_of("departure_site")
+snow_report <- report_of("departure_site_snow")
+pr <- readLines(flow_report)
 sr <- readLines(snow_report)
 
 # one line of a report, by an anchored pattern, or stop
@@ -83,19 +102,20 @@ near <- function(x, printed, digits, what) {
   }
 }
 
-maxan <- "08EE018"
+maxan <- site$target_station
 windows <- c("migration", "spawning")
+stopifnot(identical(srun$windows$window, windows), identical(snow_rds$windows$window, windows))
 
 # ---- Maxan's extended series ---------------------------------------------------------------------
 extended <- do.call(rbind, lapply(windows, function(w) {
-  e <- pilot$mx[[paste("q_mean", w)]]$e
+  e <- srun$mx[[paste("q_mean", w)]]$e
   stopifnot(all(e$station_number == maxan), all(e$source %in% c("observed", "extended")))
   data.frame(window = w, year = e$year, value = e$value, lower = e$lower, upper = e$upper,
              source = e$source, donor = ifelse(e$source == "observed", NA_character_, e$donor))
 }))
 # each year against the report's per-year table (m3/s, two decimals)
 for (w in windows) {
-  head_i <- grep(sprintf("^08EE018 per year, %s mean \\(m3/s\\)", w), pr)
+  head_i <- grep(sprintf("^%s per year, %s mean \\(m3/s\\)", maxan, w), pr)
   stopifnot(length(head_i) == 1)
   ex <- extended[extended$window == w, ]
   rows <- pr[head_i + 2 + seq_len(nrow(ex))]
@@ -108,14 +128,14 @@ for (w in windows) {
 
 # ---- the donor-carried departures --------------------------------------------------------------
 carried <- do.call(rbind, lapply(windows, function(w) {
-  a <- pilot$mx[[paste("q_mean", w)]]$a
+  a <- srun$mx[[paste("q_mean", w)]]$a
   stopifnot(all(a$station_number == maxan))
   data.frame(window = w, year = a$year, dep = a$anomaly, donors = a$donors)
 }))
 carried <- carried[!is.na(carried$dep), ]
 # each carried year against the per-year table's last column (% of normal, one decimal)
 for (w in windows) {
-  head_i <- grep(sprintf("^08EE018 per year, %s mean \\(m3/s\\)", w), pr)
+  head_i <- grep(sprintf("^%s per year, %s mean \\(m3/s\\)", maxan, w), pr)
   rows <- pr[head_i + 2 + seq_len(sum(extended$window == w))]
   yr <- as.integer(sub("^\\s*(\\d+).*", "\\1", rows))
   last <- sub(".*\\s(\\S+)$", "\\1", rows)
@@ -127,13 +147,16 @@ donor_ids <- function(s) sub(":.*", "", unlist(strsplit(s, " ")))
 carried_donors <- sort(unique(donor_ids(carried$donors)))
 
 # ---- the before/after changes ------------------------------------------------------------------
+# section 4's table (section 5's has rows of the same shape); each row prints the extension's change,
+# its % normal and interval, then the carried change, its % normal and interval, and the carried years
+sec4 <- pr[seq(grep("^## 4\\. ", pr), grep("^## 5\\. ", pr))]
 change <- do.call(rbind, lapply(c("mean", "min7"), function(v) do.call(rbind, lapply(windows, function(w) {
-  m <- pilot$mx[[paste(paste0("q_", v), w)]]
+  m <- srun$mx[[paste(paste0("q_", v), w)]]
   pct <- 100 * (exp(c(m$diff, m$ci)) - 1)
-  line <- one_line(pr, sprintf("^  %s\\s+%s\\s+\\d+\\s+\\d+\\s+-?[0-9.]+\\s+-?[0-9.]+\\s+-?[0-9.]+\\.\\.", v, w),
+  line <- one_line(sec4, sprintf("^  %s\\s+%s\\s+\\d+\\s+\\d+\\s+-?[0-9.]+\\s+-?[0-9.]+\\s+-?[0-9.]+\\.\\.", v, w),
                    paste("change", v, w))
   p <- nums(sub(sprintf("^  %s\\s+", v), "", line))   # the statistic's own digits (min7) dropped
-  stopifnot(p[1] == m$n_pre, p[2] == m$n_post, p[8] == m$n_pre_c, p[9] == m$n_post_c)
+  stopifnot(length(p) == 12, p[1] == m$n_pre, p[2] == m$n_post, p[11] == m$n_pre_c, p[12] == m$n_post_c)
   near(m$diff, p[3], 3, paste("change", v, w))
   near(pct, p[4:6], 1, paste("% normal", v, w))
   near(m$carried, p[7], 3, paste("carried", v, w))
@@ -165,7 +188,7 @@ scores <- do.call(rbind, lapply(names(setting), function(k) {
   two <- one_line(pr, sprintf("^  %s\\s+%s\\s+5\\s+-?[0-9.]+\\s+\\d+\\s+-?[0-9.]+\\s+[0-9.]+$", v, w),
                   paste("two routes", lab))
   t2 <- nums(sub(sprintf("^  %s\\s+%s", v, w), "", two))
-  m <- pilot$mx[[paste(paste0("q_", v), w)]]
+  m <- srun$mx[[paste(paste0("q_", v), w)]]
   near(m$obs_nse, t2[2], 2, paste("Maxan carried", lab))
   stopifnot(t2[1] == m$obs_n)
   data.frame(statistic = v, window = w, extension_gauges = e[1], extension_median = e[3],
@@ -177,7 +200,7 @@ stopifnot(nums(pool_line)[1] == scores$extension_gauges[1],
 
 # ---- snow, departures and the snow fits ---------------------------------------------------------
 gauges_snow <- names(snow_rds$snow)
-stopifnot(identical(gauges_snow, c("08EE003", "08EE013", maxan)))
+stopifnot(identical(gauges_snow, c(site$snow_gauges, maxan)))
 snow <- do.call(rbind, lapply(gauges_snow, function(g) {
   s <- snow_rds$snow[[g]]
   stopifnot(all(s$cover == 1))
@@ -214,9 +237,9 @@ for (k in seq_along(yrs)) {
   }
 }
 
-# the before/after snow table: 1950-1980 and 2011-2025, read from its own section (the parity
-# table below it has rows of the same shape)
-sec3 <- sr[seq(grep("^## 3\\. ", sr), grep("^## 4\\. ", sr))]
+# the before/after snow table: 1950-1980 and 2011-2025, the first table of its section (the
+# 1951-1980 table after it, and the parity table below, have rows of the same shape)
+sec3 <- sr[seq(grep("^## 3\\. ", sr), grep("^\\(swe_max in mm", sr)[1])]
 snow_change <- do.call(rbind, lapply(gauges_snow, function(g) {
   s <- snow[snow$gauge == g, ]
   pre <- s$year %in% 1950:1980
@@ -268,11 +291,12 @@ cd_sha <- sub(".*CD_SHA ([0-9a-f]+).*", "\\1", cd_line)
 stopifnot(grepl("^[0-9a-f]{40}$", cd_sha))
 provenance <- list(
   wet_commit = wet_commit, built = Sys.Date(), hydat = as.character(as.Date(release, "%Y%m%d")), cd_sha = cd_sha,
-  code_md5 = c(departure_pilot = pilot$code_md5, departure_snow = snow_rds$code_md5),
-  report_md5 = stats::setNames(unname(tools::md5sum(c(pilot_report, snow_report))), basename(c(pilot_report, snow_report)))
+  code_md5 = c(departure_site = srun$code_md5, departure_site_snow = snow_rds$code_md5),
+  report_md5 = stats::setNames(unname(tools::md5sum(c(flow_report, snow_report))), basename(c(flow_report, snow_report)))
 )
 values <- list(extended = extended, carried = carried, change = change, scores = scores, snow = snow,
                departures = departures, snow_change = snow_change, fits = fits, gauges = gauges,
+               site = srun$site[c("site_id", "name", "wsg_code", "target_station", "blue_line_key", "snow_gauges")],
                provenance = provenance)
 dir.create(dirname(out), recursive = TRUE, showWarnings = FALSE)
 saveRDS(values, out, compress = "xz")

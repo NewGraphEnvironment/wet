@@ -283,6 +283,7 @@
 
 source("scripts/wb_cv_lib.R")  # load_all(), cal, release, fit_dir, score_code_md5
 source("scripts/pcic_routed_lib.R")
+source("scripts/departure_site_lib.R")  # site_get(): the box
 
 if (release != "20260717") stop("the rule names HYDAT 20260717, not ", release, call. = FALSE)
 # the script this run executes (a frozen copy, say), hashed before anything else can change it
@@ -329,8 +330,11 @@ eps <- 1e-9
 min_pool <- 100
 w_blend <- 0.5
 w_blend_sens <- c(0.25, 0.75)
-box <- c(lon_min = -128.8, lon_max = -125.0, lat_min = 53.6, lat_max = 55.8)
-maxan <- "08EE018"
+# #120's box and target, from Maxan's row of scripts/departure_sites.csv (#146; until then literals,
+# lon -128.8..-125.0, lat 53.6..55.8 and 08EE018, which the row carries verbatim)
+site <- site_get("maxan")
+box <- site$box
+maxan <- site$target_station
 series <- paste(routed_run$model, routed_run$scenario, sep = "_")
 where_run <- routed_where_period(period_run)
 

@@ -1,6 +1,6 @@
 # Snow and the window flows at a Chinook pilot site (#126): #121's regression
-# (scripts/departure_snow.R's header), unchanged, run at each site of
-# scripts/departure_sites.csv on the series scripts/departure_site.R saves.
+# (the header of scripts/departure_snow.R, retired in #146), unchanged, run at
+# each site of scripts/departure_sites.csv on the series scripts/departure_site.R saves.
 # The specification was committed in this header alone, before any body code
 # (planning/archive, issue 126). Every fit is reported. Nothing is chosen,
 # nothing ships, nothing is published, and no fit is read or touched.
@@ -15,7 +15,7 @@
 # and, after it, the gitignored
 # data/departure/departure_site_snow_<site>_<group>_20260717.rds (`snow`,
 # `series`, `fits`, `release`, `site`, `code_md5`). fwapg through the WET_PG*
-# variables, as scripts/departure_snow.R; cd's annual ERA5-Land layers as
+# variables, as #121's run; cd's annual ERA5-Land layers as
 # there, with each file's CD_RUN_TIME, CD_SHA and CD_VERSION reported.
 #
 # ---- what is #121's, unchanged ------------------------------------------------------------------
@@ -69,11 +69,17 @@
 #
 # ---- the parity gate ----------------------------------------------------------------------------
 #
-# The maxan row under the BULK windows must reproduce #121's run: its `fits`
-# must be identical() to data/departure/departure_snow_20260717.rds's
-# `fits`, and each series' years and departures to that rds's `series`. That
-# rds's code_md5 must be the current scripts/departure_snow.R's. The run
-# stops before writing anything otherwise.
+# The maxan row under the BULK windows must reproduce #121's run, whose
+# tracked report data/checks/departure_snow_20260717.txt is its record since
+# scripts/departure_snow.R was retired (#146): every table row of that report
+# (the watersheds, the fits, snow and the flow change before and after, the
+# parity with the normals, the per-year snow and departures) must appear
+# verbatim in the site report, at the precision it prints
+# (site_parity_snow() in scripts/departure_site_lib.R;
+# tests/testthat/test-departure_site_parity.R holds the tracked site report to
+# it), so a maxan run needs the normals grid the parity table reads, as #121's
+# did. The run stops before writing anything otherwise. Until #146 the gate
+# also compared the fits and series bit for bit with #121's saved series.
 #
 # ---- what it refuses ----------------------------------------------------------------------------
 #
@@ -317,21 +323,6 @@ for (k in seq_along(series)) {
 }
 fits <- do.call(rbind, fits)
 
-# ---- the parity gate (maxan, BULK) -------------------------------------------------------------
-if (site$site_id == "maxan" && wname == "BULK") {
-  srds <- file.path("data", "departure", sprintf("departure_snow_%s.rds", release))
-  if (!file.exists(srds)) stop("parity: no ", srds, "; run scripts/departure_snow.R", call. = FALSE)
-  sr <- readRDS(srds)
-  if (!identical(sr$code_md5, unname(tools::md5sum("scripts/departure_snow.R")))) {
-    stop("parity: ", srds, " was written by another scripts/departure_snow.R; rerun it", call. = FALSE)
-  }
-  if (!identical(fits, sr$fits)) stop("parity: fits differ from #121's", call. = FALSE)
-  same <- length(series) == length(sr$series) && all(vapply(seq_along(series), function(k) {
-    identical(series[[k]]$d$year, sr$series[[k]]$d$year) && identical(series[[k]]$d$dep, sr$series[[k]]$d$dep)
-  }, TRUE))
-  if (!same) stop("parity: series differ from #121's", call. = FALSE)
-}
-
 # ---- the parity line ---------------------------------------------------------------------------
 normals <- list.files(file.path("data", "snow"), "^snow_19812010_.*\\.tif$", full.names = TRUE)
 if (length(normals) > 1) stop("expected at most one data/snow/snow_19812010_*.tif, found ", length(normals), call. = FALSE)
@@ -495,6 +486,15 @@ donor_of <- function(w, y) {
 for (y in years) {
   say(sprintf("  %4d %s%s", y, paste(vapply(series, function(s) sprintf("%11s", fmt(dep_of(s, y), 3)), ""), collapse = ""),
               if (site$kind == "extend") sprintf(" %-9s %-9s", donor_of("migration", y), donor_of("spawning", y)) else ""))
+}
+
+# ---- the parity gate (maxan, BULK): #121's tracked report, before anything is written ----------
+if (site$site_id == "maxan" && wname == "BULK") {
+  miss <- site_parity_snow(out, readLines(file.path("data", "checks", sprintf("departure_snow_%s.txt", release))))
+  if (length(miss)) {
+    stop("parity: ", length(miss), " lines of the tracked snow report missing from this run, the first: ",
+         paste(utils::head(miss, 3), collapse = " | "), call. = FALSE)
+  }
 }
 
 writeLines(sub(" +$", "", out), report)
