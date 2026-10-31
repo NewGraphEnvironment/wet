@@ -66,8 +66,8 @@ All four were approved with the plan by the user, 2026-10-30.
 - [x] `data-raw/short_record_vignette_map.R`: the catchment gauges and Maxan's blue line come from `values$site`
 - [x] `vignettes/short-record-flow.Rmd`: `maxan` and the catchment parts come from `v$site`
 - [x] `tests/testthat/test-vignette_data.R`: the bundle's names now include `site`, and its target and snow gauges match the site row
-- [ ] On m4 (branch checked out in the clean main checkout): rerun `departure_site.R` and `departure_site_snow.R` for maxan, swift, naver and gosnell, from frozen copies; every tracked site report must come out byte-identical (`git status` clean under `data/checks/`)
-- [ ] On m4: run the short-record data and map scripts. Assert every element of the new bundle is `identical()` to the old one, apart from `provenance` and the new `site`, and the map layers likewise. Commit the bundles
+- [x] On m4 (branch checked out in the clean main checkout): rerun `departure_site.R` and `departure_site_snow.R` for maxan, swift, naver and gosnell, from frozen copies; every tracked site report must come out byte-identical (`git status` clean under `data/checks/`)
+- [x] On m4: run the short-record data and map scripts. Assert every element of the new bundle is `identical()` to the old one, apart from `provenance` and the new `site`, and the map layers likewise. Commit the bundles
 
 ## Phase 5: departure_pcic.R takes a site id
 - [x] `scripts/departure_pcic.R`: `site <- site_get("maxan")`; `box <- site$box`; `maxan <- site$target_station`; one header line says so; `Rscript` check that both are `identical()` to the literals they replace
