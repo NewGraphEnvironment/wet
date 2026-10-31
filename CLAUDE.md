@@ -118,6 +118,14 @@ A pilot, its data and map scripts and its article take a site id, and the stream
 
 **How to apply:** in a plan, propose the table row and scripts that take a site id; keep a parity gate that the generalised code reproduces the case it was generalised from. Don't go overboard: least friction on the next move.
 
+### Name the chinook salmon life history timing window in full
+
+An article says "chinook salmon life history timing window" at its first use in each section and in each caption, and "window" after that within the section; the section that defines it asks "What is a chinook salmon life history timing window?" and defines it as the stretch of the year when chinook use a stream for a part of their life cycle, cited to what the fish do there.
+
+**Why:** the user, 2026-10-30 (#152): "people dont know what windows are", and restating the whole name in each section is fine; a bare "window" or "timing window" read as jargon.
+
+**How to apply:** count the restatements in the article's word cap, raising the cap rather than dropping one; a heading or caption that names a window by its stage writes "the chinook salmon life history timing window for spawning".
+
 ## Own estimates first; other groups' products are references
 
 Build our own open estimate, then score other groups' products against it and HYDAT. Do not adopt a product whose model code does not ship in place of our own. The BC Water Tools' modelled estimates are yardsticks, not inputs to publish; the third-party gauge records the Tool serves are station data (#123, wet#144). PCIC's routed flow is published, cited and labelled by source, as each segment's default where it beats the balance at the gauges (#57, 2026-10-11). The open balance stays the independent estimate everything is scored against, and both stay scored at the same gauges (`scripts/pcic_routed_compare.R`). The reason for building our own: without the code we cannot tell whether a product is right, and building our own surfaces inconsistencies and errors on either side (2026-09-26; #5, #11). When you find a disagreement, attribute it: ours, theirs or unresolved. Use NGE's internal snapshot tool for pinned input snapshots, `crate` for shape-shifting source schemas, and `cd` for ERA5-Land variables.
