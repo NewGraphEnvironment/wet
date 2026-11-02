@@ -1637,6 +1637,9 @@ GDAL accepts a UTC offset in a GeoPackage `DATETIME` and silently drops it, retu
 ### QGIS embeds a layer's style in the `.qgs`, so rewriting the `.qml` sidecar changes nothing
 A `.qgs` carries each layer's style **inside** its `<maplayer>` node — the sidecar's children are copied in when the layer is declared.
 
+### A QGIS value map's empty choice is a fixed GUID value; its `<NULL>` label is editable
+When reading a value map's choices from a `.qml` or `.qgs`, drop QGIS's empty choice by its value, `{2839923C-8B7D-419E-B84B-CA2FE9B80EC7}`, not by its `<NULL>` label, which a form author can edit.
+
 ### A GeoPackage is a SQLite database, and that leaks in three ways
 Writing to one directly (a `layer_styles` row, an attribute fix) is a plain `INSERT` and needs no GDAL.
 
@@ -3122,14 +3125,26 @@ linters: linters_with_defaults(
     commented_code_linter = NULL
   )
 exclusions: list(
-    "renv" = list(linters = "all")
+    "renv"
   )
 ```
 
 - 120 char line length (default 80 is too strict for data pipelines)
 - Allow dotted.case (common in base R and legacy code)
 - Suppress commented code lints (exploratory R scripts often have commented alternatives)
-- Exclude renv directory entirely
+- Exclude renv directory entirely: an **unnamed** entry excludes a file or directory whole.
+  A **named** entry's value must be line numbers or `Inf`, never a string: lintr's
+  `validate_named_exclusion()` aborts `lint_package()` in `read_settings()`, before any file is
+  read, so a `.lintr` carrying `"renv" = list(linters = "all")` lints nothing at all (lintr
+  3.3.0.1, measured 2026-11-01; the snippet matched no documented form at any version). The named form is
+  for excluding particular linters from particular files:
+
+  ```r
+  exclusions: list(
+      "renv",
+      "R/legacy.R" = list(pipe_consistency_linter = Inf)
+    )
+  ```
 
 ## Dependencies
 
@@ -3250,64 +3265,10 @@ Leave out roadmaps, changelogs, function tables, version strings in prose, count
 
 # Reference Management Conventions
 
-How references flow between Claude Code, Zotero, and technical writing at New Graph Environment.
-
-## Tool Routing
-
-Three tools, different purposes. Use the right one.
-
-| Need | Tool | Why |
-|------|------|-----|
-| Search by keyword, read metadata/fulltext, semantic search | **MCP `zotero_*` tools** | pyzotero, works with Zotero item keys |
-| Look up by citation key (e.g., `irvine2020ParsnipRiver`) | **`/zotero-lookup` skill** | Citation keys are a BBT feature — pyzotero can't resolve them |
-| Create items, attach PDFs, deduplicate | **`/zotero-api` skill** | Connector API for writes, JS console for attachments |
-
-**Citation keys vs item keys:** Citation keys (like `irvine2020ParsnipRiver`) come from Better BibTeX. Item keys (like `K7WALMSY`) are native Zotero. The MCP works with item keys. `/zotero-lookup` bridges citation keys to item data.
-
-**BBT citation key storage:** As of Feb 2025+, BBT stores citation keys as a `citationKey` field directly in `zotero.sqlite` (via Zotero's item data system), not in a separate BBT database. The old `better-bibtex.sqlite` and `better-bibtex.migrated` files are stale and no longer updated. Query citation keys with: `SELECT idv.value FROM items i JOIN itemData id ON i.itemID = id.itemID JOIN itemDataValues idv ON id.valueID = idv.valueID JOIN fields f ON id.fieldID = f.fieldID WHERE f.fieldName = 'citationKey'`.
-
-**BBT citekey format is locally patched to strip `&`:** the `citekeyFormat` pref (`extensions.zotero.translators.better-bibtex.citekeyFormat` in `~/Library/Application Support/Zotero/Profiles/*/prefs.js`) has a `.replace(find = "&", replace = "")` segment added by hand. Without it, institutional authors containing `&` (e.g. "BC Species & Ecosystem Explorer", "WA Dept of Fish & Wildlife") leak `&` into the citekey, and pandoc's `@key` parser stops at `&` — so cites render broken in any bookdown/quarto build even though biblatex accepts the key. Reapply via Zotero → Tools → Run JavaScript: `Zotero.Prefs.set("translators.better-bibtex.citekeyFormat", val)` (also patch `citekeyFormatEditing` to match). Survives Zotero/BBT auto-updates; reverts only on a profile reset or a manual edit via the BBT preferences UI. Detect drift: `grep citekeyFormat ~/Library/Application\ Support/Zotero/Profiles/*/prefs.js` should show the `.replace(find = "&", ...)` chain. Teammates on Skeena/Fraser/restoration machines that hit the same `@key`-breaks-at-`&` drift should run the same `Zotero.Prefs.set`.
-
-## Which routes are live by default
-
-Measured 2026-09-04 on a freshly provisioned machine. Four of the six routes below were
-dead, and each dead end costs a session time it has no reason to expect:
-
-| route | state on a default setup |
-|---|---|
-| **Web API** | **works** — the route to use for writes; targets a collection directly via `"collections": [...]` and needs Zotero neither open nor restarted for the write itself |
-| **read-only SQLite** | works, and remains the best route for *searching* (`/zotero-lookup`) |
-| MCP `zotero_*` | unavailable until an API key is configured — the install script registers the server but never configures a key |
-| Local API | `403 Local API is not enabled`, with and without the `Zotero-Allowed-Request` header |
-| Connector `saveItems` | HTTP 500 on a minimal item with exactly the documented headers — a defect, not a permission; reads on the same port (`ping`, `getSelectedCollection`) are fine, and `getSelectedCollection` returns the whole collection tree in one call |
-| JS runner (`zotero_run_js.sh`) | `osascript is not allowed assistive access` until the terminal has Accessibility |
-
-**Zotero's server takes about 30 s after launch to respond.** An early failure does not
-mean it is not running, which is exactly the wrong conclusion to draw at that moment —
-wait and retry once before diagnosing.
-
-The key's location, the password-manager item that holds it and the local port are
-infrastructure identity and stay in machine-local memory, not here.
-
-**`immutable=1` serves a stale snapshot, so it cannot confirm a write landed.** The
-read-only URI the skills prescribe —
-`sqlite3 "file:$HOME/Zotero/zotero.sqlite?mode=ro&immutable=1"` — is right for
-*searching* outside a sync, and it is exactly wrong for *verifying*: `immutable` tells SQLite
-the file cannot change, so it skips the rollback journal and the change counter and serves
-whatever it first mapped. A write made through the Web API is invisible to it for as long as the process
-lives, which reads as "the write failed" rather than "this reader cannot see it". Copy
-the file first when the question is whether something landed, and note that a Web API
-create also needs Zotero to **sync** before it is in the local database at all.
-
-Three skills prescribe that URI (`zotero-lookup`, `zotero-api`, `lit-search`) and none
-of them says this, which is why it is here rather than in one of them.
-
-**A copy of the live file needs a consistency check**. Zotero holds
-`zotero.sqlite` in exclusive locking mode, so a normal read-only connection blocks, an
-`immutable=1` read during a sync can fail as malformed, and the header change counter does
-not move per commit. Accept a copy only when the live file's mtime and size are unchanged
-across it, the rollback journal is absent or has a zero header, and the copy passes
-`PRAGMA quick_check`.
+How New Graph Environment's technical writing cites its sources. The Zotero mechanics (which
+routes work, adding items and PDFs, Better BibTeX key timing, reading `zotero.sqlite`, finding a
+PDF) are in `/zotero-api` section 0, `/zotero-lookup` and `/lit-search`, which load when that work
+happens.
 
 ## Citation keys are BBT-auto-derived
 
@@ -3318,67 +3279,10 @@ use it only for other Zotero-supported fields (`Original Date:`, `tex.shorttitle
 Ten items created with hand-set keys in one lit review (cd#58, 2026-05-05) had to be
 PATCHed clean after the user caught it.
 
-- **Web API-created items get no key until Zotero restarts.** Sync alone does not trigger
-  BBT. On macOS:
-  ```bash
-  osascript -e 'tell application "Zotero" to quit'; sleep 3; open -a Zotero; sleep 30
-  ```
-  Thirty seconds covered seven fresh items (cd#61); scale the wait with the batch.
-- **Corporate-author guard.** CrossRef sometimes returns no individual authors (a paper
-  bylined to a working group), so the POST lands with empty `creators` and BBT falls back
-  to a `<title-prefix><year>` key. PATCH the individual authors from the paper's roster
-  into `creators` before triggering the restart.
-- **BBT and Zotero version lines are paired** — BBT 8.x for Zotero 7, 9.x for Zotero 8/9.
-  If Zotero auto-disables BBT after an update, keys silently stop generating for new
-  items; reinstall the matching line via Plugin Manager → gear → "Install Plugin From
-  File…" from the BBT releases page.
-
 A key is unique within one library, not across them: 12 of 327 keys shared between
-libraries named different works, so resolve a key within its library.
-
-`/lit-search` and `/zotero-api` point here; this is the authority.
-
-## Adding References Workflow
-
-### 1. Search and flag
-
-When research turns up a reference:
-- **DOI available:** Tell the user — Zotero's magic wand (DOI lookup) is the fastest path
-- **ResearchGate link:** Flag to user for manual check — programmatic fetch is blocked (403), but full text is often there
-- **BC gov report:** Search [ACAT](https://a100.gov.bc.ca/pub/acat/), for.gov.bc.ca library, EIRS viewer
-- **Paywalled:** Note it, move on. Don't waste time trying to bypass.
-- **The polite-pool `mailto:` is sanctioned** for CrossRef, Unpaywall and OpenAlex only: their requests may carry the operator's email (the `User-Agent` in `/zotero-api`) with no disclosure each time, and a subagent brief that will call them says so.
-
-### 2. Add to Zotero
-
-**Preferred order:**
-1. DOI magic wand in Zotero UI (fastest, most complete metadata)
-2. Web API POST with `collections` array (grey literature, local PDFs — targets collection directly, no UI interaction needed)
-3. `saveItems` via `/zotero-api` (batch creation from structured data — requires UI collection selection)
-4. JS console script for group library (when connector can't target the right collection)
-
-**Collection targeting:** `saveItems` drops items into whatever collection is selected in Zotero's UI. Always confirm with the user before calling it. **Web API bypasses this** — include `"collections": ["KEY"]` in the POST body. Find collection keys with `?q=name` search on the collections endpoint.
-
-### 3. Attach PDFs
-
-`saveItems` attachments silently fail. Don't use them. Instead:
-
-1. **Web API S3 upload (preferred):** Create attachment item → get upload auth → build S3 body (Python: prefix + file bytes + suffix) → POST to S3 → register with uploadKey. Works without Zotero running. See `/zotero-api` skill section 4.
-2. **JS console fallback:** Download with `curl`, attach via `item_attach_pdf.js` in Zotero JS console.
-3. Verify attachment exists via MCP: `zotero_get_item_children`
-
-### 4. Verify
-
-After manual adds, confirm via MCP:
-- `zotero_search_items` — find by title
-- `zotero_get_item_metadata` — check fields are complete
-- `zotero_get_item_children` — confirm PDF attached
-
-### 5. Clean up
-
-If duplicates were created (common with `saveItems` retries):
-- Run `collection_dedup.js` via Zotero JS console
-- It keeps the copy with the most attachments, trashes the rest
+libraries named different works, so resolve a key within its library. Key timing, the corporate-author guard and the BBT/Zotero version pairing are in
+`/zotero-api` section 0. Our own reports are the one exception: they are not Zotero items, and
+their key is the repository name (below).
 
 ## In Reports (bookdown)
 
@@ -3419,6 +3323,11 @@ When a review paper references an older study, trace back to the original and ci
 
 Both `@smith2003` and `@doctor2022` go in the `.bib` file. The reader can then track down the original themselves. Flag incomplete metadata on the primary entry — it's better to have a partial reference than none at all.
 
+**Check what a source says before citing it:**
+- NEVER write abstracts manually — if CrossRef has no abstract, leave blank
+- NEVER cite specific numbers without verifying from the source PDF via ragnar search
+- NEVER paraphrase equations — copy exact notation and cite page/section
+
 ## In articles (pkgdown)
 
 An article's citations follow `writing.md`, "Name, link and cite the software": a `.bib` written by
@@ -3426,40 +3335,29 @@ script from the Zotero group library and the packages' own `citation()`, pandoc 
 citations, and a `::: {#refs}` list. Every literature reference an article cites is in the group
 library first.
 
-## PDF Fallback Chain
+## Our own reports
 
-When you need a PDF and the obvious URL doesn't work:
+A New Graph report is cited from its own repository's `CITATION.cff`, the one record every
+citation of it is rendered from.
 
-1. DOI resolver → publisher site (often has OA link)
-2. Europe PMC (`europepmc.org/backend/ptpmcrender.fcgi?accid=PMC{ID}&blobtype=pdf`) — ncbi blocks curl
-3. SciELO — needs `User-Agent: Mozilla/5.0` header
-4. ResearchGate — flag to user for manual download
-5. Semantic Scholar — sometimes has OA links
-6. Ask user for institutional access
-
-Always verify downloads: `file paper.pdf` should say "PDF document", not HTML.
-
-**US federal reports (USFWS HSI, FWS/OBS): fetch from the Internet Archive's `doi-report_*` items**
-(`archive.org/download/<item>/<item>.pdf`; plain urllib works). The USFWS digital library is retired and DTIC
-refuses scripted downloads; govinfo scans are signed, so OCR them with `ocrmypdf --invalidate-digital-signatures`.
-
-*5 lines of evidence for this rule are in `conventions/references.md`.*
-
-## Searching Paper Content (ragnar)
-
-### Setup (per project)
-- `scripts/rag_build.R` — maps citation keys to Zotero PDF attachment keys, builds DuckDB
-- `data/rag/` gitignored — store is local, not committed
-- Dependencies: ragnar, Ollama with nomic-embed-text model
-- See `/lit-search` skill for full recipe
-
-### Query
-`ragnar_store_connect()` then `ragnar_retrieve()` — returns chunks with source file attribution.
-
-### Anti-patterns
-- NEVER write abstracts manually — if CrossRef has no abstract, leave blank
-- NEVER cite specific numbers without verifying from the source PDF via ragnar search
-- NEVER paraphrase equations — copy exact notation and cite page/section
+- **The record:** the top level carries `title`, `authors`, `date-released`, `url` (the published
+  site, `https://www.newgraphenvironment.com/<repo>/`) and `repository-code`. `preferred-citation`
+  repeats them with `type: report`, `institution: {name: New Graph Environment Ltd.}`, `year` and
+  `date-published`: CFF allows only `software` or `dataset` as the top-level `type`, and cffr gives
+  a `@TechReport` only with `year` and `institution`.
+- **The title is the report's public name** (the website's link text), not the cover, which can
+  carry grant codes. **The date is that of the build being published:** the template's build
+  sets the record's dates on every gitbook render, so they are never typed by hand.
+- **The key is the repository name** (`[@<repo>]`): unique, stable, and
+  free of the stem collisions Better BibTeX gives a series of same-titled reports.
+- **DOI:** each publication of a public report is a GitHub release (`/gh-pr-merge` cuts one for a
+  repo whose `DESCRIPTION` carries a version), archived by Zenodo. The concept DOI is written once,
+  as `Config/DOI` in the report's `DESCRIPTION`, and the build copies it into the `.cff`. A repo
+  Zenodo does not archive yet carries no `doi`.
+- **A report cites a package** by `writing.md`, "Name, link and cite the software", **and another
+  of our reports** through `references-newgraph.bib`, which the template builds from each cited
+  report's public `CITATION.cff` (`params$cite_reports`). Those keys go to rbbt's `ignore =`, so
+  Zotero is never asked for them.
 
 # Writing for the Reader
 Anything an outside reader sees answers their questions in their order and carries nothing that served only its authors.
@@ -3525,6 +3423,9 @@ Open every public piece with what the product does for the reader and why it mat
 
 ### Let visuals carry the story where they land better
 Put the story in a map, figure or table whenever the reader takes it in faster there than from prose, and keep the prose to what the visual cannot say.
+
+### Review a rendered article where the reader will read it
+Offer the rendered page in a form that opens on a phone, before the merge, without being asked.
 
 ### Cut any number or caveat that does not change what the reader understands
 Drop a number, a precision or a caveat that leaves the reader's understanding of the product where it was, because detail the reader does not need walls them off.
