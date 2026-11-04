@@ -25,7 +25,8 @@
 # run's sample (reported, not refused: terra or GDAL may have moved since),
 # then goes on with the province samples. WET_GROUP_DROP=<G>[,<G>] removes
 # those groups' polygons from the closure, the deliberate break that shows the
-# comparison can fail; its report goes to data/logs/157/, not data/checks/.
+# comparison can fail; its parquet goes under <fit>/group/<WSG>/drop-<G>/ and
+# its report to data/logs/157/, not data/checks/.
 #
 # Run where the province run's layers.tif and samples are (m4). Connection
 # from WET_PG*.
@@ -69,7 +70,9 @@ if (!identical(fits$code_md5, score_code_md5) || !identical(winner[1:2], c(fits$
 aet <- fits$aet
 lay_file <- file.path(key_dir, "layers.tif")
 bc_file <- file.path(key_dir, "in_bc.tif")
+# a deliberate break writes beside the group's real build, never over it
 out_dir <- file.path(fit_dir, "group", wsg)
+if (length(drop_groups)) out_dir <- file.path(out_dir, paste0("drop-", paste(drop_groups, collapse = "-")))
 unlink(file.path(out_dir, c("watershed.parquet", "segment.parquet")))
 dir.create(file.path(out_dir, "sample"), recursive = TRUE, showWarnings = FALSE)
 pg <- function() {
@@ -116,6 +119,7 @@ verify <- function() {
 pub <- timed("published read", {
   n_ok_before <- verify()
   duck <- DBI::dbConnect(duckdb::duckdb())
+  invisible(DBI::dbExecute(duck, "INSTALL httpfs"))
   invisible(DBI::dbExecute(duck, "LOAD httpfs"))
   x <- DBI::dbGetQuery(duck, sprintf("
     SELECT source, linear_feature_id, watershed_feature_id, month, runoff_mm, q_m3s, coverage,

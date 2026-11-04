@@ -25,7 +25,7 @@ How many groups a group's closure spans, over the province's 246 groups:
 | 50,000–200,000 | 52 |
 | over 200,000 | 48 |
 
-The 48 largest hold a Fraser, Peace or Columbia mainstem polygon, whose `FWA_Upstream` set is its whole basin, so a mainstem group's build is its basin's run. Tributary and headwater groups, the kind the Chinook pilot sites sit in, need themselves and a few neighbours: BULK needs MORR (35,191 polygons), SALR needs LSAL and MUSK (12,481). 54 groups lie under more than one top-level drainage code, so their published rows sit in several parts.
+The 48 largest are groups on a big river's main stem or in a large coastal drainage: the Fraser, Columbia, Skeena and Stikine, the Peace and the Liard, and drainages 910 and 915. A main-stem polygon's `FWA_Upstream` set is everything above it, so those groups need most of their river's polygons. 72 groups of any size have a whole top-level drainage as their closure. Tributary and headwater groups, the kind the Chinook pilot sites sit in, need themselves and a few neighbours: BULK needs MORR (35,191 polygons), SALR needs LSAL and MUSK (12,481). 54 groups lie under more than one top-level drainage code, so their published rows sit in several parts.
 
 ## How long it takes
 
