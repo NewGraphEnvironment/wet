@@ -19,7 +19,8 @@
 # and the tracked report wb_report("segment_group_<WSG>", release), which
 # compares every row with the published parts. A row on one side only is
 # refused (after the report is written); values beyond 1e-9 relative are
-# listed, since a donor near-tie can move with the order doubles are added in.
+# listed and attributed: at a calibration gauge the donor shares turn on an
+# exact-zero distance, which the order doubles are added in can move (#158).
 #
 # WET_WB_RESAMPLE=1 samples the group again and compares it with the province
 # run's sample (reported, not refused: terra or GDAL may have moved since),

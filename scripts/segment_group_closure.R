@@ -8,7 +8,7 @@
 #   Rscript scripts/segment_group_closure.R
 #
 # Writes the tracked data/checks/segment_group_closure.txt. Needs fwapg only
-# (WET_PG*); about five minutes.
+# (WET_PG*); under a minute.
 
 devtools::load_all(quiet = TRUE)
 stamp <- function(...) message(format(Sys.time(), "%H:%M:%S"), " ", ...)
@@ -90,7 +90,7 @@ writeLines(c(
   "", "## Polygons in a group's closure",
   fmt_bins(bins(tab$closure, c(0, 5e4, 2e5, Inf), c("<= 50,000", "50,000-200,000", "> 200,000"))),
   "", sprintf("groups whose polygons lie under more than one top-level drainage code: %d", sum(n_codes > 1)),
-  sprintf("groups whose closure is a whole basin (a root of one label, e.g. 100): %d",
+  sprintf("groups whose closure includes a whole top-level drainage (a root of one label, e.g. 100): %d",
           sum(tab$whole)),
   "", "## By watershed group",
   "roots: how many (first_root: the first in ltree order); own: the group's polygons; closure: polygons needed;",
