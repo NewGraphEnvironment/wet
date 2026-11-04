@@ -29,3 +29,9 @@ Start Phase 1 and run every phase to the PR (/code-check branch, /planning-archi
 /gh-pr-push). This message is the resume instruction that starts the run-to-PR
 mandate; the merge stays with me.
 ```
+
+## Session 2026-11-04 (resumed)
+
+- Resume checks clean; branch current with origin and main.
+- `wet_ws_roots()` and `wet_ws_closure()` in `R/wet_ws_closure.R`: one fetch and one irregular query per group, `wscode_ltree <@ ANY($1::ltree[])` (bitmap scan on the gist index; BULK + SALR closures together 47,672 rows in 32 ms). Coastal groups have thousands of roots (MORI 2,398), so a per-root loop over `wet_ws_fetch()` was not used; the live test holds BULK's closure identical to `wet_ws_fetch(conn, "400.431358")`.
+- Tests: 1,106 expectations, the 925 sums identity and BULK's closure live on m1's fwapg.
