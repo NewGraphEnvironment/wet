@@ -95,10 +95,10 @@ writeLines(c(
   "", "## By watershed group",
   "roots: how many (first_root: the first in ltree order); own: the group's polygons; closure: polygons needed;",
   "groups: how many the closure spans (others: the rest, the first eight)",
-  sprintf("%-5s %6s %-26s %7s %8s %6s %-16s %s", "group", "roots", "first_root", "own", "closure", "groups",
-          "codes", "others"),
-  sprintf("%-5s %6d %-26s %7d %8d %6d %-16s %s", tab$wsg, tab$roots, tab$first_root, tab$own, tab$closure,
-          tab$n_groups, tab$codes, vapply(tab$groups, short, ""))
+  sprintf("%-5s %6s %7s %8s %6s %-16s %-40s %s", "group", "roots", "own", "closure", "groups", "codes", "others",
+          "first_root"),
+  sprintf("%-5s %6d %7d %8d %6d %-16s %-40s %s", tab$wsg, tab$roots, tab$own, tab$closure, tab$n_groups, tab$codes,
+          vapply(tab$groups, short, ""), tab$first_root)
 ), con)
 close(con)
 stamp("report written")
