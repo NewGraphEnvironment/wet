@@ -1,270 +1,272 @@
 # What one watershed group's balance needs (#157)
 
-wet commit ac5d860; 246 watershed groups, 3245453 coded fundamental watersheds
-A group's closure is every polygon under its roots (its distinct wscodes with no proper ancestor among them,
-wet_ws_roots()): the polygons wet_upstream_sums() needs to give the group's rows the sums its basin gives them.
+wet commit 19be432; 246 watershed groups, 3245453 coded fundamental watersheds
+reach: the polygons FWA_Upstream reaches from the group's rows (wet_ws_reach()), the least set that gives
+them their upstream sums. closure: every polygon under the group's roots (its distinct wscodes with no
+proper ancestor among them, wet_ws_roots(); wet_ws_closure()), the upstream-closed set the reach is cut from.
 
-## Watershed groups a group's closure spans, itself included
-  1 (itself)       53
-  2-3              59
-  4-10             62
-  more than 10     72
+## Watershed groups spanned, the group included (groups: reach, closure)
+  1 (itself)           59       53
+  2-3                  79       59
+  4-10                 60       62
+  more than 10         48       72
 
-## Polygons in a group's closure
-  <= 50,000       146
-  50,000-200,000   52
-  > 200,000        48
+## Polygons (groups: reach, closure)
+  <= 50,000           172      146
+  50,000-200,000       50       52
+  > 200,000            24       48
 
+groups whose reach is the whole closure: 106
 groups whose polygons lie under more than one top-level drainage code: 54
 groups whose closure includes a whole top-level drainage (a root of one label, e.g. 100): 72
 
 ## By watershed group
-roots: how many (first_root: the first in ltree order); own: the group's polygons; closure: polygons needed;
-groups: how many the closure spans (others: the rest, the first eight)
-group  roots     own  closure groups codes            others                                   first_root
-ADMS       1    7338     7338      1 100                                                       100.190442.999098.995997.058910
-ALBN     958   13862    74981      7 930,935          BRKS,CLAY,GOLD,HOLB,SANJ,TAHS            930
-ATLL       2   18733    18734      2 800              TUTR                                     800.901317.610987.423004.994640.782192.390196
-ATNA       1    9454     9454      1 910                                                       910.275583.999439
-BABL       1   13971    28908      2 400              BABR                                     400.536025
-BABR       1   14937    28908      2 400              BABL                                     400.536025
-BARR       6   10999    11069     13 600,960,999      INKR,KSHR,KUSR,LISR,LRAN,SMOK,TATR,TSEA,+4 600.273049
-BBAR       1   15161   644710     70 100              ADMS,BIGC,BLAR,BONP,BOWR,BRID,CARR,CHES,+61 100
-BEAV       1   15267   481563     36 200              BLUR,COAL,CRYL,DEAL,DEAR,DUNE,FONT,FROG,+27 200.692231
-BELA       4   10356   230421     16 910,915          ATNA,KHTZ,KITL,KITR,KSHR,KUMR,LDEN,LSKE,+7 910
-BIGC       1    3134     3134      1 100                                                       100.342455.095384
-BLAR       2    6276    21862      5 100              EUCH,EUCL,LCHL,NAZR                      100.500560
-BLUR       1    7532     7532      1 200                                                       200.692231.708347.173706
-BONP       1   11411    14115      2 100              GRNL                                     100.190442.506118
-BOWR       1    9462     9462      1 100                                                       100.654493
-BRID       1    2555     2555      1 100                                                       100.190442.998192.349877.237590.984912.950504
-BRKS    1153   12507    75114      7 930,935          ALBN,CLAY,GOLD,HOLB,SANJ,TAHS            930
-BULK       1   20970    35191      2 400              MORR                                     400.431358
-BULL       1   10682   122936      7 300              DUNC,ELKR,KOTL,KOTR,SLOC,SMAR            300.625474
-CAMB       1    6534    49325      9 920              COMX,COWN,NEVI,NIMP,PARK,SALM,TSIT,VICT  920
-CANO       1    7544   307101     17 300              BULL,CLRH,COLR,DUNC,ELKR,KETL,KHOR,KOTL,+8 300
-CARP       1    8215    18577      2 200              CRKD                                     200.948755.936906
-CARR       1   10640    10640      1 100                                                       100.458399.466616
-CHES       1    4114   116474     19 100              BLAR,CHIL,DRIR,FRAN,LCHL,LDEN,LEUT,LNRS,+10 100.567134
-CHIL       1    3972     9811      3 100              BLAR,LCHL                                100.567134.069486
-CHIR       1    9637    18323      3 100              LCHR,TASR                                100.342455.328500
-CHUK       1    9341     9369      2 600              USTK                                     600.823383
-CHWK       5    4907     4916      2 100,970          LFRA                                     100.064535
-CLAY     728   15070    75566      7 930,935          ALBN,BRKS,GOLD,HOLB,SANJ,TAHS            930
-CLRH       1   19516   307101     17 300              BULL,CANO,COLR,DUNC,ELKR,KETL,KHOR,KOTL,+8 300
-CLWR       1   13913    35653      4 100              BRID,MAHD,MURT                           100.190442.998192.349877
-COAL       1   23542   481563     36 200              BEAV,BLUR,CRYL,DEAL,DEAR,DUNE,FONT,FROG,+27 200.692231
-COLR       1   21648   307101     17 300              BULL,CANO,CLRH,DUNC,ELKR,KETL,KHOR,KOTL,+8 300
-COMX     436    5838    50790      9 905,920          CAMB,COWN,NEVI,NIMP,PARK,SALM,TSIT,VICT  905.373417
-COTR       1   11384   644710     70 100              ADMS,BBAR,BIGC,BLAR,BONP,BOWR,BRID,CARR,+61 100
-COWN     219    8138    49585      9 920,925          CAMB,COMX,NEVI,NIMP,PARK,SALM,TSIT,VICT  920
-CRKD       1   10362    10362      1 200                                                       200.948755.936906.932956
-CRYL       1    6584     6584      1 200                                                       200.692231.708347.415013
-DEAD       1    4729     4729      1 100                                                       100.190442.712025
-DEAL       1   15375    49770      5 200              BLUR,CRYL,DEAR,MDEA                      200.692231.708347
-DEAR       1    7669    49770      5 200              BLUR,CRYL,DEAL,MDEA                      200.692231.708347
-DOGC       1    7244   644710     70 100              ADMS,BBAR,BIGC,BLAR,BONP,BOWR,BRID,CARR,+61 100
-DRIR       1    5302     5302      1 100                                                       100.567134.179319.815989.532920.992397
-DUNC       1   19132    19132      1 300                                                       300.625474.096683
-DUNE       1   15465   481563     36 200              BEAV,BLUR,COAL,CRYL,DEAL,DEAR,FONT,FROG,+27 200.692231
-ELKR       2   20252    20252      1 300                                                       300.602565.854327.993941.902282.132363
-EUCH       1    2855     2855      1 100                                                       100.500560.248839
-EUCL       1    4844    21836      4 100              BLAR,EUCH,NAZR                           100.500560
-FINA       1   17248   439185     27 200              CARP,CRKD,FINL,FIRE,FOXR,INGR,KISK,LBTN,+18 200.948755
-FINL       1   29661    98617      4 200              FIRE,FOXR,TOOD                           200.948755.999851
-FIRE       1   18066    98617      4 200              FINL,FOXR,TOOD                           200.948755.999851
-FONT       1    5160    10522      2 200              KAHN                                     200.692231.350733.999823
-FOXR       2   21054    21054      1 200                                                       200.948755.999851.328794
-FRAN       1   16552    16552      1 100                                                       100.567134.374775
-FRCN       1   17180   644710     70 100              ADMS,BBAR,BIGC,BLAR,BONP,BOWR,BRID,CARR,+61 100
-FROG       1   22175    89732      6 200              GATA,LKEC,TOOD,TURN,UKEC                 200.692231.587311
-GATA       1   18226    18231      2 200              FROG                                     200.692231.587311.633085
-GLAR       2    8267     8279      3 800              ATLL,TESR                                800.901317.480254
-GOLD     475   11589    75918      7 930,935          ALBN,BRKS,CLAY,HOLB,SANJ,TAHS            930
-GRAI    1276   24293    24293      1 940,945                                                   940
-GRNL       2    2705     2708      2 100              DOGC                                     100.190442.506118.553154
-GUIC       3    3582     3582      1 100                                                       100.190442.244975.296261
-HARR       1    9361   644710     70 100              ADMS,BBAR,BIGC,BLAR,BONP,BOWR,BRID,CARR,+61 100
-HAYR       1    1687     9377      4 200              KCHL,MILL,SHEK                           200.893458
-HERR       1   10778    10778      1 100                                                       100.639480.270767
-HOLB     491    6579    74527      7 930,935          ALBN,BRKS,CLAY,GOLD,SANJ,TAHS            930
-HOMA       6   25593   151326      8 900,905          JERV,KLIN,KNIG,LFRA,SEYM,SQAM,TOBA       900
-HORS       1    6133     6133      1 100                                                       100.458399.638146
-INGR       1   16983    16983      1 200                                                       200.948755.992594
-INKR       5   25500    70248     17 700,960,999      BARR,KSHR,KUSR,LISR,LRAN,NAHR,NAKR,SHER,+8 700
-ISKR       1   16746    49862      3 600              LISR,UISR                                600.059339
-JENR       1    7810    15724      2 800              UJER                                     800.901317.645839
-JERV     372   15149   152279      8 900,905          HOMA,KLIN,KNIG,LFRA,SEYM,SQAM,TOBA       900
-KAHN       1    5362     5362      1 200                                                       200.692231.350733.999823.217968
-KAKC       1    7485     7485      1 600                                                       600.399105
-KCHL       1    4192     6473      2 200              SHEK                                     200.893458.633613
-KEEC    1568    9332    15539      3 915              MBNK,NBNK                                915.650016
-KETL       1   19782    19784      2 300              LARL                                     300.571168
-KHOR       1   18460   307101     17 300              BULL,CANO,CLRH,COLR,DUNC,ELKR,KETL,KOTL,+8 300
-KHTZ      42   18671   235018     16 910,915          ATNA,BELA,KITL,KITR,KSHR,KUMR,LDEN,LSKE,+7 910
-KINR       4    9346     9438      3 500              KSHR,NASR                                500.279029
-KISK       1    6772     6772      1 200                                                       200.948755.789717
-KISP       1   17961   189441     12 400              BABL,BABR,BULK,KLUM,LKEL,LSKE,MORR,MSKE,+3 400
-KITL       5   23047   230422     16 910,915          ATNA,BELA,KHTZ,KITR,KSHR,KUMR,LDEN,LSKE,+7 910
-KITR      37   20422   230492     16 910,915          ATNA,BELA,KHTZ,KITL,KSHR,KUMR,LDEN,LSKE,+7 910
-KLAR       1   17360    17360      1 600                                                       600.544210
-KLIN      12   24116   151332      8 900,905          HOMA,JERV,KNIG,LFRA,SEYM,SQAM,TOBA       900
-KLUM       1   19666   189441     12 400              BABL,BABR,BULK,KISP,LKEL,LSKE,MORR,MSKE,+3 400
-KNIG    1246   28715   155051      8 900,905          HOMA,JERV,KLIN,LFRA,SEYM,SQAM,TOBA       900
-KOTL       1   21488   122936      7 300              BULL,DUNC,ELKR,KOTR,SLOC,SMAR            300.625474
-KOTR       1   25665   122936      7 300              BULL,DUNC,ELKR,KOTL,SLOC,SMAR            300.625474
-KSHR      58   18159   230597     29 500,910,915,960,999 ATNA,BARR,BELA,INKR,KHTZ,KINR,KITL,KITR,+20 500.441851.955629.241507
-KTSU    2597   10292    10292      1 915                                                       915.592276
-KUMR     892   19500   243507     16 910,915          ATNA,BELA,KHTZ,KITL,KITR,KSHR,LDEN,LSKE,+7 910
-KUSR       6   12404    50594     14 800,960,999      ATLL,BARR,INKR,KSHR,LISR,LRAN,SMOK,TATR,+5 800.936764
-LARL       1   20087   307101     17 300              BULL,CANO,CLRH,COLR,DUNC,ELKR,KETL,KHOR,+8 300
-LBIR       1   15296    26914      2 500              UBIR                                     500.530253
-LBTN       1   12672    27028      3 200              MILL,UBTN                                200.948755.796981
-LCHL       1    8300   116474     19 100              BLAR,CHES,CHIL,DRIR,FRAN,LDEN,LEUT,LNRS,+10 100.567134
-LCHR       1    7656    35796      6 100              BIGC,CHIR,NAZR,TASR,UCHR                 100.342455
-LDEN       2   12188   230420     17 100,910          ATNA,BELA,KHTZ,KITL,KITR,KSHR,KUMR,LSKE,+8 100.567134.641477.698356
-LEUT       1    3364   116474     19 100              BLAR,CHES,CHIL,DRIR,FRAN,LCHL,LDEN,LNRS,+10 100.567134
-LFRA       6   13767   796176     77 100,900,905,970  ADMS,BBAR,BIGC,BLAR,BONP,BOWR,BRID,CARR,+68 100
-LFRT       1    5909   161115     14 200              FONT,KAHN,LMUS,LPRO,LSIK,MFRT,MMUS,MPRO,+5 200.692231.350733
-LHAF       1   17931    37643      2 200              UHAF                                     200.948755.837217
-LIAR       1   40230   481563     36 200              BEAV,BLUR,COAL,CRYL,DEAL,DEAR,DUNE,FONT,+27 200.692231
-LILL       1   20343    20343      1 100                                                       100.077501.955583
-LISR       9   12650    50259     15 600,960,999      BARR,INKR,ISKR,KSHR,KUSR,LRAN,SMOK,TATR,+6 600.043770.823196.503288.320264
-LKEC       1   15634    89732      6 200              FROG,GATA,TOOD,TURN,UKEC                 200.692231.587311
-LKEL       1    1700     1700      1 400                                                       400.174068
-LMUS       1   14027    96908      6 200              LPRO,MMUS,MPRO,UMUS,UPRO                 200.692231.350733.577347
-LNAR       1   20693    98095      8 500              KINR,KSHR,LBIR,NASR,TAYR,UBIR,UNAR       500
-LNIC       1   10924    20811      3 100              GUIC,NICL                                100.190442.244975
-LNRS       1    4781   116474     19 100              BLAR,CHES,CHIL,DRIR,FRAN,LCHL,LDEN,LEUT,+10 100.567134
-LNTH       1   14458    65477      6 100              BRID,CLWR,MAHD,MURT,UNTH                 100.190442.998192
-LOMI       1   10813    20797      2 200              UOMI                                     200.948755.944288
-LPCE       1    4711   439185     27 200              CARP,CRKD,FINA,FINL,FIRE,FOXR,INGR,KISK,+18 200.948755
-LPET       1    2867     9983      4 200              SAHD,TSEA,UPET                           200.692231.270936
-LPRO       1    4034    28490      3 200              MPRO,UPRO                                200.692231.350733.577347.047212
-LRAN       6   10157    10216     13 200,999          BARR,INKR,KSHR,KUSR,LISR,SMOK,TATR,TSEA,+4 200.692231.770914.177748
-LRDO     342   13365    13365      1 915                                                       915.620970
-LSAL       1    4199    12481      3 100              MUSK,SALR                                100.591289
-LSIK       1    8105    32334      2 200              USIK                                     200.692231.350733.999566
-LSKE       3   23404   419860     27 400,910,915      ATNA,BABL,BABR,BELA,BULK,KHTZ,KISP,KITL,+18 400
-LSTR       1   12859   201372     16 600              BARR,CHUK,ISKR,KAKC,KLAR,LISR,MESC,MSTR,+7 600
-LTRE       1    4124    25562      6 100              DRIR,MIDR,NATR,TAKL,UTRE                 100.567134.179319.815989
-MAHD       1   10197    12752      2 100              BRID                                     100.190442.998192.349877.237590
-MBNK     290    4634    10853      3 915              KEEC,NBNK                                915.669295
-MCGR       1   13053    23831      2 100              HERR                                     100.639480
-MDEA       1   12610    49770      5 200              BLUR,CRYL,DEAL,DEAR                      200.692231.708347
-MESC       1    9559     9559      1 600                                                       600.342012
-MESI       1   10123    10123      1 200                                                       200.948755.944297
-MFRA       1    3886   644710     70 100              ADMS,BBAR,BIGC,BLAR,BONP,BOWR,BRID,CARR,+61 100
-MFRT       1    4332   161115     14 200              FONT,KAHN,LFRT,LMUS,LPRO,LSIK,MMUS,MPRO,+5 200.692231.350733
-MIDR       1    4679    18156      4 100              DRIR,NATR,TAKL                           100.567134.179319.815989.532920
-MILL       3    3426     3426      1 200                                                       200.893458.391602.786460
-MMUS       1   31349    96908      6 200              LMUS,LPRO,MPRO,UMUS,UPRO                 200.692231.350733.577347
-MORI    2398   22387    22387      1 950,955                                                   950
-MORK       1   31917   644710     70 100              ADMS,BBAR,BIGC,BLAR,BONP,BOWR,BRID,CARR,+61 100
-MORR       1   14221    35191      2 400              BULK                                     400.431358
-MPRO       1    7684    28490      3 200              LPRO,UPRO                                200.692231.350733.577347.047212
-MSKE       1   20188   189441     12 400              BABL,BABR,BULK,KISP,KLUM,LKEL,LSKE,MORR,+3 400
-MSTR       1   22186   201372     16 600              BARR,CHUK,ISKR,KAKC,KLAR,LISR,LSTR,MESC,+7 600
-MURR       1   20504    20504      1 200                                                       200.948755.808139.320884
-MURT       3    8988     9004      2 100              CLWR                                     100.190442.998192.349877.278725
-MUSK       1    3695     3695      1 100                                                       100.591289.413213
-NAHR       1   11568    11578      2 700              INKR                                     700.998191.999667
-NAKR       1   17043    17043      1 700                                                       700.999247
-NARC       1    6123   644710     70 100              ADMS,BBAR,BIGC,BLAR,BONP,BOWR,BRID,CARR,+61 100
-NASC     410   23689   235530     16 910,915          ATNA,BELA,KHTZ,KITL,KITR,KSHR,KUMR,LDEN,+7 910
-NASR       1   11861    98095      8 500              KINR,KSHR,LBIR,LNAR,TAYR,UBIR,UNAR       500
-NATR       2   15068    15075      2 100,200          TAKL                                     100.567134.179319.815989.532920.601637.707291
-NAZR       2    7863     7865      2 100              LCHR                                     100.342455.289554.998006.158052.245224
-NBNK     515    2501    11051      3 915              KEEC,MBNK                                915.669295
-NECL    2804   21041   246422     16 910,915          ATNA,BELA,KHTZ,KITL,KITR,KSHR,KUMR,LDEN,+7 910
-NECR       1   11564   116474     19 100              BLAR,CHES,CHIL,DRIR,FRAN,LCHL,LDEN,LEUT,+10 100.567134
-NEVI     704    6468    50772      9 905,920          CAMB,COMX,COWN,NIMP,PARK,SALM,TSIT,VICT  905.462830
-NICL       1    6305    20811      3 100              GUIC,LNIC                                100.190442.244975
-NIEL    1051   20815   234926     16 910,915          ATNA,BELA,KHTZ,KITL,KITR,KSHR,KUMR,LDEN,+7 910
-NIMP      64    9308    49547      9 905,920          CAMB,COMX,COWN,NEVI,PARK,SALM,TSIT,VICT  905.451922
-OKAN       1   12708    35031      2 300              SIML                                     300.432687
-OSPK       1   18735    18735      1 200                                                       200.948755.951156
-OWIK     541   40282   231139     16 910,915          ATNA,BELA,KHTZ,KITL,KITR,KSHR,KUMR,LDEN,+7 910
-PARA       1    9707   439185     27 200              CARP,CRKD,FINA,FINL,FIRE,FOXR,INGR,KISK,+18 200.948755
-PARK     260    3003    49675      9 905,920,925      CAMB,COMX,COWN,NEVI,NIMP,SALM,TSIT,VICT  905.360200
-PARS       1   27039    27039      1 200                                                       200.948755.936902
-PCEA       1   27723   439185     27 200              CARP,CRKD,FINA,FINL,FIRE,FOXR,INGR,KISK,+18 200.948755
-PINE       1   27949    48460      3 200              LPCE,MURR                                200.948755.808139
-PITR       2    9149     9157      2 600              USTK                                     600.683111
-PORI    1814    5519     5519      1 915                                                       915.718748
-QUES       1   14810    31583      3 100              CARR,HORS                                100.458399
-REVL       1   17820   307101     17 300              BULL,CANO,CLRH,COLR,DUNC,ELKR,KETL,KHOR,+8 300
-SAHD       1    2087     9983      4 200              LPET,TSEA,UPET                           200.692231.270936
-SAHT       1    4010     4010      1 200                                                       200.692231.350733.487083
-SAJR       1    2292     2294      2 100              TWAC                                     100.382626
-SALM      85    5558    49848      9 905,920          CAMB,COMX,COWN,NEVI,NIMP,PARK,TSIT,VICT  905.419675
-SALR       1    4587    12481      3 100              LSAL,MUSK                                100.591289
-SANJ      70   14099    74025      7 930,935          ALBN,BRKS,CLAY,GOLD,HOLB,TAHS            930
-SETN       1   58075   644710     70 100              ADMS,BBAR,BIGC,BLAR,BONP,BOWR,BRID,CARR,+61 100
-SEYM    1255   17476   153471      8 900,905          HOMA,JERV,KLIN,KNIG,LFRA,SQAM,TOBA       900
-SHEK       1    2281     2281      1 200                                                       200.893458.633613.058706
-SHER       2   16071    16081      2 700              TAHR                                     700.998191.862786
-SHUL       1    8925    29527      4 100              ADMS,STHM,USHU                           100.190442.999098.995997
-SIML       1   22323    22323      1 300                                                       300.432687.380566
-SKGT       1    6355     6355      1 970                                                       970.106243
-SLOC       1   13049    13049      1 300                                                       300.625474.020842
-SMAR       1   17424   122936      7 300              BULL,DUNC,ELKR,KOTL,KOTR,SLOC            300.625474
-SMOK       4   21595    21654     13 200,999          BARR,INKR,KSHR,KUSR,LISR,LRAN,TATR,TSEA,+4 200.948755.667407.370931
-SPAT       1   13661    13669      2 600              USTK                                     600.756349
-SQAM      49   19630   151386      8 900,905          HOMA,JERV,KLIN,KNIG,LFRA,SEYM,TOBA       900
-STHM       1    9143    35000      4 100              ADMS,SHUL,USHU                           100.190442.999098
-STIR       1   11442   201372     16 600              BARR,CHUK,ISKR,KAKC,KLAR,LISR,LSTR,MESC,+7 600
-STUL       1    7006    37939      8 100              DRIR,LTRE,MIDR,NATR,STUR,TAKL,UTRE       100.567134.179319
-STUR       1    5371    37939      8 100              DRIR,LTRE,MIDR,NATR,STUL,TAKL,UTRE       100.567134.179319
-SUST       1   12362    12362      1 400                                                       400.757844
-SWIR       1    9982     9982      1 800                                                       800.901317.630554
-TABR       1    5298   644710     70 100              ADMS,BBAR,BIGC,BLAR,BONP,BOWR,BRID,CARR,+61 100
-TAHR       2    5872     7669      2 600,700          SHER                                     600.377323
-TAHS     983    7734    75045      7 930,935          ALBN,BRKS,CLAY,GOLD,HOLB,SANJ            930
-TAKL       1    8174    18156      4 100              DRIR,MIDR,NATR                           100.567134.179319.815989.532920
-TASR       1    8673     8673      1 100                                                       100.342455.328500.134035
-TATR     292   20666    21434     13 960,990,999      BARR,INKR,KSHR,KUSR,LISR,LRAN,SMOK,TSEA,+4 960.579240.345630
-TAYR       2    8934     8934      1 500                                                       500.617060
-TESR       1   10699    44678      6 800              ATLL,GLAR,JENR,SWIR,UJER                 800.901317
-THOM       1   12805   152937     17 100              ADMS,BONP,BRID,CLWR,DEAD,GRNL,GUIC,LNIC,+8 100.190442
-TOAD       1   47740    47740      1 200                                                       200.692231.445633
-TOBA     238   27658   152280      8 900,905          HOMA,JERV,KLIN,KNIG,LFRA,SEYM,SQAM       900
-TOOD       2   29846    98640      5 200              FINL,FIRE,FOXR,FROG                      200.692231.587311.814025.631754.177115
-TSAY      10   17585   230427     16 910,915          ATNA,BELA,KHTZ,KITL,KITR,KSHR,KUMR,LDEN,+7 910
-TSEA       2    3179    10043     16 200,999          BARR,INKR,KSHR,KUSR,LISR,LPET,LRAN,SAHD,+7 200.692231.270936
-TSIT      40    8057    49511      9 905,920          CAMB,COMX,COWN,NEVI,NIMP,PARK,SALM,VICT  905.436880
-TURN       1   23876    23876      1 200                                                       200.692231.587311.296913
-TUTR       4   20539    43918     14 800,960,999      ATLL,BARR,INKR,KSHR,KUSR,LISR,LRAN,SMOK,+5 800.936764
-TUYR       1   13289    13289      1 600                                                       600.392439
-TWAC       1    3735   644710     70 100              ADMS,BBAR,BIGC,BLAR,BONP,BOWR,BRID,CARR,+61 100
-UARL       1   19521   307101     17 300              BULL,CANO,CLRH,COLR,DUNC,ELKR,KETL,KHOR,+8 300
-UBIR       1   11618    26914      2 500              LBIR                                     500.530253
-UBTN       1   12147    27028      3 200              LBTN,MILL                                200.948755.796981
-UCHR       1    6695    35796      6 100              BIGC,CHIR,LCHR,NAZR,TASR                 100.342455
-UDEN       1    6719    18904      2 910              LDEN                                     910.302877
-UEUT       2   10413    10414      2 100              LDEN                                     100.567134.641477
-UFRA       2   23311   644770     82 100,999          ADMS,BARR,BBAR,BIGC,BLAR,BONP,BOWR,BRID,+73 100
-UFRT       1    7100   161115     14 200              FONT,KAHN,LFRT,LMUS,LPRO,LSIK,MFRT,MMUS,+5 200.692231.350733
-UHAF       1   19712    37643      2 200              LHAF                                     200.948755.837217
-UISR       1   20814    49862      3 600              ISKR,LISR                                600.059339
-UJER       1    7914    15724      2 800              JENR                                     800.901317.645839
-UKEC       1    9811    89732      6 200              FROG,GATA,LKEC,TOOD,TURN                 200.692231.587311
-ULRD       2   18564   481623     46 200,999          BARR,BEAV,BLUR,COAL,CRYL,DEAL,DEAR,DUNE,+37 200.692231
-UMUS       1   23042    96908      6 200              LMUS,LPRO,MMUS,MPRO,UPRO                 200.692231.350733.577347
-UNAR       1   20346    98095      8 500              KINR,KSHR,LBIR,LNAR,NASR,TAYR,UBIR       500
-UNRS       1   15473   116474     19 100              BLAR,CHES,CHIL,DRIR,FRAN,LCHL,LDEN,LEUT,+10 100.567134
-UNTH       1   15366    65477      6 100              BRID,CLWR,LNTH,MAHD,MURT                 100.190442.998192
-UNUR       4    9015     9353     13 960,999          BARR,INKR,KSHR,KUSR,LISR,LRAN,SMOK,TATR,+4 960.000325
-UOMI       1    9984    20797      2 200              LOMI                                     200.948755.944288
-UPCE       1   12368   439185     27 200              CARP,CRKD,FINA,FINL,FIRE,FOXR,INGR,KISK,+18 200.948755
-UPET       2    1889    10021      4 200              LPET,SAHD,TSEA                           200.692231.270936
-UPRO       1   16772    28490      3 200              LPRO,MPRO                                200.692231.350733.577347.047212
-USHU       1    9594     9878      2 100              SHUL                                     100.190442.999098.995997.730848
-USIK       1   24229    32334      2 200              LSIK                                     200.692231.350733.999566
-USKE       1   15806   189441     12 400              BABL,BABR,BULK,KISP,KLUM,LKEL,LSKE,MORR,+3 400
-USTK       1   12773   201372     16 600              BARR,CHUK,ISKR,KAKC,KLAR,LISR,LSTR,MESC,+7 600
-UTRE       1    3282    25562      6 100              DRIR,LTRE,MIDR,NATR,TAKL                 100.567134.179319.815989
-VICT     449    1564    50015      9 920,925          CAMB,COMX,COWN,NEVI,NIMP,PARK,SALM,TSIT  920
-WILL       1    7349     7349      1 100                                                       100.594120
-WORC    1088   17668   235378     16 910,915          ATNA,BELA,KHTZ,KITL,KITR,KSHR,KUMR,LDEN,+7 910
-ZYMO       1   14257    14257      1 400                                                       400.221484
+roots: how many (first_root: the first in ltree order); own: the group's polygons; reach and closure:
+polygons, and the groups they span; others: the other groups the reach spans (the first eight)
+group  roots     own    reach   g  closure   g codes            others                                   first_root
+ADMS       1    7338     7338   1     7338   1 100                                                       100.190442.999098.995997.058910
+ALBN     958   13862    60951   6    74981   7 930,935          BRKS,CLAY,GOLD,HOLB,TAHS                 930
+ATLL       2   18733    18734   2    18734   2 800              TUTR                                     800.901317.610987.423004.994640.782192.390196
+ATNA       1    9454     9454   1     9454   1 910                                                       910.275583.999439
+BABL       1   13971    14383   2    28908   2 400              BABR                                     400.536025
+BABR       1   14937    28908   2    28908   2 400              BABL                                     400.536025
+BARR       6   10999    11069  13    11069  13 600,960,999      INKR,KSHR,KUSR,LISR,LRAN,SMOK,TATR,TSEA,+4 600.273049
+BBAR       1   15161   369152  49   644710  70 100              BIGC,BLAR,BOWR,CARR,CHES,CHIL,CHIR,COTR,+40 100
+BEAV       1   15267   295013  18   481563  36 200              BLUR,COAL,CRYL,DEAL,DEAR,DUNE,FROG,GATA,+9 200.692231
+BELA       4   10356   174552  14   230421  16 910,915          ATNA,KHTZ,KITL,KITR,KSHR,KUMR,LDEN,LSKE,+5 910
+BIGC       1    3134     3134   1     3134   1 100                                                       100.342455.095384
+BLAR       2    6276    21862   5    21862   5 100              EUCH,EUCL,LCHL,NAZR                      100.500560
+BLUR       1    7532     7532   1     7532   1 200                                                       200.692231.708347.173706
+BONP       1   11411    14115   2    14115   2 100              GRNL                                     100.190442.506118
+BOWR       1    9462     9462   1     9462   1 100                                                       100.654493
+BRID       1    2555     2555   1     2555   1 100                                                       100.190442.998192.349877.237590.984912.950504
+BRKS    1153   12507    18515   2    75114   7 930,935          HOLB                                     930
+BULK       1   20970    35191   2    35191   2 400              MORR                                     400.431358
+BULL       1   10682    69264   4   122936   7 300              ELKR,KOTR,SMAR                           300.625474
+CAMB       1    6534    33547   5    49325   9 920              NEVI,NIMP,SALM,TSIT                      920
+CANO       1    7544    66639   4   307101  17 300              CLRH,COLR,KHOR                           300
+CARP       1    8215    18577   2    18577   2 200              CRKD                                     200.948755.936906
+CARR       1   10640    10640   1    10640   1 100                                                       100.458399.466616
+CHES       1    4114    38147   7   116474  19 100              LDEN,LEUT,LNRS,NECR,UEUT,UNRS            100.567134
+CHIL       1    3972     3974   2     9811   3 100              LCHL                                     100.567134.069486
+CHIR       1    9637    18312   3    18323   3 100              LCHR,TASR                                100.342455.328500
+CHUK       1    9341     9342   2     9369   2 600              USTK                                     600.823383
+CHWK       5    4907     4916   2     4916   2 100,970          LFRA                                     100.064535
+CLAY     728   15070    48699   5    75566   7 930,935          BRKS,GOLD,HOLB,TAHS                      930
+CLRH       1   19516    67172   5   307101  17 300              CANO,COLR,KHOR,REVL                      300
+CLWR       1   13913    35653   4    35653   4 100              BRID,MAHD,MURT                           100.190442.998192.349877
+COAL       1   23542   191762  15   481563  36 200              BLUR,CRYL,DEAL,DEAR,FROG,GATA,LIAR,LKEC,+6 200.692231
+COLR       1   21648    21650   2   307101  17 300              KHOR                                     300
+COMX     436    5838    39385   6    50790   9 905,920          CAMB,NEVI,NIMP,SALM,TSIT                 905.373417
+COTR       1   11384   263331  34   644710  70 100              BLAR,BOWR,CHES,CHIL,DRIR,EUCH,EUCL,FRAN,+25 100
+COWN     219    8138    48711   8    49585   9 920,925          CAMB,COMX,NEVI,NIMP,PARK,SALM,TSIT       920
+CRKD       1   10362    10362   1    10362   1 200                                                       200.948755.936906.932956
+CRYL       1    6584     6584   1     6584   1 200                                                       200.692231.708347.415013
+DEAD       1    4729     4729   1     4729   1 100                                                       100.190442.712025
+DEAL       1   15375    15375   1    49770   5 200                                                       200.692231.708347
+DEAR       1    7669    49770   5    49770   5 200              BLUR,CRYL,DEAL,MDEA                      200.692231.708347
+DOGC       1    7244   353991  48   644710  70 100              BBAR,BIGC,BLAR,BOWR,CARR,CHES,CHIL,CHIR,+39 100
+DRIR       1    5302     5302   1     5302   1 100                                                       100.567134.179319.815989.532920.992397
+DUNC       1   19132    19132   1    19132   1 300                                                       300.625474.096683
+DUNE       1   15465   471579  32   481563  36 200              BEAV,BLUR,COAL,CRYL,DEAL,DEAR,FONT,FROG,+23 200.692231
+ELKR       2   20252    20252   1    20252   1 300                                                       300.602565.854327.993941.902282.132363
+EUCH       1    2855     2855   1     2855   1 100                                                       100.500560.248839
+EUCL       1    4844     4846   2    21836   4 100              BLAR                                     100.500560
+FINA       1   17248   252895  16   439185  27 200              CARP,CRKD,FINL,FIRE,FOXR,INGR,LOMI,MESI,+7 200.948755
+FINL       1   29661    98617   4    98617   4 200              FIRE,FOXR,TOOD                           200.948755.999851
+FIRE       1   18066    18070   2    98617   4 200              TOOD                                     200.948755.999851
+FONT       1    5160    10522   2    10522   2 200              KAHN                                     200.692231.350733.999823
+FOXR       2   21054    21054   1    21054   1 200                                                       200.948755.999851.328794
+FRAN       1   16552    16552   1    16552   1 100                                                       100.567134.374775
+FRCN       1   17180   644710  70   644710  70 100              ADMS,BBAR,BIGC,BLAR,BONP,BOWR,BRID,CARR,+61 100
+FROG       1   22175    40414   4    89732   6 200              GATA,TOOD,UKEC                           200.692231.587311
+GATA       1   18226    18231   2    18231   2 200              FROG                                     200.692231.587311.633085
+GLAR       2    8267     8279   3     8279   3 800              ATLL,TESR                                800.901317.480254
+GOLD     475   11589    35591   4    75918   7 930,935          BRKS,HOLB,TAHS                           930
+GRAI    1276   24293    24293   1    24293   1 940,945                                                   940
+GRNL       2    2705     2708   2     2708   2 100              DOGC                                     100.190442.506118.553154
+GUIC       3    3582     3582   1     3582   1 100                                                       100.190442.244975.296261
+HARR       1    9361   631960  70   644710  70 100              ADMS,BBAR,BIGC,BLAR,BONP,BOWR,BRID,CARR,+61 100
+HAYR       1    1687     8160   3     9377   4 200              KCHL,SHEK                                200.893458
+HERR       1   10778    10778   1    10778   1 100                                                       100.639480.270767
+HOLB     491    6579     6579   1    74527   7 930,935                                                   930
+HOMA       6   25593    97676   5   151326   8 900,905          KLIN,KNIG,SEYM,TOBA                      900
+HORS       1    6133     6133   1     6133   1 100                                                       100.458399.638146
+INGR       1   16983    16983   1    16983   1 200                                                       200.948755.992594
+INKR       5   25500    70247  17    70248  17 700,960,999      BARR,KSHR,KUSR,LISR,LRAN,NAHR,NAKR,SHER,+8 700
+ISKR       1   16746    37561   3    49862   3 600              LISR,UISR                                600.059339
+JENR       1    7810    15723   2    15724   2 800              UJER                                     800.901317.645839
+JERV     372   15149   131852   6   152279   8 900,905          HOMA,KLIN,KNIG,SEYM,TOBA                 900
+KAHN       1    5362     5362   1     5362   1 200                                                       200.692231.350733.999823.217968
+KAKC       1    7485     7485   1     7485   1 600                                                       600.399105
+KCHL       1    4192     6473   2     6473   2 200              SHEK                                     200.893458.633613
+KEEC    1568    9332    15539   3    15539   3 915              MBNK,NBNK                                915.650016
+KETL       1   19782    19782   1    19784   2 300                                                       300.571168
+KHOR       1   18460    40110   3   307101  17 300              CLRH,COLR                                300
+KHTZ      42   18671   109060   8   235018  16 910,915          KITL,KITR,KSHR,KUMR,LSKE,TSAY,WORC       910
+KINR       4    9346     9438   3     9438   3 500              KSHR,NASR                                500.279029
+KISK       1    6772     6772   1     6772   1 200                                                       200.948755.789717
+KISP       1   17961   130417   9   189441  12 400              BABL,BABR,BULK,KLUM,MORR,MSKE,SUST,USKE  400
+KITL       5   23047   130804   9   230422  16 910,915          KHTZ,KITR,KSHR,KUMR,LSKE,NASC,TSAY,WORC  910
+KITR      37   20422    57607   5   230492  16 910,915          KSHR,KUMR,LSKE,WORC                      910
+KLAR       1   17360    17360   1    17360   1 600                                                       600.544210
+KLIN      12   24116    54931   3   151332   8 900,905          KNIG,SEYM                                900
+KLUM       1   19666   164348  11   189441  12 400              BABL,BABR,BULK,KISP,LSKE,MORR,MSKE,SUST,+2 400
+KNIG    1246   28715    68146   3   155051   8 900,905          KLIN,SEYM                                900
+KOTL       1   21488   122936   7   122936   7 300              BULL,DUNC,ELKR,KOTR,SLOC,SMAR            300.625474
+KOTR       1   25665    25666   2   122936   7 300              SMAR                                     300.625474
+KSHR      58   18159    18218  13   230597  29 500,910,915,960,999 BARR,INKR,KUSR,LISR,LRAN,SMOK,TATR,TSEA,+4 500.441851.955629.241507
+KTSU    2597   10292    10292   1    10292   1 915                                                       915.592276
+KUMR     892   19500    50274   4   243507  16 910,915          KSHR,LSKE,WORC                           910
+KUSR       6   12404    50460  14    50594  14 800,960,999      ATLL,BARR,INKR,KSHR,LISR,LRAN,SMOK,TATR,+5 800.936764
+LARL       1   20087   252288  14   307101  17 300              BULL,CANO,CLRH,COLR,DUNC,ELKR,KHOR,KOTL,+5 300
+LBIR       1   15296    26914   2    26914   2 500              UBIR                                     500.530253
+LBTN       1   12672    27028   3    27028   3 200              MILL,UBTN                                200.948755.796981
+LCHL       1    8300   116472  18   116474  19 100              CHES,CHIL,DRIR,FRAN,LDEN,LEUT,LNRS,LTRE,+9 100.567134
+LCHR       1    7656    35796   6    35796   6 100              BIGC,CHIR,NAZR,TASR,UCHR                 100.342455
+LDEN       2   12188   149707  12   230420  17 100,910          KHTZ,KITL,KITR,KSHR,KUMR,LSKE,NASC,TSAY,+3 100.567134.641477.698356
+LEUT       1    3364    30159   5   116474  19 100              LDEN,LNRS,UEUT,UNRS                      100.567134
+LFRA       6   13767   796176  77   796176  77 100,900,905,970  ADMS,BBAR,BIGC,BLAR,BONP,BOWR,BRID,CARR,+68 100
+LFRT       1    5909   161115  14   161115  14 200              FONT,KAHN,LMUS,LPRO,LSIK,MFRT,MMUS,MPRO,+5 200.692231.350733
+LHAF       1   17931    37643   2    37643   2 200              UHAF                                     200.948755.837217
+LIAR       1   40230   231992  16   481563  36 200              BEAV,BLUR,COAL,CRYL,DEAL,DEAR,FROG,GATA,+7 200.692231
+LILL       1   20343    20343   1    20343   1 100                                                       100.077501.955583
+LISR       9   12650    50259  15    50259  15 600,960,999      BARR,INKR,ISKR,KSHR,KUSR,LRAN,SMOK,TATR,+6 600.043770.823196.503288.320264
+LKEC       1   15634    89730   6    89732   6 200              FROG,GATA,TOOD,TURN,UKEC                 200.692231.587311
+LKEL       1    1700     1700   1     1700   1 400                                                       400.174068
+LMUS       1   14027    96908   6    96908   6 200              LPRO,MMUS,MPRO,UMUS,UPRO                 200.692231.350733.577347
+LNAR       1   20693    98094   7    98095   8 500              KINR,LBIR,NASR,TAYR,UBIR,UNAR            500
+LNIC       1   10924    20811   3    20811   3 100              GUIC,NICL                                100.190442.244975
+LNRS       1    4781    34033   6   116474  19 100              CHES,LDEN,LEUT,UEUT,UNRS                 100.567134
+LNTH       1   14458    65477   6    65477   6 100              BRID,CLWR,MAHD,MURT,UNTH                 100.190442.998192
+LOMI       1   10813    20797   2    20797   2 200              UOMI                                     200.948755.944288
+LPCE       1    4711   417591  26   439185  27 200              CARP,CRKD,FINA,FINL,FIRE,FOXR,INGR,KISK,+17 200.948755
+LPET       1    2867     9983   4     9983   4 200              SAHD,TSEA,UPET                           200.692231.270936
+LPRO       1    4034    28490   3    28490   3 200              MPRO,UPRO                                200.692231.350733.577347.047212
+LRAN       6   10157    10216  13    10216  13 200,999          BARR,INKR,KSHR,KUSR,LISR,SMOK,TATR,TSEA,+4 200.692231.770914.177748
+LRDO     342   13365    13365   1    13365   1 915                                                       915.620970
+LSAL       1    4199    12480   3    12481   3 100              MUSK,SALR                                100.591289
+LSIK       1    8105    32334   2    32334   2 200              USIK                                     200.692231.350733.999566
+LSKE       3   23404   220215  15   419860  27 400,910,915      BABL,BABR,BULK,KISP,KLUM,KSHR,KUMR,LKEL,+6 400
+LSTR       1   12859   201365  16   201372  16 600              BARR,CHUK,ISKR,KAKC,KLAR,LISR,MESC,MSTR,+7 600
+LTRE       1    4124    25562   6    25562   6 100              DRIR,MIDR,NATR,TAKL,UTRE                 100.567134.179319.815989
+MAHD       1   10197    12752   2    12752   2 100              BRID                                     100.190442.998192.349877.237590
+MBNK     290    4634     8696   3    10853   3 915              KEEC,NBNK                                915.669295
+MCGR       1   13053    23831   2    23831   2 100              HERR                                     100.639480
+MDEA       1   12610    49764   5    49770   5 200              BLUR,CRYL,DEAL,DEAR                      200.692231.708347
+MESC       1    9559     9559   1     9559   1 600                                                       600.342012
+MESI       1   10123    10123   1    10123   1 200                                                       200.948755.944297
+MFRA       1    3886   346745  46   644710  70 100              BIGC,BLAR,BOWR,CARR,CHES,CHIL,CHIR,COTR,+37 100
+MFRT       1    4332   155207  14   161115  14 200              FONT,KAHN,LFRT,LMUS,LPRO,LSIK,MMUS,MPRO,+5 200.692231.350733
+MIDR       1    4679    18156   4    18156   4 100              DRIR,NATR,TAKL                           100.567134.179319.815989.532920
+MILL       3    3426     3426   1     3426   1 200                                                       200.893458.391602.786460
+MMUS       1   31349    54392   3    96908   6 200              LMUS,UMUS                                200.692231.350733.577347
+MORI    2398   22387    22387   1    22387   1 950,955                                                   950
+MORK       1   31917    88507   5   644710  70 100              BOWR,HERR,MCGR,UFRA                      100
+MORR       1   14221    19668   2    35191   2 400              BULK                                     400.431358
+MPRO       1    7684    24457   3    28490   3 200              LPRO,UPRO                                200.692231.350733.577347.047212
+MSKE       1   20188    77265   6   189441  12 400              BABL,BABR,KISP,SUST,USKE                 400
+MSTR       1   22186   146131  13   201372  16 600              BARR,CHUK,KAKC,KLAR,LSTR,MESC,PITR,SPAT,+4 600
+MURR       1   20504    20504   1    20504   1 200                                                       200.948755.808139.320884
+MURT       3    8988     8998   2     9004   2 100              CLWR                                     100.190442.998192.349877.278725
+MUSK       1    3695     3695   1     3695   1 100                                                       100.591289.413213
+NAHR       1   11568    11578   2    11578   2 700              INKR                                     700.998191.999667
+NAKR       1   17043    17043   1    17043   1 700                                                       700.999247
+NARC       1    6123   301036  38   644710  70 100              BLAR,BOWR,CARR,CHES,CHIL,COTR,DRIR,EUCH,+29 100
+NASC     410   23689   131888   9   235530  16 910,915          KHTZ,KITL,KITR,KSHR,KUMR,LSKE,TSAY,WORC  910
+NASR       1   11861    75569   7    98095   8 500              KINR,LBIR,LNAR,TAYR,UBIR,UNAR            500
+NATR       2   15068    15069   2    15075   2 100,200          TAKL                                     100.567134.179319.815989.532920.601637.707291
+NAZR       2    7863     7865   2     7865   2 100              LCHR                                     100.342455.289554.998006.158052.245224
+NBNK     515    2501     5223   3    11051   3 915              KEEC,MBNK                                915.669295
+NECL    2804   21041   170746  12   246422  16 910,915          KHTZ,KITL,KITR,KSHR,KUMR,LDEN,LSKE,NASC,+3 910
+NECR       1   11564    66264   9   116474  19 100              CHES,FRAN,LCHL,LDEN,LEUT,LNRS,UEUT,UNRS  100.567134
+NEVI     704    6468     6468   1    50772   9 905,920                                                   905.462830
+NICL       1    6305     8003   2    20811   3 100              LNIC                                     100.190442.244975
+NIEL    1051   20815   199424  16   234926  16 910,915          ATNA,BELA,KHTZ,KITL,KITR,KSHR,KUMR,LDEN,+7 910
+NIMP      64    9308    14329   2    49547   9 905,920          NEVI                                     905.451922
+OKAN       1   12708    12708   1    35031   2 300                                                       300.432687
+OSPK       1   18735    18735   1    18735   1 200                                                       200.948755.951156
+OWIK     541   40282   231138  16   231139  16 910,915          ATNA,BELA,KHTZ,KITL,KITR,KSHR,KUMR,LDEN,+7 910
+PARA       1    9707   252849  15   439185  27 200              CARP,CRKD,FINA,FINL,FIRE,FOXR,INGR,LOMI,+6 200.948755
+PARK     260    3003    40923   7    49675   9 905,920,925      CAMB,COMX,NEVI,NIMP,SALM,TSIT            905.360200
+PARS       1   27039    27039   1    27039   1 200                                                       200.948755.936902
+PCEA       1   27723   280620  17   439185  27 200              CARP,CRKD,FINA,FINL,FIRE,FOXR,INGR,LOMI,+8 200.948755
+PINE       1   27949    48453   2    48460   3 200              MURR                                     200.948755.808139
+PITR       2    9149     9157   2     9157   2 600              USTK                                     600.683111
+PORI    1814    5519     5519   1     5519   1 915                                                       915.718748
+QUES       1   14810    31583   3    31583   3 100              CARR,HORS                                100.458399
+REVL       1   17820    84990   6   307101  17 300              CANO,CLRH,COLR,KHOR,UARL                 300
+SAHD       1    2087     3940   3     9983   4 200              TSEA,UPET                                200.692231.270936
+SAHT       1    4010     4010   1     4010   1 200                                                       200.692231.350733.487083
+SAJR       1    2292     2294   2     2294   2 100              TWAC                                     100.382626
+SALM      85    5558    27536   4    49848   9 905,920          NEVI,NIMP,TSIT                           905.419675
+SALR       1    4587     4589   2    12481   3 100              LSAL                                     100.591289
+SANJ      70   14099    74025   7    74025   7 930,935          ALBN,BRKS,CLAY,GOLD,HOLB,TAHS            930
+SETN       1   58075   427226  50   644710  70 100              BBAR,BIGC,BLAR,BOWR,CARR,CHES,CHIL,CHIR,+41 100
+SEYM    1255   17476    17476   1   153471   8 900,905                                                   900
+SHEK       1    2281     2281   1     2281   1 200                                                       200.893458.633613.058706
+SHER       2   16071    16081   2    16081   2 700              TAHR                                     700.998191.862786
+SHUL       1    8925    29432   4    29527   4 100              ADMS,STHM,USHU                           100.190442.999098.995997
+SIML       1   22323    22323   1    22323   1 300                                                       300.432687.380566
+SKGT       1    6355     6355   1     6355   1 970                                                       970.106243
+SLOC       1   13049    13049   1    13049   1 300                                                       300.625474.020842
+SMAR       1   17424    70579   5   122936   7 300              BULL,ELKR,KOTL,KOTR                      300.625474
+SMOK       4   21595    21654  13    21654  13 200,999          BARR,INKR,KSHR,KUSR,LISR,LRAN,TATR,TSEA,+4 200.948755.667407.370931
+SPAT       1   13661    13662   2    13669   2 600              USTK                                     600.756349
+SQAM      49   19630   150524   7   151386   8 900,905          HOMA,JERV,KLIN,KNIG,SEYM,TOBA            900
+STHM       1    9143    34999   4    35000   4 100              ADMS,SHUL,USHU                           100.190442.999098
+STIR       1   11442   201366  16   201372  16 600              BARR,CHUK,ISKR,KAKC,KLAR,LISR,LSTR,MESC,+7 600
+STUL       1    7006    34127   8    37939   8 100              DRIR,LTRE,MIDR,NATR,STUR,TAKL,UTRE       100.567134.179319
+STUR       1    5371    37939   8    37939   8 100              DRIR,LTRE,MIDR,NATR,STUL,TAKL,UTRE       100.567134.179319
+SUST       1   12362    12362   1    12362   1 400                                                       400.757844
+SWIR       1    9982     9982   1     9982   1 800                                                       800.901317.630554
+TABR       1    5298   230109  29   644710  70 100              BOWR,CHES,CHIL,COTR,DRIR,FRAN,HERR,LCHL,+20 100
+TAHR       2    5872     7669   2     7669   2 600,700          SHER                                     600.377323
+TAHS     983    7734    25091   3    75045   7 930,935          BRKS,HOLB                                930
+TAKL       1    8174    13478   4    18156   4 100              DRIR,MIDR,NATR                           100.567134.179319.815989.532920
+TASR       1    8673     8673   1     8673   1 100                                                       100.342455.328500.134035
+TATR     292   20666    20721  13    21434  13 960,990,999      BARR,INKR,KSHR,KUSR,LISR,LRAN,SMOK,TSEA,+4 960.579240.345630
+TAYR       2    8934     8934   1     8934   1 500                                                       500.617060
+TESR       1   10699    44451   6    44678   6 800              ATLL,GLAR,JENR,SWIR,UJER                 800.901317
+THOM       1   12805   152937  17   152937  17 100              ADMS,BONP,BRID,CLWR,DEAD,GRNL,GUIC,LNIC,+8 100.190442
+TOAD       1   47740    47740   1    47740   1 200                                                       200.692231.445633
+TOBA     238   27658   117662   5   152280   8 900,905          HOMA,KLIN,KNIG,SEYM                      900
+TOOD       2   29846    68968   5    98640   5 200              FINL,FIRE,FOXR,FROG                      200.692231.587311.814025.631754.177115
+TSAY      10   17585    90398   7   230427  16 910,915          KITL,KITR,KSHR,KUMR,LSKE,WORC            910
+TSEA       2    3179     7177  16    10043  16 200,999          BARR,INKR,KSHR,KUSR,LISR,LPET,LRAN,SAHD,+7 200.692231.270936
+TSIT      40    8057    22164   3    49511   9 905,920          NEVI,NIMP                                905.436880
+TURN       1   23876    23876   1    23876   1 200                                                       200.692231.587311.296913
+TUTR       4   20539    39317  14    43918  14 800,960,999      ATLL,BARR,INKR,KSHR,KUSR,LISR,LRAN,SMOK,+5 800.936764
+TUYR       1   13289    13289   1    13289   1 600                                                       600.392439
+TWAC       1    3735   307063  40   644710  70 100              BLAR,BOWR,CARR,CHES,CHIL,COTR,DRIR,EUCH,+31 100
+UARL       1   19521   104510   7   307101  17 300              CANO,CLRH,COLR,KHOR,LARL,REVL            300
+UBIR       1   11618    11620   2    26914   2 500              LBIR                                     500.530253
+UBTN       1   12147    14358   3    27028   3 200              LBTN,MILL                                200.948755.796981
+UCHR       1    6695     6697   2    35796   6 100              LCHR                                     100.342455
+UDEN       1    6719     6720   2    18904   2 910              LDEN                                     910.302877
+UEUT       2   10413    10414   2    10414   2 100              LDEN                                     100.567134.641477
+UFRA       2   23311    23358  14   644770  82 100,999          BARR,INKR,KSHR,KUSR,LISR,LRAN,MORK,SMOK,+5 100
+UFRT       1    7100    49956   5   161115  14 200              FONT,KAHN,LSIK,USIK                      200.692231.350733
+UHAF       1   19712    37643   2    37643   2 200              LHAF                                     200.948755.837217
+UISR       1   20814    20816   2    49862   3 600              ISKR                                     600.059339
+UJER       1    7914     7916   2    15724   2 800              JENR                                     800.901317.645839
+UKEC       1    9811    74098   6    89732   6 200              FROG,GATA,LKEC,TOOD,TURN                 200.692231.587311
+ULRD       2   18564   168282  25   481623  46 200,999          BARR,BLUR,COAL,CRYL,DEAL,DEAR,FROG,GATA,+16 200.692231
+UMUS       1   23042    23045   2    96908   6 200              MMUS                                     200.692231.350733.577347
+UNAR       1   20346    29281   3    98095   8 500              NASR,TAYR                                500
+UNRS       1   15473    15482   2   116474  19 100              LNRS                                     100.567134
+UNTH       1   15366    15368   2    65477   6 100              LNTH                                     100.190442.998192
+UNUR       4    9015     9073  13     9353  13 960,999          BARR,INKR,KSHR,KUSR,LISR,LRAN,SMOK,TATR,+4 960.000325
+UOMI       1    9984     9986   2    20797   2 200              LOMI                                     200.948755.944288
+UPCE       1   12368   330629  20   439185  27 200              CARP,CRKD,FINA,FINL,FIRE,FOXR,INGR,LHAF,+11 200.948755
+UPET       2    1889     1891   2    10021   4 200              SAHD                                     200.692231.270936
+UPRO       1   16772    16773   2    28490   3 200              MPRO                                     200.692231.350733.577347.047212
+USHU       1    9594     9596   2     9878   2 100              SHUL                                     100.190442.999098.995997.730848
+USIK       1   24229    24231   2    32334   2 200              LSIK                                     200.692231.350733.999566
+USKE       1   15806    15807   2   189441  12 400              MSKE                                     400
+USTK       1   12773    35777   5   201372  16 600              CHUK,MSTR,PITR,SPAT                      600
+UTRE       1    3282    21440   6    25562   6 100              DRIR,LTRE,MIDR,NATR,TAKL                 100.567134.179319.815989
+VICT     449    1564    50015   9    50015   9 920,925          CAMB,COMX,COWN,NEVI,NIMP,PARK,SALM,TSIT  920
+WILL       1    7349     7349   1     7349   1 100                                                       100.594120
+WORC    1088   17668    35733   2   235378  16 910,915          KSHR                                     910
+ZYMO       1   14257    14257   1    14257   1 400                                                       400.221484
