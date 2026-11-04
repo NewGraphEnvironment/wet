@@ -222,6 +222,37 @@ up_all <- timed("accumulation", {
 # written and the values do not move.
 up <- up_all[ws$watershed_group_code == wsg, ]
 
+# the group's upstream means against the province run's, basin by basin,
+# where its upstream/ is on this machine: the same values to summation order,
+# and every zone column the closure lacks 0 or NA on the group's rows
+f_up <- file.path(key_dir, "upstream", paste0(codes, ".rds"))
+up_parity <- if (!all(file.exists(f_up))) {
+  "the province run's upstream/ is not on this machine: not compared"
+} else {
+  timed("province upstream", unlist(lapply(f_up, function(f) {
+    pu <- readRDS(f)
+    pu <- pu[pu$watershed_feature_id %in% up$watershed_feature_id, ]
+    a <- up[match(pu$watershed_feature_id, up$watershed_feature_id), ]
+    num <- setdiff(intersect(names(a), names(pu)), c("watershed_feature_id", "wscode", "localcode"))
+    num <- num[vapply(pu[num], is.numeric, TRUE)]
+    same <- Reduce(`&`, lapply(num, function(k) (a[[k]] == pu[[k]]) %in% TRUE | (is.na(a[[k]]) & is.na(pu[[k]]))))
+    rel <- vapply(num, function(k) {
+      d <- abs(a[[k]] - pu[[k]]) / pmax(abs(a[[k]]), abs(pu[[k]]))
+      if (any(!is.na(d))) max(d, na.rm = TRUE) else 0
+    }, 0)
+    nad <- sum(vapply(num, function(k) sum(is.na(a[[k]]) != is.na(pu[[k]])), 0))
+    zx <- setdiff(grep("^zp?[0-9]+$", names(pu), value = TRUE), names(a))
+    zx_nonzero <- sum(vapply(zx, function(k) sum(pu[[k]] != 0, na.rm = TRUE), 0))
+    top <- utils::head(sort(rel[rel > 0], decreasing = TRUE), 3)
+    c(sprintf("basin %s: %d of %s's watersheds, %d columns; identical in every column: %d; NA on one side: %d",
+              sub("\\.rds$", "", basename(f)), nrow(pu), wsg, length(num), sum(same), nad),
+      sprintf("  largest relative difference: %s",
+              if (length(top)) paste(sprintf("%s %.3g", names(top), top), collapse = ", ") else "none"),
+      sprintf("  zone columns of the basin outside the closure: %d, nonzero on the group's rows: %d",
+              length(zx), zx_nonzero))
+  })))
+}
+
 # ---- the fit, as wb_output.R applies it ----------------------------------------------------------------
 days <- c(365.25, wet_month_days())
 bal <- timed("fit", {
@@ -331,14 +362,43 @@ res <- do.call(rbind, lapply(seq_len(nrow(cmp)), function(i) {
   v <- wet_values_compare(s[[1]], s[[2]], id_col = cmp$id[i], value = cmp$value[i], tol = cmp$tol[i])
   cbind(cmp[i, c("rows", "value", "tol")], t(v))
 }))
-lists <- lapply(seq_len(nrow(cmp)), function(i) {
+bad <- lapply(seq_len(nrow(cmp)), function(i) {
   s <- side(cmp$rows[i])
-  b <- beyond(s[[1]], s[[2]], cmp$id[i], cmp$value[i], cmp$tol[i])
+  beyond(s[[1]], s[[2]], cmp$id[i], cmp$value[i], cmp$tol[i])
+})
+# Attribution. The donor shares give a watershed at distance exactly 0 from a
+# calibration gauge's donor row that gauge's shares alone (wet_donor_mean());
+# at any distance above 0 the other donors weigh in. The province run's own
+# upstream means are the donor rows, so a last-bit move in them turns a
+# gauge's exact 0 into about 1e-15, and its months move with it.
+dfit <- switch(fits$share_method, donor = fits$share, blend = fits$share$donor, NULL)
+at_gauge <- integer()
+if (!is.null(dfit)) {
+  xs <- sweep(as.matrix(up[dfit$static]), 2, dfit$sd, "/")
+  dmin <- apply(xs, 1, function(r) min(sqrt(colSums((t(dfit$x) - r)^2))))
+  at_gauge <- up$watershed_feature_id[!is.na(dmin) & dmin < 1e-9]
+  n_gauge0 <- sum(!is.na(dmin) & dmin == 0)
+}
+ws_bad <- unique(c(unlist(lapply(which(cmp$rows == "watershed"), function(i) bad[[i]]$watershed_feature_id)),
+                   seg$watershed_feature_id[match(unlist(lapply(which(cmp$rows != "watershed"), function(i) {
+                     bad[[i]]$linear_feature_id
+                   })), seg$linear_feature_id)]))
+attribution <- c(
+  sprintf("watersheds with a row beyond tolerance (either table): %d; at a calibration gauge: %d", length(ws_bad),
+          sum(ws_bad %in% at_gauge)),
+  if (!is.null(dfit)) {
+    sprintf("%s watersheds within 1e-9 (scaled) of a calibration gauge's donor row: %d, exactly 0: %d", wsg,
+            length(at_gauge), n_gauge0)
+  }
+)
+lists <- lapply(seq_len(nrow(cmp)), function(i) {
+  b <- bad[[i]]
   if (!nrow(b)) return(character())
   h <- utils::head(b, 20)
   c(sprintf("%s %s: %d rows beyond %g relative (largest 20)", cmp$rows[i], cmp$value[i], nrow(b), cmp$tol[i]),
     sprintf("  %-12s %5s %22s %22s %10s", "id", "month", "group", "published", "relative"),
-    sprintf("  %-12d %5d %22.15g %22.15g %10.3g", h[[cmp$id[i]]], as.integer(h$month), h[[4]], h[[5]], h$rel))
+    sprintf("  %-12d %5d %22.15g %22.15g %10.3g", h[[cmp$id[i]]], as.integer(h$month),
+            h[[paste0(cmp$value[i], "_group")]], h[[paste0(cmp$value[i], "_pub")]], h$rel))
 })
 
 # ---- report -------------------------------------------------------------------------------------------------
@@ -372,11 +432,14 @@ writeLines(c(
   sprintf("  %-5s %s", groups, smp_from),
   if (length(smp_msgs)) c("sampled by this run:", paste0("  ", smp_msgs)),
   if (length(parity)) c("", parity),
+  "", "## Upstream means against the province run's",
+  up_parity,
   "", "## Published product",
   sprintf("live build %s (manifest built %s); balance fit %s of run %s", attr(cat_pub, "provenance")$wet_commit,
           attr(cat_pub, "built"), prov_bal$fit_release, prov_bal$province_run),
-  sprintf("parts read: %d (%s), all matching the manifest before (%d) and after (%d) the read", nrow(parts),
-          paste(sub("^discharge/fwa/v1/", "", parts$key), collapse = ", "), n_ok_before, n_ok_after),
+  sprintf("parts read: %d, all matching the manifest before (%d) and after (%d) the read:", nrow(parts),
+          n_ok_before, n_ok_after),
+  sprintf("  %s %s", parts$md5, sub("^discharge/fwa/v1/", "", parts$key)),
   sprintf("rows of %s: %d watershed, %d balance segment, %d routed segment", wsg, nrow(pub_ws), nrow(pub_b),
           nrow(pub_r)),
   "", "## This build",
@@ -391,6 +454,7 @@ writeLines(c(
   sprintf("%-16s %-12s %6s %9s %9s %12s", "rows", "value", "tol", "compared", "differing", "max_abs_diff"),
   sprintf("%-16s %-12s %6g %9d %9d %12.3g", res$rows, res$value, res$tol, as.integer(res$compared),
           as.integer(res$differing), res$max_abs_diff),
+  "", attribution,
   if (length(unlist(lists))) c("", unlist(lists))
 ), con)
 close(con)
