@@ -1,6 +1,6 @@
 # What one watershed group's balance needs (#157)
 
-wet commit a0cf970; 246 watershed groups, 3245453 coded fundamental watersheds
+wet commit ac5d860; 246 watershed groups, 3245453 coded fundamental watersheds
 A group's closure is every polygon under its roots (its distinct wscodes with no proper ancestor among them,
 wet_ws_roots()): the polygons wet_upstream_sums() needs to give the group's rows the sums its basin gives them.
 
@@ -16,7 +16,7 @@ wet_ws_roots()): the polygons wet_upstream_sums() needs to give the group's rows
   > 200,000        48
 
 groups whose polygons lie under more than one top-level drainage code: 54
-groups whose closure is a whole basin (a root of one label, e.g. 100): 72
+groups whose closure includes a whole top-level drainage (a root of one label, e.g. 100): 72
 
 ## By watershed group
 roots: how many (first_root: the first in ltree order); own: the group's polygons; closure: polygons needed;
