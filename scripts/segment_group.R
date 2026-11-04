@@ -4,9 +4,11 @@
 #   Rscript scripts/segment_group.R <WSG>
 #   WET_WB_RESAMPLE=1 Rscript scripts/segment_group.R BULK   # also resample the group and compare
 #
-# A group's rows need only the polygons under its roots (wet_ws_closure(),
-# scripts/segment_group_closure.R), so this samples (or reads the province
-# run's samples of) the closure's groups, accumulates over the closure alone,
+# A group's rows need only the polygons FWA_Upstream reaches from them: the
+# polygons under its roots (wet_ws_closure()) trimmed to that reach
+# (wet_ws_reach(); scripts/segment_group_closure.R counts both). So this
+# samples (or reads the province run's samples of) the reach's groups,
+# accumulates over the reach alone,
 # applies the shipped fit as scripts/wb_output.R does, and gives the group's
 # segments their balance rows and pick as scripts/segment_output.R does. Routed
 # PCIC is not rebuilt: pick reads its published annual flow. Writes
@@ -25,7 +27,7 @@
 # WET_WB_RESAMPLE=1 samples the group again and compares it with the province
 # run's sample (reported, not refused: terra or GDAL may have moved since),
 # then goes on with the province samples. WET_GROUP_DROP=<G>[,<G>] removes
-# those groups' polygons from the closure, the deliberate break that shows the
+# those groups' polygons from the reach, the deliberate break that shows the
 # comparison can fail; its parquet goes under <fit>/group/<WSG>/drop-<G>/ and
 # its report to data/logs/157/, not data/checks/.
 #
@@ -86,14 +88,19 @@ pg <- function() {
 }
 conn <- pg()
 
-# ---- the closure ---------------------------------------------------------------------------------
+# ---- the polygons the group's rows reach ------------------------------------------------------------
 ws <- timed("closure", wet_ws_closure(conn, wsg))
 roots <- attr(ws, "roots")
 codes <- attr(ws, "codes")
 irr <- attr(ws, "irregular")
-groups_all <- attr(ws, "groups")
+n_closure <- nrow(ws)
+groups_closure <- attr(ws, "groups")
+ws <- timed("reach", ws[wet_ws_reach(ws, ws$watershed_group_code == wsg, irr), ])
+# the pairs of the irregular polygons kept (each has its own self pair)
+irr <- irr[irr$id_up %in% ws$watershed_feature_id, ]
+groups_all <- sort(unique(ws$watershed_group_code), method = "radix")
 if (length(drop_groups)) {
-  if (!all(drop_groups %in% groups_all)) stop("WET_GROUP_DROP names groups outside the closure")
+  if (!all(drop_groups %in% groups_all)) stop("WET_GROUP_DROP names groups outside the reach")
   ws <- ws[!ws$watershed_group_code %in% drop_groups, ]
   irr <- irr[irr$id_up %in% ws$watershed_feature_id, ]
 }
@@ -204,7 +211,7 @@ if (resample) {
   }
 }
 
-# ---- accumulation over the closure, as wb_province.R does over a basin -------------------------------
+# ---- accumulation over the reach, as wb_province.R does over a basin -------------------------------
 up_all <- timed("accumulation", {
   vals <- lapply(f_smp, readRDS)
   cols <- unique(unlist(lapply(vals, names)))
@@ -221,15 +228,15 @@ up_all <- timed("accumulation", {
   up
 })
 # The basin run carries a zone column for every zone sampled anywhere in the
-# basin; a closure carries only its own groups' zones. A zone outside the
-# closure is 0 on every upstream polygon of the group's rows, which
+# basin; the reach carries only its own groups' zones. A zone outside the
+# reach is 0 on every upstream polygon of the group's rows, which
 # wet_wb_adjust() reads the same as an absent column, so no zone column is
 # written and the values do not move.
 up <- up_all[ws$watershed_group_code == wsg, ]
 
 # the group's upstream means against the province run's, basin by basin,
 # where its upstream/ is on this machine: the same values to summation order,
-# and every zone column the closure lacks 0 or NA on the group's rows
+# and every zone column the reach lacks 0 or NA on the group's rows
 f_up <- file.path(key_dir, "upstream", paste0(codes, ".rds"))
 up_parity <- if (!all(file.exists(f_up))) {
   "the province run's upstream/ is not on this machine: not compared"
@@ -253,7 +260,7 @@ up_parity <- if (!all(file.exists(f_up))) {
               sub("\\.rds$", "", basename(f)), nrow(pu), wsg, length(num), sum(same), nad),
       sprintf("  largest relative difference: %s",
               if (length(top)) paste(sprintf("%s %.3g", names(top), top), collapse = ", ") else "none"),
-      sprintf("  zone columns of the basin outside the closure: %d, nonzero on the group's rows: %d",
+      sprintf("  zone columns of the basin outside the reach: %d, nonzero on the group's rows: %d",
               length(zx), zx_nonzero))
   })))
 }
@@ -422,17 +429,20 @@ con <- file(f_rep, "w")
 writeLines(c(
   sprintf("# One watershed group's balance from the shipped fit: %s (#157)", wsg), "",
   if (length(drop_groups)) {
-    c(sprintf("DELIBERATE BREAK: polygons of %s removed from the closure", short(drop_groups)), "")
+    c(sprintf("DELIBERATE BREAK: polygons of %s removed from the reach", short(drop_groups)), "")
   },
   sprintf("wet commit %s; fit %s of province run %s; scoring code %s", wet_commit, release, basename(key_dir),
           score_code_md5),
   sprintf("annual AET %s; adjustment %s; monthly shares %s", aet,
           if (fits$keep_adjust) "applied" else "not applied", fits$share_method),
-  "", "## Closure",
+  "", "## Polygons",
   sprintf("roots: %d (%s); top-level drainage codes: %s", length(roots), short(roots, 3),
           paste(codes, collapse = ", ")),
-  sprintf("groups: %d (%s); polygons: %d, %d of them %s's; irregular pairs: %d", length(groups), short(groups),
-          nrow(ws), sum(ws$watershed_group_code == wsg), wsg, nrow(irr)),
+  sprintf("under the roots (wet_ws_closure()): %d polygons in %d groups (%s)", n_closure, length(groups_closure),
+          short(groups_closure)),
+  sprintf("reached from %s's rows (wet_ws_reach()), used: %d polygons, %d of them %s's, in %d groups (%s);",
+          wsg, nrow(ws), sum(ws$watershed_group_code == wsg), wsg, length(groups), short(groups)),
+  sprintf("  irregular pairs: %d", nrow(irr)),
   "", "## Samples",
   sprintf("  %-5s %s", groups, smp_from),
   if (length(smp_msgs)) c("sampled by this run:", paste0("  ", smp_msgs)),

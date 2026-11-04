@@ -54,6 +54,7 @@ reference:
   - wet_upstream_pairs
   - wet_ws_roots
   - wet_ws_closure
+  - wet_ws_reach
   - wet_mm_to_m3s
   - wet_month_days
 - title: Water balance inputs

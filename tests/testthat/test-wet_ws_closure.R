@@ -88,3 +88,39 @@ test_that("in basin 925 each group's closure sums equal the basin's for its rows
                  s_basin$area_m2[match(ids, s_basin$watershed_feature_id)], info = g)
   }
 })
+
+test_that("reach is the union of the from rows' FWA_Upstream sets, and gives them their sums", {
+  withr::local_collate("C")
+  for (seed in 1:40) {
+    ws <- random_ws(seed)
+    b <- brute_upstream(ws)
+    set.seed(seed + 2000)
+    from <- seq_len(nrow(ws)) %in% sample(nrow(ws), min(3, nrow(ws)))
+    want <- Reduce(`|`, lapply(which(from), function(i) {
+      fwa_upstream_r(ws$wscode[i], ws$localcode[i], ws$wscode, ws$localcode)
+    }))
+    got <- wet_ws_reach(ws, from, b$pairs)
+    expect_identical(got, want, info = paste("seed", seed))
+    pairs <- b$pairs[b$pairs$id_up %in% ws$watershed_feature_id[got], ]
+    s <- wet_upstream_sums(ws[got, ], "area", irregular_pairs = pairs)
+    expect_equal(s$area[match(ws$watershed_feature_id[from], s$watershed_feature_id)], b$sums[from],
+                 info = paste("seed", seed))
+  }
+})
+
+test_that("reach refuses a malformed from and warns without irregular pairs", {
+  ws <- random_ws(7, irregular = 4)
+  expect_error(wet_ws_reach(ws, 1), "TRUE or FALSE")
+  expect_error(wet_ws_reach(ws, c(TRUE, NA, rep(FALSE, nrow(ws) - 2))), "TRUE or FALSE")
+  expect_warning(wet_ws_reach(ws, rep(TRUE, nrow(ws))), "irregularly coded")
+  expect_identical(wet_ws_reach(ws, rep(FALSE, nrow(ws)), brute_upstream(ws)$pairs), rep(FALSE, nrow(ws)))
+})
+
+test_that("SALR reaches its own polygons and two of LSAL's; BULK reaches its whole closure", {
+  conn <- local_fwapg()
+  ws <- wet_ws_closure(conn, "SALR")
+  r <- wet_ws_reach(ws, ws$watershed_group_code == "SALR", attr(ws, "irregular"))
+  expect_identical(c(table(ws$watershed_group_code[r])), c(LSAL = 2L, SALR = 4587L))
+  ws <- wet_ws_closure(conn, "BULK")
+  expect_true(all(wet_ws_reach(ws, ws$watershed_group_code == "BULK", attr(ws, "irregular"))))
+})

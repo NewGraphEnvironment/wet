@@ -2,7 +2,7 @@
 % Please edit documentation in R/wet_ws_closure.R
 \name{wet_ws_closure}
 \alias{wet_ws_closure}
-\title{The upstream-closed set of fundamental watersheds a watershed group needs}
+\title{An upstream-closed set of fundamental watersheds holding a watershed group}
 \usage{
 wet_ws_closure(conn, wsg)
 }
@@ -21,25 +21,27 @@ pass as \code{irregular_pairs}). Attributes are lost on subsetting, so take
 them first.
 }
 \description{
-The polygons \code{\link[=wet_upstream_sums]{wet_upstream_sums()}} needs to give one watershed group's
-rows the sums a whole basin gives them: every polygon whose \code{wscode} lies
-under one of the group's roots, its distinct \code{wscode}s with no proper
-ancestor among them (\code{\link[=wet_ws_roots]{wet_ws_roots()}}). \code{FWA_Upstream(a, b)} requires
-\code{b}'s \code{wscode} to lie under \code{a}'s, so nothing upstream of a polygon in the
-set lies outside it, and the sums over the set, for the group's rows (or
-any row of the set), equal the basin's up to the order the doubles are
+Every polygon whose \code{wscode} lies under one of the group's roots, its
+distinct \code{wscode}s with no proper ancestor among them (\code{\link[=wet_ws_roots]{wet_ws_roots()}}).
+\code{FWA_Upstream(a, b)} requires \code{b}'s \code{wscode} to lie under \code{a}'s, so
+nothing upstream of a polygon in the set lies outside it, and
+\code{\link[=wet_upstream_sums]{wet_upstream_sums()}} over the set gives the group's rows (or any row of
+the set) the sums a whole basin gives them, up to the order the doubles are
 added in.
 }
 \details{
-A group whose polygons include a mainstem one (\code{localcode == wscode} at a
-basin root such as \code{100}) needs that whole basin: \code{FWA_Upstream} of such a
-polygon is the whole subtree.
+The set is enough, not the least: it holds each root's whole subtree,
+including the part of a root's stream below the group and its tributaries
+there. A group holding a polygon whose \code{wscode} is a basin root such as
+\code{100} gets that whole basin. \code{\link[=wet_ws_reach]{wet_ws_reach()}} trims it to the polygons the
+group's rows reach.
 }
 \examples{
 \dontrun{
 conn <- DBI::dbConnect(RPostgres::Postgres(), dbname = "fwapg")
 ws <- wet_ws_closure(conn, "BULK")
 attr(ws, "groups")   # BULK and MORR: the Morice drains into the Bulkley
+ws <- ws[wet_ws_reach(ws, ws$watershed_group_code == "BULK", attr(ws, "irregular")), ]
 s <- wet_upstream_sums(ws, "area_m2", irregular_pairs = attr(ws, "irregular"))
 s[ws$watershed_group_code == "BULK", ]
 }

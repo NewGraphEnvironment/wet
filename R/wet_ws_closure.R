@@ -28,20 +28,21 @@ wet_ws_roots <- function(wscode) {
   sort(w[!has], method = "radix")
 }
 
-#' The upstream-closed set of fundamental watersheds a watershed group needs
+#' An upstream-closed set of fundamental watersheds holding a watershed group
 #'
-#' The polygons [wet_upstream_sums()] needs to give one watershed group's
-#' rows the sums a whole basin gives them: every polygon whose `wscode` lies
-#' under one of the group's roots, its distinct `wscode`s with no proper
-#' ancestor among them ([wet_ws_roots()]). `FWA_Upstream(a, b)` requires
-#' `b`'s `wscode` to lie under `a`'s, so nothing upstream of a polygon in the
-#' set lies outside it, and the sums over the set, for the group's rows (or
-#' any row of the set), equal the basin's up to the order the doubles are
+#' Every polygon whose `wscode` lies under one of the group's roots, its
+#' distinct `wscode`s with no proper ancestor among them ([wet_ws_roots()]).
+#' `FWA_Upstream(a, b)` requires `b`'s `wscode` to lie under `a`'s, so
+#' nothing upstream of a polygon in the set lies outside it, and
+#' [wet_upstream_sums()] over the set gives the group's rows (or any row of
+#' the set) the sums a whole basin gives them, up to the order the doubles are
 #' added in.
 #'
-#' A group whose polygons include a mainstem one (`localcode == wscode` at a
-#' basin root such as `100`) needs that whole basin: `FWA_Upstream` of such a
-#' polygon is the whole subtree.
+#' The set is enough, not the least: it holds each root's whole subtree,
+#' including the part of a root's stream below the group and its tributaries
+#' there. A group holding a polygon whose `wscode` is a basin root such as
+#' `100` gets that whole basin. [wet_ws_reach()] trims it to the polygons the
+#' group's rows reach.
 #'
 #' @inheritParams wet_ws_fetch
 #' @param wsg Watershed group code, e.g. `"BULK"`.
@@ -57,6 +58,7 @@ wet_ws_roots <- function(wscode) {
 #' conn <- DBI::dbConnect(RPostgres::Postgres(), dbname = "fwapg")
 #' ws <- wet_ws_closure(conn, "BULK")
 #' attr(ws, "groups")   # BULK and MORR: the Morice drains into the Bulkley
+#' ws <- ws[wet_ws_reach(ws, ws$watershed_group_code == "BULK", attr(ws, "irregular")), ]
 #' s <- wet_upstream_sums(ws, "area_m2", irregular_pairs = attr(ws, "irregular"))
 #' s[ws$watershed_group_code == "BULK", ]
 #' }
@@ -105,4 +107,75 @@ wet_ws_closure <- function(conn, wsg) {
             groups = sort(unique(ws$watershed_group_code), method = "radix"),
             codes = sort(unique(substr(roots, 1L, 3L)), method = "radix"),
             irregular = irr)
+}
+
+#' The fundamental watersheds that FWA_Upstream reaches from some of them
+#'
+#' Which rows of `ws` lie in the `FWA_Upstream` set of at least one of the
+#' rows `from` (each counting itself), by the same ranges
+#' [wet_upstream_sums()] sums over, with irregularly coded polygons from
+#' `irregular_pairs`. Over an upstream-closed `ws` such as
+#' [wet_ws_closure()]'s, those rows are the least set that gives the `from`
+#' rows their sums: [wet_upstream_sums()] over them gives the `from` rows
+#' the same sums as over all of `ws`, up to the order the doubles are added
+#' in.
+#'
+#' @param ws `data.frame` with `watershed_feature_id`, `wscode` and
+#'   `localcode` (FWA ltree codes as text).
+#' @param from Logical, one per row of `ws`: the rows whose upstream sets to
+#'   join.
+#' @param irregular_pairs Optional `data.frame(watershed_feature_id, id_up)`,
+#'   as [wet_upstream_sums()] takes it. Without it, irregularly coded rows
+#'   are left out with a warning, as [wet_upstream_sums()] leaves them out.
+#' @return Logical, one per row of `ws`.
+#' @examples
+#' ws <- data.frame(watershed_feature_id = 1:5,
+#'                  wscode = c("100", "100", "100.000300", "100.000300", "100.000700"),
+#'                  localcode = c("100", "100.000500", "100.000300", "100.000300.000010",
+#'                                "100.000700"))
+#' # row 2 sits on the main stem above position 000500: it reaches itself
+#' # and the tributary at 000700, not row 1 or the tributary at 000300
+#' wet_ws_reach(ws, ws$watershed_feature_id == 2)
+#' @export
+wet_ws_reach <- function(ws, from, irregular_pairs = NULL) {
+  need <- c("watershed_feature_id", "wscode", "localcode")
+  miss <- setdiff(need, names(ws))
+  if (length(miss)) stop("ws is missing: ", paste(miss, collapse = ", "), call. = FALSE)
+  if (!is.logical(from) || length(from) != nrow(ws) || anyNA(from)) {
+    stop("from must be TRUE or FALSE for each row of ws", call. = FALSE)
+  }
+  wc <- as.character(ws$wscode)
+  lc <- as.character(ws$localcode)
+  if (anyNA(wc) || anyNA(lc)) stop("wscode and localcode must not be NA", call. = FALSE)
+  valid <- lc == wc | startsWith(lc, paste0(wc, "."))
+  kb <- paste(wc[valid], lc[valid])
+  uk <- sort(unique(kb), method = "radix")
+  lt <- function(q) wet_count_lt(uk, q)
+  # the ranges wet_upstream_sums() sums for each distinct (wscode, localcode) among `from`
+  ka <- unique(paste(wc[from], lc[from]))
+  wq <- sub(" .*", "", ka)
+  lq <- sub(".* ", "", ka)
+  eq <- wq == lq
+  sub_lo <- lt(wq)
+  sub_hi <- lt(paste0(wq, "/"))
+  lo <- c(ifelse(eq, sub_lo, lt(paste(wq, lq))), pmax(lt(paste0(lq, "/")), sub_lo)[!eq])
+  hi <- c(ifelse(eq, sub_hi, lt(paste0(wq, "!"))), sub_hi[!eq])
+  keep <- hi > lo
+  # covered key positions: +1 at each range's start, -1 past its end
+  d <- tabulate(lo[keep] + 1L, nbins = length(uk) + 1L) - tabulate(hi[keep] + 1L, nbins = length(uk) + 1L)
+  covered <- cumsum(d)[seq_along(uk)] > 0L
+  out <- logical(nrow(ws))
+  out[valid] <- covered[match(kb, uk)]
+  irr <- !valid
+  if (any(irr)) {
+    if (is.null(irregular_pairs)) {
+      warning(sum(irr), " irregularly coded polygons are left out; pass irregular_pairs to match ",
+              "FWA_Upstream", call. = FALSE)
+    } else {
+      stopifnot(all(c("watershed_feature_id", "id_up") %in% names(irregular_pairs)))
+      hit <- irregular_pairs$id_up[irregular_pairs$watershed_feature_id %in% ws$watershed_feature_id[from]]
+      out[irr] <- ws$watershed_feature_id[irr] %in% hit
+    }
+  }
+  out
 }
