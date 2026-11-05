@@ -1,24 +1,26 @@
 # One watershed group's balance from the shipped fit: BULK (#157)
 
-wet commit ae518cb; fit 20260717 of province run 92b893c4da; scoring code 37d93d99ca657930d0e7c9c995e787a0
+wet commit fd808ab; fit 20260717 of province run 92b893c4da; scoring code 37d93d99ca657930d0e7c9c995e787a0
 annual AET cfu; adjustment applied; monthly shares donor
 
-## Closure
+## Polygons
 roots: 1 (400.431358); top-level drainage codes: 400
-groups: 2 (BULK, MORR); polygons: 35191, 20970 of them BULK's; irregular pairs: 20946
+under the roots (wet_ws_closure()): 35191 polygons in 2 groups (BULK, MORR)
+reached from BULK's rows (wet_ws_reach()), used: 35191 polygons, 20970 of them BULK's, in 2 groups (BULK, MORR);
+  irregular pairs: 20946
 
 ## Samples
   BULK  province run
   MORR  province run
 sampled by this run:
-  BULK 20970 polygons 9 s
+  BULK 20970 polygons 8 s
 
 BULK resampled: identical() to the province run's sample (20970 polygons, 69 columns)
 
 ## Upstream means against the province run's
 basin 400: 20970 of BULK's watersheds, 70 columns; identical in every column: 11196; NA on one side: 0
   largest relative difference: tave_04 1.44e-12, t_yr 1.2e-12, tave_10 1.12e-13
-  zone columns of the basin outside the closure: 2, nonzero on the group's rows: 0
+  zone columns of the basin outside the reach: 2, nonzero on the group's rows: 0
 
 ## Published product
 live build b4bbc50 (manifest built 2026-10-24T12:23:01Z); balance fit 20260717 of run 92b893c4da
@@ -35,13 +37,14 @@ rows written: 272610 watershed, 390481 balance segment
 
 ## Time per step (s)
   closure              0.5
-  published read       3.3
+  reach                0.1
+  published read       3.4
   extents              1.6
-  sampling             8.8
-  accumulation         2.3
+  sampling             8.4
+  accumulation         2.1
   province upstream     0.4
-  fit                  0.8
-  segments             0.5
+  fit                  0.7
+  segments             0.4
 
 ## Parity: this build against the published rows
 rows on one side only: 0 watershed, 0 balance segment
