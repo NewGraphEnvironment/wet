@@ -111,6 +111,17 @@ upstream area, and convert the result to discharge.
   : Watershed-to-upstream-polygon pairs for one watershed group, from
   fwapg
 
+- [`wet_ws_roots()`](https://newgraphenvironment.github.io/wet/reference/wet_ws_roots.md)
+  : Minimal FWA watershed codes of a set
+
+- [`wet_ws_closure()`](https://newgraphenvironment.github.io/wet/reference/wet_ws_closure.md)
+  : An upstream-closed set of fundamental watersheds holding a watershed
+  group
+
+- [`wet_ws_reach()`](https://newgraphenvironment.github.io/wet/reference/wet_ws_reach.md)
+  : The fundamental watersheds that FWA_Upstream reaches from some of
+  them
+
 - [`wet_mm_to_m3s()`](https://newgraphenvironment.github.io/wet/reference/wet_mm_to_m3s.md)
   : Convert a depth over an area to discharge
 

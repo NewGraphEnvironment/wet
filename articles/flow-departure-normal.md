@@ -224,7 +224,7 @@ The software, each cited:
   2026a](#ref-bookdown)) render the article, all in R ([R Core Team
   2025](#ref-base)).
 
-This build ran on `wet` 0.4.33, `cd` 0.6.13, commit 86989e3, `gq` 0.16.1
+This build ran on `wet` 0.4.33, `cd` 0.6.13, commit c8bc100, `gq` 0.16.1
 and commit aa082d0. To cite `wet`:
 
 Irvine A (2026). *wet: Stream Flow and Water Temperature for the BC

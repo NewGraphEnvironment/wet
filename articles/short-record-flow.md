@@ -130,7 +130,7 @@ notes](https://github.com/NewGraphEnvironment/wet/blob/main/research/station_flo
   <https://github.com/NewGraphEnvironment/wet>.
 - `cd` 0.6.13,
   [doi:10.5281/zenodo.23264994](https://doi.org/10.5281/zenodo.23264994),
-  commit `86989e3`. Irvine A (2026). *cd: How far any BC watershed’s
+  commit `c8bc100`. Irvine A (2026). *cd: How far any BC watershed’s
   climate has shifted from your chosen baseline*. New Graph Environment
   Ltd. <doi:10.5281/zenodo.23264994>
   <https://doi.org/10.5281/zenodo.23264994>. Version 0.6.13,
