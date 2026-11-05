@@ -69,3 +69,14 @@ Scratch output: `closure_all.tsv` in the session scratchpad (not kept); Phase 1'
 | Error | Resolution |
 |-------|------------|
 | `function min(ltree) does not exist` (refinement probe) | `min(least(w, l)::text COLLATE "C")::ltree` |
+
+## Implementation findings (2026-11-04)
+
+- The closure under a group's roots is enough but not the least: the plan-mode claim that a position-aware refinement "changes none of them" was wrong (SALR's rows reach 4,589 of 12,481; UFRA's 23,358 of 644,770). `wet_ws_reach()` trims to the exact reach; `data/checks/segment_group_closure.txt` holds both counts.
+- BULK's 11 calibration-gauge watersheds differ from the published months because `wet_donor_mean()` tests distance `== 0`: #158.
+- Subsetting a data frame by a logical index drops its custom attributes; by an integer index it keeps them.
+
+| Error | Resolution |
+|-------|------------|
+| soul's `gh_rest.sh` fails to parse under `/bin/bash` 3.2 (`case` pattern `)` inside `$( )`) | Default branch read with `gh api repos/<o>/<r> --jq .default_branch`; soul#718 |
+| Beyond-tolerance listing printed the merge's columns off by one | Columns taken by name (ae518cb) |

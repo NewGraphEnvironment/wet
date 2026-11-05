@@ -52,8 +52,8 @@ Plan approved parked by the user, 2026-11-04 (the `PARKED: baseline only` header
 
 - [x] Tests pass (`devtools::test()`, the live closure tests against m1's fwapg)
 - [x] `/code-check branch` clean
-- [ ] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] PWF checkboxes match landed work
+- [x] `/planning-archive` on completion
 
 Verification: Phase 1's pure-R test is the proof that a closed subset suffices; Phase 3's two reports are the end-to-end proof (0 rows differing beyond 1e-9 relative, `pick` identical, sample parity stated); the deliberate break shows the comparison can fail.
 
