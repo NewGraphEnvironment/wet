@@ -13,7 +13,7 @@ Answered #157: a watershed group's balance rows and pick can be rebuilt alone fr
 ## Evidence
 
 - `data/checks/segment_group_closure.txt`, `data/checks/segment_group_{BULK,SALR}_20260717.txt`
-- `data/logs/157/segment_group_closure_m1.log`, `data/logs/157/devtools_test_m1.log` (development machine); `data/logs/157/segment_group_*` in the main checkout of the machine holding the province run, the break's report among them (`segment_group_BULK_drop-MORR_20260717.txt`, in that machine's `wet-157` worktree)
+- `data/logs/157/segment_group_closure_m1.log`, `data/logs/157/devtools_test_m1.log` (development machine); `data/logs/157/segment_group_*` in the main checkout of the machine holding the province run, the break's report among them (`segment_group_BULK_drop-MORR_20260717.txt`)
 - Review rounds: `review-round[1-4].md` in this directory
 
 ## Owed
@@ -21,4 +21,4 @@ Answered #157: a watershed group's balance rows and pick can be rebuilt alone fr
 - File the follow-up issue for publishing the fit, citing Phase 1's table and naming the manifest-format change and the inputs a portable build needs, if the verdict says the build is worth having.
 - When `scripts/wb_province.R` or `R/wet_upstream_sums.R` next changes for a province run, move `sample_group()` into the package (one copy, called by both scripts) and amend `wet_upstream_sums()`'s "whole basin" sentence to "upstream-closed set".
 
-Closed by: PR (opened next) for #157
+Closed by: PR #159
