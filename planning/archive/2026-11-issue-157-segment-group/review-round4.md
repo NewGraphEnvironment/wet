@@ -1,0 +1,29 @@
+# Code-check round 4 (#157): wet_ws_reach() and the reach-based build
+
+## Checklist read
+
+- code-check.md: every H3 under `## Mechanisms` read in prose, the first five in full ("A guard that fails toward pass", "A fixture that cannot reach the failure mode", "A proxy is not the property", "Verification that reads its own output", "A guard's scope, escape hatches, and remedies") and the opening paragraphs of the other eight; none of `## Rules that stand alone` or `## Security` (about 30 headings not read).
+- code-check-r.md: "Postgres row order is never fixed unless the query fixes it...", "`paste()` with a zero-length argument returns length ONE, not zero", "A range total taken as the difference of two large running totals loses the small ranges", "`sort()` and `order()` collate by `LC_COLLATE`...", "`match()` treats NA as a matchable VALUE..."; about 140 not read.
+- code-check-spatial.md: none read in full (the FWA headings index lines checked: none apply to code ranges); about 120 not read.
+- code-check-shell.md: none read (the diff has no shell code beyond `git` from `system2()`); about 105 not read.
+
+## What I checked, and how
+
+- (a) `wet_ws_reach()` against the brute-force oracle: 400 extra random trees (max depth 4, 0 to 15 irregular codes, shuffled rows, `from` up to a third of the rows): reach `identical()` to the union of `fwa_upstream_r()` sets in all 400, and `wet_upstream_sums()` over the reach gave the `from` rows the whole tree's sums in all 400. Duplicate keys, irregular `from` rows, irregular reached rows and empty ranges (`hi <= lo`) are all exercised there.
+- (a) against fwapg itself: for CHIL, SALR, BABL, CHWK, BARR and ALBN (one to 958 roots, one to three top-level codes), the reach equals `SELECT DISTINCT b ... WHERE FWA_Upstream(a, b)` over every coded `a` in the group, as a set, with nothing outside the closure (3,974; 4,589; 14,383; 4,916; 11,069; 60,951 polygons).
+- (b) The build filters the pairs to `id_up` in the reach (scripts/segment_group.R:100), which keeps each kept irregular polygon's self pair; pairs whose `watershed_feature_id` lies outside the reach are dropped by `wet_upstream_sums()` (`!is.na(ia)`). Correct.
+- (c) Only the group's rows are used after accumulation; their sums equal the closure's, so coverage, bc_fraction and every sampled mean are unchanged; zone columns outside the reach are 0 on the group's rows in both reports and `wet_wb_adjust()` reads an absent zone as 0; the static share predictors carry no zone column. The samples read are the reach's groups, which hold every polygon accumulated. Drop mode filters the pairs again. No issue.
+- (d) The closure script's pairs (per top-level drainage from `wet_upstream_irregular()`, filtered to `id_up` in the closure) are the same set as `wet_ws_closure()`'s after filtering, since `FWA_Upstream` never crosses a top-level code; its stopifnot holds both counts for BULK and SALR. Equivalent.
+- Every number in research/segment_group.md, research/README.md, CLAUDE.md and the #157 body checked against the three reports: all match except the one below.
+
+## Mechanism
+
+A reach is a row subset of a closure whose irregular-pair table must be subset with it, and `wet_ws_reach()` returns only the row mask. The script does this correctly (segment_group.R:100), but the documented pattern does not: `wet_ws_closure()`'s roxygen says attributes are lost on subsetting, when a data frame keeps them on a row subset, so the example hands `wet_upstream_sums()` the closure's whole pair table. That fails for any group whose reach drops an irregular polygon. The only example uses BULK, whose reach is its whole closure, so the example cannot reach the failure. Separately, one sentence of prose rewritten in round 3 treats UFRA's two-drainage closure as the Fraser's.
+
+## Findings
+
+- **[severity: fragile]** R/wet_ws_closure.R:54 and :61-63 (with :118-121) — The `@return` text says "Attributes are lost on subsetting, so take them first", but `[.data.frame` keeps custom attributes on a row subset. So in the example `ws <- ws[wet_ws_reach(...), ]; wet_upstream_sums(ws, "area_m2", irregular_pairs = attr(ws, "irregular"))`, `attr(ws, "irregular")` is still the closure's full pair table. `wet_upstream_sums()` refuses it with "irregular_pairs$id_up must be irregular polygons in ws" whenever the reach leaves out an irregular polygon. I reproduced this on SALR (23,044 closure pairs; the error fires). The BULK example works only because BULK's reach is its whole closure. `wet_ws_reach()`'s own text ("wet_upstream_sums() over them gives the from rows the same sums as over all of ws") also leaves out the pair filter it needs. The build is unaffected (it filters at segment_group.R:100), but the exported documentation shows a pattern that errors for most groups (140 of 246 have reach < closure), and its attribute sentence is false.
+  - **Rule:** code-check.md "A fixture that cannot reach the failure mode" ; code-check.md "A guard's scope, escape hatches, and remedies"
+
+- **[severity: fragile]** research/segment_group.md:28 — "UFRA's rows reach 23,358 polygons where its closure is the Fraser's 644,770, while FRCN's and LFRA's reach all of it." data/checks/segment_group_closure.txt gives UFRA's closure as 644,770 over codes `100,999`, and the Fraser's (FRCN's closure, code 100 alone) as 644,710. So 644,770 is the Fraser plus 60 polygons under 999, not "the Fraser's". FRCN reaches 644,710, and LFRA's reach of 796,176 spans 100, 900, 905 and 970, not 999, so neither reaches "all of" 644,770. Fix: "where its closure, the Fraser's 644,710 and 60 polygons under 999, is 644,770, while FRCN's and LFRA's reach all of the Fraser". (UFRA does have the widest gap, 621,412, which I checked over every row.)
+  - **Rule:** code-check.md "A proxy is not the property"

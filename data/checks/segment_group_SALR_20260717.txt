@@ -1,0 +1,63 @@
+# One watershed group's balance from the shipped fit: SALR (#157)
+
+wet commit fd808ab; fit 20260717 of province run 92b893c4da; scoring code 37d93d99ca657930d0e7c9c995e787a0
+annual AET cfu; adjustment applied; monthly shares donor
+
+## Polygons
+roots: 1 (100.591289); top-level drainage codes: 100
+under the roots (wet_ws_closure()): 12481 polygons in 3 groups (LSAL, MUSK, SALR)
+reached from SALR's rows (wet_ws_reach()), used: 4589 polygons, 4587 of them SALR's, in 2 groups (LSAL, SALR);
+  irregular pairs: 3656
+
+## Samples
+  LSAL  province run
+  SALR  province run
+sampled by this run:
+  SALR 4587 polygons 2 s
+
+SALR resampled: identical() to the province run's sample (4587 polygons, 63 columns)
+
+## Upstream means against the province run's
+basin 100: 4587 of SALR's watersheds, 62 columns; identical in every column: 2860; NA on one side: 0
+  largest relative difference: t_yr 4.06e-15, tave_04 2.82e-15, tave_10 1.04e-15
+  zone columns of the basin outside the reach: 34, nonzero on the group's rows: 0
+
+## Published product
+live build b4bbc50 (manifest built 2026-10-24T12:23:01Z); balance fit 20260717 of run 92b893c4da
+parts read: 3, all matching the manifest before (3) and after (3) the read:
+  be621a30945e5043804992692feaca14 segment_monthly/scenario=historical/forcing=PNWNAmet/source=pcic_routed/part-100.parquet
+  5b1092b94e0e8868474b8bf93713bf5a segment_monthly/scenario=historical/forcing=climr/source=wet_balance/part-100.parquet
+  c162eb4ec4c710311a70de541fa62225 watershed_monthly/scenario=historical/forcing=climr/source=wet_balance/part-100.parquet
+rows of SALR: 59631 watershed, 117000 balance segment, 117000 routed segment
+
+## This build
+watersheds: 4587; with no balance value (dropped, as the publish drops them): 0 rows
+segments: 9384; with a balance value: 9000; picked balance: 17, routed: 8983, neither: 384
+rows written: 59631 watershed, 117000 balance segment
+
+## Time per step (s)
+  closure              0.3
+  reach                0.1
+  published read       2.5
+  extents              1.6
+  sampling             2.1
+  accumulation         0.3
+  province upstream     1.5
+  fit                  0.2
+  segments             0.2
+
+## Parity: this build against the published rows
+rows on one side only: 0 watershed, 0 balance segment
+rows             value           tol  compared differing max_abs_diff
+watershed        q_m3s         1e-09     59631         0     9.24e-14
+watershed        runoff_mm     1e-09     59631         0     5.68e-13
+watershed        coverage      1e-09     59631         0            0
+watershed        bc_fraction   1e-09     59631         0            0
+balance segment  q_m3s         1e-09    117000         0     9.24e-14
+balance segment  runoff_mm     1e-09    117000         0     5.68e-13
+balance segment  coverage      1e-09    117000         0            0
+balance segment  pick              0    117000         0            0
+routed segment   pick              0    117000         0            0
+
+watersheds with a row beyond tolerance (either table): 0; at a calibration gauge: 0
+SALR watersheds within 1e-9 (scaled) of a calibration gauge's donor row: 0, exactly 0: 0
