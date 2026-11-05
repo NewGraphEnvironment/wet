@@ -1,3 +1,7 @@
+# wet 0.4.34
+
+* One watershed group's balance rows and pick can now be rebuilt alone from the shipped fit, in about 20 seconds instead of a province run (#157). `wet_ws_reach()` finds the polygons a group's upstream sums need, cut from the upstream-closed set under the group's roots (`wet_ws_closure()`, `wet_ws_roots()`); `scripts/segment_group.R <WSG>` builds over that set and compares every row with the published product. SALR matches it exactly; BULK matches except at 11 calibration-gauge watersheds in months 1–12, by up to 5.8e-5 relative, where the donor shares' exact-zero distance test turns on the last bits of the upstream means (#158). Publishing the fit, so the build runs anywhere, is #160.
+
 # wet 0.4.33
 
 * Maxan Creek now runs from its row of the Chinook site table, like Swift, Naver and Gosnell creeks, so the record extension, the borrowed departures and the snow regression have one code path (#146). The two Maxan pilot scripts are retired. Their reports stay as the record, and the site runs must reproduce them line by line before writing anything (`tests/testthat/test-departure_site_parity.R`). The short-record article's data now come from the site run, with the same values.
