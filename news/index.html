@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.33</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.34</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,9 +36,13 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/v0.4.34/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.34" id="wet-0434">wet 0.4.34<a class="anchor" aria-label="anchor" href="#wet-0434"></a></h2>
+<ul><li>One watershed group’s balance rows and pick can now be rebuilt alone from the shipped fit, in about 20 seconds instead of a province run (<a href="https://github.com/NewGraphEnvironment/wet/issues/157" class="external-link">#157</a>). <code><a href="../reference/wet_ws_reach.html">wet_ws_reach()</a></code> finds the polygons a group’s upstream sums need, cut from the upstream-closed set under the group’s roots (<code><a href="../reference/wet_ws_closure.html">wet_ws_closure()</a></code>, <code><a href="../reference/wet_ws_roots.html">wet_ws_roots()</a></code>); <code>scripts/segment_group.R &lt;WSG&gt;</code> builds over that set and compares every row with the published product. SALR matches it exactly; BULK matches except at 11 calibration-gauge watersheds in months 1–12, by up to 5.8e-5 relative, where the donor shares’ exact-zero distance test turns on the last bits of the upstream means (<a href="https://github.com/NewGraphEnvironment/wet/issues/158" class="external-link">#158</a>). Publishing the fit, so the build runs anywhere, is <a href="https://github.com/NewGraphEnvironment/wet/issues/160" class="external-link">#160</a>.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.33" id="wet-0433">wet 0.4.33<a class="anchor" aria-label="anchor" href="#wet-0433"></a></h2>
 <ul><li>Maxan Creek now runs from its row of the Chinook site table, like Swift, Naver and Gosnell creeks, so the record extension, the borrowed departures and the snow regression have one code path (<a href="https://github.com/NewGraphEnvironment/wet/issues/146" class="external-link">#146</a>). The two Maxan pilot scripts are retired. Their reports stay as the record, and the site runs must reproduce them line by line before writing anything (<code>tests/testthat/test-departure_site_parity.R</code>). The short-record article’s data now come from the site run, with the same values.</li>

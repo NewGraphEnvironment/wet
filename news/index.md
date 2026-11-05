@@ -1,5 +1,24 @@
 # Changelog
 
+## wet 0.4.34
+
+- One watershed group’s balance rows and pick can now be rebuilt alone
+  from the shipped fit, in about 20 seconds instead of a province run
+  ([\#157](https://github.com/NewGraphEnvironment/wet/issues/157)).
+  [`wet_ws_reach()`](https://newgraphenvironment.github.io/wet/reference/wet_ws_reach.md)
+  finds the polygons a group’s upstream sums need, cut from the
+  upstream-closed set under the group’s roots
+  ([`wet_ws_closure()`](https://newgraphenvironment.github.io/wet/reference/wet_ws_closure.md),
+  [`wet_ws_roots()`](https://newgraphenvironment.github.io/wet/reference/wet_ws_roots.md));
+  `scripts/segment_group.R <WSG>` builds over that set and compares
+  every row with the published product. SALR matches it exactly; BULK
+  matches except at 11 calibration-gauge watersheds in months 1–12, by
+  up to 5.8e-5 relative, where the donor shares’ exact-zero distance
+  test turns on the last bits of the upstream means
+  ([\#158](https://github.com/NewGraphEnvironment/wet/issues/158)).
+  Publishing the fit, so the build runs anywhere, is
+  [\#160](https://github.com/NewGraphEnvironment/wet/issues/160).
+
 ## wet 0.4.33
 
 - Maxan Creek now runs from its row of the Chinook site table, like
