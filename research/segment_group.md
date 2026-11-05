@@ -25,7 +25,7 @@ How many groups and polygons a group's rows reach, over the province's 246 group
 | 50,000–200,000 | 50 | 52 |
 | over 200,000 | 24 | 48 |
 
-The reach is the whole closure for 106 groups. BULK is one: it holds polygons at the bottom of the Bulkley, so its rows reach all of the Morice above (35,191 polygons). SALR holds none at the bottom of the Salmon, so its rows reach its own 4,587 polygons and 2 of LSAL's, not the 12,481 under its root. The gap is widest on the Fraser's main stem: UFRA's rows reach 23,358 polygons where its closure is the Fraser's 644,770, while FRCN's and LFRA's reach all of it. 54 groups lie under more than one top-level drainage code, so their published rows sit in several parts.
+The reach is the whole closure for 106 groups. BULK is one: it holds polygons at the bottom of the Bulkley, so its rows reach all of the Morice above (35,191 polygons). SALR holds none at the bottom of the Salmon, so its rows reach its own 4,587 polygons and 2 of LSAL's, not the 12,481 under its root. The gap is widest on the Fraser's main stem: UFRA's rows reach 23,358 polygons where its closure is 644,770 (the Fraser's 644,710 and 60 under drainage 999), while FRCN's rows reach the whole Fraser. 54 groups lie under more than one top-level drainage code, so their published rows sit in several parts.
 
 ## How long it takes
 

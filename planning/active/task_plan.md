@@ -50,8 +50,8 @@ Plan approved parked by the user, 2026-11-04 (the `PARKED: baseline only` header
 
 ## Validation
 
-- [ ] Tests pass (`devtools::test()`, the live closure tests against m1's fwapg)
-- [ ] `/code-check branch` clean
+- [x] Tests pass (`devtools::test()`, the live closure tests against m1's fwapg)
+- [x] `/code-check branch` clean
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 

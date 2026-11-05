@@ -51,16 +51,19 @@ wet_ws_roots <- function(wscode) {
 #'   roots), `groups` (the watershed groups the set spans), `codes` (the
 #'   top-level drainage codes it spans) and `irregular` (the
 #'   [wet_upstream_irregular()] pairs of its irregularly coded polygons, to
-#'   pass as `irregular_pairs`). Attributes are lost on subsetting, so take
-#'   them first.
+#'   pass as `irregular_pairs`). Subsetting rows can drop the attributes, so
+#'   take them first, and cut `irregular` to the `id_up` rows kept.
 #' @examples
 #' \dontrun{
 #' conn <- DBI::dbConnect(RPostgres::Postgres(), dbname = "fwapg")
-#' ws <- wet_ws_closure(conn, "BULK")
-#' attr(ws, "groups")   # BULK and MORR: the Morice drains into the Bulkley
-#' ws <- ws[wet_ws_reach(ws, ws$watershed_group_code == "BULK", attr(ws, "irregular")), ]
-#' s <- wet_upstream_sums(ws, "area_m2", irregular_pairs = attr(ws, "irregular"))
-#' s[ws$watershed_group_code == "BULK", ]
+#' ws <- wet_ws_closure(conn, "SALR")
+#' attr(ws, "groups")   # LSAL, MUSK and SALR: everything under the Salmon's code
+#' irr <- attr(ws, "irregular")
+#' ws <- ws[wet_ws_reach(ws, ws$watershed_group_code == "SALR", irr), ]
+#' irr <- irr[irr$id_up %in% ws$watershed_feature_id, ]
+#' table(ws$watershed_group_code)   # SALR and two of LSAL's polygons
+#' s <- wet_upstream_sums(ws, "area_m2", irregular_pairs = irr)
+#' s[ws$watershed_group_code == "SALR", ]
 #' }
 #' @export
 wet_ws_closure <- function(conn, wsg) {
@@ -116,9 +119,9 @@ wet_ws_closure <- function(conn, wsg) {
 #' [wet_upstream_sums()] sums over, with irregularly coded polygons from
 #' `irregular_pairs`. Over an upstream-closed `ws` such as
 #' [wet_ws_closure()]'s, those rows are the least set that gives the `from`
-#' rows their sums: [wet_upstream_sums()] over them gives the `from` rows
-#' the same sums as over all of `ws`, up to the order the doubles are added
-#' in.
+#' rows their sums: [wet_upstream_sums()] over them, with `irregular_pairs`
+#' cut to the `id_up` rows kept, gives the `from` rows the same sums as over
+#' all of `ws`, up to the order the doubles are added in.
 #'
 #' @param ws `data.frame` with `watershed_feature_id`, `wscode` and
 #'   `localcode` (FWA ltree codes as text).

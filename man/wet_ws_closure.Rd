@@ -17,8 +17,8 @@ The polygons in \code{\link[=wet_ws_fetch]{wet_ws_fetch()}}'s shape, ordered by
 roots), \code{groups} (the watershed groups the set spans), \code{codes} (the
 top-level drainage codes it spans) and \code{irregular} (the
 \code{\link[=wet_upstream_irregular]{wet_upstream_irregular()}} pairs of its irregularly coded polygons, to
-pass as \code{irregular_pairs}). Attributes are lost on subsetting, so take
-them first.
+pass as \code{irregular_pairs}). Subsetting rows can drop the attributes, so
+take them first, and cut \code{irregular} to the \code{id_up} rows kept.
 }
 \description{
 Every polygon whose \code{wscode} lies under one of the group's roots, its
@@ -39,10 +39,13 @@ group's rows reach.
 \examples{
 \dontrun{
 conn <- DBI::dbConnect(RPostgres::Postgres(), dbname = "fwapg")
-ws <- wet_ws_closure(conn, "BULK")
-attr(ws, "groups")   # BULK and MORR: the Morice drains into the Bulkley
-ws <- ws[wet_ws_reach(ws, ws$watershed_group_code == "BULK", attr(ws, "irregular")), ]
-s <- wet_upstream_sums(ws, "area_m2", irregular_pairs = attr(ws, "irregular"))
-s[ws$watershed_group_code == "BULK", ]
+ws <- wet_ws_closure(conn, "SALR")
+attr(ws, "groups")   # LSAL, MUSK and SALR: everything under the Salmon's code
+irr <- attr(ws, "irregular")
+ws <- ws[wet_ws_reach(ws, ws$watershed_group_code == "SALR", irr), ]
+irr <- irr[irr$id_up \%in\% ws$watershed_feature_id, ]
+table(ws$watershed_group_code)   # SALR and two of LSAL's polygons
+s <- wet_upstream_sums(ws, "area_m2", irregular_pairs = irr)
+s[ws$watershed_group_code == "SALR", ]
 }
 }

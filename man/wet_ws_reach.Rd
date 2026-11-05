@@ -26,9 +26,9 @@ rows \code{from} (each counting itself), by the same ranges
 \code{\link[=wet_upstream_sums]{wet_upstream_sums()}} sums over, with irregularly coded polygons from
 \code{irregular_pairs}. Over an upstream-closed \code{ws} such as
 \code{\link[=wet_ws_closure]{wet_ws_closure()}}'s, those rows are the least set that gives the \code{from}
-rows their sums: \code{\link[=wet_upstream_sums]{wet_upstream_sums()}} over them gives the \code{from} rows
-the same sums as over all of \code{ws}, up to the order the doubles are added
-in.
+rows their sums: \code{\link[=wet_upstream_sums]{wet_upstream_sums()}} over them, with \code{irregular_pairs}
+cut to the \code{id_up} rows kept, gives the \code{from} rows the same sums as over
+all of \code{ws}, up to the order the doubles are added in.
 }
 \examples{
 ws <- data.frame(watershed_feature_id = 1:5,
