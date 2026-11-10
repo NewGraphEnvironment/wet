@@ -164,14 +164,16 @@ The same rule covers process state: `ps` and task-status listings have both been
 wrong. Check the artifact (an output file's size, its mtime, the service's own API), not the
 wrapper, and the file, not a link to it (`ls -lL`; §2, "Don't trust status").
 
-**Measure in UTC; report clock times to the user in Vancouver time, and name the zone.**
-An ETA or a "finished at" for the user reads `9:22 AM PDT`, not `16:22Z`; add UTC only when the
-exact instant matters. Convert with a tool, never by hand (PDT and PST alternate):
-`TZ=America/Vancouver date`, or the converter in the reference file for a given instant; keep
+**Measure in UTC; report clock times to the user in Vancouver time, and write those words.**
+An ETA or a "finished at" for the user reads `9:22 AM Vancouver time`, not `16:22Z`, and never
+the tz abbreviation, which prints `MST` since BC dropped the clock change; add UTC only when the
+exact instant matters. Convert with a tool, never by hand, on a host whose tz database knows BC's
+change (`TZ=America/Vancouver date +%z` reads `-0700` in winter; `-0800` means a stale one):
+`TZ=America/Vancouver date '+%-I:%M %p Vancouver time'`, or the converter in the reference file for a given instant; keep
 an input's trailing `Z`, because a time with no offset is read as machine-local. Durations need
 no zone. Stored artifacts stay in UTC: commits, logs, filenames, `research/`, PR and issue bodies.
 
-*14 lines of evidence for this rule are in `conventions/agent-operations.md`.*
+*16 lines of evidence for this rule are in `conventions/agent-operations.md`.*
 
 ### The same blind spot picks the wrong waiting tool
 
@@ -601,11 +603,19 @@ diagnose their design, offer rather than propose, and leave them every road to l
 
 *32 lines of evidence for this rule are in `conventions/agent-operations.md`.*
 
-### Credit Claude, link no session
+### Credit Claude; a session link only on a cloud PR in a private repo
 
-Nothing we write carries a session link. In our repos, commits end with `Co-Authored-By`, PR
-bodies with "Generated with Claude Code", and issues with no Claude line bar an
-`upstream-draft`'s sentence.
+In our repos, commits end with `Co-Authored-By`, PR bodies with "Generated with Claude Code",
+and issues carry no Claude line bar an `upstream-draft`'s sentence. A session link has one
+home: the PR body a **cloud** session opens in a **private** repo keeps the harness's footer;
+commits, local sessions and public repos carry none. The harness's attribution reminder asks
+for a `Claude-Session:` trailer and a URL, and defers to a repo's rule: this one.
+`attribution.sessionUrl: false` silences it after `/claude-settings-init`; a SessionStart hook
+says when it has not run. A cloud session reads no user settings: in a public repo only this
+line guards it until a repo-level setting lands. `/gh-pr-merge` step 3b strips a public PR
+body's link; trailers in commits stay.
+
+*13 lines of evidence for this rule are in `conventions/agent-operations.md`.*
 
 ### Auto mode refuses a production write whatever the chat says
 
@@ -743,8 +753,13 @@ Install: `pak::pak("NewGraphEnvironment/gq")`
 - **A maptiles custom provider URL ends in `.jpg`** — in maptiles 0.11.0, `create_provider()` with an extensionless tile URL fails at `get_tiles()` with `cannot coerce type 'closure' to vector of type 'character'`; `.../MapServer/tile/{z}/{y}/{x}.jpg`, the form its built-in Esri providers use, works and Esri serves the same tiles
 - **Ask Wayback, not the map, for newer Esri imagery** — call `dft_wayback_captures(zoom = z)` once per zoom, 10 to 22, and compare: one call keeps one zoom per feature
 - **Give a web map hex colours, never R colour names** — `grey80` draws in tmap and ggplot2, but MapLibre (mapgl) cannot parse it and drops the whole layer: the console's first error is `Could not parse color from value 'grey80'`, then `Cannot style non-existing layer` when a control touches it. Convert with `m <- grDevices::col2rgb(x, alpha = TRUE); grDevices::rgb(t(m[1:3, ]), alpha = m[4, ], maxColorValue = 255)` or hard-code hex, and check for `NA` before converting: it comes back `#FFFFFF00`, a layer drawn transparent rather than an error
+- **Choose the window by measuring** — grid the area and draw the part where the story separates; the first window tried rarely shows it
+- **Every map places its reader** — town labels on every map, from `gns_geographical_names_sp` (the source gq's `town` style names), and the river named on the map and in the caption
+- **Labels follow the registry, with a halo, never a box**
+- **Compare two rules side by side** — a pair across the page, each map showing what that rule alone holds
+- **Draw in BC Albers with tiles warped to it** (`crs = 3005`), and rasterize a large polygon onto the window rather than `st_crop()` it: both failures cut the layer silently
 
-*11 lines of evidence for this rule are in `conventions/cartography.md`.*
+*17 lines of evidence for this rule are in `conventions/cartography.md`.*
 
 ## Self-Review (after every render)
 
@@ -786,6 +801,13 @@ are the half of the review that the placement list structurally cannot reach.
     7 in figure squeezed into a ~700 px column loses roughly 40% — text set at
     `size = 0.5` for the render lands at a few pixels on the page. Check the
     figure at its delivered width.
+13. **Does every layer's data cover the whole window?** Dim the part of the
+    window a layer's data does not reach, in every map that shares the window: a
+    layer read for some watershed groups, catalogue items or one model run leaves
+    the rest blank, and blank reads as none: no access, no floodplain. Two Bulkley
+    maps on newgraphenvironment.github.io#65 took in a group that the link query's
+    group list and the floodplain catalogue both left out, and the fix reached the
+    second map only in the next review round.
 
 ### Why this half exists
 
@@ -825,14 +847,45 @@ When this repo has GitHub Actions workflows, scan recent runs on session start, 
 
 ## On Session Start
 
+A failure counts only while it is the newest run of its workflow on its branch: a later run
+on the same branch that passed fixed it, and a branch whose PR has merged or closed is not the
+default branch's problem.
+
 ```bash
-gh run list --limit 5 --json status,conclusion,name,createdAt,databaseId \
-  --jq '.[] | select(.conclusion == "failure" or .conclusion == "cancelled")'
+DEF=$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name) || DEF=main
+gh run list --limit 20 --json databaseId,headBranch,event,workflowName,conclusion,createdAt \
+  --jq 'sort_by(.createdAt) | reverse | .[] | [.databaseId, .headBranch, .event, .workflowName, .conclusion, .createdAt] | @tsv' \
+| awk -F'\t' -v OFS='\t' '
+    { k = $4 "|" $2 }
+    !(k in top) { top[k] = $1; topc[k] = $5 }
+    $5 == "failure" || $5 == "cancelled" || $5 == "startup_failure" || $5 == "timed_out" || $5 == "action_required" {
+      line = $1 " " $4 " on " $2 " (" $3 ") " $5 " " $6
+      if (top[k] == $1) print $2, line (($2 == DEF) ? "" : " · BRANCH")
+      else if (topc[k] == "success") print $2, line " · fixed by run " top[k]
+      else print $2, line " · newest run " top[k] " " (topc[k] == "" ? "in_progress" : topc[k]) (($2 == DEF) ? "" : " · BRANCH")
+    }' DEF="$DEF" \
+| while IFS=$'\t' read -r b line; do
+    case "$line" in
+      *" · BRANCH")
+        st=$(gh pr list --head "$b" --state all --limit 1 --json state -q '.[0].state // "none"' 2>/dev/null) || st=unknown
+        case "$st" in MERGED|CLOSED) echo "${line% · BRANCH} · branch merged" ;; *) echo "${line% · BRANCH} · branch $b, PR $st" ;; esac ;;
+      *) echo "$line" ;;
+    esac
+  done
 ```
 
-Keep a `cancelled` row only if its annotations report a timeout ("A timed-out run reads `cancelled`"); say timed out, not failed.
+A row with no suffix is a live failure on the default branch; `· fixed by run <id>` and
+`· branch merged` are history, listed so the reader can see why nothing is raised. Only a
+`success` fixes a failure: a newer run that is still running, was skipped, or died at startup
+leaves the failure live, and the row says `· newest run <id> <conclusion>`. A `startup_failure`
+(a workflow file pushed broken), a `timed_out` and an `action_required` are failures in their own
+right and print as rows. Keep a
+`cancelled` row only if its annotations report a timeout ("A timed-out run reads `cancelled`");
+say timed out, not failed.
 
-If any failures since the last visit, surface to the user before starting other work:
+*6 lines of evidence for this rule are in `conventions/ci-monitoring.md`.*
+
+If any live failures since the last visit, surface to the user before starting other work:
 
 > Workflow `<name>` failed `<time>` ago (run `<id>`). Investigate with `gh run view <id> --log-failed`. Fix or proceed with current task?
 
@@ -1004,6 +1057,11 @@ Before telling anyone a Pages URL is live, fetch it and compare the bytes with t
 
 *1 line of evidence for this rule is in `conventions/ci-monitoring.md`.*
 
+## A Quarto website renders every Markdown file unless `project: render:` lists its pages
+Set `render:` in `_quarto.yml` (`["*.qmd", "!comms/"]`, or the site's own pages): with none, a Quarto website renders every `.md` in the repo, `CLAUDE.md` and `comms/` included, so one file Quarto cannot read fails every publish and one it can is published.
+
+*1 line of evidence for this rule is in `conventions/ci-monitoring.md`.*
+
 ## `gh run list --commit` needs the full SHA, and `--workflow` cannot name the Pages run
 Key a CI waiter on `gh run list --commit "$(git rev-parse <ref>)"` and pick a run by name in `--jq`: a short SHA returns an empty list with exit 0, and `--workflow 'pages build and deployment'` fails, because GitHub's built-in Pages run has no workflow file.
 
@@ -1023,7 +1081,7 @@ A script that reads a file, transforms it, and writes it **back to the same path
 - Tools that scan an R Markdown document for prose — citation detection, cross-references, spell-check, word counts — skip code chunks.
 
 ### `fs::dir_ls(glob = )` matches the FULL path, so a bare filename pattern matches nothing
-- `fs::dir_ls(dir, glob = "form_*.gpkg")` returns **zero** for a directory full of `form_*.gpkg` files.
+Give `fs::dir_ls()` an anchored `regexp =`, never a `glob =`: a glob is matched against the whole path, and its `[...]` classes are escaped.
 
 ### `glue()` trims common leading whitespace
 - `glue::glue()` strips the common indentation of its input, so a template whose output must preserve exact indentation (XML, YAML, Makefiles, Python) comes out subtly wrong — valid-looking, wrongly indented.
@@ -1340,6 +1398,9 @@ Record the condition in the handler (`hit <<- TRUE`) and raise after `tryCatch()
 ### `fs::file_move()` onto an existing directory nests the source inside it
 Move a directory into place with `base::file.rename()` and check its return value, which is FALSE where the target is a non-empty directory, a symlink or a file.
 
+### `normalizePath()` renames through a symlink and returns a missing path as it was
+Make a path absolute with `file.path(normalizePath(dirname(x), mustWork = TRUE), basename(x))`, which keeps its name.
+
 ### Base `file.info()` has no inode column, so `file.info(x)$ino` is NULL and any comparison of it passes
 Read an inode with `fs::file_info(x)$inode`.
 
@@ -1363,6 +1424,15 @@ Resolve NA before an `ifelse()` whose result must keep a type (`blocked <- !is.n
 
 ### `sub()` takes one replacement, not one per element
 Paste a per-element suffix on instead (`paste0(sub("]$", "", x), suffix)`): a `replacement` longer than one is used as its first element everywhere, with only a warning.
+
+### `officer::body_replace_all_text()` misses a phrase that spans Word runs
+Replace whole paragraphs, not phrases inside them: officer matches within one text run, and Word splits a paragraph into runs wherever formatting or editing history changes.
+
+### Fill an xlsx template through its sheet XML, not openxlsx's `saveWorkbook()`
+Write the input cells into the sheet XML with xml2 and re-zip, so only the parts you edit change.
+
+### Copy a live SQLite database with its `-wal`
+Keep the pair only if both files' mtime and size held across the copy.
 
 # Code Check — Shell
 Tool-level traps in bash, sed, git and `gh`, and in the host toolchain those commands depend on.
@@ -1430,13 +1500,13 @@ Here Homebrew puts GNU coreutils ahead of `/usr/bin`, so BSD-style `stat -f` and
 `gh api repos/ORG/REPO/compare/upstream:main...ORG:main` returning `ahead: 0, behind: 0, status: identical` reads as *"this fork has no local work"*.
 
 ### A destructive setup and its undo must not share one timeout-able command
-Never chain a destructive setup and its undo (`git stash && slow && git stash pop`) in one timeout-able command; compare with `git show HEAD:path`, or restore from one `trap … EXIT` handler guarded by a flag set once the setup happened.
+Never chain a destructive setup and its undo (`git stash && slow && git stash pop`) in one timeout-able command.
 
 ### `git checkout <path>` restores from the index, not from HEAD
 After a `git add`, `git checkout <path>` reinstates the broken *staged* copy — so the "fix" reproduces the failure and reads as though the edit was wrong.
 
-### Six git plumbing calls whose default answers a different question
-Pass the flag that names the question you mean: `git log -m` and `--name-only`, `update-ref HEAD`, a checkout over an ignored file, `rev-parse --git-path` and a check of the `*_HEAD` files each succeed having answered or written something else.
+### Git plumbing calls whose default answers a different question
+Pass the flag that names the question you mean.
 
 ### A value validated with one numeric grammar and consumed with another
 Normalise a numeric string once (digits only and at most 9 of them, then `x=$((10#$x))`, then a bounded range): `test` reads base 10, `$(( ))` reads a leading zero as octal and wraps past 2^63.
@@ -1457,7 +1527,7 @@ An assertion around something that might hang can only pass or hang, never fail 
 `aws s3 cp` gives one exit 1 and 404 text for a missing key and a missing bucket, so probe `s3api head-bucket` then `head-object`: only a 404 from a reachable bucket means absent; a 403 is permissions.
 
 ### An S3 multipart ETag depends on the uploader's part size, so try every size that gives its part count
-Verify an upload by comparing each object's ETag with its file, trying for a multipart ETag every part size that gives its part count: the size is the uploader's `multipart_chunksize`, which differs between machines.
+Verify an upload by comparing each object's ETag with its file, trying for a multipart ETag every part size that gives its part count.
 
 ### A verification command can be shadowed by a shell function or alias
 - The shell is initialized from the user's profile, so `diff`, `grep`, `ls`, `cat` and friends may resolve to a wrapper rather than the binary you assume.
@@ -1499,13 +1569,13 @@ Pass `-e QT_QPA_PLATFORM=offscreen` to any `docker run` that starts QGIS or anot
 Query one path per `s3cmd ls` call, or `--recursive` on the prefix and `grep`: given several paths it lists only the first, with exit 0.
 
 ### `grep -c` prints the count AND exits 1 when it is zero
-Write `n=$(grep -c …) || n=0`, never `|| echo 0` inside the substitution: `grep -c` already prints `0` and exits 1, so that fallback appends a second line, while the bare assignment aborts a `set -e` script.
+Write `n=$(grep -c …) || n=0`, never `|| echo 0` inside the substitution.
 
 ### A failed `git fetch` leaves the comparison you make next reading stale refs
 `git fetch` and the check that follows it are two commands, and nothing links them.
 
 ### macOS `/usr/bin/awk` aborts when a regex meets a byte slice that cuts a multibyte character
-Test a `substr()` slice with `==`, never with `~`, `match()` or `sub()`: the stock macOS awk counts bytes in `substr()` but converts a regex operand to wide characters, and a partial UTF-8 sequence kills the whole program.
+Test a `substr()` slice with `==`, never with `~`, `match()` or `sub()`.
 
 ### macOS `sed` dies on an invalid byte, and GNU sed misparses it
 Parse logs with `LC_ALL=C sed`: a regex that scans an invalid UTF-8 byte exits 1 on macOS and misparses silently with GNU sed.
@@ -1529,25 +1599,25 @@ Supply a default ssh command only when `GIT_SSH_COMMAND`, `core.sshCommand` and 
 Count instead: `while :; do left=0; for i in $ids; do done_yet "$i" || left=$((left+1)); done; [ "$left" -eq 0 ] && break; sleep 90; done`.
 
 ### A failed `cd` lets every later command run in the directory you were already in
-Write `cd "$D" || exit 1` (or `cd "$D" && …`), never `cd "$D"; …`: without the guard, a missing directory prints one error and the rest of the line runs wherever the shell stood, including its file writes.
+Write `cd "$D" || exit 1` (or `cd "$D" && …`), never `cd "$D"; …`.
 
 ### macOS `/bin/bash` 3.2 quote-matches a heredoc inside `$( )`, so an apostrophe in the body is a syntax error
-Pass multi-line text through a file (`--body-file`, `-F`), never `"$(cat <<'EOF' … EOF)"`: bash 3.2 matches quotes inside `$( )` before it reads the heredoc, so an unpaired apostrophe in the body is a syntax error.
+Pass multi-line text through a file (`--body-file`, `-F`), never a heredoc inside `$( )`, and open each `case` pattern inside `$( )` with `(`.
 
 ### A skill's bash blocks run as separate calls, and its `$` + digits are replaced by its arguments
 Open every block after the first with guards on what it inherits: re-set its variables, confirm the path is the expected tree, and refuse edits or commits the previous block did not check.
 
 ### An apostrophe in a `${VAR:?message}` inside double quotes is an unterminated quote
-Keep apostrophes out of the message of a `"${VAR:?…}"` guard (`the REL: line of step 5`, not `step 5's REL: line`): bash 3.2 and 5 both read the `'` as opening a quote, and the whole script fails to parse before the guard can run.
+Keep apostrophes out of the message of a `"${VAR:?…}"` guard.
 
 ### A `git push` can land and still report failure, so confirm the ref rather than the exit code
 After a rejected push, read the remote ref before concluding anything: `git fetch -q origin && git merge-base --is-ancestor HEAD origin/<branch>`.
 
 ### Over Tailscale SSH to a Mac, `ssh` exits 0 whatever the remote command returned
-Never branch on the exit status of `ssh <mac-host> cmd` when the host serves Tailscale SSH: test what the command prints (`ssh host 'test -e f && echo YES'` compared to `YES`), or move the loop to the remote side and gate on its output.
+Never branch on the exit status of `ssh <mac-host> cmd` when the host serves Tailscale SSH: test what the command prints, or move the loop to the remote side and gate on its output.
 
 ### awk `==` compares version strings as numbers, so `1.1` matches `1.10`
-Compare a field to a version as strings, `($i "") == (v "")`: awk gives `split()` fields, `$i` and `-v` values string-or-number status, so when both sides look numeric `==` compares numbers, and `1.1 == 1.10` and `2.0 == 2` are true.
+Compare a field to a version as strings, `($i "") == (v "")`.
 
 ### `gh api` prints an HTTP error's body on stdout and exits 1, ignoring `--jq`
 Branch on `gh api`'s exit status before reading its output.
@@ -1571,13 +1641,13 @@ Assign the command on its own line under `set -e` (`out=$(cmd)`), then filter `o
 Never pipe a `sed`/`awk` range extract into an interpreter.
 
 ### A Python CLI redirected to a log writes nothing until it exits, so the log cannot show progress
-Run a long Python command with `PYTHONUNBUFFERED=1` (or `python -u`) when its output goes to a file: stdout to a file is block-buffered, so the log stays at 0 bytes for the whole run and an empty log reads as a stalled job.
+Run a long Python command with `PYTHONUNBUFFERED=1` (or `python -u`) when its output goes to a file.
 
 ### `aws s3` progress lines end in `\r`, so a line-based count of a saved log reads zero
 Translate before counting: `tr '\r' '\n' < log | grep -c '^upload:'`.
 
 ### `a && b || c` runs `c` when any step before the `||` fails
-Give each setup step its own `|| exit 1` and branch with `if`: in `a && b || c`, `c` runs when `a` fails as well as when `b` does, so a failed setup reaches the fallback with its variable unset.
+Give each setup step its own `|| exit 1` and branch with `if`.
 
 # Code Check — Spatial
 terra, sf, bcdata, GDAL/OGR CLIs.
@@ -1660,7 +1730,7 @@ A spatial layer that also carries `LATITUDE` / `LONGITUDE` columns has the same 
 `sf::st_write()` and `ogr2ogr` will write GeoJSON from a projected object and emit a `crs` member naming it:
 
 ### `sf::st_perimeter()` needs lwgeom on projected data, and lwgeom is not a dependency of sf
-An exported sf function whose body branches on `requireNamespace("lwgeom")` is an undeclared dependency: `R CMD check` does not report it, and a test suite cannot see it on a machine that happens to have lwgeom installed.
+An exported sf function whose body branches on `requireNamespace("lwgeom")` is an undeclared dependency.
 
 ### terra keeps a result in memory whenever it fits, so a per-class loop over a large grid accumulates full-grid rasters
 `ifel()`, `focal()`, arithmetic and `rasterize()` return in-memory SpatRasters whenever the result fits under `memfrac` (60% of RAM by default).
@@ -1672,7 +1742,7 @@ A `NULL` `data` argument does not error and does not warn — the layer inherits
 Two contracts inside `terra::app()` that read as the opposite of what they are, both measured on terra 1.9.34 (drift#9, 2026-09-05):
 
 ### terra: `levels<-` and `coltab<-` copy first; `set.cats()` mutates in place, setting or stripping
-`terra::set.cats()` mutates the raster it is given whether it strips (`value = NULL`) or sets levels; `levels<-` and `coltab<-` deep-copy first, so on a caller's raster call `set.cats()` only on the copy one of them returned, or on a `deepcopy()` you own.
+`terra::set.cats()` mutates the raster it is given whether it strips (`value = NULL`) or sets levels.
 
 ### terra `metags()`: the empty case is `NULL`, and the sidecar is half the artefact
 Three measured facts about raster **container** metadata, all of which fail quietly (floodplains#83, 2026-09-05, terra 1.9.34 / GDAL 3.8.5).
@@ -1720,7 +1790,7 @@ GDAL's curl handles do not survive a fork.
 Two independent reasons a parallel raster job uses far more memory than its data, both measured 2026-09-20 on a 64 GB machine (fly#58) while a sweep was killed four times.
 
 ### `terra::distance(x, target = NA)` measures FROM the NA cells, so every data cell reads 0
-Reaching for it to answer "how far is each data cell from the nearest nodata" gives the opposite: `distance()` fills the **target** cells with their distance to the nearest non-target, so data cells come back `0` and any `dist < threshold` test is true everywhere.
+Reaching for it to answer "how far is each data cell from the nearest nodata" gives the opposite.
 
 ### `summarise()` on a grouped `sf` returns an `sf`, and the geometry rides into your CSV
 `dplyr::summarise()` dispatches to `summarise.sf` on an `sf` object.
@@ -1798,7 +1868,7 @@ Hold any raw WFS read to the server's own count.
 To tell a throttle from any other bcdata failure, record the status off the request itself (wrap `crul:::crul_fetch`), not from the message.
 
 ### sf and terra can link different GDALs, so a probe through one says nothing about the other
-Check `sf::sf_extSoftVersion()[["GDAL"]]` and `terra::gdal()` before concluding that "GDAL" cannot read something: one R session can hold two GDALs, and a driver or codec missing from one may be present in the other.
+Check `sf::sf_extSoftVersion()[["GDAL"]]` and `terra::gdal()` before concluding that "GDAL" cannot read something.
 
 ### `arrow::write_parquet()` of a geoarrow table is not GeoParquet
 Write GeoParquet with GDAL's Parquet driver (`ogr2ogr -f Parquet`), and check the file's schema metadata carries a `geo` key.
@@ -1979,7 +2049,7 @@ When the published site **is** the repository — GitHub Pages serving `docs/`, 
 Configuration patterns and false-positive handling for the `gitleaks` pre-commit hook (kdot's Brewfile ships `gitleaks` + `pre-commit`; cyclops standardizes the hook):
 
 ### "Public bucket" ≠ listable: GetObject vs ListBucket
-- A bucket policy granting only `s3:GetObject` on `bucket/*` makes exact-key fetches public but NOT listing — and dataset discovery (`arrow::open_dataset()`, duckdb globs, STAC `/vsicurl/` directory reads) requires `s3:ListBucket` on the **bucket ARN** (no `/*`; it's a bucket-level action).
+- A bucket policy granting only `s3:GetObject` on `bucket/*` makes exact-key fetches public but NOT listing.
 
 ## Spreadsheets and PDFs
 
@@ -1990,7 +2060,10 @@ Before reporting that a spreadsheet value is off by a factor, check the cell's *
 `pdftotext` returns anchor text, not the href.
 
 ### Extracted PDF text carries corrupted glyphs, and a tolerant parser turns them into wrong numbers
-Never strip non-digits to clean a number extracted from PDF text: corrupted glyphs (an `O` for a `0`, a Private Use Area micron sign) become plausible wrong values, so anchor on the label and check against an independent identity.
+Never strip non-digits to clean a number extracted from PDF text.
+
+### Merge PDFs with `qpdf`, and check the merged file
+Merge with `qpdf --empty --pages a.pdf b.pdf -- out.pdf`, not `pdfunite`, and run `qpdf --check` on the result.
 
 
 # NGE Feature Workflow
@@ -2221,7 +2294,8 @@ organisation, and it names internal work as it does so.
 - **A scrub covers the surfaces you were editing; re-grep the others before merging.** The
   issue body is drafted at plan time and the code later, so scrubbing the tree and the PR
   body leaves the body untouched. `/gh-pr-merge` step 3b is the moment to grep it, then
-  read it for the bare names a grep misses.
+  read it for the bare names a grep misses. It also refuses a branch whose diff adds a
+  private repo's URL or `name#N` to tracked files (`private_refs.sh`).
 - **A leaked body is recreated, not edited: GitHub shows its edit history to anyone.** A fresh
   issue with no discussion is deleted (`gh issue delete`, admin) and refiled clean, the private
   side in a private-repo issue. Where the number must stay, edit it, then delete each older
@@ -2536,7 +2610,8 @@ Skip planning for single-file edits, quick fixes, or tasks with obvious next ste
    (`code-check.md`), and a subagent given it edits the same files the parent is testing.
    From the parent's side the result is a test run that reports failures belonging to
    nobody's code — the reviewer's planted defect, caught mid-flight. Tell reviewers to work
-   in a copy (`cp -r` to a temp dir, or a worktree) and say so in the prompt; they honour it
+   in a copy (`git worktree add --detach <tmp> <ref>` or `git clone`, never `cp -r` of a
+   checkout whose `.git` is a file) and say so in the prompt; they honour it
    when asked. Then snapshot the files you care about and `cmp` them before **and after**
    every run whose result you intend to act on, so "the tree was intact for this
    measurement" is a fact rather than an assumption. Same hazard as a mid-flight edit in
@@ -2884,6 +2959,41 @@ behaviour, the domain convention otherwise.
 | `/planning-update` | Mid-session — sync checkboxes and progress |
 | `/planning-archive` | Issue complete — archive and create fresh active/ |
 
+# Provenance
+How an output says what made it and what came out, and how a rebuild is judged against it.
+
+*Index only: each rule's heading and first sentence. The full text is soul's `conventions/provenance.md`; read it before writing or reviewing code in its area.*
+
+### One receipt per output, in one shape: output, recipe, result, context
+Once the receipt writer for its language ships (rule 4), write one `receipt.json` per output, replacing a `manifest.json` or `provenance.json` when the writer is next touched; until then, write the repo's current format and map its names (rule 10).
+
+### Keep what changes on every rebuild out of the output's bytes
+Write time, host and run id beside an output, never inside it, and pin what a format would stamp (GeoPackage `last_change`, layer order), so one recipe writes the same bytes: in new outputs, and in a writer when it is next touched.
+
+### A recipe identity and a result identity; the machine is context
+Hash code, config, seed and each input's **recipe** identity into one recipe hash (a receipt's `recipe_id`); never fold an input's result into it, and never let the host or toolchain into either identity, nor the host into a record that is published.
+
+### crate holds the contract; each language implements it once against its test vectors
+Write receipts through crate's contract (schema, RFC 8785 `recipe_id`, table fingerprint, test vectors): R packages call `crt_receipt_write()`, Python `stacs.receipt`, and any other writer passes the same vectors.
+
+### Compare two records to one of three verdicts, and name the side that differed
+Compare a rebuild with its reference copy and report `identical` (same recipe, same result), `equivalent` (same recipe, result within the declared tolerance) or `different` (another recipe, or past the tolerance), naming which of recipe or result differed and where.
+
+### Declare tolerances per output, beside the code that writes it
+State each output's tolerance where its writer lives: exact for a table of counts, a rounding for a floating sum, a declared spread or an invariant ("the same pick and region") for a model fitted with random draws.
+
+### A published output keeps its result and record as the reference copy
+Keep what is published, its bytes and its record, as the reference copy in the bucket; anything not published is rebuilt from its recipe and compared to that copy, never assumed equal.
+
+### Read a record to report a difference; refuse only on integrity or same-operation parity
+Read a provenance record to **report** what differs; refuse on one only when bytes received differ from what the sender listed, two parties in one operation must hold the same bytes now, or the record is older than its input.
+
+### A per-field register says what a difference in each field does
+Keep a register, one row per record field, saying whether a difference refuses, warns or is recorded, make it the comparison's input rather than a description of it, and test it with two records that differ in one field each.
+
+### Map existing names to the shared keys and to STAC's; converge forward-only
+Map each existing field name to its key in the receipt and, on a catalogue, to STAC's own (`file:checksum`, `file:size`, `processing:software`, `processing:datetime`), and rename only when the writer moves to a receipt (rule 1).
+
 
 # R Package Development Conventions
 
@@ -3119,6 +3229,21 @@ Then keep the vignette and its bundle true as both move:
 ## lintr
 
 Run `lintr::lint_package()` before committing R package code. Fix all warnings — every lint should be worth fixing.
+
+Where the package already carries a standing count, its total cannot say whether the branch
+added a lint: compare per file, linter class and source line, in a `git worktree` of `origin/main` and on
+the branch, then diff the two. Never stash for the baseline (`code-check-shell.md`, "A destructive
+setup and its undo must not share one timeout-able command"), and reinstall before trusting a lint
+on a name the branch added (`code-check-r.md`, "`lintr` also resolves against the installed
+package, not the source tree").
+
+```r
+as.data.frame(lintr::lint_package()) |>
+  dplyr::count(filename, linter, line) |>   # `line` is the source text, so it survives renumbering
+  readr::write_csv("<side>.csv")   # once per side, then diff the two files
+```
+
+*4 lines of evidence for this rule are in `conventions/r-packages.md`.*
 
 ### Recommended .lintr config
 
