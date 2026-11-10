@@ -233,7 +233,7 @@ The software, each cited:
   2025](#ref-base)).
 
 The data were bundled at `wet` commit `52facd0`; this build ran on `wet`
-0.4.34, `cd` 0.6.13, commit ed0ea69, `gq` 0.18.0 and commit 73b8862. To
+0.4.34, `cd` 0.6.13, commit ed0ea69, `gq` 0.19.0 and commit 5c4b03e. To
 cite `wet`:
 
 Irvine A (2026). *wet: Stream Flow and Water Temperature for the BC
