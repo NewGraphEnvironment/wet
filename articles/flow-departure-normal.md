@@ -224,8 +224,8 @@ The software, each cited:
   2026a](#ref-bookdown)) render the article, all in R ([R Core Team
   2025](#ref-base)).
 
-This build ran on `wet` 0.4.34, `cd` 0.6.13, commit c8bc100, `gq` 0.16.1
-and commit aa082d0. To cite `wet`:
+This build ran on `wet` 0.4.34, `cd` 0.6.13, commit c8bc100, `gq` 0.18.0
+and commit 7d0ce85. To cite `wet`:
 
 Irvine A (2026). *wet: Stream Flow and Water Temperature for the BC
 Freshwater Atlas*. New Graph Environment Ltd.

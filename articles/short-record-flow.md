@@ -138,12 +138,12 @@ notes](https://github.com/NewGraphEnvironment/wet/blob/main/research/station_flo
 - `ggplot2` 4.0.3. Wickham H (2016). *ggplot2: Elegant Graphics for Data
   Analysis*. Springer-Verlag New York. ISBN 978-3-319-24277-4.
   <https://ggplot2.tidyverse.org>.
-- `gq` 0.16.1,
+- `gq` 0.18.0,
   [doi:10.5281/zenodo.23524719](https://doi.org/10.5281/zenodo.23524719),
-  commit `aa082d0`. Irvine A (2026). *gq: Cartographic Style Management
+  commit `7d0ce85`. Irvine A (2026). *gq: Cartographic Style Management
   Across Rendering Targets*. New Graph Environment
   Ltd. <doi:10.5281/zenodo.23524719>
-  <https://doi.org/10.5281/zenodo.23524719>. Version 0.16.1,
+  <https://doi.org/10.5281/zenodo.23524719>. Version 0.18.0,
   <https://github.com/NewGraphEnvironment/gq>.
 - `sf` 1.1-3,
   [doi:10.1201/9780429459016](https://doi.org/10.1201/9780429459016).
