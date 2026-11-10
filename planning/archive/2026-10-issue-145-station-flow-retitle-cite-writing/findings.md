@@ -36,7 +36,7 @@ Relates to #27, #126, #146, #148, #149, #152.
 - Web API key at `~/.config/newgraph/zotero-api-key` verified (cyclops `verify-key.sh --from file`: HTTP 200).
 - Created in group 4733734, collection `statistics` (LP4R4VYR): Mann 1945 (TNK2RP5H, `mann1945NonparametricTests`), Sen 1968 (UTZ4K2QG, `sen1968EstimatesRegression`), Theil 1950 (VKB34D98, `theil1950RankInvariantMethod`), Kendall 1975 4th ed. (XBCBNKW6, `kendall1975RankCorrelation`). Mann and Sen metadata held to Crossref.
 - WMO normals: cite `arguez_vose2011DefinitionStandard` (already in the library; BAMS 92:699–704, doi 10.1175/2010BAMS2955.1) instead of adding WMO-No. 1203.
-- **The "Zotero answers with an empty reply" failure was curl's user agent.** m1's `~/.curlrc` sets a browser UA, and Zotero 7 drops browser-looking requests. With `-A curl/8`, ping returns 200 and BBT `ready`; rbbt (R's curl) exports. BBT's JSON-RPC `item.search` errors (`Invalid condition 'groupStart'`); the Web API's `data.citationKey` gave the keys after sync. Filed in soul#590 with the stale key path in `/zotero-api`.
+- **The "Zotero answers with an empty reply" failure was curl's user agent.** m1's `~/.curlrc` sets a browser UA, and Zotero 7 drops browser-looking requests. With `-A curl/8`, ping returns 200 and BBT `ready`; rbbt (R's curl) exports. BBT's JSON-RPC `item.search` errors (`Invalid condition 'groupStart'`); the Web API's `data.citationKey` gave the keys after sync. Filed in an internal issue with the stale key path in `/zotero-api`.
 
 ## Phase 2 measurements (2026-10-30, m1, fwapg local)
 

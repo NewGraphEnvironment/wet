@@ -12,9 +12,9 @@ The main lesson came from review. Merging moved sentences into new company and r
 - **Figures:** the Bulkley map, the hydrographs and the monthly error figure are byte-identical to the old renders. The province map alternates between two PNGs across renders of the same source, including main's, so its variation predates the merge (not traced).
 - **Review cost:** four agents in all. One Plan review (`review-plan.md`) and three code-check rounds: round 1 found 3, round 2 found 9 (2 inside earlier fixes), and round 3's enumeration found 8, all fixed.
 
-## After the PR opened: soul#578's writing rules
+## After the PR opened: an internal issue's writing rules
 
-The user asked for the article to be checked against NewGraphEnvironment/soul#578's eight writing lessons. Fixes:
+The user asked for the article to be checked against an internal issue's eight writing lessons. Fixes:
 - The windows' dates are credited to New Graph's species-timing table, with Gottesfeld and Rabnett's p. 355 for what the report says. The old wording, inherited from monthly-flow, credited the report with the exact dates.
 - The window section no longer leans on the four-stream article.
 - The routed-shape inference states its reason in terms of each half of the shape.
@@ -23,7 +23,7 @@ The user asked for the article to be checked against NewGraphEnvironment/soul#57
 - A sentence places the Bulkley in BC.
 - Data and references are lists with anchors, and the in-text citations link to them.
 
-Two review rounds ran (`review-578-round1.md`, `review-578-round2.md`). Round 1 found a defect inside the fix: the restored reason said "the season at all of them". Round 2 enumerated all 23 changed claims and found 2 overstated: the reason again, and a caption claiming every order-5+ stream when the map's fetch extent is narrower than its frame. Both are fixed. The extent gap is filed as wet#151, and the evidence was added to soul#578's body. Review cost for this pass: two more agents, six in all for the branch.
+Two review rounds ran (`review-578-round1.md`, `review-578-round2.md`). Round 1 found a defect inside the fix: the restored reason said "the season at all of them". Round 2 enumerated all 23 changed claims and found 2 overstated: the reason again, and a caption claiming every order-5+ stream when the map's fetch extent is narrower than its frame. Both are fixed. The extent gap is filed as wet#151, and the evidence was added to an internal issue's body. Review cost for this pass: two more agents, six in all for the branch.
 
 ## After the PR opened: the user's review of the merged article
 
@@ -49,7 +49,7 @@ Two review rounds ran (`review-user-round1.md`, `review-user-round2.md`).
   - the References' fork commit lived in the `.bib`, which the guard never read; it now reads the `.bib`, checked both ways;
   - CLAUDE.md still said "province counts".
 
-The lessons were added to soul#578 as rules 9 to 13. Review cost for this pass was two more agents, eight in all for the branch.
+The lessons were added to an internal issue as rules 9 to 13. Review cost for this pass was two more agents, eight in all for the branch.
 
 ## After the PR opened: the user's second review
 
@@ -72,7 +72,7 @@ Body prose went from 1,830 to 1,775 words. Two review rounds ran (`review-user2-
   - `'kable'` was title-cased;
   - `bookdown` was uncited.
 
-All are fixed. The review copy went to the user as a private claude.ai artifact instead of a PDF, which soul#580 proposes as the standing route, and the lessons went to soul#578 as rules 14 to 18. Review cost for this pass was two more agents, ten in all for the branch.
+All are fixed. The review copy went to the user as a private claude.ai artifact instead of a PDF, which an internal issue proposes as the standing route, and the lessons went to an internal issue as rules 14 to 18. Review cost for this pass was two more agents, ten in all for the branch.
 
 ## Owed
 

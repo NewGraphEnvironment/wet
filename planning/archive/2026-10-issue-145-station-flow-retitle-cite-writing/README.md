@@ -15,8 +15,8 @@ At the plan gate the user asked for climate in the title. "Climate normal" is WM
 - **Word count:** body prose went from 581 to 699 words in the first pass (the cap was raised from 600 to 700 at the gate), and to 627 after the user's review; the file from 704 to 751 lines. The first full draft came to 751 words. Cutting captions' restatements and the recipe's repeated software list brought it under. The floor was set by the answer-first opening, the timing-window section, the place sentence and the inline citations, each `[@key]` counting as a word.
 - **Parity:** `vm_into()` against `chinook_sites_map.rds`: all six columns `identical()`. `station_map.rds` rebuilt with every old layer `identical()`, except lakes, which match only after sorting: `vm_lakes()` has no `ORDER BY`.
 - **Mouths:** Buck Creek's is 0.89 km from Houston; the Bulkley's is 1.15 km from Hazelton, 115 km north-west of Houston.
-- **`knitr::write_bib()`** writes each package's DESCRIPTION entry: wet without its DOI, ggplot2's manual rather than its book. This contradicts `writing.md`, so the script uses `utils::citation(pkg)[[1]]`. Recorded in soul#27.
-- **The Zotero failure that made wet#149 write its `.bib` by hand was curl's user agent, not Zotero.** m1's `~/.curlrc` sets a browser user agent, and Zotero 7 drops browser-looking requests with an empty reply. rbbt is unaffected. The Web API key sessions kept asking about is cyclops-materialized at a path `/zotero-api` does not name. Both are filed in soul#590. Four works (Mann 1945, Kendall 1975, Theil 1950, Sen 1968) were added to the group library through the Web API.
+- **`knitr::write_bib()`** writes each package's DESCRIPTION entry: wet without its DOI, ggplot2's manual rather than its book. This contradicts `writing.md`, so the script uses `utils::citation(pkg)[[1]]`. Recorded in an internal issue.
+- **The Zotero failure that made wet#149 write its `.bib` by hand was curl's user agent, not Zotero.** m1's `~/.curlrc` sets a browser user agent, and Zotero 7 drops browser-looking requests with an empty reply. rbbt is unaffected. The Web API key sessions kept asking about is cyclops-materialized at a path `/zotero-api` does not name. Both are filed in an internal issue. Four works (Mann 1945, Kendall 1975, Theil 1950, Sen 1968) were added to the group library through the Web API.
 - **Review:** `/code-check branch` ran five rounds, plus the plan review: six agents in all.
 
 | Round | Findings | Fixed | Inside previous fix? |
@@ -44,7 +44,7 @@ Review round 6 (`review-round6.md`) found six issues in that revision, all fixed
 
 ## Owed
 
-- The `.bib` was not regenerated after the revision: Better BibTeX stopped answering after Zotero's 10.0.7 auto-update. It lacks the Gottesfeld and Rabnett url (now on the Zotero item) and holds six entries the article no longer cites. Tracked in wet#152. Better BibTeX's key migration and key drift: soul#595.
+- The `.bib` was not regenerated after the revision: Better BibTeX stopped answering after Zotero's 10.0.7 auto-update. It lacks the Gottesfeld and Rabnett url (now on the Zotero item) and holds six entries the article no longer cites. Tracked in wet#152. Better BibTeX's key migration and key drift: an internal issue.
 
 ## Evidence
 

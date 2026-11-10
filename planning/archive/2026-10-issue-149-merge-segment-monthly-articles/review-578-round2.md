@@ -1,4 +1,4 @@
-# Review: soul#578 pass, round 2 (diff 1eef882..HEAD, vignettes/segment-discharge.Rmd), terminating enumeration
+# Review: an internal issue pass, round 2 (diff 1eef882..HEAD, vignettes/segment-discharge.Rmd), terminating enumeration
 
 ## Checklist read
 

@@ -78,5 +78,5 @@ Scratch output: `closure_all.tsv` in the session scratchpad (not kept); Phase 1'
 
 | Error | Resolution |
 |-------|------------|
-| soul's `gh_rest.sh` fails to parse under `/bin/bash` 3.2 (`case` pattern `)` inside `$( )`) | Default branch read with `gh api repos/<o>/<r> --jq .default_branch`; soul#718 |
+| soul's `gh_rest.sh` fails to parse under `/bin/bash` 3.2 (`case` pattern `)` inside `$( )`) | Default branch read with `gh api repos/<o>/<r> --jq .default_branch`; an internal issue |
 | Beyond-tolerance listing printed the merge's columns off by one | Columns taken by name (ae518cb) |

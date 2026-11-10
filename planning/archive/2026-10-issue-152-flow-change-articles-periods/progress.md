@@ -14,7 +14,7 @@
 
 ## Review copies (2026-10-30)
 
-Private claude.ai artifacts, rendered from d13db76 with soul#580's conversion script (its style regex fixed to skip head scripts):
+Private claude.ai artifacts, rendered from d13db76 with an internal issue's conversion script (its style regex fixed to skip head scripts):
 - measured article: https://claude.ai/artifact/B8i7CKZiceS1EckXJ97RTB
 - rebuilt article: https://claude.ai/artifact/MTTpB7PA9jpp5a2i9vG1gE
 

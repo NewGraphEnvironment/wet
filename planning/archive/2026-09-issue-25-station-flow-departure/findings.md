@@ -22,7 +22,7 @@ water-temp-bc archives ECCC's provisional data every month, so it covers the per
 
 wet owns everything up to one value per year per window. cd owns the statistics after that. The two meet on cd's long format (`variable`, `period`, `year`, `value`), so wet needs at most a Suggests on cd and holds no copy of its baseline, anomaly or trend code.
 
-1. `wet_station_daily()`: one daily discharge series per station. Port `ngr::ngr_hyd_q_daily()` rather than writing a new one. That function already joins HYDAT (via tidyhydat) with about 18 months of real-time daily flow, keeps HYDAT on overlap and warns on missing dates. Hydrology data now belongs to wet (NewGraphEnvironment/sred#26). The ngr copy is deprecated with a shim once wet is public, because two report repos call it.
+1. `wet_station_daily()`: one daily discharge series per station. Port `ngr::ngr_hyd_q_daily()` rather than writing a new one. That function already joins HYDAT (via tidyhydat) with about 18 months of real-time daily flow, keeps HYDAT on overlap and warns on missing dates. Hydrology data now belongs to wet. The ngr copy is deprecated with a shim once wet is public, because two report repos call it.
    - Its gap today: the real-time window reaches back to about 2025-02, while our HYDAT copy ends 08EE013 at 2023-12-31. That leaves a hole from 2024-01 to 2025-02, which water-temp-bc's archive fills. Real-time rows also carry no ice `Symbol` (`NA`).
    - Use approved HYDAT where it exists, and fill in after that from water-temp-bc provisional data (Parameter 6).
    - Each row carries `source`/`status` and the ice (`B`) or estimate (`E`) symbol, so a result can say what it rests on.
