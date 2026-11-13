@@ -23,7 +23,7 @@
 # refused (after the report is written); values beyond 1e-9 relative are
 # listed and attributed. Before #158 the donor shares at a calibration gauge
 # turned on an exact-zero distance, which the order doubles are added in can
-# move; since, a donor within 1e-9 of the median distance is the gauge's own.
+# move; since, a donor within 1e-9 times the median distance is the gauge's own.
 #
 # WET_WB_RESAMPLE=1 samples the group again and compares it with the province
 # run's sample (reported, not refused: terra or GDAL may have moved since),
@@ -379,7 +379,7 @@ bad <- lapply(seq_len(nrow(cmp)), function(i) {
   s <- side(cmp$rows[i])
   beyond(s[[1]], s[[2]], cmp$id[i], cmp$value[i], cmp$tol[i])
 })
-# Attribution. The donor shares give a watershed within 1e-9 of the median
+# Attribution. The donor shares give a watershed within 1e-9 times the median
 # distance of a calibration gauge's donor row that gauge's shares alone
 # (wet_donor_mean(); exactly 0 before #158); further off, the other donors
 # weigh in. The province run's own upstream means are the donor rows, so a

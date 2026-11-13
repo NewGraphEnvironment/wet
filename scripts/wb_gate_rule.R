@@ -12,7 +12,8 @@
 # Before #47 the gate scored headwater gauges alone, so an adjustment that
 # corrects the main stems, which only nested gauges measure, could be dropped
 # over a tie on headwater ones; #43's refit kept it only through a per-fit
-# override (adjust_override.txt, a 0.03-point tie within a 0.5-point cap).
+# override (adjust_override.txt: a 0.10-point tolerance, which the scripts
+# capped at 0.5, over a 0.03-point tie).
 # Disclosed: both fits' headwater and nested MAEs, adjusted and raw, were
 # public before this rule was written (the #47 body; research/
 # water_balance_method.md section 0; every wb_validation report), so the rule

@@ -5,7 +5,8 @@
 #
 # Applies wb_gate() (scripts/wb_gate_rule.R, registered before this script
 # first ran) to each variant's headwater and nested MAE, adjusted and raw, and
-# sets beside it the headwater-only gate each fit was made under. The nested
+# sets beside it the headwater-only gate each fit was made under, so it runs
+# on scores made before the rule and refuses any made under it. The nested
 # gauges are the ones on main stems; the main-stem ratios themselves are in
 # data/checks/wb_output_<release>.txt.
 #
@@ -35,6 +36,12 @@ rows <- do.call(rbind, lapply(names(fits), function(rel) {
     if (!file.exists(f)) stop("missing ", f, call. = FALSE)
     x <- readRDS(f)
     stopifnot(identical(x$aet, a), identical(x$release, rel))
+    # scores made under the rule itself record its arm: they cannot show what
+    # the fit was made under, so the comparison would read the rule against itself
+    if (!is.null(x[["gate_arm"]])) {
+      stop(f, " was scored under #47's rule (it records gate_arm): score the gate on scores made before it",
+           call. = FALSE)
+    }
     hw <- c(adj = mae(x$cv_v, "headwater"), raw = mae(x$raw_v, "headwater"))
     nes <- c(adj = mae(x$cv_v, "nested"), raw = mae(x$raw_v, "nested"))
     g <- wb_gate(hw[["adj"]], hw[["raw"]], nes[["adj"]], nes[["raw"]])
@@ -57,7 +64,7 @@ writeLines(c(
   sprintf("fit_20251014: %s (#15's frozen record; the copy tag aet-15-record reproduces)", fits[["20251014"]]),
   sprintf("fit_20260717: %s", fits[["20260717"]]),
   paste("made: what the fit was made under (the headwater gate, and since #43 on fit_20260717 the",
-        "0.5-point override); new: the rule above, and the arm that decided."),
+        "override's 0.10-point tolerance); new: the rule above, and the arm that decided."),
   "",
   sprintf("%-8s %-6s %7s %7s %7s %7s  %-5s %-5s %-9s %s", "release", "aet", "hw_adj", "hw_raw", "nes_adj",
           "nes_raw", "made", "new", "arm", "changed"),

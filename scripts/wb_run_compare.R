@@ -31,6 +31,10 @@ files_of <- function(run) {
   }))
   sort(f, method = "radix")
 }
+# a part neither run holds is not "the same": two reduced bundles holding
+# upstream/ alone would otherwise compare as identical
+absent <- parts[!file.exists(file.path(runs[1], parts)) & !file.exists(file.path(runs[2], parts))]
+if (length(absent)) stop("neither run holds ", paste(absent, collapse = ", "), ": not two province runs")
 fa <- files_of(runs[1])
 fb <- files_of(runs[2])
 problems <- character()
