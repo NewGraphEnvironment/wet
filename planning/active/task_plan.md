@@ -34,6 +34,7 @@ What exploring the code showed:
 - **Publish (finding 1):** a PUBLISH after the BUILD under the new key, as #76 did (parts whose ETag matches are skipped); then the BULK/SALR proof runs in this move.
 - **The override (finding 5):** remove `adjust_override.txt`'s reader with the file, if the rule keeps the adjustment on `fit_20260717`.
 - **Gate flips (Phase 5 stop condition, asked 2026-11-13 08:0x UTC):** the rule flips `fu35` from drop to keep on both fits (fit_20251014 by the margin arm, 0.40 point; fit_20260717 by the nested arm, 1.41 points worse on headwater but nested 19.01 % against raw 24.58 %). `fu35` is transparency only and cannot win; shipped `cfu` stays kept (margin arm, 0.03 point). The owner chose to go on; the chain still stops if the AET winner is not `cfu`.
+- **Routed rebuild (found in Phase 6, asked 2026-11-13 ~09:30 UTC):** m4's `pcic` schema had been reloaded on 2026-10-27 with fwapg#24's rebuild (the Nechako Reservoir placed through a listed diversion; crosswalk 901d1271; published runs equal to m4's to the last digit). The owner chose to adopt it in this move: `WET_FWAPG_COMMIT=5d50cc1` (the `newgraph` merge of fwapg PR #47, whose code built and published both runs), routed comparison, segment tables and BUILD rerun, then PUBLISH; routed parts change.
 - **CGIAR source check (finding 10):** compare the archives with figshare's `computed_md5` (one API call per call that rebuilds) and refuse on a mismatch.
 
 ## Phase 1: Input keys and the climr check rows (#23, #51)
@@ -68,7 +69,7 @@ What exploring the code showed:
 - [ ] Retire `adjust_override.txt` if the rule covers its case (decision 5); and its reader with it (decided at resume)
 
 ## Phase 6: The chain, once
-- [ ] Under the new scoring code (logs under `data/logs/163/`, `WET_HYDAT_RELEASE=20260717`, `WET_FWAPG_COMMIT=7c30f58`): rescore all ten variants, compare, `wb_validate.R <winner>`, `wb_shape_daily.R`, `wb_share_snow.R`, `wb_share_donor.R`, `wb_output.R`, `pcic_routed_compare.R`, `segment_output.R`, `segment_daily_output.R`, `discharge_publish.R` BUILD
+- [ ] Under the new scoring code (logs under `data/logs/163/`, `WET_HYDAT_RELEASE=20260717`, `WET_FWAPG_COMMIT=7c30f58`, then `5d50cc1` from the routed comparison on, decided at resume): rescore all ten variants, compare, `wb_validate.R <winner>`, `wb_shape_daily.R`, `wb_share_snow.R`, `wb_share_donor.R`, `wb_output.R`, `pcic_routed_compare.R`, `segment_output.R`, `segment_daily_output.R`, `discharge_publish.R` BUILD
 - [ ] Compare each against `_pre163` (`check_refit`/`compare_parquet` logic, through `wb_run_compare.R` where it fits): `output/` and segment parquets byte-identical, or every difference attributed
 - [ ] The PUBLISH decided at resume, then `segment_group.R BULK` and `SALR`: 0 differing rows (BULK showed 132 watershed rows before #158)
 - [ ] `wb_term_diagnose.R` rerun (#51; record whether zone 15's 1.05 or the valley ratios move)

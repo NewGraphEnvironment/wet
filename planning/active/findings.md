@@ -85,6 +85,15 @@ From a copy of `wb_gate_score.R` writing under `data/logs/163/`, so it left `dat
 - Province run under the new key `768876badf`, 08:23–08:40Z (17 min). `wb_run_compare.R _pre163/92b893c4da 768876badf`: **IDENTICAL**, 275 of 275 files byte-identical, 270 rds, 3,245,453 upstream watersheds.
 - Decision files carried; ten variants rescored, compared and cfu shipped under the unchanged scoring code (08:44–08:50Z). **Every `wb_validation*_20260717.txt` (11) and `wb_aet_compare_20260717.txt` equal the committed ones byte for byte once `province run: 92b893c4da;` reads `768876badf;`.** That closes #21.
 
+## Phase 6 (2026-11-13, m4, logs `data/logs/163/chain163_{b,c,d}.log` and their step logs)
+
+- Final `wb_run_compare.R`: `_pre163/92b893c4da` against `768876badf` IDENTICAL; `_pre16/962a9cc2c4` against `768876badf` exits 1, the snow layers named on 271 lines.
+- Gate score committed (m4 42b3df0): the try's table, unchanged.
+- Rescore under the new scoring code (`df3280b5…`), winner cfu, shipped; `check_refit163.R`: every decision and number in `fits.rds`, `shape_daily.rds`, `cv_aet-cfu.rds`, `cv_shape_daily.rds` identical to the fit made under `92b893c4da`; only the code md5s change, and `gate_arm` is `margin`.
+- Share breakdowns rewritten; balance output: 24 of 24 files byte-identical, 0 of 168,190,490 values differ.
+- **The routed table had changed underneath** (the chain stopped at the segment compare, `100.parquet: key columns differ`): `pcic.runs` on m4 was built 2026-10-27 (fwapg#24's rebuild, published 2026-10-28 as fwapg PR #47; crosswalk 901d1271; 38,146 sub-basins against 37,667 before; a weekly table added). Total routed 178,918,222.786650 → 179,854,603.510890 m³/s; Nechako groups (LEUT, LNRS, UEUT, UNRS) routed instead of about zero; in basin 100 routed picks 897,172 → 956,378. m4's `pcic.runs` equals fwapg's published `pcic.runs.csv.gz` to the last printed digit for both runs. Attribution: theirs, an intended upstream fix; adopted (task_plan, decided at resume). fwapg records no build commit; `5d50cc1` (the merge) is named because the build log has none and the code-check commits between the build's start and the merge changed QA, not outputs (their archive README).
+- Routed comparison at 290 gauges, routed mean abs error 24.2 → 23.1 % (Fraser 30.7 → 27.2 %), from the first, mislabelled run (soft-reset on m4, never pushed); the committed report is the rerun under `5d50cc1`.
+
 ## Errors Encountered
 
 | Error | Resolution |
