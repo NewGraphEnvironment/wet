@@ -90,3 +90,4 @@ From a copy of `wb_gate_score.R` writing under `data/logs/163/`, so it left `dat
 | Error | Resolution |
 |-------|------------|
 | `cp: invalid option -- 'c'` on m4 (GNU cp first on PATH) | `/bin/cp -c -R` for an APFS clone |
+| Phase 6 `check_refit163.R`: `refit moved: fits.rds$aet_md5` | `aet_md5` is the scoring code and stations' md5, bound to change with the code; the check listed `code_md5` as expected and missed it. Added, and the chain resumed from the check (`chain163_c.sh`); every other field identical |
