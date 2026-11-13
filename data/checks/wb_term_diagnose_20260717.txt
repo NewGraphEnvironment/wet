@@ -1,6 +1,6 @@
 # Which term is off in the dry interior (#45): ours (climr P, cfu AET) against PCIC VIC-GL
 
-fit: 20260717, province run 962a9cc2c4, scoring code 94d05b195898abea5bd87cc0bd65018d; PCIC TPS_gridded_obs_init 1981-2010 (cache 30022867b6), upstream area-weighted means
+fit: 20260717, province run 768876badf, scoring code df3280b5c3ff52385f631bc09d3eaadd; PCIC TPS_gridded_obs_init 1981-2010 (cache 7589068ca4), upstream area-weighted means
 rule: pre-registered in the #45 findings before any PCIC value was computed, as amended (Amendment 1)
 calibration gauges in basins 100/200/300: 218; with PCIC over >= 95 % of the basin: 193, in 192 distinct basins (merged: 08NM241+08NM240)
 runoff floored at 1 mm for the log error: ours 0, PCIC 0; dry-zone gauges with < 20 years: 11 of 38
@@ -10,6 +10,7 @@ PCIC RUNOFF+BASEFLOW / fwapg stored MAD on the gauge's segment, 174 basins: medi
   (plumbing: the same two variables; fwapg samples centroids over a stale upstream area)
 closure (P - EVAP - runoff) / runoff, all basins: median -0.01, p10-p90 -0.03--0.00
 ECCC 1981-2010 MAP normals (any code) with a climr value: 162; climr/ECCC median 1.03
+  before #51, with the 1961-1990 reference row averaged in as a 31st year (same read): median 1.03
 
 ## Per zone: dry zones first, then contrast zones, then the pooled dry stratum
 Runoff errors are the median raw log error as %. Sums are over distinct basins (mm).
@@ -97,29 +98,29 @@ station          zone nesting      km2   P_o   P_c  P_tc   A_o   E_c  A_16   R_o
 
 ## ECCC normals in the dry zones: climr against the station normal
 climate_id zone station                       code  elev  ECCC   climr ratio
-1163780    15   KAMLOOPS A                      A   345   277.6   314.7  1.13
-1128553    15   VERNON BELLA VISTA              C   427   428.1   478.1  1.12
-1123970    15   KELOWNA A                       C   430   386.9   406.5  1.05
-1128958    15   WINFIELD                        C   506   382.0   423.9  1.11
-1096630    15   QUESNEL A                       C   545   536.2   529.9  0.99
-1093474    15   HIXON                           A   551   645.0   619.3  0.96
-1098946    15   WILLIAMS LAKE RIVER             C   585   425.9   437.1  1.03
-1168880    15   WESTWOLD                        C   609   408.9   435.6  1.07
-1088010    15   TATLAYOKO LAKE                  C   870   435.5   413.0  0.95
-1098318    15   TWAN CREEK                      C   914   456.7   490.6  1.07
-1098940    15   WILLIAMS LAKE A                 A   940   450.6   495.0  1.10
-1084731    15   LUNCH LAKE                      A  1017   366.9   422.5  1.15
-1097646    15   SPOKIN LAKE 4E                  C  1033   576.8   593.0  1.03
-1160986    15   BRIDGE LAKE 2                   A  1155   595.5   595.0  1.00
-1167637    17   SPENCES BRIDGE NICOLA           C   235   263.7   333.3  1.26
-1123469    17   HIGHLAND VALLEY LORNEX          C  1268   393.2   432.8  1.10
-1133270    23   GRAND FORKS                     A   532   534.3   510.1  0.95
-1130771    23   BEAVERDELL NORTH                C   838   485.7   575.1  1.18
-1123750    23   JOE RICH CREEK                  C   875   596.2   617.5  1.04
-1125766    24   OLIVER STP                      C   297   329.7   345.4  1.05
-1125865    24   OSOYOOS WEST                    A   297   323.2   333.9  1.03
-1126150    24   PENTICTON A                     A   344   346.0   363.6  1.05
-1126070    24   PEACHLAND                       C   345   393.4   383.7  0.98
-1123992    24   KELOWNA PC BURNETTS NURSERY     C   350   344.5   373.5  1.08
-1123360    24   HEDLEY                          C   517   397.2   463.6  1.17
-1126510    24   PRINCETON A                     A   702   346.9   476.4  1.37
+1163780    15   KAMLOOPS A                      A   345   277.6   315.0  1.13
+1128553    15   VERNON BELLA VISTA              C   427   428.1   478.6  1.12
+1123970    15   KELOWNA A                       C   430   386.9   407.0  1.05
+1128958    15   WINFIELD                        C   506   382.0   424.4  1.11
+1096630    15   QUESNEL A                       C   545   536.2   529.5  0.99
+1093474    15   HIXON                           A   551   645.0   619.0  0.96
+1098946    15   WILLIAMS LAKE RIVER             C   585   425.9   437.3  1.03
+1168880    15   WESTWOLD                        C   609   408.9   436.6  1.07
+1088010    15   TATLAYOKO LAKE                  C   870   435.5   413.2  0.95
+1098318    15   TWAN CREEK                      C   914   456.7   490.5  1.07
+1098940    15   WILLIAMS LAKE A                 A   940   450.6   495.2  1.10
+1084731    15   LUNCH LAKE                      A  1017   366.9   422.6  1.15
+1097646    15   SPOKIN LAKE 4E                  C  1033   576.8   593.3  1.03
+1160986    15   BRIDGE LAKE 2                   A  1155   595.5   595.3  1.00
+1167637    17   SPENCES BRIDGE NICOLA           C   235   263.7   333.5  1.26
+1123469    17   HIGHLAND VALLEY LORNEX          C  1268   393.2   432.9  1.10
+1133270    23   GRAND FORKS                     A   532   534.3   511.0  0.96
+1130771    23   BEAVERDELL NORTH                C   838   485.7   575.8  1.19
+1123750    23   JOE RICH CREEK                  C   875   596.2   618.1  1.04
+1125766    24   OLIVER STP                      C   297   329.7   346.1  1.05
+1125865    24   OSOYOOS WEST                    A   297   323.2   334.5  1.04
+1126150    24   PENTICTON A                     A   344   346.0   364.4  1.05
+1126070    24   PEACHLAND                       C   345   393.4   384.4  0.98
+1123992    24   KELOWNA PC BURNETTS NURSERY     C   350   344.5   374.1  1.09
+1123360    24   HEDLEY                          C   517   397.2   464.9  1.17
+1126510    24   PRINCETON A                     A   702   346.9   476.9  1.37
