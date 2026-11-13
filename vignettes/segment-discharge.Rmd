@@ -934,9 +934,10 @@ stopifnot(sg[["no_lut_connector"]] > 0.9 * sg[["no_lut"]])
 no_rt <- setdiff(seg_parts$code[seg_parts$source == "wet_balance"], seg_parts$code[seg_parts$source == "pcic_routed"])
 stopifnot(length(no_rt) > 1)
 # the bullet: the adjustment ships although the headwater gate does not pass
-# (within the gate's margin: an override's before #47, the rule's since), and
-# pooled zones get none
-stopifnot(isTRUE(ps$keep_adjust), isFALSE(ps$gate_pass), identical(ps$pooled_variant, "none"))
+# (within the gate's margin: an override's before #47, which records no
+# gate_arm, and the rule's margin arm since), and pooled zones get none
+stopifnot(isTRUE(ps$keep_adjust), isFALSE(ps$gate_pass), is.null(ps$gate_arm) || identical(ps$gate_arm, "margin"),
+          identical(ps$pooled_variant, "none"))
 ```
 
 - **Coverage.** Besides the Liard, routed PCIC has no value in a few northern
