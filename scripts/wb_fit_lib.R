@@ -15,8 +15,9 @@
 
 # the fit the province output, the map and the vignette use: HYDAT 2026-07-17
 # since #43 (data/checks/wb_fit_accept_20260717.txt). Its headwater gate is a
-# 0.03-point tie, kept by a recorded override (<fit>/adjust_override.txt,
-# scripts/wb_validate.R), the user's decision of 2026-10-06
+# 0.03-point tie: kept by a recorded override (<fit>/adjust_override.txt), the
+# user's decision of 2026-10-06, until #47's gate kept it by its own margin
+# (scripts/wb_gate_rule.R)
 wb_shipped_release <- "20260717"
 
 # the release a script works on: WET_HYDAT_RELEASE, or the shipped one

@@ -21,8 +21,9 @@
 # and the tracked report wb_report("segment_group_<WSG>", release), which
 # compares every row with the published parts. A row on one side only is
 # refused (after the report is written); values beyond 1e-9 relative are
-# listed and attributed: at a calibration gauge the donor shares turn on an
-# exact-zero distance, which the order doubles are added in can move (#158).
+# listed and attributed. Before #158 the donor shares at a calibration gauge
+# turned on an exact-zero distance, which the order doubles are added in can
+# move; since, a donor within 1e-9 of the median distance is the gauge's own.
 #
 # WET_WB_RESAMPLE=1 samples the group again and compares it with the province
 # run's sample (reported, not refused: terra or GDAL may have moved since),
@@ -378,11 +379,13 @@ bad <- lapply(seq_len(nrow(cmp)), function(i) {
   s <- side(cmp$rows[i])
   beyond(s[[1]], s[[2]], cmp$id[i], cmp$value[i], cmp$tol[i])
 })
-# Attribution. The donor shares give a watershed at distance exactly 0 from a
-# calibration gauge's donor row that gauge's shares alone (wet_donor_mean());
-# at any distance above 0 the other donors weigh in. The province run's own
-# upstream means are the donor rows, so a last-bit move in them turns a
-# gauge's exact 0 into about 1e-15, and its months move with it.
+# Attribution. The donor shares give a watershed within 1e-9 of the median
+# distance of a calibration gauge's donor row that gauge's shares alone
+# (wet_donor_mean(); exactly 0 before #158); further off, the other donors
+# weigh in. The province run's own upstream means are the donor rows, so a
+# last-bit move in them turns a gauge's exact 0 into about 1e-15, which moved
+# its months before #158 and no longer does. The count below is of
+# watersheds within an absolute 1e-9 (scaled) of a donor row.
 dfit <- switch(fits$share_method, donor = fits$share, blend = fits$share$donor, NULL)
 at_gauge <- integer()
 if (!is.null(dfit)) {
