@@ -51,6 +51,10 @@ rows <- do.call(rbind, lapply(names(fits), function(rel) {
   }))
 }))
 rows$flip <- rows$keep != rows$made_keep
+# the report names cfu as fit_20260717's shipped AET: hold it to the fit's winner
+if (!identical(readLines(file.path(fits[["20260717"]], "aet_winner.txt"))[1], "cfu")) {
+  stop("fit_20260717's aet_winner.txt does not name cfu: the report's shipped line would be wrong", call. = FALSE)
+}
 # "made" is one fit's gate only if every variant of it was scored under one code
 md5_n <- tapply(rows$code_md5, rows$release, function(m) length(unique(m)))
 if (any(md5_n != 1L)) stop("a fit's variants were scored under different code: rescore them first", call. = FALSE)
