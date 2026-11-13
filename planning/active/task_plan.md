@@ -63,10 +63,10 @@ What exploring the code showed:
 
 ## Phase 5: The main-stem gate (#47)
 - [x] Register the rule (decision 5) as one function both the gate and the score call, with a disclosure line that both fits' headwater numbers were public before it (#47 body, `research/water_balance_method.md:133`), and commit it before scoring. An NA nested MAE refuses rather than reaching `if()`
-- [ ] `scripts/wb_gate_score.R`: the rule on every variant of both fits, from their stored `cv_aet-*.rds`, to `data/checks/wb_gate_main_stems.txt`, beside the main-stem ratios already in `wb_output*.txt`. It does not source `wb_cv_lib.R` (which refuses 20251014); it names which `fit_20251014` copy it reads (`_pre16/962a9cc2c4` or `_pre76/e675918817`) and why
+- [x] `scripts/wb_gate_score.R`: the rule on every variant of both fits, from their stored `cv_aet-*.rds`, to `data/checks/wb_gate_main_stems.txt`, beside the main-stem ratios already in `wb_output*.txt`. It does not source `wb_cv_lib.R` (which refuses 20251014); it names which `fit_20251014` copy it reads (`_pre16/962a9cc2c4` or `_pre76/e675918817`) and why
 - [x] Stop before the chain if any variant's keep or drop flips on either fit, or the AET winner would not be `cfu`
 - [x] `keep_adjust_for()` takes the nested MAE (callers `wb_validate.R:196`, `wb_aet_compare.R:114`). `gate_pass` stays the strict headwater test; a new field records the deciding arm, and the GATE line names it. Update the texts tied to the override: `wb_aet_compare.R:244,266-270`, `wb_fit_accept.R:117,126`, `data-raw/segment_vignette_data.R:232-234`, `vignettes/segment-discharge.Rmd:936-938`
-- [ ] Retire `adjust_override.txt` if the rule covers its case (decision 5); and its reader with it (decided at resume)
+- [x] Retire `adjust_override.txt` if the rule covers its case (decision 5); and its reader with it (decided at resume)
 
 ## Phase 6: The chain, once
 - [ ] Under the new scoring code (logs under `data/logs/163/`, `WET_HYDAT_RELEASE=20260717`, `WET_FWAPG_COMMIT=7c30f58`, then `5d50cc1` from the routed comparison on, decided at resume): rescore all ten variants, compare, `wb_validate.R <winner>`, `wb_shape_daily.R`, `wb_share_snow.R`, `wb_share_donor.R`, `wb_output.R`, `pcic_routed_compare.R`, `segment_output.R`, `segment_daily_output.R`, `discharge_publish.R` BUILD

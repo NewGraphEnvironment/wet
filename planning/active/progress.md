@@ -28,3 +28,11 @@ Start Phase 1 and run every phase to the PR (/code-check branch, /planning-archi
 /gh-pr-push). This message is the resume instruction that starts the run-to-PR
 mandate; the merge stays with me.
 ```
+
+## Session 2026-11-13
+
+- Resumed; decided at resume (owner): PUBLISH under the new run key; retire `adjust_override.txt` with its reader; the CGIAR crop checks figshare's md5 on a rebuild; the two `fu35` gate flips go on; the routed rebuild found on m4 (fwapg#24's Nechako, fwapg 5d50cc1) adopted in this move
+- Phases 1–5 landed: ed8f459 (input keys, #51), 0f81f04 (`wb_run_compare.R`), 2f7e5c0 (#158), d7cf0eb (rule registered alone), b8a4849 (gate score), 69e5fc6 / 29e17d8 (gate applied, override reader retired)
+- `/code-check branch`: rounds 1–4 (2cc295e, 44cc51a, 9c0f762, ff6a7b2) and the enumeration (4332165); round 4 found a defect inside round 3's fix, so the loop ended on the enumeration
+- Phase 6 on m4 (logs `data/logs/163/chain163_[abcd]*`): rekeyed inputs byte-identical, run `768876badf` = `92b893c4da` in every file, reports reproduce byte for byte (b2edff5); refit decisions and numbers identical, `gate_arm` margin; balance `output/` identical. chain_c stopped at the segment compare on the routed rebuild (37d6ae4); chain_d resumed from the routed comparison under `WET_FWAPG_COMMIT=5d50cc1`
+- Docs: d9dc394, 5159531
