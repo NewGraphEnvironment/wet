@@ -49,11 +49,11 @@ What exploring the code showed:
 - [x] Cited in `CLAUDE.md`'s pipeline list
 
 ## Phase 3: Rekeyed inputs and province run; reports reproduce (#23, #51, #21)
-- [ ] `wb_inputs.R`: new crop and DEM; check that their values equal the old files' (`wet_raster_md5`) and that climr is reused. If the DEM's values differ, stop and attribute the difference (tiles, GDAL or ours) before the province run
-- [ ] Commit `data/checks/wb_inputs.txt` and `climr_eccc.txt` (#51: record the change in the MAP ratio and the MAT difference)
-- [ ] Move the old crop, DEM and any replaced climr file into `_pre163/` folders beside them (`wb_province.R:40-41` needs exactly one of each); set `92b893c4da` aside as `data/wb/_pre163/92b893c4da`; run `wb_province.R` under the new key; `wb_run_compare.R` must report identical
-- [ ] Carry `pooled_variant.txt`, `pooled_test.txt` and `adjust_override.txt` into the new `fit_20260717` (the check copied from `check_refit.R:40` changes in Phase 5, when the override retires)
-- [ ] Rescore all ten variants, compare, ship `cfu` under the **unchanged** scoring code. Every `wb_validation*_20260717.txt` and `wb_aet_compare_20260717.txt` must equal the committed one apart from the `province run:` line. That closes #21; commit the reports
+- [x] `wb_inputs.R`: new crop and DEM; check that their values equal the old files' (`wet_raster_md5`) and that climr is reused. If the DEM's values differ, stop and attribute the difference (tiles, GDAL or ours) before the province run
+- [x] Commit `data/checks/wb_inputs.txt` and `climr_eccc.txt` (#51: record the change in the MAP ratio and the MAT difference)
+- [x] Move the old crop, DEM and any replaced climr file into `_pre163/` folders beside them (`wb_province.R:40-41` needs exactly one of each); set `92b893c4da` aside as `data/wb/_pre163/92b893c4da`; run `wb_province.R` under the new key; `wb_run_compare.R` must report identical
+- [x] Carry `pooled_variant.txt`, `pooled_test.txt` and `adjust_override.txt` into the new `fit_20260717` (the check copied from `check_refit.R:40` changes in Phase 5, when the override retires)
+- [x] Rescore all ten variants, compare, ship `cfu` under the **unchanged** scoring code. Every `wb_validation*_20260717.txt` and `wb_aet_compare_20260717.txt` must equal the committed one apart from the `province run:` line. That closes #21; commit the reports
 
 ## Phase 4: The donor zero test (#158)
 - [x] Test first: a donor row moved by a last bit (1e-15) still gives that donor's shares; two donors within the tolerance share the weight equally; the existing tests still pass

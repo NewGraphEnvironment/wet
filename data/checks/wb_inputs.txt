@@ -1,8 +1,8 @@
 # Inputs for the open water balance (#11), the ET experiments (#15, #18) and the snow predictors (#16)
 
-built: 2026-10-14
+built: 2026-11-13
 bbox (EPSG:4326): -139.1, 48.2, -114, 60.1
-climr 0.2.2, cd 0.5.0, terra 1.9.46
+climr 0.2.2, cd 0.6.13, terra 1.9.46
 
 ## CGIAR Soil-Water Balance v3 AET (annual)
 source: https://figshare.com/articles/dataset/7707605 (CC0)
@@ -21,13 +21,13 @@ md5:    f369d684fd3939acbdd6b06097a3d4b0
 
 ## AET crop
 source: wet_cgiar_aet()
-file:   data/cgiar/cgiar_aet_c4908-7920_r3588-5016_f24bedbc.tif
+file:   data/cgiar/cgiar_aet_c4908-7920_r3588-5016_0aebcfd5.tif
 md5:    dca547edb6427dd4b90ac384266559ad
 grid:   1428 x 3012 x 13, res 0.0083333, ext -139.1 -114 48.20001 60.10001
 
 ## GLO-90 DEM
 source: Copernicus DEM GLO-90 via wet_dem_glo90()
-file:   data/dem/glo90_ae0bdc5602.tif
+file:   data/dem/glo90_18361bbeb7.tif
 md5:    08233c638a3cf0995198e3c518a2840d
 grid:   1428 x 3012 x 1, res 0.0083333, ext -139.1 -114 48.20001 60.10001
 

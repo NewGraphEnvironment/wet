@@ -77,6 +77,14 @@ Order: `planning/backlog.md`, move 1. Run `/planning-init <this issue>`: one pha
 
 From a copy of `wb_gate_score.R` writing under `data/logs/163/`, so it left `data/checks/` clean for Phase 3. 2 of 20 flip, both `fu35`: fit_20251014 29.31 against raw 28.91 on headwater (margin arm), fit_20260717 28.98 against 27.57 (worse by 1.41) but nested 19.01 against 24.58 (nested arm). Shipped `cfu` on fit_20260717: 30.72 against 30.69, margin arm. Stored score md5s: fit_20251014 `363fdc6915a6`, fit_20260717 `37d93d99ca65`. Taken to the owner (task_plan, decided at resume): go on.
 
+## Phase 3 (2026-11-13, m4, logs `data/logs/163/chain163_a.log`, `wb_inputs.log`, `input_values.log`, `wb_province.log`, `wb_run_compare.log`, `wb_validate_*.log`)
+
+- `wb_inputs.R` 08:13–08:23Z. New crop `cgiar_aet_c4908-7920_r3588-5016_0aebcfd5.tif` (built in 23 s, archives re-extracted once since the old marker was empty) and DEM `glo90_18361bbeb7.tif` (about 9 min with the ETag read): **values and bytes identical** to the old files (`f24bedbc`, `ae0bdc5602`), so climr was reused (still two files). Old files moved to `data/cgiar/_pre163/`, `data/dem/_pre163/`; run `92b893c4da` to `data/wb/_pre163/`.
+- `wb_inputs.txt`: only the file names, the build date and cd's version (0.5.0 → 0.6.13) change; every md5 is the same.
+- **#51:** `climr_eccc.txt`, 57 stations: MAP ratio p10/median/p90 0.915/1.034/1.153 → 0.916/1.035/1.153; MAT difference −0.547/−0.098/0.346 → −0.527/−0.081/0.362 °C. The pre-#51 line, from the same ECCC read, equals the committed report's numbers, so the change is the fix alone.
+- Province run under the new key `768876badf`, 08:23–08:40Z (17 min). `wb_run_compare.R _pre163/92b893c4da 768876badf`: **IDENTICAL**, 275 of 275 files byte-identical, 270 rds, 3,245,453 upstream watersheds.
+- Decision files carried; ten variants rescored, compared and cfu shipped under the unchanged scoring code (08:44–08:50Z). **Every `wb_validation*_20260717.txt` (11) and `wb_aet_compare_20260717.txt` equal the committed ones byte for byte once `province run: 92b893c4da;` reads `768876badf;`.** That closes #21.
+
 ## Errors Encountered
 
 | Error | Resolution |
