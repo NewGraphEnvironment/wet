@@ -1,8 +1,8 @@
 # PCIC routed flow against the open water balance at the calibration gauges (#58)
 
-wet commit 8183d38; fit 20260717 (HYDAT 2026-07-17 08:08:08.000), province run 92b893c4da, scoring code 37d93d99ca657930d0e7c9c995e787a0; balance adjusted, held out (blocked CV)
-routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 7c30f58
-table: 40524444 rows, 3377037 segments, 0 null flows, total 178918222.786650 m3/s
+wet commit b09dcea; fit 20260717 (HYDAT 2026-07-17 08:08:08.000), province run 768876badf, scoring code df3280b5c3ff52385f631bc09d3eaadd; balance adjusted, held out (blocked CV)
+routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 5d50cc1
+table: 40524444 rows, 3377037 segments, 0 null flows, total 179854603.510890 m3/s
 routed per gauge: the mean of the 12 monthly means (1981-2010, unweighted by month length) on the segment
 the gauge snapped to, in mm over wet's accumulated upstream area; observed runoff over the same area
 
@@ -10,15 +10,15 @@ calibration gauges: 315; with routed flow on their segment: 290; without: 25
 
 ## At the 290 gauges both score: error as % of observed, routed then balance
                           n      mean abs    median abs      +-20 %            bias   routed closer %
-all                     290    24.2  27.6    13.1  18.0     63   54     +1.4   +9.0     58
-headwater               218    28.3  31.0    16.7  21.9     56   48     +2.7  +11.9     58
+all                     290    23.1  27.6    13.1  18.0     64   54     +2.5   +9.0     59
+headwater               218    26.9  31.0    16.4  21.9     56   48     +4.1  +11.9     59
 nested                   72    11.7  17.2     9.0  12.1     88   72     -2.6   +0.2     60
-< 100 km2                80    41.1  40.9    25.2  25.9     36   42     +9.2  +29.1     46
-100-1,000 km2           107    23.4  24.3    16.1  18.6     59   52     +1.9   +1.0     60
-1,000-10,000 km2         84    11.9  22.3     8.7  15.9     88   60     -4.0   +2.7     67
+< 100 km2                80    39.2  40.9    24.5  25.9     36   42    +11.1  +29.1     46
+100-1,000 km2           107    22.6  24.3    15.4  18.6     60   52     +2.8   +1.0     61
+1,000-10,000 km2         84    11.0  22.3     8.7  15.9     88   60     -3.2   +2.7     68
 >= 10,000 km2            19    11.8  12.8     7.2  11.8     95   84    -10.5   -3.2     63
 Peace                    28    19.0  19.2    11.9  16.6     79   64     +5.5   +2.2     61
-Fraser                   90    30.7  28.4    17.6  23.8     54   46     -5.0   +6.8     59
+Fraser                   90    27.2  28.4    17.3  23.8     56   46     -1.5   +6.8     61
 Columbia                 78    24.6  32.7    13.0  15.1     68   54    +11.6  +17.0     55
 Coast                    94    19.2  25.1    11.1  15.9     64   59     -2.2   +6.4     60
 
@@ -27,47 +27,39 @@ cut 0.20, against the held-out balance; segments off their own line keep routed;
 of observed
                                 n   mean median  +-20    bias
 pick, the 290 with routed     290   23.0   13.1    64    +4.1
-routed, the 290               290   24.2   13.1    63    +1.4
+routed, the 290               290   23.1   13.1    64    +2.5
 balance, the 290              290   27.6   18.0    54    +9.0
-pick, every gauge (315)       315   23.3   14.0    62    +3.9
+pick, every gauge (315)       315   23.3   14.0    62    +4.0
 balance, every gauge (315)    315   27.5   18.5    53    +8.5
-gauges where the pick is the balance although routed has a value: 7; the balance closer at 6
+gauges where the pick is the balance although routed has a value: 3; the balance closer at 2
 station    basin       obs  routed balance  r_err  b_err  name
-08JA015    Fraser     2046       0    1520 -100.0  -25.7  LAVENTIE CREEK NEAR THE MOUTH
-08JA028    Fraser      786       0     516 -100.0  -34.4  EUTSUK RIVER AT OUTLET OF EUTSUK L
-08JA016    Fraser      468       0     486  -99.9   +3.9  MACIVOR CREEK NEAR THE MOUTH
-08JA014    Fraser      185       0     119  -99.8  -35.7  VAN TINE CREEK NEAR THE MOUTH
 08DB013    Coast      1435       2    2103  -99.8  +46.6  ANSEDAGAN CREEK NEAR NEW AIYANSH
 08DB014    Coast      1029     180    2222  -82.5 +116.0  KSEDIN TRIBUTARY NO. 2 CREEK NEAR 
 08LG066    Fraser       62      18      97  -70.3  +55.8  CHATAWAY CREEK NEAR THE MOUTH
 
-## The 11 gauges whose segment carries less than 20 % of observed flow
+## The 7 gauges whose segment carries less than 20 % of observed flow
 Attributed by fwapg's older annual table, which has no routing and no placement: where it is far low too,
 the shortfall is PCIC's runoff; where it is not, it is placement or the gauge's snap (a side channel carries
 only its own water, a reservoir lake its regulated outflow); with no annual value, it is unresolved.
 station   edge_type      km2    obs  routed  annual  r_err  attribution            name
-08JA015        1000       81   2046       0    1212 -100.0  placement or snap      LAVENTIE CREEK NEAR THE MOUTH
-08JA028        1250     2554    786       0     431 -100.0  placement or snap      EUTSUK RIVER AT OUTLET OF EUTSUK L
-08JA016        1000       58    468       0     375  -99.9  placement or snap      MACIVOR CREEK NEAR THE MOUTH
 08KH006        1100    11571    655       1       -  -99.9  unresolved             QUESNEL RIVER NEAR QUESNEL
-08JA014        1000      145    185       0     168  -99.8  placement or snap      VAN TINE CREEK NEAR THE MOUTH
 08DB013        1000       22   1435       2       -  -99.8  unresolved             ANSEDAGAN CREEK NEAR NEW AIYANSH
 08KG003        1100     1017     64       5      57  -92.7  placement or snap      BAEZAEKO RIVER AT LOT 10262
 08EE028        1000       10    894     129       -  -85.5  unresolved             STATION CREEK ABOVE DIVERSIONS
 08MH141        1100       49   4277     639    3317  -85.1  placement or snap      COQUITLAM RIVER ABOVE COQUITLAM LA
 08DB014        1000       18   1029     180       -  -82.5  unresolved             KSEDIN TRIBUTARY NO. 2 CREEK NEAR 
 08NE039        1000      348    490      97      97  -80.1  PCIC runoff            BIG SHEEP CREEK NEAR ROSSLAND
-without them (279 gauges): mean absolute error 21.5 % routed, 27.2 % balance; bias +5.1 % and +9.3 %
+without them (283 gauges): mean absolute error 21.5 % routed, 27.2 % balance; bias +4.7 % and +8.8 %
 
 ## Against fwapg's older annual table, at the 178 gauges both PCIC products score
 The annual table (whse_basemapping.fwa_stream_networks_discharge, extras/discharge) accumulates gridded
 VIC-GL runoff and baseflow on the FWA without routing, centroid-sampled over fwapg's stored upstream area.
                               mean   med +-20   bias   headwater (139) / nested (39) mean
 annual table                  25.3  16.7   59   +1.0    28.8 /  12.7
-routed                        28.0  15.2   60   +4.5    32.5 /  12.1
+routed                        26.3  15.0   61   +6.3    30.2 /  12.1
 balance (held out)            30.3  20.3   49  +11.4    33.3 /  19.4
-routed / annual: median 1.017, p10-p90 0.97-1.24; routed closer than the annual table at 48 %
-without the gauges listed above as carrying < 20 % (171 left): annual 25.0 %, routed 25.3 %, balance 30.5 %
+routed / annual: median 1.018, p10-p90 0.97-1.25; routed closer than the annual table at 49 %
+without the gauges listed above as carrying < 20 % (175 left): annual 25.1 %, routed 25.2 %, balance 30.4 %
 gauges routed scores that the annual table does not: 112 (balance 23.3 %, routed 18.1 % there)
 
 ## The 25 gauges without routed flow, by sub-drainage
@@ -281,10 +273,10 @@ station   basin     nesting        km2    obs  routed  annual balance  r_err  b_
 08NN028   Columbia  headwater        31    186     351     331     316  +88.5  +69.4  rt    LOST HORSE CREEK NEAR CHRISTIAN VA
 08NP003   Columbia  headwater       141    622       -     689    1014      -  +63.1  bal   HOWELL CREEK ABOVE CABIN CREEK
 08NP004   Columbia  headwater        96    628       -     704     861      -  +37.2  bal   CABIN CREEK NEAR THE MOUTH
-08JA014   Fraser    headwater       145    185       0     168     119  -99.8  -35.7  bal   VAN TINE CREEK NEAR THE MOUTH
-08JA015   Fraser    headwater        81   2046       0    1212    1520 -100.0  -25.7  bal   LAVENTIE CREEK NEAR THE MOUTH
-08JA016   Fraser    headwater        58    468       0     375     486  -99.9   +3.9  bal   MACIVOR CREEK NEAR THE MOUTH
-08JA028   Fraser    headwater      2554    786       0     431     516 -100.0  -34.4  bal   EUTSUK RIVER AT OUTLET OF EUTSUK L
+08JA014   Fraser    headwater       145    185     168     168     119   -9.0  -35.7  rt    VAN TINE CREEK NEAR THE MOUTH
+08JA015   Fraser    headwater        81   2046    1511    1212    1520  -26.1  -25.7  rt    LAVENTIE CREEK NEAR THE MOUTH
+08JA016   Fraser    headwater        58    468     370     375     486  -21.0   +3.9  rt    MACIVOR CREEK NEAR THE MOUTH
+08JA028   Fraser    headwater      2554    786     558     431     516  -29.1  -34.4  rt    EUTSUK RIVER AT OUTLET OF EUTSUK L
 08JB002   Fraser    headwater      4001    145     158     134     206   +9.3  +42.3  rt    STELLAKO RIVER AT GLENANNAN
 08JB003   Fraser    nested         6572    133     136     111     190   +2.3  +42.9  rt    NAUTLEY RIVER NEAR FORT FRASER
 08JC017   Fraser    headwater       132    135     131     132     216   -3.0  +60.4  rt    CORKSCREW CREEK NEAR THE MOUTH
