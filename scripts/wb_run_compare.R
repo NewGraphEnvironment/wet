@@ -5,7 +5,8 @@
 # Compares what scripts/wb_province.R writes into a run, and nothing else:
 # sample/ and upstream/ (every file), layers.tif, in_bc.tif, lc_ratios.csv
 # and ex_filled_cells.txt. A run's fits (fit_*), set-asides (_pre*) and
-# sample_times.txt (wall-clock timings) are not compared. Every rds must be
+# sample_times.txt (wall-clock timings) are not compared. Each run must be
+# complete (upstream/_complete and every part above). Every rds must be
 # identical() after readRDS, every raster's names, grid and values identical,
 # and every other file's lines identical. It reports every difference, file
 # sets included, without stopping at the first, and exits 1 on any, 0 when
@@ -31,10 +32,23 @@ files_of <- function(run) {
   }))
   sort(f, method = "radix")
 }
-# a part neither run holds is not "the same": two reduced bundles holding
-# upstream/ alone would otherwise compare as identical
-absent <- parts[!file.exists(file.path(runs[1], parts)) & !file.exists(file.path(runs[2], parts))]
-if (length(absent)) stop("neither run holds ", paste(absent, collapse = ", "), ": not two province runs")
+# Each must be a complete province run: upstream/_complete written (as every
+# later script requires), and every part present, a directory part holding
+# files. Two reduced bundles, or two runs that died while sampling (whose
+# sample/ and upstream/ wb_province.R creates first), would otherwise compare
+# as identical over what they lack.
+for (r in runs) {
+  holds <- vapply(parts, function(p) {
+    path <- file.path(r, p)
+    if (dir.exists(path)) length(list.files(path, recursive = TRUE)) > 0 else file.exists(path)
+  }, TRUE)
+  if (!file.exists(file.path(r, "upstream", "_complete")) || !all(holds)) {
+    stop(r, " is not a complete province run (needs upstream/_complete and ",
+         paste(parts, collapse = ", "), "; missing or empty: ",
+         paste(c(if (!file.exists(file.path(r, "upstream", "_complete"))) "upstream/_complete", parts[!holds]),
+               collapse = ", "), ")", call. = FALSE)
+  }
+}
 fa <- files_of(runs[1])
 fb <- files_of(runs[2])
 problems <- character()

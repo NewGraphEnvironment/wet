@@ -268,8 +268,10 @@ writeLines(c(
   fmt_top,
   if (any(top$gate & !top$gate_pass)) {
     paste("adjusted*: the headwater gate failed and #47's rule kept the adjustment (within its margin, or",
-          "better on nested stations); the fixed pooled variant, applied to every variant and fold, leans",
-          "toward the AET it was fixed under.")
+          "better on nested stations).", if (!is.na(fixed_variant)) {
+            paste("The fixed pooled variant, applied to every variant and fold, leans toward the AET it was",
+                  "fixed under.")
+          })
   },
   "",
   sprintf("(a)-(c) choose: %s", winner_top),

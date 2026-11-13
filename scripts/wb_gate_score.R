@@ -51,6 +51,9 @@ rows <- do.call(rbind, lapply(names(fits), function(rel) {
   }))
 }))
 rows$flip <- rows$keep != rows$made_keep
+# "made" is one fit's gate only if every variant of it was scored under one code
+md5_n <- tapply(rows$code_md5, rows$release, function(m) length(unique(m)))
+if (any(md5_n != 1L)) stop("a fit's variants were scored under different code: rescore them first", call. = FALSE)
 
 f_out <- "data/checks/wb_gate_main_stems.txt"
 yn <- function(x) ifelse(x, "keep", "drop")
@@ -80,8 +83,7 @@ writeLines(c(
           if (rows$made_pass[rows$release == "20260717" & rows$aet == "cfu"]) "PASS" else "FAIL"),
   "",
   "scoring code md5 of each fit's stored scores:",
-  sprintf("  fit_%s: %s", unique(rows$release), tapply(rows$code_md5, rows$release, function(m) {
-    paste(unique(substr(m, 1, 12)), collapse = ", ")
-  })[unique(rows$release)])
+  sprintf("  fit_%s: %s", unique(rows$release),
+          tapply(rows$code_md5, rows$release, function(m) substr(m[1], 1, 12))[unique(rows$release)])
 ), f_out)
 message("wrote ", f_out, "; flips: ", sum(rows$flip))
