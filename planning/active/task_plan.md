@@ -33,6 +33,7 @@ What exploring the code showed:
 
 - **Publish (finding 1):** a PUBLISH after the BUILD under the new key, as #76 did (parts whose ETag matches are skipped); then the BULK/SALR proof runs in this move.
 - **The override (finding 5):** remove `adjust_override.txt`'s reader with the file, if the rule keeps the adjustment on `fit_20260717`.
+- **Gate flips (Phase 5 stop condition, asked 2026-11-13 08:0x UTC):** the rule flips `fu35` from drop to keep on both fits (fit_20251014 by the margin arm, 0.40 point; fit_20260717 by the nested arm, 1.41 points worse on headwater but nested 19.01 % against raw 24.58 %). `fu35` is transparency only and cannot win; shipped `cfu` stays kept (margin arm, 0.03 point). The owner chose to go on; the chain still stops if the AET winner is not `cfu`.
 - **CGIAR source check (finding 10):** compare the archives with figshare's `computed_md5` (one API call per call that rebuilds) and refuse on a mismatch.
 
 ## Phase 1: Input keys and the climr check rows (#23, #51)
@@ -43,9 +44,9 @@ What exploring the code showed:
 - [x] roxygen, `devtools::test()`, lintr per file
 
 ## Phase 2: The run comparison script (#24)
-- [ ] `scripts/wb_run_compare.R <old> <new>`, from `data/logs/76/run_compare.R`, over the run's own files only (`sample/`, `upstream/`, `layers.tif`, `in_bc.tif`, `lc_ratios.csv`, `ex_filled_cells.txt`; never `fit_*`, `_pre*`, `sample_times.txt`): file sets, every rds `identical()`, raster values and names, text files. It reports every difference, file-set ones included, without stopping at the first, and exits non-zero on any. #24's "reports compared as line sets": done by Phase 3's report diff, said in the script's header
-- [ ] Proved both ways: `_pre16/962a9cc2c4` against `92b893c4da` must FAIL and name the snow layers among its differences (it also differs by pre-#76 rounding); a copy of a run with one value changed must FAIL naming that file; a run against itself must PASS
-- [ ] Cited in `CLAUDE.md`'s pipeline list
+- [x] `scripts/wb_run_compare.R <old> <new>`, from `data/logs/76/run_compare.R`, over the run's own files only (`sample/`, `upstream/`, `layers.tif`, `in_bc.tif`, `lc_ratios.csv`, `ex_filled_cells.txt`; never `fit_*`, `_pre*`, `sample_times.txt`): file sets, every rds `identical()`, raster values and names, text files. It reports every difference, file-set ones included, without stopping at the first, and exits non-zero on any. #24's "reports compared as line sets": done by Phase 3's report diff, said in the script's header
+- [x] Proved both ways: `_pre16/962a9cc2c4` against `92b893c4da` must FAIL and name the snow layers among its differences (it also differs by pre-#76 rounding); a copy of a run with one value changed must FAIL naming that file; a run against itself must PASS
+- [x] Cited in `CLAUDE.md`'s pipeline list
 
 ## Phase 3: Rekeyed inputs and province run; reports reproduce (#23, #51, #21)
 - [ ] `wb_inputs.R`: new crop and DEM; check that their values equal the old files' (`wet_raster_md5`) and that climr is reused. If the DEM's values differ, stop and attribute the difference (tiles, GDAL or ours) before the province run

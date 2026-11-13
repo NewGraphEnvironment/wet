@@ -66,7 +66,19 @@ Order: `planning/backlog.md`, move 1. Run `/planning-init <this issue>`: one pha
 - **Knowingly stale:** `data/checks/departure_pcic_20260717.txt` names the scoring md5 of its day; it is not rerun in this move (its donors and scores do not pass through the calibration gauges' own rows).
 - **Ordering on m4:** Phase 4's and Phase 5's commits change scoring code, so they stay unpushed until Phase 3's rescore (under the unchanged scoring code) has run from m4's checkout.
 
+## Phase 2 (2026-11-13, m4, logs `data/logs/163/20261113T075010Z_run_compare_*`)
+
+- `92b893c4da` against itself: IDENTICAL, exit 0; 275 files, 270 rds, 2 rasters, 3 text files, 3,245,453 upstream watersheds (about 4.5 min).
+- `_pre16/962a9cc2c4` against `92b893c4da`: exit 1, 272 differences, every sample and upstream rds and `layers.tif` naming `snowmelt_doy_50, swe_max` as only in the second; every column also differs, the pre-#76 row order; `ex_filled_cells.txt` differs; `in_bc.tif` and `lc_ratios.csv` are identical.
+- An APFS clone of `92b893c4da` with one `aet_yr` value in `upstream/400.rds` multiplied by `1 + 1e-15`: exit 1, one difference, `upstream/400.rds: columns differing: aet_yr` (`..._run_compare_onechange.log`, written at the rerun).
+- m4's `cp` on PATH is GNU, so the clone needs `/bin/cp -c` (first try failed with `cp: invalid option -- 'c'`).
+
+## Phase 5 gate score, first read (2026-11-13, m4, before the chain; `data/logs/163/wb_gate_main_stems_try.txt`)
+
+From a copy of `wb_gate_score.R` writing under `data/logs/163/`, so it left `data/checks/` clean for Phase 3. 2 of 20 flip, both `fu35`: fit_20251014 29.31 against raw 28.91 on headwater (margin arm), fit_20260717 28.98 against 27.57 (worse by 1.41) but nested 19.01 against 24.58 (nested arm). Shipped `cfu` on fit_20260717: 30.72 against 30.69, margin arm. Stored score md5s: fit_20251014 `363fdc6915a6`, fit_20260717 `37d93d99ca65`. Taken to the owner (task_plan, decided at resume): go on.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
+| `cp: invalid option -- 'c'` on m4 (GNU cp first on PATH) | `/bin/cp -c -R` for an APFS clone |
