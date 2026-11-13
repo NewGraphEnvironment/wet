@@ -1,11 +1,11 @@
 # Per-segment daily flow from either source (#99)
 
-wet commit f99df25 (segment table built at 28105a3); fit 20260717, province run 92b893c4da, scoring code 37d93d99ca657930d0e7c9c995e787a0
-routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 7c30f58
-table: 40524444 rows, 3377037 segments, 0 null flows, total 178918222.786650 m3/s
-daily: 13786122 rows, 37667 sub-basins, total q_acc 636284197.301372 m3/s; weights 3377037 rows, shares 558010.174364980
-balance shape: donor, k = 5, shape code b679de3967973bc7081dbaf7a3fcb782
-elapsed: 118.5 min
+wet commit bc55d30 (segment table built at 66cf795); fit 20260717, province run 768876badf, scoring code df3280b5c3ff52385f631bc09d3eaadd
+routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 5d50cc1
+table: 40524444 rows, 3377037 segments, 0 null flows, total 179854603.510890 m3/s
+daily: 13961436 rows, 38146 sub-basins, total q_acc 636692683.390903 m3/s; weights 3377037 rows, shares 566023.132307756
+balance shape: donor, k = 5, shape code 5ce21a5e1b50cbcb1e7a3cb9d8c5296e
+elapsed: 136.7 min
 
 ## Rows
 segments: 3377037 routed, 4529939 balance; rows: 2886046240 (246 groups)
@@ -19,12 +19,12 @@ daily runoff_mm summed over each month against its monthly runoff_mm (x 28/28.25
 segment-months: 40524444; differing by more than one 1e-5 step: 0; by one step at a rounding tie: 0
 
 ## A reader's plain mean of a month's published routed days against the published month
-segment-months: 40524444; more than 1e-5 m3/s apart: 1869949 (4.614 %), 1021601 of them in February
+segment-months: 40524444; more than 1e-5 m3/s apart: 1908991 (4.711 %), 1036583 of them in February
 largest above: 197.24528 m3/s; largest below: -0.12366 m3/s
 
 ## Routed days clamped at zero (flow before the clamp below 0)
-rows: 1232618505; clamped: 13456319 (1.092 %); mid-network rows: 97680205; clamped: 48440 (0.050 %)
-worst days, mid-network clamped: 05-16 874; 05-25 869; 05-11 867; 05-12 864; 05-15 860
+rows: 1232618505; clamped: 14577433 (1.183 %); mid-network rows: 99306645; clamped: 53610 (0.054 %)
+worst days, mid-network clamped: 05-16 944; 04-21 939; 05-11 938; 05-12 935; 05-15 930
 
 ## By group
 group    routed   balance         rows
