@@ -15,7 +15,7 @@ and on the shares. Chapman et al. (2018) report, for their adjusted model on 45 
 MAE 16.1 %, 77.8 % within +/- 20 %, median monthly NSE 0.92.
 
 GATE (adjusted beats raw P - AET on headwater stations, blocked CV): PASS - adjustment kept (MAE 31.58 % vs 32.04 %)
-override (adjust_override.txt): user (airvine), 2026-10-06, #43: the headwater gate is a 0.03-point tie (adjusted 30.72 vs raw 30.69 %); without the adjustment the main stems read low (Peace 0.77, Skeena 0.68, Nass 0.64 of observed); see #47
+#47's rule (scripts/wb_gate_rule.R): kept if it beats raw on headwater stations, or loses there by no more than 1.0 point, or loses by more but beats raw on nested stations.
 The pooled-zone variant was fixed outside the calibration gauges (pooled_variant.txt), so the headline has no selection caveat. test-gauge MAE on 39 decision gauges: other 80.2 %, none 46.5 %
 
 SHARES (#16; rule fixed before the snow predictors were scored: keep snowmelt_doy_50 and swe_max if the blocked-CV median share NSE rises by >= 0.01): base 0.8558, with snow 0.8735, gain +0.0177 over 315 gauges with both -> snow predictors KEPT
