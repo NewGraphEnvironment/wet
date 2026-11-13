@@ -49,6 +49,15 @@ Order: `planning/backlog.md`, move 1. Run `/planning-init <this issue>`: one pha
 - Reports naming the run key (`province run:` line etc.): every `wb_validation*_20260717.txt`, `wb_aet_compare`, `wb_output`, `wb_share_*`, `wb_shape_daily`, `segment_*`, `pcic_routed_compare`, `discharge_publish` reports.
 - fwapg#39 and fwapg PR #43 (tie rule) still open on 2026-11-12, so #76 stays out of this move.
 
+## Phase 1 (2026-11-13, m1)
+
+- **Method versions not bumped.** Both comments say to bump when what the file *holds* changes; it does not. The names change anyway, because the archives' md5s and the tiles' ETags now enter the keys, so no old file can be reused: the CGIAR crop becomes `cgiar_aet_c4908-7920_r3588-5016_<md5(method|md5s)8>.tif`, the DEM `glo90_<md5(grid|method|sorted tile ETag pairs)10>.tif`.
+- **The VRT keeps its tile order.** Only the key sorts the tile/ETag pairs (radix); the VRT still stacks tiles in `wet_glo90_names()` order, so the rebuilt DEM's values can equal the old one's.
+- **ETag read, measured from m1:** 261 tiles over the BC crop's bbox in 5.0 s (pool of 20 per host). Tile N54 W128 still reads `"79570191aca5306672c619e23f8fc69c"`, as probed at the park.
+- **CGIAR order of operations changed:** a cache hit needs both archives beside the crop (md5 of 560 MB, about a second); a rebuild asks figshare first (one call), re-downloads any archive whose md5 differs, then checks the cache again under the new name, then extracts only if the marker's md5s differ. A marker-less tree is still removed and extracted again; the old test that a figshare failure removes it changed, since figshare is now asked before the tree is touched.
+- **#51:** both check scripts keep `DATASET == "mswx.blend"` and four-digit periods, assert 30 rows per point, and report the pre-#51 mean from the same `downscale()` read, so the committed reports' diff is the fix alone. `wb_term_diagnose.R`'s ECCC cache is keyed on the script's md5, so it rebuilds.
+- Mutation check: dropping the md5s from the CGIAR key, the ETags from the DEM key, or the marker comparison each turns at least one new test red.
+
 ## Errors Encountered
 
 | Error | Resolution |

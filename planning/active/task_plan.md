@@ -27,20 +27,20 @@ What exploring the code showed:
    - it is no better on nested gauges.
 
    If the rule keeps the adjustment on `fit_20260717`, retire `adjust_override.txt`. If it drops the adjustment on the shipped fit, stop before the chain and bring the decision to you.
-6. **Publish:** none, unless the BUILD's parts differ from the live ones. Parts are expected to be byte-identical, and move 2 publishes. **Reopened by the plan review (finding 1): see Open at resume.**
+6. **Publish:** none, unless the BUILD's parts differ from the live ones. Parts are expected to be byte-identical, and move 2 publishes. **Reopened by the plan review (finding 1) and decided at resume: PUBLISH.**
 
-## Open at resume (from the plan review, `review-plan.md`; ask before Phase 1)
+## Decided at resume (the owner, 2026-11-13, recommendations taken)
 
-- **Publish under the new key (finding 1).** `scripts/segment_group.R:112-116` refuses unless the live build names the current run, so the #158 BULK proof needs a PUBLISH after the BUILD. Recommended: a PUBLISH that uploads the manifest (parts whose ETag matches are skipped), as #76 did. Alternative: move the BULK proof to move 2 (#164).
-- **The override (finding 5).** Recommended: remove `adjust_override.txt`'s reader with the file, since its 0.5-point cap sits inside the new rule's 1.0-point margin; the alternative is redefining it as a forced keep beyond the rule.
-- **CGIAR source check (finding 10).** Recommended: also compare the archives with figshare's `computed_md5` (one API call per call that rebuilds), so a revised archive is noticed, as the DEM's ETags are.
+- **Publish (finding 1):** a PUBLISH after the BUILD under the new key, as #76 did (parts whose ETag matches are skipped); then the BULK/SALR proof runs in this move.
+- **The override (finding 5):** remove `adjust_override.txt`'s reader with the file, if the rule keeps the adjustment on `fit_20260717`.
+- **CGIAR source check (finding 10):** compare the archives with figshare's `computed_md5` (one API call per call that rebuilds) and refuse on a mismatch.
 
 ## Phase 1: Input keys and the climr check rows (#23, #51)
-- [ ] Tests first: a CGIAR archive with another md5 gives another crop path and is extracted again; a tile with another ETag gives another DEM path; a cached DEM still reads the ETags (network mocked to fail by default). Rewrite `test-wet_dem_glo90.R:21-29` and `test-wet_cgiar_aet.R:44-49`, which assume a networkless cache hit
-- [ ] `R/wet_cgiar_aet.R`: archive md5s in the key and in the `.extracted` marker; bump `wet_cgiar_method`
-- [ ] `R/wet_dem_glo90.R`: tile names and ETags in the key (one `curl` multi pool of HEADs); bump `wet_dem_method`
-- [ ] `scripts/wb_inputs.R` and `scripts/wb_term_diagnose.R`: keep `DATASET == "mswx.blend"` and four-digit periods only, as `scripts/wb_plateau_p.R` does; `climr_eccc.txt` reports the old filter beside the new one from the same ECCC read, so its diff is the fix alone
-- [ ] roxygen, `devtools::test()`, lintr per file
+- [x] Tests first: a CGIAR archive with another md5 gives another crop path and is extracted again; a tile with another ETag gives another DEM path; a cached DEM still reads the ETags (network mocked to fail by default). Rewrite `test-wet_dem_glo90.R:21-29` and `test-wet_cgiar_aet.R:44-49`, which assume a networkless cache hit
+- [x] `R/wet_cgiar_aet.R`: archive md5s in the key and in the `.extracted` marker, figshare's `computed_md5` checked on a rebuild; `wet_cgiar_method` not bumped (findings)
+- [x] `R/wet_dem_glo90.R`: tile names and ETags in the key (one `curl` multi pool of HEADs); `wet_dem_method` not bumped (findings)
+- [x] `scripts/wb_inputs.R` and `scripts/wb_term_diagnose.R`: keep `DATASET == "mswx.blend"` and four-digit periods only, as `scripts/wb_plateau_p.R` does; `climr_eccc.txt` reports the old filter beside the new one from the same ECCC read, so its diff is the fix alone
+- [x] roxygen, `devtools::test()`, lintr per file
 
 ## Phase 2: The run comparison script (#24)
 - [ ] `scripts/wb_run_compare.R <old> <new>`, from `data/logs/76/run_compare.R`, over the run's own files only (`sample/`, `upstream/`, `layers.tif`, `in_bc.tif`, `lc_ratios.csv`, `ex_filled_cells.txt`; never `fit_*`, `_pre*`, `sample_times.txt`): file sets, every rds `identical()`, raster values and names, text files. It reports every difference, file-set ones included, without stopping at the first, and exits non-zero on any. #24's "reports compared as line sets": done by Phase 3's report diff, said in the script's header
@@ -64,7 +64,7 @@ What exploring the code showed:
 - [ ] `scripts/wb_gate_score.R`: the rule on every variant of both fits, from their stored `cv_aet-*.rds`, to `data/checks/wb_gate_main_stems.txt`, beside the main-stem ratios already in `wb_output*.txt`. It does not source `wb_cv_lib.R` (which refuses 20251014); it names which `fit_20251014` copy it reads (`_pre16/962a9cc2c4` or `_pre76/e675918817`) and why
 - [ ] Stop before the chain if any variant's keep or drop flips on either fit, or the AET winner would not be `cfu`
 - [ ] `keep_adjust_for()` takes the nested MAE (callers `wb_validate.R:196`, `wb_aet_compare.R:114`). `gate_pass` stays the strict headwater test; a new field records the deciding arm, and the GATE line names it. Update the texts tied to the override: `wb_aet_compare.R:244,266-270`, `wb_fit_accept.R:117,126`, `data-raw/segment_vignette_data.R:232-234`, `vignettes/segment-discharge.Rmd:936-938`
-- [ ] Retire `adjust_override.txt` if the rule covers its case (decision 5); its reader as decided at resume (Open at resume)
+- [ ] Retire `adjust_override.txt` if the rule covers its case (decision 5); and its reader with it (decided at resume)
 
 ## Phase 6: The chain, once
 - [ ] Under the new scoring code (logs under `data/logs/163/`, `WET_HYDAT_RELEASE=20260717`, `WET_FWAPG_COMMIT=7c30f58`): rescore all ten variants, compare, `wb_validate.R <winner>`, `wb_shape_daily.R`, `wb_share_snow.R`, `wb_share_donor.R`, `wb_output.R`, `pcic_routed_compare.R`, `segment_output.R`, `segment_daily_output.R`, `discharge_publish.R` BUILD

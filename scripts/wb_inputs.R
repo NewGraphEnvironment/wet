@@ -216,10 +216,18 @@ cl <- suppressMessages(climr::downscale(
   vars = c("MAP", "MAT"), return_refperiod = FALSE
 ))
 cl <- as.data.frame(cl)
-cl <- cl[!is.na(cl$PERIOD), ]
+# downscale() returns the 1961-1990 reference row (DATASET NA) even with
+# return_refperiod = FALSE, so keep the observed years alone (#51), as
+# scripts/wb_plateau_p.R does. The filter used before #51 (every row with a
+# period) is kept beside it, from the same read, so the report shows the fix alone.
+cl_ref <- cl[!is.na(cl$PERIOD), ]
+cl <- cl[cl$DATASET %in% "mswx.blend" & grepl("^[0-9]{4}$", cl$PERIOD), ]
+stopifnot(all(table(factor(cl$id, levels = pts$id)) %in% c(0L, length(1981:2010))))
 obs$id <- pts$id
 obs$climr_map <- as.numeric(tapply(cl$MAP, factor(cl$id, levels = obs$id), mean))
 obs$climr_mat <- as.numeric(tapply(cl$MAT, factor(cl$id, levels = obs$id), mean))
+obs$ref_map <- as.numeric(tapply(cl_ref$MAP, factor(cl_ref$id, levels = obs$id), mean))
+obs$ref_mat <- as.numeric(tapply(cl_ref$MAT, factor(cl_ref$id, levels = obs$id), mean))
 n_no_climr <- sum(is.na(obs$climr_map) | is.na(obs$climr_mat))
 obs <- obs[!is.na(obs$climr_map) & !is.na(obs$climr_mat), ]
 obs$map_ratio <- obs$climr_map / obs$value_ppt
@@ -227,12 +235,15 @@ obs$mat_diff <- obs$climr_mat - obs$value_tave
 q <- function(x) paste(sprintf("%.3f", stats::quantile(x, c(0.1, 0.5, 0.9), na.rm = TRUE)), collapse = " / ")
 con <- file("data/checks/climr_eccc.txt", "w")
 writeLines(c(
-  "# climr 1981-2010 (refmap_climr + mswx.blend obs, averaged by year) vs ECCC 1981-2010 normals",
+  "# climr 1981-2010 (refmap_climr + mswx.blend obs, averaged over the 30 observed years) vs ECCC 1981-2010 normals",
   "", sprintf("stations (BC, WMO 'A' code, both P and T): %d (dropped, no climr value: %d)",
               nrow(obs), n_no_climr),
   sprintf("MAP ratio climr / ECCC, p10 / median / p90: %s", q(obs$map_ratio)),
   sprintf("MAT difference climr - ECCC (deg C), p10 / median / p90: %s", q(obs$mat_diff)),
   sprintf("MAP ratio outside 0.8-1.25: %d stations", sum(obs$map_ratio < 0.8 | obs$map_ratio > 1.25)),
+  sprintf(paste("before #51, with the 1961-1990 reference row averaged in as a 31st year, same read:",
+                "MAP ratio %s; MAT difference %s"),
+          q(obs$ref_map / obs$value_ppt), q(obs$ref_mat - obs$value_tave)),
   "", "Per station (climate_id, station, elev, ECCC MAP, climr MAP, ratio, ECCC MAT, climr MAT):",
   sprintf("%s  %-28s %6.0f %7.1f %7.1f %5.2f %6.2f %6.2f", obs$climate_id, substr(obs$station, 1, 28),
           obs$elev, obs$value_ppt, obs$climr_map, obs$map_ratio, obs$value_tave, obs$climr_mat)

@@ -20,7 +20,9 @@ Path to a one-layer GeoTIFF of elevation (m), named \code{elev}.
 \description{
 Averages the Copernicus DEM GLO-90 (public cloud-optimised GeoTIFFs on AWS
 open data) onto the grid of \code{template}, reading each 1-degree tile over
-\verb{/vsicurl/}. Ground covered by no tile (open ocean away from land) is \code{NA};
+\verb{/vsicurl/}. The result is cached under a name keyed on the grid and each
+tile's ETag, which every call reads from the bucket (a few seconds), so a
+revised tile gives a new DEM. Ground covered by no tile (open ocean away from land) is \code{NA};
 sea inside a tile is 0 m, as GLO-90 records it, so \code{NA} is not a land mask. Used to drive climr's lapse-rate downscaling on the
 same grid as the CGIAR AET, so no input is resampled twice.
 }
