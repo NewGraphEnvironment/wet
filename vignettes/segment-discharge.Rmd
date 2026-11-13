@@ -934,15 +934,17 @@ stopifnot(sg[["no_lut_connector"]] > 0.9 * sg[["no_lut"]])
 no_rt <- setdiff(seg_parts$code[seg_parts$source == "wet_balance"], seg_parts$code[seg_parts$source == "pcic_routed"])
 stopifnot(length(no_rt) > 1)
 # the bullet: the adjustment ships although the headwater gate does not pass
-# (a recorded override, #43), and pooled zones get none
+# (within the gate's margin: an override's before #47, the rule's since), and
+# pooled zones get none
 stopifnot(isTRUE(ps$keep_adjust), isFALSE(ps$gate_pass), identical(ps$pooled_variant, "none"))
 ```
 
 - **Coverage.** Besides the Liard, routed PCIC has no value in a few northern
   and border basins, and only some on the outer coast's islands.
-- **The zone adjustment is kept by decision.** On headwater basins it does
-  not beat raw precipitation less evapotranspiration, and zones with too few
-  gauges for their own adjustment get none.
+- **The zone adjustment is kept within a margin.** On headwater basins it
+  does not beat raw precipitation less evapotranspiration, but it loses by
+  less than the margin the gate allows, and zones with too few gauges for
+  their own adjustment get none.
 - **Segments without a value.** The balance reaches a segment through
   `fwapg`'s lookup matching segments to watershed polygons, and both sources
   are published only on matched segments, so the `r pct_of(sg[["no_lut"]])` of

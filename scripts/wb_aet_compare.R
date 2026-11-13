@@ -22,8 +22,8 @@
 # It runs on the fit's own release (#81): the shipped fit re-decides its AET at
 # each new release, under the rules as #15 and #18 fixed them, with stage 1's
 # incumbent from #89. Each variant is scored as the fit ships it, under the
-# fit's own decisions (a fixed pooled variant, a gate override;
-# scripts/wb_cv_lib.R), and the nested selection
+# fit's own decisions (a fixed pooled variant; scripts/wb_cv_lib.R) and the
+# gate registered for #47 (scripts/wb_gate_rule.R), and the nested selection
 # applies the same decisions inside each fold. #15's own run, on HYDAT
 # 2025-10-14, is reproduced at tag aet-15-record, not here.
 
@@ -103,15 +103,17 @@ stamp("stage 1 top-level rule: ", winner_top)
 # under an inner blocked CV (their own WSC folds). To bound the cost the pooled
 # variant is chosen once per training set, not again inside each inner fold;
 # a fit that fixes it uses its own throughout. The adjustment is kept as
-# scripts/wb_validate.R keeps it (keep_adjust_for(): the gate, or the fit's
-# recorded override).
+# scripts/wb_validate.R keeps it (keep_adjust_for(): #47's rule, on the
+# training stations' headwater and nested MAE).
 # Each fold's scores are worked out once, over every candidate of both stages,
 # and each selection below applies its own rule to them.
 as_shipped_cv <- function(d, fold) {
   pv <- if (is.na(fixed_variant)) choose_variant(d) else fixed_variant
   adj <- cv_annual(d, fold, pv)
   raw <- pmax(d$raw, 0)
-  keep <- keep_adjust_for(metrics(d$obs, adj, d$nesting)[["hw"]], metrics(d$obs, raw, d$nesting)[["hw"]])
+  m_adj <- metrics(d$obs, adj, d$nesting)
+  m_raw <- metrics(d$obs, raw, d$nesting)
+  keep <- keep_adjust_for(m_adj[["hw"]], m_raw[["hw"]], m_adj[["nes_mae"]], m_raw[["nes_mae"]])
   list(pred = if (keep) adj else raw, keep = keep, pv = pv)
 }
 cands <- variants_all[variants_all %in% c(incumbent1, eligible)]  # stage 1, in #15's order
@@ -238,10 +240,10 @@ writeLines(c(
   "# ET experiments (#15, #18): annual AET variants scored as shipped under blocked CV", "",
   sprintf("province run: %s; stations: %d (headwater %d, nested %d); folds: %d", basename(key_dir),
           nrow(cal), sum(cal$nesting == "headwater"), sum(cal$nesting != "headwater"), length(unique(cal$fold))),
-  sprintf("HYDAT release: %s; pooled zones: %s; headwater gate: %s", release,
-          if (is.na(fixed_variant)) "chosen inside each fold" else sprintf("fixed to '%s' (%s)", fixed_variant,
-                                                                           basename(f_pooled)),
-          if (is.na(tie_tol)) "strict" else sprintf("kept within %.2f point (%s)", tie_tol, basename(f_override))),
+  sprintf("HYDAT release: %s; pooled zones: %s; gate: #47's rule (headwater, within %.1f point, or nested)",
+          release, if (is.na(fixed_variant)) "chosen inside each fold" else sprintf("fixed to '%s' (%s)",
+                                                                                    fixed_variant, basename(f_pooled)),
+          gate_margin_pts),
   paste("Variants: cgiar (CGIAR SWB v3), lc (CGIAR x Chapman Table 3 land-cover ratio, NRCan 2020),",
         "tc (TerraClimate 1981-2010), fu (Fu-Budyko, climr P and Hargreaves PET, omega 2.6),",
         "cfu (max of CGIAR and fu); fu15/fu20/fu35 are fu at omega 1.5/2.0/3.5, transparency only;",
@@ -265,9 +267,9 @@ writeLines(c(
           "raw_head", "raw_all"),
   fmt_top,
   if (any(top$gate & !top$gate_pass)) {
-    sprintf(paste("adjusted*: the gate failed and the override kept the adjustment (within %.2f point). The",
-                  "tolerance was recorded for the AET shipped when it was set; it applies here to every variant",
-                  "and every fold, as does the fixed pooled variant, which leans toward that AET."), tie_tol)
+    paste("adjusted*: the headwater gate failed and #47's rule kept the adjustment (within its margin, or",
+          "better on nested stations); the fixed pooled variant, applied to every variant and fold, leans",
+          "toward the AET it was fixed under.")
   },
   "",
   sprintf("(a)-(c) choose: %s", winner_top),

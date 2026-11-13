@@ -87,19 +87,19 @@ variants <- c("other", "none")
 
 # ---- the fit's own decisions (#43) -------------------------------------------------------
 # A pooled-zone variant fixed for this fit (<fit>/pooled_variant.txt,
-# scripts/wb_pooled_test.R), and a recorded override of the headwater gate
-# (<fit>/adjust_override.txt: a tolerance in points on line 1, then who
-# decided and why). Every AET variant is scored under them
-# (scripts/wb_validate.R), and the AET comparison applies them inside each
-# fold (scripts/wb_aet_compare.R, #81), so both read them here.
+# scripts/wb_pooled_test.R). Every AET variant is scored under it
+# (scripts/wb_validate.R), and the AET comparison applies it inside each
+# fold (scripts/wb_aet_compare.R, #81), so both read it here.
 f_pooled <- file.path(fit_dir, "pooled_variant.txt")
 fixed_variant <- if (file.exists(f_pooled)) readLines(f_pooled)[1] else NA_character_
 if (!is.na(fixed_variant) && !fixed_variant %in% variants) stop("bad ", f_pooled)
+# The per-fit override of the headwater gate (adjust_override.txt, #43) is
+# retired: the gate's own margin covers the tie it kept (#47). A copy carried
+# into a fit is refused rather than ignored, so no one reads it as in force.
 f_override <- file.path(fit_dir, "adjust_override.txt")
-override <- if (file.exists(f_override)) readLines(f_override) else NULL
-tie_tol <- if (is.null(override)) NA_real_ else suppressWarnings(as.numeric(override[1]))
-if (!is.null(override) && (is.na(tie_tol) || tie_tol < 0 || tie_tol > 0.5 || length(override) < 2)) {
-  stop(f_override, " needs a tolerance (0 to 0.5 point) on line 1 and who decided, and why, after it")
+if (file.exists(f_override)) {
+  stop(f_override, " is retired (#47): the gate's 1.0-point margin covers the tie it kept. Remove it.",
+       call. = FALSE)
 }
 # The AET this fit ships, decided by the user after a comparison sent the
 # choice to them (<fit>/aet_decision.txt: the variant on line 1, then who
@@ -132,11 +132,11 @@ if (release != wb_shipped_release && file.exists(f_ref_decision) && is.null(aet_
   stop("the shipped fit_", wb_shipped_release, " records its AET (", readLines(f_ref_decision)[1], ") and fit_",
        release, " has no aet_decision.txt: copy it, or record this fit's own decision (#81)", call. = FALSE)
 }
-# Whether the adjustment ships, from headwater MAE adjusted and raw: it beats
-# raw P - AET, or loses by no more than the override's tolerance (a tie the
-# headwater-only gate cannot break, decided by the user for #43's refit
-# because the adjustment corrects the main stems the gate does not score).
-keep_adjust_for <- function(hw_adj, hw_raw) hw_adj < hw_raw || (!is.na(tie_tol) && hw_adj - hw_raw <= tie_tol)
+# Whether the adjustment ships, from headwater and nested MAE, adjusted and
+# raw: the rule registered for #47 (scripts/wb_gate_rule.R, wb_gate()), which
+# scores the main stems through the nested gauges.
+source("scripts/wb_gate_rule.R")
+keep_adjust_for <- function(hw_adj, hw_raw, nes_adj, nes_raw) wb_gate(hw_adj, hw_raw, nes_adj, nes_raw)$keep
 # annual only, one variant: held-out predictions for a fold assignment
 cv_annual <- function(d, fold, variant) {
   ann <- rep(NA_real_, nrow(d))
