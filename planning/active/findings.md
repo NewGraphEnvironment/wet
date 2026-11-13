@@ -58,6 +58,14 @@ Order: `planning/backlog.md`, move 1. Run `/planning-init <this issue>`: one pha
 - **#51:** both check scripts keep `DATASET == "mswx.blend"` and four-digit periods, assert 30 rows per point, and report the pre-#51 mean from the same `downscale()` read, so the committed reports' diff is the fix alone. `wb_term_diagnose.R`'s ECCC cache is keyed on the script's md5, so it rebuilds.
 - Mutation check: dropping the md5s from the CGIAR key, the ETags from the DEM key, or the marker comparison each turns at least one new test red.
 
+## Phase 4 (2026-11-13, m1)
+
+- `wet_donor_mean()`: a donor within `1e-9 * median(dist)` takes the whole weight, shared equally by every donor within it; at `median(dist) = 0` this is the old exact-zero test. New `tests/testthat/test-wet_donor_mean.R`: the last-bit and shared-weight tests fail on the old rule (checked in a detached worktree) and pass on the new; `test-wet_shape.R:180-199` (frozen pre-#102 oracle), share, donor-weight and departure tests pass unchanged.
+- A weight discontinuity of about `1e-6` relative remains at the tolerance (a donor just beyond it already holds about 1 - 1e-3 of the weight at `1e-9 * median`, from the `1e-6 * median` offset). Accepted: it is the decided rule.
+- **Departure path:** `wet_departure_carry()` builds its donors as `setdiff(stations, target)` (`R/wet_departure_carry.R:109`), so a target is never its own donor. A donor falls within the tolerance only if it sits on the target's watershed with predictors differing in their last bits; two stations on one watershed share one predictor row, so their distance is exactly 0 and took the whole weight before #158 too. The site parity tests compare tracked reports only, so they cannot show this; the argument stands in for them.
+- **Knowingly stale:** `data/checks/departure_pcic_20260717.txt` names the scoring md5 of its day; it is not rerun in this move (its donors and scores do not pass through the calibration gauges' own rows).
+- **Ordering on m4:** Phase 4's and Phase 5's commits change scoring code, so they stay unpushed until Phase 3's rescore (under the unchanged scoring code) has run from m4's checkout.
+
 ## Errors Encountered
 
 | Error | Resolution |

@@ -55,9 +55,9 @@ What exploring the code showed:
 - [ ] Rescore all ten variants, compare, ship `cfu` under the **unchanged** scoring code. Every `wb_validation*_20260717.txt` and `wb_aet_compare_20260717.txt` must equal the committed one apart from the `province run:` line. That closes #21; commit the reports
 
 ## Phase 4: The donor zero test (#158)
-- [ ] Test first: a donor row moved by a last bit (1e-15) still gives that donor's shares; two donors within the tolerance share the weight equally; the existing tests still pass
-- [ ] `R/wet_donor_mean.R`; leave `test-wet_shape.R:180-199` as is (a frozen pre-#102 oracle that passes unchanged; editing it would make it a tautology)
-- [ ] Departure tests pass unchanged; record why the departure path cannot hit the tolerance (a target is never its own donor, `R/wet_departure_carry.R:109`), since the site parity test compares tracked reports only. `data/checks/departure_pcic_20260717.txt` names the old scoring md5: list it as knowingly stale (not rerun)
+- [x] Test first: a donor row moved by a last bit (1e-15) still gives that donor's shares; two donors within the tolerance share the weight equally; the existing tests still pass
+- [x] `R/wet_donor_mean.R`; leave `test-wet_shape.R:180-199` as is (a frozen pre-#102 oracle that passes unchanged; editing it would make it a tautology)
+- [x] Departure tests pass unchanged; record why the departure path cannot hit the tolerance (a target is never its own donor, `R/wet_departure_carry.R:109`), since the site parity test compares tracked reports only. `data/checks/departure_pcic_20260717.txt` names the old scoring md5: list it as knowingly stale (not rerun)
 
 ## Phase 5: The main-stem gate (#47)
 - [ ] Register the rule (decision 5) as one function both the gate and the score call, with a disclosure line that both fits' headwater numbers were public before it (#47 body, `research/water_balance_method.md:133`), and commit it before scoring. An NA nested MAE refuses rather than reaching `if()`
