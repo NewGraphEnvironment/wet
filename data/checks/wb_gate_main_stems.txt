@@ -1,0 +1,35 @@
+# The zone adjustment's gate scored on the main stems (#47): every AET variant, both fits
+
+Rule (scripts/wb_gate_rule.R, registered before this score): keep the adjustment if it beats raw P - AET on headwater gauges; otherwise keep it unless it is worse there by more than 1.0 point and no better on nested gauges. Blocked-CV MAE, %, from each fit's stored cv_aet-<AET>.rds (no refit).
+fit_20251014: data/wb/_pre76/e675918817/fit_20251014 (#15's frozen record; the copy tag aet-15-record reproduces)
+fit_20260717: data/wb/768876badf/fit_20260717
+made: what the fit was made under (the headwater gate, and since #43 on fit_20260717 the override's 0.10-point tolerance); new: the rule above, and the arm that decided.
+
+release  aet     hw_adj  hw_raw nes_adj nes_raw  made  new   arm       changed
+20251014 cgiar    38.11   39.76   17.91   19.40  keep  keep  headwater 
+20251014 lc       44.12   69.25   16.03   29.44  keep  keep  headwater 
+20251014 tc       33.54   35.35   15.33   15.61  keep  keep  headwater 
+20251014 fu       32.02   32.85   16.28   17.63  keep  keep  headwater 
+20251014 cfu      31.16   31.58   17.37   19.49  keep  keep  headwater 
+20251014 fu15     42.76   66.29   16.63   27.09  keep  keep  headwater 
+20251014 fu20     37.85   42.75   15.12   15.76  keep  keep  headwater 
+20251014 fu35     29.31   28.91   18.90   23.48  drop  keep  margin    FLIPS
+20251014 mod16    36.29   40.48   16.54   17.60  keep  keep  headwater 
+20251014 cmod16   34.58   36.29   17.69   19.43  keep  keep  headwater 
+20260717 cgiar    37.35   38.38   19.55   23.80  keep  keep  headwater 
+20260717 lc       49.37   68.00   22.15   36.75  keep  keep  headwater 
+20260717 tc       32.97   34.76   16.62   19.47  keep  keep  headwater 
+20260717 fu       31.58   32.04   16.50   19.86  keep  keep  headwater 
+20260717 cfu      30.72   30.69   17.62   21.52  keep  keep  margin    
+20260717 fu15     48.71   65.94   20.67   32.91  keep  keep  headwater 
+20260717 fu20     37.09   42.34   16.10   19.81  keep  keep  headwater 
+20260717 fu35     28.98   27.57   19.01   24.58  drop  keep  nested    FLIPS
+20260717 mod16    35.49   39.21   17.60   22.07  keep  keep  headwater 
+20260717 cmod16   34.01   34.74   19.04   23.29  keep  keep  headwater 
+
+variants whose keep or drop changes: 2 of 20
+fit_20260717 cfu (shipped): keep by the margin arm (made: keep, headwater gate FAIL)
+
+scoring code md5 of each fit's stored scores:
+  fit_20251014: 363fdc6915a6
+  fit_20260717: 37d93d99ca65
