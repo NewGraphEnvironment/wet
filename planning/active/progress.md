@@ -36,3 +36,11 @@ mandate; the merge stays with me.
 - `/code-check branch`: rounds 1–4 (2cc295e, 44cc51a, 9c0f762, ff6a7b2) and the enumeration (4332165); round 4 found a defect inside round 3's fix, so the loop ended on the enumeration
 - Phase 6 on m4 (logs `data/logs/163/chain163_[abcd]*`): rekeyed inputs byte-identical, run `768876badf` = `92b893c4da` in every file, reports reproduce byte for byte (b2edff5); refit decisions and numbers identical, `gate_arm` margin; balance `output/` identical. chain_c stopped at the segment compare on the routed rebuild (37d6ae4); chain_d resumed from the routed comparison under `WET_FWAPG_COMMIT=5d50cc1`
 - Docs: d9dc394, 5159531
+
+## Session 2026-11-14
+- chain_d's BUILD hung on 2026-11-13 at 17:43Z in `PQconnectdbParams`: m4's Docker engine stopped answering (`Bad response from Docker engine`; TCP 5432 accepted, no reply), and the BUILD's connect has no timeout. Stopped it; nothing written. Docker came back by itself; the database answered on 2026-11-14.
+- Merged m4's chain commits with m1's docs commits (3e8a968; disjoint files), then the BUILD alone (`chain163_e`, 3 h 11 min): every check passing, 0 values differing, 499 of 512 parts byte-identical to the live build, routed total equal to fwapg 5d50cc1's fingerprint 179854603.510890 (1346b5c).
+- PUBLISH (the owner's decision at resume): 13 parts uploaded in about 2 min (drainage 100's monthly parts, CHES, LEUT, LNRS, UEUT and UNRS daily for both sources, CHIL routed daily), 0 stale keys deleted, 512 verify anonymously; the report's live-build line committed (e7f1fe1).
+- `segment_group.R BULK` and `SALR` with `WET_WB_RESAMPLE=1` on the live build: 0 differing rows in both (BULK had 132 watershed and 144 segment rows before #158's tolerance); resampled samples `identical()` (1f7a68e).
+- Docs: `research/discharge_publish.md` (8e45625, and the vignette-bundle note), `research/segment_group.md`; #164's body gained "Owed from move 1" (vignette bundles, the article's Nechako sentences, the README figure, m1's pcic reload).
+- Next: `/code-check branch`, tests, `/planning-archive`, `/gh-pr-push`.

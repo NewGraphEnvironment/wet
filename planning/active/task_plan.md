@@ -69,14 +69,14 @@ What exploring the code showed:
 - [x] Retire `adjust_override.txt` if the rule covers its case (decision 5); and its reader with it (decided at resume)
 
 ## Phase 6: The chain, once
-- [ ] Under the new scoring code (logs under `data/logs/163/`, `WET_HYDAT_RELEASE=20260717`, `WET_FWAPG_COMMIT=7c30f58`, then `5d50cc1` from the routed comparison on, decided at resume): rescore all ten variants, compare, `wb_validate.R <winner>`, `wb_shape_daily.R`, `wb_share_snow.R`, `wb_share_donor.R`, `wb_output.R`, `pcic_routed_compare.R`, `segment_output.R`, `segment_daily_output.R`, `discharge_publish.R` BUILD
-- [ ] Compare each against `_pre163` (`check_refit`/`compare_parquet` logic, through `wb_run_compare.R` where it fits): `output/` and segment parquets byte-identical, or every difference attributed
-- [ ] The PUBLISH decided at resume, then `segment_group.R BULK` and `SALR`: 0 differing rows (BULK showed 132 watershed rows before #158)
+- [x] Under the new scoring code (logs under `data/logs/163/`, `WET_HYDAT_RELEASE=20260717`, `WET_FWAPG_COMMIT=7c30f58`, then `5d50cc1` from the routed comparison on, decided at resume): rescore all ten variants, compare, `wb_validate.R <winner>`, `wb_shape_daily.R`, `wb_share_snow.R`, `wb_share_donor.R`, `wb_output.R`, `pcic_routed_compare.R`, `segment_output.R`, `segment_daily_output.R`, `discharge_publish.R` BUILD
+- [x] Compare each against `_pre163` (`check_refit`/`compare_parquet` logic, through `wb_run_compare.R` where it fits): `output/` and segment parquets byte-identical, or every difference attributed
+- [x] The PUBLISH decided at resume, then `segment_group.R BULK` and `SALR`: 0 differing rows (BULK showed 132 watershed rows before #158)
 - [x] `wb_term_diagnose.R` rerun (#51; record whether zone 15's 1.05 or the valley ratios move): run on m1 from a reduced bundle of `768876badf` (2026-11-13, `data/logs/163/wb_term_diagnose.log`); the per-zone table did not move, so zone 15's 1.05 stands; the ECCC station ratios moved by at most 0.01 (four valley stations up 0.01), median 1.03 with or without the 1961–1990 row
-- [ ] Commit the reports step by step, as #76's chain did
+- [x] Commit the reports step by step, as #76's chain did
 
 ## Phase 7: Docs
-- [ ] `CLAUDE.md` (pipeline list, gate and override text, the fit's decision files), `research/water_balance_method.md` §0, `research/segment_group.md`, `research/discharge_publish.md:3`, `vignettes/segment-discharge.Rmd`, `scripts/wb_fit_lib.R:17-19`, `scripts/wb_upstream_identity.R:9`, NEWS; say that the `inst/vignette-data/` bundles keep run 92b893c4da until move 2
+- [x] `CLAUDE.md` (pipeline list, gate and override text, the fit's decision files), `research/water_balance_method.md` §0, `research/segment_group.md`, `research/discharge_publish.md:3`, `vignettes/segment-discharge.Rmd`, `scripts/wb_fit_lib.R:17-19`, `scripts/wb_upstream_identity.R:9`, NEWS; say that the `inst/vignette-data/` bundles keep run 92b893c4da until move 2 (said in `research/discharge_publish.md`'s status; NEWS is written by `/gh-pr-merge`)
 
 ## Owed at the end (reported, done after merge)
 - [ ] `backlog.md` tick by `/gh-pr-merge` 9c; move 2 (#164) is next and publishes the refit fit
