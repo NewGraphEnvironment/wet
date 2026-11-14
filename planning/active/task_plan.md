@@ -82,9 +82,9 @@ What exploring the code showed:
 - [ ] `backlog.md` tick by `/gh-pr-merge` 9c; move 2 (#164) is next and publishes the refit fit
 
 ## Validation
-- [ ] Tests pass
-- [ ] `/code-check` clean (once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
+- [x] Tests pass (2026-11-14 on m1 at b458ba6: 2,999 passed, 0 failed, 5 skipped for fwapg#41's migration)
+- [x] `/code-check` clean (once over the branch with `/code-check branch`): four rounds and an enumeration (`review-round[1-4].md`, `review-enumeration.md`); since then only round 4's fix in code, docs and reports
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
 How each change is proved: #23 by tests and equal raster values; #24 by FAIL on two known-different pairs and PASS on identical ones; #21 by byte-identical reports under the new key; #158 by `segment_group.R BULK` at 0 differing rows and by unchanged outputs; #47 by the registered rule's report on both fits; #51 by the two reruns' recorded shifts. The chain proves the whole move: outputs identical to `_pre163`, or each difference attributed.
