@@ -47,7 +47,7 @@ daily routed values one 1e-5 step apart at a rounding tie (not counted as differ
 daily: table built at bc55d30; routed days and weights: 13961436 rows, 38146 sub-basins, total q_acc 636692683.390903 m3/s; weights 3377037 rows, shares 566023.132307756
 
 ## Against the published tree
-parts identical to the published build b4bbc50: 499 of 512 here, 512 published (https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json); live parts md5 0f4f8caa89691c2196a551c11b345918
+parts identical to the published build 3e8a968: 512 of 512 here, 512 published (https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json); live parts md5 d554e3aad481d86bffa4baef687287ed
 
 ## What a reader sees (duckdb, hive_partitioning = true, over the local tree)
 historical PNWNAmet  pcic_routed     43901481 rows   3213337 fresh-subquery rows
