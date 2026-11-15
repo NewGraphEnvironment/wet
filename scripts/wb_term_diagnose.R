@@ -199,8 +199,14 @@ if (!file.exists(f_eccc)) {
     vars = "MAP", return_refperiod = FALSE
   ))
   cl <- as.data.frame(cl)
-  cl <- cl[!is.na(cl$PERIOD), ]
+  # the observed years alone: downscale() also returns the 1961-1990 reference
+  # row (DATASET NA), which was averaged in before #51 and is kept beside, from
+  # the same read, so the report shows the fix alone
+  cl_ref <- cl[!is.na(cl$PERIOD), ]
+  cl <- cl[cl$DATASET %in% "mswx.blend" & grepl("^[0-9]{4}$", cl$PERIOD), ]
+  stopifnot(all(table(factor(cl$id, levels = pts$id)) %in% c(0L, length(years))))
   ec$climr_map <- as.numeric(tapply(cl$MAP, factor(cl$id, levels = pts$id), mean))
+  ec$ref_map <- as.numeric(tapply(cl_ref$MAP, factor(cl_ref$id, levels = pts$id), mean))
   hz_src <- file.path("data", "hydz", paste0("src_", substr(unname(tools::md5sum(hz_zip)), 1, 8)))
   utils::unzip(hz_zip, exdir = hz_src, overwrite = TRUE)  # every run, as scripts/wb_inputs.R
   hz <- terra::vect(list.files(hz_src, "[.]shp$", full.names = TRUE, recursive = TRUE))
@@ -323,6 +329,8 @@ lines <- c(
           f2(med(b$closure)), f2(stats::quantile(b$closure, 0.1)), f2(stats::quantile(b$closure, 0.9))),
   sprintf("ECCC 1981-2010 MAP normals (any code) with a climr value: %d; climr/ECCC median %s",
           nrow(ec), f2(med(ec$ratio))),
+  sprintf("  before #51, with the 1961-1990 reference row averaged in as a 31st year (same read): median %s",
+          f2(med(ec$ref_map / ec$map))),
   "",
   "## Per zone: dry zones first, then contrast zones, then the pooled dry stratum",
   "Runoff errors are the median raw log error as %. Sums are over distinct basins (mm).",

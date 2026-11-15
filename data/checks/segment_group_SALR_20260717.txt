@@ -1,6 +1,6 @@
 # One watershed group's balance from the shipped fit: SALR (#157)
 
-wet commit fd808ab; fit 20260717 of province run 92b893c4da; scoring code 37d93d99ca657930d0e7c9c995e787a0
+wet commit e7f1fe1; fit 20260717 of province run 768876badf; scoring code df3280b5c3ff52385f631bc09d3eaadd
 annual AET cfu; adjustment applied; monthly shares donor
 
 ## Polygons
@@ -23,10 +23,10 @@ basin 100: 4587 of SALR's watersheds, 62 columns; identical in every column: 286
   zone columns of the basin outside the reach: 34, nonzero on the group's rows: 0
 
 ## Published product
-live build b4bbc50 (manifest built 2026-10-24T12:23:01Z); balance fit 20260717 of run 92b893c4da
+live build 3e8a968 (manifest built 2026-11-14T17:41:24Z); balance fit 20260717 of run 768876badf
 parts read: 3, all matching the manifest before (3) and after (3) the read:
-  be621a30945e5043804992692feaca14 segment_monthly/scenario=historical/forcing=PNWNAmet/source=pcic_routed/part-100.parquet
-  5b1092b94e0e8868474b8bf93713bf5a segment_monthly/scenario=historical/forcing=climr/source=wet_balance/part-100.parquet
+  ad18f29539a825f924176ff72dc5391a segment_monthly/scenario=historical/forcing=PNWNAmet/source=pcic_routed/part-100.parquet
+  c8359adf37f001c4cd0880ea72de7464 segment_monthly/scenario=historical/forcing=climr/source=wet_balance/part-100.parquet
   c162eb4ec4c710311a70de541fa62225 watershed_monthly/scenario=historical/forcing=climr/source=wet_balance/part-100.parquet
 rows of SALR: 59631 watershed, 117000 balance segment, 117000 routed segment
 
@@ -37,10 +37,10 @@ rows written: 59631 watershed, 117000 balance segment
 
 ## Time per step (s)
   closure              0.3
-  reach                0.1
+  reach                0.0
   published read       2.5
-  extents              1.6
-  sampling             2.1
+  extents              1.5
+  sampling             2.2
   accumulation         0.3
   province upstream     1.5
   fit                  0.2

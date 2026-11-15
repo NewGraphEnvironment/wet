@@ -1,0 +1,22 @@
+# Code-check round 2 (wet#163, branch tip 2cc295e)
+
+## Checklist read
+
+- code-check.md: every H3 under `## Mechanisms`, prose only (14): A guard that fails toward pass; A fixture that cannot reach the failure mode; A proxy is not the property; Verification that reads its own output; A guard's scope, escape hatches, and remedies; A fix lands in one of two callers that share a harness; Restore the bug and prove the guard fires; A shared working tree, and what generators leave in it; A wrapper's exit is not the work; Zero-length, empty, and unset are three different things; The probe is broken before the world is; Written data outlives the fix; Serialization loses meaning silently; One fact derived twice. Not read: 24 (rules that stand alone, security, spreadsheets/PDFs).
+- code-check-r.md: `download.file(quiet = TRUE)` never tells you the HTTP status; `on.exit()` at a script's top level never fires; A `skip_if_not()` skips only its own `test_that()` block; `$` on a list partial-matches; `identical()` on two reader results tests the reader; Under `R CMD check`, tests run from a temp dir against the INSTALLED package; `tolerance` in testthat is RELATIVE; `[[` on a named ATOMIC vector with an absent key is an error; A `pkg::` call in a test passes `devtools::test()` and fails `R CMD check` if `pkg` is undeclared (and the sections after it through `sample.int(prob =)`, including A fetcher's test helper must make the network fail); `climr::downscale()` returns its reference-period row even with `return_refperiod = FALSE`; A `function(...)` mock hides arguments the real callee no longer accepts. About 20 read, 101 not read.
+- code-check-shell.md: A `curl` in a parallel fan-out needs `--max-time`; An S3 multipart ETag depends on the uploader's part size; `curl -o` without `-L` saves the redirect page as the download. 3 read, 68 not read.
+- code-check-spatial.md: GDAL caches a failed `/vsicurl/` open. 1 read, 93 not read.
+
+## What was checked
+
+- Ran in a detached worktree at HEAD (NOT_CRAN=true, load_all): test-wb_gate_rule (10 pass), test-wet_donor_mean (8), test-wet_cgiar_aet (31), test-wet_dem_glo90 (13), and the donor consumers test-wet_shape (66) and test-wet_share_fit (36): 0 failed, 0 errors, 0 skipped. `tools:::.check_packages_used_in_tests()` empty (withr, testthat, curl declared).
+- `wet_glo90_etags()` against the live bucket for two tiles: 200s with ETags returned. `curl::parse_headers_list()` lowercases header names and keeps the last response of a redirect chain, so `$etag` is right.
+- Mock signatures match the real functions' formals (`wet_unrar(rar, exdir)`, `wet_download(url, dest, timeout, netrc)`, `wet_figshare_files(article)`, `wet_glo90_tiles(base, bbox)`, `wet_glo90_etags(base, tiles)`, `wet_gdal_config_set(x)`); every rebuild path in the new tests ends at an unreachable host or a stop() mock.
+- CGIAR: an old empty `.extracted` (file.create) reads as character(0), so the first run under this code re-extracts once; a failed md5 after download leaves a file the next call re-checks against figshare. Cache-hit path needs both archives locally (only caller is scripts/wb_inputs.R).
+- Gate: no remaining reader of `tie_tol`, `override` or the two-argument `keep_adjust_for()` in scripts/, R/, data-raw/ or vignettes/; every script that sourced wb_cv_lib.R gets `wb_gate()` and `gate_margin_pts` through it; `metrics()` returns `nes_mae`; nesting has only "headwater"/"nested" (R/wet_cv_folds.R:52), so `nes()` in wb_validate.R and `!hw` in wb_aet_compare.R name the same set. wb_gate_rule.R is in `score_files_for()`.
+- climr: both scripts keep `DATASET %in% "mswx.blend"` with four-digit PERIOD, as the checklist prescribes; in wb_term_diagnose.R the ECCC cache key hashes the script, so the cached table is rebuilt with `ref_map`.
+- wb_province.R's `one()` needing exactly one crop and one DEM after the names change is covered by task_plan.md's step moving old files into `_pre163/`.
+- Round 1's vignette fix: the shipped bundle (inst/vignette-data/segment_values.rds) has no `gate_arm` and no key with a `gate_arm` prefix, so `ps$gate_arm` is NULL and the guard passes; `list(gate_arm = NULL)` in data-raw keeps a NULL element, so a pre-#47 regeneration reads the same. A NULL arm with keep_adjust TRUE and gate_pass FALSE could only come from the pre-#47 override (capped at 0.5 point), so it falls within the 1.0-point margin the sentence names; a "nested" arm fails the guard, as it should.
+
+## Clean
+No issues found.

@@ -1,8 +1,8 @@
 # Per-segment flow from either source (#57)
 
-wet commit 28105a3; fit 20260717, province run 92b893c4da, scoring code 37d93d99ca657930d0e7c9c995e787a0
-routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 7c30f58
-table: 40524444 rows, 3377037 segments, 0 null flows, total 178918222.786650 m3/s
+wet commit 66cf795; fit 20260717, province run 768876badf, scoring code df3280b5c3ff52385f631bc09d3eaadd
+routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 5d50cc1
+table: 40524444 rows, 3377037 segments, 0 null flows, total 179854603.510890 m3/s
 pick: routed PCIC unless its annual flow is under 0.20 x the balance's, then the balance (wet_source_pick);
 a segment off its watershed's own line keeps routed (routed_own_line_sql: side channels, and connectors in
 another stream's watershed or off the main line)
@@ -12,12 +12,12 @@ periods: routed 1981-2010, balance 1981-2010
 FWA segments: 4907441; with a watershed in the lut: 4538224; without (no value from either source): 369217
 with a watershed but in no basin's output: 0; routed segments left out that way: 0
 both sources: 3374133; routed only: 2904; balance only: 1155806; neither: 374598
-picked routed: 3154131 (69.6 % of segments with a value); picked balance: 1378712, 222906 of them under the cut
+picked routed: 3213337 (70.9 % of segments with a value); picked balance: 1319506, 163700 of them under the cut
 routed segments with runoff_mm NA: 72242 off their own line (another line's area), 0 with no accumulated area
 
 ## By basin
 code  segments      both   rt_only  bal_only  neither   pick_rt  pick_bal   flipped
-100    1012101   1010759        17      1325        0    897172    114929    113604
+100    1012101   1010759        17      1325        0    956378     55723     54398
 200    1352164    603993         0    748171        0    577781    774383     26212
 300     379601    367645         0     11956        0    351753     27848     15892
 400     263094    263087         2         5        0    252078     11016     11011
@@ -44,37 +44,37 @@ code  segments      both   rt_only  bal_only  neither   pick_rt  pick_bal   flip
 
 ## Nechako Reservoir groups (routed about zero on #58's reservoir-lake gauges)
 group  segments    routed   balance     none      both   flipped  flip %
-LEUT       8536       184      6771     1581      6955      6771    97.4
-LNRS      10341       274      9336      731      9610      9336    97.1
-UEUT      23523       188     20136     3199     20317     20129    99.1
-UNRS      25514       400     23578     1536     23978     23578    98.3
-their share of all flipped segments: 26.8 %
+LEUT       8536      6849       106     1581      6955       106     1.5
+LNRS      10341      9579        31      731      9610        31     0.3
+UEUT      23523     19962       362     3199     20317       355     1.7
+UNRS      25514     23823       155     1536     23978       155     0.6
+their share of all flipped segments: 0.4 %
 
 ## Every segment with both sources, by whether it lies on its watershed's own line
 Only on its own line is the balance the segment's own flow, so only there can it flip.
 own_line        both   flipped  flip %
 FALSE          72242         0     0.0
-TRUE         3301891    222906     6.8
+TRUE         3301891    163700     5.0
 
 ## Outside the Nechako groups, on their own line, segments with both sources and how many flip, by edge type
 edge_type       both   flipped  flip %
-1000         2320371    117204     5.1
-1050          229753     13077     5.7
-1200          323168     16380     5.1
+1000         2320371    117179     5.1
+1050          229753     13070     5.7
+1200          323168     16377     5.1
 1250          143035       824     0.6
 1400            9952      1089    10.9
-1410           47326      5581    11.8
+1410           47326      5579    11.8
 1425             296        27     9.1
-1450          166197      8787     5.3
+1450          166197      8785     5.3
 2000            1667       119     7.1
 6010              49         4     8.2
 
 ## The same, by stream order
 order           both   flipped  flip %
 0                 38         5    13.2
-1            1674967     91231     5.4
-2             727612     40605     5.6
-3             397049     20032     5.0
+1            1674967     91209     5.4
+2             727612     40590     5.6
+3             397049     20030     5.0
 4             226860      8503     3.7
 5             118446      1935     1.6
 6              52288       536     1.0
@@ -83,13 +83,9 @@ order           both   flipped  flip %
 9               7161         2     0.0
 10               466         0     0.0
 
-## Groups where more than half the segments with both sources flip (5)
+## Groups where more than half the segments with both sources flip (1)
 group  segments    routed   balance     none      both   flipped  flip %
 GUIC       6815      1710      4552      553      6262      4552    72.7
-LEUT       8536       184      6771     1581      6955      6771    97.4
-LNRS      10341       274      9336      731      9610      9336    97.1
-UEUT      23523       188     20136     3199     20317     20129    99.1
-UNRS      25514       400     23578     1536     23978     23578    98.3
 
 ## By watershed group
 flipped: routed flow under the cut, so the balance is picked; flip %: of segments with both sources
@@ -117,7 +113,7 @@ CAMB       8889      8321       165      403      8478       157     1.9
 CANO       9429      9042       310       77      9352       310     3.3
 CARP      14274     13877         0      397     13877         0     0.0
 CARR      14054     13301        88      665     13389        88     0.7
-CHES       8324      7612        65      647      7677        65     0.8
+CHES       8324      7651        26      647      7677        26     0.3
 CHIL       9000      7815         0     1185      7815         0     0.0
 CHIR      15080     12939       271     1870     13210       271     2.1
 CHUK      13323     10948      1489      886     12437      1489    12.0
@@ -195,7 +191,7 @@ LBTN      27415     22225       139     5051     22359       134     0.6
 LCHL      16572     14230       392     1950     14622       392     2.7
 LCHR      20988     10506      5925     4557     16430      5924    36.1
 LDEN      24863     21125       723     3015     21843       718     3.3
-LEUT       8536       184      6771     1581      6955      6771    97.4
+LEUT       8536      6849       106     1581      6955       106     1.5
 LFRA      19991     15142      3012     1837     15989       847     5.3
 LFRT      14590         0     13656      934         0         0      NA
 LHAF      26305     22095      2051     2159     24146      2051     8.5
@@ -207,7 +203,7 @@ LKEL       2382      2192        26      164      2213        21     0.9
 LMUS      21866         0     20578     1288         0         0      NA
 LNAR      29090     26627      1391     1072     28018      1391     5.0
 LNIC      15967     11002      3991      974     14991      3989    26.6
-LNRS      10341       274      9336      731      9610      9336    97.1
+LNRS      10341      9579        31      731      9610        31     0.3
 LNTH      24261     20327      2461     1473     22747      2420    10.6
 LOMI      17177     15474       243     1460     15717       243     1.5
 LPCE      11305      7843       691     2771      8197       354     4.3
@@ -314,7 +310,7 @@ UBIR      15136     13753       135     1248     13888       135     1.0
 UBTN      20898     19063        86     1749     19149        86     0.4
 UCHR      18387      8224      7072     3091     15285      7061    46.2
 UDEN      25681     14593      3948     7140     18541      3948    21.3
-UEUT      23523       188     20136     3199     20317     20129    99.1
+UEUT      23523     19962       362     3199     20317       355     1.7
 UFRA      32621     29138      1384     2099     30505      1384     4.5
 UFRT      19301         0     16161     3140         0         0      NA
 UHAF      28614     25774      2617      223     28391      2617     9.2
@@ -324,7 +320,7 @@ UKEC      16332         0     13787     2545         0         0      NA
 ULRD      36718         0     34628     2090         0         0      NA
 UMUS      30309         0     27540     2769         0         0      NA
 UNAR      27109     25175       122     1812     25290       115     0.5
-UNRS      25514       400     23578     1536     23978     23578    98.3
+UNRS      25514     23823       155     1536     23978       155     0.6
 UNTH      24263     22378       432     1453     22810       432     1.9
 UNUR      13658     10913      1669     1076     12028      1115     9.3
 UOMI      15474     14333       581      560     14914       581     3.9

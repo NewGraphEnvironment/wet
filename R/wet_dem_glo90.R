@@ -2,7 +2,9 @@
 #'
 #' Averages the Copernicus DEM GLO-90 (public cloud-optimised GeoTIFFs on AWS
 #' open data) onto the grid of `template`, reading each 1-degree tile over
-#' `/vsicurl/`. Ground covered by no tile (open ocean away from land) is `NA`;
+#' `/vsicurl/`. The result is cached under a name keyed on the grid and each
+#' tile's ETag, which every call reads from the bucket (a few seconds), so a
+#' revised tile gives a new DEM. Ground covered by no tile (open ocean away from land) is `NA`;
 #' sea inside a tile is 0 m, as GLO-90 records it, so `NA` is not a land mask. Used to drive climr's lapse-rate downscaling on the
 #' same grid as the CGIAR AET, so no input is resampled twice.
 #'
@@ -20,20 +22,17 @@ wet_dem_glo90 <- function(template, dir = "data/dem", overwrite = FALSE) {
   # the cache key is the extent and dims, which identify a grid only in lon/lat
   if (!terra::is.lonlat(tmpl)) stop("template must be in lon/lat (EPSG:4326)", call. = FALSE)
   e <- as.vector(terra::ext(tmpl))
-  # keyed on the grid and the method version, so a changed build never reuses an old DEM
-  key <- wet_md5_text(paste(c(wet_grid_key(tmpl), wet_dem_method), collapse = "|"))
+  base <- getOption("wet.glo90_base", "https://copernicus-dem-90m.s3.amazonaws.com")
+  tiles <- wet_glo90_tiles(base, e[c(1, 3, 2, 4)])
+  # Keyed on the grid, the method version and each tile's name and ETag (#23),
+  # read on every call, so a changed build or a revised tile never reuses an
+  # old DEM.
+  etag <- wet_glo90_etags(base, tiles)
+  key <- wet_md5_text(paste(c(wet_grid_key(tmpl), wet_dem_method,
+                              sort(paste(tiles, etag), method = "radix")), collapse = "|"))
   dest <- file.path(dir, sprintf("glo90_%s.tif", substr(key, 1, 10)))
   if (file.exists(dest) && !overwrite) return(dest)
   dir.create(dir, recursive = TRUE, showWarnings = FALSE)
-
-  base <- getOption("wet.glo90_base", "https://copernicus-dem-90m.s3.amazonaws.com")
-  lst <- tempfile(fileext = ".txt")
-  on.exit(unlink(lst), add = TRUE)
-  wet_download(paste0(base, "/tileList.txt"), lst, 120)
-  have <- readLines(lst)
-  want <- wet_glo90_names(e[c(1, 3, 2, 4)])
-  tiles <- intersect(want, have)
-  if (!length(tiles)) stop("no GLO-90 tiles intersect the template", call. = FALSE)
 
   old <- wet_gdal_config_set(c(GDAL_DISABLE_READDIR_ON_OPEN = "EMPTY_DIR",
                                CPL_VSIL_CURL_ALLOWED_EXTENSIONS = ".tif"))
@@ -57,6 +56,50 @@ wet_dem_glo90 <- function(template, dir = "data/dem", overwrite = FALSE) {
 # tile resolution. 2: gaps between tiles are NA. (Before #19 the version sat in
 # the file name as "glo90v3_".)
 wet_dem_method <- "vrt-highest-average-3"
+
+# The GLO-90 tiles that exist over c(xmin, ymin, xmax, ymax), from the
+# bucket's tile list, in wet_glo90_names() order (the order the VRT stacks
+# them in; the key sorts them itself).
+wet_glo90_tiles <- function(base, bbox) {
+  lst <- tempfile(fileext = ".txt")
+  on.exit(unlink(lst), add = TRUE)
+  wet_download(paste0(base, "/tileList.txt"), lst, 120)
+  tiles <- intersect(wet_glo90_names(bbox), readLines(lst))
+  if (!length(tiles)) stop("no GLO-90 tiles intersect the template", call. = FALSE)
+  tiles
+}
+
+# Each tile's ETag, from HEAD requests run in parallel in one curl pool. A
+# tile that answers anything but 200 with an ETag stops the call, so the key
+# never rests on a partial list.
+wet_glo90_etags <- function(base, tiles) {
+  urls <- sprintf("%s/%s/%s.tif", base, tiles, tiles)
+  out <- rep(NA_character_, length(urls))
+  why <- rep("no answer", length(urls))
+  pool <- curl::new_pool(host_con = 20)
+  for (i in seq_along(urls)) {
+    local({
+      j <- i
+      h <- curl::new_handle(nobody = TRUE, timeout = 120, useragent = "wet")
+      curl::curl_fetch_multi(urls[j], handle = h, pool = pool, done = function(res) {
+        tag <- curl::parse_headers_list(res$headers)$etag
+        if (res$status_code != 200) {
+          why[j] <<- paste("HTTP", res$status_code)
+        } else if (is.null(tag)) {
+          why[j] <<- "no ETag"
+        } else {
+          out[j] <<- tag
+        }
+      }, fail = function(msg) why[j] <<- msg)
+    })
+  }
+  curl::multi_run(pool = pool)
+  bad <- which(is.na(out))
+  if (length(bad)) {
+    stop(length(bad), " GLO-90 tile(s) gave no ETag, first ", tiles[bad[1]], ": ", why[bad[1]], call. = FALSE)
+  }
+  out
+}
 
 # GLO-90 tile names covering c(xmin, ymin, xmax, ymax). A tile is named by
 # its south-west corner, e.g. N54_00_W128_00 covers 54-55 N, 128-127 W.

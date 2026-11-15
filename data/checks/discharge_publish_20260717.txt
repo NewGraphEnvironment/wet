@@ -1,10 +1,11 @@
 # Published discharge, build (#7)
 
-wet commit 34f38a9 (segment table built at 28105a3); fit 20260717, province run 92b893c4da; crate 0.8.0
-arrow 25.0.1, duckdb 1.4.3 (a part's bytes depend on the writer's version)
-routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 7c30f58
-table: 40524444 rows, 3377037 segments, 0 null flows, total 178918222.786650 m3/s
+wet commit 3e8a968 (segment table built at 66cf795); fit 20260717, province run 768876badf; crate 0.16.0
+arrow 25.0.1, duckdb 1.5.6 (a part's bytes depend on the writer's version)
+routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 5d50cc1
+table: 40524444 rows, 3377037 segments, 0 null flows, total 179854603.510890 m3/s
 tree: data/publish/discharge/fwa/v1 -> s3://fresh-bc/discharge/fwa/v1/
+tree parts md5 d554e3aad481d86bffa4baef687287ed
 
 ## Cross-checks against the segment report, and value by value
 routed_rows     ok
@@ -41,26 +42,26 @@ daily parts = table: q_m3s      2886046240          0             0
 daily parts = table: runoff_mm  2886046240          0             0  
 daily parts = table: coverage   2886046240          0             0  
 daily parts = table: pick       2886046240          0             0  
-routed months 1-12, total rounded to 1e-6 per value: 178918222.786650 m3/s; the table's fingerprint: 178918222.786650 m3/s
+routed months 1-12, total rounded to 1e-6 per value: 179854603.510890 m3/s; the table's fingerprint: 179854603.510890 m3/s
 daily routed values one 1e-5 step apart at a rounding tie (not counted as differing): 0
-daily: table built at f99df25; routed days and weights: 13786122 rows, 37667 sub-basins, total q_acc 636284197.301372 m3/s; weights 3377037 rows, shares 558010.174364980
+daily: table built at bc55d30; routed days and weights: 13961436 rows, 38146 sub-basins, total q_acc 636692683.390903 m3/s; weights 3377037 rows, shares 566023.132307756
 
 ## Against the published tree
-parts identical to the published build b4bbc50: 512 of 512 here, 512 published (https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json)
+parts identical to the published build 3e8a968: 512 of 512 here, 512 published (https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json); live parts md5 d554e3aad481d86bffa4baef687287ed
 
 ## What a reader sees (duckdb, hive_partitioning = true, over the local tree)
-historical PNWNAmet  pcic_routed     43901481 rows   3154131 fresh-subquery rows
-historical climr     wet_balance     58889207 rows   1378712 fresh-subquery rows
-segment_daily historical PNWNAmet  pcic_routed   1232618505 rows   3154131 picked on day 1
-segment_daily historical climr     wet_balance   1653427735 rows   1378712 picked on day 1
+historical PNWNAmet  pcic_routed     43901481 rows   3213337 fresh-subquery rows
+historical climr     wet_balance     58889207 rows   1319506 fresh-subquery rows
+segment_daily historical PNWNAmet  pcic_routed   1232618505 rows   3213337 picked on day 1
+segment_daily historical climr     wet_balance   1653427735 rows   1319506 picked on day 1
 
 ## Row-group pruning: a read for BULK opens 2 of 507 row groups in 43 segment parts
 
 ## Parts
 picked: for segments, annual rows picked (daily: day-1 rows); for watersheds, NA-flow watersheds dropped
 dataset            source       code        rows  features    picked
-segment_monthly    pcic_routed  100     13140088   1010776    897172
-segment_monthly    wet_balance  100     13157092   1012084    114929
+segment_monthly    pcic_routed  100     13140088   1010776    956378
+segment_monthly    wet_balance  100     13157092   1012084     55723
 segment_monthly    pcic_routed  200      7851909    603993    577781
 segment_monthly    wet_balance  200     17578132   1352164    774383
 segment_monthly    pcic_routed  300      4779385    367645    351753
@@ -169,8 +170,8 @@ segment_daily      pcic_routed  CARP     5065105     13877     13877
 segment_daily      wet_balance  CARP     5065105     13877         0
 segment_daily      pcic_routed  CARR     4886985     13389     13301
 segment_daily      wet_balance  CARR     4886985     13389        88
-segment_daily      pcic_routed  CHES     2802105      7677      7612
-segment_daily      wet_balance  CHES     2802105      7677        65
+segment_daily      pcic_routed  CHES     2802105      7677      7651
+segment_daily      wet_balance  CHES     2802105      7677        26
 segment_daily      pcic_routed  CHIL     2852475      7815      7815
 segment_daily      wet_balance  CHIL     2852475      7815         0
 segment_daily      pcic_routed  CHIR     4821650     13210     12939
@@ -311,8 +312,8 @@ segment_daily      pcic_routed  LCHR     5996950     16430     10506
 segment_daily      wet_balance  LCHR     5997315     16431      5925
 segment_daily      pcic_routed  LDEN     7972695     21843     21125
 segment_daily      wet_balance  LDEN     7974520     21848       723
-segment_daily      pcic_routed  LEUT     2538575      6955       184
-segment_daily      wet_balance  LEUT     2538575      6955      6771
+segment_daily      pcic_routed  LEUT     2538575      6955      6849
+segment_daily      wet_balance  LEUT     2538575      6955       106
 segment_daily      pcic_routed  LFRA     5835985     15989     15142
 segment_daily      wet_balance  LFRA     6626210     18154      3012
 segment_daily      wet_balance  LFRT     4984440     13656     13656
@@ -331,8 +332,8 @@ segment_daily      pcic_routed  LNAR    10226570     28018     26627
 segment_daily      wet_balance  LNAR    10226570     28018      1391
 segment_daily      pcic_routed  LNIC     5471715     14991     11002
 segment_daily      wet_balance  LNIC     5472445     14993      3991
-segment_daily      pcic_routed  LNRS     3507650      9610       274
-segment_daily      wet_balance  LNRS     3507650      9610      9336
+segment_daily      pcic_routed  LNRS     3507650      9610      9579
+segment_daily      wet_balance  LNRS     3507650      9610        31
 segment_daily      pcic_routed  LNTH     8302655     22747     20327
 segment_daily      wet_balance  LNTH     8317620     22788      2461
 segment_daily      pcic_routed  LOMI     5736705     15717     15474
@@ -527,8 +528,8 @@ segment_daily      pcic_routed  UCHR     5579025     15285      8224
 segment_daily      wet_balance  UCHR     5583040     15296      7072
 segment_daily      pcic_routed  UDEN     6767465     18541     14593
 segment_daily      wet_balance  UDEN     6767465     18541      3948
-segment_daily      pcic_routed  UEUT     7415705     20317       188
-segment_daily      wet_balance  UEUT     7418260     20324     20136
+segment_daily      pcic_routed  UEUT     7415705     20317     19962
+segment_daily      wet_balance  UEUT     7418260     20324       362
 segment_daily      pcic_routed  UFRA    11140530     30522     29138
 segment_daily      wet_balance  UFRA    11134325     30505      1384
 segment_daily      wet_balance  UFRT     5898765     16161     16161
@@ -542,8 +543,8 @@ segment_daily      wet_balance  ULRD    12639220     34628     34628
 segment_daily      wet_balance  UMUS    10052100     27540     27540
 segment_daily      pcic_routed  UNAR     9230850     25290     25175
 segment_daily      wet_balance  UNAR     9233405     25297       122
-segment_daily      pcic_routed  UNRS     8751970     23978       400
-segment_daily      wet_balance  UNRS     8751970     23978     23578
+segment_daily      pcic_routed  UNRS     8751970     23978     23823
+segment_daily      wet_balance  UNRS     8751970     23978       155
 segment_daily      pcic_routed  UNTH     8325650     22810     22378
 segment_daily      wet_balance  UNTH     8325650     22810       432
 segment_daily      pcic_routed  UNUR     4390220     12028     10913
@@ -844,4 +845,4 @@ WILL Willow River
 WORC Work Channel
 ZYMO Zymoetz River
 
-## Totals: 512 parts, 33.23 GB
+## Totals: 512 parts, 33.36 GB

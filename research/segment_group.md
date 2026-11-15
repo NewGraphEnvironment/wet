@@ -1,10 +1,10 @@
 # One watershed group's balance, rebuilt alone
 
-**Verified:** 2026-11-04 · **Issues:** #157 (spawned #158) · **Produced by:** `scripts/segment_group_closure.R` → `data/checks/segment_group_closure.txt` (fwapg on the development machine); `scripts/segment_group.R BULK` and `SALR` with `WET_WB_RESAMPLE=1` → `data/checks/segment_group_{BULK,SALR}_20260717.txt`, run on the machine holding province run `92b893c4da`, against live build b4bbc50; run logs `data/logs/157/segment_group_*` on the machine that ran each · **Status:** measured; the build ships as a script, and publishing the fit is a follow-up
+**Verified:** 2026-11-14 (parity after #158's donor tolerance, on province run `768876badf` and live build 3e8a968, #163); 2026-11-04 · **Issues:** #157 (spawned #158), #158 (closed by #163's tolerance) · **Produced by:** `scripts/segment_group_closure.R` → `data/checks/segment_group_closure.txt` (fwapg on the development machine); `scripts/segment_group.R BULK` and `SALR` with `WET_WB_RESAMPLE=1` → `data/checks/segment_group_{BULK,SALR}_20260717.txt`, run on the machine holding the province run, against the live build (province run `92b893c4da` and live build b4bbc50 under #157; `768876badf` and 3e8a968 under #163); run logs `data/logs/157/segment_group_*` and `data/logs/163/f_segment_group_*` on the machine that ran each · **Status:** measured; the build ships as a script, and publishing the fit is a follow-up
 
 ## The answer
 
-A per-group build is worth having for the 138 of the province's 246 groups whose rows reach polygons in at most two other groups, and its smallest shape needs no published fit where the province run's inputs are. One group's balance rows and pick come back in about 20 seconds, against about 11 minutes for the province's sampling and accumulation. Rebuilt that way, SALR equals the published product in every watershed and segment row. BULK equals it except at 11 watersheds that sit at calibration gauges, where the donor shares' exact-zero test turns on the last bits of the upstream means (#158).
+A per-group build is worth having for the 138 of the province's 246 groups whose rows reach polygons in at most two other groups, and its smallest shape needs no published fit where the province run's inputs are. One group's balance rows and pick come back in about 20 seconds, against about 11 minutes for the province's sampling and accumulation. Rebuilt that way, SALR and BULK equal the published product in every watershed and segment row. Before #163 BULK differed at 11 watersheds that sit at calibration gauges, where the donor shares' exact-zero test turned on the last bits of the upstream means (#158); the test now has a tolerance.
 
 ## What a group needs
 
@@ -38,9 +38,11 @@ The group's upstream means differ from the province run's by at most 1.4e-12 rel
 | group | watershed rows | segment rows | beyond 1e-9 relative | pick |
 |---|---|---|---|---|
 | SALR | 59,631 | 117,000 | 0 | identical |
-| BULK | 272,610 | 390,481 | 132 watershed, 144 segment | identical |
+| BULK | 272,610 | 390,481 | 0 (132 watershed, 144 segment before #158's tolerance) | identical |
 
 BULK's differing rows are 11 watersheds in months 1–12, at up to 5.8e-5 relative; annual flow is unaffected. All 11 sit at calibration gauges. In the province run a gauge's watershed is at distance exactly 0 from its own donor row, because the donor rows are the province run's own upstream means, and `wet_donor_mean()` then gives it the gauge's shares alone. In the group build that distance is tiny but not 0, the zero test fails, and the other four donors take a small weight. Attribution: ours, the donor rule's exact-zero test (#158), not the reach. Of BULK's 12 watersheds within 1e-9 of a donor row, one stayed at exactly 0 and kept its months.
+
+Since #163 a donor within 1e-9 times the median distance takes the whole weight, shared equally by every donor within it (`wet_donor_mean()`), so those 12 keep their gauge's shares by either route. Refitted under it, every decision and number of the shipped fit was identical, and both groups rebuilt on the live build differ from it by at most 1.2e-12 in any `q_m3s` or `runoff_mm` value (largest relative difference in the upstream means 1.4e-12 in BULK, 4.1e-15 in SALR, as before).
 
 The comparison can fail. With MORR's polygons removed from BULK's reach, 3,449 watershed rows and 4,825 segment rows differ, by up to 336 m³/s.
 

@@ -6,8 +6,8 @@
 #   MAE on annual runoff (mean |err_pct|, NAs for observed < 10 mm dropped),
 #   each fit as it ships: for its shipped AET under its own decision files,
 #   the blocked-CV adjusted prediction (cv_v), or raw P - AET (raw_v) when its
-#   gate dropped the adjustment (pooled_variant.txt,
-#   adjust_override.txt, aet_decision.txt), on the calibration gauges common
+#   gate dropped the adjustment (pooled_variant.txt, aet_decision.txt, and
+#   adjust_override.txt until #47 retired it), on the calibration gauges common
 #   to both fits and headwater in both, each fit scored against its own
 #   release's observed runoff; the new fit ships unless its MAE exceeds the
 #   shipped fit's by more than 1.0 point. If it passes but its headwater gate
@@ -104,9 +104,11 @@ scores <- lapply(args, function(r) {
              err = e$err_pct[match(x$station_number, e$station_number)], aet = fits$aet,
              variant = if (identical(x$cv_variant, "nested")) "chosen inside each fold" else
                sprintf("fixed to '%s'", x$cv_variant),
-             # the gate itself, and whether an override keeps the adjustment
+             # the headwater gate itself, and whether the adjustment is kept
+             # anyway: by an override before #47, by an arm of #47's rule since
              gate = if (is.null(fits$gate_pass)) fits$keep_adjust else fits$gate_pass,
              keep_adjust = fits$keep_adjust,
+             gate_arm = if (is.null(fits$gate_arm)) "override" else fits$gate_arm,
              scored = if (isTRUE(fits$keep_adjust)) "adjusted, blocked CV" else "raw P - AET")
 })
 old <- scores[[1]]
@@ -123,7 +125,14 @@ gate_ok <- isTRUE(new$gate[1])
 to_user <- if (ships && !gate_ok) "; its gate FAILS, so the decision goes to the user" else ""
 verdict <- sprintf("%s (%+.2f points)%s", if (ships) "SHIPS" else "DOES NOT SHIP", m_new - m_old, to_user)
 gate_txt <- function(x) {
-  if (isTRUE(x$gate[1])) "PASS" else if (isTRUE(x$keep_adjust[1])) "FAIL (adjustment kept by override)" else "FAIL"
+  if (isTRUE(x$gate[1])) {
+    "PASS"
+  } else if (isTRUE(x$keep_adjust[1])) {
+    by <- if (x$gate_arm[1] == "override") "override" else paste("the", x$gate_arm[1], "arm of #47's rule")
+    sprintf("FAIL (adjustment kept by %s)", by)
+  } else {
+    "FAIL"
+  }
 }
 
 con <- file(wb_report("wb_fit_accept", args[2]), "w")

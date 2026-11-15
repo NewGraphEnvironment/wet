@@ -230,8 +230,10 @@ provenance <- list(
   keep_adjust = fits$keep_adjust,
   pooled_variant = fits$pooled_variant,
   # whether #11's headwater gate itself passed, as against keep_adjust, which
-  # an override can hold (#43): the vignette's limits say which
+  # an override held before #47 and an arm of #47's rule holds since: the
+  # vignette's limits say which (gate_arm is absent from a fit made before #47)
   gate_pass = fits$gate_pass,
+  gate_arm = fits$gate_arm,
   hydat_release = hydat_release,
   # the cut wet_source_pick() takes the balance under (scripts/pcic_routed_lib.R)
   far_low = routed_far_low,

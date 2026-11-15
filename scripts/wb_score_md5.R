@@ -11,7 +11,7 @@
 # code or observations. A missing file stops here: tools::md5sum() would hash
 # it as NA on both sides and the check would pass.
 score_files_for <- function(rel) {
-  f <- c("scripts/wb_score_md5.R", "scripts/wb_cv_lib.R", "scripts/wb_validate.R",
+  f <- c("scripts/wb_score_md5.R", "scripts/wb_cv_lib.R", "scripts/wb_gate_rule.R", "scripts/wb_validate.R",
          "scripts/wb_aet_compare.R", wb_stations_path(rel),
          "R/wet_wb_fit.R", "R/wet_wb_adjust.R", "R/wet_share_fit.R", "R/wet_share_predict.R", "R/wet_donor_mean.R",
          "R/wet_flow_validate.R", "R/wet_cv_folds.R", "R/wet_wb_raw.R", "R/wet_mm_to_m3s.R")
@@ -24,15 +24,15 @@ aet_md5_for <- function(rel) wet_md5_text(unname(tools::md5sum(score_files_for(r
 score_files <- score_files_for(release)
 # The scoring code and stations alone (aet_code_md5): what fits.rds records as
 # aet_md5, which scripts/wb_fit_accept.R compares across releases. A
-# pooled-zone variant fixed for this fit (scripts/wb_pooled_test.R) or a
-# recorded override of the headwater gate (adjust_override.txt) changes its
-# fits, so a fit made before either is stale after it: score_code_md5 covers
-# them (#43). The AET winner is stamped with score_code_md5 too, because the
+# pooled-zone variant fixed for this fit (scripts/wb_pooled_test.R) changes
+# its fits, so a fit made before it is stale after it: score_code_md5 covers
+# it (#43; the gate's override, adjust_override.txt, was covered the same way
+# until #47 retired it). The AET winner is stamped with score_code_md5 too, because the
 # comparison scores every variant under those decisions, and a recorded AET
 # switch (aet_decision.txt) decides whether it writes the winner (#81).
 aet_code_md5 <- aet_md5_for(release)
 fit_decisions <- file.path(wb_fit_dir(wb_key_dir(), release),
-                           c("pooled_variant.txt", "adjust_override.txt", "aet_decision.txt"))
+                           c("pooled_variant.txt", "aet_decision.txt"))
 fit_decisions <- fit_decisions[file.exists(fit_decisions)]
 score_code_md5 <- if (length(fit_decisions)) {
   wet_md5_text(unname(tools::md5sum(c(score_files, fit_decisions))))

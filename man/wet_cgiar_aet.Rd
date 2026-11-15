@@ -24,7 +24,8 @@ in mm.
 Downloads the CGIAR-CSI Global High-Resolution Soil-Water Balance v3 AET
 (Trabucco & Zomer; figshare article 7707605, CC0), checks each archive
 against the md5 figshare reports, extracts it, and crops the annual and 12
-monthly grids to \code{bbox}. This is the ET family Chapman et al. (2018) used,
+monthly grids to \code{bbox}. The crop is cached under a name keyed on the
+archives' md5s, so a revised archive gives a new crop. This is the ET family Chapman et al. (2018) used,
 on its native 30 arc-second grid, so it is cropped but never resampled.
 }
 \details{
