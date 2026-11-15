@@ -16,15 +16,15 @@ Source:
 Irvine A (2026). *wet: Stream Flow and Water Temperature for the BC
 Freshwater Atlas*. New Graph Environment Ltd.
 [doi:10.5281/zenodo.23305781](https://doi.org/10.5281/zenodo.23305781).
-Version 0.4.34, <https://github.com/NewGraphEnvironment/wet>.
+Version 0.4.35, <https://github.com/NewGraphEnvironment/wet>.
 
     @Manual{wet,
       title = {wet: Stream Flow and Water Temperature for the BC Freshwater Atlas},
       author = {Allan Irvine},
       organization = {New Graph Environment Ltd.},
       year = {2026},
-      version = {0.4.34},
-      note = {Version 0.4.34},
+      version = {0.4.35},
+      note = {Version 0.4.35},
       url = {https://github.com/NewGraphEnvironment/wet},
       doi = {10.5281/zenodo.23305781},
     }

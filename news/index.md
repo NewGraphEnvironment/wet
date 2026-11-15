@@ -1,5 +1,35 @@
 # Changelog
 
+## wet 0.4.35
+
+- One refit chain for six changes that each staled the fit
+  ([\#163](https://github.com/NewGraphEnvironment/wet/issues/163)). The
+  CGIAR AET crop is cached under its archives’ md5s, checked against
+  figshare’s on a rebuild, and the GLO-90 DEM under its tiles’ ETags, so
+  a revised upstream source rebuilds them
+  ([\#23](https://github.com/NewGraphEnvironment/wet/issues/23)). The
+  climr check against ECCC normals averages only the 30 observed years
+  ([\#51](https://github.com/NewGraphEnvironment/wet/issues/51)).
+  `scripts/wb_run_compare.R` compares two province runs file by file and
+  exits 1 on any difference
+  ([\#24](https://github.com/NewGraphEnvironment/wet/issues/24)); the
+  rerun under the rekeyed inputs equalled the previous run in every
+  file, and every tracked fit report reproduced byte for byte
+  ([\#21](https://github.com/NewGraphEnvironment/wet/issues/21)).
+  `wet_donor_mean()` treats a donor within `1e-9 * median(d)` of a row
+  as the row itself, so a calibration gauge keeps its own shares when
+  its upstream means differ in their last bits, and one group’s rebuild
+  now matches every published row
+  ([\#158](https://github.com/NewGraphEnvironment/wet/issues/158)). The
+  water-balance gate also scores nested gauges, where the main stems
+  are, under a rule registered before it was scored; the shipped zone
+  adjustment is kept by its 1.0-point margin, and the per-fit override
+  is retired
+  ([\#47](https://github.com/NewGraphEnvironment/wet/issues/47)). The
+  published routed PCIC flow moved to fwapg’s rebuild that places the
+  Nechako Reservoir: picks moved on 59,206 segments, and routed annual
+  error at 290 gauges fell from 24.2 to 23.1 %.
+
 ## wet 0.4.34
 
 - One watershed group’s balance rows and pick can now be rebuilt alone
