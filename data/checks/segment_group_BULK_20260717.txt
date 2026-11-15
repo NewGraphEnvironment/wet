@@ -1,6 +1,7 @@
 # One watershed group's balance from the shipped fit: BULK (#157)
 
-wet commit e7f1fe1; fit 20260717 of province run 768876badf; scoring code df3280b5c3ff52385f631bc09d3eaadd
+wet commit b78dc41; fit 20260717 of province run 768876badf; scoring code df3280b5c3ff52385f631bc09d3eaadd
+fit and samples: this machine (data/wb/768876badf/fit_20260717)
 annual AET cfu; adjustment applied; monthly shares donor
 
 ## Polygons
@@ -13,7 +14,7 @@ reached from BULK's rows (wet_ws_reach()), used: 35191 polygons, 20970 of them B
   BULK  province run
   MORR  province run
 sampled by this run:
-  BULK 20970 polygons 9 s
+  BULK 20970 polygons 8 s
 
 BULK resampled: identical() to the province run's sample (20970 polygons, 69 columns)
 
@@ -23,7 +24,7 @@ basin 400: 20970 of BULK's watersheds, 70 columns; identical in every column: 11
   zone columns of the basin outside the reach: 2, nonzero on the group's rows: 0
 
 ## Published product
-live build 3e8a968 (manifest built 2026-11-14T17:41:24Z); balance fit 20260717 of run 768876badf
+live build a0318b7 (manifest built 2026-11-15T21:39:06Z, read from https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json); balance fit 20260717 of run 768876badf
 parts read: 3, all matching the manifest before (3) and after (3) the read:
   d8b54aa4b9cc16dbf49946d503e6b205 segment_monthly/scenario=historical/forcing=PNWNAmet/source=pcic_routed/part-400.parquet
   5f962cb6ecbac4ddac5b02bb47959a09 segment_monthly/scenario=historical/forcing=climr/source=wet_balance/part-400.parquet
@@ -40,10 +41,10 @@ rows written: 272610 watershed, 390481 balance segment
   reach                0.1
   published read       3.7
   extents              1.5
-  sampling             8.7
+  sampling             8.4
   accumulation         2.2
   province upstream     0.4
-  fit                  1.0
+  fit                  0.9
   segments             0.4
 
 ## Parity: this build against the published rows
