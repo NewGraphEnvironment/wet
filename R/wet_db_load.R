@@ -137,6 +137,9 @@ wet_db_load <- function(conn, catalog, dataset = "discharge/fwa/v1/segment_month
       }
       DBI::dbClearResult(res)
     }
+    # recorded before the checks, so a refused load rolls the record back with the rows
+    subset <- if (pick_only || !setequal(keep, tb$values) || !is.null(groups)) where else NA_character_
+    wet_load_record(conn, tbl[["schema"]], dataset, scenario, parts, n, subset, catalog)
     got <- DBI::dbGetQuery(conn, paste("SELECT count(*)::float8 AS n FROM", qid, "WHERE scenario = $1"),
                            params = list(scenario))$n
     if (got != sum(n)) stop("loaded ", got, " rows but read ", sum(n), call. = FALSE)
@@ -173,7 +176,6 @@ wet_db_load <- function(conn, catalog, dataset = "discharge/fwa/v1/segment_month
       }
     }
     DBI::dbExecute(conn, paste("ANALYZE", qid))
-    subset <- if (pick_only || !setequal(keep, tb$values) || !is.null(groups)) where else NA_character_
     DBI::dbExecute(conn, sprintf(
       "COMMENT ON TABLE %s IS %s", qid,
       DBI::dbQuoteLiteral(conn, sprintf(
@@ -183,7 +185,6 @@ wet_db_load <- function(conn, catalog, dataset = "discharge/fwa/v1/segment_month
         if (is.na(subset)) "" else paste0("; subset ", subset)
       ))
     ))
-    wet_load_record(conn, tbl[["schema"]], dataset, scenario, parts, n, subset, catalog)
     data.frame(key = parts$key, rows = n, stringsAsFactors = FALSE)
   })
   invisible(loaded)

@@ -2,9 +2,14 @@
 # (#161, crate#43): what only wet knows about the build's receipt. crate::crt_receipt_keys()
 # reads it; R/wet_catalog.R's wet_receipt_write() hands crate::crt_receipt_write() the values.
 #
-# Inputs, each a version_id: the province run's key, the shipped fit (release and scoring
-# md5), the HYDAT release it was fitted on, routed PCIC's monthly and daily fingerprints and
-# run, and the fwapg build those were read from. Settings: the crate release whose schemas
+# Inputs, each one version_id string (crate takes one id per input): province_run, the
+# province run's key (768876badf); fit, "<release>/<scoring code md5>" (the fit's
+# fits.rds, aet_winner.txt and shape_daily.rds are all made under that release and
+# scoring code, so the shape behind the daily balance is named through it); hydat_release,
+# the HYDAT release the fit is calibrated on; pcic_routed, the routed run and its monthly
+# fingerprint as the segment report prints them; pcic_routed_daily, the routed days' and
+# weights' fingerprint as the daily report prints it; fwapg, the fwapg commit that built
+# the routed run (WET_FWAPG_COMMIT). Settings: the crate release whose schemas
 # the parts were conformed to. The parts' bytes are hashed as files; no table is
 # fingerprinted (the daily dataset holds about 2.9 billion rows, past crate#50's limit),
 # and so no tolerance is declared: since #76 a rerun on the same inputs and software

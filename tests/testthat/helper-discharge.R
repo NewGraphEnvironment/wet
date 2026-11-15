@@ -100,6 +100,7 @@ local_discharge_tree_fit <- function(env = parent.frame()) {
                      provenance = list(wet_version = "fixture", wet_commit = "fixture"),
                      crate_version = "0.0.0", built = built,
                      fit = list(release = "fixture", province_run = "fixture", score_code_md5 = strrep("0", 32),
+                                description = "A made-up fit.", citation = "Fixture; not data.",
                                 files = fit_files),
                      receipt = rc)
   root

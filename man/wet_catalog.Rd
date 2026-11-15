@@ -21,7 +21,8 @@ describing each \code{source}, with its citation), \code{source_provenance}
 routed table's fingerprint or the balance's fit release), \code{receipt} (the
 build's \code{receipt.json}, written by crate: its \code{key}, \code{href}, \code{bytes},
 \code{md5} and \code{recipe_id}) and \code{fit} (the shipped fit published beside the
-product: \code{release}, \code{province_run}, \code{score_code_md5} and \code{files}, a data
+product: \code{release}, \code{province_run}, \code{score_code_md5}, \code{description},
+\code{citation} and \code{files}, a data
 frame of \code{key}, \code{role}, \code{bytes}, \code{md5} and \code{href}). \code{receipt} and \code{fit}
 are \code{NULL} for a build published without them.
 }

@@ -47,7 +47,8 @@
 #'   routed table's fingerprint or the balance's fit release), `receipt` (the
 #'   build's `receipt.json`, written by crate: its `key`, `href`, `bytes`,
 #'   `md5` and `recipe_id`) and `fit` (the shipped fit published beside the
-#'   product: `release`, `province_run`, `score_code_md5` and `files`, a data
+#'   product: `release`, `province_run`, `score_code_md5`, `description`,
+#'   `citation` and `files`, a data
 #'   frame of `key`, `role`, `bytes`, `md5` and `href`). `receipt` and `fit`
 #'   are `NULL` for a build published without them.
 #' @section Receipt and fit:
@@ -135,9 +136,10 @@ wet_catalog <- function(manifest = getOption("wet.catalog_url", wet_catalog_url)
   }
   fit <- NULL
   if (!is.null(m$fit)) {
-    fit <- m$fit[c("release", "province_run", "score_code_md5")]
+    fit <- m$fit[c("release", "province_run", "score_code_md5", "description", "citation")]
     if (!all(vapply(fit, function(v) is.character(v) && length(v) == 1L, TRUE))) {
-      stop(manifest, ": the fit needs `release`, `province_run` and `score_code_md5`", call. = FALSE)
+      stop(manifest, ": the fit needs `release`, `province_run`, `score_code_md5`, `description` and `citation`",
+           call. = FALSE)
     }
     fit$files <- wet_manifest_files(m$fit$files, manifest, base, "fit")
   }
@@ -179,8 +181,9 @@ wet_manifest_files <- function(x, manifest, base, what) {
 
 # Every file a catalog's manifest lists, parts, fit and receipt, as
 # data.frame(key, href, bytes, md5), for wet_catalog_verify() of a whole
-# build. Give it the catalog as wet_catalog() returned it: subsetting rows
-# drops the attributes that hold the fit and the receipt.
+# build. wet_catalog_verify() itself checks only the rows it is given, so a
+# subset of parts verifies those parts alone, though row subsets keep the
+# attributes that hold the fit and the receipt.
 wet_catalog_files <- function(catalog) {
   cols <- c("key", "href", "bytes", "md5")
   fit <- attr(catalog, "fit")$files
@@ -234,7 +237,9 @@ wet_part_parse <- function(key, id) {
 # temporary file and moved to `path`, so a reader never sees half of one; a
 # caller with checks still to run writes it under another name and moves it
 # to manifest.json only once they pass. `fit` (#160), where given, is
-# list(release, province_run, score_code_md5, files), `files` the fit's files
+# list(release, province_run, score_code_md5, description, citation, files),
+# `description` saying what the files are and the data they derive from, and
+# `citation` how to cite them, `files` the fit's files
 # as keys below `root` named by role; `receipt` (#161) is the receipt's key
 # below `root` and its recipe_id, from wet_receipt_write(). Their sizes and
 # md5s are read from the files, as the parts' are. Parquet files under `fit/`
@@ -302,6 +307,7 @@ wet_manifest_write <- function(root, id, drainage, sources, provenance, crate_ve
       stop("`fit$files` must be keys under fit/, each named by its role", call. = FALSE)
     }
     m$fit <- list(release = fit$release, province_run = fit$province_run, score_code_md5 = fit$score_code_md5,
+                  description = fit$description, citation = fit$citation,
                   files = unname(Map(function(role, key) c(list(role = role), file_entry(key)),
                                      names(files), unname(files))))
   }

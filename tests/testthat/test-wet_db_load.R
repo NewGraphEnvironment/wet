@@ -141,8 +141,12 @@ test_that("two picked rows for one segment and month are refused, and the load r
   DBI::dbDisconnect(con, shutdown = TRUE)
   cat$bytes[i] <- file.size(cat$href[i])
   cat$md5[i] <- unname(tools::md5sum(cat$href[i]))
+  load_tbl <- paste0(sub("/.*", "", ds), ".wet_load")
+  before <- DBI::dbGetQuery(conn, paste("SELECT * FROM", load_tbl, "ORDER BY key"))
   expect_error(wet_db_load(conn, cat, ds, cache_dir = withr::local_tempdir()), "more than one picked row")
   expect_identical(DBI::dbGetQuery(conn, paste("SELECT count(*)::int AS n FROM", tbl, "WHERE NOT pick"))$n, 26L)
+  # the load table is rolled back with the rows (#88)
+  expect_identical(DBI::dbGetQuery(conn, paste("SELECT * FROM", load_tbl, "ORDER BY key")), before)
 })
 
 test_that("the load table records each loaded part, replaced per dataset and scenario (#88)", {
@@ -177,7 +181,8 @@ test_that("the load table records each loaded part, replaced per dataset and sce
     WHERE i.indrelid = '%s'::regclass AND i.indisprimary", load_tbl))$attname
   expect_setequal(key, c("dataset", "scenario", "key"))
   # the comment link parses keeps its words, with no mention of the load table
-  expect_match(comment(), "^wet_db_load\\(\\): .* scenario historical last loaded from .* \\(built [^,]*, wet \\S+\\)$")
+  expect_identical(comment(), sprintf("wet_db_load(): %s, scenario historical last loaded from %s (built %s, wet %s)",
+                                      ds, attr(cat, "manifest"), attr(cat, "built"), attr(cat, "provenance")$wet_commit))
 
   # a partial reload replaces the scenario's rows and records the subset
   wet_db_load(conn, cat, ds, months = 0, pick_only = TRUE, cache_dir = cache)
@@ -185,7 +190,9 @@ test_that("the load table records each loaded part, replaced per dataset and sce
   expect_identical(nrow(x), nrow(parts))
   expect_true(all(x$subset == "month IN (0) AND pick"))
   expect_true(all(x$rows == 1))
-  expect_match(comment(), "; subset month IN \\(0\\) AND pick$")
+  expect_identical(comment(), sprintf(
+    "wet_db_load(): %s, scenario historical last loaded from %s (built %s, wet %s); subset month IN (0) AND pick",
+    ds, attr(cat, "manifest"), attr(cat, "built"), attr(cat, "provenance")$wet_commit))
 
   # another scenario's load leaves this one's record alone
   ssp <- cat
