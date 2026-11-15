@@ -236,9 +236,9 @@ wet_part_parse <- function(key, id) {
 # crate release whose schemas the parts were conformed to. Written to a
 # temporary file and moved to `path`, so a reader never sees half of one; a
 # caller with checks still to run writes it under another name and moves it
-# to manifest.json only once they pass. `fit` (#160), where given, is
-# list(release, province_run, score_code_md5, description, citation, files),
-# `description` saying what the files are and the data they derive from, and
+# to manifest.json only once they pass. `fit` (#160), where given, is a list
+# of the fit's release, province_run, score_code_md5, description, citation
+# and files, `description` saying what the files are and the data they derive from, and
 # `citation` how to cite them, `files` the fit's files
 # as keys below `root` named by role; `receipt` (#161) is the receipt's key
 # below `root` and its recipe_id, from wet_receipt_write(). Their sizes and
@@ -368,7 +368,9 @@ wet_catalog_digest <- function(catalog) {
 # Returns list(key, recipe_id) for wet_manifest_write(receipt =).
 wet_receipt_write <- function(root, id, commit, version, inputs, settings, files, built = Sys.time(),
                               keys = system.file("receipt", "discharge_fwa_v1.yaml", package = "wet")) {
-  if (!requireNamespace("crate", quietly = TRUE)) stop("install crate (0.16.0 or later) to write a receipt", call. = FALSE)
+  if (!requireNamespace("crate", quietly = TRUE)) {
+    stop("install crate (0.16.0 or later) to write a receipt", call. = FALSE)
+  }
   wet_id_check(id)
   k <- crate::crt_receipt_keys(keys)
   if (!identical(k$output, id)) stop(keys, " declares the receipt of ", k$output, ", not ", id, call. = FALSE)

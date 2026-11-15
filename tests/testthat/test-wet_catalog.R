@@ -241,12 +241,36 @@ test_that("a manifest's receipt and fit entries are checked (#160, #161)", {
     jsonlite::write_json(m, g, auto_unbox = TRUE, digits = NA)
     g
   }
-  expect_error(wet_catalog(bad(function(m) { m$receipt$recipe_id <- "x"; m })), "recipe_id")
-  expect_error(wet_catalog(bad(function(m) { m$receipt$key <- "../receipt.json"; m })), "not a receipt key")
-  expect_error(wet_catalog(bad(function(m) { m$fit$files[[1]]$key <- "fits.rds"; m })), "not a fit key")
-  expect_error(wet_catalog(bad(function(m) { m$fit$files[[1]]$key <- "fit/../x"; m })), "not a fit key")
-  expect_error(wet_catalog(bad(function(m) { m$fit$files[[1]]$md5 <- "x"; m })), "malformed")
-  expect_error(wet_catalog(bad(function(m) { m$fit$release <- NULL; m })), "release")
-  expect_error(wet_catalog(bad(function(m) { m$fit$citation <- NULL; m })), "citation")
-  expect_error(wet_catalog(bad(function(m) { m$fit$files[[2]]$key <- m$fit$files[[1]]$key; m })), "twice")
+  expect_error(wet_catalog(bad(function(m) {
+    m$receipt$recipe_id <- "x"
+    m
+  })), "recipe_id")
+  expect_error(wet_catalog(bad(function(m) {
+    m$receipt$key <- "../receipt.json"
+    m
+  })), "not a receipt key")
+  expect_error(wet_catalog(bad(function(m) {
+    m$fit$files[[1]]$key <- "fits.rds"
+    m
+  })), "not a fit key")
+  expect_error(wet_catalog(bad(function(m) {
+    m$fit$files[[1]]$key <- "fit/../x"
+    m
+  })), "not a fit key")
+  expect_error(wet_catalog(bad(function(m) {
+    m$fit$files[[1]]$md5 <- "x"
+    m
+  })), "malformed")
+  expect_error(wet_catalog(bad(function(m) {
+    m$fit$release <- NULL
+    m
+  })), "release")
+  expect_error(wet_catalog(bad(function(m) {
+    m$fit$citation <- NULL
+    m
+  })), "citation")
+  expect_error(wet_catalog(bad(function(m) {
+    m$fit$files[[2]]$key <- m$fit$files[[1]]$key
+    m
+  })), "twice")
 })

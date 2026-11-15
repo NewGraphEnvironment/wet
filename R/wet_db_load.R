@@ -215,9 +215,9 @@ cols_load <- c(
 wet_load_record <- function(conn, schema, dataset, scenario, parts, rows, subset, catalog) {
   id <- DBI::Id(schema = schema, table = "wet_load")
   qid <- DBI::dbQuoteIdentifier(conn, id)
-  DBI::dbExecute(conn, sprintf(
-    "CREATE TABLE IF NOT EXISTS %s (%s, PRIMARY KEY (dataset, scenario, key))", qid,
-    paste(DBI::dbQuoteIdentifier(conn, names(cols_load)), cols_load, collapse = ", ")))
+  qcols <- DBI::dbQuoteIdentifier(conn, names(cols_load))
+  DBI::dbExecute(conn, sprintf("CREATE TABLE IF NOT EXISTS %s (%s, PRIMARY KEY (dataset, scenario, key))", qid,
+                               paste(qcols, cols_load, collapse = ", ")))
   have <- DBI::dbListFields(conn, id)
   if (!setequal(have, names(cols_load))) {
     stop(schema, ".wet_load has columns ", paste(have, collapse = ", "), ", not ",
@@ -236,11 +236,11 @@ wet_load_record <- function(conn, schema, dataset, scenario, parts, rows, subset
   )
   # one statement run once per part; now() is the transaction's start, one
   # instant for the whole load
-  DBI::dbExecute(conn, sprintf(
-    "INSERT INTO %s (%s) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::timestamptz, $9, $10, now())", qid,
-    paste(DBI::dbQuoteIdentifier(conn, names(cols_load)), collapse = ", ")),
-    params = list(rec$dataset, rec$scenario, rec$key, rec$md5, rec$rows, rec$subset, rec$manifest,
-                  format(rec$built, "%Y-%m-%d %H:%M:%S+00", tz = "UTC"), rec$wet_commit, rec$recipe_id))
+  sql <- sprintf("INSERT INTO %s (%s) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::timestamptz, $9, $10, now())", qid,
+                 paste(qcols, collapse = ", "))
+  DBI::dbExecute(conn, sql, params = list(rec$dataset, rec$scenario, rec$key, rec$md5, rec$rows, rec$subset,
+                                          rec$manifest, format(rec$built, "%Y-%m-%d %H:%M:%S+00", tz = "UTC"),
+                                          rec$wet_commit, rec$recipe_id))
   invisible(nrow(rec))
 }
 

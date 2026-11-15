@@ -181,8 +181,9 @@ test_that("the load table records each loaded part, replaced per dataset and sce
     WHERE i.indrelid = '%s'::regclass AND i.indisprimary", load_tbl))$attname
   expect_setequal(key, c("dataset", "scenario", "key"))
   # the comment link parses keeps its words, with no mention of the load table
-  expect_identical(comment(), sprintf("wet_db_load(): %s, scenario historical last loaded from %s (built %s, wet %s)",
-                                      ds, attr(cat, "manifest"), attr(cat, "built"), attr(cat, "provenance")$wet_commit))
+  loaded_from <- sprintf("wet_db_load(): %s, scenario historical last loaded from %s (built %s, wet %s)", ds,
+                         attr(cat, "manifest"), attr(cat, "built"), attr(cat, "provenance")$wet_commit)
+  expect_identical(comment(), loaded_from)
 
   # a partial reload replaces the scenario's rows and records the subset
   wet_db_load(conn, cat, ds, months = 0, pick_only = TRUE, cache_dir = cache)
@@ -190,9 +191,7 @@ test_that("the load table records each loaded part, replaced per dataset and sce
   expect_identical(nrow(x), nrow(parts))
   expect_true(all(x$subset == "month IN (0) AND pick"))
   expect_true(all(x$rows == 1))
-  expect_identical(comment(), sprintf(
-    "wet_db_load(): %s, scenario historical last loaded from %s (built %s, wet %s); subset month IN (0) AND pick",
-    ds, attr(cat, "manifest"), attr(cat, "built"), attr(cat, "provenance")$wet_commit))
+  expect_identical(comment(), paste0(loaded_from, "; subset month IN (0) AND pick"))
 
   # another scenario's load leaves this one's record alone
   ssp <- cat
