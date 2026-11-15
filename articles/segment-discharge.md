@@ -312,9 +312,10 @@ published days, as its difference from the daily record. {.table}
 - **Coverage.** Besides the Liard, routed PCIC has no value in a few
   northern and border basins, and only some on the outer coast’s
   islands.
-- **The zone adjustment is kept by decision.** On headwater basins it
-  does not beat raw precipitation less evapotranspiration, and zones
-  with too few gauges for their own adjustment get none.
+- **The zone adjustment is kept within a margin.** On headwater basins
+  it does not beat raw precipitation less evapotranspiration, but it
+  loses by less than the margin the gate allows, and zones with too few
+  gauges for their own adjustment get none.
 - **Segments without a value.** The balance reaches a segment through
   `fwapg`’s lookup matching segments to watershed polygons, and both
   sources are published only on matched segments, so the 8% of segments
