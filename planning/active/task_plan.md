@@ -38,7 +38,7 @@ Batch 3 of `planning/backlog.md`: #108, #161, #88, #160. One format change and o
 - [x] On m4, on this branch, with a `connect_timeout` probe first: BUILD. Expect 512 of 512 parts identical to live 3e8a968, a new manifest digest (description, `receipt` and `fit`), and SHA-256 time recorded. Commit the report.
 - [x] `WET_PUBLISH=1` **only on the user's word** (an outward write; auto mode may refuse it, in which case I hand over the bare command). It uploads the manifest, receipt and fit only, then verifies anonymously. Commit the report PUBLISH rewrote.
 - [x] On m4: `scripts/segment_group.R BULK` in both modes, published and local, and the two reports agree row for row. Reload `wet_db_load(months = 0, pick_only = TRUE)` into a scratch database on m4 (not its `discharge`, review A2) and check that `wet_load` lists the parts. The comment still names `scenario historical`.
-- [ ] Edit the bodies: #161 (beside, not in place; crate in Suggests; bundle attributes carried to #165), #88 (columns as built), #160 (what is published), #165 (add the move-1 owed items and #161's bundle item, mirrored from #164).
+- [x] Edit the bodies: #161 (beside, not in place; crate in Suggests; bundle attributes carried to #165), #88 (columns as built), #160 (what is published), #165 (add the move-1 owed items and #161's bundle item, mirrored from #164).
 
 ## Owed at the end (reported, done after merge)
 

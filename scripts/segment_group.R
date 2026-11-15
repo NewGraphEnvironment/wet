@@ -125,10 +125,20 @@ if (from_pub) {
     eval(ex[[i]], e)
     unique(e$score_files_for(release))
   })
-  moved <- system2("git", c("diff", "--name-only", build_commit, "--", score_code_files), stdout = TRUE)
-  if (!is.null(attr(moved, "status"))) stop("git diff against the build's commit ", build_commit, " failed")
+  # each file's content against the build commit's blob, not git diff, which
+  # an index flag (assume-unchanged, skip-worktree) can hide an edit from
+  git1 <- function(...) {
+    v <- suppressWarnings(system2("git", c(...), stdout = TRUE, stderr = FALSE))
+    if (!is.null(attr(v, "status")) || length(v) != 1L) NA_character_ else v
+  }
+  moved <- score_code_files[vapply(score_code_files, function(f) {
+    at_build <- git1("rev-parse", "--verify", "-q", paste0(build_commit, ":", f))
+    here <- git1("hash-object", "--no-filters", "--", f)
+    is.na(at_build) || is.na(here) || !identical(at_build, here)
+  }, logical(1))]
   if (length(moved)) {
-    stop("scoring code changed since the build ", build_commit, " that published the fit: ", paste(moved, collapse = ", "))
+    stop("scoring code changed since the build ", build_commit, " that published the fit: ",
+         paste(moved, collapse = ", "))
   }
   score_code_md5 <- pfit$score_code_md5
   fetch_fit <- function(i) {
