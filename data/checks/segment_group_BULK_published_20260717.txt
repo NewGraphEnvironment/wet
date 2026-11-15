@@ -1,6 +1,6 @@
 # One watershed group's balance from the shipped fit: BULK (#157)
 
-wet commit b78dc41; fit 20260717 of province run 768876badf; scoring code df3280b5c3ff52385f631bc09d3eaadd
+wet commit eb32044; fit 20260717 of province run 768876badf; scoring code df3280b5c3ff52385f631bc09d3eaadd
 fit and samples: published (https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json), 3 files fetched and checked against their md5; after the build 3 of 3 still match
 annual AET cfu; adjustment applied; monthly shares donor
 
@@ -33,9 +33,9 @@ rows written: 272610 watershed, 390481 balance segment
 ## Time per step (s)
   closure              0.4
   reach                0.1
-  published read       5.1
+  published read       5.0
   extents              1.5
-  sample fetch         2.8
+  sample fetch         0.1
   accumulation         2.3
   fit                  0.9
   segments             0.4
