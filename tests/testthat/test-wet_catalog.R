@@ -266,6 +266,10 @@ test_that("a manifest's receipt and fit entries are checked (#160, #161)", {
     m
   })), "release")
   expect_error(wet_catalog(bad(function(m) {
+    m$fit$province_run <- "../../x"
+    m
+  })), "malformed")
+  expect_error(wet_catalog(bad(function(m) {
     m$fit$citation <- NULL
     m
   })), "citation")

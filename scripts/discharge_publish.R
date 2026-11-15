@@ -469,12 +469,14 @@ stamp("fit: fits.rds and ", length(smp_groups), " group samples")
 built_time <- Sys.time()
 part_keys <- sort(list.files(root, "\\.parquet$", recursive = TRUE), method = "radix")
 part_keys <- part_keys[!startsWith(part_keys, "fit/")]
+fwapg_commit <- sub("^.* at ([0-9a-f]{7,40})$", "\\1", routed_line)
+if (identical(fwapg_commit, routed_line)) stop("the routed line names no fwapg commit: ", routed_line)
 t0 <- Sys.time()
 receipt <- wet_receipt_write(
   root, publish_id, wet_commit_full, as.character(utils::packageVersion("wet")),
   inputs = list(province_run = basename(key_dir), fit = paste(release, score_code_md5, sep = "/"),
                 hydat_release = release, pcic_routed = paste(sub("^routed: ", "", routed_line), routed_fp, sep = "; "),
-                pcic_routed_daily = daily_fp, fwapg = sub("^.* at ([0-9a-f]+)$", "\\1", routed_line)),
+                pcic_routed_daily = daily_fp, fwapg = fwapg_commit),
   settings = list(crate_version = crate_version),
   files = c(part_keys, unname(fit_files)), built = built_time)
 receipt_secs <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
@@ -503,8 +505,10 @@ wet_manifest_write(root, publish_id, drainage = drainage, sources = sources,
                    receipt = receipt)
 cat_local <- wet_catalog(f_pending)
 v <- wet_catalog_verify(wet_catalog_files(cat_local))
-stopifnot(all(v$ok), sum(cat_local$rows) == sum(tally$rows), identical(attr(cat_local, "receipt")$recipe_id,
-                                                                      receipt$recipe_id))
+# the receipt hashed exactly the files the manifest lists beside it
+receipt_parts <- names(crate::crt_receipt_read(file.path(root, "receipt.json"))$result$parts)
+stopifnot(all(v$ok), sum(cat_local$rows) == sum(tally$rows),
+          setequal(receipt_parts, setdiff(wet_catalog_files(cat_local)$key, "receipt.json")))
 
 # ---- cross-checks against the segment report, and what a reader sees --------------------------------
 num <- function(pattern) {

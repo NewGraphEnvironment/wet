@@ -64,8 +64,8 @@ publish_report_check <- function(lines, cat_local, f_report) {
     stop("commit the build's report ", f_report, " first; it must name build ", built_at,
          " and this tree's parts (", publish_tree_line(cat_local), ") and fail no check")
   }
-  # and the fit and receipt this tree lists, where it lists them (#160, #161)
-  if (!is.null(attr(cat_local, "fit")) && !all(publish_fit_lines(cat_local) %in% lines)) {
+  # and the fit and receipt this tree lists, where it lists any file beside its parts (#160, #161)
+  if (nrow(wet:::wet_catalog_files(cat_local)) > nrow(cat_local) && !all(publish_fit_lines(cat_local) %in% lines)) {
     stop("commit the build's report ", f_report, " first; its fit and receipt lines must name this tree's")
   }
   h <- which(lines == publish_live_heading)

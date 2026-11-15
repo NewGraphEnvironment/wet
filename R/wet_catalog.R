@@ -141,6 +141,11 @@ wet_catalog <- function(manifest = getOption("wet.catalog_url", wet_catalog_url)
       stop(manifest, ": the fit needs `release`, `province_run`, `score_code_md5`, `description` and `citation`",
            call. = FALSE)
     }
+    # names a reader may build a path from
+    if (!grepl("^[A-Za-z0-9_-]+$", fit$release) || !grepl("^[A-Za-z0-9_-]+$", fit$province_run) ||
+          !grepl("^[0-9a-f]{32}$", fit$score_code_md5)) {
+      stop(manifest, ": the fit's `release`, `province_run` or `score_code_md5` is malformed", call. = FALSE)
+    }
     fit$files <- wet_manifest_files(m$fit$files, manifest, base, "fit")
   }
   extra <- c(fit$files$key, receipt$key)

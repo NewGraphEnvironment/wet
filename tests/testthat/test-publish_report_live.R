@@ -161,4 +161,8 @@ test_that("a tree with a fit and receipt needs its fit lines in the report (#160
   other <- cat
   attr(other, "receipt")$md5 <- strrep("0", 32)
   expect_error(e$publish_report_check(lines, other, f), "fit and receipt lines")
+  # a receipt with no fit still needs its lines
+  nofit <- cat
+  attr(nofit, "fit") <- NULL
+  expect_error(e$publish_report_check(base, nofit, f))
 })
