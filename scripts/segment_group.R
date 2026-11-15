@@ -66,11 +66,14 @@ if (wsg %in% drop_groups) stop("WET_GROUP_DROP cannot remove the group itself")
 from_pub <- Sys.getenv("WET_GROUP_FROM")
 if (!from_pub %in% c("", "published")) stop("WET_GROUP_FROM is `published` or unset, not ", from_pub)
 from_pub <- from_pub == "published"
-# a manifest other than the live one: published mode only, reported away from data/checks/
-catalog_url <- Sys.getenv("WET_CATALOG_URL")
-if (nzchar(catalog_url)) {
-  if (!from_pub) stop("WET_CATALOG_URL needs WET_GROUP_FROM=published; the default mode compares with the live build")
-  options(wet.catalog_url = catalog_url)
+# a manifest other than the live one, from WET_CATALOG_URL or an option set
+# anywhere (an .Rprofile): published mode only, reported away from data/checks/.
+# One fact decides the refusal, the report's path and its label
+if (nzchar(Sys.getenv("WET_CATALOG_URL"))) options(wet.catalog_url = Sys.getenv("WET_CATALOG_URL"))
+catalog_live <- identical(getOption("wet.catalog_url", wet:::wet_catalog_url), wet:::wet_catalog_url)
+if (!catalog_live && !from_pub) {
+  stop("a manifest other than the live one (", getOption("wet.catalog_url"), ") needs WET_GROUP_FROM=published; ",
+       "the default mode compares with the live build")
 }
 if (from_pub && (resample || length(drop_groups))) {
   stop("WET_GROUP_FROM=published takes neither WET_WB_RESAMPLE nor WET_GROUP_DROP: both need the province run")
@@ -483,7 +486,10 @@ if (from_pub) {
 }
 
 # ---- report -------------------------------------------------------------------------------------------------
-f_rep <- if (nzchar(catalog_url)) {
+# the catalogs read are the one decided above
+stopifnot(identical(attr(cat_pub, "manifest") == wet:::wet_catalog_url, catalog_live),
+          !from_pub || identical(attr(cat_fit, "manifest"), attr(cat_pub, "manifest")))
+f_rep <- if (!catalog_live) {
   dir.create("data/logs/164", recursive = TRUE, showWarnings = FALSE)
   file.path("data/logs/164", sprintf("segment_group_%s_published_%s.txt", wsg, release))
 } else if (length(drop_groups)) {
@@ -529,7 +535,7 @@ writeLines(c(
   up_parity,
   "", "## Published product",
   sprintf("%s build %s (manifest built %s, read from %s); balance fit %s of run %s",
-          if (identical(attr(cat_pub, "manifest"), wet:::wet_catalog_url)) "live" else "UNPUBLISHED",
+          if (catalog_live) "live" else "UNPUBLISHED",
           attr(cat_pub, "provenance")$wet_commit, attr(cat_pub, "built"), attr(cat_pub, "manifest"),
           prov_bal$fit_release, prov_bal$province_run),
   sprintf("parts read: %d, all matching the manifest before (%d) and after (%d) the read:", nrow(parts),
