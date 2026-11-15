@@ -21,7 +21,7 @@ ticked and not **waiting**; `/planning-init <umbrella>` plans it, one phase per 
 
 | move | umbrella | batches | state |
 |---|---|---|---|
-| - [ ] 1 | #163 | 1, 2: province inputs and run comparison, the fit's own rules (6 issues) | open: start here |
+| - [x] 1 | #163 | 1, 2: province inputs and run comparison, the fit's own rules (6 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/170 |
 | - [ ] 2 | #164 | 3: the published build's record (4 issues) | open, after move 1 |
 | - [ ] 3 | #165 | 4, 5: article bundles and maps, docs (4 issues) | **waiting** on move 2's PUBLISH: the tracked publish report names the build move 2 published |
 | - [ ] 4 | #166 | 6: monthly error at the gauges (3 issues) | open |
@@ -49,7 +49,7 @@ Tracks are separate efforts, not moves: the cross-repo provenance track, whose w
 
 ### 1. Province inputs and run comparison
 
-- [ ] Carried by move 1, #163
+- [x] Carried by move 1, #163 (merged in https://github.com/NewGraphEnvironment/wet/pull/170)
 
 #23 keys the CGIAR crop and the DEM on their source data, which renames those inputs and so
 changes the province run key: the whole chain (rescore every variant, compare, `wb_validate.R`,
@@ -66,7 +66,7 @@ Touches `R/wet_cgiar_aet.R`, `R/wet_dem_glo90.R`, `scripts/wb_inputs.R`,
 
 ### 2. The fit's own rules
 
-- [ ] Carried by move 1, #163
+- [x] Carried by move 1, #163 (merged in https://github.com/NewGraphEnvironment/wet/pull/170)
 
 #158 (donor shares at a calibration gauge turn on an exact-zero distance) makes every rebuild by
 another route differ from the published values at calibration gauges, the group builds of #157
