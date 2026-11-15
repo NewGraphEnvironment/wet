@@ -16,9 +16,14 @@ path below the manifest, and \code{href} is where to fetch it. Attributes:
 \code{manifest} (where it was read from), \code{id} (e.g. \code{discharge/fwa/v1}),
 \code{built} (UTC), \code{provenance} (a named list: wet version and commit, and
 the code that built and published it), \code{sources} (a data frame
-describing each \code{source}, with its citation), and \code{source_provenance}
+describing each \code{source}, with its citation), \code{source_provenance}
 (a list by source: what each source's rows were built from, e.g. the
-routed table's fingerprint or the balance's fit release).
+routed table's fingerprint or the balance's fit release), \code{receipt} (the
+build's \code{receipt.json}, written by crate: its \code{key}, \code{href}, \code{bytes},
+\code{md5} and \code{recipe_id}) and \code{fit} (the shipped fit published beside the
+product: \code{release}, \code{province_run}, \code{score_code_md5} and \code{files}, a data
+frame of \code{key}, \code{role}, \code{bytes}, \code{md5} and \code{href}). \code{receipt} and \code{fit}
+are \code{NULL} for a build published without them.
 }
 \description{
 Reads the \code{manifest.json} of a published discharge tree and returns one row
@@ -55,6 +60,17 @@ the hrefs. Files are overwritten in place when the data are rebuilt, so
 \code{md5} identifies a build, and a read during a publish can find a part that
 no longer matches its manifest entry: retry once the publish completes.
 Each publish rewrites the whole manifest from one local tree.
+}
+
+\section{Receipt and fit}{
+
+Beside the parts, a build lists \code{receipt.json}, its provenance record in
+crate's shared shape (what was built, from which code and inputs, and each
+file's SHA-256; see \code{crate::crt_receipt_read()}), and under \verb{fit/} the
+shipped water-balance fit (\code{fit/fits.rds}) and each watershed group's
+sample of the province's layers (\verb{fit/sample/part-<GROUP>.parquet}), so
+one group's balance rows can be rebuilt away from the machine that made
+them (\code{scripts/segment_group.R} with \code{WET_GROUP_FROM=published}).
 }
 
 \examples{

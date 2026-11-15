@@ -1,0 +1,23 @@
+# The receipt declaration for a published discharge build, s3://fresh-bc/discharge/fwa/v1/
+# (#161, crate#43): what only wet knows about the build's receipt. crate::crt_receipt_keys()
+# reads it; R/wet_catalog.R's wet_receipt_write() hands crate::crt_receipt_write() the values.
+#
+# Inputs, each a version_id: the province run's key, the shipped fit (release and scoring
+# md5), the HYDAT release it was fitted on, routed PCIC's monthly and daily fingerprints and
+# run, and the fwapg build those were read from. Settings: the crate release whose schemas
+# the parts were conformed to. The parts' bytes are hashed as files; no table is
+# fingerprinted (the daily dataset holds about 2.9 billion rows, past crate#50's limit),
+# and so no tolerance is declared: since #76 a rerun on the same inputs and software
+# writes identical parts.
+receipt_keys: 1
+output: discharge/fwa/v1
+recipe:
+  settings: [crate_version]
+  inputs: [province_run, fit, hydat_release, pcic_routed, pcic_routed_daily, fwapg]
+  seed: false
+result:
+  summary:
+    parts: {}
+    rows_segment_monthly: {}
+    rows_watershed_monthly: {}
+    rows_segment_daily: {}

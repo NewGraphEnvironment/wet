@@ -42,9 +42,22 @@
 #'   `manifest` (where it was read from), `id` (e.g. `discharge/fwa/v1`),
 #'   `built` (UTC), `provenance` (a named list: wet version and commit, and
 #'   the code that built and published it), `sources` (a data frame
-#'   describing each `source`, with its citation), and `source_provenance`
+#'   describing each `source`, with its citation), `source_provenance`
 #'   (a list by source: what each source's rows were built from, e.g. the
-#'   routed table's fingerprint or the balance's fit release).
+#'   routed table's fingerprint or the balance's fit release), `receipt` (the
+#'   build's `receipt.json`, written by crate: its `key`, `href`, `bytes`,
+#'   `md5` and `recipe_id`) and `fit` (the shipped fit published beside the
+#'   product: `release`, `province_run`, `score_code_md5` and `files`, a data
+#'   frame of `key`, `role`, `bytes`, `md5` and `href`). `receipt` and `fit`
+#'   are `NULL` for a build published without them.
+#' @section Receipt and fit:
+#' Beside the parts, a build lists `receipt.json`, its provenance record in
+#' crate's shared shape (what was built, from which code and inputs, and each
+#' file's SHA-256; see `crate::crt_receipt_read()`), and under `fit/` the
+#' shipped water-balance fit (`fit/fits.rds`) and each watershed group's
+#' sample of the province's layers (`fit/sample/part-<GROUP>.parquet`), so
+#' one group's balance rows can be rebuilt away from the machine that made
+#' them (`scripts/segment_group.R` with `WET_GROUP_FROM=published`).
 #' @seealso [wet_db_load()] to load one scenario of a dataset into Postgres.
 #' @examples
 #' # the manifest of a tiny made-up tree, laid out as the published one
@@ -113,8 +126,68 @@ wet_catalog <- function(manifest = getOption("wet.catalog_url", wet_catalog_url)
   if (length(missing_src)) {
     stop(manifest, " does not describe source ", paste(missing_src, collapse = ", "), call. = FALSE)
   }
+  receipt <- wet_manifest_files(m$receipt, manifest, base, "receipt")
+  if (!is.null(receipt)) {
+    if (!is.character(m$receipt$recipe_id) || !grepl("^[0-9a-f]{64}$", m$receipt$recipe_id)) {
+      stop(manifest, ": the receipt has no valid `recipe_id`", call. = FALSE)
+    }
+    receipt <- c(as.list(receipt), recipe_id = m$receipt$recipe_id)
+  }
+  fit <- NULL
+  if (!is.null(m$fit)) {
+    fit <- m$fit[c("release", "province_run", "score_code_md5")]
+    if (!all(vapply(fit, function(v) is.character(v) && length(v) == 1L, TRUE))) {
+      stop(manifest, ": the fit needs `release`, `province_run` and `score_code_md5`", call. = FALSE)
+    }
+    fit$files <- wet_manifest_files(m$fit$files, manifest, base, "fit")
+  }
+  extra <- c(fit$files$key, receipt$key)
+  if (anyDuplicated(c(out$key, extra))) stop(manifest, " lists a key twice", call. = FALSE)
   structure(out, manifest = manifest, id = m$id, built = m$built,
-            provenance = m$provenance, sources = sources, source_provenance = source_provenance)
+            provenance = m$provenance, sources = sources, source_provenance = source_provenance,
+            receipt = receipt, fit = fit)
+}
+
+# The files a manifest lists beside its parts (#160, #161): the receipt, one
+# entry, and the fit's files, each with a `role`. NULL where the manifest has
+# none, as a build published before them does not.
+wet_manifest_files <- function(x, manifest, base, what) {
+  if (is.null(x)) return(NULL)
+  one <- what == "receipt"
+  if (one) x <- list(x)
+  if (!is.list(x) || !length(x)) stop(manifest, ": `", what, "` lists no files", call. = FALSE)
+  field <- function(e, k, type) {
+    v <- e[[k]]
+    ok <- length(v) == 1L && switch(type, chr = is.character(v), num = is.numeric(v))
+    if (!ok) stop(manifest, ": a `", what, "` file has no valid `", k, "`", call. = FALSE)
+    v
+  }
+  f <- data.frame(
+    key = vapply(x, field, "", "key", "chr"),
+    role = if (one) "receipt" else vapply(x, field, "", "role", "chr"),
+    bytes = vapply(x, field, 0, "bytes", "num"),
+    md5 = vapply(x, field, "", "md5", "chr"),
+    stringsAsFactors = FALSE
+  )
+  re <- if (one) "^receipt\\.json$" else "^fit/[A-Za-z0-9][A-Za-z0-9._/-]*$"
+  bad <- !grepl(re, f$key) | grepl("(^|/)\\.\\.(/|$)", f$key)
+  if (any(bad)) stop(manifest, ": not a ", what, " key: ", f$key[bad][1], call. = FALSE)
+  if (!all(grepl("^[0-9a-f]{32}$", f$md5))) stop(manifest, ": an md5 is malformed", call. = FALSE)
+  f$href <- paste(base, f$key, sep = "/")
+  f
+}
+
+# Every file a catalog's manifest lists, parts, fit and receipt, as
+# data.frame(key, href, bytes, md5), for wet_catalog_verify() of a whole
+# build. Give it the catalog as wet_catalog() returned it: subsetting rows
+# drops the attributes that hold the fit and the receipt.
+wet_catalog_files <- function(catalog) {
+  cols <- c("key", "href", "bytes", "md5")
+  fit <- attr(catalog, "fit")$files
+  rc <- attr(catalog, "receipt")
+  rbind(as.data.frame(catalog)[cols],
+        if (!is.null(fit)) fit[cols],
+        if (!is.null(rc)) as.data.frame(rc[cols], stringsAsFactors = FALSE))
 }
 
 wet_catalog_url <- "https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json"
@@ -160,14 +233,21 @@ wet_part_parse <- function(key, id) {
 # crate release whose schemas the parts were conformed to. Written to a
 # temporary file and moved to `path`, so a reader never sees half of one; a
 # caller with checks still to run writes it under another name and moves it
-# to manifest.json only once they pass.
+# to manifest.json only once they pass. `fit` (#160), where given, is
+# list(release, province_run, score_code_md5, files), `files` the fit's files
+# as keys below `root` named by role; `receipt` (#161) is the receipt's key
+# below `root` and its recipe_id, from wet_receipt_write(). Their sizes and
+# md5s are read from the files, as the parts' are. Parquet files under `fit/`
+# are fit files, not parts.
 wet_manifest_write <- function(root, id, drainage, sources, provenance, crate_version,
-                               built = Sys.time(), path = file.path(root, "manifest.json")) {
+                               built = Sys.time(), path = file.path(root, "manifest.json"),
+                               fit = NULL, receipt = NULL) {
   wet_id_check(id)
   if (!requireNamespace("duckdb", quietly = TRUE)) {
     stop("install duckdb to count the parts' rows", call. = FALSE)
   }
   keys <- sort(list.files(root, "\\.parquet$", recursive = TRUE))
+  keys <- keys[!startsWith(keys, "fit/")]
   if (!length(keys)) stop("no parquet parts under ", root, call. = FALSE)
   parsed <- wet_part_parse(keys, id)
   if (is.null(names(drainage)) || !all(parsed$code %in% names(drainage))) {
@@ -208,6 +288,23 @@ wet_manifest_write <- function(root, id, drainage, sources, provenance, crate_ve
     }),
     parts = parts
   )
+  file_entry <- function(key) {
+    f <- file.path(root, key)
+    if (!file.exists(f)) stop("no file ", key, " under ", root, call. = FALSE)
+    list(key = key, bytes = as.numeric(file.size(f)), md5 = unname(tools::md5sum(f)))
+  }
+  if (!is.null(receipt)) {
+    m$receipt <- c(file_entry(receipt$key), recipe_id = receipt$recipe_id)
+  }
+  if (!is.null(fit)) {
+    files <- fit$files
+    if (is.null(names(files)) || any(!nzchar(names(files))) || !all(startsWith(files, "fit/"))) {
+      stop("`fit$files` must be keys under fit/, each named by its role", call. = FALSE)
+    }
+    m$fit <- list(release = fit$release, province_run = fit$province_run, score_code_md5 = fit$score_code_md5,
+                  files = unname(Map(function(role, key) c(list(role = role), file_entry(key)),
+                                     names(files), unname(files))))
+  }
   tmp <- tempfile("manifest", tmpdir = root, fileext = ".json")
   jsonlite::write_json(m, tmp, auto_unbox = TRUE, pretty = TRUE, digits = NA, null = "null", na = "null")
   if (!file.rename(tmp, path)) stop("could not move ", tmp, " to ", path, call. = FALSE)
@@ -254,4 +351,49 @@ wet_catalog_digest <- function(catalog) {
   on.exit(unlink(f), add = TRUE)
   writeBin(charToRaw(paste0(lines, "\n", collapse = "")), f)
   unname(tools::md5sum(f))
+}
+
+# Write receipt.json beside the manifest under `root` through crate's writer
+# (#161, crate#43), for a published build: `commit` the full 40-character wet
+# commit the tree was built at, `inputs` a named list of version ids and
+# `settings` the run settings the declaration names
+# (inst/receipt/discharge_fwa_v1.yaml), `files` every part and fit file below
+# `root`, each hashed by crate. `built` is the receipt's time, the manifest's.
+# Returns list(key, recipe_id) for wet_manifest_write(receipt =).
+wet_receipt_write <- function(root, id, commit, version, inputs, settings, files, built = Sys.time(),
+                              keys = system.file("receipt", "discharge_fwa_v1.yaml", package = "wet")) {
+  if (!requireNamespace("crate", quietly = TRUE)) stop("install crate (0.16.0 or later) to write a receipt", call. = FALSE)
+  wet_id_check(id)
+  k <- crate::crt_receipt_keys(keys)
+  if (!identical(k$output, id)) stop(keys, " declares the receipt of ", k$output, ", not ", id, call. = FALSE)
+  parts <- files[!startsWith(files, "fit/")]
+  ds <- wet_part_parse(parts, id)$dataset
+  rows <- function(unit) {
+    f <- file.path(root, parts[ds == paste(id, unit, sep = "/")])
+    if (!length(f)) return(0)
+    con <- DBI::dbConnect(duckdb::duckdb())
+    on.exit(DBI::dbDisconnect(con, shutdown = TRUE), add = TRUE)
+    sum(vapply(f, function(x) {
+      DBI::dbGetQuery(con, "SELECT sum(num_rows)::DOUBLE AS n FROM parquet_file_metadata(?)", params = list(x))$n
+    }, 0))
+  }
+  crate::crt_receipt_write(
+    root,
+    output = list(name = id),
+    recipe = list(
+      code = list(wet = list(commit = commit, version = version, dirty = FALSE)),
+      config = list(settings = settings),
+      inputs = lapply(inputs, function(v) list(version_id = v))
+    ),
+    result = list(
+      parts = sort(files, method = "radix"),
+      summary = list(parts = length(parts), rows_segment_monthly = rows("segment_monthly"),
+                     rows_watershed_monthly = rows("watershed_monthly"), rows_segment_daily = rows("segment_daily"))
+    ),
+    context = list(time = format(built, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")),
+    keys = k, lockfile = NULL, publish = TRUE
+  )
+  # read back rather than taken from the writer, whose return value has moved
+  # between crate commits
+  list(key = "receipt.json", recipe_id = crate::crt_receipt_read(file.path(root, "receipt.json"))$recipe$recipe_id)
 }
