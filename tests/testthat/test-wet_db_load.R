@@ -144,3 +144,89 @@ test_that("two picked rows for one segment and month are refused, and the load r
   expect_error(wet_db_load(conn, cat, ds, cache_dir = withr::local_tempdir()), "more than one picked row")
   expect_identical(DBI::dbGetQuery(conn, paste("SELECT count(*)::int AS n FROM", tbl, "WHERE NOT pick"))$n, 26L)
 })
+
+test_that("the load table records each loaded part, replaced per dataset and scenario (#88)", {
+  conn <- local_fwapg()
+  cat <- local_load_catalog(conn)
+  ds <- grep("segment_monthly$", unique(cat$dataset), value = TRUE)
+  schema <- sub("/.*", "", ds)
+  tbl <- paste0(schema, ".fwa_v1_segment_monthly")
+  load_tbl <- paste0(schema, ".wet_load")
+  cache <- withr::local_tempdir()
+  comment <- function() DBI::dbGetQuery(conn, sprintf("SELECT obj_description('%s'::regclass) AS d", tbl))$d
+  loads <- function() {
+    DBI::dbGetQuery(conn, paste("SELECT * FROM", load_tbl, "ORDER BY dataset, scenario, key"))
+  }
+
+  out <- wet_db_load(conn, cat, ds, cache_dir = cache)
+  x <- loads()
+  parts <- cat[cat$dataset == ds & cat$scenario == "historical", ]
+  expect_setequal(x$key, parts$key)
+  expect_identical(nrow(x), nrow(parts))
+  expect_identical(x$md5, parts$md5[match(x$key, parts$key)])
+  expect_identical(x$rows, out$rows[match(x$key, out$key)])
+  expect_true(all(x$dataset == ds & x$scenario == "historical"))
+  expect_true(all(is.na(x$subset)))
+  expect_true(all(x$manifest == attr(cat, "manifest")))
+  expect_true(all(x$wet_commit == attr(cat, "provenance")$wet_commit))
+  expect_true(all(format(x$built, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC") == attr(cat, "built")))
+  expect_true(all(is.na(x$recipe_id)))
+  expect_false(anyNA(x$loaded_at))
+  key <- DBI::dbGetQuery(conn, sprintf("SELECT a.attname FROM pg_index i
+    JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)
+    WHERE i.indrelid = '%s'::regclass AND i.indisprimary", load_tbl))$attname
+  expect_setequal(key, c("dataset", "scenario", "key"))
+  # the comment link parses keeps its words, with no mention of the load table
+  expect_match(comment(), "^wet_db_load\\(\\): .* scenario historical last loaded from .* \\(built [^,]*, wet \\S+\\)$")
+
+  # a partial reload replaces the scenario's rows and records the subset
+  wet_db_load(conn, cat, ds, months = 0, pick_only = TRUE, cache_dir = cache)
+  x <- loads()
+  expect_identical(nrow(x), nrow(parts))
+  expect_true(all(x$subset == "month IN (0) AND pick"))
+  expect_true(all(x$rows == 1))
+  expect_match(comment(), "; subset month IN \\(0\\) AND pick$")
+
+  # another scenario's load leaves this one's record alone
+  ssp <- cat
+  ssp$scenario <- "ssp245"
+  wet_db_load(conn, ssp, ds, scenario = "ssp245", cache_dir = cache)
+  x <- loads()
+  expect_identical(as.vector(table(x$scenario)), rep(nrow(parts), 2L))
+  expect_true(all(x$subset[x$scenario == "historical"] == "month IN (0) AND pick"))
+  expect_true(all(is.na(x$subset[x$scenario == "ssp245"])))
+
+  # another dataset's load leaves this one's record alone too
+  ws <- grep("watershed_monthly$", unique(cat$dataset), value = TRUE)
+  wet_db_load(conn, cat, ws, cache_dir = cache)
+  expect_setequal(unique(loads()$dataset), c(ds, ws))
+  expect_identical(sum(loads()$dataset == ds), 2L * nrow(parts))
+})
+
+test_that("a failed load leaves the load table as it was (#88)", {
+  conn <- local_fwapg()
+  cat <- local_load_catalog(conn)
+  ds <- grep("segment_monthly$", unique(cat$dataset), value = TRUE)
+  load_tbl <- paste0(sub("/.*", "", ds), ".wet_load")
+  wet_db_load(conn, cat, ds, cache_dir = withr::local_tempdir())
+  before <- DBI::dbGetQuery(conn, paste("SELECT * FROM", load_tbl, "ORDER BY key"))
+  appended <- 0L
+  real_append <- DBI::dbAppendTable
+  local_mocked_bindings(dbAppendTable = function(conn, name, value, ...) {
+    appended <<- appended + 1L
+    if (appended == 2L) stop("connection lost")
+    real_append(conn, name, value, ...)
+  }, .package = "DBI")
+  expect_error(wet_db_load(conn, cat, ds, months = 0, cache_dir = withr::local_tempdir()), "connection lost")
+  expect_identical(DBI::dbGetQuery(conn, paste("SELECT * FROM", load_tbl, "ORDER BY key")), before)
+})
+
+test_that("the load table records the receipt's recipe_id when the catalog has one (#88)", {
+  conn <- local_fwapg()
+  cat <- local_load_catalog(conn)
+  ds <- grep("segment_monthly$", unique(cat$dataset), value = TRUE)
+  attr(cat, "receipt") <- list(key = "receipt.json", recipe_id = strrep("ab", 32))
+  wet_db_load(conn, cat, ds, cache_dir = withr::local_tempdir())
+  x <- DBI::dbGetQuery(conn, paste0("SELECT DISTINCT recipe_id FROM ", sub("/.*", "", ds), ".wet_load"))
+  expect_identical(x$recipe_id, strrep("ab", 32))
+})
