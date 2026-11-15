@@ -14,8 +14,8 @@ Batch 3 of `planning/backlog.md`: #108, #161, #88, #160. One format change and o
 - Mine, approved with the plan: the manifest gains optional top-level `receipt` and `fit` entries and keeps `manifest_version = 1`. An older `wet_catalog()` ignores fields it doesn't know (checked by a test that reads the new manifest with the v1 field set).
 
 ## Phase 1: #108, the February fold in the daily description
-- [ ] `scripts/discharge_publish.R`: the `pcic_routed` description names both reasons a month's days need not average to the month: each day is clamped on its own, and 28 February also carries 29 February's flow, which the month weights by its days. The wording follows `segment_daily.yaml` and `research/discharge_publish.md`.
-- [ ] Grep `research/`, `R/` and `vignettes/` for the old sentence and fix any copy.
+- [x] `scripts/discharge_publish.R`: the `pcic_routed` description names both reasons a month's days need not average to the month: each day is clamped on its own, and 28 February also carries 29 February's flow, which the month weights by its days. The wording follows `segment_daily.yaml` and `research/discharge_publish.md`.
+- [x] Grep `research/`, `R/` and `vignettes/` for the old sentence and fix any copy.
 
 ## Phase 2: #88, the load table
 - [ ] Test first, in `tests/testthat/test-wet_db_load.R` against the fixture tree: after a load, the schema's `wet_load` holds one row per loaded part, with key and md5 equal to the catalog's, rows equal to what was loaded, and `subset` NULL for a full load and the WHERE clause for a partial one. A reload of the same scenario replaces its rows. A second scenario's load leaves the first scenario's rows alone. A load that fails leaves both the data and `wet_load` as they were. The comment test still matches the old text exactly.
