@@ -48,7 +48,7 @@ Batch 3 of `planning/backlog.md`: #108, #161, #88, #160. One format change and o
 ## Validation
 
 - [x] Tests pass (`devtools::test()`, with the local fwapg for `wet_db_load`)
-- [ ] `/code-check` clean (once over the branch with `/code-check branch`)
+- [x] `/code-check` clean (once over the branch with `/code-check branch`)
 - [x] `lintr` per-file diff against `origin/main`, with no new lints
 - [x] `pkgdown::check_pkgdown()`
 - [ ] PWF checkboxes match landed work
