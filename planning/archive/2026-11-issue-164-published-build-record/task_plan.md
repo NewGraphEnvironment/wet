@@ -52,7 +52,7 @@ Batch 3 of `planning/backlog.md`: #108, #161, #88, #160. One format change and o
 - [x] `lintr` per-file diff against `origin/main`, with no new lints
 - [x] `pkgdown::check_pkgdown()`
 - [x] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] `/planning-archive` on completion
 
 How each change is proved:
 - **#108:** BUILD reports every part byte-identical to the live build, and only the manifest digest moves.
