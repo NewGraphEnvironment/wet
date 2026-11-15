@@ -41,9 +41,10 @@
 # group with no published sample, WET_WB_RESAMPLE and WET_GROUP_DROP; writes
 # under data/group_published/<run>/fit_<release>/group/<WSG>/; and reports to
 # wb_report("segment_group_<WSG>_published", release), the upstream means
-# against the province run's not compared. WET_CATALOG_URL (option
-# wet.catalog_url) may name a local manifest.json, so a built tree can be
-# tried before it is published.
+# against the province run's not compared. With it, and only with it,
+# WET_CATALOG_URL (option wet.catalog_url) may name a local manifest.json, so
+# a built tree can be tried before it is published; such a run is not a
+# record of the live build, so its report goes to data/logs/164/.
 #
 # Otherwise run where the province run's layers.tif and samples are (m4).
 # Connection from WET_PG*.
@@ -62,10 +63,15 @@ if (is.na(wsg) || !grepl("^[A-Z]{4}$", wsg)) stop("usage: Rscript scripts/segmen
 resample <- Sys.getenv("WET_WB_RESAMPLE") %in% c("1", "true", "TRUE")
 drop_groups <- strsplit(Sys.getenv("WET_GROUP_DROP"), ",")[[1]]
 if (wsg %in% drop_groups) stop("WET_GROUP_DROP cannot remove the group itself")
-if (nzchar(Sys.getenv("WET_CATALOG_URL"))) options(wet.catalog_url = Sys.getenv("WET_CATALOG_URL"))
 from_pub <- Sys.getenv("WET_GROUP_FROM")
 if (!from_pub %in% c("", "published")) stop("WET_GROUP_FROM is `published` or unset, not ", from_pub)
 from_pub <- from_pub == "published"
+# a manifest other than the live one: published mode only, reported away from data/checks/
+catalog_url <- Sys.getenv("WET_CATALOG_URL")
+if (nzchar(catalog_url)) {
+  if (!from_pub) stop("WET_CATALOG_URL needs WET_GROUP_FROM=published; the default mode compares with the live build")
+  options(wet.catalog_url = catalog_url)
+}
 if (from_pub && (resample || length(drop_groups))) {
   stop("WET_GROUP_FROM=published takes neither WET_WB_RESAMPLE nor WET_GROUP_DROP: both need the province run")
 }
@@ -477,7 +483,10 @@ if (from_pub) {
 }
 
 # ---- report -------------------------------------------------------------------------------------------------
-f_rep <- if (length(drop_groups)) {
+f_rep <- if (nzchar(catalog_url)) {
+  dir.create("data/logs/164", recursive = TRUE, showWarnings = FALSE)
+  file.path("data/logs/164", sprintf("segment_group_%s_published_%s.txt", wsg, release))
+} else if (length(drop_groups)) {
   dir.create("data/logs/157", recursive = TRUE, showWarnings = FALSE)
   file.path("data/logs/157",
             sprintf("segment_group_%s_drop-%s_%s.txt", wsg, paste(drop_groups, collapse = "-"), release))
@@ -519,8 +528,10 @@ writeLines(c(
   "", "## Upstream means against the province run's",
   up_parity,
   "", "## Published product",
-  sprintf("live build %s (manifest built %s); balance fit %s of run %s", attr(cat_pub, "provenance")$wet_commit,
-          attr(cat_pub, "built"), prov_bal$fit_release, prov_bal$province_run),
+  sprintf("%s build %s (manifest built %s, read from %s); balance fit %s of run %s",
+          if (identical(attr(cat_pub, "manifest"), wet:::wet_catalog_url)) "live" else "UNPUBLISHED",
+          attr(cat_pub, "provenance")$wet_commit, attr(cat_pub, "built"), attr(cat_pub, "manifest"),
+          prov_bal$fit_release, prov_bal$province_run),
   sprintf("parts read: %d, all matching the manifest before (%d) and after (%d) the read:", nrow(parts),
           n_ok_before, n_ok_after),
   sprintf("  %s %s", parts$md5, sub("^discharge/fwa/v1/", "", parts$key)),
