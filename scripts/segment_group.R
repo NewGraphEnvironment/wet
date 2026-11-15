@@ -37,7 +37,9 @@
 # fit/sample/part-<G>.parquet, each fetched into wet's cache and checked
 # against its md5), so it runs on any machine with this checkout and fwapg
 # (the FWA, and routed PCIC for the pick), with no province run. It refuses a
-# published fit made under other scoring code than this checkout's, a reach
+# checkout without the build's commit (the manifest's wet_commit) or whose
+# scoring code differs from that commit's (the build checked the fit's scoring
+# md5 on the province machine, at that commit), a reach
 # group with no published sample, WET_WB_RESAMPLE and WET_GROUP_DROP; writes
 # under data/group_published/<run>/fit_<release>/group/<WSG>/; and reports to
 # wb_report("segment_group_<WSG>_published", release), the upstream means
@@ -92,17 +94,43 @@ timed <- function(step, expr) {
 # ---- the shipped fit, under segment_output.R's guards ------------------------------------------
 release <- wb_release()
 if (!identical(release, wb_shipped_release)) stop("the group build applies the shipped fit, ", wb_shipped_release)
-source("scripts/wb_score_md5.R")  # score_code_md5
 if (from_pub) {
   # the fit as published: the manifest names its release, run and scoring
   # code, and each file's md5, checked as it is fetched
   cat_fit <- wet_catalog()
   pfit <- attr(cat_fit, "fit")
   if (is.null(pfit)) stop("the build at ", attr(cat_fit, "manifest"), " publishes no fit (#160)")
-  if (!identical(c(pfit$release, pfit$score_code_md5), c(release, score_code_md5))) {
-    stop("the published fit is ", pfit$release, " under scoring code ", pfit$score_code_md5, ", not ", release,
-         " under this checkout's ", score_code_md5)
+  if (!identical(pfit$release, release)) stop("the published fit is ", pfit$release, ", not ", release)
+  # score_code_md5 also hashes the stations file and the fit's decision files,
+  # which only the province machine holds, so it cannot be recomputed here.
+  # The build checked the fit against it there, at the commit the manifest
+  # names; this checkout must hold that commit's scoring code
+  # (score_files_for()'s list, read from wb_score_md5.R without running it,
+  # since its top level needs the province run).
+  build_commit <- attr(cat_fit, "provenance")$wet_commit
+  if (!is.character(build_commit) || !grepl("^[0-9a-f]{7,40}$", build_commit)) {
+    stop("the manifest names no wet commit for its build")
   }
+  if (!identical(system2("git", c("cat-file", "-e", paste0(build_commit, "^{commit}")), stderr = FALSE), 0L)) {
+    stop("this checkout lacks the build's commit ", build_commit, ": fetch it (a shallow clone cannot check the fit)")
+  }
+  score_code_files <- local({
+    ex <- parse("scripts/wb_score_md5.R", keep.source = FALSE)
+    i <- which(vapply(ex, function(e) {
+      is.call(e) && identical(e[[1]], as.name("<-")) && identical(e[[2]], as.name("score_files_for"))
+    }, logical(1)))
+    if (length(i) != 1L) stop("scripts/wb_score_md5.R defines score_files_for() ", length(i), " times, not once")
+    e <- new.env()
+    e$wb_stations_path <- function(rel) "scripts/wb_score_md5.R"  # in the list already; dropped by unique()
+    eval(ex[[i]], e)
+    unique(e$score_files_for(release))
+  })
+  moved <- system2("git", c("diff", "--name-only", build_commit, "--", score_code_files), stdout = TRUE)
+  if (!is.null(attr(moved, "status"))) stop("git diff against the build's commit ", build_commit, " failed")
+  if (length(moved)) {
+    stop("scoring code changed since the build ", build_commit, " that published the fit: ", paste(moved, collapse = ", "))
+  }
+  score_code_md5 <- pfit$score_code_md5
   fetch_fit <- function(i) {
     f <- pfit$files[i, ]
     f$dataset <- paste0(attr(cat_fit, "id"), "/fit")  # wet_part_fetch()'s cache path: <cache>/<id>/<key>
@@ -113,6 +141,7 @@ if (from_pub) {
   fits <- readRDS(fetch_fit(which(pfit$files$role == "fits")))
   if (!identical(fits$code_md5, score_code_md5)) stop("the published fits.rds was made under other scoring code")
 } else {
+  source("scripts/wb_score_md5.R")  # score_code_md5
   key_dir <- wb_key_dir()
   fit_dir <- wb_fit_dir(key_dir, release)
   fits <- readRDS(file.path(fit_dir, "fits.rds"))
