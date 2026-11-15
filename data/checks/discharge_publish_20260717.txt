@@ -1,11 +1,15 @@
 # Published discharge, build (#7)
 
-wet commit 3e8a968 (segment table built at 66cf795); fit 20260717, province run 768876badf; crate 0.16.0
+wet commit a0318b7 (segment table built at 66cf795); fit 20260717, province run 768876badf; crate 0.16.0
 arrow 25.0.1, duckdb 1.5.6 (a part's bytes depend on the writer's version)
 routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 5d50cc1
 table: 40524444 rows, 3377037 segments, 0 null flows, total 179854603.510890 m3/s
 tree: data/publish/discharge/fwa/v1 -> s3://fresh-bc/discharge/fwa/v1/
 tree parts md5 d554e3aad481d86bffa4baef687287ed
+fit 20260717 of province run 768876badf, scoring code df3280b5c3ff52385f631bc09d3eaadd: fits.rds and 246 group samples, 1.44 GB
+tree fit and receipt md5 e9305ea576553dd7741bd9217f857920
+receipt recipe_id 68ae10bc2e0537045c4749269559b5619e601045f2c17114c269efd40787f58e
+receipt hashed in 94 s
 
 ## Cross-checks against the segment report, and value by value
 routed_rows     ok
