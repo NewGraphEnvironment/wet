@@ -51,7 +51,7 @@ Batch 3 of `planning/backlog.md`: #108, #161, #88, #160. One format change and o
 - [x] `/code-check` clean (once over the branch with `/code-check branch`)
 - [x] `lintr` per-file diff against `origin/main`, with no new lints
 - [x] `pkgdown::check_pkgdown()`
-- [ ] PWF checkboxes match landed work
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
 How each change is proved:
