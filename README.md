@@ -62,6 +62,7 @@ xtabs(round(q_m3s) ~ source + month, q)
 | [cd](https://www.newgraphenvironment.com/cd/) | How far any BC watershed's climate has shifted from your chosen baseline |
 | [knowledge](https://www.newgraphenvironment.com/knowledge/) | Starts from each species' life history and tunes its fish habitat definitions from where sampling did and did not catch it |
 | [floodplains](https://www.newgraphenvironment.com/floodplains/) | Maps BC's floodplains and how the land in them changed, one watershed group at a time |
+| [crate](https://www.newgraphenvironment.com/crate/) | Canonical schemas for data that changes shape, and provenance receipts for outputs |
 | [stac_floodplains_bc](https://www.newgraphenvironment.com/stac_floodplains_bc/) | Floodplains and land-cover change, a screen for where to look; by watershed group |
 <!-- END ecosystem.yml -->
 
