@@ -77,7 +77,7 @@ seg_where <- sprintf("s.stream_order >= %d AND s.edge_type IN (%s)", min_order, 
 n_cls <- DBI::dbGetQuery(conn, sprintf("
   SELECT coalesce(p.source, 'none') AS class, count(*)::int AS n
   FROM whse_basemapping.fwa_stream_networks_sp s LEFT JOIN vd_pick p USING (linear_feature_id)
-  WHERE %s GROUP BY 1", seg_where))
+  WHERE %s GROUP BY 1 ORDER BY 1", seg_where))   # ordered: the counts are provenance vm_write() compares
 n_seg <- DBI::dbGetQuery(conn, sprintf("
   SELECT count(*)::int FROM whse_basemapping.fwa_stream_networks_sp s WHERE %s", seg_where))[[1]]
 print(n_cls)
