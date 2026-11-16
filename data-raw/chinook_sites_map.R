@@ -78,9 +78,9 @@ per_map <- lapply(maps, function(m) {
   sq <- gq::gq_bbox_aspect(sf::st_bbox(ext$sfc), asp = map_asp)
   ext <- list(sfc = sf::st_as_sfc(sq), wkt = sf::st_as_text(sf::st_as_sfc(sq)))
   keys <- unique(c(targets$blue_line_key[targets$map == m], targets$into1_blk[targets$map == m]))
-  streams <- vm_streams(conn, ext$wkt, keys, simplify_m, min_order = 7)
+  streams <- vm_streams(conn, ext, keys, simplify_m, min_order = 7)
   streams$main <- streams$blue_line_key %in% targets$blue_line_key
-  lakes <- vm_lakes(conn, ext$wkt, simplify_m, min_ha = 1000)
+  lakes <- vm_lakes(conn, ext, simplify_m, min_ha = 1000)
   want <- unique(unlist(lapply(sites[map_of == m], `[[`, "places")))
   places <- vm_places(ext$sfc, want)
   # a name can be several features (Hixon is a community and a locality): keep one populated place per name,
@@ -103,13 +103,13 @@ per_map <- lapply(maps, function(m) {
   list(extent = sf::st_sf(map = m, geom = ext$sfc), streams = cbind(map = m, clip(streams)),
        lakes = cbind(map = m, clip(lakes)), places = cbind(map = m, places))
 })
+pg <- vm_postgis(conn)
 DBI::dbDisconnect(conn)
 pick <- function(k) do.call(rbind, lapply(per_map, `[[`, k))
 
 layers <- vm_layers(list(bc = bc, targets = targets, gauges = gauges, extents = pick("extent"),
-                         streams = pick("streams"), lakes = pick("lakes"), places = pick("places")), hydat)
+                         streams = pick("streams"), lakes = pick("lakes"), places = pick("places")), hydat, pg)
 attr(layers, "map_asp") <- map_asp
-saveRDS(layers, out, compress = "xz")
+vm_write(layers, basename(out))
 print(vapply(layers, nrow, 0L))
 print(sf::st_drop_geometry(targets[c("site_id", "into1", "into2")]))
-message("chinook_sites_map.rds: ", round(file.size(out) / 1024), " KB")

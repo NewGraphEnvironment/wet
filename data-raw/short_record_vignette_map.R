@@ -50,17 +50,17 @@ pts <- vm_points(st)
 # the extent holds the catchments and every gauge, with room for labels
 ext <- vm_extent(rbind(sf::st_sf(geom = sf::st_geometry(catch)),
                        sf::st_sf(geom = sf::st_buffer(sf::st_geometry(pts), 1))), 8000)
-streams <- vm_streams(conn, ext$wkt, blk, simplify_m)
+streams <- vm_streams(conn, ext, blk, simplify_m)
 # the keys are the streams named, not only three keys
 stopifnot(identical(streams$gnis_name[match(blk, streams$blue_line_key)], c("Bulkley River", "Buck Creek", "Maxan Creek", "Foxy Creek")))
-lakes <- vm_lakes(conn, ext$wkt, simplify_m)
+lakes <- vm_lakes(conn, ext, simplify_m)
 bc <- vm_bc(conn)
+pg <- vm_postgis(conn)
 DBI::dbDisconnect(conn)
 places <- vm_places(ext$sfc, "Houston")
 stopifnot(nrow(places) == 1)
 
 layers <- vm_layers(list(stations = pts, catchments = catch, streams = streams, lakes = lakes,
-                         places = places, bc = bc), hydat)
-saveRDS(layers, out, compress = "xz")
+                         places = places, bc = bc), hydat, pg)
+vm_write(layers, basename(out))
 print(vapply(layers, nrow, 0L))   # features per layer: merged streams mix line types
-message("short_record_map.rds: ", round(file.size(out) / 1024), " KB")

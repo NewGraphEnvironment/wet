@@ -6,6 +6,13 @@
 # all sf in EPSG:3005. Sourced after load_all(); the scripts choose the
 # stations, the stream keys and the place names, and connect to fwapg
 # themselves (scripts/vignette_data_lib.R, vd_connect()).
+#
+# A rerun on the same FWA writes the same file (#155): every query orders its
+# rows on a unique key and its aggregates' input, every simplified polygon is
+# normalised, lakes and stream segments come from fresh's fetchers
+# (frs_lake_fetch(), frs_stream_fetch(); fresh is needed by data-raw/ only),
+# and vm_write() keeps the committed file when nothing in it changed, printing
+# what changed otherwise (vm_compare()).
 
 # The stations from HYDAT STATIONS, in the order given
 vm_stations <- function(hydat, stations) {
@@ -35,7 +42,7 @@ vm_catchments <- function(conn, st, simplify_m) {
           ST_Transform(ST_SetSRID(ST_MakePoint(%.10f, %.10f), 4326), 3005), 1000, 5) c
         WHERE c.linear_feature_id = %.0f)
       SELECT '%s' AS station_number, w.area_ha / 100 AS area_km2,
-             ST_SimplifyPreserveTopology(ST_Force2D(w.geom), %d) AS geom
+             ST_Normalize(ST_SimplifyPreserveTopology(ST_Force2D(w.geom), %d)) AS geom
       FROM p, whse_basemapping.fwa_watershedatmeasure(p.blue_line_key, p.downstream_route_measure) w",
                    st$lon[i], st$lat[i], snap$linear_feature_id[i], st$station_number[i], simplify_m)
     sf::st_read(conn, quiet = TRUE, query = sql)
@@ -53,36 +60,54 @@ vm_extent <- function(catch, margin_m) {
   list(sfc = ext, wkt = sf::st_as_text(ext))
 }
 
-# Streams of at least `min_order` in the extent, plus the whole of each stream
-# in `blk` (by blue_line_key: GNIS names repeat across BC), merged per key
-vm_streams <- function(conn, ext_wkt, blk, simplify_m, min_order = 5) {
-  streams <- sf::st_read(conn, quiet = TRUE, query = sprintf("
-    SELECT blue_line_key, max(gnis_name) AS gnis_name, max(stream_order) AS stream_order,
-           ST_SimplifyPreserveTopology(ST_LineMerge(ST_Union(ST_Force2D(geom))), %d) AS geom
-    FROM whse_basemapping.fwa_stream_networks_sp
-    WHERE (stream_order >= %d AND ST_Intersects(geom, ST_GeomFromText('%s', 3005)))
-       OR blue_line_key IN (%s)
-    GROUP BY blue_line_key", simplify_m, min_order, ext_wkt, paste(blk, collapse = ", ")))
+# Streams of at least `min_order` in the extent (`ext`, from vm_extent()),
+# plus the whole of each stream in `blk` (by blue_line_key: GNIS names repeat
+# across BC), merged per key. fresh fetches the segments ordered on
+# linear_feature_id; they are unioned, merged and simplified per key here, in
+# that order, so the drawing does not depend on the row order PostgreSQL
+# returns. include_all keeps every FWA segment, as the query before fresh did.
+vm_streams <- function(conn, ext, blk, simplify_m, min_order = 5) {
+  cols <- c("linear_feature_id", "blue_line_key", "gnis_name", "stream_order", "geom")
+  in_ext <- fresh::frs_stream_fetch(conn, stream_order_min = min_order, aoi = ext$sfc, cols = cols,
+                                    include_all = TRUE)
+  whole <- lapply(unname(blk), function(k) {
+    fresh::frs_stream_fetch(conn, blue_line_key = k, cols = cols, include_all = TRUE)
+  })
+  seg <- do.call(rbind, c(list(in_ext), whole))
+  seg <- seg[!duplicated(seg$linear_feature_id), ]
+  seg <- seg[order(seg$blue_line_key, seg$linear_feature_id), ]
+  geom <- sf::st_zm(sf::st_geometry(seg))
+  streams <- do.call(rbind, lapply(unique(seg$blue_line_key), function(k) {
+    i <- seg$blue_line_key == k
+    nm <- sort(unique(stats::na.omit(seg$gnis_name[i])), method = "radix")
+    # a key of one segment unions to a LINESTRING, which st_line_merge() refuses
+    u <- sf::st_cast(sf::st_union(geom[i]), "MULTILINESTRING")
+    g <- sf::st_simplify(sf::st_line_merge(u), preserveTopology = TRUE, dTolerance = simplify_m)
+    sf::st_sf(blue_line_key = as.integer(k), gnis_name = if (length(nm)) nm[length(nm)] else NA_character_,
+              stream_order = as.integer(max(seg$stream_order[i])), geom = g)
+  }))
   streams$main <- streams$blue_line_key %in% blk
   stopifnot(sum(streams$main) == length(blk))
   streams
 }
 
-# FWA lakes of at least `min_ha` in the extent
-vm_lakes <- function(conn, ext_wkt, simplify_m, min_ha = 100) {
-  sf::st_read(conn, quiet = TRUE, query = sprintf("
-    SELECT gnis_name_1 AS gnis_name, area_ha,
-           ST_SimplifyPreserveTopology(ST_Force2D(geom), %d) AS geom
-    FROM whse_basemapping.fwa_lakes_poly
-    WHERE area_ha >= %d AND ST_Intersects(geom, ST_GeomFromText('%s', 3005))", simplify_m, min_ha, ext_wkt))
+# FWA lakes of at least `min_ha` in the extent (`ext`, from vm_extent()),
+# ordered on waterbody_poly_id and simplified and normalised by fresh
+vm_lakes <- function(conn, ext, simplify_m, min_ha = 100) {
+  lakes <- fresh::frs_lake_fetch(conn, aoi = ext$sfc, area_ha_min = min_ha, simplify_m = simplify_m,
+                                 cols = c("waterbody_poly_id", "gnis_name_1", "area_ha", "geom"))
+  sf::st_sf(gnis_name = lakes$gnis_name_1, area_ha = lakes$area_ha, geom = sf::st_geometry(lakes))
 }
 
 # The province outline for a keymap an inch wide: parts under 2,000 km2 are
-# noise at that size, and the rest is simplified at 5 km
+# noise at that size, and the rest is simplified at 5 km. The union takes its
+# polygons in id order and the parts are collected largest first, so the
+# outline does not depend on the order PostgreSQL returns them in
 vm_bc <- function(conn) {
   sf::st_read(conn, quiet = TRUE, query = "
-    SELECT ST_SimplifyPreserveTopology(ST_Collect(d.geom), 5000) AS geom
-    FROM (SELECT (ST_Dump(ST_Union(geom))).geom FROM whse_basemapping.fwa_bcboundary) d
+    SELECT ST_Normalize(ST_SimplifyPreserveTopology(
+             ST_Collect(d.geom ORDER BY ST_Area(d.geom) DESC, ST_XMin(d.geom), ST_YMin(d.geom)), 5000)) AS geom
+    FROM (SELECT (ST_Dump(ST_Union(geom ORDER BY bcboundary_id))).geom FROM whse_basemapping.fwa_bcboundary) d
     WHERE ST_Area(d.geom) >= 2e9")
 }
 
@@ -138,6 +163,9 @@ vm_places <- function(ext, names) {
     dplyr::filter(GEOGRAPHICAL_NAME %in% names) |>  # nolint: object_usage_linter.
     bcdata::collect()
   gns <- gns[lengths(sf::st_intersects(gns, ext)) > 0, ]
+  # the WFS promises no order: sort on name, then place
+  xy <- sf::st_coordinates(sf::st_geometry(gns))
+  gns <- gns[order(gns$GEOGRAPHICAL_NAME, xy[, 1], xy[, 2], method = "radix"), ]
   places <- sf::st_sf(name = gns$GEOGRAPHICAL_NAME, feature_type = gns$FEATURE_TYPE,
                       geom = sf::st_geometry(gns))
   print(sf::st_drop_geometry(places))
@@ -151,12 +179,103 @@ vm_points <- function(st) {
   pts
 }
 
-# Every layer with its CRS set, the HYDAT release as provenance
-vm_layers <- function(layers, hydat) {
+# The database's PostGIS, GEOS and PROJ, so a rebuild on another database
+# explains its own differences (#155)
+vm_postgis <- function(conn) {
+  DBI::dbGetQuery(conn, "SELECT postgis_full_version() AS v")$v
+}
+
+# Every layer with its CRS set, the HYDAT release, the PostGIS that drew the
+# layers (vm_postgis()) and the GEOS that merged the streams (sf's) as
+# provenance
+vm_layers <- function(layers, hydat, postgis) {
+  stopifnot(is.character(postgis), length(postgis) == 1)
   layers <- lapply(layers, function(x) {
     sf::st_crs(x) <- 3005
     x
   })
-  attr(layers, "provenance") <- list(hydat = format(as.Date(wet_hydat_release(hydat), "%Y%m%d")))
+  attr(layers, "provenance") <- list(hydat = format(as.Date(wet_hydat_release(hydat), "%Y%m%d")), postgis = postgis,
+                                     sf_geos = unname(sf::sf_extSoftVersion()["GEOS"]))
   layers
+}
+
+# A bundle's provenance: an attribute where vm_layers() set it, an element in
+# the segment map's bundle
+vm_provenance <- function(x) {
+  if (is.null(attr(x, "provenance"))) x$provenance else attr(x, "provenance")
+}
+
+# How each layer of a new bundle compares with an old one, printed and
+# returned: identical; identical once both are sorted on every column and the
+# geometry's WKB; the same features (equal attributes once sorted) with
+# different geometry, with the vertices that differ and the largest Hausdorff
+# distance (m) between a feature's two drawings; or different. Elements that
+# are not sf (zones, provenance) are identical or different.
+vm_compare <- function(new, old) {
+  wkb <- function(x) {
+    b <- sf::st_as_binary(sf::st_geometry(x), endian = "little")
+    vapply(b, function(r) paste(as.character(r), collapse = ""), "")
+  }
+  sorted <- function(x, with_geom) {
+    keys <- c(as.list(sf::st_drop_geometry(x)), if (with_geom) list(wkb(x)))
+    if (length(keys)) x <- x[do.call(order, c(unname(keys), list(method = "radix"))), ]
+    rownames(x) <- NULL
+    x
+  }
+  verts <- function(x) vapply(sf::st_geometry(x), function(g) nrow(sf::st_coordinates(g)), 0)
+  nm <- setdiff(union(names(new), names(old)), "provenance")
+  out <- do.call(rbind, lapply(nm, function(k) {
+    a <- new[[k]]
+    b <- old[[k]]
+    row <- function(verdict, n = NA, v = NA, h = NA) {
+      data.frame(layer = k, verdict = verdict, features = n, vertices_differ = v, hausdorff_max_m = h)
+    }
+    if (identical(a, b)) return(row("identical", if (inherits(a, "sf")) nrow(a) else NA))
+    if (!inherits(a, "sf") || !inherits(b, "sf") || nrow(a) != nrow(b) ||
+          !identical(names(a), names(b))) return(row("different"))
+    sa <- sorted(a, TRUE)
+    sb <- sorted(b, TRUE)
+    if (identical(sa, sb)) return(row("identical after sorting", nrow(a)))
+    sa <- sorted(a, FALSE)
+    sb <- sorted(b, FALSE)
+    if (!identical(sf::st_drop_geometry(sa), sf::st_drop_geometry(sb))) return(row("different", nrow(a)))
+    va <- verts(sa)
+    vb <- verts(sb)
+    h <- vapply(seq_len(nrow(sa)), function(i) {
+      as.numeric(sf::st_distance(sf::st_geometry(sa)[i], sf::st_geometry(sb)[i], which = "Hausdorff"))
+    }, 0)
+    row("same features, different geometry", nrow(a), sum(abs(va - vb)), round(max(h), 1))
+  }))
+  print(out, row.names = FALSE)
+  invisible(out)
+}
+
+# Write a bundle as inst/vignette-data/<file>, or under WET_MAP_OUT_DIR for a
+# rebuild elsewhere, comparing it first with the committed file
+# (vm_compare()). Where every layer, the provenance and the list's other
+# attributes are identical, the committed file is left as it is, so a rerun that changes
+# nothing changes no bytes.
+vm_write <- function(layers, file) {
+  ref <- file.path("inst", "vignette-data", file)
+  out <- file.path(Sys.getenv("WET_MAP_OUT_DIR", file.path("inst", "vignette-data")), file)
+  if (file.exists(ref)) {
+    old <- readRDS(ref)
+    cmp <- vm_compare(layers, old)
+    other <- function(x) {
+      a <- attributes(x)
+      a[setdiff(names(a), c("names", "provenance"))]
+    }
+    same_prov <- identical(vm_provenance(layers), vm_provenance(old)) &&
+      identical(other(layers), other(old))
+    if (!same_prov) message("provenance or attributes differ from ", ref)
+    in_place <- identical(normalizePath(dirname(out)), normalizePath(dirname(ref)))
+    if (all(cmp$verdict == "identical") && same_prov && in_place) {
+      message(file, ": unchanged, ", ref, " left as it is")
+      return(invisible(ref))
+    }
+  }
+  dir.create(dirname(out), recursive = TRUE, showWarnings = FALSE)
+  saveRDS(layers, out, compress = "xz")
+  message(file, ": wrote ", out, " (", round(file.size(out) / 1024), " KB)")
+  invisible(out)
 }

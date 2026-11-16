@@ -22,7 +22,7 @@ Measured during planning (2026-11-15, on m1):
 - **Map reruns that change nothing leave the file untouched:** each map script compares its new layers with the committed file and keeps it when every layer and the recipe provenance are identical.
 
 ## Phase 1: Setup on m1
-- [ ] Upgrade fresh 0.52.0 → 0.53.0 (read its NEWS for fetcher changes); reinstall wet from the branch before any article build
+- [x] Upgrade fresh 0.52.0 → 0.53.0 (read its NEWS for fetcher changes: none); reinstall wet from the branch before any article build (Phase 6)
 - [ ] Reload m1's `pcic` schema from fwapg 5d50cc1's `load/pcic_schema.sql`, `load/pcic.sql`, `load/pcic_run.sql` (1981–2010 run's `subbasin_daily`), from a worktree of fwapg at 5d50cc1; stop unless the fingerprint equals the tracked routed report's 179854603.510890 and the daily fingerprint the tracked daily report's
 - [ ] Probe both databases with `connect_timeout = 10` (m1 local; m4's fwapg on the LAN, read only)
 
@@ -33,15 +33,15 @@ Measured during planning (2026-11-15, on m1):
 - [x] #97: every link resolves (curl status, following redirects); word count near 582 (report before/after); check README tagline against the registry tagline and report any mismatch (rule 2) without widening scope
 
 ## Phase 3: Map layers that rebuild identically (batch 4: #155)
-- [ ] `vm_lakes()` → `fresh::frs_lake_fetch(conn, aoi = ext$sfc, area_ha_min = min_ha, simplify_m = simplify_m)`, columns renamed to the bundle's (`gnis_name`, `area_ha`, `geom`)
-- [ ] `vm_streams()` → `fresh::frs_stream_fetch()` twice (order ≥ min_order in the AOI; every segment of `blk`), deduplicated on `linear_feature_id`, ordered, then per blue line: union, line merge, simplify (preserve topology) in sf; same output columns and `main` flag
-- [ ] `vm_catchments()`: `ST_Normalize()` after the simplify; snap and HYDAT area check unchanged
-- [ ] `vm_bc()`: parts ordered (by area, then centroid) before `ST_Collect`, `ST_Normalize()` the result
-- [ ] `vm_places()`: rows sorted on name, then coordinates
-- [ ] `segment_vignette_map.R` rivers: `ST_Union(geom ORDER BY linear_feature_id)`, `ST_Normalize()`, and an `ORDER BY order_band, blue_line_key, class` on a unique key
-- [ ] `postgis_full_version()` in every map bundle's provenance (`vm_layers()` and the segment map's list)
-- [ ] `vm_compare(new, old)` in `scripts/vignette_map_lib.R`: prints per layer identical / identical after sorting / same features with different geometry (vertex counts, largest Hausdorff distance); each map script calls it against the committed file and keeps that file when all layers and recipe provenance are identical
-- [ ] fresh listed as a `data-raw/` need in the scripts' headers (not DESCRIPTION; the build excludes `data-raw/`)
+- [x] `vm_lakes()` → `fresh::frs_lake_fetch(conn, aoi = ext$sfc, area_ha_min = min_ha, simplify_m = simplify_m)`, columns renamed to the bundle's (`gnis_name`, `area_ha`, `geom`)
+- [x] `vm_streams()` → `fresh::frs_stream_fetch()` twice (order ≥ min_order in the AOI; every segment of `blk`), deduplicated on `linear_feature_id`, ordered, then per blue line: union, line merge, simplify (preserve topology) in sf; same output columns and `main` flag
+- [x] `vm_catchments()`: `ST_Normalize()` after the simplify; snap and HYDAT area check unchanged
+- [x] `vm_bc()`: parts ordered (by area, then centroid) before `ST_Collect`, `ST_Normalize()` the result
+- [x] `vm_places()`: rows sorted on name, then coordinates
+- [x] `segment_vignette_map.R` rivers: `ST_Union(geom ORDER BY linear_feature_id)`, `ST_Normalize()`, and an `ORDER BY order_band, blue_line_key, class` on a unique key
+- [x] `postgis_full_version()` in every map bundle's provenance (`vm_layers()` and the segment map's list)
+- [x] `vm_compare(new, old)` in `scripts/vignette_map_lib.R`: prints per layer identical / identical after sorting / same features with different geometry (vertex counts, largest Hausdorff distance); each map script calls it against the committed file and keeps that file when all layers and recipe provenance are identical
+- [x] fresh listed as a `data-raw/` need in the scripts' headers (not DESCRIPTION; the build excludes `data-raw/`)
 
 ## Phase 4: The data scripts' recipe, httpfs and receipt (batch 4: #74; owed #161)
 - [ ] `INSTALL httpfs; LOAD httpfs;` in `data-raw/segment_vignette_data.R`, `data-raw/segment_vignette_map.R`, `data-raw/monthly_vignette_data.R`
@@ -51,9 +51,10 @@ Measured during planning (2026-11-15, on m1):
 
 ## Phase 5: Regenerate against the live build, and the article
 - [ ] Commit, then run on m1, each twice where it is a map script: `station_vignette_map.R`, `monthly_vignette_map.R`, `short_record_vignette_map.R`, `chinook_sites_map.R`, `segment_vignette_map.R` (`WET_FWAPG_COMMIT=5d50cc1`); every layer `identical()` between the two runs; logs under `data/logs/165/`
-- [ ] Rebuild each map once against m4's fwapg (`WET_PGHOST`) to a scratch path, record the comparison (report only)
-- [ ] Run `segment_vignette_data.R` and `monthly_vignette_data.R` against a0318b7; both bundles name one build, read date, fit (768876badf) and routed run
-- [ ] Hold `chinook_sites_values.rds`'s bundled part md5s to the live manifest (no regeneration)
+- [ ] Rebuild each of the four `vm_*` maps once against m4's fwapg (`WET_PGHOST`, `WET_MAP_OUT_DIR` to scratch), record the comparison (report only); the segment map writes a temp table and reads the live build, so it is not rebuilt there
+- [ ] Run `segment_vignette_map.R`, `segment_vignette_data.R` and `monthly_vignette_data.R` at one HEAD on one day (`WET_FWAPG_COMMIT=5d50cc1` for the data scripts), committing after all three, against a0318b7; both bundles name one build, read date, fit (768876badf) and routed run
+- [ ] Hold `chinook_sites_values.rds`'s bundled part md5s to the live manifest (no regeneration); its article prints the Gosnell report's whole-build digest, which is no longer live (values hold)
+- [ ] research/discharge_publish.md and research/water_balance_method.md: the bundles now read a0318b7
 - [ ] `vignettes/segment-discharge.Rmd`: drop the Nechako label, sentence, `nech`/`nech_bal` and its guard; caption names only the Liard; re-read every guard against the regenerated numbers
 - [ ] `data-raw/readme_figure.R` → `man/figures/readme-pick.png`; README alt text without the Nechako; check the PNG at published width
 - [ ] CLAUDE.md: the article description ("the Liard labelled"), the map lib's fetchers, the recipe check
@@ -61,6 +62,8 @@ Measured during planning (2026-11-15, on m1):
 ## Phase 6: Verify and review
 - [ ] `devtools::document()`, `devtools::test()` (failed + error counted), `lintr` per file vs `origin/main`, `pkgdown::check_pkgdown()`
 - [ ] Reinstall wet from the branch; build the segment-discharge article and the four map-reading articles; strip HTML to text and diff against main's render: only the Nechako sentences, caption and changed numbers differ; word count under the 2,000 cap
+- [ ] Visual check of every map figure and `readme-pick.png` against main's (chinook river labels can move)
+- [ ] Recipe check fires: in a worktree copy, `month = 1`, no `AND pick`, `'MORR'` each refused
 - [ ] Render a review copy as a private claude.ai artifact and offer the link
 - [ ] `/code-check branch` (three-round floor)
 

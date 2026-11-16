@@ -38,9 +38,10 @@ st <- vm_stations(hydat, stations)
 conn <- vd_connect()
 catch <- vm_catchments(conn, st, simplify_m)
 ext <- vm_extent(catch, 8000)
-streams <- vm_streams(conn, ext$wkt, blk, simplify_m)
-lakes <- vm_lakes(conn, ext$wkt, simplify_m)
+streams <- vm_streams(conn, ext, blk, simplify_m)
+lakes <- vm_lakes(conn, ext, simplify_m)
 bc <- vm_bc(conn)
+pg <- vm_postgis(conn)
 DBI::dbDisconnect(conn)
 places <- vm_places(ext$sfc, c("Houston", "Telkwa"))
 stopifnot(nrow(places) == 2)
@@ -54,9 +55,8 @@ inside <- function(a, b) {
 stopifnot(inside("08EE013", "08EE003") > 0.99, inside("08EE003", "08EE004") > 0.99)
 
 layers <- vm_layers(list(stations = vm_points(st), catchments = catch, streams = streams, lakes = lakes,
-                         places = places, bc = bc), hydat)
-saveRDS(layers, out, compress = "xz")
+                         places = places, bc = bc), hydat, pg)
+vm_write(layers, basename(out))
 # vertices per layer, geometry by geometry: a merged stream layer mixes
 # LINESTRING and MULTILINESTRING, which st_coordinates() refuses as a whole
 print(vapply(layers, function(x) sum(vapply(sf::st_geometry(x), function(g) nrow(sf::st_coordinates(g)), 0)), 0))
-message("monthly_map.rds: ", round(file.size(out) / 1024), " KB")
