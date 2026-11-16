@@ -1,12 +1,16 @@
 #' Snap HYDAT stations to FWA fundamental watersheds, checked by drainage area
 #'
-#' Finds the `num_features` nearest stream segments to each station with
-#' fwapg's `fwa_indexpoint()` (the function `fresh::frs_point_snap()` wraps),
-#' in one query for all stations, and keeps the candidate whose upstream area
-#' is closest to HYDAT's gross drainage area on a log scale. The nearest
+#' Finds the `num_features` nearest streams to each station with fwapg's
+#' `fwa_indexpoint()`, in one query for all stations, and keeps the candidate
+#' whose upstream area is closest to HYDAT's gross drainage area on a log
+#' scale. The nearest
 #' segment at a confluence is often the wrong stream, and the area is what
 #' tells them apart. A snap is accepted when that area is within `max_dev` of
 #' the gross drainage area.
+#'
+#' `fwa_indexpoint()` returns one candidate per stream, its nearest point, so
+#' the choice is between streams. `fresh::frs_point_snap()` lists candidates
+#' per segment, several of which can lie on one stream, so it is not used here.
 #'
 #' Upstream area here is fwapg's stored `fwa_watersheds_upstream_area`, which
 #' is good enough to choose between candidates. The area the water balance
