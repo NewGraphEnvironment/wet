@@ -1,5 +1,31 @@
 # Changelog
 
+## wet 0.4.37
+
+- Article maps rebuild byte for byte, and the article bundles read the
+  live build
+  ([\#165](https://github.com/NewGraphEnvironment/wet/issues/165)).
+  `scripts/vignette_map_lib.R` takes lakes and stream segments from
+  fresh’s fetchers, orders every query and aggregate, sorts names by
+  radix and simplifies polygons in sf: PostGIS’s
+  `ST_SimplifyPreserveTopology()` under GEOS 3.9.0 drew the same lake
+  differently on repeated calls in one session
+  (`research/map_rebuild.md`). `vm_write()` leaves a committed map
+  untouched when a rebuild changes nothing
+  ([\#155](https://github.com/NewGraphEnvironment/wet/issues/155)).
+  `data-raw/segment_vignette_data.R` runs the segment article’s group
+  recipe from the article itself and refuses unless it returns the
+  published picks, and the data scripts install httpfs before loading it
+  ([\#74](https://github.com/NewGraphEnvironment/wet/issues/74)). The
+  bundles carry the live build’s receipt. Routed PCIC is now picked on
+  99 % of the Nechako Reservoir groups’ segments, so the article no
+  longer names the Nechako. The README’s Ecosystem table is rendered
+  from the shared package registry, with links to published sites
+  ([\#97](https://github.com/NewGraphEnvironment/wet/issues/97)), and
+  [`wet_station_snap()`](https://newgraphenvironment.github.io/wet/reference/wet_station_snap.md)’s
+  docs say why it uses `fwa_indexpoint()`
+  ([\#55](https://github.com/NewGraphEnvironment/wet/issues/55)).
+
 ## wet 0.4.36
 
 - Each published discharge build now records itself, and the fit is
