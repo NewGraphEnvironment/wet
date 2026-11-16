@@ -63,7 +63,7 @@ mouths <- sf::st_sf(stream = names(blk), blue_line_key = unname(blk), into[c("in
 towns <- vm_places(sf::st_union(sf::st_buffer(sf::st_geometry(mouths), 15000)), c("Houston", "Hazelton"))
 kinds <- c("City", "Town", "District Municipality (1)", "Village (1)", "Community", "Locality")
 towns <- towns[towns$feature_type %in% kinds, ]
-towns <- towns[order(towns$name, match(towns$feature_type, kinds)), ]
+towns <- towns[order(towns$name, match(towns$feature_type, kinds), method = "radix"), ]
 towns <- towns[!duplicated(towns$name), ]
 stopifnot(setequal(towns$name, c("Houston", "Hazelton")), nrow(towns) == 2)
 

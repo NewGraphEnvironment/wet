@@ -87,7 +87,7 @@ per_map <- lapply(maps, function(m) {
   # the first by kind of place
   kinds <- c("City", "Town", "District Municipality (1)", "Village (1)", "Community", "Locality")
   places <- places[places$feature_type %in% kinds, ]
-  places <- places[order(places$name, match(places$feature_type, kinds)), ]
+  places <- places[order(places$name, match(places$feature_type, kinds), method = "radix"), ]
   places <- places[!duplicated(places$name), ]
   if (!setequal(places$name, want) || nrow(places) != length(want)) {
     stop(m, ": places found ", paste(places$name, collapse = ", "), " for ", paste(want, collapse = ", "), call. = FALSE)
