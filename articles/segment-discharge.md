@@ -14,15 +14,15 @@ which one a reader gets by default on BC’s larger rivers.
 ![The source of the default flow (\`pick\`, under "Which value to use")
 on main-flow rivers of stream order 5 and up (wider for higher orders),
 6% of BC's segments, and the 315 calibration gauges. Smaller streams are
-not drawn, nor the few (under 1%) of that order with neither. Labels
-name the Liard and the Nechako Reservoir; the scale bar is 600
+not drawn, nor the few (under 1%) of that order with neither. The label
+names the Liard; the scale bar is 600
 km.](segment-discharge_files/figure-html/map-pick-1.png)
 
 The source of the default flow (`pick`, under “Which value to use”) on
 main-flow rivers of stream order 5 and up (wider for higher orders), 6%
 of BC’s segments, and the 315 calibration gauges. Smaller streams are
-not drawn, nor the few (under 1%) of that order with neither. Labels
-name the Liard and the Nechako Reservoir; the scale bar is 600 km.
+not drawn, nor the few (under 1%) of that order with neither. The label
+names the Liard; the scale bar is 600 km.
 
 It is public, in three datasets:
 
@@ -82,12 +82,10 @@ for every month and day:
   low it is;
 - **whichever has a value**, where only one does.
 
-`pick` takes routed PCIC on 64% of the Freshwater Atlas’s segments and
-the balance on 28%: on 5% of all segments because routed flow is far low
+`pick` takes routed PCIC on 65% of the Freshwater Atlas’s segments and
+the balance on 27%: on 3% of all segments because routed flow is far low
 there, and on the rest because routed PCIC has none. The balance takes
-every segment with a value in the Liard, where routed PCIC has none, and
-98% of those in the four Nechako Reservoir groups, where routed flow is
-far below the balance’s.
+every segment with a value in the Liard, where routed PCIC has none.
 
 ## How to read it
 
@@ -203,29 +201,29 @@ gauge can check it only in open water.
 
 ## How good it is
 
-Routed PCIC’s yearly flow is the closer of the two at 168 of the 279
+Routed PCIC’s yearly flow is the closer of the two at 170 of the 283
 gauges both are scored at. Month by month the two score about the same,
 and routed PCIC errs with the season. Each source is scored against a
 gauge’s mean annual runoff and monthly means over its complete years in
 1981–2010: the balance at the 315 HYDAT gauges it is built on, and
-routed PCIC at 279 of them. Error is modelled minus observed, as a
+routed PCIC at 283 of them. Error is modelled minus observed, as a
 percentage of observed. The balance is scored *held out*: each Water
 Survey sub-sub-drainage (such as 08EE) is left out of the fit in turn
 and predicted from the rest, so a gauge’s neighbours in the same
 sub-sub-drainage cannot vouch for it. Routed PCIC is scored on the
-segment each gauge snapped to: 290 gauges have routed flow, less 11
-whose segment carries under a fifth of the gauge’s flow, which the
-routed comparison leaves out and attributes one by one.
+segment each gauge snapped to: 290 gauges have routed flow, less 7 whose
+segment carries under a fifth of the gauge’s flow, which the routed
+comparison leaves out and attributes one by one.
 
-|  | Routed PCIC, 279 gauges | Open water balance (held out), 279 gauges | Open water balance (held out), all 315 |
+|  | Routed PCIC, 283 gauges | Open water balance (held out), 283 gauges | Open water balance (held out), all 315 |
 |:---|---:|---:|---:|
 | **Yearly**: mean absolute error | 21.5% | 27.2% | 27.5% |
-| Bias (mean error) | +5.1% | +9.3% | +8.5% |
-| Middle half of errors | −12% to +13% | −14% to +24% | −16% to +24% |
-| Within ±20% | 66% | 55% | 53% |
+| Bias (mean error) | +4.7% | +8.8% | +8.5% |
+| Middle half of errors | −13% to +13% | −15% to +24% | −16% to +24% |
+| Within ±20% | 65% | 54% | 53% |
 | **Monthly**: median Nash–Sutcliffe efficiency | 0.82 (very good) | 0.82 (very good) | 0.81 (very good) |
 | Median error, lowest and highest month | −17% (May) to +20% (Jul) | −3% (Jun) to +10% (Apr) | −3% (Jun) to +7% (Apr) |
-| Gauge-months within ±20% | 40% | 42% | 41% |
+| Gauge-months within ±20% | 39% | 42% | 41% |
 |  PCIC does not list the gauges it calibrated to, so its errors may be partly in sample. |  |  |  |
 |  Nash–Sutcliffe efficiency ([Nash and Sutcliffe 1970](#ref-nash_sutcliffe1970Riverflow)): how much closer a source’s twelve months come to the gauge’s than a flat line at the gauge’s annual mean. 1 is a perfect match; 0 is no closer than the flat line. Ratings follow [Moriasi and others (2007)](#ref-moriasi_etal2007Modelevaluation): very good above 0.75, good above 0.65, satisfactory above 0.50. |  |  |  |
 
@@ -236,20 +234,20 @@ style="width: auto !important; margin-left: auto; margin-right: auto;border-bott
 ![Error in mean monthly flow by month: the median (line) and the middle
 half of gauges (band), as a percentage of the gauge's 1981–2010 mean.
 The water balance is held out at all 315 calibration gauges; routed PCIC
-at the 279 it is scored at. Dashed lines mark
+at the 283 it is scored at. Dashed lines mark
 ±20%.](segment-discharge_files/figure-html/error-month-1.png)
 
 Error in mean monthly flow by month: the median (line) and the middle
 half of gauges (band), as a percentage of the gauge’s 1981–2010 mean.
 The water balance is held out at all 315 calibration gauges; routed PCIC
-at the 279 it is scored at. Dashed lines mark ±20%.
+at the 283 it is scored at. Dashed lines mark ±20%.
 
 Where each is weak:
 
 - **The season, routed PCIC.** It is low from March to May and high in
   July and August, as if its melt started late and ran on. Each half
   holds at most of its gauges, not only at the median (low in spring at
-  66%, high in summer at 68%), so it is the model’s, not the
+  66%, high in summer at 67%), so it is the model’s, not the
   placement’s: a misplaced outlet changes one gauge’s flow; it would not
   lower the spring at most gauges and raise the summer at most of them.
 - **Spread, the balance.** Across all 315 gauges its median monthly
@@ -336,8 +334,8 @@ published days, as its difference from the daily record. {.table}
 ## Software and citation
 
 The flows in this article, the routed values at the gauges and the picks
-on the map are the published product’s, read on 2026-10-24 from the
-build at `wet` commit b4bbc50. Before they were written, routed PCIC’s
+on the map are the published product’s, read on 2026-11-15 from the
+build at `wet` commit a0318b7. Before they were written, routed PCIC’s
 values were held equal to `fwapg`‘s routed table and its days at the
 Bulkley gauges were routed again from the sub-basin days there, and the
 balance’s months and days were made again from the fit at 08EE004 and
@@ -358,7 +356,7 @@ The software, each cited:
   [fork](https://github.com/NewGraphEnvironment/fwapg/tree/newgraph) of
   it ([Norris and Irvine
   2026](#ref-norris_irvine2026NewGraphEnvironmentfwapg)), at commit
-  7c30f58, places routed PCIC on it.
+  5d50cc1, places routed PCIC on it.
 - [`climr`](https://github.com/bcgov/climr) ([Daust et al.
   2024](#ref-climr)) gives the balance its climate normals, and
   [`cd`](https://newgraphenvironment.github.io/cd/) ([Irvine
@@ -397,7 +395,7 @@ Version 0.4.36, <https://github.com/NewGraphEnvironment/wet>.
   <https://fresh-bc.s3.us-west-2.amazonaws.com/discharge/fwa/v1/manifest.json>,
   as
   [`wet_catalog()`](https://newgraphenvironment.github.io/wet/reference/wet_catalog.md)
-  does. This article reads the build of 24 October 2026.
+  does. This article reads the build of 15 November 2026.
 - Routed flow: the Pacific Climate Impacts Consortium, University of
   Victoria ([hydromosaic](https://beehive.pacificclimate.org/chyp/):
   VIC-GL hydrologic model output routed with Raven, PNWNAmet forcing),

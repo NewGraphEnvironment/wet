@@ -68,15 +68,15 @@
 <p>Stream flow and water temperature for BC’s Freshwater Atlas</p>
 </blockquote>
 <p>wet estimates how much water flows in almost every stream in British Columbia, as a long-term average for each month from models, and publishes it openly. It also tracks flow and water temperature at hydrometric stations in the seasons that matter to fish, filling gaps in temperature records from air temperature. Habitat models use the flow to rate where fish can spawn and rear, and the station records show how this year compares with normal when planning or monitoring restoration.</p>
-<p><img src="reference/figures/readme-pick.png" alt="Map of British Columbia's larger rivers coloured by the source of their default flow: blue for routed PCIC across most of the province, orange for the water balance in the far north and the Nechako Reservoir" width="100%"></p>
+<p><img src="reference/figures/readme-pick.png" alt="Map of British Columbia's larger rivers coloured by the source of their default flow: blue for routed PCIC across most of the province, orange for the water balance in the far north" width="100%"></p>
 <p><em>Where each larger river’s default flow comes from. Most take it from the Pacific Climate Impacts Consortium’s routed model (blue); wet’s own water balance (orange) fills in where that model does not reach or reads far too low.</em></p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"NewGraphEnvironment/wet"</span><span class="op">)</span></span></code></pre></div>
-<p>wet is under active development and its functions change between releases (see <a href="https://newgraphenvironment.github.io/wet/news/index.html">NEWS</a>). Pin a release for reproducible work: <code>pak::pak("NewGraphEnvironment/wet@vX.Y.Z")</code>.</p>
-<p>Reading the published flow needs only <code>duckdb</code>. Station water temperature also needs <code>tidyhydat</code>, station flow a HYDAT database (<code><a href="https://docs.ropensci.org/tidyhydat/reference/download_hydat.html" class="external-link">tidyhydat::download_hydat()</a></code>), and building the flow the Freshwater Atlas in PostgreSQL through <a href="https://github.com/smnorris/fwapg" class="external-link">fwapg</a>.</p>
+<p>wet is under active development and its functions change between releases (see <a href="https://www.newgraphenvironment.com/wet/news/index.html" class="external-link">NEWS</a>). Pin a release for reproducible work: <code>pak::pak("NewGraphEnvironment/wet@vX.Y.Z")</code>.</p>
+<p>Reading the published flow needs only <code>duckdb</code>. Station water temperature also needs <code>tidyhydat</code>, station flow a HYDAT database (<code><a href="https://docs.ropensci.org/tidyhydat/reference/download_hydat.html" class="external-link">tidyhydat::download_hydat()</a></code>), and building the flow the Freshwater Atlas in PostgreSQL through <a href="https://smnorris.github.io/fwapg/" class="external-link">fwapg</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
@@ -97,19 +97,21 @@
 </h2>
 <ul>
 <li>
-<a href="https://newgraphenvironment.github.io/wet/articles/segment-discharge.html">Stream Discharge per Segment</a>: what the published yearly, monthly and daily flow is, which source to use, how to read it, a year at three Bulkley gauges, and how well each source matches the gauges.</li>
+<a href="https://www.newgraphenvironment.com/wet/articles/segment-discharge.html" class="external-link">Stream Discharge per Segment</a>: what the published yearly, monthly and daily flow is, which source to use, how to read it, a year at three Bulkley gauges, and how well each source matches the gauges.</li>
 <li>
-<a href="https://newgraphenvironment.github.io/wet/articles/flow-departure-normal.html">Measured Stream Flow Against Its 1981–2010 Normal</a>: measured flow at two long-record gauges near Houston, in the Bulkley, in the weeks chinook salmon migrate and spawn, over the last ten years against 1981–2010.</li>
+<a href="https://www.newgraphenvironment.com/wet/articles/flow-departure-normal.html" class="external-link">Measured Stream Flow Against Its 1981–2010 Normal</a>: measured flow at two long-record gauges near Houston, in the Bulkley, in the weeks chinook salmon migrate and spawn, over the last ten years against 1981–2010.</li>
 <li>
-<a href="https://newgraphenvironment.github.io/wet/articles/flow-change-sparse-gauges.html">Rebuilding Stream Flow History Where Gauges Are Few</a>: summer flow rebuilt from nearby gauges at four streams chinook salmon use, gauged for a few summers or never, and how it has changed since 1951–1980.</li>
+<a href="https://www.newgraphenvironment.com/wet/articles/flow-change-sparse-gauges.html" class="external-link">Rebuilding Stream Flow History Where Gauges Are Few</a>: summer flow rebuilt from nearby gauges at four streams chinook salmon use, gauged for a few summers or never, and how it has changed since 1951–1980.</li>
 <li>
-<a href="https://newgraphenvironment.github.io/wet/reference/index.html#water-temperature">Water temperature functions</a>: daily station temperature, gap filling and growing-season degree days.</li>
-<li><a href="https://newgraphenvironment.github.io/wet/reference/">Function reference</a></li>
+<a href="https://www.newgraphenvironment.com/wet/reference/index.html#water-temperature" class="external-link">Water temperature functions</a>: daily station temperature, gap filling and growing-season degree days.</li>
+<li><a href="https://www.newgraphenvironment.com/wet/reference/" class="external-link">Function reference</a></li>
 </ul>
 </div>
 <div class="section level2">
 <h2 id="ecosystem">Ecosystem<a class="anchor" aria-label="anchor" href="#ecosystem"></a>
 </h2>
+<!-- BEGIN ecosystem.yml -->
+<!-- Generated from the source registry; edit the registry, not this block. -->
 <table class="table">
 <colgroup>
 <col width="50%">
@@ -121,33 +123,53 @@
 </tr></thead>
 <tbody>
 <tr>
+<td><a href="https://www.newgraphenvironment.com/link/" class="external-link">link</a></td>
+<td>Build, compare and test fish habitat and access models, every fish habitat definition editable</td>
+</tr>
+<tr>
+<td><a href="https://www.newgraphenvironment.com/fresh/" class="external-link">fresh</a></td>
+<td>Splits streams at barriers, classifies habitat by species, traces what’s upstream</td>
+</tr>
+<tr>
 <td><strong>wet</strong></td>
-<td>Stream flow and water temperature for BC’s Freshwater Atlas (this package)</td>
+<td>Typical flow in nearly every stream, tested against gauges; station flow and temperature (this package)</td>
 </tr>
 <tr>
-<td><a href="https://github.com/NewGraphEnvironment/fresh" class="external-link">fresh</a></td>
-<td>Stream network modelling engine: segment, classify, cluster, aggregate</td>
+<td><a href="https://www.newgraphenvironment.com/flooded/" class="external-link">flooded</a></td>
+<td>Maps floodplains from terrain: the valley floor a river can spread across</td>
 </tr>
 <tr>
-<td><a href="https://github.com/NewGraphEnvironment/link" class="external-link">link</a></td>
-<td>Intrinsic habitat models: develop, test and communicate</td>
+<td><a href="https://www.newgraphenvironment.com/drift/" class="external-link">drift</a></td>
+<td>Maps what changed in land cover, where and when, in a floodplain or any area, from free satellite maps or your own</td>
 </tr>
 <tr>
-<td><a href="https://github.com/NewGraphEnvironment/cd" class="external-link">cd</a></td>
-<td>Climate departure: baselines, anomalies and trends, and ERA5-Land climate</td>
+<td><a href="https://www.newgraphenvironment.com/fly/" class="external-link">fly</a></td>
+<td>Puts BC’s historic airphotos back on the map from free thumbnails</td>
 </tr>
 <tr>
-<td><a href="https://github.com/NewGraphEnvironment/gq" class="external-link">gq</a></td>
-<td>Shared map symbology</td>
+<td><a href="https://www.newgraphenvironment.com/cd/" class="external-link">cd</a></td>
+<td>How far any BC watershed’s climate has shifted from your chosen baseline</td>
+</tr>
+<tr>
+<td><a href="https://www.newgraphenvironment.com/knowledge/" class="external-link">knowledge</a></td>
+<td>Starts from each species’ life history and tunes its fish habitat definitions from where sampling did and did not catch it</td>
+</tr>
+<tr>
+<td><a href="https://www.newgraphenvironment.com/floodplains/" class="external-link">floodplains</a></td>
+<td>Maps BC’s floodplains and how the land in them changed, one watershed group at a time</td>
+</tr>
+<tr>
+<td><a href="https://www.newgraphenvironment.com/stac_floodplains_bc/" class="external-link">stac_floodplains_bc</a></td>
+<td>Floodplains and land-cover change, a screen for where to look; by watershed group</td>
 </tr>
 </tbody>
 </table>
-<p>link’s habitat models can read wet’s published discharge, and cd computes the departures from wet’s yearly station values.</p>
+<!-- END ecosystem.yml --><p>Its maps are styled with <a href="https://www.newgraphenvironment.com/gq/" class="external-link">gq</a>. link’s habitat models can read wet’s published discharge, and cd computes the departures from wet’s yearly station values.</p>
 </div>
 <div class="section level2">
 <h2 id="data-and-methods-it-builds-on">Data and methods it builds on<a class="anchor" aria-label="anchor" href="#data-and-methods-it-builds-on"></a>
 </h2>
-<p>Routed flow is <a href="https://www.pacificclimate.org/" class="external-link">PCIC</a>’s VIC-GL model routed with Raven (<a href="https://beehive.pacificclimate.org/chyp/" class="external-link">hydromosaic</a>), placed on the Freshwater Atlas by New Graph’s <a href="https://github.com/NewGraphEnvironment/fwapg/pull/6" class="external-link">fork of fwapg</a>. The water balance follows <a href="https://www2.gov.bc.ca/assets/gov/environment/air-land-water/water/northeast-water-strategy/chapman_et_al-2018-jawra.pdf" class="external-link">Chapman et al. (2018)</a>, fitted to Water Survey of Canada gauges in <a href="https://www.canada.ca/en/environment-climate-change/services/water-overview/quantity/monitoring/survey/data-products-services/national-archive-hydat.html" class="external-link">HYDAT</a>. Station data come from HYDAT, ECCC’s real-time feed and its provisional records as archived by <a href="https://github.com/NewGraphEnvironment/water-temp-bc" class="external-link">water-temp-bc</a>, and the stream network from the <a href="https://www2.gov.bc.ca/gov/content/data/geographic-data-services/topographic-data/freshwater" class="external-link">BC Freshwater Atlas</a> through <a href="https://github.com/smnorris/fwapg" class="external-link">fwapg</a>.</p>
+<p>Routed flow is <a href="https://www.pacificclimate.org/" class="external-link">PCIC</a>’s VIC-GL model routed with Raven (<a href="https://beehive.pacificclimate.org/chyp/" class="external-link">hydromosaic</a>), placed on the Freshwater Atlas by New Graph’s <a href="https://www.newgraphenvironment.com/fwapg/" class="external-link">fork of fwapg</a>. The water balance follows <a href="https://www2.gov.bc.ca/assets/gov/environment/air-land-water/water/northeast-water-strategy/chapman_et_al-2018-jawra.pdf" class="external-link">Chapman et al. (2018)</a>, fitted to Water Survey of Canada gauges in <a href="https://www.canada.ca/en/environment-climate-change/services/water-overview/quantity/monitoring/survey/data-products-services/national-archive-hydat.html" class="external-link">HYDAT</a>. Station data come from HYDAT, ECCC’s real-time feed and its provisional records as archived by <a href="https://www.newgraphenvironment.com/water-temp-bc/" class="external-link">water-temp-bc</a>, and the stream network from the <a href="https://www2.gov.bc.ca/gov/content/data/geographic-data-services/topographic-data/freshwater" class="external-link">BC Freshwater Atlas</a> through <a href="https://smnorris.github.io/fwapg/" class="external-link">fwapg</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
@@ -197,6 +219,7 @@
 <div class="dev-status">
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
+<li><a href="https://github.com/NewGraphEnvironment/wet/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/NewGraphEnvironment/wet/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
 <li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a></li>
 </ul>
 </div>
