@@ -171,7 +171,7 @@ cat_pub <- pb$catalog
 parts <- cat_pub[cat_pub$dataset == "discharge/fwa/v1/segment_monthly" & cat_pub$scenario == "historical", ]
 vd_verify(parts)
 duck <- DBI::dbConnect(duckdb::duckdb())
-invisible(DBI::dbExecute(duck, "LOAD httpfs"))
+invisible(DBI::dbExecute(duck, "INSTALL httpfs; LOAD httpfs;"))
 # wet_segment_monthly() reads q_m3s only; the bundle also carries runoff_mm,
 # coverage, period and pick as published, so it reads the parts itself
 read_pub <- function(hrefs, groups, ids) {
@@ -417,6 +417,7 @@ provenance <- list(
   years = range(s$years),
   published = list(manifest = attr(cat_pub, "manifest"), built = attr(cat_pub, "built"),
                    wet_commit = attr(cat_pub, "provenance")$wet_commit,
+                   receipt = vd_receipt(cat_pub),
                    parts = cat_pub[c("dataset", "source", "code", "key", "rows", "bytes", "md5")],
                    daily_parts = day_parts[c("source", "key", "md5")],
                    reader = pb$reader, report = pb$report),

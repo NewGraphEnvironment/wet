@@ -53,6 +53,7 @@ stopifnot(identical(pub$manifest, wet:::wet_catalog_url), all(ps$published_check
           all(ps$published_check$differing == 0),
           identical(map$provenance$published$wet_commit, pub$wet_commit),
           identical(map$provenance$published$built, pub$built),
+          identical(map$provenance$published$receipt$recipe_id, pub$receipt$recipe_id),
           # the closing section gives one read date for the gauge values and the map
           identical(map$provenance$built, ps$built))
 # the Bulkley values were each checked against what they were built from by
@@ -62,6 +63,7 @@ stopifnot(identical(pm$published$manifest, wet:::wet_catalog_url), all(pm$publis
 # the closing section names one build, one read date, one fit and one routed run
 # for both bundles
 stopifnot(identical(pm$published$wet_commit, pub$wet_commit), identical(pm$published$built, pub$built),
+          identical(pm$published$receipt$recipe_id, pub$receipt$recipe_id),
           identical(pm$published$report, pub$report), identical(pm$built, ps$built),
           identical(pm$province_run, ps$province_run), identical(pm$hydat_release, ps$hydat_release),
           identical(pm$aet, ps$aet),
@@ -196,9 +198,9 @@ cap_pick <- sprintf(paste(
   "The source of the default flow (`pick`, under \"Which value to use\") on main-flow rivers of stream order %d",
   "and up (wider for higher orders), %s of",
   "BC's segments, and the %d calibration gauges. Smaller streams are not drawn, nor the few (under 1%%) of",
-  "that order with neither. Labels name the Liard and the Nechako Reservoir; the scale bar is %d km."
+  "that order with neither. The label names the Liard; the scale bar is %d km."
 ), mp$min_order, pct(100 * drawn / sg[["fwa"]]), nrow(sk), sb_bc_km)
-stopifnot(setequal(map$regions$name, c("Liard", "Nechako Reservoir")),
+stopifnot(identical(map$regions$name, "Liard"),
           mp$drawn[["none"]] < 0.01 * sum(mp$drawn))
 ```
 
@@ -264,12 +266,9 @@ Neither is the gauge record.
 rg <- sf::st_drop_geometry(map$regions)
 rownames(rg) <- rg$name
 liard <- rg["Liard", ]
-nech <- rg["Nechako Reservoir", ]
-nech_bal <- 100 * nech$wet_balance / (nech$wet_balance + nech$pcic_routed)
 # the prose: routed has no value in the Liard, so the balance is picked there;
-# on the Nechako Reservoir it is picked on nearly every segment; the cut is a fifth;
-# and most segments have both sources
-stopifnot(liard$pcic_routed == 0, liard$wet_balance > 0, nech_bal > 90, ps$far_low == 0.2,
+# the cut is a fifth; and most segments have both sources
+stopifnot(liard$pcic_routed == 0, liard$wet_balance > 0, ps$far_low == 0.2,
           sg[["far_low"]] > 0, n_both_src > 0.5 * sg[["fwa"]],
           # the balance is picked where routed is far low, and otherwise only where routed has none
           sg[["pick_balance"]] - sg[["far_low"]] == n_src[["wet_balance"]] - n_both_src)
@@ -291,8 +290,7 @@ every month and day:
 `pick` takes routed PCIC on `r pct_of(sg[["pick_routed"]])` of the Freshwater
 Atlas's segments and the balance on `r pct_of(sg[["pick_balance"]])`:
 on `r pct_of(sg[["far_low"]])` of all segments because routed flow is far low there, and on the rest because routed PCIC has none. The balance takes every segment with a value in the Liard, where
-routed PCIC has none, and `r pct(nech_bal)` of those in the four Nechako
-Reservoir groups, where routed flow is far below the balance's.
+routed PCIC has none.
 
 ## How to read it
 

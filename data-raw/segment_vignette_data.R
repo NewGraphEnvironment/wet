@@ -22,6 +22,9 @@
 #     from the tracked segment report, which must be the one the tracked
 #     publish report's build was cut from, checked against the live build's
 #     reader counts and fwapg's
+#   - recipe: the rows per source the article's group recipe returns on the
+#     live build (BULK's month-0 picks), run as the article prints it and
+#     refused unless it equals the same rows read part by part (#74)
 #   - daily: the article's daily read (#99) as it prints it, run on the live
 #     build: one segment's days and a window's flow from them, beside the same
 #     window from its months; refused unless the balance's days keep its months
@@ -114,7 +117,7 @@ parts <- cat_pub[cat_pub$dataset == "discharge/fwa/v1/segment_monthly" & cat_pub
                    cat_pub$source == "pcic_routed", ]
 vd_verify(parts)
 duck <- DBI::dbConnect(duckdb::duckdb())
-invisible(DBI::dbExecute(duck, "LOAD httpfs"))
+invisible(DBI::dbExecute(duck, "INSTALL httpfs; LOAD httpfs;"))
 gauge_groups <- sort(unique(seg_grp_gauge$watershed_group_code))
 t_read <- Sys.time()
 pub_r <- DBI::dbGetQuery(duck, sprintf("
@@ -163,6 +166,55 @@ if (any(pub_check$differing > 0) || !identical(pub_check$compared, as.numeric(nr
       any(pub_check$compared == 0)) {
   stop("the published values differ from what they were built from: see the table above")
 }
+
+# ---- the group recipe the article shows (#74) -------------------------------------------------------
+# The article's `read-group` chunk, run as written from the article itself
+# on the live build: BULK's default annual flow from every monthly part. Its
+# rows must be the BULK month-0 picks read part by part, each part's source
+# taken from its manifest row rather than its Hive path, so a recipe whose
+# filter or partition keys drift from the product is refused. The parts must
+# match the manifest before and after, and the recipe's own catalog read must
+# be this build
+f_rmd <- file.path("vignettes", "segment-discharge.Rmd")
+# the recipe run is the article's as committed, like the code that runs it (vd_commit())
+if (length(vd_git("status", "--porcelain", "--", f_rmd))) stop("commit ", f_rmd, " first: its recipe is run")
+rmd <- readLines(f_rmd)
+from <- grep("^```\\{r read-group[,}]", rmd)
+stopifnot(length(from) == 1)
+to <- from + which(rmd[(from + 1):length(rmd)] == "```")[1]
+seg_parts <- cat_pub[cat_pub$dataset == "discharge/fwa/v1/segment_monthly", ]
+vd_verify(seg_parts)
+rec_env <- new.env(parent = globalenv())
+recipe <- eval(parse(text = rmd[(from + 1):(to - 1)]), envir = rec_env)
+DBI::dbDisconnect(rec_env$duck, shutdown = TRUE)
+stopifnot(identical(wet:::wet_catalog_digest(rec_env$cat), wet:::wet_catalog_digest(cat_pub)))
+duck <- DBI::dbConnect(duckdb::duckdb())
+invisible(DBI::dbExecute(duck, "INSTALL httpfs; LOAD httpfs;"))
+# the Bulkley lies in the Skeena (400)
+own_parts <- seg_parts[seg_parts$scenario == "historical" & seg_parts$code == "400", ]
+stopifnot(setequal(own_parts$source, c("pcic_routed", "wet_balance")), nrow(own_parts) == 2)
+own <- do.call(rbind, lapply(seq_len(nrow(own_parts)), function(i) {
+  x <- DBI::dbGetQuery(duck, sprintf("
+    SELECT linear_feature_id, q_m3s FROM read_parquet(%s, hive_partitioning = false)
+    WHERE watershed_group_code = 'BULK' AND month = 0 AND pick", DBI::dbQuoteString(duck, own_parts$href[i])))
+  data.frame(linear_feature_id = x$linear_feature_id, source = own_parts$source[i], q_m3s = x$q_m3s)
+}))
+DBI::dbDisconnect(duck, shutdown = TRUE)
+vd_verify(seg_parts)
+by_id <- function(x) {
+  x <- x[order(x$linear_feature_id, x$source, method = "radix"), c("linear_feature_id", "source", "q_m3s")]
+  x$linear_feature_id <- as.integer(x$linear_feature_id)
+  rownames(x) <- NULL
+  x
+}
+recipe <- by_id(recipe)
+own <- by_id(own)
+if (!nrow(recipe) || anyDuplicated(recipe$linear_feature_id) || !identical(recipe, own)) {
+  stop("the article's group recipe does not return BULK's month-0 picks (", nrow(recipe), " rows, ",
+       nrow(own), " read part by part)")
+}
+recipe_rows <- c(table(factor(recipe$source, c("pcic_routed", "wet_balance"))))
+print(recipe_rows)
 
 # ---- the daily read the article shows (#99) --------------------------------------------------------
 # Buck Creek at its mouth, the article's recipe as written, on the live build;
@@ -246,6 +298,7 @@ provenance <- list(
   published = list(manifest = attr(cat_pub, "manifest"), built = attr(cat_pub, "built"),
                    wet_commit = attr(cat_pub, "provenance")$wet_commit,
                    segment_commit = attr(cat_pub, "provenance")$segment_commit,
+                   receipt = vd_receipt(cat_pub),
                    parts = cat_pub[c("dataset", "source", "code", "key", "rows", "bytes", "md5")],
                    reader = reader, report = f_pub),
   published_check = pub_check,
@@ -263,7 +316,7 @@ provenance <- list(
 # as raw bits, so a join in the vignette would match nothing: the SQL casts them
 no64 <- function(x) !any(vapply(x, inherits, NA, "integer64"))
 stopifnot(no64(sk))
-values <- list(skill = sk, segments = segments, daily = daily, provenance = provenance)
+values <- list(skill = sk, segments = segments, recipe = recipe_rows, daily = daily, provenance = provenance)
 saveRDS(values, out, compress = "xz")
 message("segment_values.rds: ", round(file.size(out) / 1024), " KB")
 files <- file.path("inst", "vignette-data", c("segment_values.rds", "segment_map.rds"))

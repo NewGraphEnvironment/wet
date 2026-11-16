@@ -9,7 +9,7 @@
 
 wet estimates how much water flows in almost every stream in British Columbia, as a long-term average for each month from models, and publishes it openly. It also tracks flow and water temperature at hydrometric stations in the seasons that matter to fish, filling gaps in temperature records from air temperature. Habitat models use the flow to rate where fish can spawn and rear, and the station records show how this year compares with normal when planning or monitoring restoration.
 
-<img src="man/figures/readme-pick.png" alt="Map of British Columbia's larger rivers coloured by the source of their default flow: blue for routed PCIC across most of the province, orange for the water balance in the far north and the Nechako Reservoir" width="100%" />
+<img src="man/figures/readme-pick.png" alt="Map of British Columbia's larger rivers coloured by the source of their default flow: blue for routed PCIC across most of the province, orange for the water balance in the far north" width="100%" />
 
 *Where each larger river's default flow comes from. Most take it from the Pacific Climate Impacts Consortium's routed model (blue); wet's own water balance (orange) fills in where that model does not reach or reads far too low.*
 

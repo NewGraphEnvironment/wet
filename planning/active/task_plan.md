@@ -44,10 +44,10 @@ Measured during planning (2026-11-15, on m1):
 - [x] fresh listed as a `data-raw/` need in the scripts' headers (not DESCRIPTION; the build excludes `data-raw/`)
 
 ## Phase 4: The data scripts' recipe, httpfs and receipt (batch 4: #74; owed #161)
-- [ ] `INSTALL httpfs; LOAD httpfs;` in `data-raw/segment_vignette_data.R`, `data-raw/segment_vignette_map.R`, `data-raw/monthly_vignette_data.R`
-- [ ] `segment_vignette_data.R` runs the article's `read-group` recipe as written (every monthly part, `scenario = 'historical' AND watershed_group_code = 'BULK' AND month = 0 AND pick`) and refuses unless it returns one row per segment, equal on `linear_feature_id`, `source` and `q_m3s` to the BULK month-0 `pick` rows of the script's own per-part read (routed and balance parts), with parts verified before and after; the recipe's row counts go into provenance
-- [ ] Bundle provenance carries the published receipt's keys (`recipe_id`, the live build's wet commit) in `segment_values.rds`, `monthly_values.rds` and `segment_map.rds`
-- [ ] Drop the Nechako region from `segment_vignette_map.R` (Liard only); header comment updated
+- [x] `INSTALL httpfs; LOAD httpfs;` in `data-raw/segment_vignette_data.R`, `data-raw/segment_vignette_map.R`, `data-raw/monthly_vignette_data.R`
+- [x] `segment_vignette_data.R` runs the article's `read-group` recipe as written (every monthly part, `scenario = 'historical' AND watershed_group_code = 'BULK' AND month = 0 AND pick`) and refuses unless it returns one row per segment, equal on `linear_feature_id`, `source` and `q_m3s` to the BULK month-0 `pick` rows of the script's own per-part read (routed and balance parts), with parts verified before and after; the recipe's row counts go into provenance
+- [x] Bundle provenance carries the published receipt's keys (`recipe_id`, the live build's wet commit) in `segment_values.rds`, `monthly_values.rds` and `segment_map.rds`
+- [x] Drop the Nechako region from `segment_vignette_map.R` (Liard only); header comment updated
 
 ## Phase 5: Regenerate against the live build, and the article
 - [ ] Commit, then run on m1, each twice where it is a map script: `station_vignette_map.R`, `monthly_vignette_map.R`, `short_record_vignette_map.R`, `chinook_sites_map.R`, `segment_vignette_map.R` (`WET_FWAPG_COMMIT=5d50cc1`); every layer `identical()` between the two runs; logs under `data/logs/165/`
