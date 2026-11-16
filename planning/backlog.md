@@ -22,7 +22,7 @@ ticked and not **waiting**; `/planning-init <umbrella>` plans it, one phase per 
 | move | umbrella | batches | state |
 |---|---|---|---|
 | - [x] 1 | #163 | 1, 2: province inputs and run comparison, the fit's own rules (6 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/170 |
-| - [ ] 2 | #164 | 3: the published build's record (4 issues) | open, after move 1 |
+| - [x] 2 | #164 | 3: the published build's record (4 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/172 |
 | - [ ] 3 | #165 | 4, 5: article bundles and maps, docs (4 issues) | **waiting** on move 2's PUBLISH: the tracked publish report names the build move 2 published |
 | - [ ] 4 | #166 | 6: monthly error at the gauges (3 issues) | open |
 | - [ ] 5 | #167 | 7, 8: stations beyond HYDAT, PCIC's per-year files at the sites (4 issues) | open |
@@ -81,7 +81,7 @@ retires.
 
 ### 3. The published build's record
 
-- [ ] Carried by move 2, #164
+- [x] Carried by move 2, #164 (merged in https://github.com/NewGraphEnvironment/wet/pull/172)
 
 #108 (the February fold in the manifest's daily description), #161 (the shared provenance receipt
 through crate), #88 (record which parts a database load holds) and #160 (publish the shipped fit
