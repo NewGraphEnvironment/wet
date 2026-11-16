@@ -73,3 +73,35 @@ local_discharge_tree <- function(env = parent.frame()) {
   discharge_fixture_write(root)
   root
 }
+
+# The fixture tree with a made-up fit beside it and a receipt (#160, #161), as
+# a build since #164 publishes, or a skip without crate.
+discharge_fixture_inputs <- function() {
+  list(province_run = "fixture", fit = "fixture", hydat_release = "fixture", pcic_routed = "fixture",
+       pcic_routed_daily = "fixture", fwapg = "fixture")
+}
+
+local_discharge_tree_fit <- function(env = parent.frame()) {
+  testthat::skip_if_not_installed("crate")
+  root <- local_discharge_tree(env)
+  dir.create(file.path(root, "fit", "sample"), recursive = TRUE)
+  saveRDS(list(aet = "cfu"), file.path(root, "fit", "fits.rds"))
+  con <- DBI::dbConnect(duckdb::duckdb())
+  duckdb::duckdb_register(con, "s", data.frame(watershed_feature_id = 9001L, p_mm = 800, in_bc = 1))
+  DBI::dbExecute(con, sprintf("COPY s TO '%s' (FORMAT parquet)", file.path(root, "fit", "sample", "part-SALR.parquet")))
+  DBI::dbDisconnect(con, shutdown = TRUE)
+  built <- as.POSIXct("2026-10-12 00:00:00", tz = "UTC")
+  fit_files <- c(fits = "fit/fits.rds", sample = "fit/sample/part-SALR.parquet")
+  parts <- names(discharge_fixture_parts())
+  rc <- wet_receipt_write(root, "discharge/fwa/v1", strrep("a", 40), "fixture", discharge_fixture_inputs(),
+                          list(crate_version = "0.0.0"), c(parts, unname(fit_files)), built = built)
+  wet_manifest_write(root, "discharge/fwa/v1", drainage = c("100" = "Fraser River", SALR = "Salmon River"),
+                     sources = discharge_fixture_sources(),
+                     provenance = list(wet_version = "fixture", wet_commit = "fixture"),
+                     crate_version = "0.0.0", built = built,
+                     fit = list(release = "fixture", province_run = "fixture", score_code_md5 = strrep("0", 32),
+                                description = "A made-up fit.", citation = "Fixture; not data.",
+                                files = fit_files),
+                     receipt = rc)
+  root
+}

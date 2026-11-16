@@ -11,6 +11,8 @@
 # written flow (and four segment columns) against its source (#64), and writes
 #   data/publish/discharge/fwa/v1/<unit>_monthly/scenario=/forcing=/source=/part-<code>.parquet
 #   data/publish/discharge/fwa/v1/segment_daily/scenario=/forcing=/source=/part-<GROUP>.parquet
+#   data/publish/discharge/fwa/v1/fit/fits.rds, fit/sample/part-<GROUP>.parquet (#160)
+#   data/publish/discharge/fwa/v1/receipt.json (crate's receipt of the build, #161)
 #   data/publish/discharge/fwa/v1/manifest.json
 # with one parquet row group per watershed group, plus the tracked report
 # wb_report("discharge_publish", release). It prints what PUBLISH would
@@ -18,8 +20,8 @@
 #
 # PUBLISH uploads that tree, each part with a single PUT whose Content-MD5 S3
 # checks (skipping a part whose live object's ETag is already its md5), then
-# the manifest, then deletes keys under the prefix the manifest
-# no longer names. It then reads the public manifest anonymously and checks
+# the fit's files and the receipt the same way, then the manifest, then
+# deletes keys under the prefix the manifest no longer names. It then reads the public manifest anonymously and checks
 # every part's size and ETag (wet_catalog_verify()), which also proves the
 # bucket policy opens the prefix. Once that passes it rewrites the report's
 # live-build line (publish_report_live(), #117) and leaves the report for a
@@ -39,9 +41,9 @@ message(if (publish) "PUBLISH run" else "BUILD run (no upload)")
 # sourcing included), as segment_output.R's old table does
 root <- file.path("data", "publish", "discharge", "fwa", "v1")
 if (!publish) {
-  unlink(file.path(root, c("manifest.json", "manifest.pending.json")))
+  unlink(file.path(root, c("manifest.json", "manifest.pending.json", "receipt.json")))
   # unlink() reports a failure by its return value, not an error
-  stopifnot(!file.exists(file.path(root, c("manifest.json", "manifest.pending.json"))))
+  stopifnot(!file.exists(file.path(root, c("manifest.json", "manifest.pending.json", "receipt.json"))))
 }
 devtools::load_all(quiet = TRUE)
 source("scripts/wb_fit_lib.R")
@@ -58,10 +60,11 @@ git <- function(...) {
   if (!is.null(attr(x, "status"))) stop("git ", paste(c(...), collapse = " "), " failed: ", paste(x, collapse = " "))
   x
 }
-dirty <- git("status", "--porcelain", "--", "R", "scripts", "data/checks", "DESCRIPTION")
+dirty <- git("status", "--porcelain", "--", "R", "scripts", "data/checks", "DESCRIPTION", "inst/receipt")
 if (length(dirty)) stop("commit these first, so the manifest's commit can rebuild the tree:\n",
                         paste(dirty, collapse = "\n"))
 wet_commit <- git("rev-parse", "--short", "HEAD")
+wet_commit_full <- git("rev-parse", "HEAD")  # crate's receipt names the full commit
 release <- wb_release()
 if (!identical(release, wb_shipped_release)) stop("publish the shipped fit, ", wb_shipped_release)
 
@@ -92,7 +95,8 @@ if (publish) {
   # the tree's digest too, so a tree rebuilt at the same commit from other
   # inputs is not uploaded under this report (#94)
   publish_report_check(rep_head, cat_local, f_report)
-  v <- wet_catalog_verify(cat_local)
+  files_local <- wet_catalog_files(cat_local)
+  v <- wet_catalog_verify(files_local)
   if (!all(v$ok)) stop("the local tree no longer matches its manifest: ", paste(v$key[!v$ok], collapse = ", "))
   aws <- function(...) {
     x <- suppressWarnings(system2("aws", shQuote(c(...)), stdout = TRUE, stderr = TRUE))
@@ -117,13 +121,27 @@ if (publish) {
         cat_local$md5[i])
     stamp("put ", cat_local$key[i])
   }
+  # the fit's files and the receipt, after the parts and before the manifest
+  # that names them, skipped the same way where already live; the receipt,
+  # at a fixed key rewritten each build, is not cached
+  extra <- files_local[!files_local$key %in% cat_local$key, ]
+  extra_live <- extra
+  extra_live$href <- paste(sub("/manifest.json$", "", publish_url), extra$key, sep = "/")
+  extra_same <- wet_catalog_verify(extra_live)$ok
+  for (i in which(!extra_same)) {
+    type <- switch(tools::file_ext(extra$key[i]), parquet = "application/vnd.apache.parquet",
+                   json = "application/json", "application/octet-stream")
+    put(extra$href[i], paste(publish_id, extra$key[i], sep = "/"), type, extra$md5[i],
+        if (extra$key[i] == "receipt.json") c("--cache-control", "no-cache"))
+    stamp("put ", extra$key[i])
+  }
   f_man <- file.path(root, "manifest.json")
   put(f_man, paste(publish_id, "manifest.json", sep = "/"), "application/json", unname(tools::md5sum(f_man)),
       "--cache-control", "no-cache")
   keys <- aws("s3api", "list-objects-v2", "--bucket", publish_bucket, "--prefix", paste0(publish_id, "/"),
               "--query", "Contents[].Key", "--output", "text")
   keys <- setdiff(unlist(strsplit(keys, "\t")), c("None", ""))
-  keep <- c(paste(publish_id, cat_local$key, sep = "/"), paste(publish_id, "manifest.json", sep = "/"))
+  keep <- c(paste(publish_id, files_local$key, sep = "/"), paste(publish_id, "manifest.json", sep = "/"))
   stale <- setdiff(keys, keep)
   stopifnot(all(startsWith(stale, paste0(publish_id, "/"))))
   for (k in stale) {
@@ -131,12 +149,13 @@ if (publish) {
     stamp("deleted stale ", k)
   }
   cat_pub <- wet_catalog(publish_url)
-  stopifnot(identical(cat_pub$md5, cat_local$md5))
-  v <- wet_catalog_verify(cat_pub)
-  if (!all(v$ok)) stop("published parts do not verify: ", paste(v$key[!v$ok], v$reason[!v$ok], collapse = "; "))
-  stamp("published ", nrow(cat_pub), " parts (", sum(!same), " uploaded), ", length(stale),
-        " stale keys deleted; all verify at ", publish_url)
-  stamp(publish_report_live(f_report, cat_local, cat_pub, v))
+  files_pub <- wet_catalog_files(cat_pub)
+  stopifnot(identical(files_pub$key, files_local$key), identical(files_pub$md5, files_local$md5))
+  v <- wet_catalog_verify(files_pub)
+  if (!all(v$ok)) stop("published files do not verify: ", paste(v$key[!v$ok], v$reason[!v$ok], collapse = "; "))
+  stamp("published ", nrow(cat_pub), " parts (", sum(!same), " uploaded) and ", nrow(extra), " fit and receipt files (",
+        sum(!extra_same), " uploaded), ", length(stale), " stale keys deleted; all verify at ", publish_url)
+  stamp(publish_report_live(f_report, cat_local, cat_pub, v[v$key %in% cat_pub$key, ]))
   message("commit ", f_report, ": its live-build line now names this upload, so no BUILD needs to follow it")
   quit(save = "no")
 }
@@ -198,8 +217,11 @@ if (length(seg_commit) != 1L) stop(f_seg_report, " names no wet commit")
 # while a file left off the exclusions only forces a rebuild. The vignette
 # data guards read the published tree and this report, and only data-raw/
 # sources them.
-publish_own <- c("R/wet_catalog.R", "R/wet_db_load.R", "R/wet_values_compare.R", "scripts/discharge_publish.R",
-                 "scripts/discharge_publish_lib.R", "scripts/vignette_data_lib.R")
+# wet_segment_daily() and scripts/segment_group.R read the published product
+# and feed no table (#164), as wet_catalog() and wet_db_load() do.
+publish_own <- c("R/wet_catalog.R", "R/wet_db_load.R", "R/wet_values_compare.R", "R/wet_segment_daily.R",
+                 "scripts/discharge_publish.R", "scripts/discharge_publish_lib.R", "scripts/vignette_data_lib.R",
+                 "scripts/segment_group.R")
 # the daily table is made after the monthly one and from it, so its script is
 # no input of the monthly table
 daily_own <- "scripts/segment_daily_output.R"
@@ -375,9 +397,11 @@ sources <- list(
        description = paste("PCIC's routed streamflow (Raven routing over VIC-GL, hydromosaic, PNWNAmet forcing),",
                            sprintf("monthly and day-of-year means %s placed on FWA segments by", routed_run$period),
                            "NewGraphEnvironment/fwapg#6 and #25; annual is the mean of the 12 monthly means.",
-                           "Each month and each day is routed and clamped at zero on its own, so a month's",
-                           "days can average above the month where a clamp applied; 29 February is folded",
-                           "into 28 February."),
+                           "29 February is folded into 28 February. A month's days need not average to the",
+                           "month: each month and each day is routed and clamped at zero on its own, which",
+                           "can put the days' mean above the month, and 28 February also carries 29",
+                           "February's flow, which the month weights by how often the period holds each day,",
+                           "which can put February's day mean above or below it."),
        citation = "Pacific Climate Impacts Consortium, University of Victoria. Hydromosaic routed streamflow. https://services.pacificclimate.org/",
        provenance = list(routed = sub("^routed: ", "", routed_line), routed_fingerprint = routed_fp,
                     routed_daily_fingerprint = daily_fp)),
@@ -413,6 +437,51 @@ sources <- list(
        citation = "New Graph Environment Ltd. wet: stream flow for the BC Freshwater Atlas. https://github.com/NewGraphEnvironment/wet",
        provenance = list(fit_release = release, province_run = basename(key_dir)))
 )
+# ---- the fit beside the product (#160) and the build's receipt (#161) --------------------------------
+# fits.rds as the fit ships it, and each watershed group's province-run sample
+# as parquet, read back identical() to its rds, so one group's balance rows can
+# be rebuilt away from this machine (scripts/segment_group.R,
+# WET_GROUP_FROM=published). Every group is published: a group's reach can
+# run through any other.
+fit_root <- file.path(root, "fit")
+unlink(fit_root, recursive = TRUE)
+stopifnot(!dir.exists(fit_root))
+dir.create(file.path(fit_root, "sample"), recursive = TRUE)
+if (!file.copy(file.path(fit_dir, "fits.rds"), file.path(fit_root, "fits.rds"))) stop("could not copy fits.rds")
+smp_files <- sort(list.files(file.path(key_dir, "sample"), "^[A-Z]{4}\\.rds$", full.names = TRUE), method = "radix")
+smp_groups <- sub("\\.rds$", "", basename(smp_files))
+if (!all(groups_day %in% smp_groups)) {
+  stop("the province run's sample/ has no sample of ", paste(setdiff(groups_day, smp_groups), collapse = ", "))
+}
+for (i in seq_along(smp_files)) {
+  x <- readRDS(smp_files[i])
+  f <- file.path(fit_root, "sample", paste0("part-", smp_groups[i], ".parquet"))
+  arrow::write_parquet(x, f, compression = "zstd")
+  if (!identical(as.data.frame(arrow::read_parquet(f)), as.data.frame(x))) {
+    stop(smp_files[i], " does not read back identical() from parquet")
+  }
+}
+rm(x)
+fit_files <- c(fits = "fit/fits.rds",
+               stats::setNames(file.path("fit", "sample", paste0("part-", smp_groups, ".parquet")),
+                               rep("sample", length(smp_groups))))
+stamp("fit: fits.rds and ", length(smp_groups), " group samples")
+built_time <- Sys.time()
+part_keys <- sort(list.files(root, "\\.parquet$", recursive = TRUE), method = "radix")
+part_keys <- part_keys[!startsWith(part_keys, "fit/")]
+fwapg_commit <- sub("^.* at ([0-9a-f]{7,40})$", "\\1", routed_line)
+if (identical(fwapg_commit, routed_line)) stop("the routed line names no fwapg commit: ", routed_line)
+t0 <- Sys.time()
+receipt <- wet_receipt_write(
+  root, publish_id, wet_commit_full, as.character(utils::packageVersion("wet")),
+  inputs = list(province_run = basename(key_dir), fit = paste(release, score_code_md5, sep = "/"),
+                hydat_release = release, pcic_routed = paste(sub("^routed: ", "", routed_line), routed_fp, sep = "; "),
+                pcic_routed_daily = daily_fp, fwapg = fwapg_commit),
+  settings = list(crate_version = crate_version),
+  files = c(part_keys, unname(fit_files)), built = built_time)
+receipt_secs <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
+stamp("receipt ", receipt$recipe_id, " in ", round(receipt_secs), " s")
+
 # the manifest is publishable only once every check below passes: until then
 # it is manifest.pending.json, which PUBLISH does not read
 f_pending <- file.path(root, "manifest.pending.json")
@@ -420,10 +489,26 @@ wet_manifest_write(root, publish_id, drainage = drainage, sources = sources,
                    provenance = list(wet_version = as.character(utils::packageVersion("wet")),
                                      wet_commit = wet_commit, segment_commit = seg_commit,
                                      segment_daily_commit = day_commit),
-                   crate_version = crate_version, path = f_pending)
+                   crate_version = crate_version, path = f_pending, built = built_time,
+                   fit = list(release = release, province_run = basename(key_dir), score_code_md5 = score_code_md5,
+                              description = paste(
+                                "The shipped water-balance fit of wet_balance (fits.rds, an R object for",
+                                "wet's own functions) and each watershed group's area-weighted sample of the",
+                                "province run's 30-arcsecond layers per FWA fundamental watershed (parquet):",
+                                "climr 1981-2010 normals (MSWX anomalies), CGIAR actual evapotranspiration,",
+                                "Copernicus GLO-90 elevation and ERA5-Land 1981-2010 snow normals (via",
+                                "NewGraphEnvironment/cd); contains modified Copernicus Climate Change Service",
+                                "information. scripts/segment_group.R rebuilds one group's balance rows from them."),
+                              citation = paste("New Graph Environment Ltd. wet: stream flow for the BC Freshwater",
+                                               "Atlas. https://github.com/NewGraphEnvironment/wet"),
+                              files = fit_files),
+                   receipt = receipt)
 cat_local <- wet_catalog(f_pending)
-v <- wet_catalog_verify(cat_local)
-stopifnot(all(v$ok), sum(cat_local$rows) == sum(tally$rows))
+v <- wet_catalog_verify(wet_catalog_files(cat_local))
+# the receipt hashed exactly the files the manifest lists beside it
+receipt_parts <- names(crate::crt_receipt_read(file.path(root, "receipt.json"))$result$parts)
+stopifnot(all(v$ok), sum(cat_local$rows) == sum(tally$rows),
+          setequal(receipt_parts, setdiff(wet_catalog_files(cat_local)$key, "receipt.json")))
 
 # ---- cross-checks against the segment report, and what a reader sees --------------------------------
 num <- function(pattern) {
@@ -703,7 +788,8 @@ writeLines(c(
   sprintf("arrow %s, duckdb %s (a part's bytes depend on the writer's version)",
           utils::packageVersion("arrow"), utils::packageVersion("duckdb")),
   routed_line, sprintf("table: %s", routed_fp),
-  sprintf("tree: %s -> s3://%s/%s/", root, publish_bucket, publish_id), publish_tree_line(cat_local), "",
+  sprintf("tree: %s -> s3://%s/%s/", root, publish_bucket, publish_id), publish_tree_line(cat_local),
+  publish_fit_lines(cat_local), sprintf("receipt hashed in %.0f s", receipt_secs), "",
   "## Cross-checks against the segment report, and value by value",
   sprintf("%-15s %s", names(checks), ifelse(checks, "ok", "FAIL")), "",
   "## Value cross-checks (#64): every published flow, and four segment columns, against their sources",
@@ -733,4 +819,5 @@ if (!all(checks)) stop("cross-checks failed: ", paste(names(checks)[!checks], co
 if (!file.rename(f_pending, file.path(root, "manifest.json"))) stop("could not move ", f_pending)
 stamp("built ", nrow(cat_local), " parts; report ", f_report)
 message("DRY RUN: WET_PUBLISH=1 would upload ", nrow(cat_local), " parts (", sprintf("%.2f GB", sum(cat_local$bytes) / 1e9),
-        ") and the manifest to s3://", publish_bucket, "/", publish_id, "/, then delete keys it no longer names")
+        "), ", nrow(attr(cat_local, "fit")$files), " fit files, the receipt and the manifest to s3://",
+        publish_bucket, "/", publish_id, "/, skipping any already live, then delete keys it no longer names")

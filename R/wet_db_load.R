@@ -26,6 +26,18 @@
 #' discharge.fwa_v1_segment_monthly where scenario = 'historical' and
 #' month = 0 and pick)")`.
 #'
+#' @section Which parts a table holds:
+#' Each load also writes one row per part it loaded to `<schema>.wet_load`
+#' (`discharge.wet_load`), replacing the dataset and scenario's rows in the
+#' same transaction as the data: `dataset`, `scenario`, `key`, `md5`, `rows`,
+#' `subset` (the filter of a partial load, `NULL` for a full one), `manifest`,
+#' `built` and `wet_commit` (the build the parts came from), `recipe_id` (its
+#' receipt's, where the manifest names one) and `loaded_at`. Unlike the table
+#' comment, which names only the scenario loaded last, it keeps every
+#' dataset and scenario's load, so a consumer reading the historical rows can
+#' key on the historical load: `select key, md5 from discharge.wet_load where
+#' dataset = 'discharge/fwa/v1/segment_monthly' and scenario = 'historical'`.
+#'
 #' @param conn A [DBI::DBIConnection-class] to Postgres (RPostgres).
 #' @param catalog The parts, from [wet_catalog()].
 #' @param dataset Dataset ID, e.g. `"discharge/fwa/v1/segment_monthly"`.
@@ -125,6 +137,9 @@ wet_db_load <- function(conn, catalog, dataset = "discharge/fwa/v1/segment_month
       }
       DBI::dbClearResult(res)
     }
+    # recorded before the checks, so a refused load rolls the record back with the rows
+    subset <- if (pick_only || !setequal(keep, tb$values) || !is.null(groups)) where else NA_character_
+    wet_load_record(conn, tbl[["schema"]], dataset, scenario, parts, n, subset, catalog)
     got <- DBI::dbGetQuery(conn, paste("SELECT count(*)::float8 AS n FROM", qid, "WHERE scenario = $1"),
                            params = list(scenario))$n
     if (got != sum(n)) stop("loaded ", got, " rows but read ", sum(n), call. = FALSE)
@@ -167,11 +182,7 @@ wet_db_load <- function(conn, catalog, dataset = "discharge/fwa/v1/segment_month
         "wet_db_load(): %s, scenario %s last loaded from %s (built %s, wet %s)%s",
         dataset, scenario, attr(catalog, "manifest") %||% "?", attr(catalog, "built") %||% "?",
         attr(catalog, "provenance")$wet_commit %||% "?",
-        if (pick_only || !setequal(keep, tb$values) || !is.null(groups)) {
-          paste0("; subset ", where)
-        } else {
-          ""
-        }
+        if (is.na(subset)) "" else paste0("; subset ", subset)
       ))
     ))
     data.frame(key = parts$key, rows = n, stringsAsFactors = FALSE)
@@ -180,6 +191,58 @@ wet_db_load <- function(conn, catalog, dataset = "discharge/fwa/v1/segment_month
 }
 
 `%||%` <- function(x, y) if (is.null(x)) y else x
+
+# The load table: one row per part a load holds, keyed on dataset, scenario
+# and key, beside the data in the dataset's schema (#88). Its columns take the
+# receipt's names (crate#43): key and md5 are the parts, manifest, built and
+# wet_commit name the build, recipe_id is its receipt's, loaded_at is context.
+cols_load <- c(
+  dataset = "text NOT NULL",
+  scenario = "text NOT NULL",
+  key = "text NOT NULL",
+  md5 = "text NOT NULL",
+  rows = "double precision NOT NULL",
+  subset = "text",
+  manifest = "text",
+  built = "timestamptz",
+  wet_commit = "text",
+  recipe_id = "text",
+  loaded_at = "timestamptz NOT NULL"
+)
+
+# Replace (dataset, scenario)'s rows of the load table with these parts, in the
+# caller's transaction, so the record and the data move together.
+wet_load_record <- function(conn, schema, dataset, scenario, parts, rows, subset, catalog) {
+  id <- DBI::Id(schema = schema, table = "wet_load")
+  qid <- DBI::dbQuoteIdentifier(conn, id)
+  qcols <- DBI::dbQuoteIdentifier(conn, names(cols_load))
+  DBI::dbExecute(conn, sprintf("CREATE TABLE IF NOT EXISTS %s (%s, PRIMARY KEY (dataset, scenario, key))", qid,
+                               paste(qcols, cols_load, collapse = ", ")))
+  have <- DBI::dbListFields(conn, id)
+  if (!setequal(have, names(cols_load))) {
+    stop(schema, ".wet_load has columns ", paste(have, collapse = ", "), ", not ",
+         paste(names(cols_load), collapse = ", "), call. = FALSE)
+  }
+  DBI::dbExecute(conn, paste("DELETE FROM", qid, "WHERE dataset = $1 AND scenario = $2"),
+                 params = list(dataset, scenario))
+  built <- attr(catalog, "built")
+  built <- if (is.null(built)) as.POSIXct(NA) else as.POSIXct(built, format = "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+  rec <- data.frame(
+    dataset = dataset, scenario = scenario, key = parts$key, md5 = parts$md5, rows = as.numeric(rows),
+    subset = subset, manifest = attr(catalog, "manifest") %||% NA_character_, built = built,
+    wet_commit = attr(catalog, "provenance")$wet_commit %||% NA_character_,
+    recipe_id = attr(catalog, "receipt")$recipe_id %||% NA_character_,
+    stringsAsFactors = FALSE
+  )
+  # one statement run once per part; now() is the transaction's start, one
+  # instant for the whole load
+  sql <- sprintf("INSERT INTO %s (%s) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::timestamptz, $9, $10, now())", qid,
+                 paste(qcols, collapse = ", "))
+  DBI::dbExecute(conn, sql, params = list(rec$dataset, rec$scenario, rec$key, rec$md5, rec$rows, rec$subset,
+                                          rec$manifest, format(rec$built, "%Y-%m-%d %H:%M:%S+00", tz = "UTC"),
+                                          rec$wet_commit, rec$recipe_id))
+  invisible(nrow(rec))
+}
 
 # "discharge/fwa/v1/segment_monthly" -> schema "discharge", table "fwa_v1_segment_monthly"
 wet_dataset_table <- function(dataset) {

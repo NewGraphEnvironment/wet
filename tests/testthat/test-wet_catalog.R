@@ -168,3 +168,113 @@ test_that("the digest names the parts and their bytes, not their order", {
   expect_false(wet_catalog_digest(other) == d)
   expect_false(wet_catalog_digest(cat[-1, ]) == d)
 })
+
+test_that("a manifest without a fit or receipt still reads, with neither attribute (#161)", {
+  root <- local_discharge_tree()
+  cat <- wet_catalog(file.path(root, "manifest.json"))
+  expect_null(attr(cat, "receipt"))
+  expect_null(attr(cat, "fit"))
+  expect_identical(wet_catalog_files(cat)$key, cat$key)
+})
+
+test_that("the fit and receipt are listed beside the parts, verified, and leave the parts' digest (#160, #161)", {
+  base <- wet_catalog(file.path(local_discharge_tree(), "manifest.json"))
+  root <- local_discharge_tree_fit()
+  cat <- wet_catalog(file.path(root, "manifest.json"))
+  # the fit's parquet is not a part, and the parts' digest is the build without a fit's
+  expect_identical(cat$key, base$key)
+  expect_identical(wet_catalog_digest(cat), wet_catalog_digest(base))
+  fit <- attr(cat, "fit")
+  expect_identical(fit$release, "fixture")
+  expect_identical(fit$files$role, c("fits", "sample"))
+  expect_identical(fit$files$key, c("fit/fits.rds", "fit/sample/part-SALR.parquet"))
+  rc <- attr(cat, "receipt")
+  expect_identical(rc$key, "receipt.json")
+  expect_match(rc$recipe_id, "^[0-9a-f]{64}$")
+  files <- wet_catalog_files(cat)
+  expect_identical(nrow(files), nrow(cat) + 3L)
+  expect_true(all(wet_catalog_verify(files)$ok))
+  saveRDS(list(aet = "pt"), file.path(root, "fit", "fits.rds"))
+  v <- wet_catalog_verify(files)
+  expect_identical(v$key[!v$ok], "fit/fits.rds")
+  # an older reader's field set is all still there
+  m <- jsonlite::read_json(file.path(root, "manifest.json"))
+  expect_identical(m$manifest_version, 1L)
+  expect_true(all(c("id", "built", "provenance", "sources", "datasets", "parts") %in% names(m)))
+})
+
+test_that("the receipt is crate's, names every part and fit file, and a rebuild compares identical (#161)", {
+  root <- local_discharge_tree_fit()
+  cat <- wet_catalog(file.path(root, "manifest.json"))
+  r <- crate::crt_receipt_read(file.path(root, "receipt.json"))
+  expect_identical(r$recipe$recipe_id, attr(cat, "receipt")$recipe_id)
+  expect_identical(r$output$name, "discharge/fwa/v1")
+  expect_setequal(names(r$result$parts), wet_catalog_files(cat)$key[-nrow(wet_catalog_files(cat))])
+  expect_identical(r$result$summary$rows_segment_daily, 1460L)
+  expect_null(r$context$host)
+  # the same tree written again: the same recipe and the same bytes
+  again <- file.path(withr::local_tempdir(), "receipt.json")
+  file.copy(file.path(root, "receipt.json"), again)
+  wet_receipt_write(root, "discharge/fwa/v1", strrep("a", 40), "fixture", discharge_fixture_inputs(),
+                    list(crate_version = "0.0.0"), wet_catalog_files(cat)$key[-nrow(wet_catalog_files(cat))],
+                    built = as.POSIXct("2026-10-12 00:00:00", tz = "UTC"))
+  expect_identical(crate::crt_receipt_compare(again, file.path(root, "receipt.json"))$verdict, "identical")
+  # another input is another recipe
+  inp <- discharge_fixture_inputs()
+  inp$province_run <- "other"
+  wet_receipt_write(root, "discharge/fwa/v1", strrep("a", 40), "fixture", inp, list(crate_version = "0.0.0"),
+                    wet_catalog_files(cat)$key[-nrow(wet_catalog_files(cat))])
+  expect_identical(crate::crt_receipt_compare(again, file.path(root, "receipt.json"))$verdict, "different")
+  # an input the declaration does not name is refused
+  inp$extra <- "x"
+  expect_error(wet_receipt_write(root, "discharge/fwa/v1", strrep("a", 40), "fixture", inp,
+                                 list(crate_version = "0.0.0"), "fit/fits.rds"))
+})
+
+test_that("a manifest's receipt and fit entries are checked (#160, #161)", {
+  root <- local_discharge_tree_fit()
+  f <- file.path(root, "manifest.json")
+  bad <- function(edit) {
+    m <- jsonlite::read_json(f)
+    m <- edit(m)
+    g <- file.path(withr::local_tempdir(.local_envir = parent.frame()), "manifest.json")
+    jsonlite::write_json(m, g, auto_unbox = TRUE, digits = NA)
+    g
+  }
+  expect_error(wet_catalog(bad(function(m) {
+    m$receipt$recipe_id <- "x"
+    m
+  })), "recipe_id")
+  expect_error(wet_catalog(bad(function(m) {
+    m$receipt$key <- "../receipt.json"
+    m
+  })), "not a receipt key")
+  expect_error(wet_catalog(bad(function(m) {
+    m$fit$files[[1]]$key <- "fits.rds"
+    m
+  })), "not a fit key")
+  expect_error(wet_catalog(bad(function(m) {
+    m$fit$files[[1]]$key <- "fit/../x"
+    m
+  })), "not a fit key")
+  expect_error(wet_catalog(bad(function(m) {
+    m$fit$files[[1]]$md5 <- "x"
+    m
+  })), "malformed")
+  expect_error(wet_catalog(bad(function(m) {
+    m$fit$release <- NULL
+    m
+  })), "release")
+  expect_error(wet_catalog(bad(function(m) {
+    m$fit$province_run <- "../../x"
+    m
+  })), "malformed")
+  expect_error(wet_catalog(bad(function(m) {
+    m$fit$citation <- NULL
+    m
+  })), "citation")
+  expect_error(wet_catalog(bad(function(m) {
+    m$fit$files[[2]]$key <- m$fit$files[[1]]$key
+    m
+  })), "twice")
+})

@@ -31,6 +31,23 @@ publish_live_line <- function(cat_local, cat_pub) {
 # report is never certified for parts another build wrote
 publish_tree_line <- function(cat_local) sprintf("tree parts md5 %s", wet:::wet_catalog_digest(cat_local))
 
+# The report's lines naming the fit and the receipt published beside the
+# parts (#160, #161), apart from the parts' digest, which they leave as it was:
+# the fit's release, run, scoring code and file count, the digest of its files
+# and the receipt (wet_catalog_digest() of those rows), and the receipt's
+# recipe_id. BUILD writes them; nothing parses them
+publish_fit_lines <- function(cat_local) {
+  fit <- attr(cat_local, "fit")
+  rc <- attr(cat_local, "receipt")
+  if (is.null(fit) || is.null(rc)) stop("the build lists no fit or no receipt")
+  files <- wet:::wet_catalog_files(cat_local)
+  extra <- files[!files$key %in% cat_local$key, ]
+  c(sprintf("fit %s of province run %s, scoring code %s: fits.rds and %d group samples, %.2f GB", fit$release,
+            fit$province_run, fit$score_code_md5, sum(fit$files$role == "sample"), sum(fit$files$bytes) / 1e9),
+    sprintf("tree fit and receipt md5 %s", wet:::wet_catalog_digest(extra)),
+    sprintf("receipt recipe_id %s", rc$recipe_id))
+}
+
 # The report's section holding the live-build line; BUILD writes it
 publish_live_heading <- "## Against the published tree"
 
@@ -46,6 +63,10 @@ publish_report_check <- function(lines, cat_local, f_report) {
         sum(lines == publish_tree_line(cat_local)) != 1L || any(grepl("FAIL", lines))) {
     stop("commit the build's report ", f_report, " first; it must name build ", built_at,
          " and this tree's parts (", publish_tree_line(cat_local), ") and fail no check")
+  }
+  # and the fit and receipt this tree lists, where it lists any file beside its parts (#160, #161)
+  if (nrow(wet:::wet_catalog_files(cat_local)) > nrow(cat_local) && !all(publish_fit_lines(cat_local) %in% lines)) {
+    stop("commit the build's report ", f_report, " first; its fit and receipt lines must name this tree's")
   }
   h <- which(lines == publish_live_heading)
   if (length(h) != 1L || h == length(lines) ||

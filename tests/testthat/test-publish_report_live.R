@@ -146,3 +146,23 @@ test_that("vd_published() refuses a line naming the live commit and count over o
   f <- local_report(e$publish_live_line(cat, cat))
   expect_no_error(e$vd_published("20260717"))
 })
+
+test_that("a tree with a fit and receipt needs its fit lines in the report (#160, #161)", {
+  e <- publish_libs()
+  root <- local_discharge_tree_fit()
+  cat <- wet_catalog(file.path(root, "manifest.json"))
+  base <- c("wet commit fixture (segment table built at x)", e$publish_tree_line(cat), e$publish_live_heading,
+            "parts identical to the published build x: 0 of 5 here, 5 published (u); live parts md5 y")
+  f <- file.path(withr::local_tempdir(), "report.txt")
+  expect_error(e$publish_report_check(base, cat, f), "fit and receipt lines")
+  lines <- c(base[1:2], e$publish_fit_lines(cat), base[3:4])
+  expect_identical(e$publish_report_check(lines, cat, f), 7L)
+  # a receipt rewritten after the report was made is another tree
+  other <- cat
+  attr(other, "receipt")$md5 <- strrep("0", 32)
+  expect_error(e$publish_report_check(lines, other, f), "fit and receipt lines")
+  # a receipt with no fit still needs its lines
+  nofit <- cat
+  attr(nofit, "fit") <- NULL
+  expect_error(e$publish_report_check(base, nofit, f))
+})

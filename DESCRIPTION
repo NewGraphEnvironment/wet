@@ -29,6 +29,7 @@ Imports:
 Suggests:
     bookdown,
     cd (>= 0.5.0),
+    crate (>= 0.16.0),
     climr,
     duckdb,
     ggplot2,
@@ -51,6 +52,7 @@ VignetteBuilder: knitr
 Remotes:
     bcgov/climr,
     NewGraphEnvironment/cd,
+    NewGraphEnvironment/crate,
     NewGraphEnvironment/gq,
     poissonconsulting/gsdd
 Config/DOI: 10.5281/zenodo.23305781

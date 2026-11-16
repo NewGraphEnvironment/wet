@@ -32,8 +32,24 @@
 # comparison can fail; its parquet goes under <fit>/group/<WSG>/drop-<G>/ and
 # its report to data/logs/157/, not data/checks/.
 #
-# Run where the province run's layers.tif and samples are (m4). Connection
-# from WET_PG*.
+# WET_GROUP_FROM=published (#160) takes the fit and the reach's samples from
+# the published build instead (the manifest's `fit` entry: fit/fits.rds and
+# fit/sample/part-<G>.parquet, each fetched into wet's cache and checked
+# against its md5), so it runs on any machine with this checkout and fwapg
+# (the FWA, and routed PCIC for the pick), with no province run. It refuses a
+# checkout without the build's commit (the manifest's wet_commit) or whose
+# scoring code differs from that commit's (the build checked the fit's scoring
+# md5 on the province machine, at that commit), a reach
+# group with no published sample, WET_WB_RESAMPLE and WET_GROUP_DROP; writes
+# under data/group_published/<run>/fit_<release>/group/<WSG>/; and reports to
+# wb_report("segment_group_<WSG>_published", release), the upstream means
+# against the province run's not compared. With it, and only with it,
+# WET_CATALOG_URL (option wet.catalog_url) may name a local manifest.json, so
+# a built tree can be tried before it is published; such a run is not a
+# record of the live build, so its report goes to data/logs/164/.
+#
+# Otherwise run where the province run's layers.tif and samples are (m4).
+# Connection from WET_PG*.
 
 devtools::load_all(quiet = TRUE)
 source("scripts/wb_fit_lib.R")
@@ -49,6 +65,21 @@ if (is.na(wsg) || !grepl("^[A-Z]{4}$", wsg)) stop("usage: Rscript scripts/segmen
 resample <- Sys.getenv("WET_WB_RESAMPLE") %in% c("1", "true", "TRUE")
 drop_groups <- strsplit(Sys.getenv("WET_GROUP_DROP"), ",")[[1]]
 if (wsg %in% drop_groups) stop("WET_GROUP_DROP cannot remove the group itself")
+from_pub <- Sys.getenv("WET_GROUP_FROM")
+if (!from_pub %in% c("", "published")) stop("WET_GROUP_FROM is `published` or unset, not ", from_pub)
+from_pub <- from_pub == "published"
+# a manifest other than the live one, from WET_CATALOG_URL or an option set
+# anywhere (an .Rprofile): published mode only, reported away from data/checks/.
+# One fact decides the refusal, the report's path and its label
+if (nzchar(Sys.getenv("WET_CATALOG_URL"))) options(wet.catalog_url = Sys.getenv("WET_CATALOG_URL"))
+catalog_live <- identical(getOption("wet.catalog_url", wet:::wet_catalog_url), wet:::wet_catalog_url)
+if (!catalog_live && !from_pub) {
+  stop("a manifest other than the live one (", getOption("wet.catalog_url"), ") needs WET_GROUP_FROM=published; ",
+       "the default mode compares with the live build")
+}
+if (from_pub && (resample || length(drop_groups))) {
+  stop("WET_GROUP_FROM=published takes neither WET_WB_RESAMPLE nor WET_GROUP_DROP: both need the province run")
+}
 dirty <- git("status", "--porcelain", "--", "R", "scripts")
 if (length(dirty)) stop("commit these first, so the recorded commit made the report:\n", paste(dirty, collapse = "\n"))
 wet_commit <- git("rev-parse", "--short", "HEAD")
@@ -61,15 +92,73 @@ timed <- function(step, expr) {
 }
 
 # ---- the shipped fit, under segment_output.R's guards ------------------------------------------
-key_dir <- wb_key_dir()
 release <- wb_release()
 if (!identical(release, wb_shipped_release)) stop("the group build applies the shipped fit, ", wb_shipped_release)
-fit_dir <- wb_fit_dir(key_dir, release)
-source("scripts/wb_score_md5.R")  # score_code_md5
-fits <- readRDS(file.path(fit_dir, "fits.rds"))
-winner <- readLines(file.path(fit_dir, "aet_winner.txt"))
-if (!identical(fits$code_md5, score_code_md5) || !identical(winner[1:2], c(fits$aet, score_code_md5))) {
-  stop("the fit in ", fit_dir, " was made or chosen under other scoring code: rerun the fit")
+if (from_pub) {
+  # the fit as published: the manifest names its release, run and scoring
+  # code, and each file's md5, checked as it is fetched
+  cat_fit <- wet_catalog()
+  pfit <- attr(cat_fit, "fit")
+  if (is.null(pfit)) stop("the build at ", attr(cat_fit, "manifest"), " publishes no fit (#160)")
+  if (!identical(pfit$release, release)) stop("the published fit is ", pfit$release, ", not ", release)
+  # score_code_md5 also hashes the stations file and the fit's decision files,
+  # which only the province machine holds, so it cannot be recomputed here.
+  # The build checked the fit against it there, at the commit the manifest
+  # names; this checkout must hold that commit's scoring code
+  # (score_files_for()'s list, read from wb_score_md5.R without running it,
+  # since its top level needs the province run).
+  build_commit <- attr(cat_fit, "provenance")$wet_commit
+  if (!is.character(build_commit) || !grepl("^[0-9a-f]{7,40}$", build_commit)) {
+    stop("the manifest names no wet commit for its build")
+  }
+  if (!identical(system2("git", c("cat-file", "-e", paste0(build_commit, "^{commit}")), stderr = FALSE), 0L)) {
+    stop("this checkout lacks the build's commit ", build_commit, ": fetch it (a shallow clone cannot check the fit)")
+  }
+  score_code_files <- local({
+    ex <- parse("scripts/wb_score_md5.R", keep.source = FALSE)
+    i <- which(vapply(ex, function(e) {
+      is.call(e) && identical(e[[1]], as.name("<-")) && identical(e[[2]], as.name("score_files_for"))
+    }, logical(1)))
+    if (length(i) != 1L) stop("scripts/wb_score_md5.R defines score_files_for() ", length(i), " times, not once")
+    e <- new.env()
+    e$wb_stations_path <- function(rel) "scripts/wb_score_md5.R"  # in the list already; dropped by unique()
+    eval(ex[[i]], e)
+    unique(e$score_files_for(release))
+  })
+  # each file's content against the build commit's blob, not git diff, which
+  # an index flag (assume-unchanged, skip-worktree) can hide an edit from
+  git1 <- function(...) {
+    v <- suppressWarnings(system2("git", c(...), stdout = TRUE, stderr = FALSE))
+    if (!is.null(attr(v, "status")) || length(v) != 1L) NA_character_ else v
+  }
+  moved <- score_code_files[vapply(score_code_files, function(f) {
+    at_build <- git1("rev-parse", "--verify", "-q", paste0(build_commit, ":", f))
+    here <- git1("hash-object", "--no-filters", "--", f)
+    is.na(at_build) || is.na(here) || !identical(at_build, here)
+  }, logical(1))]
+  if (length(moved)) {
+    stop("scoring code changed since the build ", build_commit, " that published the fit: ",
+         paste(moved, collapse = ", "))
+  }
+  score_code_md5 <- pfit$score_code_md5
+  fetch_fit <- function(i) {
+    f <- pfit$files[i, ]
+    f$dataset <- paste0(attr(cat_fit, "id"), "/fit")  # wet_part_fetch()'s cache path: <cache>/<id>/<key>
+    wet:::wet_part_fetch(f, tools::R_user_dir("wet", "cache"))
+  }
+  key_dir <- file.path("data", "group_published", pfit$province_run)
+  fit_dir <- wb_fit_dir(key_dir, release)
+  fits <- readRDS(fetch_fit(which(pfit$files$role == "fits")))
+  if (!identical(fits$code_md5, score_code_md5)) stop("the published fits.rds was made under other scoring code")
+} else {
+  source("scripts/wb_score_md5.R")  # score_code_md5
+  key_dir <- wb_key_dir()
+  fit_dir <- wb_fit_dir(key_dir, release)
+  fits <- readRDS(file.path(fit_dir, "fits.rds"))
+  winner <- readLines(file.path(fit_dir, "aet_winner.txt"))
+  if (!identical(fits$code_md5, score_code_md5) || !identical(winner[1:2], c(fits$aet, score_code_md5))) {
+    stop("the fit in ", fit_dir, " was made or chosen under other scoring code: rerun the fit")
+  }
 }
 aet <- fits$aet
 lay_file <- file.path(key_dir, "layers.tif")
@@ -184,15 +273,27 @@ sample_group <- function(g, lay_file, bc_file, out_dir, pg) {
   file.rename(tmp, f)
   sprintf("%s %d polygons %.0f s", g$wsg, nrow(ws), as.numeric(Sys.time() - t0, units = "secs"))
 }
-f_prov <- file.path(key_dir, "sample", paste0(groups, ".rds"))
-f_smp <- ifelse(file.exists(f_prov), f_prov, file.path(out_dir, "sample", paste0(groups, ".rds")))
-smp_from <- ifelse(file.exists(f_prov), "province run", "sampled here")
-todo <- groups[!file.exists(f_prov)]
-if (resample) todo <- union(todo, wsg)
-if (length(todo) && !all(file.exists(c(lay_file, bc_file)))) stop("no layers.tif or in_bc.tif in ", key_dir)
-smp_msgs <- timed("sampling", vapply(todo, function(g) {
-  sample_group(ext[ext$wsg == g, ], lay_file, bc_file, out_dir, pg)
-}, ""))
+if (from_pub) {
+  smp_pub <- pfit$files[pfit$files$role == "sample", ]
+  smp_pub$group <- sub("^fit/sample/part-([A-Z]{4})\\.parquet$", "\\1", smp_pub$key)
+  if (length(setdiff(groups, smp_pub$group))) {
+    stop("the published fit has no sample of ", paste(setdiff(groups, smp_pub$group), collapse = ", "))
+  }
+  i_smp <- match(groups, smp_pub$group)
+  f_smp <- timed("sample fetch", vapply(which(pfit$files$role == "sample")[i_smp], fetch_fit, ""))
+  smp_from <- rep("published", length(groups))
+  smp_msgs <- character()
+} else {
+  f_prov <- file.path(key_dir, "sample", paste0(groups, ".rds"))
+  f_smp <- ifelse(file.exists(f_prov), f_prov, file.path(out_dir, "sample", paste0(groups, ".rds")))
+  smp_from <- ifelse(file.exists(f_prov), "province run", "sampled here")
+  todo <- groups[!file.exists(f_prov)]
+  if (resample) todo <- union(todo, wsg)
+  if (length(todo) && !all(file.exists(c(lay_file, bc_file)))) stop("no layers.tif or in_bc.tif in ", key_dir)
+  smp_msgs <- timed("sampling", vapply(todo, function(g) {
+    sample_group(ext[ext$wsg == g, ], lay_file, bc_file, out_dir, pg)
+  }, ""))
+}
 
 # the group sampled again against the province run's sample
 parity <- character()
@@ -214,7 +315,8 @@ if (resample) {
 
 # ---- accumulation over the reach, as wb_province.R does over a basin -------------------------------
 up_all <- timed("accumulation", {
-  vals <- lapply(f_smp, readRDS)
+  # a published sample is parquet that reads back identical() to its rds
+  vals <- lapply(f_smp, function(f) if (grepl("\\.parquet$", f)) as.data.frame(arrow::read_parquet(f)) else readRDS(f))
   cols <- unique(unlist(lapply(vals, names)))
   vals <- do.call(rbind, lapply(vals, function(v) {
     for (k in setdiff(cols, names(v))) v[[k]] <- 0  # a zone absent from a group has share 0
@@ -416,13 +518,25 @@ lists <- lapply(seq_len(nrow(cmp)), function(i) {
             h[[paste0(cmp$value[i], "_group")]], h[[paste0(cmp$value[i], "_pub")]], h$rel))
 })
 
+# the published fit files this build read, still as the manifest lists them
+if (from_pub) {
+  used <- pfit$files[c(which(pfit$files$role == "fits"), which(pfit$files$role == "sample")[i_smp]), ]
+  n_fit_ok <- sum(wet:::wet_catalog_verify(used)$ok)
+}
+
 # ---- report -------------------------------------------------------------------------------------------------
-f_rep <- if (length(drop_groups)) {
+# the catalogs read are the one decided above
+stopifnot(identical(attr(cat_pub, "manifest") == wet:::wet_catalog_url, catalog_live),
+          !from_pub || identical(attr(cat_fit, "manifest"), attr(cat_pub, "manifest")))
+f_rep <- if (!catalog_live) {
+  dir.create("data/logs/164", recursive = TRUE, showWarnings = FALSE)
+  file.path("data/logs/164", sprintf("segment_group_%s_published_%s.txt", wsg, release))
+} else if (length(drop_groups)) {
   dir.create("data/logs/157", recursive = TRUE, showWarnings = FALSE)
   file.path("data/logs/157",
             sprintf("segment_group_%s_drop-%s_%s.txt", wsg, paste(drop_groups, collapse = "-"), release))
 } else {
-  wb_report(paste0("segment_group_", wsg), release)
+  wb_report(paste0("segment_group_", wsg, if (from_pub) "_published"), release)
 }
 short <- function(v, k = 8) {
   if (length(v) > k) v <- c(v[1:k], sprintf("+%d", length(v) - k))
@@ -436,6 +550,12 @@ writeLines(c(
   },
   sprintf("wet commit %s; fit %s of province run %s; scoring code %s", wet_commit, release, basename(key_dir),
           score_code_md5),
+  if (from_pub) {
+    sprintf("fit and samples: published (%s), %d files fetched and checked against their md5; after the build %d of %d still match",
+            attr(cat_fit, "manifest"), 1L + length(f_smp), n_fit_ok, 1L + length(f_smp))
+  } else {
+    sprintf("fit and samples: this machine (%s)", fit_dir)
+  },
   sprintf("annual AET %s; adjustment %s; monthly shares %s", aet,
           if (fits$keep_adjust) "applied" else "not applied", fits$share_method),
   "", "## Polygons",
@@ -453,8 +573,10 @@ writeLines(c(
   "", "## Upstream means against the province run's",
   up_parity,
   "", "## Published product",
-  sprintf("live build %s (manifest built %s); balance fit %s of run %s", attr(cat_pub, "provenance")$wet_commit,
-          attr(cat_pub, "built"), prov_bal$fit_release, prov_bal$province_run),
+  sprintf("%s build %s (manifest built %s, read from %s); balance fit %s of run %s",
+          if (catalog_live) "live" else "UNPUBLISHED",
+          attr(cat_pub, "provenance")$wet_commit, attr(cat_pub, "built"), attr(cat_pub, "manifest"),
+          prov_bal$fit_release, prov_bal$province_run),
   sprintf("parts read: %d, all matching the manifest before (%d) and after (%d) the read:", nrow(parts),
           n_ok_before, n_ok_after),
   sprintf("  %s %s", parts$md5, sub("^discharge/fwa/v1/", "", parts$key)),
@@ -477,6 +599,9 @@ writeLines(c(
 ), con)
 close(con)
 stamp("report ", f_rep)
+if (from_pub && n_fit_ok != nrow(used)) {
+  stop("published fit files changed during the build (a publish under way?); see ", f_rep)
+}
 if (any(one_side > 0)) {
   stop("rows on one side only: ", paste(names(one_side), one_side, collapse = ", "), "; see ", f_rep)
 }
