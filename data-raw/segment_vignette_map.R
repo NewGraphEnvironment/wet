@@ -9,12 +9,16 @@
 #     min_order (pcic_routed, wet_balance, or none where neither source has a
 #     value), dissolved by blue_line_key, class and order band, simplified for
 #     a page-width province map
-#   - regions: a label point for each region the article names (the Liard
-#     basin, and the Nechako Reservoir groups scripts/segment_output.R names),
-#     with the source `pick` takes on all of its segments, counted
+#   - regions: a label point for the region the article names (the Liard
+#     basin), with the source `pick` takes on all of its segments, counted
 #   - zones: the Extended BC Hydrologic Zones the water balance adjusts by
 #     (scripts/wb_inputs.R), code and name only: the article names the weakest
-#   - provenance: the published build the picks were read from
+#   - provenance: the published build the picks were read from (its
+#     manifest and receipt), and the PostGIS that drew the layers
+#
+# A rerun on the same FWA and the same build leaves the file as it is
+# (scripts/vignette_map_lib.R, vm_write(), #155): the rivers are ordered on
+# their key, each unioned in segment order and normalised.
 #
 # The picks are read from the published product (wet_catalog(): the manifest
 # at s3://fresh-bc/discharge/fwa/v1/), whose tracked publish report must check
@@ -30,6 +34,7 @@ source("scripts/vignette_data_lib.R")
 wet_commit <- vd_commit()
 source("scripts/wb_fit_lib.R")
 devtools::load_all(quiet = TRUE)
+source("scripts/vignette_map_lib.R")  # vm_postgis(), vm_write()
 sf::sf_use_s2(FALSE)
 
 min_order <- 5
@@ -38,7 +43,6 @@ snap_m <- 100
 # main flow is not edge type 1000 alone (code-check-spatial.md): single-line,
 # lake and double-line main flow
 main_flow <- c(1000, 1050, 1200, 1250, 1450)
-nechako <- c("LEUT", "UEUT", "UNRS", "LNRS")   # as scripts/segment_output.R
 out <- file.path("inst", "vignette-data", "segment_map.rds")
 release <- wb_release()
 
@@ -47,7 +51,7 @@ pb <- vd_published(release)
 parts <- pb$catalog[pb$catalog$dataset == "discharge/fwa/v1/segment_monthly" & pb$catalog$scenario == "historical", ]
 vd_verify(parts)
 duck <- DBI::dbConnect(duckdb::duckdb())
-invisible(DBI::dbExecute(duck, "LOAD httpfs"))
+invisible(DBI::dbExecute(duck, "INSTALL httpfs; LOAD httpfs;"))
 pick <- DBI::dbGetQuery(duck, sprintf("
   SELECT linear_feature_id::int AS linear_feature_id, source
   FROM read_parquet([%s], hive_partitioning = true)
@@ -73,7 +77,7 @@ seg_where <- sprintf("s.stream_order >= %d AND s.edge_type IN (%s)", min_order, 
 n_cls <- DBI::dbGetQuery(conn, sprintf("
   SELECT coalesce(p.source, 'none') AS class, count(*)::int AS n
   FROM whse_basemapping.fwa_stream_networks_sp s LEFT JOIN vd_pick p USING (linear_feature_id)
-  WHERE %s GROUP BY 1", seg_where))
+  WHERE %s GROUP BY 1 ORDER BY 1", seg_where))   # ordered: the counts are provenance vm_write() compares
 n_seg <- DBI::dbGetQuery(conn, sprintf("
   SELECT count(*)::int FROM whse_basemapping.fwa_stream_networks_sp s WHERE %s", seg_where))[[1]]
 print(n_cls)
@@ -81,19 +85,26 @@ stopifnot(sum(n_cls$n) == n_seg, setequal(n_cls$class, c("pcic_routed", "wet_bal
 # order bands 5, 6, 7 and 8 and up, so line width can rank rivers; a reach
 # shorter than the snap grid collapses to empty and is dropped
 rivers <- sf::st_read(conn, quiet = TRUE, query = sprintf("
-  SELECT class, order_band, segments, geom FROM (
+  SELECT class, order_band, segments, geom, blue_line_key FROM (
     SELECT coalesce(p.source, 'none') AS class, least(s.stream_order, 8)::int AS order_band,
            count(*)::int AS segments,
-           ST_Multi(ST_CollectionExtract(ST_SnapToGrid(ST_SimplifyPreserveTopology(
-             ST_LineMerge(ST_Union(ST_Force2D(s.geom))), %d), %d), 2)) AS geom
+           ST_Normalize(ST_Multi(ST_CollectionExtract(ST_SnapToGrid(ST_SimplifyPreserveTopology(
+             ST_LineMerge(ST_Union(ST_Force2D(s.geom) ORDER BY s.linear_feature_id)), %d), %d), 2))) AS geom,
+           s.blue_line_key
     FROM whse_basemapping.fwa_stream_networks_sp s LEFT JOIN vd_pick p USING (linear_feature_id)
     WHERE %s
     GROUP BY s.blue_line_key, 1, 2) r
-  WHERE NOT ST_IsEmpty(geom)", simplify_m, snap_m, seg_where))
-rivers <- rivers[order(rivers$order_band), ]   # large rivers drawn last, on top
+  WHERE NOT ST_IsEmpty(geom)
+  ORDER BY order_band, blue_line_key, class", simplify_m, snap_m, seg_where))
+# large rivers drawn last, on top; blue_line_key, class and band are the rows'
+# key. ST_Normalize can reverse a line's direction, which a drawing ignores.
+# These are lines, which PostGIS simplified the same way in 15 calls of 15 in
+# one session; its polygons it did not (scripts/vignette_map_lib.R)
+stopifnot(!anyDuplicated(sf::st_drop_geometry(rivers)[c("blue_line_key", "class", "order_band")]))
+rivers$blue_line_key <- NULL
 stopifnot(all(sf::st_geometry_type(rivers) == "MULTILINESTRING"))
 
-# ---- regions the article names ------------------------------------------------------------------
+# ---- the region the article names ---------------------------------------------------------------
 # the Liard basin: every segment under the Liard River's watershed code; its
 # label sits in the groups most of whose segments are in it
 liard_ws <- "(SELECT wscode_ltree FROM whse_basemapping.fwa_stream_networks_sp
@@ -108,21 +119,19 @@ region_sql <- function(name, seg_in, groups_in) {
          (SELECT count(*) FILTER (WHERE class = 'pcic_routed') FROM segs)::int AS pcic_routed,
          (SELECT count(*) FILTER (WHERE class = 'wet_balance') FROM segs)::int AS wet_balance,
          (SELECT count(*) FILTER (WHERE class = 'none') FROM segs)::int AS none,
-         (SELECT ST_PointOnSurface(ST_Union(geom)) FROM whse_basemapping.fwa_watershed_groups_poly
+         (SELECT ST_PointOnSurface(ST_Union(geom ORDER BY watershed_group_code))
+          FROM whse_basemapping.fwa_watershed_groups_poly
           WHERE watershed_group_code IN (%s)) AS geom", seg_in, name, groups_in)
 }
 liard_groups <- sprintf("
   SELECT watershed_group_code FROM whse_basemapping.fwa_stream_networks_sp
   GROUP BY 1 HAVING avg((wscode_ltree <@ %s)::int) > 0.5", liard_ws)
-in_nechako <- paste0("'", nechako, "'", collapse = ", ")
-regions <- rbind(
-  sf::st_read(conn, quiet = TRUE, query = region_sql("Liard", sprintf("s.wscode_ltree <@ %s", liard_ws), liard_groups)),
-  sf::st_read(conn, quiet = TRUE, query = region_sql("Nechako Reservoir",
-                                                     sprintf("s.watershed_group_code IN (%s)", in_nechako),
-                                                     in_nechako)))
+regions <- sf::st_read(conn, quiet = TRUE,
+                       query = region_sql("Liard", sprintf("s.wscode_ltree <@ %s", liard_ws), liard_groups))
+pg <- vm_postgis(conn)
 DBI::dbDisconnect(conn)
 print(sf::st_drop_geometry(regions))
-stopifnot(nrow(regions) == 2, all(!sf::st_is_empty(regions)),
+stopifnot(nrow(regions) == 1, all(!sf::st_is_empty(regions)),
           all(regions$pcic_routed + regions$wet_balance + regions$none > 0))
 
 # ---- zone names ------------------------------------------------------------------------------
@@ -154,9 +163,12 @@ layers <- lapply(layers, function(x) {
 stopifnot(!any(unlist(lapply(layers, function(x) vapply(x, inherits, NA, "integer64")))))
 provenance <- list(built = Sys.Date(), wet_commit = wet_commit, min_order = min_order, simplify_m = simplify_m,
                    main_flow = main_flow, drawn = stats::setNames(n_cls$n, n_cls$class),
+                   postgis = pg,
                    published = list(manifest = attr(pb$catalog, "manifest"), built = attr(pb$catalog, "built"),
-                                    wet_commit = attr(pb$catalog, "provenance")$wet_commit, report = pb$report))
+                                    wet_commit = attr(pb$catalog, "provenance")$wet_commit, report = pb$report,
+                                    receipt = vd_receipt(pb$catalog)))
 layers <- c(layers, list(zones = zones, provenance = provenance))
-saveRDS(layers, out, compress = "xz")
 print(vapply(layers[c("rivers", "regions")], function(x) nrow(sf::st_coordinates(x)), 0))
-message("segment_map.rds: ", round(file.size(out) / 1024), " KB")
+# kept as committed only on a rerun the same day at the same commit: the
+# article holds this read date equal to the values bundles' (vm_write())
+vm_write(layers, basename(out))

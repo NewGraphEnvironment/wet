@@ -59,7 +59,10 @@ test_that("the map layers are sf in BC Albers, with both stations and their catc
 
 test_that("the segment values carry plain ids, the calibration gauges and their provenance", {
   v <- readRDS(vignette_data("segment_values.rds"))
-  expect_named(v, c("skill", "segments", "daily", "provenance"))
+  expect_named(v, c("skill", "segments", "recipe", "daily", "provenance"))
+  # the article's group recipe returned BULK's picks of both sources (#74)
+  expect_named(v$recipe, c("pcic_routed", "wet_balance"))
+  expect_true(all(v$recipe > 0))
   # fwapg's bigint ids would arrive as integer64, which a session without bit64
   # reads as raw bits: every table must hold plain types
   expect_false(any(vapply(v$skill, inherits, NA, "integer64")))
@@ -120,8 +123,11 @@ test_that("the segment map holds the picked source on the rivers, from the same 
   expect_identical(m$provenance$published$wet_commit, v$provenance$published$wet_commit)
   expect_identical(m$provenance$published$built, v$provenance$published$built)
   expect_identical(m$provenance$published$manifest, v$provenance$published$manifest)
-  # the regions the article names, with their picks counted
-  expect_setequal(m$regions$name, c("Liard", "Nechako Reservoir"))
+  # ...and published with one receipt (#161)
+  expect_identical(m$provenance$published$receipt$recipe_id, v$provenance$published$receipt$recipe_id)
+  expect_match(v$provenance$published$receipt$recipe_id, "^[0-9a-f]{64}$")
+  # the region the article names, with its picks counted
+  expect_identical(m$regions$name, "Liard")
   expect_true(all(m$regions$pcic_routed + m$regions$wet_balance + m$regions$none > 0))
   # each calibration gauge's zone has a name
   expect_true(all(v$skill$zone %in% m$zones$zone))

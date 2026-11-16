@@ -46,10 +46,11 @@ st <- vm_stations(hydat, stations)
 conn <- vd_connect()
 catch <- vm_catchments(conn, st, simplify_m)
 ext <- vm_extent(catch, 8000)
-streams <- vm_streams(conn, ext$wkt, blk, simplify_m)
-lakes <- vm_lakes(conn, ext$wkt, simplify_m)
+streams <- vm_streams(conn, ext, blk, simplify_m)
+lakes <- vm_lakes(conn, ext, simplify_m)
 bc <- vm_bc(conn)
 into <- vm_into(conn, blk)
+pg <- vm_postgis(conn)
 DBI::dbDisconnect(conn)
 places <- vm_places(ext$sfc, "Houston")
 stopifnot(nrow(places) == 1)
@@ -62,12 +63,11 @@ mouths <- sf::st_sf(stream = names(blk), blue_line_key = unname(blk), into[c("in
 towns <- vm_places(sf::st_union(sf::st_buffer(sf::st_geometry(mouths), 15000)), c("Houston", "Hazelton"))
 kinds <- c("City", "Town", "District Municipality (1)", "Village (1)", "Community", "Locality")
 towns <- towns[towns$feature_type %in% kinds, ]
-towns <- towns[order(towns$name, match(towns$feature_type, kinds)), ]
+towns <- towns[order(towns$name, match(towns$feature_type, kinds), method = "radix"), ]
 towns <- towns[!duplicated(towns$name), ]
 stopifnot(setequal(towns$name, c("Houston", "Hazelton")), nrow(towns) == 2)
 
 layers <- vm_layers(list(stations = vm_points(st), catchments = catch, streams = streams, lakes = lakes,
-                         places = places, bc = bc, mouths = mouths, towns = towns), hydat)
-saveRDS(layers, out, compress = "xz")
+                         places = places, bc = bc, mouths = mouths, towns = towns), hydat, pg)
+vm_write(layers, basename(out))
 print(vapply(layers, function(x) nrow(sf::st_coordinates(x)), 0))
-message("station_map.rds: ", round(file.size(out) / 1024), " KB")

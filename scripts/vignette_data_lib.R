@@ -116,3 +116,13 @@ vd_verify <- function(parts) {
   }
   invisible(v)
 }
+
+# The live build's receipt (#161): its key, md5 and recipe_id, which a bundle
+# carries beside the build's commit, so its provenance names the receipt
+# published with the parts it read. Takes vd_published()'s catalog.
+vd_receipt <- function(catalog) {
+  rc <- attr(catalog, "receipt")
+  if (is.null(rc)) stop("the live manifest lists no receipt.json: a build before #161")
+  stopifnot(grepl("^[0-9a-f]{64}$", rc$recipe_id), grepl("^[0-9a-f]{32}$", rc$md5))
+  list(key = rc$key, md5 = rc$md5, recipe_id = rc$recipe_id)
+}
