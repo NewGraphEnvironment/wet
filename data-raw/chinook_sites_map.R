@@ -53,7 +53,9 @@ st <- vm_stations(hydat, unique(values$gauges$station_number))
 gauges <- values$gauges[values$gauges$role %in% c("extension donor", "carried donor"), ]
 gauges <- merge(gauges, st[c("station_number", "station_name", "lon", "lat")], by = "station_number")
 gauges$map <- unname(map_of[gauges$site_id])
-gauges <- vm_points(gauges[order(gauges$site_id, gauges$role, gauges$station_number), ])
+gauges <- gauges[order(gauges$site_id, gauges$role, gauges$station_number, method = "radix"), ]
+rownames(gauges) <- NULL   # merge()'s, which a rebuild compared by vm_write() would see
+gauges <- vm_points(gauges)
 
 tg <- values$sites
 tg$lon <- ifelse(tg$kind == "extend", st$lon[match(tg$target, st$station_number)], tg$target_lon)

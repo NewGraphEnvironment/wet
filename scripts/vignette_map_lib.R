@@ -27,7 +27,10 @@ vm_stations <- function(hydat, stations) {
     FROM STATIONS WHERE STATION_NUMBER IN (%s)", paste0("'", stations, "'", collapse = ", "))
   st <- DBI::dbGetQuery(con, sql)
   stopifnot(setequal(st$station_number, stations))
-  st[match(stations, st$station_number), ]
+  st <- st[match(stations, st$station_number), ]
+  # row names are SQLite's return order, which vm_write()'s comparison would see
+  rownames(st) <- NULL
+  st
 }
 
 # Topology-preserving simplification in sf, which repeats exactly (above)

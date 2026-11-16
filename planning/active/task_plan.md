@@ -64,15 +64,15 @@ Measured during planning (2026-11-15, on m1):
 - [x] Reinstall wet from the branch; build the segment-discharge article and the four map-reading articles; strip HTML to text and diff against main's render: only the Nechako sentences, caption and changed numbers differ; word count under the 2,000 cap
 - [x] Visual check of every map figure and `readme-pick.png` against main's (chinook river labels can move)
 - [x] Recipe check fires: in a worktree copy, `month = 1`, no `AND pick`, `'MORR'` each refused
-- [ ] Render a review copy as a private claude.ai artifact and offer the link
-- [ ] `/code-check branch` (three-round floor)
+- [x] Render a review copy as a private claude.ai artifact and offer the link
+- [x] `/code-check branch` (three-round floor)
 
 ## Owed at the end (reported, done after merge)
 - [ ] Note on soul#835 that wet's README renders the registry block (one comment, our repo)
 
 ## Validation
-- [ ] Tests pass
-- [ ] `/code-check` clean (once over the branch with `/code-check branch`)
+- [x] Tests pass
+- [x] `/code-check` clean (once over the branch with `/code-check branch`)
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
