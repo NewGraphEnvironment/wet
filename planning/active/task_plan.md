@@ -61,9 +61,9 @@ Measured during planning (2026-11-15, on m1):
 
 ## Phase 6: Verify and review
 - [x] `devtools::document()`, `devtools::test()` (failed + error counted), `lintr` per file vs `origin/main`, `pkgdown::check_pkgdown()`
-- [ ] Reinstall wet from the branch; build the segment-discharge article and the four map-reading articles; strip HTML to text and diff against main's render: only the Nechako sentences, caption and changed numbers differ; word count under the 2,000 cap
-- [ ] Visual check of every map figure and `readme-pick.png` against main's (chinook river labels can move)
-- [ ] Recipe check fires: in a worktree copy, `month = 1`, no `AND pick`, `'MORR'` each refused
+- [x] Reinstall wet from the branch; build the segment-discharge article and the four map-reading articles; strip HTML to text and diff against main's render: only the Nechako sentences, caption and changed numbers differ; word count under the 2,000 cap
+- [x] Visual check of every map figure and `readme-pick.png` against main's (chinook river labels can move)
+- [x] Recipe check fires: in a worktree copy, `month = 1`, no `AND pick`, `'MORR'` each refused
 - [ ] Render a review copy as a private claude.ai artifact and offer the link
 - [ ] `/code-check branch` (three-round floor)
 
