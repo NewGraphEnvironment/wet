@@ -51,7 +51,7 @@ Measured during planning (2026-11-15, on m1):
 
 ## Phase 5: Regenerate against the live build, and the article
 - [x] (four vm_* maps; the segment map runs with the data scripts) Commit, then run on m1, each twice where it is a map script: `station_vignette_map.R`, `monthly_vignette_map.R`, `short_record_vignette_map.R`, `chinook_sites_map.R`, `segment_vignette_map.R` (`WET_FWAPG_COMMIT=5d50cc1`); every layer `identical()` between the two runs; logs under `data/logs/165/`
-- [ ] Rebuild each of the four `vm_*` maps once against m4's fwapg (`WET_PGHOST`, `WET_MAP_OUT_DIR` to scratch), record the comparison (report only); the segment map writes a temp table and reads the live build, so it is not rebuilt there
+- [x] Rebuild each of the four `vm_*` maps once against m4's fwapg (`WET_PGHOST`, `WET_MAP_OUT_DIR` to scratch), record the comparison (report only); the segment map writes a temp table and reads the live build, so it is not rebuilt there
 - [ ] Run `segment_vignette_map.R`, `segment_vignette_data.R` and `monthly_vignette_data.R` at one HEAD on one day (`WET_FWAPG_COMMIT=5d50cc1` for the data scripts), committing after all three, against a0318b7; both bundles name one build, read date, fit (768876badf) and routed run
 - [ ] Hold `chinook_sites_values.rds`'s bundled part md5s to the live manifest (no regeneration); its article prints the Gosnell report's whole-build digest, which is no longer live (values hold)
 - [ ] research/discharge_publish.md and research/water_balance_method.md: the bundles now read a0318b7
