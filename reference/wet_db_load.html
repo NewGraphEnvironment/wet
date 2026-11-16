@@ -141,6 +141,20 @@ fresh then joins the default annual flow per segment with
 <code>frs_col_join(from = "(select linear_feature_id, q_m3s as mad_m3s from discharge.fwa_v1_segment_monthly where scenario = 'historical' and month = 0 and pick)")</code>.</p>
     </div>
     <div class="section level2">
+    <h2 id="which-parts-a-table-holds">Which parts a table holds<a class="anchor" aria-label="anchor" href="#which-parts-a-table-holds"></a></h2>
+
+
+<p>Each load also writes one row per part it loaded to <code>&lt;schema&gt;.wet_load</code>
+(<code>discharge.wet_load</code>), replacing the dataset and scenario's rows in the
+same transaction as the data: <code>dataset</code>, <code>scenario</code>, <code>key</code>, <code>md5</code>, <code>rows</code>,
+<code>subset</code> (the filter of a partial load, <code>NULL</code> for a full one), <code>manifest</code>,
+<code>built</code> and <code>wet_commit</code> (the build the parts came from), <code>recipe_id</code> (its
+receipt's, where the manifest names one) and <code>loaded_at</code>. Unlike the table
+comment, which names only the scenario loaded last, it keeps every
+dataset and scenario's load, so a consumer reading the historical rows can
+key on the historical load: <code>select key, md5 from discharge.wet_load where dataset = 'discharge/fwa/v1/segment_monthly' and scenario = 'historical'</code>.</p>
+    </div>
+    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="wet_catalog.html">wet_catalog()</a></code></p></div>
     </div>

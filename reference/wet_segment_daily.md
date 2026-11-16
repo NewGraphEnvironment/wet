@@ -74,8 +74,10 @@ so the mean of a calendar month's days is the month
 reads. For `pcic_routed` they are PCIC's routed day-of-year climatology,
 placed on the FWA by fwapg and routed and clamped at zero day by day, so
 where a clamp applied the mean of a month's days can sit above the
-published month. Neither has an annual row: month 0 is not the mean of
-the 365 days.
+published month; and 28 February also carries 29 February's flow, which
+the month weights by how often the period holds each day, so February's
+plain day mean can sit above or below it. Neither has an annual row:
+month 0 is not the mean of the 365 days.
 
 ## Where the values come from
 

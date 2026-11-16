@@ -74,9 +74,15 @@ path below the manifest, and <code>href</code> is where to fetch it. Attributes:
 <code>manifest</code> (where it was read from), <code>id</code> (e.g. <code>discharge/fwa/v1</code>),
 <code>built</code> (UTC), <code>provenance</code> (a named list: wet version and commit, and
 the code that built and published it), <code>sources</code> (a data frame
-describing each <code>source</code>, with its citation), and <code>source_provenance</code>
+describing each <code>source</code>, with its citation), <code>source_provenance</code>
 (a list by source: what each source's rows were built from, e.g. the
-routed table's fingerprint or the balance's fit release).</p>
+routed table's fingerprint or the balance's fit release), <code>receipt</code> (the
+build's <code>receipt.json</code>, written by crate: its <code>key</code>, <code>href</code>, <code>bytes</code>,
+<code>md5</code> and <code>recipe_id</code>) and <code>fit</code> (the shipped fit published beside the
+product: <code>release</code>, <code>province_run</code>, <code>score_code_md5</code>, <code>description</code>,
+<code>citation</code> and <code>files</code>, a data
+frame of <code>key</code>, <code>role</code>, <code>bytes</code>, <code>md5</code> and <code>href</code>). <code>receipt</code> and <code>fit</code>
+are <code>NULL</code> for a build published without them.</p>
     </div>
     <div class="section level2">
     <h2 id="layout">Layout<a class="anchor" aria-label="anchor" href="#layout"></a></h2>
@@ -115,6 +121,18 @@ the hrefs. Files are overwritten in place when the data are rebuilt, so
 <code>md5</code> identifies a build, and a read during a publish can find a part that
 no longer matches its manifest entry: retry once the publish completes.
 Each publish rewrites the whole manifest from one local tree.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="receipt-and-fit">Receipt and fit<a class="anchor" aria-label="anchor" href="#receipt-and-fit"></a></h2>
+
+
+<p>Beside the parts, a build lists <code>receipt.json</code>, its provenance record in
+crate's shared shape (what was built, from which code and inputs, and each
+file's SHA-256; see <code><a href="https://newgraphenvironment.github.io/crate/reference/crt_receipt_read.html" class="external-link">crate::crt_receipt_read()</a></code>), and under <code>fit/</code> the
+shipped water-balance fit (<code>fit/fits.rds</code>) and each watershed group's
+sample of the province's layers (<code>fit/sample/part-&lt;GROUP&gt;.parquet</code>), so
+one group's balance rows can be rebuilt away from the machine that made
+them (<code>scripts/segment_group.R</code> with <code>WET_GROUP_FROM=published</code>).</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

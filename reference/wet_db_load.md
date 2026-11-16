@@ -90,6 +90,19 @@ on `(scenario, <id>)` for the annual default, which fresh's join reads.
 fresh then joins the default annual flow per segment with
 `frs_col_join(from = "(select linear_feature_id, q_m3s as mad_m3s from discharge.fwa_v1_segment_monthly where scenario = 'historical' and month = 0 and pick)")`.
 
+## Which parts a table holds
+
+Each load also writes one row per part it loaded to `<schema>.wet_load`
+(`discharge.wet_load`), replacing the dataset and scenario's rows in the
+same transaction as the data: `dataset`, `scenario`, `key`, `md5`,
+`rows`, `subset` (the filter of a partial load, `NULL` for a full one),
+`manifest`, `built` and `wet_commit` (the build the parts came from),
+`recipe_id` (its receipt's, where the manifest names one) and
+`loaded_at`. Unlike the table comment, which names only the scenario
+loaded last, it keeps every dataset and scenario's load, so a consumer
+reading the historical rows can key on the historical load:
+`select key, md5 from discharge.wet_load where dataset = 'discharge/fwa/v1/segment_monthly' and scenario = 'historical'`.
+
 ## See also
 
 [`wet_catalog()`](https://newgraphenvironment.github.io/wet/reference/wet_catalog.md)

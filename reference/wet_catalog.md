@@ -27,9 +27,14 @@ one row per part. `key` is the part's path below the manifest, and
 from), `id` (e.g. `discharge/fwa/v1`), `built` (UTC), `provenance` (a
 named list: wet version and commit, and the code that built and
 published it), `sources` (a data frame describing each `source`, with
-its citation), and `source_provenance` (a list by source: what each
-source's rows were built from, e.g. the routed table's fingerprint or
-the balance's fit release).
+its citation), `source_provenance` (a list by source: what each source's
+rows were built from, e.g. the routed table's fingerprint or the
+balance's fit release), `receipt` (the build's `receipt.json`, written
+by crate: its `key`, `href`, `bytes`, `md5` and `recipe_id`) and `fit`
+(the shipped fit published beside the product: `release`,
+`province_run`, `score_code_md5`, `description`, `citation` and `files`,
+a data frame of `key`, `role`, `bytes`, `md5` and `href`). `receipt` and
+`fit` are `NULL` for a build published without them.
 
 ## Layout
 
@@ -71,6 +76,18 @@ the hrefs. Files are overwritten in place when the data are rebuilt, so
 `md5` identifies a build, and a read during a publish can find a part
 that no longer matches its manifest entry: retry once the publish
 completes. Each publish rewrites the whole manifest from one local tree.
+
+## Receipt and fit
+
+Beside the parts, a build lists `receipt.json`, its provenance record in
+crate's shared shape (what was built, from which code and inputs, and
+each file's SHA-256; see
+[`crate::crt_receipt_read()`](https://newgraphenvironment.github.io/crate/reference/crt_receipt_read.html)),
+and under `fit/` the shipped water-balance fit (`fit/fits.rds`) and each
+watershed group's sample of the province's layers
+(`fit/sample/part-<GROUP>.parquet`), so one group's balance rows can be
+rebuilt away from the machine that made them (`scripts/segment_group.R`
+with `WET_GROUP_FROM=published`).
 
 ## See also
 
