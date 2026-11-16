@@ -54,7 +54,7 @@ Decided at #164's gate (2026-11-15): this move regenerates every bundle against 
 - knowledge `data/life_history_timing.csv`: BULK and MORR rows identical at c97c4d0 (pinned) and `main`.
 - `fresh::frs_watershed_at_measure()` selects `geom` only; no area column.
 - `check_pkg_stale.sh`: fresh 0.52.0 -> 0.53.0, wet installed 0.4.35 (main 0.4.36).
-- soul `ecosystem.yml` `readme: true` rows: link, fresh, wet, flooded, drift, fly, cd, knowledge, floodplains, stac_floodplains_bc.
+- the shared `ecosystem.yml` `readme: true` rows: link, fresh, wet, flooded, drift, fly, cd, knowledge, floodplains, stac_floodplains_bc.
 - `chinook_sites_data.R` refuses unless the live digest equals the Gosnell report's; the live digest moved with #163's 13 uploaded parts, so that bundle is checked by part md5 rather than regenerated.
 
 

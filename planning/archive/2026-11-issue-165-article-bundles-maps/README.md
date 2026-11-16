@@ -2,7 +2,7 @@
 
 ## Outcome
 
-Every article map bundle now rebuilds byte for byte on the same FWA, and the segment and monthly bundles read live build a0318b7 (run `768876badf`, routed PCIC at fwapg 5d50cc1) with its receipt. `scripts/vignette_map_lib.R` takes lakes and stream segments from fresh's fetchers, merges streams in R in segment order, simplifies polygons in sf, orders every query and aggregate, sorts names by radix and resets row names; `vm_write()` compares a rebuild with the committed map and leaves it untouched when nothing changed (#155). `data-raw/segment_vignette_data.R` runs the article's group recipe from the committed `.Rmd` and refuses unless it returns BULK's month-0 picks as read part by part, and the data scripts install httpfs before loading it (#74). Routed PCIC is now picked on 99 % of the Nechako Reservoir groups' segments, so the article, its map and the README figure drop the Nechako (decided at the gate). The README's Ecosystem table is rendered from soul's registry and its links go to published sites (#97); `wet_station_snap()`'s docs say why it calls `fwa_indexpoint()` (#55). The durable finding is in [`research/map_rebuild.md`](../../../research/map_rebuild.md): PostGIS's polygon simplification under GEOS 3.9.0 does not repeat exactly within one session, filed as fresh#306.
+Every article map bundle now rebuilds byte for byte on the same FWA, and the segment and monthly bundles read live build a0318b7 (run `768876badf`, routed PCIC at fwapg 5d50cc1) with its receipt. `scripts/vignette_map_lib.R` takes lakes and stream segments from fresh's fetchers, merges streams in R in segment order, simplifies polygons in sf, orders every query and aggregate, sorts names by radix and resets row names; `vm_write()` compares a rebuild with the committed map and leaves it untouched when nothing changed (#155). `data-raw/segment_vignette_data.R` runs the article's group recipe from the committed `.Rmd` and refuses unless it returns BULK's month-0 picks as read part by part, and the data scripts install httpfs before loading it (#74). Routed PCIC is now picked on 99 % of the Nechako Reservoir groups' segments, so the article, its map and the README figure drop the Nechako (decided at the gate). The README's Ecosystem table is rendered from the shared registry and its links go to published sites (#97); `wet_station_snap()`'s docs say why it calls `fwa_indexpoint()` (#55). The durable finding is in [`research/map_rebuild.md`](../../../research/map_rebuild.md): PostGIS's polygon simplification under GEOS 3.9.0 does not repeat exactly within one session, filed as fresh#306.
 
 ## Measurement
 
@@ -19,6 +19,6 @@ Every article map bundle now rebuilds byte for byte on the same FWA, and the seg
 
 ## Owed
 
-- Note on soul#835 that wet's README renders the registry block (one comment, our repo)
+- Note on the shared-registry rollout issue that wet's README renders the registry block (one comment)
 
 Closed by: PR (opened after this archive)

@@ -8,7 +8,7 @@ Measured during planning (2026-11-15, on m1):
 - Live build a0318b7 picks routed PCIC on 60,213 of 60,867 segments in LEUT/LNRS/UEUT/UNRS (99 %); the article's `nech_bal > 90` guard and sentence are now false.
 - knowledge's `life_history_timing.csv` BULK and MORR rows at `main` equal the pinned c97c4d0: no life-history change.
 - fresh 0.52.0 installed (0.53.0 released); installed wet is 0.4.35 (main 0.4.36). m1's fwapg holds pcic from 7c30f58; the tracked routed report names 5d50cc1 (fingerprint 179854603.510890), so the data scripts refuse until pcic is reloaded.
-- soul's `ecosystem_registry.py render --readme README.md --member wet` (soul PR #836) renders the Ecosystem table from `ecosystem.yml`; adopting it in each README is soul#835.
+- the shared `ecosystem_registry.py render --readme README.md --member wet` renders the Ecosystem table from the shared `ecosystem.yml`; adopting it in each README is an open rollout issue.
 - `frs_watershed_at_measure()` returns geometry only (no area), so catchments stay in wet.
 - No issue comments on #165, #74, #155 (one, a release notice), #97, #55 ask for anything beyond their bodies.
 
@@ -17,14 +17,14 @@ Measured during planning (2026-11-15, on m1):
 - **Nechako:** drop it from the article: the map label, its region in `segment_map.rds`, the sentence and its guard; README alt text loses "and the Nechako Reservoir"; CLAUDE.md's article description follows.
 - **Fetchers:** lakes via `frs_lake_fetch()`, streams' segments via `frs_stream_fetch()` (ordered on `linear_feature_id`, union/merge/simplify per blue line in R). Catchments, the BC outline and the segment map's rivers stay in wet's SQL with ordered aggregate input and `ST_Normalize()`.
 - **Second-database tolerance:** report only (identical / identical after sorting / same features, different geometry with vertex counts and largest Hausdorff distance); committed maps built on m1, where two runs must be `identical()`.
-- **README Ecosystem:** rendered from soul's registry (the settled route, soul PR #836 / soul#835), not hand-edited; gq's row moves to one line below the block.
+- **README Ecosystem:** rendered from the shared registry (the settled route), not hand-edited; gq's row moves to one line below the block.
 - **Bundles not regenerated:** `chinook_sites_values.rds`, `short_record_values.rds`, `station_daily.rds` read nothing move 2 changed (their data come from departure series and HYDAT); checked by holding chinook's bundled part md5s to the live manifest. Their map bundles are rebuilt under #155.
 - **Map reruns that change nothing leave the file untouched:** each map script compares its new layers with the committed file and keeps it when every layer and the recipe provenance are identical.
 
 ## Phase 1: Setup on m1
 - [x] Upgrade fresh 0.52.0 → 0.53.0 (read its NEWS for fetcher changes: none); reinstall wet from the branch before any article build (Phase 6)
 - [x] (from `git show 5d50cc1:load/*.sql` copies, not a worktree; both fingerprints held by the data scripts' guards) Reload m1's `pcic` schema from fwapg 5d50cc1's `load/pcic_schema.sql`, `load/pcic.sql`, `load/pcic_run.sql` (1981–2010 run's `subbasin_daily`), from a worktree of fwapg at 5d50cc1; stop unless the fingerprint equals the tracked routed report's 179854603.510890 and the daily fingerprint the tracked daily report's
-- [x] Probe both databases with `connect_timeout = 10` (m1 local; m4's fwapg on the LAN, read only; the LAN address timed out, m4 answered over Tailscale)
+- [x] Probe both databases with `connect_timeout = 10` (m1 local; m4's fwapg read remotely, read only)
 
 ## Phase 2: Docs (batch 5: #55, #97)
 - [x] #55: `R/wet_station_snap.R` roxygen: replace the "the function `fresh::frs_point_snap()` wraps" parenthetical with why `fwa_indexpoint()` is used (one candidate per stream, which choosing between streams by drainage area needs; `frs_point_snap()` lists per-segment candidates); `devtools::document()`
@@ -68,7 +68,7 @@ Measured during planning (2026-11-15, on m1):
 - [x] `/code-check branch` (three-round floor)
 
 ## Owed at the end (reported, done after merge)
-- [ ] Note on soul#835 that wet's README renders the registry block (one comment, our repo)
+- [ ] Note on the shared-registry rollout issue that wet's README renders the registry block (one comment)
 
 ## Validation
 - [x] Tests pass
