@@ -23,7 +23,7 @@ ticked and not **waiting**; `/planning-init <umbrella>` plans it, one phase per 
 |---|---|---|---|
 | - [x] 1 | #163 | 1, 2: province inputs and run comparison, the fit's own rules (6 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/170 |
 | - [x] 2 | #164 | 3: the published build's record (4 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/172 |
-| - [ ] 3 | #165 | 4, 5: article bundles and maps, docs (4 issues) | **waiting** on move 2's PUBLISH: the tracked publish report names the build move 2 published |
+| - [ ] 3 | #165 | 4, 5: article bundles and maps, docs (4 issues) | open: move 2's PUBLISH landed (live build a0318b7) and its report is on `main` |
 | - [ ] 4 | #166 | 6: monthly error at the gauges (3 issues) | open |
 | - [ ] 5 | #167 | 7, 8: stations beyond HYDAT, PCIC's per-year files at the sites (4 issues) | open |
 | - [ ] 6 | #168 | 9: the channel-scale pilot (1 issue) | open |
