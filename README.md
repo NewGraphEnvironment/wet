@@ -1,6 +1,7 @@
 # wet <img src="man/figures/logo.png" align="right" height="139" alt="wet hex sticker" />
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/NewGraphEnvironment/wet/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/NewGraphEnvironment/wet/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
@@ -18,9 +19,9 @@ wet estimates how much water flows in almost every stream in British Columbia, a
 pak::pak("NewGraphEnvironment/wet")
 ```
 
-wet is under active development and its functions change between releases (see [NEWS](https://newgraphenvironment.github.io/wet/news/index.html)). Pin a release for reproducible work: `pak::pak("NewGraphEnvironment/wet@vX.Y.Z")`.
+wet is under active development and its functions change between releases (see [NEWS](https://www.newgraphenvironment.com/wet/news/index.html)). Pin a release for reproducible work: `pak::pak("NewGraphEnvironment/wet@vX.Y.Z")`.
 
-Reading the published flow needs only `duckdb`. Station water temperature also needs `tidyhydat`, station flow a HYDAT database (`tidyhydat::download_hydat()`), and building the flow the Freshwater Atlas in PostgreSQL through [fwapg](https://github.com/smnorris/fwapg).
+Reading the published flow needs only `duckdb`. Station water temperature also needs `tidyhydat`, station flow a HYDAT database (`tidyhydat::download_hydat()`), and building the flow the Freshwater Atlas in PostgreSQL through [fwapg](https://smnorris.github.io/fwapg/).
 
 ## Example
 
@@ -39,27 +40,36 @@ xtabs(round(q_m3s) ~ source + month, q)
 
 ## Learn more
 
-- [Stream Discharge per Segment](https://newgraphenvironment.github.io/wet/articles/segment-discharge.html): what the published yearly, monthly and daily flow is, which source to use, how to read it, a year at three Bulkley gauges, and how well each source matches the gauges.
-- [Measured Stream Flow Against Its 1981–2010 Normal](https://newgraphenvironment.github.io/wet/articles/flow-departure-normal.html): measured flow at two long-record gauges near Houston, in the Bulkley, in the weeks chinook salmon migrate and spawn, over the last ten years against 1981–2010.
-- [Rebuilding Stream Flow History Where Gauges Are Few](https://newgraphenvironment.github.io/wet/articles/flow-change-sparse-gauges.html): summer flow rebuilt from nearby gauges at four streams chinook salmon use, gauged for a few summers or never, and how it has changed since 1951–1980.
-- [Water temperature functions](https://newgraphenvironment.github.io/wet/reference/index.html#water-temperature): daily station temperature, gap filling and growing-season degree days.
-- [Function reference](https://newgraphenvironment.github.io/wet/reference/)
+- [Stream Discharge per Segment](https://www.newgraphenvironment.com/wet/articles/segment-discharge.html): what the published yearly, monthly and daily flow is, which source to use, how to read it, a year at three Bulkley gauges, and how well each source matches the gauges.
+- [Measured Stream Flow Against Its 1981–2010 Normal](https://www.newgraphenvironment.com/wet/articles/flow-departure-normal.html): measured flow at two long-record gauges near Houston, in the Bulkley, in the weeks chinook salmon migrate and spawn, over the last ten years against 1981–2010.
+- [Rebuilding Stream Flow History Where Gauges Are Few](https://www.newgraphenvironment.com/wet/articles/flow-change-sparse-gauges.html): summer flow rebuilt from nearby gauges at four streams chinook salmon use, gauged for a few summers or never, and how it has changed since 1951–1980.
+- [Water temperature functions](https://www.newgraphenvironment.com/wet/reference/index.html#water-temperature): daily station temperature, gap filling and growing-season degree days.
+- [Function reference](https://www.newgraphenvironment.com/wet/reference/)
 
 ## Ecosystem
 
+<!-- BEGIN ecosystem.yml -->
+<!-- Generated from the source registry; edit the registry, not this block. -->
+
 | Package | Role |
 |---|---|
-| **wet** | Stream flow and water temperature for BC's Freshwater Atlas (this package) |
-| [fresh](https://github.com/NewGraphEnvironment/fresh) | Stream network modelling engine: segment, classify, cluster, aggregate |
-| [link](https://github.com/NewGraphEnvironment/link) | Intrinsic habitat models: develop, test and communicate |
-| [cd](https://github.com/NewGraphEnvironment/cd) | Climate departure: baselines, anomalies and trends, and ERA5-Land climate |
-| [gq](https://github.com/NewGraphEnvironment/gq) | Shared map symbology |
+| [link](https://www.newgraphenvironment.com/link/) | Build, compare and test fish habitat and access models, every fish habitat definition editable |
+| [fresh](https://www.newgraphenvironment.com/fresh/) | Splits streams at barriers, classifies habitat by species, traces what's upstream |
+| **wet** | Typical flow in nearly every stream, tested against gauges; station flow and temperature (this package) |
+| [flooded](https://www.newgraphenvironment.com/flooded/) | Maps floodplains from terrain: the valley floor a river can spread across |
+| [drift](https://www.newgraphenvironment.com/drift/) | Maps what changed in land cover, where and when, in a floodplain or any area, from free satellite maps or your own |
+| [fly](https://www.newgraphenvironment.com/fly/) | Puts BC's historic airphotos back on the map from free thumbnails |
+| [cd](https://www.newgraphenvironment.com/cd/) | How far any BC watershed's climate has shifted from your chosen baseline |
+| [knowledge](https://www.newgraphenvironment.com/knowledge/) | Starts from each species' life history and tunes its fish habitat definitions from where sampling did and did not catch it |
+| [floodplains](https://www.newgraphenvironment.com/floodplains/) | Maps BC's floodplains and how the land in them changed, one watershed group at a time |
+| [stac_floodplains_bc](https://www.newgraphenvironment.com/stac_floodplains_bc/) | Floodplains and land-cover change, a screen for where to look; by watershed group |
+<!-- END ecosystem.yml -->
 
-link's habitat models can read wet's published discharge, and cd computes the departures from wet's yearly station values.
+Its maps are styled with [gq](https://www.newgraphenvironment.com/gq/). link's habitat models can read wet's published discharge, and cd computes the departures from wet's yearly station values.
 
 ## Data and methods it builds on
 
-Routed flow is [PCIC](https://www.pacificclimate.org/)'s VIC-GL model routed with Raven ([hydromosaic](https://beehive.pacificclimate.org/chyp/)), placed on the Freshwater Atlas by New Graph's [fork of fwapg](https://github.com/NewGraphEnvironment/fwapg/pull/6). The water balance follows [Chapman et al. (2018)](https://www2.gov.bc.ca/assets/gov/environment/air-land-water/water/northeast-water-strategy/chapman_et_al-2018-jawra.pdf), fitted to Water Survey of Canada gauges in [HYDAT](https://www.canada.ca/en/environment-climate-change/services/water-overview/quantity/monitoring/survey/data-products-services/national-archive-hydat.html). Station data come from HYDAT, ECCC's real-time feed and its provisional records as archived by [water-temp-bc](https://github.com/NewGraphEnvironment/water-temp-bc), and the stream network from the [BC Freshwater Atlas](https://www2.gov.bc.ca/gov/content/data/geographic-data-services/topographic-data/freshwater) through [fwapg](https://github.com/smnorris/fwapg).
+Routed flow is [PCIC](https://www.pacificclimate.org/)'s VIC-GL model routed with Raven ([hydromosaic](https://beehive.pacificclimate.org/chyp/)), placed on the Freshwater Atlas by New Graph's [fork of fwapg](https://www.newgraphenvironment.com/fwapg/). The water balance follows [Chapman et al. (2018)](https://www2.gov.bc.ca/assets/gov/environment/air-land-water/water/northeast-water-strategy/chapman_et_al-2018-jawra.pdf), fitted to Water Survey of Canada gauges in [HYDAT](https://www.canada.ca/en/environment-climate-change/services/water-overview/quantity/monitoring/survey/data-products-services/national-archive-hydat.html). Station data come from HYDAT, ECCC's real-time feed and its provisional records as archived by [water-temp-bc](https://www.newgraphenvironment.com/water-temp-bc/), and the stream network from the [BC Freshwater Atlas](https://www2.gov.bc.ca/gov/content/data/geographic-data-services/topographic-data/freshwater) through [fwapg](https://smnorris.github.io/fwapg/).
 
 ## Citation
 

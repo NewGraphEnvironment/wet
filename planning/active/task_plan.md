@@ -28,9 +28,9 @@ Measured during planning (2026-11-15, on m1):
 
 ## Phase 2: Docs (batch 5: #55, #97)
 - [x] #55: `R/wet_station_snap.R` roxygen: replace the "the function `fresh::frs_point_snap()` wraps" parenthetical with why `fwa_indexpoint()` is used (one candidate per stream, which choosing between streams by drainage area needs; `frs_point_snap()` lists per-segment candidates); `devtools::document()`
-- [ ] #97: wrap README's Ecosystem table in the BEGIN/END `ecosystem.yml` markers and render with `ecosystem_registry.py render --readme README.md --member wet`; gq to a line below the block; keep the link/cd sentence if still true
-- [ ] #97: link packages and named sources to published sites (`https://www.newgraphenvironment.com/<repo>/`, upstream sites where they exist: fwapg, PCIC, water-temp-bc if it has one); own articles and NEWS via newgraphenvironment.com/wet/
-- [ ] #97: every link resolves (curl status, following redirects); word count near 582 (report before/after); check README tagline against the registry tagline and report any mismatch (rule 2) without widening scope
+- [x] #97: wrap README's Ecosystem table in the BEGIN/END `ecosystem.yml` markers and render with `ecosystem_registry.py render --readme README.md --member wet`; gq to a line below the block; keep the link/cd sentence if still true
+- [x] #97: link packages and named sources to published sites (`https://www.newgraphenvironment.com/<repo>/`, upstream sites where they exist: fwapg, PCIC, water-temp-bc if it has one); own articles and NEWS via newgraphenvironment.com/wet/
+- [x] #97: every link resolves (curl status, following redirects); word count near 582 (report before/after); check README tagline against the registry tagline and report any mismatch (rule 2) without widening scope
 
 ## Phase 3: Map layers that rebuild identically (batch 4: #155)
 - [ ] `vm_lakes()` → `fresh::frs_lake_fetch(conn, aoi = ext$sfc, area_ha_min = min_ha, simplify_m = simplify_m)`, columns renamed to the bundle's (`gnis_name`, `area_ha`, `geom`)
