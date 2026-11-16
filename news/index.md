@@ -1,5 +1,32 @@
 # Changelog
 
+## wet 0.4.36
+
+- Each published discharge build now records itself, and the fit is
+  published with it
+  ([\#164](https://github.com/NewGraphEnvironment/wet/issues/164)). The
+  build writes crate’s provenance receipt, `receipt.json`, beside
+  `manifest.json`. The manifest stays at `manifest_version = 1` and
+  gains optional `receipt` and `fit` entries, which
+  [`wet_catalog()`](https://newgraphenvironment.github.io/wet/reference/wet_catalog.md)
+  returns as attributes and an older wet ignores
+  ([\#161](https://github.com/NewGraphEnvironment/wet/issues/161); crate
+  is in Suggests). `fits.rds` and each watershed group’s sample are
+  published as parquet under `discharge/fwa/v1/fit/`, so
+  `WET_GROUP_FROM=published Rscript scripts/segment_group.R <WSG>`
+  rebuilds one group on a machine without the province run, given a
+  checkout holding the build’s commit
+  ([\#160](https://github.com/NewGraphEnvironment/wet/issues/160)).
+  [`wet_db_load()`](https://newgraphenvironment.github.io/wet/reference/wet_db_load.md)
+  records each loaded part in `discharge.wet_load` inside the load’s
+  transaction, keyed by dataset, scenario and part. The table comment is
+  unchanged
+  ([\#88](https://github.com/NewGraphEnvironment/wet/issues/88)). The
+  manifest’s daily description now names the February fold beside the
+  clamp
+  ([\#108](https://github.com/NewGraphEnvironment/wet/issues/108)). The
+  live build’s 512 parts are byte-identical to the previous build’s.
+
 ## wet 0.4.35
 
 - One refit chain for six changes that each staled the fit
