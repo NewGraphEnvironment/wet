@@ -54,13 +54,13 @@ Measured during planning (2026-11-15, on m1):
 - [x] Rebuild each of the four `vm_*` maps once against m4's fwapg (`WET_PGHOST`, `WET_MAP_OUT_DIR` to scratch), record the comparison (report only); the segment map writes a temp table and reads the live build, so it is not rebuilt there
 - [x] Run `segment_vignette_map.R`, `segment_vignette_data.R` and `monthly_vignette_data.R` at one HEAD on one day (`WET_FWAPG_COMMIT=5d50cc1` for the data scripts), committing after all three, against a0318b7; both bundles name one build, read date, fit (768876badf) and routed run
 - [x] Hold `chinook_sites_values.rds`'s bundled part md5s to the live manifest (no regeneration); its article prints the Gosnell report's whole-build digest, which is no longer live (values hold)
-- [ ] research/discharge_publish.md and research/water_balance_method.md: the bundles now read a0318b7
-- [ ] `vignettes/segment-discharge.Rmd`: drop the Nechako label, sentence, `nech`/`nech_bal` and its guard; caption names only the Liard; re-read every guard against the regenerated numbers
+- [x] research/discharge_publish.md and research/water_balance_method.md: the bundles now read a0318b7
+- [x] `vignettes/segment-discharge.Rmd`: drop the Nechako label, sentence, `nech`/`nech_bal` and its guard; caption names only the Liard; re-read every guard against the regenerated numbers
 - [x] `data-raw/readme_figure.R` → `man/figures/readme-pick.png`; README alt text without the Nechako; check the PNG at published width
-- [ ] CLAUDE.md: the article description ("the Liard labelled"), the map lib's fetchers, the recipe check
+- [x] CLAUDE.md: the article description ("the Liard labelled"), the map lib's fetchers, the recipe check
 
 ## Phase 6: Verify and review
-- [ ] `devtools::document()`, `devtools::test()` (failed + error counted), `lintr` per file vs `origin/main`, `pkgdown::check_pkgdown()`
+- [x] `devtools::document()`, `devtools::test()` (failed + error counted), `lintr` per file vs `origin/main`, `pkgdown::check_pkgdown()`
 - [ ] Reinstall wet from the branch; build the segment-discharge article and the four map-reading articles; strip HTML to text and diff against main's render: only the Nechako sentences, caption and changed numbers differ; word count under the 2,000 cap
 - [ ] Visual check of every map figure and `readme-pick.png` against main's (chinook river labels can move)
 - [ ] Recipe check fires: in a worktree copy, `month = 1`, no `AND pick`, `'MORR'` each refused
