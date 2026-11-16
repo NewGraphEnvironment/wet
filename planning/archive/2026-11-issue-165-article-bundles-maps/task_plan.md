@@ -23,8 +23,8 @@ Measured during planning (2026-11-15, on m1):
 
 ## Phase 1: Setup on m1
 - [x] Upgrade fresh 0.52.0 → 0.53.0 (read its NEWS for fetcher changes: none); reinstall wet from the branch before any article build (Phase 6)
-- [ ] Reload m1's `pcic` schema from fwapg 5d50cc1's `load/pcic_schema.sql`, `load/pcic.sql`, `load/pcic_run.sql` (1981–2010 run's `subbasin_daily`), from a worktree of fwapg at 5d50cc1; stop unless the fingerprint equals the tracked routed report's 179854603.510890 and the daily fingerprint the tracked daily report's
-- [ ] Probe both databases with `connect_timeout = 10` (m1 local; m4's fwapg on the LAN, read only)
+- [x] (from `git show 5d50cc1:load/*.sql` copies, not a worktree; both fingerprints held by the data scripts' guards) Reload m1's `pcic` schema from fwapg 5d50cc1's `load/pcic_schema.sql`, `load/pcic.sql`, `load/pcic_run.sql` (1981–2010 run's `subbasin_daily`), from a worktree of fwapg at 5d50cc1; stop unless the fingerprint equals the tracked routed report's 179854603.510890 and the daily fingerprint the tracked daily report's
+- [x] Probe both databases with `connect_timeout = 10` (m1 local; m4's fwapg on the LAN, read only; the LAN address timed out, m4 answered over Tailscale)
 
 ## Phase 2: Docs (batch 5: #55, #97)
 - [x] #55: `R/wet_station_snap.R` roxygen: replace the "the function `fresh::frs_point_snap()` wraps" parenthetical with why `fwa_indexpoint()` is used (one candidate per stream, which choosing between streams by drainage area needs; `frs_point_snap()` lists per-segment candidates); `devtools::document()`
@@ -73,8 +73,8 @@ Measured during planning (2026-11-15, on m1):
 ## Validation
 - [x] Tests pass
 - [x] `/code-check` clean (once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] PWF checkboxes match landed work
+- [x] `/planning-archive` on completion
 
 Verification: each map script run twice on m1 writes byte-identical `.rds` (md5 equal; a third run leaves the file's mtime unchanged); second-database comparison recorded; both data scripts pass every guard against a0318b7 and the tracked publish, routed and daily reports; the recipe check is shown to fire by perturbing the recipe's filter in a scratch copy; rendered article text diff limited to intended changes; README links all resolve. The #164 body's owed items for this move are ticked in both issues at the merge.
 
