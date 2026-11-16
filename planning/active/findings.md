@@ -57,7 +57,13 @@ Decided at #164's gate (2026-11-15): this move regenerates every bundle against 
 - soul `ecosystem.yml` `readme: true` rows: link, fresh, wet, flooded, drift, fly, cd, knowledge, floodplains, stac_floodplains_bc.
 - `chinook_sites_data.R` refuses unless the live digest equals the Gosnell report's; the live digest moved with #163's 13 uploaded parts, so that bundle is checked by part md5 rather than regenerated.
 
-## Errors Encountered
+
+## PostGIS polygon simplification repeats inexactly under GEOS 3.9.0 (2026-11-16, m1)
+
+`SELECT ST_NPoints(ST_SimplifyPreserveTopology(geom, 100)) FROM whse_basemapping.fwa_lakes_poly WHERE waterbody_poly_id = 700228651` (Tahtsa Reach), run 20 times in one psql session: 19 x 557, 1 x 556. Inside the AOI query of `frs_lake_fetch()`: 13 x 557, 7 x 556. A new session per query gave 12 of 12 x 557, which is why fresh#287 saw lakes identical on repeat. PostGIS 3.5.2, GEOS 3.9.0-CAPI-1.16.2. sf 3.13.0's `st_simplify(preserveTopology = TRUE)` on the same rings: 1 distinct result in 60, at 25/50/100/400 m, Tahtsa Reach and Ootsa Lake. Lines (main-flow rivers in BULK, MORR, LSKE, UFRA, FRAN, merged and simplified at 2000 m, snapped to 100 m): 15 of 15 identical with ST_SimplifyPreserveTopology and with ST_Simplify. #155 measured Tahtsa Reach and Ootsa Lake one vertex apart and took it for a difference between databases; it was this.
 
 | Error | Resolution |
 |-------|------------|
+| `st_line_merge.sfc`: `inherits(x, "sfc_MULTILINESTRING") is not TRUE` for a one-segment key | cast the union to MULTILINESTRING first |
+| `vm_compare()` read sorted tables as different (row names), and sorted an attribute-less layer to zero rows | reset row names in `sorted()`; skip ordering when there are no keys |
+| Map pass 2 rewrote three maps (one lake vertex) | polygons simplified in sf, not PostGIS (above) |

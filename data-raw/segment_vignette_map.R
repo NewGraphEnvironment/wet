@@ -97,7 +97,9 @@ rivers <- sf::st_read(conn, quiet = TRUE, query = sprintf("
   WHERE NOT ST_IsEmpty(geom)
   ORDER BY order_band, blue_line_key, class", simplify_m, snap_m, seg_where))
 # large rivers drawn last, on top; blue_line_key, class and band are the rows'
-# key. ST_Normalize can reverse a line's direction, which a drawing ignores
+# key. ST_Normalize can reverse a line's direction, which a drawing ignores.
+# These are lines, which PostGIS simplified the same way in 15 calls of 15 in
+# one session; its polygons it did not (scripts/vignette_map_lib.R)
 stopifnot(!anyDuplicated(sf::st_drop_geometry(rivers)[c("blue_line_key", "class", "order_band")]))
 rivers$blue_line_key <- NULL
 stopifnot(all(sf::st_geometry_type(rivers) == "MULTILINESTRING"))

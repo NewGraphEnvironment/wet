@@ -8,11 +8,14 @@
 # themselves (scripts/vignette_data_lib.R, vd_connect()).
 #
 # A rerun on the same FWA writes the same file (#155): every query orders its
-# rows on a unique key and its aggregates' input, every simplified polygon is
-# normalised, lakes and stream segments come from fresh's fetchers
-# (frs_lake_fetch(), frs_stream_fetch(); fresh is needed by data-raw/ only),
-# and vm_write() keeps the committed file when nothing in it changed, printing
-# what changed otherwise (vm_compare()).
+# rows on a unique key and its aggregates' input, lakes and stream segments
+# come from fresh's fetchers (frs_lake_fetch(), frs_stream_fetch(); fresh is
+# needed by data-raw/ only), and vm_write() keeps the committed file when
+# nothing in it changed, printing what changed otherwise (vm_compare()).
+# Polygons are simplified here (vm_simplify()), not in PostGIS: under GEOS
+# 3.9.0, ST_SimplifyPreserveTopology() drew Tahtsa Reach with 556 or 557
+# vertices on repeated calls in one session, where sf's GEOS 3.13 gave one
+# drawing in 60.
 
 # The stations from HYDAT STATIONS, in the order given
 vm_stations <- function(hydat, stations) {
@@ -25,6 +28,12 @@ vm_stations <- function(hydat, stations) {
   st <- DBI::dbGetQuery(con, sql)
   stopifnot(setequal(st$station_number, stations))
   st[match(stations, st$station_number), ]
+}
+
+# Topology-preserving simplification in sf, which repeats exactly (above)
+vm_simplify <- function(x, simplify_m) {
+  sf::st_geometry(x) <- sf::st_simplify(sf::st_geometry(x), preserveTopology = TRUE, dTolerance = simplify_m)
+  x
 }
 
 # Each station's upstream watershed: the snap picks the segment by drainage
@@ -42,10 +51,10 @@ vm_catchments <- function(conn, st, simplify_m) {
           ST_Transform(ST_SetSRID(ST_MakePoint(%.10f, %.10f), 4326), 3005), 1000, 5) c
         WHERE c.linear_feature_id = %.0f)
       SELECT '%s' AS station_number, w.area_ha / 100 AS area_km2,
-             ST_Normalize(ST_SimplifyPreserveTopology(ST_Force2D(w.geom), %d)) AS geom
+             ST_Normalize(ST_Force2D(w.geom)) AS geom
       FROM p, whse_basemapping.fwa_watershedatmeasure(p.blue_line_key, p.downstream_route_measure) w",
-                   st$lon[i], st$lat[i], snap$linear_feature_id[i], st$station_number[i], simplify_m)
-    sf::st_read(conn, quiet = TRUE, query = sql)
+                   st$lon[i], st$lat[i], snap$linear_feature_id[i], st$station_number[i])
+    vm_simplify(sf::st_read(conn, quiet = TRUE, query = sql), simplify_m)
   }))
   stopifnot(nrow(catch) == nrow(st))
   catch$area_ratio <- catch$area_km2 / st$drainage_area_gross_km2[match(catch$station_number, st$station_number)]
@@ -92,23 +101,23 @@ vm_streams <- function(conn, ext, blk, simplify_m, min_order = 5) {
 }
 
 # FWA lakes of at least `min_ha` in the extent (`ext`, from vm_extent()),
-# ordered on waterbody_poly_id and simplified and normalised by fresh
+# ordered on waterbody_poly_id by fresh and simplified here (vm_simplify())
 vm_lakes <- function(conn, ext, simplify_m, min_ha = 100) {
-  lakes <- fresh::frs_lake_fetch(conn, aoi = ext$sfc, area_ha_min = min_ha, simplify_m = simplify_m,
+  lakes <- fresh::frs_lake_fetch(conn, aoi = ext$sfc, area_ha_min = min_ha,
                                  cols = c("waterbody_poly_id", "gnis_name_1", "area_ha", "geom"))
-  sf::st_sf(gnis_name = lakes$gnis_name_1, area_ha = lakes$area_ha, geom = sf::st_geometry(lakes))
+  vm_simplify(sf::st_sf(gnis_name = lakes$gnis_name_1, area_ha = lakes$area_ha, geom = sf::st_geometry(lakes)),
+              simplify_m)
 }
 
 # The province outline for a keymap an inch wide: parts under 2,000 km2 are
-# noise at that size, and the rest is simplified at 5 km. The union takes its
-# polygons in id order and the parts are collected largest first, so the
-# outline does not depend on the order PostgreSQL returns them in
+# noise at that size, and the rest is simplified at 5 km (vm_simplify()). The
+# union takes its polygons in id order and the parts are collected largest
+# first, so the outline does not depend on the order PostgreSQL returns them in
 vm_bc <- function(conn) {
-  sf::st_read(conn, quiet = TRUE, query = "
-    SELECT ST_Normalize(ST_SimplifyPreserveTopology(
-             ST_Collect(d.geom ORDER BY ST_Area(d.geom) DESC, ST_XMin(d.geom), ST_YMin(d.geom)), 5000)) AS geom
+  vm_simplify(sf::st_read(conn, quiet = TRUE, query = "
+    SELECT ST_Normalize(ST_Collect(d.geom ORDER BY ST_Area(d.geom) DESC, ST_XMin(d.geom), ST_YMin(d.geom))) AS geom
     FROM (SELECT (ST_Dump(ST_Union(geom ORDER BY bcboundary_id))).geom FROM whse_basemapping.fwa_bcboundary) d
-    WHERE ST_Area(d.geom) >= 2e9")
+    WHERE ST_Area(d.geom) >= 2e9"), 5000)
 }
 
 # The rivers each blue line flows into, from its watershed code: `into1` (the
@@ -185,9 +194,9 @@ vm_postgis <- function(conn) {
   DBI::dbGetQuery(conn, "SELECT postgis_full_version() AS v")$v
 }
 
-# Every layer with its CRS set, the HYDAT release, the PostGIS that drew the
-# layers (vm_postgis()) and the GEOS that merged the streams (sf's) as
-# provenance
+# Every layer with its CRS set, the HYDAT release, the PostGIS that queried
+# the layers (vm_postgis()) and the GEOS that merged and simplified them
+# (sf's) as provenance
 vm_layers <- function(layers, hydat, postgis) {
   stopifnot(is.character(postgis), length(postgis) == 1)
   layers <- lapply(layers, function(x) {
