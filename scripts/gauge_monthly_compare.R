@@ -29,7 +29,10 @@
 # takes its mean of twelve in another order), and the fit's files the md5s the
 # bundle records.
 #
-# ---- rules (registered before the numbers they judge; #166) -------------------------------------
+# ---- rules registered at 520b9ca, before the numbers they judge (#166) ------------------------
+# The text below is as committed at 520b9ca; amendments made after numbers
+# were seen are listed apart, after it, and nowhere else.
+#
 # A first run (f4e26c3, 2814914) judged #67's checks under rules written with
 # their code, and the plan review found two of them unsound: check 1 compared
 # the published segment with itself (every outlet segment has share 1, and
@@ -54,8 +57,7 @@
 # gauge any model finds hard counts for little.
 # Check 2, resolution: at shared gauges under 100 km2, supported (theirs:
 # PCIC's sub-basins are coarser than the catchment) if the gap where the
-# segment's flow is all its sub-basin's local runoff (local share 1, taken as
-# above 0.999 for rounding) exceeds
+# segment's flow is all its sub-basin's local runoff (local share 1) exceeds
 # the gap at the rest by 0.05 or more; otherwise unresolved.
 # Check 3, late melt: at shared gauges under 100 km2, supported (theirs: the
 # model's melt timing) if the gap at gauges peaking by May exceeds the gap at
@@ -63,17 +65,29 @@
 #
 # The per-year files (#162): each file's bins, averaged over 1981-2010, equal
 # pcic.subbasin_daily for the 1981-2010 run within float32 precision (2^-23 of
-# the mean absolute value, plus 1e-9 m3/s so a bin of all-zero flow compares,
-# as scripts/departure_pcic.R holds them) on every sub-basin read; HYDAT's
-# yearly monthly means average to the gauge table's normals within 1e-9
-# relative (the same flows, summed in another order); and the routed per-year
+# the mean absolute value) on every sub-basin read; and the routed per-year
 # days average to the published months within 1e-3 relative at every
 # gauge-month (the two clamp at zero in a different order, and the days are
-# rounded to 5 decimals). A published month of zero then admits no difference.
-# The first implementation floored the bound at 1e-3 m3/s; code review rounds
-# 1 and 2 found that looser than the rule, so the check applies the rule as
-# registered, with no floor (the smallest published month at the shared Fraser
-# gauges is 0.012 m3/s, so no gauge-month was ever under the old floor).
+# rounded to 5 decimals).
+#
+# ---- amended after numbers were seen (code review rounds 1-3, #166) --------------------------
+# - Check 2's "local share 1" is taken as above 0.999, for rounding (in the
+#   code from ba29835, the first run of these rules).
+# - Checks 2 and 3 printed a third outcome, "not supported", from ba29835 to
+#   7a8a5ac; since 613b296 they print only the two registered outcomes, with
+#   the direction of the gap beside "unresolved".
+# - The bin parity adds 1e-9 m3/s to its bound, so a bin of all-zero flow
+#   compares, as scripts/departure_pcic.R does (in the code from ba29835).
+# - The per-year parity: ba29835 divided by the published month floored at
+#   1e-3 m3/s (an absolute bound of 1e-6 m3/s below that); 7a8a5ac floored the
+#   bound at 1e-5 m3/s; since 613b296 there is no floor, so the registered rule
+#   applies, and a published month of zero admits no difference. No gauge-month
+#   was ever under a floor: the smallest published month at the shared Fraser
+#   gauges is 0.012 m3/s.
+# - HYDAT's yearly monthly means must average to the gauge table's normals
+#   (the same flows, summed in another order): within 0.02 relative from
+#   ba29835, within 1e-9 since 613b296. Not in the registered text; measured
+#   5.9e-16 throughout.
 #
 # Report: data/checks/gauge_monthly_compare_<release>.txt (tracked). PCIC and
 # DFO are references here, scored against HYDAT beside our own estimate
@@ -703,13 +717,14 @@ say(sprintf("## #162: DFO's Fraser validation as context, at the %d shared Frase
             yr$commit, yr$catalogue_md5),
     sprintf("  routed onto the segments by wet_routed_years(); the files' bins average to pcic.subbasin_daily at %d",
             yr$parity$subbasins),
-    sprintf("  sub-basins (%d bins) within float32 precision (worst %.2f of the bound, largest %.2g m3/s)",
-            yr$parity$bins, yr$parity$worst, yr$parity$max_abs),
+    sprintf("  sub-basins (%d bins) within float32 precision: 2^-23 of the mean absolute value, plus 1e-9 m3/s",
+            yr$parity$bins),
+    sprintf("  (worst %.2f of the bound, largest %.2g m3/s)", yr$parity$worst, yr$parity$max_abs),
     sprintf("parity: the 30 years' days average to the published months within %.2g relative (largest %.2g m3/s;",
             par_rel, par_abs),
     sprintf("  registered bound %.0e relative); HYDAT's years average to the gauge table's normals within %.2g",
             par_tol, obs_gap),
-    "  relative (registered bound 1e-9)",
+    "  relative (bound 1e-9, set after the first runs; see the header's amendments)",
     "The balance is a 1981-2010 normal with no years, so it has no Min.",
     sprintf("gauges whose lowest year is dry (zero flow), left out of MAPE and median APE for Min: %s",
             paste(sprintf("%s %d", names(dfo_scales)[dry > 0], dry[dry > 0]), collapse = ", ")),
