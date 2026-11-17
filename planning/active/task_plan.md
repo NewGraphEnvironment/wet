@@ -117,7 +117,7 @@ Readers of the default source (routed PCIC, `pick`) get March–April about a te
 - [x] `research/monthly_error.md` (topic file, provenance header) with one finding per issue, and a row in
       `research/README.md`. Add a line in CLAUDE.md's Architecture for the script. Add Iacarella et al. to the
       research file's citation (it is already in Zotero).
-- [ ] Issue bodies: #6 (results, ticked), #67 (tables updated to 5d50cc1, the three boxes ticked with verdicts,
+- [x] Issue bodies: #6 (results, ticked), #67 (tables updated to 5d50cc1, the three boxes ticked with verdicts,
       the draft to PCIC revised and marked **not sent**), #162 (results and the Min finding), #166.
 
 ## Owed at the end (reported, done after merge)
