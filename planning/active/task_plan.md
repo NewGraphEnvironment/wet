@@ -129,9 +129,9 @@ Readers of the default source (routed PCIC, `pick`) get March–April about a te
 
 ## Validation
 
-- [ ] Tests pass (`devtools::test()`; no `R/` change is planned)
-- [ ] `/code-check` clean (once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
+- [x] Tests pass (`devtools::test()`; no `R/` change is planned)
+- [x] `/code-check` clean (once over the branch with `/code-check branch`)
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
 Verification: the parity guard against the bundle (Phase 1); fingerprints held to the tracked routed and daily
