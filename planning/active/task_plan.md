@@ -50,28 +50,28 @@ Readers of the default source (routed PCIC, `pick`) get March–April about a te
 
 ## Phase 1: Shared data and report frame
 
-- [ ] `scripts/gauge_monthly_compare.R`: header (usage, `WET_FWAPG_COMMIT`, `WET_PCIC_YEARS`, `WET_PG*`), and a
+- [x] `scripts/gauge_monthly_compare.R`: header (usage, `WET_FWAPG_COMMIT`, `WET_PCIC_YEARS`, `WET_PG*`), and a
       refusal unless `R/` and `scripts/` are committed. It records the wet commit, fit, HYDAT release and
       province run.
-- [ ] Held-out months: from `shipped_heldout()` and `cvr$cv_share` under the shipped share spec and method,
+- [x] Held-out months: from `shipped_heldout()` and `cvr$cv_share` under the shipped share spec and method,
       with `monthly_vignette_data.R`'s two refusals (stored observed values equal `cal`'s; the stored months,
       scored again, give the stored scores).
-- [ ] Routed months on the gauge segments from `routed_table`/`routed_where`, refused unless
+- [x] Routed months on the gauge segments from `routed_table`/`routed_where`, refused unless
       `routed_fingerprint()` and `routed_report_line()` match the tracked routed report (the
       `vd_routed_check()` pattern).
-- [ ] Parity guard: observed, balance and routed for months 0–12 at all 315 gauges `all.equal` the bundle's
+- [x] Parity guard: observed, balance and routed for months 0–12 at all 315 gauges `all.equal` the bundle's
       `gauges`, or the script stops.
-- [ ] Shared scorers in the script, each with a definition line in the report: per-gauge month ratio, median
+- [x] Shared scorers in the script, each with a definition line in the report: per-gauge month ratio, median
       error, share within ±20 %, monthly NSE, and seasons (DJF, MAM, JJA, SON, plus #67's Mar–Apr and
       Jul–Aug).
 
 ## Phase 2: #6, bias by region and season
 
-- [ ] Report sections for both sources on the 290 shared gauges, with the balance alone on all 315. Each gives
+- [x] Report sections for both sources on the 290 shared gauges, with the balance alone on all 315. Each gives
       the median error by month × hydrologic zone (n per zone; zones under 5 gauges marked), by month × major
       basin, by season × size class (the four `area_class` bins), and by headwater against nested and lake
       against not.
-- [ ] Rescore #67's two tables on 5d50cc1: the Mar/Apr/Jul/Aug medians, gauge shares low and high, and the
+- [x] Rescore #67's two tables on 5d50cc1: the Mar/Apr/Jul/Aug medians, gauge shares low and high, and the
       size table (monthly NSE, routed and balance). This replaces #67's "unmeasured on 5d50cc1".
 
 ## Phase 3: #67, routed PCIC's seasonal shape
