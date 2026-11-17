@@ -112,9 +112,9 @@ Readers of the default source (routed PCIC, `pick`) get March–April about a te
 
 ## Phase 5: Record
 
-- [ ] Run the script twice from a frozen copy (`data/logs/166/`), check the two reports are byte-identical, and
+- [x] Run the script twice from a frozen copy (`data/logs/166/`), check the two reports are byte-identical, and
       commit the report.
-- [ ] `research/monthly_error.md` (topic file, provenance header) with one finding per issue, and a row in
+- [x] `research/monthly_error.md` (topic file, provenance header) with one finding per issue, and a row in
       `research/README.md`. Add a line in CLAUDE.md's Architecture for the script. Add Iacarella et al. to the
       research file's citation (it is already in Zotero).
 - [ ] Issue bodies: #6 (results, ticked), #67 (tables updated to 5d50cc1, the three boxes ticked with verdicts,
