@@ -223,7 +223,7 @@ routed_mid_network <- function(conn, weights) {
 # the crosswalk of the run `period` names, and all rows naming one fwapg commit. Given `subs`, and
 # where `years` are the run's own years, each read sub-basin's calendar bins averaged over the files
 # must equal pcic.subbasin_daily for the run within float32 precision (2^-23 of the mean absolute
-# value). Refuses otherwise. scripts/departure_pcic.R makes the same checks inline, under #122's
+# value, plus 1e-9 m3/s so an all-zero bin compares). Refuses otherwise. scripts/departure_pcic.R makes the same checks inline, under #122's
 # registered rule. Returns the files, the commit the rows name, the md5 of the catalogue rows read
 # and the bin parity (sub-basins, bins, worst ratio to the bound, largest absolute difference).
 routed_years_check <- function(conn, dir, years, period = routed_run$period, subs = NULL) {

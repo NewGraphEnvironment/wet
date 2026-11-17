@@ -9,7 +9,7 @@ The two published sources are scored against each gauge's monthly means over its
 - **Routed PCIC is low in spring and high in late summer, across the province.** By season, its median error is −17 % in March–May and +17 % in July–August. Over the year it is −3 %. The balance's worst month is April (+10 %), and no season is off by more than 6 %.
 - **Routed PCIC's shape is in PCIC's own outflow (theirs).** At the 242 gauges where fwapg's crosswalk only relabels PCIC's outflow, routed is −13 % in March–April and +17 % in July–August.
 - **Its small-basin loss is mostly volume, not shape.** Under 100 km² routed's monthly NSE is 0.44, but its share NSE, which leaves annual volume out, is 0.80, against the balance's 0.91.
-- **Neither PCIC's sub-basin resolution nor a late melt explains the shape loss that remains** (check 2 not supported, check 3 unresolved).
+- **Neither PCIC's sub-basin resolution nor a late melt explains the shape loss that remains** (checks 2 and 3 unresolved under the registered rule; check 2's gap runs the other way from the resolution reading).
 - **On DFO's weakest statistic routed PCIC scores far higher.** That is the across-gauge R² of the lowest August and September in 1981–2010 (0.97 and 0.98, against DFO's 0.35 and 0.34). At the gauge, though, those lows are where routed is weak: its lowest August is more than half again the observed one at 37 % of the Fraser gauges.
 
 ## #6: by region, season and basin size
@@ -53,7 +53,7 @@ So #67's reading that "its monthly shape is where it loses" at small basins was 
 - Only 2 shared gauges have an outlet whose networks differ. The 39 without an outlet on their segment show the same shape (−8.1 %, +17.9 %).
 - A first version of this check compared the outlet with the segment it is placed on. Those are the same number by construction, which the plan review caught; the archive keeps that run.
 
-**Check 2, PCIC's resolution: not supported.**
+**Check 2, PCIC's resolution: unresolved, the gap running the other way.**
 - Under 100 km², 41 % of gauges have segments whose flow is all their PCIC sub-basin's local runoff (local share 1), so their months are the sub-basin's own.
 - Routed's share-NSE gap to the balance there is 0.02, against 0.12 at the rest: narrower, the opposite of what coarse sub-basins would produce.
 - Expressing the catchment in VIC-GL cells was dropped: it is the area divided by a cell area that varies only with the cosine of latitude, so it ranks the gauges almost as area does.

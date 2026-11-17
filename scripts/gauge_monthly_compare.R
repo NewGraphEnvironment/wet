@@ -54,7 +54,8 @@
 # gauge any model finds hard counts for little.
 # Check 2, resolution: at shared gauges under 100 km2, supported (theirs:
 # PCIC's sub-basins are coarser than the catchment) if the gap where the
-# segment's flow is all its sub-basin's local runoff (local share 1) exceeds
+# segment's flow is all its sub-basin's local runoff (local share 1, taken as
+# above 0.999 for rounding) exceeds
 # the gap at the rest by 0.05 or more; otherwise unresolved.
 # Check 3, late melt: at shared gauges under 100 km2, supported (theirs: the
 # model's melt timing) if the gap at gauges peaking by May exceeds the gap at
@@ -62,13 +63,17 @@
 #
 # The per-year files (#162): each file's bins, averaged over 1981-2010, equal
 # pcic.subbasin_daily for the 1981-2010 run within float32 precision (2^-23 of
-# the mean absolute value) on every sub-basin read; and the routed per-year
-# days average to the published months within 1e-3 relative, or one rounding
-# step (1e-5 m3/s) where that is larger, at every gauge-month (the two clamp
-# at zero in a different order, and the days are rounded to 5 decimals). The
-# rounding-step floor was made explicit after review round 1 found the first
-# version's floor (relative to 1e-3 m3/s) looser than the rule; no gauge-month
-# in the first runs fell under either floor.
+# the mean absolute value, plus 1e-9 m3/s so a bin of all-zero flow compares,
+# as scripts/departure_pcic.R holds them) on every sub-basin read; HYDAT's
+# yearly monthly means average to the gauge table's normals within 1e-9
+# relative (the same flows, summed in another order); and the routed per-year
+# days average to the published months within 1e-3 relative at every
+# gauge-month (the two clamp at zero in a different order, and the days are
+# rounded to 5 decimals). A published month of zero then admits no difference.
+# The first implementation floored the bound at 1e-3 m3/s; code review rounds
+# 1 and 2 found that looser than the rule, so the check applies the rule as
+# registered, with no floor (the smallest published month at the shared Fraser
+# gauges is 0.012 m3/s, so no gauge-month was ever under the old floor).
 #
 # Report: data/checks/gauge_monthly_compare_<release>.txt (tracked). PCIC and
 # DFO are references here, scored against HYDAT beside our own estimate
@@ -394,13 +399,11 @@ g$nse_wb_share <- nse_share_g(wb_w, i_all)
 g$err_rt <- 100 * (rt_w[, "0"] / obs_w[, "0"] - 1)
 gap <- function(i) stats::median(g$nse_wb_share[i] - g$nse_rt_share[i])
 gap_margin <- 0.05  # registered in the header
-# a verdict that does not reach the margin: inside it, or past it the other way
+# a verdict that does not reach the margin is unresolved, as registered; the
+# line says which way the gap runs
 verdict_off <- function(d, where) {
-  if (d <= -gap_margin) {
-    sprintf("not supported: the gap is %.2f narrower %s, the opposite of the reading", -d, where)
-  } else {
-    sprintf("unresolved: the gap is %+.2f %s, inside the %.2f margin", d, where, gap_margin)
-  }
+  sprintf("unresolved: the gap is %+.2f %s, %s", d, where,
+          if (d < 0) "the other way from the reading" else sprintf("inside the %.2f margin", gap_margin))
 }
 lowhigh <- function(i) {
   ma <- ratio_s(rt_w, i, 3:4)
@@ -525,7 +528,7 @@ say("## #67 check 2: PCIC's resolution, at the shared gauges under 100 km2",
     gap_row("local share 1", i_own),
     gap_row("local share below 1", i_part),
     sprintf("verdict: %s", if (gap(i_own) - gap(i_part) >= gap_margin) {
-      sprintf("theirs (PCIC's resolution): the gap is %.2f wider where the gauge's months are its sub-basin's",
+      sprintf("supported (theirs: PCIC's resolution): the gap is %.2f wider where the gauge's months are its sub-basin's",
               gap(i_own) - gap(i_part))
     } else {
       verdict_off(gap(i_own) - gap(i_part), "where the gauge's months are its sub-basin's")
@@ -545,7 +548,7 @@ say("## #67 check 3: late melt, at the shared gauges under 100 km2",
     "by mean upstream elevation (m), terciles:",
     vapply(levels(t_elev), function(l) gap_row(l, seq_len(nrow(g)) %in% which(i_small)[t_elev == l]), ""),
     sprintf("verdict: %s", if (gap(i_early) - gap(i_small & !i_early) >= gap_margin) {
-      sprintf("theirs (the model's melt timing): the gap is %.2f wider at early-peaking gauges",
+      sprintf("supported (theirs: the model's melt timing): the gap is %.2f wider at early-peaking gauges",
               gap(i_early) - gap(i_small & !i_early))
     } else {
       verdict_off(gap(i_early) - gap(i_small & !i_early), "at early-peaking gauges")
@@ -595,13 +598,12 @@ rt_all <- stats::aggregate(q_m3s ~ linear_feature_id + month, rd, mean)
 pub <- routed_m[routed_m$linear_feature_id %in% fr$linear_feature_id, ]
 pm <- merge(pub, rt_all, by = c("linear_feature_id", "month"), suffixes = c("_pub", "_days"))
 stopifnot(nrow(pm) == 12 * nrow(fr))
-par_tol <- 1e-3   # relative, at each gauge-month (registered in the header)
-par_step <- 1e-5  # one rounding step, the floor where 1e-3 relative is smaller
+par_tol <- 1e-3  # relative, at each gauge-month (registered in the header)
 d_par <- abs(pm$q_m3s_pub - pm$q_m3s_days)
 par_abs <- max(d_par)
 par_rel <- max(d_par[pm$q_m3s_pub > 0] / pm$q_m3s_pub[pm$q_m3s_pub > 0])
-if (any(d_par > pmax(par_tol * pm$q_m3s_pub, par_step))) {
-  k <- which.max(d_par / pmax(par_tol * pm$q_m3s_pub, par_step))
+if (any(d_par > par_tol * pm$q_m3s_pub)) {
+  k <- which.max(d_par - par_tol * pm$q_m3s_pub)
   stop(sprintf("the per-year days do not average to the published months: segment %d month %d, %.3g against %.3g m3/s",
                pm$linear_feature_id[k], pm$month[k], pm$q_m3s_days[k], pm$q_m3s_pub[k]))
 }
@@ -660,7 +662,7 @@ f1_rows <- lapply(names(dfo_scales), function(sc) {
 })
 obs_gap <- max(vapply(f1_rows, `[[`, 0, "obs_gap"))
 # the years' mean equals the normal for months; a season or year weights its months by length the same way
-if (obs_gap > 0.02) stop(sprintf("HYDAT's years do not average to the gauge table's normals: %.3g", obs_gap))
+if (obs_gap > 1e-9) stop(sprintf("HYDAT's years do not average to the gauge table's normals: %.3g", obs_gap))
 order_f1 <- c("August", "September", setdiff(names(dfo_scales), c("August", "September")))
 row_of <- function(sc) f1_rows[[match(sc, names(dfo_scales))]]
 f1_line <- function(r, d) {
@@ -704,9 +706,9 @@ say(sprintf("## #162: DFO's Fraser validation as context, at the %d shared Frase
             yr$parity$bins, yr$parity$worst, yr$parity$max_abs),
     sprintf("parity: the 30 years' days average to the published months within %.2g relative (largest %.2g m3/s;",
             par_rel, par_abs),
-    sprintf("  registered bound %.0e relative or %.0e m3/s); HYDAT's years average to the gauge table's normals",
-            par_tol, par_step),
-    sprintf("  within %.2g relative", obs_gap),
+    sprintf("  registered bound %.0e relative); HYDAT's years average to the gauge table's normals within %.2g",
+            par_tol, obs_gap),
+    "  relative (registered bound 1e-9)",
     "The balance is a 1981-2010 normal with no years, so it has no Min.",
     sprintf("gauges whose lowest year is dry (zero flow), left out of MAPE and median APE for Min: %s",
             paste(sprintf("%s %d", names(dfo_scales)[dry > 0], dry[dry > 0]), collapse = ", ")),
