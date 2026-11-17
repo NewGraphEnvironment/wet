@@ -16,16 +16,56 @@
 #   - routed PCIC as published: fwapg's monthly table for the run
 #     scripts/pcic_routed_lib.R names, refused unless the table and the fwapg
 #     commit are the tracked routed report's;
-#   - PCIC's own outlet flow (#67's first check): the run's sub-basin days
-#     (q_acc, accumulated routed flow at each outlet), and the segments'
-#     weights, refused unless they are the tracked daily report's;
+#   - the crosswalk, the segments' weights and the run's sub-basin days
+#     (#67's checks), refused unless they are the tracked daily report's;
 #   - routed PCIC year by year (#162's minimum flows): fwapg#42's per-year
 #     sub-basin days under WET_PCIC_YEARS, each file held to its pcic.series
 #     row (routed_years_check());
 #   - HYDAT (the fit's release) for each gauge's yearly monthly means.
 # The gauge table (observed, balance and routed, months 0-12) must equal the
 # one the segment-discharge article reads (inst/vignette-data/monthly_values.rds),
-# so the report and the article score the same numbers.
+# so the report and the article score the same numbers: observed, balance and
+# routed months 1-12 identical, routed month 0 within 1e-12 relative (publish
+# takes its mean of twelve in another order), and the fit's files the md5s the
+# bundle records.
+#
+# ---- rules (registered before the numbers they judge; #166) -------------------------------------
+# A first run (f4e26c3, 2814914) judged #67's checks under rules written with
+# their code, and the plan review found two of them unsound: check 1 compared
+# the published segment with itself (every outlet segment has share 1, and
+# q_acc is accumulated down the FWA tree, fwapg's README step 5), and monthly
+# NSE at small gauges mostly measures annual volume (Spearman -0.77 with the
+# absolute annual error under 100 km2, against -0.19 for the shape-only share
+# NSE). The rules below replace them, before any number they judge is computed.
+#
+# Check 1, the shape in PCIC's own outflow. A placed outlet's networks agree
+# when the placed outlets above it on the FWA tree (fwa_parent_subid) are
+# exactly the placed outlets in its PCIC subtree (dowsubid, through unplaced
+# outlets); there its q_acc is PCIC's outflow (fwapg's README step 5), and the
+# segment it is placed on carries it (share 1). Verdict, at the shared gauges
+# whose segment's outlet agrees: theirs if routed's median Mar-Apr error is
+# -5 % or lower and its Jul-Aug error +5 % or higher; ours (the crosswalk) if
+# neither holds there while both hold at the other shared gauges; otherwise
+# unresolved.
+#
+# Shape is scored by share NSE: the Nash-Sutcliffe efficiency of a gauge's
+# twelve monthly shares of its year, so annual volume does not enter. The gap
+# is the balance's share NSE minus routed's at the same gauge, medianed, so a
+# gauge any model finds hard counts for little.
+# Check 2, resolution: at shared gauges under 100 km2, supported (theirs:
+# PCIC's sub-basins are coarser than the catchment) if the gap where the
+# segment's flow is all its sub-basin's local runoff (local share 1) exceeds
+# the gap at the rest by 0.05 or more; otherwise unresolved.
+# Check 3, late melt: at shared gauges under 100 km2, supported (theirs: the
+# model's melt timing) if the gap at gauges peaking by May exceeds the gap at
+# those peaking later by 0.05 or more; otherwise unresolved.
+#
+# The per-year files (#162): each file's bins, averaged over 1981-2010, equal
+# pcic.subbasin_daily for the 1981-2010 run within float32 precision (2^-23 of
+# the mean absolute value) on every sub-basin read; and the routed per-year
+# days average to the published months within 1e-3 relative at every
+# gauge-month (the two clamp at zero in a different order, and the days are
+# rounded to 5 decimals).
 #
 # Report: data/checks/gauge_monthly_compare_<release>.txt (tracked). PCIC and
 # DFO are references here, scored against HYDAT beside our own estimate
@@ -628,3 +668,24 @@ say(sprintf("## #162: DFO's Table F1 beside ours, at the %d shared Fraser gauges
             "DFO  rt  wb", "DFO  rt  wb", "DFO  rt", "rt", "DFO  rt", "DFO  rt"),
     vapply(order_f1, function(sc) f1_line(f1_rows[[match(sc, names(dfo_scales))]], dfo[dfo$scale == sc, ]), ""),
     "")
+
+# ---- per gauge ------------------------------------------------------------------------------------
+say("## Per gauge (shared gauges first; monthly NSE; Mar-Apr and Jul-Aug error %; routed then balance)",
+    sprintf("%-9s %-8s %-4s %9s %6s %6s %7s %7s %7s %7s %5s %5s  %s", "station", "basin", "zone", "km2", "rt", "wb",
+            "rt_MA", "rt_JA", "wb_MA", "wb_JA", "local", "peak", "name"),
+    {
+      o <- order(!g$shared, g$basin, g$station_number)
+      vapply(o, function(k) {
+        rt <- g$shared[k]
+        sprintf("%-9s %-8s %-4s %9.0f %6s %6.2f %7s %7s %+7.1f %+7.1f %5s %5s  %s", g$station_number[k], g$basin[k],
+                g$zone[k], g$area_km2[k], if (rt) sprintf("%.2f", g$nse_rt[k]) else "-", g$nse_wb[k],
+                if (rt) sprintf("%+.1f", med_err(ratio_s(RT, seq_len(nrow(g)) == k, 3:4))) else "-",
+                if (rt) sprintf("%+.1f", med_err(ratio_s(RT, seq_len(nrow(g)) == k, 7:8))) else "-",
+                med_err(ratio_s(WB, seq_len(nrow(g)) == k, 3:4)), med_err(ratio_s(WB, seq_len(nrow(g)) == k, 7:8)),
+                if (rt) sprintf("%.2f", g$frac_local[k]) else "-", month_lab[g$peak[k]], substr(g$station_name[k], 1, 34))
+      }, "")
+    })
+
+f_report <- wb_report("gauge_monthly_compare", release)
+writeLines(out, f_report)
+stamp("done; report ", f_report)

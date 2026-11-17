@@ -34,3 +34,17 @@ Read from the Zotero PDF (item N3I48AN2). Foundry Spatial scored downscaled flow
 | Error | Resolution |
 |-------|------------|
 | zotero MCP: missing ZOTERO_LIBRARY_ID / API key | read the PDF path from a copy of zotero.sqlite; pdftotext |
+
+## Plan review (Plan agent, delivered 2026-11-17 ~15:39Z), probed before acting
+
+- **B1 confirmed:** all 245 gauge segments holding a placed outlet have `share` = 1 and `segment_weights.subid` an outlet on that segment, and fwapg's README step 5 accumulates `q_acc` down the FWA tree of placed outlets. Check 1 compared the segment with itself. Redesigned: split by whether the outlet's FWA upstream set equals its PCIC subtree (there `q_acc` is PCIC's outflow).
+- **A1 confirmed:** under 100 km² routed monthly NSE 0.44 but share NSE 0.80 (balance 0.64 / 0.91); Spearman of monthly NSE with |annual error| −0.77, share NSE −0.19. #67's "shape is where it loses" is mostly volume; checks 2–3 rescored on share NSE.
+- **A2:** VIC-GL cells is area rescaled (cos(lat) barely varies); dropped.
+- **A3:** parity tightened to identical (obs, balance, routed 1–12), month 0 within 1e-12, fit md5s = bundle provenance (fits.rds 5d228d42…, cv_aet-cfu.rds bbe66146…, both equal on m1).
+- **A4:** bin parity of the files against the 1981–2010 run's `pcic.subbasin_daily` added to `routed_years_check()` (the 1981–2010 days are on m1). February weighting does not apply: the segment parity averages all days of a month across years.
+- **B2:** DFO's modelled Min sums per-cell minima across the grid (p. 30), so it sits at or below the minimum of the summed flow; caveat in the report, DFO shown as context.
+- **A5:** log-space R² and per-gauge median APE added beside DFO's across-gauge statistics.
+- **A6:** `elev` is the area-weighted upstream mean (`wb_province.R`), not the median.
+- **G2:** guard now `vd_commit()` (R, scripts, data-raw, data/checks) plus `inst/vignette-data`.
+- **S1, S2:** #6's `hydro_stn_cmip5` second reference and #162's #3 item are not done here; said so in the issue bodies.
+- **O1:** corrected rules registered in the script header in their own commit before the rerun.
