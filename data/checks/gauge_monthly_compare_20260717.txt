@@ -1,7 +1,7 @@
 # Monthly flow against HYDAT at the calibration gauges: region, season, basin size (#6), routed PCIC's
 # seasonal shape (#67) and DFO's Fraser validation (#162)
 
-wet commit 7a8a5ac; fit 20260717 (HYDAT 2026-07-17 08:08:08.000), province run 768876badf, scoring code df3280b5c3ff52385f631bc09d3eaadd; AET cfu, shares donor (snow)
+wet commit 4293f2b; fit 20260717 (HYDAT 2026-07-17 08:08:08.000), province run 768876badf, scoring code df3280b5c3ff52385f631bc09d3eaadd; AET cfu, shares donor (snow)
 routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 5d50cc1
 table: 40524444 rows, 3377037 segments, 0 null flows, total 179854603.510890 m3/s
 daily: 13961436 rows, 38146 sub-basins, total q_acc 636692683.390903 m3/s; weights 3377037 rows, shares 566023.132307756
@@ -145,7 +145,7 @@ the sub-basin's own, however the catchment differs.
 gauges: 76; local share median 0.31, at 1 for 41 %
   local share 1                            share NSE routed 0.75 | balance 0.88 | gap 0.02 (n 31)
   local share below 1                      share NSE routed 0.81 | balance 0.92 | gap 0.12 (n 45)
-verdict: not supported: the gap is 0.10 narrower where the gauge's months are its sub-basin's, the opposite of the reading
+verdict: unresolved: the gap is -0.10 where the gauge's months are its sub-basin's, the other way from the reading
 
 ## #67 check 3: late melt, at the shared gauges under 100 km2
 A melt that starts late misses an early peak outright, so the late-melt reading predicts routed's shape
@@ -178,8 +178,8 @@ routed year by year: fwapg#42's per-year sub-basin days, 1981-2010, 30 files eac
   routed onto the segments by wet_routed_years(); the files' bins average to pcic.subbasin_daily at 261
   sub-basins (95526 bins) within float32 precision (worst 0.34 of the bound, largest 3.2e-05 m3/s)
 parity: the 30 years' days average to the published months within 0.00033 relative (largest 5.2e-06 m3/s;
-  registered bound 1e-03 relative or 1e-05 m3/s); HYDAT's years average to the gauge table's normals
-  within 5.9e-16 relative
+  registered bound 1e-03 relative); HYDAT's years average to the gauge table's normals within 5.9e-16
+  relative (registered bound 1e-9)
 The balance is a 1981-2010 normal with no years, so it has no Min.
 gauges whose lowest year is dry (zero flow), left out of MAPE and median APE for Min: January 2, February 2, March 2, July 1, August 3, September 2, October 2, November 2, December 2, Winter 1, Autumn 1
 
