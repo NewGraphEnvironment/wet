@@ -104,11 +104,11 @@ Readers of the default source (routed PCIC, `pick`) get March–April about a te
 ## Phase 4b: Plan review folded in (findings.md, "Plan review")
 
 - [x] Register the corrected rules in the script header before rerunning (check 1 by tree agreement; checks 2–3 on the share-NSE gap, margin 0.05; per-year bin parity and segment tolerance)
-- [ ] Check 1 by tree agreement; checks 2–3 on share NSE; drop VIC-GL cells; size table gains share NSE
-- [ ] Parity strict (identical, month 0 1e-12, fit md5s); `vd_commit()` guard; `elev` named the upstream mean
-- [ ] `routed_years_check()` adds bin parity against the run's `pcic.subbasin_daily`
-- [ ] #162: DFO's per-cell Min caveat, log R² and per-gauge median APE, DFO as context
-- [ ] Lint the new script to the repo's level
+- [x] Check 1 by tree agreement; checks 2–3 on share NSE; drop VIC-GL cells; size table gains share NSE
+- [x] Parity strict (identical, month 0 1e-12, fit md5s); `vd_commit()` guard; `elev` named the upstream mean
+- [x] `routed_years_check()` adds bin parity against the run's `pcic.subbasin_daily`
+- [x] #162: DFO's per-cell Min caveat, log R² and per-gauge median APE, DFO as context
+- [x] Lint the new script to the repo's level
 
 ## Phase 5: Record
 
