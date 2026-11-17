@@ -63,9 +63,12 @@
 # The per-year files (#162): each file's bins, averaged over 1981-2010, equal
 # pcic.subbasin_daily for the 1981-2010 run within float32 precision (2^-23 of
 # the mean absolute value) on every sub-basin read; and the routed per-year
-# days average to the published months within 1e-3 relative at every
-# gauge-month (the two clamp at zero in a different order, and the days are
-# rounded to 5 decimals).
+# days average to the published months within 1e-3 relative, or one rounding
+# step (1e-5 m3/s) where that is larger, at every gauge-month (the two clamp
+# at zero in a different order, and the days are rounded to 5 decimals). The
+# rounding-step floor was made explicit after review round 1 found the first
+# version's floor (relative to 1e-3 m3/s) looser than the rule; no gauge-month
+# in the first runs fell under either floor.
 #
 # Report: data/checks/gauge_monthly_compare_<release>.txt (tracked). PCIC and
 # DFO are references here, scored against HYDAT beside our own estimate
@@ -477,7 +480,8 @@ c1_row <- function(lab, i) {
 shape_holds <- function(i) any(i) && med_err(ratio_s(rt_w, i, 3:4)) <= -5 && med_err(ratio_s(rt_w, i, 7:8)) >= 5
 c1_verdict <- if (shape_holds(i_ag)) {
   "theirs. The shape is in PCIC's own outflow, at gauges where the crosswalk only relabels it"
-} else if (!shape_holds(i_ag) && shape_holds(i_sh & !i_ag)) {
+} else if (any(i_ag) && med_err(ratio_s(rt_w, i_ag, 3:4)) > -5 && med_err(ratio_s(rt_w, i_ag, 7:8)) < 5 &&
+             shape_holds(i_sh & !i_ag)) {
   "ours (the crosswalk). The shape is absent where the networks agree and present elsewhere"
 } else {
   "unresolved"
@@ -591,11 +595,15 @@ rt_all <- stats::aggregate(q_m3s ~ linear_feature_id + month, rd, mean)
 pub <- routed_m[routed_m$linear_feature_id %in% fr$linear_feature_id, ]
 pm <- merge(pub, rt_all, by = c("linear_feature_id", "month"), suffixes = c("_pub", "_days"))
 stopifnot(nrow(pm) == 12 * nrow(fr))
-par_abs <- max(abs(pm$q_m3s_pub - pm$q_m3s_days))
-par_rel <- max(abs(pm$q_m3s_pub - pm$q_m3s_days) / pmax(pm$q_m3s_pub, 1e-3))
-par_tol <- 1e-3  # relative, at each gauge-month
-if (par_rel > par_tol) {
-  stop(sprintf("the per-year days do not average to the published months: largest relative difference %.2g", par_rel))
+par_tol <- 1e-3   # relative, at each gauge-month (registered in the header)
+par_step <- 1e-5  # one rounding step, the floor where 1e-3 relative is smaller
+d_par <- abs(pm$q_m3s_pub - pm$q_m3s_days)
+par_abs <- max(d_par)
+par_rel <- max(d_par[pm$q_m3s_pub > 0] / pm$q_m3s_pub[pm$q_m3s_pub > 0])
+if (any(d_par > pmax(par_tol * pm$q_m3s_pub, par_step))) {
+  k <- which.max(d_par / pmax(par_tol * pm$q_m3s_pub, par_step))
+  stop(sprintf("the per-year days do not average to the published months: segment %d month %d, %.3g against %.3g m3/s",
+               pm$linear_feature_id[k], pm$month[k], pm$q_m3s_days[k], pm$q_m3s_pub[k]))
 }
 
 # per gauge, by the gauge's own complete years: monthly, seasonal (calendar months of one year, so
@@ -696,8 +704,9 @@ say(sprintf("## #162: DFO's Fraser validation as context, at the %d shared Frase
             yr$parity$bins, yr$parity$worst, yr$parity$max_abs),
     sprintf("parity: the 30 years' days average to the published months within %.2g relative (largest %.2g m3/s;",
             par_rel, par_abs),
-    sprintf("  registered bound %.0e); HYDAT's years average to the gauge table's normals within %.2g relative",
-            par_tol, obs_gap),
+    sprintf("  registered bound %.0e relative or %.0e m3/s); HYDAT's years average to the gauge table's normals",
+            par_tol, par_step),
+    sprintf("  within %.2g relative", obs_gap),
     "The balance is a 1981-2010 normal with no years, so it has no Min.",
     sprintf("gauges whose lowest year is dry (zero flow), left out of MAPE and median APE for Min: %s",
             paste(sprintf("%s %d", names(dfo_scales)[dry > 0], dry[dry > 0]), collapse = ", ")),

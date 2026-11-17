@@ -56,7 +56,7 @@ So #67's reading that "its monthly shape is where it loses" at small basins was 
 **Check 2, PCIC's resolution: not supported.**
 - Under 100 km², 41 % of gauges have segments whose flow is all their PCIC sub-basin's local runoff (local share 1), so their months are the sub-basin's own.
 - Routed's share-NSE gap to the balance there is 0.02, against 0.12 at the rest: narrower, the opposite of what coarse sub-basins would produce.
-- Expressing the catchment in VIC-GL cells was dropped: it is area rescaled (Spearman 0.997 with area).
+- Expressing the catchment in VIC-GL cells was dropped: it is the area divided by a cell area that varies only with the cosine of latitude, so it ranks the gauges almost as area does.
 
 **Check 3, late melt: unresolved.**
 - Under 100 km², the share-NSE gap is 0.10 at gauges peaking by May and 0.09 at those peaking later, inside the registered 0.05 margin.
@@ -94,6 +94,6 @@ September reads the same way:
 - MAPE min: 0.79 for DFO, 2.65 for routed;
 - median gauge's absolute error, min: 0.55 for routed.
 
-At the gauge, routed's lowest August is a median 7 % above the observed one, and its lowest September 21 % above. Only 23 % and 24 % of gauges are within ±20 %, and 37 % and 41 % are more than half again the observed low. Routed does not reach the dry years at small Fraser streams: 1 to 3 gauges a month have a dry lowest year, which is left out of the percent statistics.
+At the gauge, routed's lowest August is a median 7 % above the observed one, and its lowest September 21 % above. Only 23 % and 24 % of gauges are within ±20 %, and 37 % and 41 % are more than half again the observed low. Gauges whose observed lowest year is dry (zero flow) are left out of the percent statistics: 1 to 3 in most months, none in April to June.
 
 #162's second item asks which of DFO's method differences our climatologies share. That is #3's, and it is not taken up here.
