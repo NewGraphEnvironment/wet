@@ -68,3 +68,14 @@ Mechanism (rounds 1–2): a verdict label or a bound in code or report that the 
 | gauge table identical; month 0 1e-12; fit md5s | l.213, l.218, l.219 | yes |
 
 Thresholds in code that decide nothing registered and are printed as definitions: `err_cut` 20 (within ±20 %), `min_zone` 5 (marking), `routed_far_low` 0.2 (shared set, from the lib), dry-gauge exclusion (`obs > 0`) — each named in the report text where used. Nothing sits above its source of truth.
+
+## Terminal enumeration after code-check round 3 (at 2ef9254)
+
+Round 3 named the mechanism: the fixes treated the header at HEAD as the registered record and checked it against code written in the same commit (verification that reads its own output), and each verdict or bound was restated by hand in several copies, so a fix reached only the copies a review named. The independent reference is the header as committed at 520b9ca.
+
+- **(a) Registered text against 520b9ca:** the block from "A first run" to "rounded to 5 decimals)." equals 520b9ca's byte for byte (`diff` of the two `sed` extracts, empty). Every later change sits in the header's separate "amended after numbers were seen" list, with its commits: local share above 0.999, the verdict wording of checks 2–3, the bin parity's 1e-9 m3/s, the per-year floor's history (ba29835 → 7a8a5ac → none since 613b296), and the HYDAT-normals bound (0.02 → 1e-9).
+- **(b) Every "registered" in the branch's copies:** in the report, research/monthly_error.md, research/README.md, CLAUDE.md line 25, the PR draft and the #6/#67/#162/#166 bodies, each instance refers to a rule in the 520b9ca text (the per-year 1e-3 bound, the 0.05 margin, the rules as a whole). The HYDAT bound is printed as "set after the first runs"; the bin floor is printed without the word.
+- **(c) Every verdict and its copies:** the report prints check 1 theirs, check 2 unresolved (gap the other way), check 3 unresolved. research/monthly_error.md (answer bullet, headings), research/README.md, #67, #166 and the PR draft carry the same three; "not supported", "neither … explains" and "zonal levels, not a seasonal shape" appear in no copy (grep).
+- **Refusal thresholds that judge inputs, not results** (`all.equal` on the stored scores, `share == 1` on outlet segments, at least 20 days a month, the years count, 366 bins a sub-basin): integrity guards inherited from the scripts they copy, outside the rule set; none decides a verdict.
+
+The candidate set is the 520b9ca rules, the amendment list, and every copy of a verdict or "registered" claim; nothing sits above its source of truth. The loop ends here.
