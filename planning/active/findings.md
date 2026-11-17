@@ -48,3 +48,23 @@ Read from the Zotero PDF (item N3I48AN2). Foundry Spatial scored downscaled flow
 - **G2:** guard now `vd_commit()` (R, scripts, data-raw, data/checks) plus `inst/vignette-data`.
 - **S1, S2:** #6's `hydro_stn_cmip5` second reference and #162's #3 item are not done here; said so in the issue bodies.
 - **O1:** corrected rules registered in the script header in their own commit before the rerun.
+
+## Enumeration after code-check round 2: every registered rule against its code (at 4293f2b)
+
+Mechanism (rounds 1–2): a verdict label or a bound in code or report that the header's registered rules do not hold. Candidate set: every outcome and bound the header states, and every threshold in code that decides a verdict, a refusal or a "registered" claim.
+
+| Header rule | Code | Match |
+|---|---|---|
+| check 1 theirs: agreeing gauges Mar–Apr ≤ −5 %, Jul–Aug ≥ +5 % | `shape_holds()` l.483, `c1_verdict` l.484 | yes |
+| check 1 ours: neither at agreeing, both elsewhere | l.486 (`> -5 && < 5` at i_ag, `shape_holds(i_sh & !i_ag)`) | yes (fixed round 1) |
+| check 1 otherwise unresolved | l.490 | yes |
+| share NSE; gap = median(balance − routed) per gauge | `nse_share_g()` l.389, `gap()` l.400 | yes |
+| checks 2–3: supported if gap difference ≥ 0.05, else unresolved | l.401, l.530, l.551, `verdict_off()` l.404 (prints "unresolved" only) | yes (fixed round 2) |
+| check 2 local share 1 (above 0.999) | l.516 | yes (registered round 2) |
+| check 3 peaking by May | l.541 | yes |
+| bin parity 2^-23 of mean abs + 1e-9 | lib l.294–295 | yes (registered round 2) |
+| per-year days to published months, 1e-3 relative, no floor | l.602, l.606 | yes (fixed round 2) |
+| HYDAT years to normals 1e-9 relative | l.666 | yes (bound tightened from 0.02, registered round 2) |
+| gauge table identical; month 0 1e-12; fit md5s | l.213, l.218, l.219 | yes |
+
+Thresholds in code that decide nothing registered and are printed as definitions: `err_cut` 20 (within ±20 %), `min_zone` 5 (marking), `routed_far_low` 0.2 (shared set, from the lib), dry-gauge exclusion (`obs > 0`) — each named in the report text where used. Nothing sits above its source of truth.
