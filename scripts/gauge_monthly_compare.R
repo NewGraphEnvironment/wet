@@ -528,7 +528,8 @@ say("## #67 check 2: PCIC's resolution, at the shared gauges under 100 km2",
     gap_row("local share 1", i_own),
     gap_row("local share below 1", i_part),
     sprintf("verdict: %s", if (gap(i_own) - gap(i_part) >= gap_margin) {
-      sprintf("supported (theirs: PCIC's resolution): the gap is %.2f wider where the gauge's months are its sub-basin's",
+      sprintf(paste("supported (theirs: PCIC's resolution): the gap is %.2f wider where the gauge's months",
+                    "are its sub-basin's"),
               gap(i_own) - gap(i_part))
     } else {
       verdict_off(gap(i_own) - gap(i_part), "where the gauge's months are its sub-basin's")
