@@ -109,6 +109,21 @@ routed_m <- DBI::dbGetQuery(conn, sprintf("
   FROM %s WHERE %s AND linear_feature_id IN (%s) ORDER BY 1, 2", routed_table, routed_where,
   paste(lfid_all, collapse = ", ")))
 routed_0 <- routed_annual(conn, lfid_all)
+# #67's checks: PCIC's outlets placed on the gauges' own segments (the
+# crosswalk's flag NULL), the gauge segments' weights, and the run's days for
+# every sub-basin those name (q_acc: PCIC's accumulated routed flow at the
+# outlet; q_local: the runoff PCIC gives the sub-basin)
+outlets <- DBI::dbGetQuery(conn, sprintf("
+  SELECT linear_feature_id::int AS linear_feature_id, subid
+  FROM pcic.fwa_crosswalk WHERE flag IS NULL AND linear_feature_id IN (%s) ORDER BY 1, 2",
+  paste(lfid_all, collapse = ", ")))
+w_gauge <- routed_weights(conn, lfid_all)
+sub_need <- sort(unique(c(outlets$subid, w_gauge$subid, unlist(w_gauge$upstream_subids))))
+sb_days <- DBI::dbGetQuery(conn, sprintf("
+  SELECT subid, month::int AS month, day::int AS day, n_days, q_local, q_acc
+  FROM %s WHERE %s AND subid IN (%s) ORDER BY subid, month, day",
+  routed_daily_table, routed_where, paste(sub_need, collapse = ", ")))
+stopifnot(setequal(sb_days$subid, sub_need), !anyNA(sb_days$q_acc), !anyNA(sb_days$q_local))
 DBI::dbDisconnect(conn)
 
 # ---- the gauge table ------------------------------------------------------------------------------
@@ -305,4 +320,169 @@ say(sprintf("## #67: routed PCIC's shape at the %d shared gauges (%s)", sum(S), 
       sprintf("%-14s %4d %8.2f %8.2f", a, sum(i), stats::median(nse_g(RT, i)), stats::median(nse_g(WB, i)))
     })),
     sprintf("%-14s %4d %8.2f %8.2f", "all", sum(S), stats::median(nse_g(RT, S)), stats::median(nse_g(WB, S))),
+    "")
+
+# ---- #67's checks ---------------------------------------------------------------------------------
+# A sub-basin's months and year from its calendar days, each day weighted by
+# how often it occurs in the run's years (n_days), as fwapg makes its months
+sb_month <- stats::aggregate(cbind(q_local = q_local * n_days, q_acc = q_acc * n_days, n = n_days) ~ subid + month,
+                             data = sb_days, FUN = sum)
+sb_month$q_local <- sb_month$q_local / sb_month$n
+sb_month$q_acc <- sb_month$q_acc / sb_month$n
+sb_year <- stats::aggregate(cbind(q_local = q_local * n_days, q_acc = q_acc * n_days, n = n_days) ~ subid,
+                            data = sb_days, FUN = sum)
+sb_year$q_local <- sb_year$q_local / sb_year$n
+sb_year$q_acc <- sb_year$q_acc / sb_year$n
+
+# Check 1: PCIC's own outlet on the gauge's segment. Of several, the one with
+# the largest annual q_acc, which is the most downstream on the segment.
+outlets$q_year <- sb_year$q_acc[match(outlets$subid, sb_year$subid)]
+outlets <- outlets[order(outlets$linear_feature_id, -outlets$q_year, outlets$subid), ]
+n_multi <- sum(duplicated(outlets$linear_feature_id))
+outlet_of <- outlets[!duplicated(outlets$linear_feature_id), c("linear_feature_id", "subid")]
+g$outlet <- outlet_of$subid[match(g$linear_feature_id, outlet_of$linear_feature_id)]
+OUT <- matrix(NA_real_, nrow(g), 13, dimnames = list(g$station_number, 0:12))
+for (k in which(!is.na(g$outlet))) {
+  q <- sb_month$q_acc[sb_month$subid == g$outlet[k]][order(sb_month$month[sb_month$subid == g$outlet[k]])]
+  stopifnot(length(q) == 12)
+  q0 <- sb_year$q_acc[sb_year$subid == g$outlet[k]]
+  OUT[k, ] <- c(q0, q) * days * 86400 / g$upstream_area_m2[k] * 1000
+}
+i1 <- S & !is.na(g$outlet)
+# a month's share of the year, so outlet and segment compare in shape
+share_of <- function(M, i) M[i, as.character(1:12), drop = FALSE] / rowSums(M[i, as.character(1:12), drop = FALSE])
+d_share <- 100 * (share_of(OUT, i1) - share_of(RT, i1))
+c1_rows <- function(lab, M) {
+  sprintf("%-28s %+8.1f %+8.1f %+8.1f %8.2f", lab, med_err(ratio_s(M, i1, 3:4)), med_err(ratio_s(M, i1, 7:8)),
+          med_err(ratio_m(M, i1, 0)), stats::median(nse_g(M, i1)))
+}
+c1_ma <- c(outlet = med_err(ratio_s(OUT, i1, 3:4)), segment = med_err(ratio_s(RT, i1, 3:4)))
+c1_ja <- c(outlet = med_err(ratio_s(OUT, i1, 7:8)), segment = med_err(ratio_s(RT, i1, 7:8)))
+# the rule, set before the numbers: the crosswalk is cleared of the shape when
+# PCIC's own outlet is low in Mar-Apr and high in Jul-Aug by at least the
+# segment's error less 2 points, i.e. the distribution onto the FWA adds no
+# more than 2 points to either
+c1_cleared <- c1_ma[["outlet"]] <= c1_ma[["segment"]] + 2 && c1_ja[["outlet"]] >= c1_ja[["segment"]] - 2 &&
+  c1_ma[["outlet"]] < 0 && c1_ja[["outlet"]] > 0
+
+say("## #67 check 1: PCIC's own outlet against the published segment",
+    "PCIC's accumulated routed flow (q_acc) at the outlet placed on the gauge's segment, months from the run's",
+    "calendar days weighted by their count, in mm over the gauge's area as the segment's are. The segment adds",
+    "to the outlets above it the local runoff spread by FWA area (fwapg's crosswalk); the outlet has none of that.",
+    sprintf("shared gauges with a placed outlet on their segment: %d of %d; segments holding several outlets: %d",
+            sum(i1), sum(S), sum(g$linear_feature_id[i1] %in% outlets$linear_feature_id[duplicated(outlets$linear_feature_id)])),
+    sprintf("(of several, the outlet with the largest annual flow; %d outlets set aside that way across all gauges)", n_multi),
+    sprintf("%-28s %8s %8s %8s %8s", "median error (%)", "Mar-Apr", "Jul-Aug", "year", "NSE"),
+    c1_rows("PCIC outlet", OUT), c1_rows("published segment", RT), c1_rows("balance", WB),
+    sprintf("outlet share minus segment share, per month, median over gauges (points of the year's flow):"),
+    sprintf("  %s", paste(sprintf("%s %+.2f", month_lab, apply(d_share, 2, stats::median)), collapse = "  ")),
+    sprintf("  largest absolute difference at any gauge-month: %.2f points", max(abs(d_share))),
+    sprintf("verdict: %s", if (c1_cleared) {
+      "theirs. PCIC's own outlet carries the shape; the crosswalk's distribution onto the FWA adds no more than 2 points"
+    } else {
+      "unresolved. PCIC's own outlet does not carry the shape within 2 points of the segment's"
+    }),
+    "")
+
+# Check 2: scale and placement. On the gauge's segment, the share of routed
+# flow that is the sub-basin's local runoff spread by FWA area rather than
+# routed from the outlets above: near 1, the gauge's months are the PCIC
+# sub-basin's, not its catchment's. And the catchment in VIC-GL cells
+# (0.0625 degrees, about 30 km2 in BC).
+wi <- match(g$linear_feature_id, w_gauge$linear_feature_id)
+up_q <- vapply(seq_len(nrow(g)), function(k) {
+  if (is.na(wi[k])) return(NA_real_)
+  u <- w_gauge$upstream_subids[[wi[k]]]
+  if (length(u)) sum(sb_year$q_acc[match(u, sb_year$subid)]) else 0
+}, 0)
+loc_q <- ifelse(is.na(wi), NA_real_,
+                sb_year$q_local[match(w_gauge$subid[wi], sb_year$subid)] * w_gauge$share[wi])
+g$frac_local <- loc_q / (up_q + loc_q)
+cell_km2 <- (0.0625 * 111.32)^2 * cos(g$lat * pi / 180)
+g$cells <- g$area_km2 / cell_km2
+g$nse_rt <- NA_real_
+g$nse_rt[S] <- nse_g(RT, S)
+g$nse_wb <- nse_g(WB, A)
+i_small <- S & g$area_class == "<100 km2"
+stopifnot(!anyNA(g$frac_local[S]))
+i_own <- i_small & g$frac_local > 0.999
+i_part <- i_small & g$frac_local <= 0.999
+tercile <- function(x) cut(x, stats::quantile(x, c(0, 1 / 3, 2 / 3, 1)), include.lowest = TRUE, dig.lab = 3)
+# the gap: balance NSE minus routed NSE per gauge, medianed. A gauge both
+# sources find hard has a small gap; one routed alone finds hard, a large one.
+gap <- function(i) stats::median(g$nse_wb[i] - g$nse_rt[i])
+by_tercile <- function(lab, x, i) {
+  t <- tercile(x[i])
+  c(sprintf("%s, terciles: median monthly NSE, routed | balance | gap (n)", lab),
+    vapply(levels(t), function(l) {
+      k <- which(i)[t == l]
+      sprintf("  %-22s %6.2f | %5.2f | %5.2f (%d)", l, stats::median(g$nse_rt[k]), stats::median(g$nse_wb[k]),
+              stats::median(g$nse_wb[k] - g$nse_rt[k]), length(k))
+    }, ""))
+}
+# the rule for checks 2 and 3, set before the numbers: a reading is supported
+# where routed's gap to the balance at the gauges it names exceeds the gap at
+# the other small gauges by at least 0.1 NSE
+gap_margin <- 0.1
+rho <- function(x, i) stats::cor(x[i], g$nse_rt[i], method = "spearman")
+say("## #67 check 2: scale and placement, at the shared gauges under 100 km2",
+    "local share: of the routed flow on the gauge's segment, the part that is its PCIC sub-basin's local runoff",
+    "spread by FWA area (q_local x share, from pcic.segment_weights and the run's days, annual means); 1 means",
+    "the segment's months are the sub-basin's own. cells: the catchment's area in VIC-GL cells at its latitude.",
+    sprintf("gauges: %d; local share median %.2f (%.0f %% of them at 1); cells median %.1f",
+            sum(i_small), stats::median(g$frac_local[i_small]), 100 * mean(g$frac_local[i_small] > 0.999),
+            stats::median(g$cells[i_small])),
+    sprintf("Spearman rank correlation with routed monthly NSE: local share %+.2f, cells %+.2f",
+            rho(g$frac_local, i_small), rho(g$cells, i_small)),
+    by_tercile("cells", g$cells, i_small),
+    sprintf("local share = 1 (the sub-basin's own months): routed %.2f | balance %.2f | gap %.2f (n %d)",
+            stats::median(g$nse_rt[i_own]), stats::median(g$nse_wb[i_own]), gap(i_own), sum(i_own)),
+    sprintf("local share below 1:                         routed %.2f | balance %.2f | gap %.2f (n %d)",
+            stats::median(g$nse_rt[i_part]), stats::median(g$nse_wb[i_part]), gap(i_part), sum(i_part)),
+    sprintf("for scale: at all %d shared gauges, local share median %.2f; Spearman with routed NSE %+.2f",
+            sum(S), stats::median(g$frac_local[S]), rho(g$frac_local, S)),
+    sprintf("verdict: %s", if (gap(i_own) - gap(i_part) >= gap_margin) {
+      sprintf(paste("theirs (PCIC's resolution). Where the gauge sits inside one PCIC sub-basin with no outlet above,",
+                    "its months are that sub-basin's, and routed's gap to the balance there is %.2f wider"),
+              gap(i_own) - gap(i_part))
+    } else {
+      sprintf("unresolved. The gap at gauges inside one sub-basin differs from the rest by %+.2f, inside the %.1f margin",
+              gap(i_own) - gap(i_part), gap_margin)
+    }),
+    "")
+
+# Check 3: late melt against basin character. The observed peak month and the
+# catchment's median elevation (the fit's predictor) against routed's score.
+g$peak <- apply(OBS[, as.character(1:12)], 1, which.max)
+g$peak_class <- cut(g$peak, c(0, 5, 6, 12), labels = c("Jan-May", "Jun", "Jul-Dec"))
+i_early <- i_small & g$peak <= 5
+i_early_low <- i_early & g$elev < stats::median(g$elev[i_small])
+peak_tab <- function(i, lab) {
+  c(sprintf("%s: median monthly NSE by observed peak month, routed | balance (n)", lab),
+    vapply(levels(g$peak_class), function(p) {
+      k <- i & g$peak_class == p
+      if (!any(k)) return(sprintf("  %-8s       -", p))
+      sprintf("  %-8s %6.2f | %5.2f (%d)", p, stats::median(g$nse_rt[k]), stats::median(g$nse_wb[k]), sum(k))
+    }, ""))
+}
+say("## #67 check 3: late melt against basin character",
+    "The late-melt reading predicts routed loses most at early-peaking, low-elevation gauges, where a melt that",
+    "starts late misses the peak month outright.",
+    peak_tab(i_small, sprintf("under 100 km2 (%d)", sum(i_small))),
+    peak_tab(S & !i_small, sprintf("100 km2 and over (%d)", sum(S & !i_small))),
+    by_tercile("median elevation (m), under 100 km2", g$elev, i_small),
+    sprintf("Spearman with routed monthly NSE, under 100 km2: elevation %+.2f, peak month %+.2f",
+            rho(g$elev, i_small), rho(g$peak, i_small)),
+    sprintf("under 100 km2, peaking by May: gap %.2f (n %d); peaking later: gap %.2f (n %d)",
+            gap(i_early), sum(i_early), gap(i_small & !i_early), sum(i_small & !i_early)),
+    sprintf("under 100 km2, peaking by May and below the median elevation (%.0f m): gap %.2f (n %d); the rest %.2f",
+            stats::median(g$elev[i_small]), gap(i_early_low), sum(i_early_low), gap(i_small & !i_early_low)),
+    sprintf("verdict: %s", if (gap(i_early) - gap(i_small & !i_early) >= gap_margin) {
+      sprintf(paste("theirs (the model's melt timing). Routed's gap to the balance at small early-peaking gauges is",
+                    "%.2f wider than at the later-peaking ones, as a late melt predicts"),
+              gap(i_early) - gap(i_small & !i_early))
+    } else {
+      sprintf("unresolved. Routed's gap at small early-peaking gauges differs from the later-peaking by %+.2f, inside the %.1f margin",
+              gap(i_early) - gap(i_small & !i_early), gap_margin)
+    }),
     "")

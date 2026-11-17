@@ -76,15 +76,15 @@ Readers of the default source (routed PCIC, `pick`) get March–April about a te
 
 ## Phase 3: #67, routed PCIC's seasonal shape
 
-- [ ] Check 1: PCIC outlet months (`q_acc`) at the 245 gauges with an outlet on their segment, against
+- [x] Check 1: PCIC outlet months (`q_acc`) at the 245 gauges with an outlet on their segment, against
       observed and against routed segment months. It reports the Mar–Apr and Jul–Aug medians for outlet,
       segment and observed, and per-gauge outlet/segment agreement. If the outlet shows the same shape, the
       crosswalk is cleared and the attribution is PCIC's model.
-- [ ] Check 2: local-distributed fraction and VIC cells against routed NSE at the gauges under 100 km²
+- [x] Check 2: local-distributed fraction and VIC cells against routed NSE at the gauges under 100 km²
       (rank correlation, and the medians in tercile bins).
-- [ ] Check 3: routed NSE by size class against observed peak month and median elevation. The late-melt
+- [x] Check 3: routed NSE by size class against observed peak month and median elevation. The late-melt
       reading predicts that the small-basin losses are early-peaking, low-elevation gauges.
-- [ ] A verdict line per check in the report: theirs, ours or unresolved (CLAUDE.md, "attribute it").
+- [x] A verdict line per check in the report: theirs, ours or unresolved (CLAUDE.md, "attribute it").
 
 ## Phase 4: #162, DFO Fraser benchmark
 
