@@ -132,7 +132,7 @@ Readers of the default source (routed PCIC, `pick`) get March–April about a te
 - [x] Tests pass (`devtools::test()`; no `R/` change is planned)
 - [x] `/code-check` clean (once over the branch with `/code-check branch`)
 - [x] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] `/planning-archive` on completion
 
 Verification: the parity guard against the bundle (Phase 1); fingerprints held to the tracked routed and daily
 reports; each per-year file held to `pcic.series`, with the per-year mean against the published month (Phase
