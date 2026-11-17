@@ -124,6 +124,9 @@ sb_days <- DBI::dbGetQuery(conn, sprintf("
   FROM %s WHERE %s AND subid IN (%s) ORDER BY subid, month, day",
   routed_daily_table, routed_where, paste(sub_need, collapse = ", ")))
 stopifnot(setequal(sb_days$subid, sub_need), !anyNA(sb_days$q_acc), !anyNA(sb_days$q_local))
+# #162's minimum flows: the per-year files for DFO's period, held to pcic.series
+years_dfo <- 1981:2010
+yr <- routed_years_check(conn, Sys.getenv("WET_PCIC_YEARS"), years_dfo)
 DBI::dbDisconnect(conn)
 
 # ---- the gauge table ------------------------------------------------------------------------------
@@ -485,4 +488,143 @@ say("## #67 check 3: late melt against basin character",
       sprintf("unresolved. Routed's gap at small early-peaking gauges differs from the later-peaking by %+.2f, inside the %.1f margin",
               gap(i_early) - gap(i_small & !i_early), gap_margin)
     }),
+    "")
+
+# ---- #162: DFO's Fraser validation (Iacarella et al. 2025, App. F, Table F1) -----------------------
+# Table F1 scores 86 Fraser gauges (not listed; a map only, Fig. F1) across gauges in m3/s, per month,
+# season and year: R2, mean absolute error (m3/s), mean absolute percent error (a fraction) and NSE, each
+# on the minimum, maximum and mean of the 1981-2010 monthly (seasonal, annual) flows. Here: the shared
+# Fraser calibration gauges, Mean for both sources, and Min for routed PCIC routed year by year from
+# fwapg#42's files. The balance is a 1981-2010 normal and has no years, so no Min.
+i_fr <- S & g$basin == "Fraser"
+fr <- g[i_fr, ]
+hydat <- wb_hydat(release)
+sel <- wet_station_select(hydat, years = years_dfo, min_years = 10)
+yrs <- attr(sel, "years")[fr$station_number]
+if (anyNA(names(yrs)) || !all(lengths(yrs) == cal$n_years[match(fr$station_number, cal$station_number)])) {
+  stop("the recomputed complete years differ from the stations rds")
+}
+hcon <- wet_hydat_connect(hydat)
+flows <- paste(sprintf("FLOW%d", 1:31), collapse = ", ")
+dly <- DBI::dbGetQuery(hcon, sprintf("
+  SELECT STATION_NUMBER AS station_number, YEAR AS year, MONTH AS month, %s FROM DLY_FLOWS
+  WHERE STATION_NUMBER IN (%s) ORDER BY 1, 2, 3", flows, paste0("'", fr$station_number, "'", collapse = ", ")))
+DBI::dbDisconnect(hcon)
+dly <- dly[mapply(function(s, y) y %in% yrs[[s]], dly$station_number, dly$year), ]
+fl <- as.matrix(dly[sprintf("FLOW%d", 1:31)])
+stopifnot(all(rowSums(!is.na(fl)) >= 20))
+obs_y <- data.frame(station_number = dly$station_number, year = dly$year, month = dly$month, q = rowMeans(fl, na.rm = TRUE))
+stopifnot(!anyDuplicated(obs_y[c("station_number", "year", "month")]),
+          nrow(obs_y) == 12 * sum(lengths(yrs)))
+
+# routed year by year on the Fraser gauges' segments
+w_fr <- w_gauge[w_gauge$linear_feature_id %in% fr$linear_feature_id, ]
+stopifnot(setequal(w_fr$linear_feature_id, fr$linear_feature_id))
+rd <- wet_routed_years(dirname(yr$files[1]), w_fr[c("linear_feature_id", "subid", "share", "upstream_subids")],
+                       years = years_dfo, series = paste(routed_run$model, routed_run$scenario, sep = "_"))
+rd$year <- as.integer(format(rd$date, "%Y"))
+rd$month <- as.integer(format(rd$date, "%m"))
+rt_y <- stats::aggregate(q_m3s ~ linear_feature_id + year + month, rd, mean)
+rt_all <- stats::aggregate(q_m3s ~ linear_feature_id + month, rd, mean)
+# parity: the run's days, all 30 years, against the published 1981-2010 months. fwapg averages each
+# calendar day over the years first and clamps at zero after; wet_routed_years() clamps and rounds each
+# day, so the two part where a sub-basin's day goes below zero, and by rounding (5 decimals) elsewhere.
+pub <- routed_m[routed_m$linear_feature_id %in% fr$linear_feature_id, ]
+pm <- merge(pub, rt_all, by = c("linear_feature_id", "month"), suffixes = c("_pub", "_days"))
+stopifnot(nrow(pm) == 12 * nrow(fr))
+par_abs <- max(abs(pm$q_m3s_pub - pm$q_m3s_days))
+par_rel <- max(abs(pm$q_m3s_pub - pm$q_m3s_days) / pmax(pm$q_m3s_pub, 1e-3))
+par_tol <- 1e-3  # relative, at each gauge-month
+if (par_rel > par_tol) {
+  stop(sprintf("the per-year days do not average to the published months: largest relative difference %.2g", par_rel))
+}
+
+# per gauge, by the gauge's own complete years: monthly, seasonal (calendar months of one year, so
+# winter is Jan, Feb and that year's Dec) and annual flow (m3/s, by month length); Min is the lowest year
+dfo_scales <- c(stats::setNames(as.list(1:12), month.name), list(Winter = c(12, 1, 2), Spring = 3:5,
+                Summer = 6:8, Autumn = 9:11, Annual = 1:12))
+mdays <- wet_month_days()
+scale_q <- function(d, ms) {
+  d <- d[d$month %in% ms, ]
+  d$w <- mdays[d$month]
+  a <- stats::aggregate(cbind(qw = q * w, w = w) ~ station_number + year, d, sum)
+  a$q <- a$qw / a$w
+  a[c("station_number", "year", "q")]
+}
+rt_y$station_number <- fr$station_number[match(rt_y$linear_feature_id, fr$linear_feature_id)]
+rt_y <- rt_y[mapply(function(s, y) y %in% yrs[[s]], rt_y$station_number, rt_y$year), ]
+names(rt_y)[names(rt_y) == "q_m3s"] <- "q"
+stopifnot(nrow(rt_y) == nrow(obs_y))
+# mm over a month -> m3/s: mm * area / 1000 / (days * 86400); a season's mean flow is its volume over its days
+to_q <- function(M, ms) {
+  vol_m3 <- rowSums(M[i_fr, as.character(ms), drop = FALSE]) / 1000 * fr$upstream_area_m2
+  vol_m3 / (sum(mdays[ms]) * 86400)
+}
+# MAPE over the gauges with flow: a gauge whose lowest year is dry (zero) has no percent error
+f1 <- function(obs, mod) {
+  k <- obs > 0
+  c(r2 = stats::cor(obs, mod)^2, mae = mean(abs(mod - obs)), mape = mean(abs(mod[k] - obs[k]) / obs[k]),
+    nse = 1 - sum((mod - obs)^2) / sum((obs - mean(obs))^2), dry = sum(!k))
+}
+dfo <- data.frame(
+  scale = names(dfo_scales),
+  r2_min = c(0.97, 0.87, 0.68, 0.82, 0.82, 0.88, 0.60, 0.35, 0.34, 0.81, 0.76, 0.87, 0.90, 0.84, 0.86, 0.58, 0.93),
+  r2_mean = c(0.95, 0.89, 0.95, 0.99, 0.99, 0.99, 0.99, 0.95, 0.97, 0.99, 0.93, 0.95, 0.95, 0.99, 1.00, 0.96, 0.99),
+  mape_min = c(0.54, 0.56, 0.56, 0.58, 0.68, 0.51, 0.66, 0.85, 0.79, 0.58, 0.55, 0.55, 0.56, 0.48, 0.52, 0.62, 0.35),
+  mape_mean = c(0.39, 0.43, 0.38, 0.42, 0.45, 0.33, 0.38, 0.49, 0.43, 0.36, 0.45, 0.45, 0.40, 0.36, 0.30, 0.41, 0.25),
+  nse_min = c(0.97, 0.92, 0.86, 0.91, 0.91, 0.93, 0.84, 0.79, 0.79, 0.90, 0.88, 0.93, 0.94, 0.91, 0.92, 0.84, 0.95),
+  nse_mean = c(0.97, 0.94, 0.97, 0.99, 0.99, 0.99, 0.99, 0.96, 0.98, 0.99, 0.96, 0.97, 0.97, 0.99, 1.00, 0.97, 0.99))
+f1_rows <- lapply(names(dfo_scales), function(sc) {
+  ms <- dfo_scales[[sc]]
+  o_mean <- to_q(OBS, ms)
+  # observed normal from the gauge table against the mean of its years: the same flows
+  oy <- scale_q(obs_y, ms)
+  oy_mean <- tapply(oy$q, oy$station_number, mean)[fr$station_number]
+  ry <- scale_q(rt_y, ms)
+  o_min <- tapply(oy$q, oy$station_number, min)[fr$station_number]
+  r_min <- tapply(ry$q, ry$station_number, min)[fr$station_number]
+  list(scale = sc, obs_gap = max(abs(oy_mean - o_mean) / o_mean), min_ratio = (r_min / o_min)[o_min > 0],
+       rt_mean = f1(o_mean, to_q(RT, ms)), wb_mean = f1(o_mean, to_q(WB, ms)), rt_min = f1(o_min, r_min))
+})
+obs_gap <- max(vapply(f1_rows, `[[`, 0, "obs_gap"))
+# the years' mean equals the normal for months; a season or year weights its months by length the same way
+if (obs_gap > 0.02) stop(sprintf("HYDAT's years do not average to the gauge table's normals: %.3g", obs_gap))
+order_f1 <- c("August", "September", setdiff(names(dfo_scales), c("August", "September")))
+f1_line <- function(r, d) {
+  sprintf("%-10s  %4.2f %4.2f %4.2f | %6.1f %6.1f | %4.2f %4.2f %4.2f | %4.2f %4.2f %4.2f   ||  %4.2f %4.2f | %6.1f | %4.2f %4.2f | %4.2f %4.2f",
+          r$scale, d$r2_mean, r$rt_mean[["r2"]], r$wb_mean[["r2"]], r$rt_mean[["mae"]], r$wb_mean[["mae"]],
+          d$mape_mean, r$rt_mean[["mape"]], r$wb_mean[["mape"]], d$nse_mean, r$rt_mean[["nse"]], r$wb_mean[["nse"]],
+          d$r2_min, r$rt_min[["r2"]], r$rt_min[["mae"]], d$mape_min, r$rt_min[["mape"]], d$nse_min, r$rt_min[["nse"]])
+}
+say(sprintf("## #162: DFO's Table F1 beside ours, at the %d shared Fraser gauges (08J, 08K, 08L, 08M)", nrow(fr)),
+    "Iacarella et al. 2025, DFO CSAS Res. Doc. 2025/013, App. F, Table F1 (86 Fraser gauges, not listed). Statistics",
+    "are taken across gauges on flow in m3/s: R2 (squared Pearson correlation), MAE (m3/s), MAPE (mean absolute",
+    "error over observed, a fraction) and NSE. Mean: each gauge's mean flow over its complete years in 1981-2010.",
+    "Min: the lowest year's flow, over the same years. Seasons are calendar months of one year (winter: January,",
+    "February and that year's December). DFO's MAE is on its own gauges, so it is not printed beside ours.",
+    sprintf("routed year by year: fwapg#42's per-year sub-basin days, %d-%d, %d files each equal to its pcic.series row",
+            min(years_dfo), max(years_dfo), length(yr$files)),
+    sprintf("  (rows built by fwapg %s; catalogue md5 %s), routed onto the segments by wet_routed_years()",
+            yr$commit, yr$catalogue_md5),
+    sprintf("parity: the 30 years' days average to the published months within %.2g relative (largest %.2g m3/s);", par_rel, par_abs),
+    sprintf("  HYDAT's years average to the gauge table's normals within %.2g relative", obs_gap),
+    "The balance is a 1981-2010 normal with no years, so it has no Min.",
+    sprintf("gauges whose lowest year is dry (zero flow), left out of MAPE min only: %s",
+            paste(vapply(f1_rows, function(r) if (r$rt_min[["dry"]] > 0) sprintf("%s %d", r$scale, r$rt_min[["dry"]]) else "",
+                         "")[vapply(f1_rows, function(r) r$rt_min[["dry"]] > 0, TRUE)], collapse = ", ")),
+    "Per gauge, the lowest year's routed flow over observed (gauges with flow in their lowest year): median, and",
+    sprintf("share within +-%d %%:", err_cut),
+    vapply(c("August", "September", "Annual"), function(sc) {
+      r <- f1_rows[[match(sc, names(dfo_scales))]]$min_ratio
+      sprintf("  %-10s median %+6.1f %%, within %3.0f %%, over observed by more than half at %3.0f %% (n %d)", sc, med_err(r),
+              within(r), 100 * mean(r > 1.5), length(r))
+    }, ""),
+    "Across-gauge statistics on m3/s are carried by the range of basin sizes (the Fraser's own gauges against",
+    "creeks): an R2 near 1 says the sizes are right, not each gauge's month. The per-gauge errors above say that.",
+    "",
+    sprintf("%-10s  %-14s | %-13s | %-14s | %-14s   ||  %-9s | %-6s | %-9s | %-9s", "", "R2 mean", "MAE mean",
+            "MAPE mean", "NSE mean", "R2 min", "MAE", "MAPE min", "NSE min"),
+    sprintf("%-10s  %-14s | %-13s | %-14s | %-14s   ||  %-9s | %-6s | %-9s | %-9s", "", "DFO  rt  wb", "rt     wb",
+            "DFO  rt  wb", "DFO  rt  wb", "DFO  rt", "rt", "DFO  rt", "DFO  rt"),
+    vapply(order_f1, function(sc) f1_line(f1_rows[[match(sc, names(dfo_scales))]], dfo[dfo$scale == sc, ]), ""),
     "")

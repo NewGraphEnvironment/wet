@@ -88,16 +88,16 @@ Readers of the default source (routed PCIC, `pick`) get March–April about a te
 
 ## Phase 4: #162, DFO Fraser benchmark
 
-- [ ] Table F1's layout for the Fraser gauges with routed flow, in m³/s across gauges. Mean columns (R², MAE,
+- [x] Table F1's layout for the Fraser gauges with routed flow, in m³/s across gauges. Mean columns (R², MAE,
       MAPE, NSE by month, season and year) for routed and balance, with August and September first and DFO's
       published values beside them.
-- [ ] Per-year routed PCIC: `routed_years_check(conn, dir, years)` in `pcic_routed_lib.R` (each of the 30 files
+- [x] Per-year routed PCIC: `routed_years_check(conn, dir, years)` in `pcic_routed_lib.R` (each of the 30 files
       held to `pcic.series` in bytes, rows, sub-basins and both sums, on the run's `crosswalk_md5`, one fwapg
       commit), then `wet_routed_years()` on the Fraser gauge segments' weights for 1981–2010.
-- [ ] Parity: the mean over 1981–2010 of each routed per-year month equals the published 1981–2010 month,
+- [x] Parity: the mean over 1981–2010 of each routed per-year month equals the published 1981–2010 month,
       within a stated tolerance (daily clamping and rounding make it inexact), with the largest difference
       reported.
-- [ ] Min columns: per gauge, the lowest monthly mean of each month over the gauge's complete years in
+- [x] Min columns: per gauge, the lowest monthly mean of each month over the gauge's complete years in
       1981–2010 (HYDAT, years from `wet_station_select()`), against routed per-year over the same years.
       Scored like F1's Min, August and September first. The balance's Min line reads "not available".
 
