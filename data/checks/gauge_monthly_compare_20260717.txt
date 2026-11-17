@@ -1,7 +1,7 @@
 # Monthly flow against HYDAT at the calibration gauges: region, season, basin size (#6), routed PCIC's
 # seasonal shape (#67) and DFO's Fraser validation (#162)
 
-wet commit 4293f2b; fit 20260717 (HYDAT 2026-07-17 08:08:08.000), province run 768876badf, scoring code df3280b5c3ff52385f631bc09d3eaadd; AET cfu, shares donor (snow)
+wet commit 2ef9254; fit 20260717 (HYDAT 2026-07-17 08:08:08.000), province run 768876badf, scoring code df3280b5c3ff52385f631bc09d3eaadd; AET cfu, shares donor (snow)
 routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 5d50cc1
 table: 40524444 rows, 3377037 segments, 0 null flows, total 179854603.510890 m3/s
 daily: 13961436 rows, 38146 sub-basins, total q_acc 636692683.390903 m3/s; weights 3377037 rows, shares 566023.132307756
@@ -176,10 +176,11 @@ routed year by year: fwapg#42's per-year sub-basin days, 1981-2010, 30 files eac
   pcic.series row
   (rows built by fwapg 26d75826bc8dc7bf7308d86e06f15fac70fb5ba8, on the crosswalk of the run above; catalogue md5 0cafd5cc2ee8eb13aa27857741803a2d),
   routed onto the segments by wet_routed_years(); the files' bins average to pcic.subbasin_daily at 261
-  sub-basins (95526 bins) within float32 precision (worst 0.34 of the bound, largest 3.2e-05 m3/s)
+  sub-basins (95526 bins) within float32 precision: 2^-23 of the mean absolute value, plus 1e-9 m3/s
+  (worst 0.34 of the bound, largest 3.2e-05 m3/s)
 parity: the 30 years' days average to the published months within 0.00033 relative (largest 5.2e-06 m3/s;
   registered bound 1e-03 relative); HYDAT's years average to the gauge table's normals within 5.9e-16
-  relative (registered bound 1e-9)
+  relative (bound 1e-9, set after the first runs; see the header's amendments)
 The balance is a 1981-2010 normal with no years, so it has no Min.
 gauges whose lowest year is dry (zero flow), left out of MAPE and median APE for Min: January 2, February 2, March 2, July 1, August 3, September 2, October 2, November 2, December 2, Winter 1, Autumn 1
 
