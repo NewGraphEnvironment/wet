@@ -24,7 +24,7 @@ ticked and not **waiting**; `/planning-init <umbrella>` plans it, one phase per 
 | - [x] 1 | #163 | 1, 2: province inputs and run comparison, the fit's own rules (6 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/170 |
 | - [x] 2 | #164 | 3: the published build's record (4 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/172 |
 | - [x] 3 | #165 | 4, 5: article bundles and maps, docs (4 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/173 |
-| - [ ] 4 | #166 | 6: monthly error at the gauges (3 issues) | open |
+| - [x] 4 | #166 | 6: monthly error at the gauges (3 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/175 |
 | - [ ] 5 | #167 | 7, 8: stations beyond HYDAT, PCIC's per-year files at the sites (4 issues) | open |
 | - [ ] 6 | #168 | 9: the channel-scale pilot (1 issue) | open |
 | - [ ] 7 | #169 | 10: scenarios and coverage (2 issues) | **waiting** on move 6's verdict in `research/pcic_channel_scale.md` |
@@ -122,7 +122,7 @@ decisions.
 
 ### 6. Monthly error at the gauges
 
-- [ ] Carried by move 4, #166
+- [x] Carried by move 4, #166 (merged in https://github.com/NewGraphEnvironment/wet/pull/175)
 
 #6 (modelled monthly flow against HYDAT by region and season), #67 (routed PCIC low in March–April,
 high in July–August) and #162 (DFO's Fraser threat-layer benchmark) read the same held-out balance
