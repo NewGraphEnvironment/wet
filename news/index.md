@@ -1,5 +1,10 @@
 # Changelog
 
+## wet 0.4.38
+
+- The README’s Ecosystem table lists crate, the canonical schemas and
+  provenance receipts wet’s published build writes through.
+
 ## wet 0.4.37
 
 - Article maps rebuild byte for byte, and the article bundles read the
