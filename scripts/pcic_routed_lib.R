@@ -215,3 +215,90 @@ routed_mid_network <- function(conn, weights) {
     SELECT DISTINCT linear_feature_id::int AS linear_feature_id FROM pcic.fwa_crosswalk WHERE flag IS NULL")
   lengths(weights$upstream_subids) > 0 & !weights$linear_feature_id %in% own$linear_feature_id
 }
+
+# ---- routed years (fwapg#42) ---------------------------------------------------------------------
+# fwapg's per-year sub-basin days, pcic.subbasin_days.<model>_<scenario>.<year>.parquet in `dir`, each
+# held to its pcic.series row: bytes, rows, sub-basins and both flow sums (each the sum of
+# floor(double(v) * 1000 + 0.5) over the stored float32 values), with no NULL or NaN flow, every row on
+# the crosswalk of the run `period` names, and all rows naming one fwapg commit. Given `subs`, and
+# where `years` are the run's own years, each read sub-basin's calendar bins averaged over the files
+# must equal pcic.subbasin_daily for the run within float32 precision (2^-23 of the mean absolute
+# value, plus 1e-9 m3/s so an all-zero bin compares). Refuses otherwise. scripts/departure_pcic.R makes the same checks inline, under #122's
+# registered rule. Returns the files, the commit the rows name, the md5 of the catalogue rows read
+# and the bin parity (sub-basins, bins, worst ratio to the bound, largest absolute difference).
+routed_years_check <- function(conn, dir, years, period = routed_run$period, subs = NULL) {
+  stopifnot(length(years) > 0, !anyNA(years), !anyDuplicated(years))
+  if (!nzchar(dir) || !dir.exists(dir)) stop("set WET_PCIC_YEARS to the per-year files' directory", call. = FALSE)
+  series <- paste(routed_run$model, routed_run$scenario, sep = "_")
+  files <- file.path(dir, sprintf("pcic.subbasin_days.%s.%d.parquet", series, years))
+  gone <- years[!file.exists(files)]
+  if (length(gone)) stop(dir, " has no ", series, " file for ", paste(gone, collapse = ", "), call. = FALSE)
+  catalogue <- DBI::dbGetQuery(conn, sprintf("
+    SELECT year, crosswalk_md5, commit, rows::text AS rows, subbasins::text AS subbasins,
+           q_local_sum::text AS q_local_sum, q_acc_sum::text AS q_acc_sum, bytes::text AS bytes
+    FROM pcic.series WHERE (model, scenario) = ('%s', '%s') AND year IN (%s) ORDER BY year",
+    routed_run$model, routed_run$scenario, paste(years, collapse = ", ")))
+  if (!identical(as.integer(catalogue$year), as.integer(sort(years)))) {
+    stop("pcic.series lacks a row for ", paste(setdiff(years, catalogue$year), collapse = ", "), call. = FALSE)
+  }
+  run_md5 <- DBI::dbGetQuery(conn, sprintf("SELECT crosswalk_md5 FROM pcic.runs WHERE %s",
+                                           routed_where_period(period)))$crosswalk_md5
+  stopifnot(length(run_md5) == 1L)
+  if (any(catalogue$crosswalk_md5 != run_md5)) {
+    stop("pcic.series rows for ", paste(catalogue$year[catalogue$crosswalk_md5 != run_md5], collapse = ", "),
+         " are on another crosswalk than the ", period, " run's", call. = FALSE)
+  }
+  days_commit <- unique(catalogue$commit)
+  if (length(days_commit) != 1L || !grepl("^[0-9a-f]{7,40}$", days_commit)) {
+    stop("the pcic.series rows read must name one fwapg commit; they name: ", paste(days_commit, collapse = ", "),
+         call. = FALSE)
+  }
+  files <- files[order(years)]
+  duck <- DBI::dbConnect(duckdb::duckdb())
+  on.exit(DBI::dbDisconnect(duck, shutdown = TRUE), add = TRUE)
+  sql_fp <- "SELECT count(*)::VARCHAR AS rows, count(DISTINCT subid)::VARCHAR AS subbasins,
+    sum(CAST(floor(CAST(q_local AS DOUBLE) * 1000 + 0.5) AS BIGINT))::VARCHAR AS q_local_sum,
+    sum(CAST(floor(CAST(q_acc AS DOUBLE) * 1000 + 0.5) AS BIGINT))::VARCHAR AS q_acc_sum,
+    count(*) FILTER (WHERE q_local IS NULL OR q_acc IS NULL OR isnan(q_local) OR isnan(q_acc)) AS bad
+    FROM read_parquet('%s')"
+  for (i in seq_along(files)) {
+    f <- DBI::dbGetQuery(duck, sprintf(sql_fp, files[i]))
+    got <- c(f$rows, f$subbasins, f$q_local_sum, f$q_acc_sum, format(file.size(files[i]), scientific = FALSE))
+    want <- unlist(catalogue[i, c("rows", "subbasins", "q_local_sum", "q_acc_sum", "bytes")])
+    if (f$bad > 0 || !identical(unname(got), unname(want))) {
+      stop(basename(files[i]), " is not its pcic.series row: file ", paste(got, collapse = " "), ", row ",
+           paste(want, collapse = " "), if (f$bad > 0) sprintf(", %d NULL or NaN flows", f$bad), call. = FALSE)
+    }
+  }
+  f_cat <- tempfile()
+  on.exit(unlink(f_cat), add = TRUE)
+  writeLines(do.call(paste, catalogue), f_cat)
+  parity <- NULL
+  if (!is.null(subs)) {
+    p_years <- as.integer(strsplit(period, "-", fixed = TRUE)[[1]])
+    stopifnot(length(subs) > 0, !anyNA(subs), identical(sort(as.integer(years)), seq(p_years[1], p_years[2])))
+    sql_par <- "SELECT subid, month(date)::INTEGER AS month, day(date)::INTEGER AS day, count(*)::INTEGER AS n,
+      avg(CAST(q_local AS DOUBLE)) AS m_local, avg(abs(CAST(q_local AS DOUBLE))) AS a_local,
+      avg(CAST(q_acc AS DOUBLE)) AS m_acc, avg(abs(CAST(q_acc AS DOUBLE))) AS a_acc
+      FROM read_parquet([%s]) WHERE subid IN (%s) GROUP BY ALL"
+    par <- DBI::dbGetQuery(duck, sprintf(sql_par, paste0("'", files, "'", collapse = ", "),
+                                         paste(subs, collapse = ", ")))
+    clim <- DBI::dbGetQuery(conn, sprintf("
+      SELECT subid, month, day, n_days, q_local, q_acc FROM %s WHERE %s AND subid IN (%s)",
+      routed_daily_table, routed_where_period(period), paste(subs, collapse = ", ")))
+    pm <- merge(clim, par, by = c("subid", "month", "day"), all = TRUE)
+    if (anyNA(pm) || nrow(pm) != 366L * length(subs) || any(pm$n != pm$n_days)) {
+      stop("the per-year files and ", routed_daily_table, " do not hold the same bins and days for the read sub-basins",
+           call. = FALSE)
+    }
+    ratio <- pmax(abs(pm$m_local - pm$q_local) / (2^-23 * pm$a_local + 1e-9),
+                  abs(pm$m_acc - pm$q_acc) / (2^-23 * pm$a_acc + 1e-9))
+    if (any(ratio > 1)) {
+      b <- pm[which.max(ratio), ]
+      stop(sum(ratio > 1), " bins fail parity; worst sub-basin ", b$subid, " ", b$month, "-", b$day, call. = FALSE)
+    }
+    parity <- list(subbasins = length(subs), bins = nrow(pm), worst = max(ratio),
+                   max_abs = max(abs(c(pm$m_local - pm$q_local, pm$m_acc - pm$q_acc))))
+  }
+  list(files = files, commit = days_commit, catalogue_md5 = unname(tools::md5sum(f_cat)), parity = parity)
+}
