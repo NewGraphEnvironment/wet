@@ -82,7 +82,8 @@ In `scripts/departure_site.R`'s header, a "New in #147" block:
 - **Where it ships**, section 6 also gives the target's carried route under covariance_pick:
   #126's before/after change with its interval (residual pool from covariance_pick's held-out
   residuals) and #152's 1951–1980 → 2016–2025 change with interval and coverage, under new seeds
-  (`set.seed(147)`, `set.seed(1470)`) drawn after everything else.
+  (`set.seed(147)`, `set.seed(1471)`, `set.seed(1472)`) drawn after everything else.
+- Amended from the plan review, before any run: #122's definition of covered (not #58's); years scored are any year both carried series have (a stated departure from #122's 1951–2012); section 3's distance score at the same gauges printed beside, deciding nothing; per-year covariance window-mean departures printed so the article can hold every year; the new refusals listed.
 - Sections 1–5 unchanged; deciding nothing earlier in the report.
 
 ## Phase 3: implement section 6
@@ -103,19 +104,26 @@ In `scripts/departure_site.R`'s header, a "New in #147" block:
       `pcic.segment_weights` and `pcic.series`; probe with `connect_timeout = 10`.
 - [ ] `departure_site.R` for maxan, swift, naver, gosnell (BULK) and gosnell (MORR), then
       `departure_site_snow.R` for each, from frozen copies; logs under `data/logs/167/`.
-- [ ] `git diff data/checks/departure_site*`: sections 1–5 identical bar the code-md5 lines;
-      section 6 new. Maxan BULK still passes both parity gates. Record each site's coverage
+- [ ] `git diff data/checks/departure_site*`: only appended lines after section 5's last line
+      (the reports print no code md5). If any line in sections 1–5 moved, stop and find the cause;
+      do not accept the new lines. Maxan BULK still passes both parity gates. Record each site's coverage
       (answers "are the Morice and upper Fraser boxes covered") and verdict.
 
 ## Phase 5: article, bundles, docs
 
 - [ ] `data-raw/chinook_sites_data.R`: the carried route from section 6 where the verdict is
-      covariance_pick, the weighting and both scores per site held to report lines; rebuild.
+      covariance_pick (every year held to section 6's per-year lines), the weighting and both scores
+      per site from section 6's table (same pool), covariance donors added to `gauges`; rebuild.
+- [ ] `data-raw/chinook_sites_map.R`: rebuild, so covariance donors are drawn.
+- [ ] Snow: where covariance ships, the snow script's covariance series and fits go in a table of
+      their own after every line #121 has (a new column in the per-year table breaks #121's parity);
+      the article's snow claims say which carried series they read.
 - [ ] `vignettes/articles/flow-change-sparse-gauges.Rmd`: say how donors are weighted at each site
       and that PCIC's modelled years chose them where that won; update guards and numbers; word cap
       counted (raise rather than cut a required restatement).
 - [ ] Rebuild `data-raw/short_record_vignette_data.R` (the Maxan report's md5 moves); assert every
-      element but provenance `identical()` to the old bundle.
+      element but provenance `identical()` to the old bundle. That article stays on distance at
+      Maxan (it is #120's record); say so in the final report if Maxan ships covariance_pick.
 - [ ] `research/chinook_sites.md` and `CLAUDE.md` (the #126 paragraph: carry no longer fixed at
       inverse distance everywhere; `WET_PCIC_YEARS` default).
 - [ ] Render the article; read guards and word count; offer the rendered page.
