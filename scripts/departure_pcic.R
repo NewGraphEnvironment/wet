@@ -217,7 +217,9 @@
 # report names. The scoring rule above is frozen. Amended once, before any
 # body existed, to what fwapg#42's gate decided on 2026-10-26 (its decisions
 # 1 to 3), which had not seen the first version (float64, year/month/day
-# ints, a commit in a sidecar).
+# ints, a commit in a sidecar). After the runs, #135 (feef934) changed only
+# where the files are read from: WET_PCIC_YEARS when set, else wet's
+# per-machine cache filled from the bucket; every check on them stands.
 #
 # The per-year sub-basin days of the PNWNAmet historical run as fwapg#42
 # publishes them: one parquet file per year,
@@ -264,7 +266,9 @@
 # 40 hex characters; uncommitted changes under R/ or scripts/ (as
 # scripts/pcic_routed_compare.R, so the recorded commit rebuilds the report);
 # a `cal` whose scores were made under other scoring code (shipped_heldout()'s
-# guards); a year of 1951-2012 without its file, or a file unlike its
+# guards); a year of 1951-2012 without its file in the directory WET_PCIC_YEARS
+# names (unset, a missing year is downloaded into wet's cache, and a download
+# or cached file of another size than its pcic.series row refused), or a file unlike its
 # pcic.series row, or a row on another crosswalk than the run's, or rows
 # naming more than one commit or none; a read sub-basin missing from a
 # year, without its 22,646 days of 1951-2012, with a day twice or an NA flow,
@@ -279,7 +283,9 @@
 # was scored; the interface section was amended again after it, at b518ebc. Everything below implements
 # the rule above; nothing here changes it. After the first runs on the product it was edited only in what
 # it prints: the report's counts and the wording of the WET_FWAPG_COMMIT refusal, with the two assignments
-# that refusal needs moved up. No computed value, input or guard changed, and no score moved.
+# that refusal needs moved up. No computed value, input or guard changed, and no score moved. Then #135
+# changed where the per-year files come from (routed_years_dir(): an unset WET_PCIC_YEARS reads wet's
+# cache instead of being refused); the files are held to pcic.series as before.
 # ==================================================================================================
 
 source("scripts/wb_cv_lib.R")  # load_all(), cal, release, fit_dir, score_code_md5
