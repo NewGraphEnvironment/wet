@@ -87,15 +87,15 @@ In `scripts/departure_site.R`'s header, a "New in #147" block:
 
 ## Phase 3: implement section 6
 
-- [ ] Pure decision helper in `scripts/departure_site_lib.R` (`site_carry_ship()`), with a test in
+- [x] Pure decision helper in `scripts/departure_site_lib.R` (`site_carry_ship()`), with a test in
       `tests/testthat/test-departure_site_parity.R`'s neighbour file: margin, leak-free absent,
       uncovered target, too few covered donors.
-- [ ] Modelled window statistics helper shared from `scripts/pcic_routed_lib.R` (reading the cache
+- [x] Modelled window statistics helper shared from `scripts/pcic_routed_lib.R` (reading the cache
       through `wet_pcic_years_dir()`); `scripts/departure_site.R` section 6, its report lines, and
       `cov` in the rds (scores, verdict, covariance `mx` entries).
-- [ ] `scripts/departure_site_snow.R`: where the site's verdict is covariance_pick, an added
+- [ ] (after Phase 4's verdicts: needed only if a site ships covariance_pick) `scripts/departure_site_snow.R`: where the site's verdict is covariance_pick, an added
       "carried (covariance_pick)" series; the distance series and #121's lines unchanged.
-- [ ] `tests/testthat/test-departure_site_parity.R` passes on the tracked reports.
+- [x] `tests/testthat/test-departure_site_parity.R` passes on the tracked reports.
 
 ## Phase 4: rerun the sites
 
