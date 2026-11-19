@@ -81,6 +81,15 @@
 # did. The run stops before writing anything otherwise. Until #146 the gate
 # also compared the fits and series bit for bit with #121's saved series.
 #
+# ---- new in #147 ----------------------------------------------------------------------------------
+#
+# Where the site run's section 6 ships covariance_pick (its rds's `cov`), the
+# target's carried route under it, per window, is fitted the same way (the
+# three models, the same years and predictors) and reported in a section 6
+# of its own after every line above, so nothing #121's parity gate reads
+# moves; the rds gains `cov_series` and `cov_fits`. Elsewhere section 6 says
+# distance ships and fits nothing.
+#
 # ---- what it refuses ----------------------------------------------------------------------------
 #
 # WET_HYDAT_RELEASE other than 20260717; a site_id not in the table; no site
@@ -292,27 +301,27 @@ lag1 <- function(year, r) {
   i <- which(diff(year) == 1)
   list(r = if (length(i) >= 3) stats::cor(r[i], r[i + 1]) else NA_real_, pairs = length(i))
 }
-fits <- list()
-for (k in seq_along(series)) {
-  s <- series[[k]]
+# one series' fits under every model, and the counts it reports
+fit_series <- function(s) {
+  out_fits <- list()
   sw <- snow[[s$gauge]]
   base_swe <- mean(sw$swe_max[sw$year %in% baseline])
   base_doy <- mean(sw$snowmelt_doy_50[sw$year %in% baseline])
   d <- merge(s$d[!is.na(s$d$dep), ], data.frame(year = sw$year, swe = (sw$swe_max - base_swe) / 100,
                                               doy = (sw$snowmelt_doy_50 - base_doy) / 10), by = "year")
   d <- d[stats::complete.cases(d[c("dep", "swe", "doy")]), ]
-  series[[k]]$pre1950 <- sum(s$d$year < min(years) & !is.na(s$d$dep))
-  series[[k]]$n <- nrow(d)
-  series[[k]]$r_pred <- stats::cor(d$swe, d$doy)
-  series[[k]]$first <- min(d$year)
-  series[[k]]$last <- max(d$year)
+  s$pre1950 <- sum(s$d$year < min(years) & !is.na(s$d$dep))
+  s$n <- nrow(d)
+  s$r_pred <- stats::cor(d$swe, d$doy)
+  s$first <- min(d$year)
+  s$last <- max(d$year)
   for (mn in names(models)) {
     f <- stats::lm(models[[mn]], data = d)
     ci <- stats::confint(f, level = level)
     co <- stats::coef(f)
     l1 <- lag1(d$year, stats::residuals(f))
     term <- function(t) if (t %in% names(co)) c(co[[t]], ci[t, 1], ci[t, 2]) else c(NA, NA, NA)
-    fits[[length(fits) + 1]] <- data.frame(series = k, model = mn, n = nrow(d),
+    out_fits[[length(out_fits) + 1]] <- data.frame(model = mn, n = nrow(d),
                                            b0 = term("(Intercept)")[1], b0_lo = term("(Intercept)")[2],
                                            b0_hi = term("(Intercept)")[3],
                                            bs = term("swe")[1], bs_lo = term("swe")[2], bs_hi = term("swe")[3],
@@ -320,6 +329,13 @@ for (k in seq_along(series)) {
                                            sigma = summary(f)$sigma, r2 = summary(f)$r.squared,
                                            lag1 = l1$r, pairs = l1$pairs)
   }
+  list(s = s, fits = do.call(rbind, out_fits))
+}
+fits <- list()
+for (k in seq_along(series)) {
+  fr <- fit_series(series[[k]])
+  series[[k]] <- fr$s
+  fits[[k]] <- cbind(series = k, fr$fits)
 }
 fits <- do.call(rbind, fits)
 
@@ -488,6 +504,46 @@ for (y in years) {
               if (site$kind == "extend") sprintf(" %-9s %-9s", donor_of("migration", y), donor_of("spawning", y)) else ""))
 }
 
+# ---- section 6 (#147): the carried route under covariance_pick, after every line above ----------
+cov_series <- NULL
+cov_fits <- NULL
+ship_cov <- !is.null(pr$cov) && identical(pr$cov$verdict$ship, "covariance_pick")
+say("", "## 6. The carried route under covariance_pick (#147)", "")
+if (!ship_cov) {
+  say(sprintf("The site run's section 6 ships %s here, so there is no second carried route to fit.",
+              if (is.null(pr$cov)) "nothing (no section 6 in its rds)" else pr$cov$verdict$ship))
+} else {
+  cov_series <- lapply(windows$window, function(w) {
+    a <- pr$cov$mx[[paste("q_mean", w)]]$a
+    fit_series(list(label = sprintf("%s carried", target), gauge = target, window = w,
+                    d = data.frame(year = a$year, dep = a$anomaly, donor = NA_character_), le0 = 0L))
+  })
+  cov_fits <- do.call(rbind, lapply(seq_along(cov_series), function(k) cbind(series = k, cov_series[[k]]$fits)))
+  cov_series <- lapply(cov_series, `[[`, "s")
+  say(sprintf("The site run ships covariance_pick at %s (%s); its carried departures, fitted as section 2 fits the others:",
+              target, pr$cov$verdict$reason), "",
+      sprintf("  %-26s %4s %9s %8s %10s", "series", "n", "years", "<1950", "r(swe,doy)"))
+  for (s in cov_series) {
+    say(sprintf("  %-26s %4d %9s %8d %10s", paste(lab(s), "cov"), s$n, sprintf("%d-%d", s$first, s$last), s$pre1950,
+                fmt(s$r_pred)))
+  }
+  say("", sprintf("  %-26s %-5s %4s %26s %26s %26s %6s %5s %6s %5s", "series", "model", "n", "intercept",
+                  "swe_max /100 mm", "snowmelt_doy_50 /10 d", "res.SE", "R2", "lag1", "pairs"))
+  for (i in seq_len(nrow(cov_fits))) {
+    f <- cov_fits[i, ]
+    say(sprintf("  %-26s %-5s %4d %26s %26s %26s %6s %5s %6s %5d", paste(lab(cov_series[[f$series]]), "cov"), f$model,
+                f$n, ci_txt(f$b0, f$b0_lo, f$b0_hi), ci_txt(f$bs, f$bs_lo, f$bs_hi), ci_txt(f$bd, f$bd_lo, f$bd_hi),
+                fmt(f$sigma, 3), fmt(f$r2), fmt(f$lag1), f$pairs))
+  }
+  say("", "Its log departures per year (covariance_pick):", "",
+      sprintf("  %4s %s", "year", paste(sprintf("%11s", paste("cov", c(migration = "mig", spawning = "spw")[windows$window])),
+                                        collapse = "")))
+  for (y in years) {
+    say(sprintf("  %4d %s", y, paste(vapply(cov_series, function(s) sprintf("%11s", fmt(dep_of(s, y), 3)), ""),
+                                     collapse = "")))
+  }
+}
+
 # ---- the parity gate (maxan, BULK): #121's tracked report, before anything is written ----------
 if (site$site_id == "maxan" && wname == "BULK") {
   miss <- site_parity_snow(out, readLines(file.path("data", "checks", sprintf("departure_snow_%s.txt", release))))
@@ -504,5 +560,6 @@ message("wrote ", report)
 rds <- file.path("data", "departure", sprintf("departure_site_snow_%s_%s_%s.rds", site$site_id, tolower(wname), release))
 dir.create(dirname(rds), recursive = TRUE, showWarnings = FALSE)
 saveRDS(list(release = release, site = site, windows = windows, gauges = gauges, snow = snow, series = series,
-             fits = fits, nest = nest, cap_binds = cap_binds, code_md5 = code_md5), rds)
+             fits = fits, nest = nest, cap_binds = cap_binds, cov_series = cov_series, cov_fits = cov_fits,
+             code_md5 = code_md5), rds)
 }

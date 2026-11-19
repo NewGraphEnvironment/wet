@@ -63,3 +63,17 @@ Public, anonymous 200: `https://fresh-bc.s3.us-west-2.amazonaws.com/fwapg/extras
 
 | Error | Resolution |
 |-------|------------|
+
+## Trial run of Maxan on m1 (2026-11-19, frozen copy before code-check round 1's fix)
+
+- Sections 1–5 of `data/checks/departure_site_maxan_bulk_20260717.txt` reproduce byte for byte; the
+  report gains 191 lines (section 6) and loses none.
+- The rds against m4's (copied to the scratchpad): every element `identical()` except the carried
+  departures (`mx$*$a$anomaly` and what derives from them), which differ by at most about 7e-14
+  (`all.equal()` TRUE). Printed values are unaffected. Another machine or a later change to
+  `wet_donor_mean()`; not chased, since no printed line moves.
+- Section 6 at Maxan: 49 of 53 box-pool gauges covered; migration mean medians, distance 0.62 and
+  covariance_pick 0.67 (leave-one-out, 30 gauges), 0.56 and 0.65 leak-free: covariance_pick ships
+  (gain 0.049 and 0.094).
+- m1 has no snow normals grid; copied m4's `data/snow/snow_19812010_4816dbcca8.tif` (md5 1c002ccd…,
+  equal on both) so the Maxan snow parity table can run here.
