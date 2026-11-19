@@ -89,3 +89,24 @@ pass through BLAS"), and nothing holds its recorded report md5 to the tracked re
 (`test-vignette_data.R` checks only that the field exists). That article stays on distance at
 Maxan (#120's record), while the comparison article now borrows Maxan's departures through
 covariance_pick.
+
+## Code-check enumeration that ended the loop (2026-11-19)
+
+Two sets, each walked member by member:
+
+1. Section 6's empty-pool mechanism (round 3's places, round 4's table in `review-round4.md`): 14
+   places, every one holding after d5435ccb and 1b2fb78.
+2. The comparison article's quantified sentences after Phase 5 (round 5, then a grep for
+   "all four", "only", "every", "clear"), each with the guard that tests its whole set:
+   - spawning mean lower "at all four streams": `stopifnot(all(spw$pct < 0))`
+   - its range below no change at Maxan and Gosnell: `low_spw` (printed from the set)
+   - seven-day low "fell at" three, held at Swift: `m7_down`, `abs(m7$pct[swift]) < 5`
+   - "clearly at Maxan and Gosnell" (opening and change section): `m7_clear`, `m7_clear %in% m7_down`
+   - migration "fell clearly only at Maxan", both window sets: `mig_clear`
+   - spawning scores "below the bar only at Swift" (Bulkley windows): `spw_below`
+   - migration scores clear the bar "in every box", both sets: `all(... >= 0.5)`
+   - filled-in drops, clear "only at Maxan": `ext$site_id[ext$pct_hi < 0] == "maxan"`
+   - donors chosen by modelled years "at Maxan, Naver and Gosnell": `cov_ids`
+   - snow: migration slopes above zero "at all four"; melt date below measured: guards in `snow`
+   - Maxan's base "rests on 10 years", "no record from 1952 to 1970": `few_ref`, `my`
+   - the windows "the Bulkley's at all four": unchanged guard
