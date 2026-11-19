@@ -407,7 +407,8 @@ Nearest is not always most alike, though: a gauge next door can sit higher or ho
 where a computer model of the region's rivers [@pacificclimateimpactsconsortiumGriddedHydrologic]
 covers the gauges, the five of the fifteen nearest whose wet and dry years in the model track the
 stream's most closely are used instead, wherever that predicted hidden gauges better than nearness
-did: at `r and_text(sub(" Creek$", "", name_of[cov_ids]))` creeks.
+did: at `r and_text(sub(" Creek$", "", name_of[cov_ids]))` creeks
+([step by step](https://newgraphenvironment.github.io/wet/reference/wet_departure_carry.html#how-donors-are-chosen)).
 
 ```{r years-data}
 yy <- v$years[v$years$group == "BULK", ]
