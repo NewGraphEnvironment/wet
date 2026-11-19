@@ -58,7 +58,7 @@ Water Tool) add carry donors at the four chinook sites, and that #147's `covaria
       `scripts/gauge_monthly_compare.R`) and `scripts/departure_pcic.R:316`/`:456` read the
       `pcic.series` rows first, fill the cache, then run their per-file checks unchanged. Header
       text and `CLAUDE.md` lines naming `WET_PCIC_YEARS` say it defaults to the cache.
-- [ ] Fill m1's cache (62 files, about 8.9 GB) and confirm each file passes `routed_years_check()`.
+- [x] Fill m1's cache (62 files, 8.67 GiB, about 14 min) and confirm each file passes `routed_years_check()` (fwapg commit 26d7582).
 
 ## Phase 2: register #147's rule (header only, its own commit, before any body code or run)
 

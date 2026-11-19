@@ -369,12 +369,22 @@ source("scripts/pcic_routed_lib.R")  # routed_weights(), routed_years_dir(), rou
 pcic_years <- 1951:2012
 pcic_series <- paste(routed_run$model, routed_run$scenario, sep = "_")
 cov_seg <- sn_all[sn_all$accepted %in% TRUE, c("station_number", "linear_feature_id")]
+# as.numeric() on each side first: the mouth's id comes back as integer64, and rbind() of a double
+# column with an integer64 one copies the bits, turning the id into 0
+cov_seg$linear_feature_id <- as.numeric(cov_seg$linear_feature_id)
 if (site$kind == "ungauged") {
-  cov_seg <- rbind(cov_seg, data.frame(station_number = target, linear_feature_id = mouth$segment$linear_feature_id))
+  cov_seg <- rbind(cov_seg, data.frame(station_number = target,
+                                       linear_feature_id = as.numeric(mouth$segment$linear_feature_id)))
 }
 cov_seg$linear_feature_id <- as.integer(cov_seg$linear_feature_id)
+stopifnot(!anyNA(cov_seg$linear_feature_id), all(cov_seg$linear_feature_id > 0))
 cov_w <- routed_weights(conn, cov_seg$linear_feature_id)
 cov_seg <- cov_seg[cov_seg$linear_feature_id %in% cov_w$linear_feature_id, ]
+if (site$kind == "ungauged") {
+  # the mouth stays exactly when its segment has a weights row
+  stopifnot(identical(target %in% cov_seg$station_number,
+                      as.integer(as.numeric(mouth$segment$linear_feature_id)) %in% cov_w$linear_feature_id))
+}
 cov_dir <- routed_years_dir(conn, pcic_years)
 cov_check <- routed_years_check(conn, cov_dir, pcic_years, period = "1951-2012")
 cov_subs <- sort(unique(c(cov_w$subid, unlist(cov_w$upstream_subids))))
