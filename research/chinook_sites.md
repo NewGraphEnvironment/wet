@@ -1,6 +1,6 @@
 # Chinook pilot sites beyond Maxan: which streams, and what the method finds there
 
-**Verified:** 2026-10-28 (the 1951–1980 against 2016–2025 section 2026-10-30) · **Issues:** #126 (component of #118; after #120, #121), #152 · **Produced by:** `scripts/chinook_sites_use.R` → `data/checks/chinook_sites_use.txt` (NuSEDS All Areas 2026-06-01, md5 25bb43441645519f18eb4853dd1cf399; fwapg `bcfishobs.observations`; HYDAT 2026-07-17); `scripts/departure_site.R` and `scripts/departure_site_snow.R` per site of `scripts/departure_sites.csv` → `data/checks/departure_site[_snow]_<site>_<group>_20260717.txt`; article `vignettes/articles/flow-change-sparse-gauges.Rmd` (listed in place of the Maxan article)
+**Verified:** 2026-10-28 (the 1951–1980 against 2016–2025 section 2026-10-30; covariance_pick 2026-11-19) · **Issues:** #126 (component of #118; after #120, #121), #152, #147 (via #167) · **Produced by:** `scripts/chinook_sites_use.R` → `data/checks/chinook_sites_use.txt` (NuSEDS All Areas 2026-06-01, md5 25bb43441645519f18eb4853dd1cf399; fwapg `bcfishobs.observations`; HYDAT 2026-07-17); `scripts/departure_site.R` and `scripts/departure_site_snow.R` per site of `scripts/departure_sites.csv` → `data/checks/departure_site[_snow]_<site>_<group>_20260717.txt`; article `vignettes/articles/flow-change-sparse-gauges.Rmd` (listed in place of the Maxan article)
 
 ## Which streams, and why
 
@@ -63,4 +63,35 @@ Change, Bulkley windows unless named, carried / extended, with the 90 % range:
   - the 50 % melt date came 9–16 days earlier.
   
   At the measured snow gauges, migration-window flow rises with peak SWE at all eight, with a range above zero and R² 0.25–0.62. In the spawning window R² is at most 0.31. The 50 % melt date explains more there at two gauges: 64–66 % of measured spawning-window flow at the Nanika (08ED001) and Morice (08ED002), Gosnell's snow gauges, under the Bulkley windows. Elsewhere it explains at most a third, and 18–19 % at those two gauges under the Morice's later windows.
+
+## covariance_pick at the sites (#147)
+
+#122 shipped `covariance_pick` at the calibration gauges: among the 15 nearest donors, the 5 whose routed PCIC years correlate best. Section 6 of each site report (rule registered in `scripts/departure_site.R`'s header at 68a983d, amended before any run at 37e0633) scores it against inverse distance at each box's covered gauges, leave-one-gauge-out and leak-free, on the migration-window mean. It ships where it wins by 0.01 under both, with at least 10 gauges scored, the target covered and at least 5 covered donors. PCIC's per-year files (fwapg commit 26d7582) come from wet's cache (#135). Sections 1–5 of every report are unchanged, Gosnell's aside (below).
+
+| site (windows) | covered / box pool | distance | covariance_pick | leak-free (d / c) | ships |
+|---|---|---|---|---|---|
+| Maxan | 49 / 53 | 0.62 | 0.67 | 0.56 / 0.65 | covariance_pick |
+| Swift | 27 / 30 | 0.55 | 0.61 | 0.56 / 0.56 | distance |
+| Naver | 54 / 58 | 0.58 | 0.75 | 0.47 / 0.66 | covariance_pick |
+| Gosnell | 50 / 54 | 0.64 | 0.67 | 0.57 / 0.65 | covariance_pick |
+| Gosnell, Morice windows | 50 / 54 | 0.62 | 0.66 | 0.57 / 0.66 | covariance_pick |
+
+(Median per-gauge centred log NSE, migration mean, over the covered gauges; both weightings on the same gauges and years.)
+
+- **Coverage:** PCIC covers every box, the Morice and upper Fraser included. The uncovered gauges are three or four per box (08EC014 and 08JA002/005/006 in the Skeena boxes).
+- **Where it ships, the borrowed route moves.** 1951–1980 to 2016–2025, Bulkley windows, carried under covariance_pick:
+
+  | site | spawning mean | migration mean | spawning min7 | migration min7 |
+  |---|---|---|---|---|
+  | Maxan | -66 % (-82..-36) | -30 % (-49..-4) | -65 % (-81..-37) | -42 % (-68..+3) |
+  | Naver | -35 % (-59..+2) | -13 % | -30 % (-52..+4) | -16 % |
+  | Gosnell | -29 % (-48..-5) | -10 % | -37 % (-56..-15) | -20 % |
+  | Gosnell, Morice windows | -16 % (-42..+23) | -14 % | -27 % (-48..+3) | -47 % (-66..-19) |
+
+  Every interval's measured coverage is 0.92 or more. Maxan's migration-window drop is now clear of no change.
+- **Maxan's 1951–1980 base is 10 years** under covariance_pick: its donors (08EE003, 08EE013, 08JA016, and 08JB002 for max) hold no record from 1952 to 1970, against 20–30 years on every other route.
+- **Held-out scores rise** wherever it ships, most in the spawning window (Maxan 0.49 → 0.66, Naver 0.42 → 0.60, Gosnell 0.45 → 0.71) and for the lowest seven-day flow, now below the 0.5 bar in 4 of 8 site-windows rather than 7.
+- **Gosnell's normal-error rows moved** for another reason: the published build changed under the report (digest 0f4f8caa → d554e3aa, #163's upload of LEUT, UEUT and UNRS on 2026-11-14), so four Nechako box gauges' picked source and the error quartiles changed. The mouth's normal did not.
+- **The stations beyond HYDAT** (#142, #144) add no donor at these sites (`research/station_sources.md`, "At the chinook sites' boxes").
+- The short-record article stays on distance at Maxan, #120's record; the comparison article carries the shipped route.
 

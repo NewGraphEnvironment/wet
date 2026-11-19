@@ -1055,3 +1055,195 @@ The gauges the 1951-1980 years rest on (extended: years per source; carried: eve
   spawning cov_day: extended 10 08EE004, 12 08EE008, 3 08EE013, 5 observed; carried 08EE003, 08EE008, 08EE013, 08EE020, 08JA016.
   migration max: extended 11 08EE004, 11 08EE008, 3 08EE013, 5 observed; carried 08EE003, 08EE008, 08EE013, 08EE020, 08JA016.
   spawning max: extended 10 08EE004, 12 08EE008, 3 08EE013, 5 observed; carried 08EE003, 08EE008, 08EE013, 08EE020, 08JA016.
+
+## 6. covariance_pick where PCIC covers the site (#147)
+
+PCIC's per-year sub-basin days: 62 files, 1951-2012, built by NewGraphEnvironment/fwapg at 26d75826bc8dc7bf7308d86e06f15fac70fb5ba8 (pcic.series); rows md5 53c39c4e23343f64ff48d1c46b0ce187; their 1981-2010 bins for the 203 sub-basins read held to the 1981-2010 run's pcic.subbasin_daily (worst 0.24 of the bound).
+Covered (snap accepted and a pcic.segment_weights row): 49 of 53 box-pool gauges; not covered: 08EC014, 08JA002, 08JA005, 08JA006. The target, 08EE018: covered.
+Leave-one-gauge-out over each statistic's covered departure pool, k = 5 from the rest, both weightings on the same years (centred log NSE, days for cov_day); leak-free drops each gauge's related gauges:
+
+  setting                       n     q25   dist    q75     q25 cov_pk    q75  fall   km d   km c
+  migration mean               30    0.32   0.62   0.73    0.59   0.67   0.77     0     52     63
+  spawning mean                30    0.28   0.50   0.72    0.44   0.66   0.80     0     52     49
+  migration min7               30   -0.06   0.22   0.38    0.33   0.41   0.59     0     52     72
+  spawning min7                30    0.19   0.42   0.58    0.38   0.59   0.76     0     52     59
+  migration cov_day (days)     30    0.53   0.65   0.86    0.62   0.85   0.89     0     52     57
+  spawning cov_day (days)      30    0.19   0.48   0.60    0.34   0.52   0.68     0     52     60
+  leak-free                    30    0.30   0.56   0.69    0.46   0.65   0.76     0     59     64
+
+(dist, cov_pk: distance's and covariance_pick's quartiles and median; fall: scored gauges where covariance_pick fell back to distance; km d, km c: the median over the scored gauges of the mean ground distance to the donors used.)
+Section 3's distance (donors from the whole departure pool, covered or not), migration mean, at the 30 of these 30 scored gauges that section 3 also scores: median 0.62, deciding nothing.
+
+Per gauge, migration mean (years scored, distance, covariance_pick):
+
+  08EB004  60   0.57   0.73   08EB005  41   0.23  -0.05   08EB006  17  -0.40   0.01
+  08EC013  53   0.65   0.78   08ED001  53   0.74   0.88   08ED002  61   0.19   0.65
+  08ED004  27   0.80   0.83   08EE003  43   0.65   0.72   08EE004  72   0.64   0.81
+  08EE008  54   0.66   0.67   08EE012  52   0.28   0.58   08EE013  47   0.69   0.83
+  08EE020  49  -0.01   0.68   08EE025  42   0.54   0.60   08EE028  10  -1.62  -0.85
+  08EF001  89   0.62   0.62   08EF005  59   0.85   0.77   08EF006  27   0.79   0.76
+  08EG011  31   0.70   0.67   08EG017  18   0.76   0.53   08FF001  59   0.89   0.90
+  08FF002  57   0.86   0.88   08FF003  57   0.77   0.71   08FF005  13   0.38   0.77
+  08FF006  27   0.53   0.52   08JA015  47  -0.37  -0.16   08JA016  16   0.30   0.27
+  08JA029  26   0.61   0.65   08JB002  75   0.63   0.66   08JB013  23   0.53   0.72
+
+VERDICT (#147's rule, migration mean): covariance_pick ships; gain 0.049 leave-one-out, 0.094 leak-free.
+
+The carried route at 08EE018 under covariance_pick, from its covered pool less itself (k = 5 of the 15 nearest).
+Before/after (2011-2025 minus before 1981), 90 % interval from 2000 draws adding a held-out covariance_pick residual to each year, set.seed(147); and 1951-1980 to 2016-2025, with its interval (set.seed(1471)) and cover (set.seed(1472)), as section 5:
+
+  statistic window     pre post   carried  % normal      90 % interval    ref  rec   carried  % normal      90 % interval  cover
+  mean      migration   19   14    -0.109     -10.3      -31.2..16.3 %     10    9    -0.355     -29.9      -49.0..-4.3 %  0.923
+  mean      spawning    19   14    -1.093     -66.5     -80.5..-40.7 %     10    9    -1.081     -66.1     -82.4..-36.3 %  0.921
+  min7      migration   19   14    -0.667     -48.7     -68.1..-16.3 %     10    9    -0.539     -41.7       -68.2..3.2 %  0.952
+  min7      spawning    19   14    -1.033     -64.4     -77.8..-41.4 %     10    9    -1.053     -65.1     -80.5..-37.2 %  0.932
+  cov_day   migration   18   14    -4.615         -          -9.2..0.1     10    9    -5.003         -         -11.0..1.0  0.942
+  cov_day   spawning    19   14    -0.224         -          -4.3..4.0     10    9    -2.964         -          -8.2..2.5  0.951
+  max       migration   40   15    -0.132     -12.4                  -     30   10    -0.395     -32.6                  -      -
+  max       spawning    41   15    -0.737     -52.2                  -     30   10    -0.777     -54.0                  -      -
+
+No covered donor, so not carried: none.
+Fell back to distance at the target: none.
+The gauges the 1951-1980 years rest on (every donor named in those years):
+  migration mean: carried 08EE003, 08EE013, 08JA016.
+  spawning mean: carried 08EE003, 08EE013, 08JA016.
+  migration min7: carried 08EE003, 08EE013, 08JA016.
+  spawning min7: carried 08EE003, 08EE013, 08JA016.
+  migration cov_day: carried 08EE003, 08EE013, 08JA016.
+  spawning cov_day: carried 08EE003, 08EE013, 08JA016.
+  migration max: carried 08EE003, 08EE013, 08JB002.
+  spawning max: carried 08EE003, 08JA016, 08JB002.
+
+Under covariance_pick, migration mean per year at 08EE018: the carried departure (% of normal):
+
+  year   carried             n
+  1931     -42.7             1
+  1933       2.1             1
+  1944     -53.5             1
+  1945      10.8             1
+  1946      61.9             1
+  1947       0.6             1
+  1948      45.7             1
+  1949      -1.8             1
+  1950      -7.6             1
+  1951      -0.2             1
+  1971      62.3             1
+  1973      30.6             1
+  1974      32.1             1
+  1975     -17.2             1
+  1976     118.9             1
+  1977     -13.0             2
+  1978       5.7             2
+  1979      54.0             2
+  1980     -24.7             3
+  1981      15.0             2
+  1982      13.5             2
+  1983     -23.4             3
+  1984     -17.1             3
+  1985      13.8             3
+  1986       3.7             3
+  1987     -19.3             2
+  1988      -2.2             3
+  1989      -9.3             3
+  1990       7.8             3
+  1991     -17.2             3
+  1992     -24.3             3
+  1993       5.8             3
+  1994     -11.6             3
+  1995     -17.8             3
+  1996      23.2             2
+  1997      82.7             2
+  1998     -28.7             4
+  1999      38.9             3
+  2000     -31.5             3
+  2001     -14.6             3
+  2002      49.9             3
+  2003     -41.3             2
+  2004     -45.0             3
+  2005     -44.6             3
+  2006     -35.4             3
+  2007     121.7             3
+  2008       4.2             3
+  2009      44.6             3
+  2010     -29.2             3
+  2011     103.6             4
+  2012      44.9             4
+  2013     -15.3             3
+  2014     -14.7             4
+  2015      38.2             4
+  2016     -54.6             3
+  2017      26.2             3
+  2018      35.5             4
+  2019     -24.3             4
+  2020     -12.0             4
+  2021      -1.0             4
+  2022      23.5             4
+  2023     -36.2             4
+  2024     -53.6             3
+
+Under covariance_pick, spawning mean per year at 08EE018: the carried departure (% of normal):
+
+  year   carried             n
+  1931     -33.9             1
+  1933     -39.2             1
+  1944     -55.6             1
+  1945     -47.3             1
+  1946     125.8             1
+  1947     208.6             1
+  1948     291.3             1
+  1949     167.4             1
+  1950      41.4             1
+  1951      99.1             1
+  1971     140.2             1
+  1973     -32.2             1
+  1974     -43.0             1
+  1975      73.8             1
+  1976     256.8             1
+  1977       1.8             2
+  1978       1.2             2
+  1979     -11.6             2
+  1980      25.6             3
+  1981     -63.0             2
+  1982       2.7             3
+  1983      13.4             3
+  1984      56.7             2
+  1985     -40.3             3
+  1986     -55.2             3
+  1987     -25.5             3
+  1988      15.5             3
+  1989      -7.7             3
+  1990     -35.7             3
+  1991     -47.8             3
+  1992     -81.8             3
+  1993     160.8             3
+  1994     -17.3             3
+  1995     -44.3             3
+  1996     110.2             2
+  1997     -24.7             2
+  1998     -51.4             4
+  1999      66.6             3
+  2000     -45.3             3
+  2001     -41.3             3
+  2002     -57.9             3
+  2003     -34.0             2
+  2004     -21.9             3
+  2005      90.8             3
+  2006     -46.0             3
+  2007     198.7             3
+  2008      31.9             3
+  2009     -53.3             3
+  2010     -70.5             3
+  2011     104.5             4
+  2012     -46.2             4
+  2013     -60.2             4
+  2014     -92.5             4
+  2015     -59.5             4
+  2016      47.5             3
+  2017     -62.6             4
+  2018     -79.0             3
+  2019     -25.5             4
+  2020      61.7             4
+  2021     -71.3             4
+  2022     -48.5             4
+  2023     -78.8             3
+  2024     -86.2             3

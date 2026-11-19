@@ -217,6 +217,23 @@ routed_mid_network <- function(conn, weights) {
 }
 
 # ---- routed years (fwapg#42) ---------------------------------------------------------------------
+# The per-year files' directory (#135): WET_PCIC_YEARS when it is set, read as it stands; otherwise
+# wet's per-machine cache (wet:::wet_pcic_years()), which downloads any of `years` it lacks from the
+# fresh-bc bucket, each landing only at its pcic.series row's size. routed_years_check() then holds
+# every file to its row whichever directory it is.
+routed_years_dir <- function(conn, years) {
+  stopifnot(length(years) > 0, !anyNA(years), !anyDuplicated(years))
+  series <- paste(routed_run$model, routed_run$scenario, sep = "_")
+  b <- DBI::dbGetQuery(conn, sprintf("
+    SELECT year, bytes::text AS bytes FROM pcic.series
+    WHERE (model, scenario) = ('%s', '%s') AND year IN (%s) ORDER BY year",
+    routed_run$model, routed_run$scenario, paste(years, collapse = ", ")))
+  if (!identical(as.integer(b$year), as.integer(sort(years)))) {
+    stop("pcic.series lacks a row for ", paste(setdiff(years, b$year), collapse = ", "), call. = FALSE)
+  }
+  wet:::wet_pcic_years(as.integer(b$year), as.numeric(b$bytes), series)
+}
+
 # fwapg's per-year sub-basin days, pcic.subbasin_days.<model>_<scenario>.<year>.parquet in `dir`, each
 # held to its pcic.series row: bytes, rows, sub-basins and both flow sums (each the sum of
 # floor(double(v) * 1000 + 0.5) over the stored float32 values), with no NULL or NaN flow, every row on

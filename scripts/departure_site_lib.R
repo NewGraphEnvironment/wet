@@ -152,3 +152,31 @@ site_parity_pilot <- function(out, tracked) {
 site_parity_snow <- function(out, tracked) {
   setdiff(site_parity_lines(tracked, site_parity_exempt$snow, "snow"), sub(" +$", "", out))
 }
+
+# ---- #147's rule: which weighting carries a site's departures ----------------------------------
+#
+# The verdict the header of scripts/departure_site.R registers, from the
+# migration-window mean's medians: `loo` and `lf` are the leave-one-out and
+# leak-free medians, each c(distance = , covariance_pick = ); `n_loo`, `n_lf`
+# the gauges scored under each (both weightings are scored at the same
+# gauges); `covered`, whether PCIC covers the target; `donors`, the gauges in
+# its covered pool less itself. Returns list(ship, reason): covariance_pick
+# only when every condition holds, distance otherwise, with the first
+# condition that failed.
+site_carry_ship <- function(loo, lf, n_loo, n_lf, covered, donors, margin = 0.01, min_scored = 10,
+                            min_donors = 5, eps = 1e-9) {
+  w <- c("distance", "covariance_pick")
+  stopifnot(setequal(names(loo), w), setequal(names(lf), w), length(n_loo) == 1, length(n_lf) == 1,
+            length(covered) == 1, length(donors) == 1)
+  fail <- function(why) list(ship = "distance", reason = why)
+  if (!isTRUE(covered)) return(fail("the target is not covered"))
+  if (!(donors >= min_donors)) return(fail(sprintf("%d covered donors, under %d", donors, min_donors)))
+  if (!(n_loo >= min_scored) || !(n_lf >= min_scored)) {
+    return(fail(sprintf("%d and %d gauges scored, under %d", n_loo, n_lf, min_scored)))
+  }
+  gain <- c(loo = loo[["covariance_pick"]] - loo[["distance"]], lf = lf[["covariance_pick"]] - lf[["distance"]])
+  if (anyNA(gain)) return(fail("a median is NA"))
+  if (gain[["loo"]] < margin - eps) return(fail(sprintf("leave-one-out gain %.3f, under %.2f", gain[["loo"]], margin)))
+  if (gain[["lf"]] < margin - eps) return(fail(sprintf("leak-free gain %.3f, under %.2f", gain[["lf"]], margin)))
+  list(ship = "covariance_pick", reason = sprintf("gain %.3f leave-one-out, %.3f leak-free", gain[["loo"]], gain[["lf"]]))
+}

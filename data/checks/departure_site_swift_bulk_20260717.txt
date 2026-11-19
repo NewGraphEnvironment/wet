@@ -894,3 +894,31 @@ The gauges the 1951-1980 years rest on (extended: years per source; carried: eve
   spawning cov_day: extended 16 08KA001, 12 08KA007; carried 08KA001, 08KA007, 08KA008, 08NC004.
   migration max: extended 16 08KA001, 11 08KA007; carried 08KA001, 08KA007, 08KA008, 08NC004.
   spawning max: extended 16 08KA001, 12 08KA007; carried 08KA001, 08KA007, 08KA008, 08NC004.
+
+## 6. covariance_pick where PCIC covers the site (#147)
+
+PCIC's per-year sub-basin days: 62 files, 1951-2012, built by NewGraphEnvironment/fwapg at 26d75826bc8dc7bf7308d86e06f15fac70fb5ba8 (pcic.series); rows md5 53c39c4e23343f64ff48d1c46b0ce187; their 1981-2010 bins for the 87 sub-basins read held to the 1981-2010 run's pcic.subbasin_daily (worst 0.34 of the bound).
+Covered (snap accepted and a pcic.segment_weights row): 27 of 30 box-pool gauges; not covered: 08NB011, 08NC001, 08NC002. The target, 08KA012: covered.
+Leave-one-gauge-out over each statistic's covered departure pool, k = 5 from the rest, both weightings on the same years (centred log NSE, days for cov_day); leak-free drops each gauge's related gauges:
+
+  setting                       n     q25   dist    q75     q25 cov_pk    q75  fall   km d   km c
+  migration mean               13    0.46   0.55   0.65    0.34   0.61   0.70     0     64     78
+  spawning mean                13    0.25   0.43   0.51    0.23   0.68   0.77     0     64     88
+  migration min7               13   -0.27   0.59   0.74   -0.21   0.62   0.74     0     64     92
+  spawning min7                13    0.12   0.32   0.37    0.32   0.53   0.67     0     64     89
+  migration cov_day (days)     13    0.70   0.81   0.89    0.81   0.90   0.93     0     64     78
+  spawning cov_day (days)      13    0.03   0.37   0.46    0.44   0.49   0.57     0     64     87
+  leak-free                    13    0.48   0.56   0.65    0.29   0.56   0.69     0     73     96
+
+(dist, cov_pk: distance's and covariance_pick's quartiles and median; fall: scored gauges where covariance_pick fell back to distance; km d, km c: the median over the scored gauges of the mean ground distance to the donors used.)
+Section 3's distance (donors from the whole departure pool, covered or not), migration mean, at the 13 of these 13 scored gauges that section 3 also scores: median 0.51, deciding nothing.
+
+Per gauge, migration mean (years scored, distance, covariance_pick):
+
+  08KA001  54   0.56   0.63   08KA005  69   0.61   0.71   08KA007  69   0.46  -0.05
+  08KA008  40   0.37   0.34   08KA009  51   0.69   0.69   08KA012  14   0.48   0.61
+  08KA013  27   0.78   0.86   08KH010  53   0.55   0.56   08KH029  14   0.49   0.56
+  08KH030  27   0.82   0.85   08LA007  39   0.65   0.26   08LB038  41   0.33   0.70
+  08NC004  51  -0.20   0.09
+
+VERDICT (#147's rule, migration mean): distance ships; leak-free gain 0.000, under 0.01.

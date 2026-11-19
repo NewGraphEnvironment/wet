@@ -139,6 +139,70 @@
 # on it. The rds gains `p152` in each `mx` entry; no line #120's report
 # prints depends on it.
 #
+# ---- new in #147: covariance_pick where PCIC covers the site ------------------------------------
+#
+# Registered in this header alone, before any body code or run (decided at
+# #167's plan gate, user, 2026-11-18). A section 6, after every line and draw
+# above, so nothing sections 1-5 print or draw moves, and the maxan row still
+# passes the parity gate below.
+#
+# Covered: a box-pool gauge whose snap (wet_station_snap(), the snaps the
+# leak-free relations already use) is accepted and whose segment has a
+# pcic.segment_weights row (#122's definition); for an ungauged
+# site, the mouth segment above. Section 6 needs fwapg; without it the run
+# stops rather than writing a report that lacks it. Where PCIC covers no box
+# gauge, or a gauge has no donor left, section 6 reports that and nothing is
+# scored there, so distance ships by the rule below.
+#
+# Modelled years, as #122 builds them: each covered segment routed day by day
+# over 1951-2012 from fwapg's per-year sub-basin days (wet_routed_years(); the
+# files from routed_years_dir(), each held to its pcic.series row on the
+# 1951-2012 run's crosswalk by routed_years_check(), and their 1981-2010 bins
+# for the sub-basins read held to the 1981-2010 run's pcic.subbasin_daily),
+# then wet_window_stats() on the window set's windows and statistics. The
+# report names the files' fwapg commit and the catalogue rows' md5.
+#
+# Scored, per statistic and window (mean, min7, cov_day; max is carried,
+# never scored): leave-one-gauge-out over the covered gauges of that
+# statistic's departure pool (>= 10 baseline years, dep_pool_of()), the
+# donors the rest of that covered pool, k = 5, under two weightings of
+# wet_departure_carry(): `distance` (#120's) and `covariance_pick` (#122's:
+# among the 15 nearest, the 5 whose modelled values correlate best, an r from
+# fewer than 30 years counting 0, falling back to distance where every donor
+# chosen weighs 0, counted). Both are scored at a gauge on the same years: its
+# complete window-years that both carried series have, any year (#122 scored
+# 1951-2012 only; here r alone rests on the modelled years, and the carried
+# departures are observed donors' in every year). Distance is scored on the
+# covered pool, so both weightings draw on the same donors; the report also
+# gives section 3's distance score at the same gauges, deciding nothing. The score is the
+# centred log NSE of section 3 (days for cov_day); a gauge with fewer than 3
+# such years is not scored. The leak-free pool drops each held-out gauge's
+# related gauges from its donors, as section 3 does. Reported: n, quartiles
+# and median per weighting, statistic and window, both pools; the median
+# distance in km to the donors each weighting used; fallbacks.
+#
+# The rule, one verdict per site and window set, on the migration-window
+# mean: covariance_pick ships if its median exceeds distance's by at least
+# 0.01 (#122's margin, 1e-9 allowed) under leave-one-gauge-out AND in the
+# leak-free pool, at least 10 gauges are scored under each, the target is
+# covered, and its covered migration-mean pool less itself holds at least 5
+# gauges. Otherwise distance ships. The verdict holds for every statistic and
+# window of that site and window set.
+#
+# Where covariance_pick ships, section 6 also gives the target's carried
+# route under it, from its covered pool less itself, for every statistic and
+# window (max included): #126's before/after change (2011-2025 against the
+# years before 1981) with its 90 % interval, the residual pool being
+# covariance_pick's held-out residuals, under set.seed(147); and #152's change
+# from 1951-1980 to 2016-2025 with its interval under set.seed(1471) and that
+# interval's coverage on simulated no-change series under set.seed(1472),
+# each with #126's and #152's draw counts. Its carried donors per year are
+# named as section 5 names them, and its carried window-mean departures per
+# year (with, for an ungauged site, the window flow, the normal times
+# exp(departure)) are printed so every year the article reads has a line. The rds gains `cov`: the scores, the
+# verdict, and, where it ships, the target's covariance `mx` entries (with
+# `p152`). The comparison article's carried route is the shipped one.
+#
 # ---- the parity gate ----------------------------------------------------------------------------
 #
 # The maxan row under the BULK windows must reproduce #120's run, whose
@@ -160,7 +224,10 @@
 # with no watershed code, or with no segment in the published part; a window
 # set whose CSV lacks one CH migration and one CH spawning row; the parity
 # gate above; the usual refusals of wet_window_extend() and
-# wet_departure_carry().
+# wet_departure_carry(); for section 6 (#147), no fwapg through the PG*
+# variables, a per-year file missing or unlike its pcic.series row, a year
+# whose download fails or is cut off, and 1981-2010 bins failing parity with
+# that run's pcic.subbasin_daily (routed_years_check()).
 
 
 devtools::load_all(quiet = TRUE)
@@ -295,6 +362,48 @@ if (site$kind == "ungauged") {
   pub <- list(digest = wet:::wet_catalog_digest(catalog), mouth = md, mouth_parts = m_read$parts,
               gauges = g_read$d, gauge_parts = g_read$parts, groups = gauge_groups, pick_of = pick_of)
 }
+
+# ---- new in #147: PCIC's routed years at every covered segment (section 6) ----------------------
+# Every accepted box gauge's segment, and an ungauged site's mouth, that has a pcic.segment_weights
+# row; routed day by day over 1951-2012 from the per-year files, once, for every window set.
+if (is.null(conn) || is.null(sn_all)) stop("section 6 (#147) needs fwapg through the PG* variables", call. = FALSE)
+source("scripts/pcic_routed_lib.R")  # routed_weights(), routed_years_dir(), routed_years_check()
+pcic_years <- 1951:2012
+pcic_series <- paste(routed_run$model, routed_run$scenario, sep = "_")
+cov_seg <- sn_all[sn_all$accepted %in% TRUE, c("station_number", "linear_feature_id")]
+# as.numeric() on each side first: the mouth's id comes back as integer64, and rbind() of a double
+# column with an integer64 one copies the bits, turning the id into 0
+cov_seg$linear_feature_id <- as.numeric(cov_seg$linear_feature_id)
+if (site$kind == "ungauged") {
+  cov_seg <- rbind(cov_seg, data.frame(station_number = target,
+                                       linear_feature_id = as.numeric(mouth$segment$linear_feature_id)))
+}
+cov_seg$linear_feature_id <- as.integer(cov_seg$linear_feature_id)
+stopifnot(!anyNA(cov_seg$linear_feature_id), all(cov_seg$linear_feature_id > 0))
+cov_w <- if (nrow(cov_seg)) routed_weights(conn, cov_seg$linear_feature_id) else NULL
+cov_seg <- cov_seg[cov_seg$linear_feature_id %in% cov_w$linear_feature_id, ]
+if (site$kind == "ungauged") {
+  # the mouth stays exactly when its segment has a weights row
+  stopifnot(identical(target %in% cov_seg$station_number,
+                      as.integer(as.numeric(mouth$segment$linear_feature_id)) %in% cov_w$linear_feature_id))
+}
+# where PCIC covers no box gauge and no mouth, nothing is read: section 6 says so and distance ships
+cov_check <- NULL
+cov_par <- NULL
+cov_days <- NULL
+if (nrow(cov_seg)) {
+  cov_dir <- routed_years_dir(conn, pcic_years)
+  cov_check <- routed_years_check(conn, cov_dir, pcic_years, period = "1951-2012")
+  cov_subs <- sort(unique(c(cov_w$subid, unlist(cov_w$upstream_subids))))
+  cov_par <- routed_years_check(conn, cov_dir, 1981:2010, period = "1981-2010", subs = cov_subs)$parity
+  n_days_pcic <- sum(365 + (pcic_years %% 4 == 0))
+  cov_days <- do.call(rbind, lapply(split(seq_len(nrow(cov_w)), ceiling(seq_len(nrow(cov_w)) / 40)), function(i) {
+    q <- wet_routed_years(cov_dir, cov_w[i, ], years = pcic_years, series = pcic_series)
+    stopifnot(nrow(q) == length(i) * n_days_pcic)
+    q
+  }))
+}
+
 if (!is.null(conn)) DBI::dbDisconnect(conn)
 
 calib <- readRDS(file.path("data", "wb", sprintf("stations_%s.rds", release)))$stations$station_number
@@ -1118,6 +1227,216 @@ for (m in mx) {
               paste(p$donors_c, collapse = ", ")))
 }
 
+# ---- section 6 (#147): covariance_pick where PCIC covers the site, after every draw above -------
+mod <- if (is.null(cov_days)) {
+  data.frame(station_number = character(), variable = character(), period = character(), year = integer(),
+             value = numeric())
+} else {
+  cws <- wet_window_stats(cov_days, windows, stats = c("mean", "min7", "max", "cov_day"), by = "linear_feature_id")
+  merge(cov_seg, cws[c("linear_feature_id", "variable", "period", "year", "value")],
+        by = "linear_feature_id")[c("station_number", "variable", "period", "year", "value")]
+}
+mod <- mod[order(mod$station_number, mod$variable, mod$period, mod$year), ]
+rownames(mod) <- NULL
+covered <- sort(unique(cov_seg$station_number))
+weightings <- c(distance = "distance", covariance_pick = "covariance_pick")
+xy_km <- terra::project(cbind(stations_t$lon, stations_t$lat), "EPSG:4326", "EPSG:3005") / 1000
+rownames(xy_km) <- stations_t$station_number
+cov_pool <- function(v, p) intersect(dep_pool_of(v, p), covered)
+cov_carry <- function(g, v, p, donors, w, stab = stations) {
+  x <- wsel(v, p)
+  x <- x[x$station_number %in% setdiff(donors, g), ]
+  md <- if (w == "distance") NULL else mod[mod$station_number %in% c(g, unique(x$station_number)), ]
+  wet_departure_carry(x, stab, g, k = k_main, baseline = baseline, weights = w, modelled = md)
+}
+# the mean ground distance (km) from a target to the donors a carried series used in any year
+donor_km <- function(g, a) {
+  d <- unique(sub(":.*$", "", unlist(strsplit(a$donors, " ", fixed = TRUE))))
+  mean(sqrt(colSums((t(xy_km[d, , drop = FALSE]) - xy_km[g, ])^2)))
+}
+# one held-out gauge under both weightings, scored on the same years; covariance_pick's residuals over
+# its own years with the observed, as section 3 pools them for #126's interval
+cov_na <- function(g) {
+  list(row = data.frame(gauge = g, n = 0L, distance = NA_real_, covariance_pick = NA_real_, fallback = FALSE,
+                        km_distance = NA_real_, km_covariance_pick = NA_real_), resid = numeric())
+}
+cov_one <- function(g, v, p, donors) {
+  # a gauge with no donor left (a pool of one, or every other gauge related to it) is not scored
+  if (!any(wsel(v, p)$station_number %in% setdiff(donors, g))) return(cov_na(g))
+  a <- lapply(weightings, function(w) cov_carry(g, v, p, donors, w))
+  o <- wsel(v, p)
+  o <- o[o$station_number == g, ]
+  ov <- stats::setNames(tr_of(v)(o$value), o$year)
+  yrs <- sort(Reduce(intersect, list(o$year, a$distance$year, a$covariance_pick$year)))
+  nse <- c(distance = NA_real_, covariance_pick = NA_real_)
+  if (length(yrs) >= 3) {
+    oc <- ov[as.character(yrs)] - mean(ov[as.character(yrs)])
+    nse <- vapply(a, function(z) {
+      cz <- z$anomaly[match(yrs, z$year)]
+      wet:::wet_nse(unname(oc), cz - mean(cz))
+    }, 0)
+  }
+  ac <- a$covariance_pick
+  yc <- intersect(o$year, ac$year)
+  res <- if (length(yc) >= 3) {
+    oo <- ov[as.character(yc)]
+    cc <- ac$anomaly[match(yc, ac$year)]
+    unname((oo - mean(oo)) - (cc - mean(cc)))
+  } else {
+    numeric()
+  }
+  list(row = data.frame(gauge = g, n = length(yrs), distance = nse[["distance"]],
+                        covariance_pick = nse[["covariance_pick"]],
+                        fallback = identical(unique(ac$weighting), "distance"),
+                        km_distance = donor_km(g, a$distance), km_covariance_pick = donor_km(g, ac)),
+       resid = res)
+}
+cov_run <- function(v, p, drop = NULL) {
+  cp <- cov_pool(v, p)
+  hs <- lapply(cp, function(g) cov_one(g, v, p, setdiff(cp, drop[[g]])))
+  held <- do.call(rbind, c(list(cov_na("none")$row[0, ]), lapply(hs, `[[`, "row")))
+  # both weightings are scored at the same gauges on the same years
+  stopifnot(identical(is.na(held$distance), is.na(held$covariance_pick)))
+  list(held = held, resid = unlist(lapply(hs, `[[`, "resid")), v = v, p = p)
+}
+cov_sets <- list(
+  list(label = "migration mean", v = "q_mean", p = "migration"),
+  list(label = "spawning mean", v = "q_mean", p = "spawning"),
+  list(label = "migration min7", v = "q_min7", p = "migration"),
+  list(label = "spawning min7", v = "q_min7", p = "spawning"),
+  list(label = "migration cov_day (days)", v = "q_cov_day", p = "migration"),
+  list(label = "spawning cov_day (days)", v = "q_cov_day", p = "spawning"),
+  list(label = "leak-free", v = "q_mean", p = "migration", drop = related))
+if (is.null(related)) stop("section 6 (#147) needs the leak-free relations, which need fwapg", call. = FALSE)
+cov_runs <- lapply(cov_sets, function(s) cov_run(s$v, s$p, s$drop))
+names(cov_runs) <- vapply(cov_sets, `[[`, "", "label")
+med_of <- function(r) vapply(weightings, function(w) med_na(r$held[[w]]), 0)
+n_of <- function(r) sum(!is.na(r$held$covariance_pick))
+verdict <- site_carry_ship(med_of(cov_runs[["migration mean"]]), med_of(cov_runs[["leak-free"]]),
+                           n_of(cov_runs[["migration mean"]]), n_of(cov_runs[["leak-free"]]),
+                           covered = target %in% covered,
+                           donors = length(setdiff(cov_pool("q_mean", "migration"), target)))
+
+say("", "## 6. covariance_pick where PCIC covers the site (#147)", "",
+    if (is.null(cov_check)) "PCIC's per-year sub-basin days: not read, since PCIC covers no box gauge and no target here." else
+      sprintf("PCIC's per-year sub-basin days: %d files, %d-%d, built by NewGraphEnvironment/fwapg at %s (pcic.series); rows md5 %s; their 1981-2010 bins for the %d sub-basins read held to the 1981-2010 run's pcic.subbasin_daily (worst %s of the bound).",
+              length(cov_check$files), min(pcic_years), max(pcic_years), cov_check$commit, cov_check$catalogue_md5,
+              cov_par$subbasins, fmt(cov_par$worst)),
+    sprintf("Covered (snap accepted and a pcic.segment_weights row): %d of %d box-pool gauges; not covered: %s. The target, %s: %s.",
+            sum(pool$station_number %in% covered), nrow(pool),
+            if (all(pool$station_number %in% covered)) "none" else paste(setdiff(pool$station_number, covered), collapse = ", "),
+            target, if (target %in% covered) "covered" else "NOT covered"),
+    "Leave-one-gauge-out over each statistic's covered departure pool, k = 5 from the rest, both weightings on the same years (centred log NSE, days for cov_day); leak-free drops each gauge's related gauges:",
+    "", sprintf("  %-26s %4s  %6s %6s %6s  %6s %6s %6s  %4s %6s %6s", "setting", "n", "q25", "dist", "q75", "q25",
+                "cov_pk", "q75", "fall", "km d", "km c"))
+for (nm in names(cov_runs)) {
+  h <- cov_runs[[nm]]$held
+  qd <- stats::quantile(h$distance, c(0.25, 0.5, 0.75), na.rm = TRUE, names = FALSE)
+  qc <- stats::quantile(h$covariance_pick, c(0.25, 0.5, 0.75), na.rm = TRUE, names = FALSE)
+  say(sprintf("  %-26s %4d  %6s %6s %6s  %6s %6s %6s  %4d %6s %6s", nm, n_of(cov_runs[[nm]]), fmt(qd[1]), fmt(qd[2]),
+              fmt(qd[3]), fmt(qc[1]), fmt(qc[2]), fmt(qc[3]), sum(h$fallback[!is.na(h$covariance_pick)]),
+              fmt(med_na(h$km_distance[!is.na(h$covariance_pick)]), 0),
+              fmt(med_na(h$km_covariance_pick[!is.na(h$covariance_pick)]), 0)))
+}
+h6 <- cov_runs[["migration mean"]]$held
+s3 <- cm$held[cm$held$gauge %in% h6$gauge[!is.na(h6$distance)], ]
+say("", "(dist, cov_pk: distance's and covariance_pick's quartiles and median; fall: scored gauges where covariance_pick fell back to distance; km d, km c: the median over the scored gauges of the mean ground distance to the donors used.)",
+    sprintf("Section 3's distance (donors from the whole departure pool, covered or not), migration mean, at the %d of these %d scored gauges that section 3 also scores: median %s, deciding nothing.",
+            sum(!is.na(s3$nse)), sum(!is.na(h6$distance)), fmt(med_na(s3$nse))),
+    "", "Per gauge, migration mean (years scored, distance, covariance_pick):", "",
+    if (nrow(h6)) paste0("  ", vapply(split(seq_len(nrow(h6)), ceiling(seq_len(nrow(h6)) / 3)), function(i) {
+      h <- h6[i, ]
+      paste(sprintf("%s %3d %6s %6s", h$gauge, h$n, fmt(h$distance), fmt(h$covariance_pick)), collapse = "   ")
+    }, "")) else "  none",
+    "", sprintf("VERDICT (#147's rule, migration mean): %s ships; %s.", verdict$ship, verdict$reason))
+
+# where covariance_pick ships: the target's carried route under it, with #126's and #152's intervals
+cov_mx <- NULL
+if (verdict$ship == "covariance_pick") {
+  cov_mx <- list()
+  cov_none <- character()
+  for (cb in combos) {
+    v <- cb[1]
+    p <- cb[2]
+    # a statistic whose covered pool holds no donor (min7 in a dry box, say) is not carried: reported, not fatal
+    if (!any(wsel(v, p)$station_number %in% setdiff(cov_pool(v, p), target))) {
+      cov_none <- c(cov_none, paste(p, sub("^q_", "", v)))
+      next
+    }
+    a <- cov_carry(target, v, p, setdiff(cov_pool(v, p), target), "covariance_pick", stab = stations_t)
+    # the held-out run of this statistic and window (max is never scored)
+    is_set <- vapply(cov_sets, function(s) s$v == v && s$p == p && is.null(s$drop), TRUE)
+    cr <- if (v == "q_max") NULL else cov_runs[[which(is_set)]]
+    cov_mx[[paste(v, p)]] <- list(v = v, p = p, a = a, res_c = if (is.null(cr)) numeric() else cr$resid,
+                                  carried = mean(a$anomaly[post(a$year)]) - mean(a$anomaly[pre(a$year)]),
+                                  n_pre_c = sum(pre(a$year)), n_post_c = sum(post(a$year)),
+                                  fallback = identical(unique(a$weighting), "distance"))
+  }
+  set.seed(147)
+  for (nm in names(cov_mx)) {
+    m <- cov_mx[[nm]]
+    a <- m$a
+    i_pre <- which(pre(a$year))
+    i_post <- which(post(a$year))
+    boot <- if (!length(m$res_c) || !length(i_pre) || !length(i_post)) NA_real_ else vapply(seq_len(n_boot), function(b) {
+      ip <- i_pre[sample.int(length(i_pre), replace = TRUE)]
+      iq <- i_post[sample.int(length(i_post), replace = TRUE)]
+      z <- a$anomaly + sample(m$res_c, nrow(a), replace = TRUE)
+      mean(z[iq]) - mean(z[ip])
+    }, 0)
+    cov_mx[[nm]]$ci_c <- stats::quantile(boot, c(q_lo, q_hi), names = FALSE, na.rm = TRUE)
+  }
+  set.seed(1471)
+  for (nm in names(cov_mx)) {
+    a <- cov_mx[[nm]]$a
+    p <- list(res_c = cov_mx[[nm]]$res_c, i1_c = which(a$year %in% ref_years), i2_c = which(a$year %in% recent_years))
+    p$carried <- mean(a$anomaly[p$i2_c]) - mean(a$anomaly[p$i1_c])
+    p$ci_c <- interval_of(a$anomaly, rep(TRUE, nrow(a)), p$res_c, p$i1_c, p$i2_c)
+    p$donors_c <- sort(unique(sub(":.*", "", unlist(strsplit(a$donors[p$i1_c], " ")))))
+    cov_mx[[nm]]$p152 <- p
+  }
+  set.seed(1472)
+  for (nm in names(cov_mx)) {
+    p <- cov_mx[[nm]]$p152
+    a <- cov_mx[[nm]]$a
+    p$cover_c <- cover_of(a$anomaly, rep(TRUE, nrow(a)), p$res_c, p$i1_c, p$i2_c)
+    cov_mx[[nm]]$p152 <- p
+  }
+  say("", sprintf("The carried route at %s under covariance_pick, from its covered pool less itself (k = 5 of the 15 nearest).", target),
+      sprintf("Before/after (2011-2025 minus before 1981), 90 %% interval from %d draws adding a held-out covariance_pick residual to each year, set.seed(147); and %d-%d to %d-%d, with its interval (set.seed(1471)) and cover (set.seed(1472)), as section 5:",
+              n_boot, min(ref_years), max(ref_years), min(recent_years), max(recent_years)),
+      "", sprintf("  %-9s %-9s %4s %4s %9s %9s %18s   %4s %4s %9s %9s %18s %6s", "statistic", "window", "pre", "post",
+                  "carried", "% normal", "90 % interval", "ref", "rec", "carried", "% normal", "90 % interval", "cover"))
+  for (m in cov_mx) {
+    days <- is_days(m$v)
+    p <- m$p152
+    say(sprintf("  %-9s %-9s %4d %4d %9s %9s %18s   %4d %4d %9s %9s %18s %6s", sub("^q_", "", m$v), m$p, m$n_pre_c,
+                m$n_post_c, fmt(m$carried, 3), if (days) "-" else pc(m$carried, FALSE), ci_txt(m$ci_c, days),
+                length(p$i1_c), length(p$i2_c), fmt(p$carried, 3), if (days) "-" else pc(p$carried, FALSE),
+                ci_txt(p$ci_c, days), fmt(p$cover_c, 3)))
+  }
+  say("", sprintf("No covered donor, so not carried: %s.", if (length(cov_none)) paste(cov_none, collapse = ", ") else "none"),
+      sprintf("Fell back to distance at the target: %s.",
+                  if (any(vapply(cov_mx, `[[`, TRUE, "fallback"))) paste(names(cov_mx)[vapply(cov_mx, `[[`, TRUE, "fallback")], collapse = ", ") else "none"),
+      sprintf("The gauges the %d-%d years rest on (every donor named in those years):", min(ref_years), max(ref_years)))
+  for (m in cov_mx) say(sprintf("  %s %s: carried %s.", m$p, sub("^q_", "", m$v), paste(m$p152$donors_c, collapse = ", ")))
+  for (m in cov_mx) {
+    if (m$v != "q_mean") next
+    nq <- if (site$kind == "ungauged") normal$q_m3s[normal$window == m$p] else NA_real_
+    say("", sprintf("Under covariance_pick, %s mean per year at %s: the carried departure (%% of normal)%s:", m$p, target,
+                    if (site$kind == "ungauged") sprintf(" and the window flow, the normal (%s m3/s) times exp(departure)", fmt(nq, 3)) else ""),
+        "", sprintf("  %4s %9s %9s %3s", "year", "carried", if (site$kind == "ungauged") "m3/s" else "", "n"))
+    for (j in seq_len(nrow(m$a))) {
+      say(sprintf("  %4d %9s %9s %3d", m$a$year[j], pc(m$a$anomaly[j], FALSE),
+                  if (site$kind == "ungauged") fmt(nq * exp(m$a$anomaly[j]), 3) else "", as.integer(m$a$n_donors[j])))
+    }
+  }
+}
+cov_out <- list(verdict = verdict, covered = covered, scores = lapply(cov_runs, `[[`, "held"),
+                pcic = if (is.null(cov_check)) NULL else
+                  list(commit = cov_check$commit, catalogue_md5 = cov_check$catalogue_md5, parity = cov_par),
+                mx = cov_mx)
+
 # ---- the parity gate (maxan, BULK): #120's tracked report, before anything is written ----------
 if (site$site_id == "maxan" && wname == "BULK") {
   miss <- site_parity_pilot(out, readLines(file.path("data", "checks", sprintf("departure_pilot_%s.txt", release))))
@@ -1138,5 +1457,5 @@ saveRDS(list(site = site, windows = windows, release = release, ship = ship, k_m
              race = list(med = dec$med, rule_pick = dec$ship, gauges = main$n[["gauges"]], below_floor = below_floor),
              carried = list(median = head_q[2], q = head_q, n = sum(!is.na(cm$held$nse)), usable = usable,
                             short = med_na(cm$short$nse)),
-             normal = if (site$kind == "ungauged") pub_out else NULL, code_md5 = code_md5), rds)
+             normal = if (site$kind == "ungauged") pub_out else NULL, cov = cov_out, code_md5 = code_md5), rds)
 }

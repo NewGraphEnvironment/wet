@@ -266,7 +266,15 @@ test_that("the short-record map layers are sf in BC Albers, with the three catch
 test_that("the Chinook sites' values hold four sites, both routes and their provenance", {
   v <- readRDS(vignette_data("chinook_sites_values.rds"))
   expect_named(v, c("sites", "change", "scores", "snow", "snow_change", "normal", "gauges", "windows", "use", "use_obs",
-                    "score_settings", "daily", "years", "periods", "provenance"))
+                    "score_settings", "daily", "years", "periods", "carry", "provenance"))
+  # #147: one weighting per site and window set, both weightings scored on the same gauges in each setting,
+  # and the shipped one is what the scores carry
+  w <- unique(v$carry[c("site_id", "group", "ship")])
+  expect_false(anyDuplicated(w[c("site_id", "group")]) > 0)
+  expect_true(all(w$ship %in% c("distance", "covariance_pick")))
+  expect_setequal(paste(w$site_id, w$group), paste(v$scores$site_id, v$scores$group))
+  expect_equal(v$scores$weighting, w$ship[match(paste(v$scores$site_id, v$scores$group), paste(w$site_id, w$group))])
+  expect_true(all(v$carry$covered <= v$carry$pool))
   # the comparison periods (#152), and every change and snow mean over exactly them
   expect_equal(v$periods, list(ref = 1951:1980, recent = 2016:2025))
   expect_true(all(v$change$n_pre <= 30 & v$change$n_post <= 10))

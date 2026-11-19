@@ -5,7 +5,7 @@
 # three read the same held-out balance, routed PCIC on the same gauge segments
 # and the same observed months (#166).
 #
-#   WET_FWAPG_COMMIT=<sha> WET_PCIC_YEARS=<dir> Rscript scripts/gauge_monthly_compare.R
+#   WET_FWAPG_COMMIT=<sha> Rscript scripts/gauge_monthly_compare.R
 #
 # Inputs, each held to the record it must equal:
 #   - observed and the held-out balance: the fit's stored blocked-CV months
@@ -19,7 +19,8 @@
 #   - the crosswalk, the segments' weights and the run's sub-basin days
 #     (#67's checks), refused unless they are the tracked daily report's;
 #   - routed PCIC year by year (#162's minimum flows): fwapg#42's per-year
-#     sub-basin days under WET_PCIC_YEARS, each file held to its pcic.series
+#     sub-basin days under WET_PCIC_YEARS, or wet's cache when it is unset
+#     (#135, routed_years_dir()), each file held to its pcic.series
 #     row, and their bins to the run's pcic.subbasin_daily (routed_years_check);
 #   - HYDAT (the fit's release) for each gauge's yearly monthly means.
 # The gauge table (observed, balance and routed, months 0-12) must equal the
@@ -193,7 +194,7 @@ stopifnot(setequal(sb_days$subid, sub_need), !anyNA(sb_days$q_acc), !anyNA(sb_da
 years_dfo <- 1981:2010
 lfid_fr <- cal$linear_feature_id[routed_basin(cal$station_number) == "Fraser"]
 w_fr_all <- w_gauge[w_gauge$linear_feature_id %in% lfid_fr, ]
-yr <- routed_years_check(conn, Sys.getenv("WET_PCIC_YEARS"), years_dfo,
+yr <- routed_years_check(conn, routed_years_dir(conn, years_dfo), years_dfo,
                          subs = sort(unique(c(w_fr_all$subid, unlist(w_fr_all$upstream_subids)))))
 DBI::dbDisconnect(conn)
 

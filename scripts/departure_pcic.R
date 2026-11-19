@@ -6,16 +6,16 @@
 # scored; the body that runs it came later (planning/archive, issue 122). The
 # report names the commit this header was registered at.
 #
-#   WET_HYDAT_RELEASE=20260717 WET_FWAPG_COMMIT=<sha> WET_PCIC_YEARS=<dir> \
-#     Rscript scripts/departure_pcic.R
+#   WET_HYDAT_RELEASE=20260717 WET_FWAPG_COMMIT=<sha> Rscript scripts/departure_pcic.R
 #
 # Reads HYDAT 20260717 only (scripts/wb_fit_lib.R's wb_hydat()); the shipped
 # fit's calibration gauges through scripts/wb_cv_lib.R (`cal`, held to its
 # scores by scripts/pcic_routed_lib.R's shipped_heldout()); fwapg through the
 # WET_PG* env vars (pcic.segment_weights, pcic.subbasin_daily and pcic.runs
 # for the 1951-2012 run, pcic.series for the per-year catalogue, and the FWA
-# for snapping the box gauges); and the per-year product under WET_PCIC_YEARS
-# (the interface section below). Writes
+# for snapping the box gauges); and the per-year product (the interface
+# section below) under WET_PCIC_YEARS when it is set, else from wet's
+# per-machine cache, filled from the fresh-bc bucket (#135). Writes
 # the tracked report data/checks/departure_pcic_20260717.txt and, after it,
 # the gitignored data/departure/departure_pcic_20260717.rds: per gauge the
 # observed, modelled and carried series per statistic and window, what each
@@ -217,14 +217,17 @@
 # report names. The scoring rule above is frozen. Amended once, before any
 # body existed, to what fwapg#42's gate decided on 2026-10-26 (its decisions
 # 1 to 3), which had not seen the first version (float64, year/month/day
-# ints, a commit in a sidecar).
+# ints, a commit in a sidecar). After the runs, #135 (feef934) changed only
+# where the files are read from: WET_PCIC_YEARS when set, else wet's
+# per-machine cache filled from the bucket; every check on them stands.
 #
 # The per-year sub-basin days of the PNWNAmet historical run as fwapg#42
 # publishes them: one parquet file per year,
 # pcic.subbasin_days.PNWNAmet_historical.<year>.parquet, with columns `subid`
 # (int32), `date` (date32, the calendar date, so 29 February is its own day
 # and the bins match cdo ydaymean's) and `q_local`, `q_acc` (m3/s, float32),
-# in one directory, WET_PCIC_YEARS. fwapg publishes 1950 to 2012; wet reads
+# in one directory: WET_PCIC_YEARS when set, else wet's cache (#135, a default
+# that changes nothing scored or refused here). fwapg publishes 1950 to 2012; wet reads
 # the 62 files of 1951-2012, 22,646 days per sub-basin, and refuses a missing
 # one.
 #
@@ -263,7 +266,9 @@
 # 40 hex characters; uncommitted changes under R/ or scripts/ (as
 # scripts/pcic_routed_compare.R, so the recorded commit rebuilds the report);
 # a `cal` whose scores were made under other scoring code (shipped_heldout()'s
-# guards); a year of 1951-2012 without its file, or a file unlike its
+# guards); a year of 1951-2012 without its file in the directory WET_PCIC_YEARS
+# names (unset, a missing year is downloaded into wet's cache, and a download
+# or cached file of another size than its pcic.series row refused), or a file unlike its
 # pcic.series row, or a row on another crosswalk than the run's, or rows
 # naming more than one commit or none; a read sub-basin missing from a
 # year, without its 22,646 days of 1951-2012, with a day twice or an NA flow,
@@ -278,7 +283,9 @@
 # was scored; the interface section was amended again after it, at b518ebc. Everything below implements
 # the rule above; nothing here changes it. After the first runs on the product it was edited only in what
 # it prints: the report's counts and the wording of the WET_FWAPG_COMMIT refusal, with the two assignments
-# that refusal needs moved up. No computed value, input or guard changed, and no score moved.
+# that refusal needs moved up. No computed value, input or guard changed, and no score moved. Then #135
+# changed where the per-year files come from (routed_years_dir(): an unset WET_PCIC_YEARS reads wet's
+# cache instead of being refused); the files are held to pcic.series as before.
 # ==================================================================================================
 
 source("scripts/wb_cv_lib.R")  # load_all(), cal, release, fit_dir, score_code_md5
@@ -313,8 +320,10 @@ rule_commits <- c(registered = "5904cd7", weight_amended = "a8ff752", interface_
 years_run <- 1951:2012
 period_run <- "1951-2012"
 fwapg_commit <- routed_commit(period_run)
-pcic_dir <- Sys.getenv("WET_PCIC_YEARS")
-if (!nzchar(pcic_dir) || !dir.exists(pcic_dir)) stop("set WET_PCIC_YEARS to the per-year files' directory", call. = FALSE)
+# WET_PCIC_YEARS names the per-year files' directory; unset, wet's cache holds them (#135, routed_years_dir())
+if (nzchar(Sys.getenv("WET_PCIC_YEARS")) && !dir.exists(Sys.getenv("WET_PCIC_YEARS"))) {
+  stop("WET_PCIC_YEARS names a directory that does not exist; unset it to read wet's cache", call. = FALSE)
+}
 ho <- shipped_heldout()  # refuses a fit scored under other scoring code
 hydat <- wb_hydat(release)
 
@@ -450,10 +459,11 @@ subs <- sort(unique(c(w_need$subid, unlist(w_need$upstream_subids))))
 # ---- product: begin ----------------------------------------------------------------------------------
 # The per-year files against their catalogue and the climatology (the interface section), then
 # every gauge's segment routed day by day and its window statistics taken per year.
+pcic_dir <- routed_years_dir(conn, years_run)
 duck <- DBI::dbConnect(duckdb::duckdb())
 files <- file.path(pcic_dir, sprintf("pcic.subbasin_days.%s.%d.parquet", series, years_run))
 gone <- years_run[!file.exists(files)]
-if (length(gone)) stop("WET_PCIC_YEARS has no ", series, " file for ", paste(gone, collapse = ", "), call. = FALSE)
+if (length(gone)) stop(pcic_dir, " has no ", series, " file for ", paste(gone, collapse = ", "), call. = FALSE)
 catalogue <- DBI::dbGetQuery(conn, sprintf("
   SELECT year, crosswalk_md5, commit, rows::text AS rows, subbasins::text AS subbasins,
          q_local_sum::text AS q_local_sum, q_acc_sum::text AS q_acc_sum, bytes::text AS bytes

@@ -25,9 +25,10 @@ ticked and not **waiting**; `/planning-init <umbrella>` plans it, one phase per 
 | - [x] 2 | #164 | 3: the published build's record (4 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/172 |
 | - [x] 3 | #165 | 4, 5: article bundles and maps, docs (4 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/173 |
 | - [x] 4 | #166 | 6: monthly error at the gauges (3 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/175 |
-| - [ ] 5 | #167 | 7, 8: stations beyond HYDAT, PCIC's per-year files at the sites (4 issues) | open |
+| - [ ] 5 | #167 | 8: PCIC's per-year files at the sites (2 issues) | open |
 | - [ ] 6 | #168 | 9: the channel-scale pilot (1 issue) | open |
 | - [ ] 7 | #169 | 10: scenarios and coverage (2 issues) | **waiting** on move 6's verdict in `research/pcic_channel_scale.md` |
+| - [ ] 8 | #179 | 7: stations beyond HYDAT (2 issues) | open |
 
 Tracks are separate efforts, not moves: the cross-repo provenance track, whose wet member is #161
 (labelled `track:provenance`), batched here in batch 3 because #88 and #160 take its names.
@@ -42,8 +43,8 @@ Tracks are separate efforts, not moves: the cross-repo provenance track, whose w
 | 4 | #165 | article bundles and maps: #74, #155 | 2 | which layers move onto fresh's fetchers; the layer comparison's tolerance | one regeneration of `inst/vignette-data/` against one live build |
 | 5 | #165 | docs: #97, #55 | 2 | none beyond the README decisions already recorded | no build of their own; the site rebuilds with move 3 |
 | 6 | #166 | monthly error at the gauges: #6, #67, #162 | 3 | tracked report or article section; the region unit; the owner approves any text sent to PCIC | one report over the same held-out balance, routed PCIC and observed months |
-| 7 | #167 | stations beyond HYDAT: #142, #144 | 2 | keep, flag or drop ungraded values; which copy at shared sites; credit lines | both feed `wet_station_daily()` and meet at six sites |
-| 8 | #167 | PCIC's per-year files at the sites: #135, #147 | 2 | the `covariance_pick` rule at the sites, registered before any run | the site rerun batch 7's donors need is the one this needs |
+| 7 | #179 | stations beyond HYDAT: #142, #144 | 2 | keep, flag or drop ungraded values; which copy at shared sites; credit lines | both feed `wet_station_daily()` and meet at six sites; split from #167, where they add no donor at the chinook sites |
+| 8 | #167 | PCIC's per-year files at the sites: #135, #147 | 2 | the `covariance_pick` rule at the sites, registered before any run | `covariance_pick` at the sites needs the per-year files at every run |
 | 9 | #168 | the channel-scale pilot: #9 | 1 | the six sites; whether it also reads water temperature | the oracle batch 10 waits on |
 | 10 | #169 | scenarios and coverage: #4, #5 | 2 | CMIP6 channel-scale, CMIP5 or both by domain; publish scenarios as a new dataset or not | both rescope from batch 9's verdict |
 
@@ -136,7 +137,7 @@ places more PCIC outlets, which changes the gauge set.
 
 ### 7. Stations beyond HYDAT
 
-- [ ] Carried by move 5, #167
+- [ ] Carried by move 8, #179
 
 #142 (the province's non-integrated hydrometric network) and #144 (the BC Water Tool's third-party
 gauges) both feed `wet_station_daily()`, share the QA and regulation questions, and meet at six
@@ -145,13 +146,15 @@ sites.
 Touches `R/wet_station_daily.R` and new readers, `research/station_sources.md`, `data/checks/`.
 Gate: keep, flag or drop ungraded values; which copy at the shared sites; each series' credit line.
 
+Split from move 5 at its plan gate (2026-11-18): counted against the four chinook site boxes, these
+networks hold no station with a 1981–2010 baseline, so they add no donor there (#167's body).
+
 ### 8. PCIC's per-year files at the sites
 
 - [ ] Carried by move 5, #167
 
 #135 caches PCIC's per-year files as `wet_hydat()` caches HYDAT, so #147's `covariance_pick` at the
-chinook sites runs without a hand-made directory. The site rerun it needs is the one batch 7's new
-donors need.
+chinook sites runs without a hand-made directory.
 
 Touches a new internal fetcher, `scripts/departure_site.R`, `scripts/departure_pcic.R`,
 `data-raw/chinook_sites_data.R`, the comparison article. Gate: the rule for `covariance_pick` at the

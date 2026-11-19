@@ -81,6 +81,42 @@ percent of normal, \code{100 * (exp(anomaly) - 1)}, the scale
 \code{cd::cd_anomaly()} uses. A statistic named \verb{*_cov_day} (a day of the
 window) departs in days instead, and has no percent of normal.
 }
+\section{How donors are chosen}{
+
+The nearest gauge is not always the most alike: a gauge next door can sit
+higher or hold more snow. \code{weights = "covariance_pick"} lets a model of
+the rivers choose instead, in five steps, for each statistic and window on
+its own:
+\enumerate{
+\item \strong{The model's years.} \code{modelled} holds a modelled value per year at
+the target and at each candidate donor, such as routed PCIC flow on
+each one's stream segment, 1951–2012.
+\item \strong{Departures.} Each place's modelled years become departures from its
+own mean, on the log scale (days for \verb{*_cov_day}), so a big river and
+a small creek can both have a "20 \% wetter than usual" year.
+\item \strong{How alike.} For each candidate, \code{r} is the correlation between its
+modelled departures and the target's over the years both have: 1 when
+they rise and fall together, 0 when they are unrelated. Fewer than 30
+shared years counts as 0.
+\item \strong{Pick and weight.} Among the 15 candidates nearest the target (by
+position and catchment size, as for \code{"distance"}), the \code{k} with the
+highest \code{r} are kept, a tie going to the nearer, each weighted by
+\code{max(r, 0)}. If every one weighs 0, it falls back to \code{"distance"}: the
+\code{k} nearest, weighted by distance.
+\item \strong{Borrow measured years.} In each year, the target's departure is the
+weighted mean of those donors' measured departures from their own
+baseline means, as with \code{"distance"}. The model only chooses the
+donors, so the target's own record never does, and the borrowed years
+run as long as the donors' records do.
+}
+
+With about 60 years, a correlation is uncertain by roughly 0.13, so
+picking the top \code{k} partly rewards luck. Whether the model's choice
+predicts better than distance is therefore a question for held-out
+gauges, not for \code{r}: wet's chinook pilots use it at a site only where it
+did.
+}
+
 \examples{
 # Two donors share a wet year in 1990; the target, ungauged, gets it too
 yrs <- 1975:2000
