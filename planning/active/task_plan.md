@@ -127,7 +127,7 @@ Result: covariance_pick ships at Maxan, Naver and Gosnell (both window sets); di
 - [x] (rebuilt, differences only by rounding, committed bundle kept: findings.md) Rebuild `data-raw/short_record_vignette_data.R` (the Maxan report's md5 moves); assert every
       element but provenance `identical()` to the old bundle. That article stays on distance at
       Maxan (it is #120's record); say so in the final report if Maxan ships covariance_pick.
-- [ ] `research/chinook_sites.md` and `CLAUDE.md` (the #126 paragraph: carry no longer fixed at
+- [x] `research/chinook_sites.md` and `CLAUDE.md` (the #126 paragraph: carry no longer fixed at
       inverse distance everywhere; `WET_PCIC_YEARS` default).
 - [ ] Render the article; read guards and word count; offer the rendered page.
 
