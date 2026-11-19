@@ -244,13 +244,31 @@ region <- function(m) {
   txy <- sf::st_coordinates(t)
   pl <- map$places[map$places$map == m, ]
   pxy <- sf::st_coordinates(pl)
-  # the rivers the orientation names, each labelled midway along its longest drawn part
+  # the keymap's corner and box, which no label may sit under
+  key_w <- 0.22 * ex
+  key_h <- key_w * 1.05
+  key_left <- mean(txy[, 1]) > cx   # the keymap in the corner away from the streams
+  kx <- if (key_left) c(ext[["xmin"]] + 0.02 * ex, ext[["xmin"]] + 0.02 * ex + key_w) else
+    c(ext[["xmax"]] - 0.02 * ex - key_w, ext[["xmax"]] - 0.02 * ex)
+  ky <- c(ext[["ymax"]] - 0.02 * ey - key_h, ext[["ymax"]] - 0.02 * ey)
+  # the rivers the orientation names, each labelled along its longest drawn part at the point nearest its
+  # middle that is inside the frame and clear of the keymap (with a margin for the label)
   rv <- s[s$gnis_name %in% stats::na.omit(unique(c(t$into1, t$into2))) & !s$main, ]
   rv <- rv[!duplicated(rv$gnis_name), ]
   rxy <- do.call(rbind, lapply(seq_len(nrow(rv)), function(k) {
     parts <- sf::st_cast(sf::st_geometry(rv[k, ]), "LINESTRING")
     longest <- parts[which.max(as.numeric(sf::st_length(parts)))]
-    sf::st_coordinates(sf::st_line_sample(longest, sample = 0.5))[1, 1:2]
+    at <- seq(0.1, 0.9, by = 0.05)
+    xy <- sf::st_coordinates(sf::st_line_sample(longest, sample = at))[, 1:2, drop = FALSE]
+    inside <- xy[, 1] > ext[["xmin"]] + 0.05 * ex & xy[, 1] < ext[["xmax"]] - 0.05 * ex &
+      xy[, 2] > ext[["ymin"]] + 0.03 * ey & xy[, 2] < ext[["ymax"]] - 0.03 * ey
+    stopifnot(any(inside))   # a river with no point inside the frame would be labelled off it
+    under <- xy[, 1] > kx[1] - 0.08 * ex & xy[, 1] < kx[2] + 0.08 * ex & xy[, 2] > ky[1] - 0.05 * ey
+    clear <- inside & !under
+    if (any(clear)) return(xy[which(clear)[which.min(abs(at[clear] - 0.5))], ])
+    # no point clears the keymap: the inside point farthest from its centre
+    d <- (xy[, 1] - mean(kx))^2 + (xy[, 2] - mean(ky))^2
+    xy[which(inside)[which.max(d[inside])], ]
   }))
   # every label in one repelling layer, so none covers another or a marker; a white halo keeps each readable
   lab <- rbind(
@@ -272,11 +290,6 @@ region <- function(m) {
             linewidth = 0.6) +
     theme_void() +
     theme(panel.background = element_rect(fill = "white", colour = pal_series$values[["filled"]], linewidth = 0.3))
-  key_w <- 0.22 * ex
-  key_h <- key_w * 1.05
-  key_left <- mean(txy[, 1]) > cx   # the keymap in the corner away from the streams
-  kx <- if (key_left) c(ext[["xmin"]] + 0.02 * ex, ext[["xmin"]] + 0.02 * ex + key_w) else
-    c(ext[["xmax"]] - 0.02 * ex - key_w, ext[["xmax"]] - 0.02 * ex)
   ggplot() +
     geom_sf(data = map$lakes[map$lakes$map == m, ], fill = lake_sty$fill$color, colour = lake_sty$stroke$color,
             linewidth = 0.15) +
@@ -292,8 +305,7 @@ region <- function(m) {
                              bg.colour = "white", bg.r = 0.12, max.overlaps = Inf, show.legend = FALSE) +
     geom_segment(data = sb, aes(x = x, xend = xend, y = y, yend = y), linewidth = 0.8) +
     geom_text(data = sb, aes(x = (x + xend) / 2, y = y, label = paste(sb_km, "km")), vjust = -0.7, size = 3) +
-    annotation_custom(ggplotGrob(key), xmin = kx[1], xmax = kx[2], ymin = ext[["ymax"]] - 0.02 * ey - key_h,
-                      ymax = ext[["ymax"]] - 0.02 * ey) +
+    annotation_custom(ggplotGrob(key), xmin = kx[1], xmax = kx[2], ymin = ky[1], ymax = ky[2]) +
     scale_colour_manual(values = pal_map$values, labels = pal_map$labels[c(unique(t$part), "donor")],
                         breaks = c(unique(t$part), "donor"), name = NULL) +
     coord_sf(xlim = c(ext[["xmin"]], ext[["xmax"]]), ylim = c(ext[["ymin"]], ext[["ymax"]]), expand = FALSE,
