@@ -62,6 +62,8 @@ Water Tool) add carry donors at the four chinook sites, and that #147's `covaria
 
 ## Phase 2: register #147's rule (header only, its own commit, before any body code or run)
 
+- [x] Rule registered in `scripts/departure_site.R`'s header ("new in #147"); amended from the plan: a floor of 10 gauges scored under each pool, so a box median rests on enough gauges; the 1981–2010 bins held to that run's climatology because the local database has no 1951–2012 `pcic.subbasin_daily`; seeds 147, 1471, 1472.
+
 In `scripts/departure_site.R`'s header, a "New in #147" block:
 
 - **Covered:** a gauge whose accepted snap (`wet_station_snap()`, as the script already does) lands

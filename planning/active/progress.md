@@ -10,3 +10,4 @@
 - Plan review spawned in the background at 2026-11-19T05:12Z
 - Phase 1: `R/wet_pcic_years.R` (internal cache, size-gated rename) with tests; each guard proved by mutation (no download size check, env var ignored, cached size unchecked: each fails its test); `routed_years_dir()` in `scripts/pcic_routed_lib.R`; `departure_pcic.R` and `gauge_monthly_compare.R` default to it
 - Local fwapg holds `pcic.series` (63 rows, 1950–2012, one commit 26d7582, 8.67 GiB) and only the 1981–2010 run's `pcic.subbasin_daily`; cache fill started 2026-11-19T05:16Z, log `data/logs/167/pcic_years_fill_*`
+- Phase 2: #147's rule registered in the header of `scripts/departure_site.R`, committed alone before any body code or run

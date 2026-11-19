@@ -139,6 +139,62 @@
 # on it. The rds gains `p152` in each `mx` entry; no line #120's report
 # prints depends on it.
 #
+# ---- new in #147: covariance_pick where PCIC covers the site ------------------------------------
+#
+# Registered in this header alone, before any body code or run (decided at
+# #167's plan gate, user, 2026-11-18). A section 6, after every line and draw
+# above, so nothing sections 1-5 print or draw moves, and the maxan row still
+# passes the parity gate below.
+#
+# Covered: a box-pool gauge whose snap (wet_station_snap(), the snaps the
+# leak-free relations already use) is accepted and whose segment has a
+# pcic.segment_weights row (#58's and #122's definition); for an ungauged
+# site, the mouth segment above. Section 6 needs fwapg; without it the run
+# stops rather than writing a report that lacks it.
+#
+# Modelled years, as #122 builds them: each covered segment routed day by day
+# over 1951-2012 from fwapg's per-year sub-basin days (wet_routed_years(); the
+# files from routed_years_dir(), each held to its pcic.series row on the
+# 1951-2012 run's crosswalk by routed_years_check(), and their 1981-2010 bins
+# for the sub-basins read held to the 1981-2010 run's pcic.subbasin_daily),
+# then wet_window_stats() on the window set's windows and statistics. The
+# report names the files' fwapg commit and the catalogue rows' md5.
+#
+# Scored, per statistic and window (mean, min7, cov_day; max is carried,
+# never scored): leave-one-gauge-out over the covered gauges of that
+# statistic's departure pool (>= 10 baseline years, dep_pool_of()), the
+# donors the rest of that covered pool, k = 5, under two weightings of
+# wet_departure_carry(): `distance` (#120's) and `covariance_pick` (#122's:
+# among the 15 nearest, the 5 whose modelled values correlate best, an r from
+# fewer than 30 years counting 0, falling back to distance where every donor
+# chosen weighs 0, counted). Both are scored at a gauge on the same years: its
+# complete window-years that both carried series have. The score is the
+# centred log NSE of section 3 (days for cov_day); a gauge with fewer than 3
+# such years is not scored. The leak-free pool drops each held-out gauge's
+# related gauges from its donors, as section 3 does. Reported: n, quartiles
+# and median per weighting, statistic and window, both pools; the median
+# distance in km to the donors each weighting used; fallbacks.
+#
+# The rule, one verdict per site and window set, on the migration-window
+# mean: covariance_pick ships if its median exceeds distance's by at least
+# 0.01 (#122's margin, 1e-9 allowed) under leave-one-gauge-out AND in the
+# leak-free pool, at least 10 gauges are scored under each, the target is
+# covered, and its covered migration-mean pool less itself holds at least 5
+# gauges. Otherwise distance ships. The verdict holds for every statistic and
+# window of that site and window set.
+#
+# Where covariance_pick ships, section 6 also gives the target's carried
+# route under it, from its covered pool less itself, for every statistic and
+# window (max included): #126's before/after change (2011-2025 against the
+# years before 1981) with its 90 % interval, the residual pool being
+# covariance_pick's held-out residuals, under set.seed(147); and #152's change
+# from 1951-1980 to 2016-2025 with its interval under set.seed(1471) and that
+# interval's coverage on simulated no-change series under set.seed(1472),
+# each with #126's and #152's draw counts. Its carried donors per year are
+# named as section 5 names them. The rds gains `cov`: the scores, the
+# verdict, and, where it ships, the target's covariance `mx` entries (with
+# `p152`). The comparison article's carried route is the shipped one.
+#
 # ---- the parity gate ----------------------------------------------------------------------------
 #
 # The maxan row under the BULK windows must reproduce #120's run, whose
