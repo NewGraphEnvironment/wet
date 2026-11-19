@@ -402,10 +402,12 @@ warming.
 
 Two routes fill in the years a stream was not measured. A gauged stream's missing year comes
 from one nearby gauge, through a fit between the two over their shared years. Any stream can
-also borrow the five nearest gauges' departures from their own typical flow, year by year. At
-`r and_text(sub(" Creek$", "", name_of[cov_ids]))` creeks the five of the fifteen nearest whose
-modelled years [@pacificclimateimpactsconsortiumGriddedHydrologic] move most like the stream's
-lend them instead, as that scored better there on gauges it was not given.
+also borrow the five nearest gauges' departures from their own typical flow, year by year.
+Nearest is not always most alike, though: a gauge next door can sit higher or hold more snow. So
+where a computer model of the region's rivers [@pacificclimateimpactsconsortiumGriddedHydrologic]
+covers the gauges, the five of the fifteen nearest whose wet and dry years in the model track the
+stream's most closely are used instead, wherever that predicted hidden gauges better than nearness
+did: at `r and_text(sub(" Creek$", "", name_of[cov_ids]))` creeks.
 
 ```{r years-data}
 yy <- v$years[v$years$group == "BULK", ]
@@ -529,10 +531,10 @@ tab <- data.frame(
   `Borrowed, migration` = sprintf("%.2f", ss_mig$carried[match(sc$site_id, ss_mig$site_id)]),
   `Borrowed, spawning` = sprintf("%.2f", ss_spw$carried[match(sc$site_id, ss_spw$site_id)]),
   `Gauges scored` = sc$carried_gauges,
-  `Donors chosen by` = c(distance = "nearness", covariance_pick = "modelled years")[sc$weighting],
+  `Donors chosen by` = c(distance = "nearness", covariance_pick = "most alike in the model")[sc$weighting],
   check.names = FALSE)
 knitr::kable(tab, row.names = FALSE, align = "lrrrrrl",
-             caption = "Held-out scores of each window's mean flow, over the gauges in each stream's box: the median over gauges, where 1 is perfect and 0 is no better than the average year. The filled-in column is the migration window's; Gosnell Creek has no record of its own to fill in. The borrowed columns score the donors each stream uses, over the gauges the modelled flow covers where modelled years choose them.")
+             caption = "Held-out scores of each window's mean flow, over the gauges in each stream's box: the median over gauges, where 1 is perfect and 0 is no better than the average year. The filled-in column is the migration window's; Gosnell Creek has no record of its own to fill in. The borrowed columns score the donors each stream uses, over the gauges the model covers where the model chooses them.")
 stopifnot(sc$ols[sc$site_id == "swift"] < 0.2)
 # "only N gauges" and "few long records": the upper Fraser box has the fewest
 stopifnot(sc$ext_gauges[sc$site_id == "swift"] < min(sc$ext_gauges[sc$site_id != "swift"]))
@@ -688,7 +690,7 @@ if (!is.null(f)) {
   y <- y[!grepl("^\\s*$", y)]
   n <- sum(lengths(strsplit(trimws(y), "\\s+")))
   message("body prose: ", n, " words")
-  cap <- 1110   # 1000 until #152 restated the window's full name per section; 1060 until #147 said how donors are chosen and gave Maxan's short reference period
+  cap <- 1140   # 1000 until #152 restated the window's full name per section; 1060 until #147 said how donors are chosen, in plain words, and gave Maxan's short reference period
   if (n > cap) stop("body prose is ", n, " words; the cap is ", cap)
 }
 ```
