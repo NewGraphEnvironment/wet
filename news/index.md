@@ -1,5 +1,24 @@
 # Changelog
 
+## wet 0.4.39
+
+- Departures at the chinook sites can be borrowed from the gauges whose
+  years PCIC’s model says move most like the stream’s
+  ([\#147](https://github.com/NewGraphEnvironment/wet/issues/147),
+  [\#167](https://github.com/NewGraphEnvironment/wet/issues/167)). Each
+  site report gains a section 6 that scores `covariance_pick` against
+  the five nearest gauges at the box’s PCIC-covered gauges, under a rule
+  registered before any run; it ships at Maxan, Naver and Gosnell
+  creeks, and Swift Creek keeps the nearest. The comparison article
+  carries each stream’s shipped route, says in plain words how donors
+  are chosen, and states Maxan’s 10-year 1951–1980 base;
+  [`wet_departure_carry()`](https://newgraphenvironment.github.io/wet/reference/wet_departure_carry.md)’s
+  help page gains the step-by-step. PCIC’s per-year files now come from
+  a per-machine cache filled from the public bucket, each file kept only
+  at its `pcic.series` size, with `WET_PCIC_YEARS` still naming any
+  other directory
+  ([\#135](https://github.com/NewGraphEnvironment/wet/issues/135)).
+
 ## wet 0.4.38
 
 - The README’s Ecosystem table lists crate, the canonical schemas and

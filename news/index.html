@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.38</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.39</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,6 +39,10 @@
       <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.39" id="wet-0439">wet 0.4.39<a class="anchor" aria-label="anchor" href="#wet-0439"></a></h2>
+<ul><li>Departures at the chinook sites can be borrowed from the gauges whose years PCIC’s model says move most like the stream’s (<a href="https://github.com/NewGraphEnvironment/wet/issues/147" class="external-link">#147</a>, <a href="https://github.com/NewGraphEnvironment/wet/issues/167" class="external-link">#167</a>). Each site report gains a section 6 that scores <code>covariance_pick</code> against the five nearest gauges at the box’s PCIC-covered gauges, under a rule registered before any run; it ships at Maxan, Naver and Gosnell creeks, and Swift Creek keeps the nearest. The comparison article carries each stream’s shipped route, says in plain words how donors are chosen, and states Maxan’s 10-year 1951–1980 base; <code><a href="../reference/wet_departure_carry.html">wet_departure_carry()</a></code>’s help page gains the step-by-step. PCIC’s per-year files now come from a per-machine cache filled from the public bucket, each file kept only at its <code>pcic.series</code> size, with <code>WET_PCIC_YEARS</code> still naming any other directory (<a href="https://github.com/NewGraphEnvironment/wet/issues/135" class="external-link">#135</a>).</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.38" id="wet-0438">wet 0.4.38<a class="anchor" aria-label="anchor" href="#wet-0438"></a></h2>
 <ul><li>The README’s Ecosystem table lists crate, the canonical schemas and provenance receipts wet’s published build writes through.</li>
