@@ -269,3 +269,7 @@ Log departures per series (mig: migration, spw: spawning), and the donor of each
   2023      -0.198     -0.998     -0.027     -0.293     -0.159     -0.049     -0.808     -0.322 08LB038   08LB038
   2024      -0.249     -0.397     -0.251     -0.231     -0.201     -0.282     -0.325     -0.172 08LB038   08LB038
   2025           -          -     -0.066     -0.174     -0.101     -0.036     -0.198     -0.074 08KA001   08KA001
+
+## 6. The carried route under covariance_pick (#147)
+
+The site run's section 6 ships distance here, so there is no second carried route to fit.

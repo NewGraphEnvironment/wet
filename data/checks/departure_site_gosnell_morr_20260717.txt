@@ -190,7 +190,7 @@ Before/after: mean carried departure 2011-2025 minus mean before 1981 (log, or d
 
 (max is reported, never scored, so its change has no interval.)
 
-The normal: wet's published segment_daily, build digest 0f4f8caa89691c2196a551c11b345918, on the mouth segment 139028198 (measure 0.0 m, edge type 1450), 1981-2010:
+The normal: wet's published segment_daily, build digest d554e3aad481d86bffa4baef687287ed, on the mouth segment 139028198 (measure 0.0 m, edge type 1450), 1981-2010:
   part wet_balance MORR md5 6e07e6b1272c490113e84225dcb7f5ab
   part pcic_routed MORR md5 8e6bcacf28ec9895e3a8c559e17d16be
 
@@ -202,11 +202,11 @@ The normal: wet's published segment_daily, build digest 0f4f8caa89691c2196a551c1
 
 The normal's error at the box gauges (migration-mean departure pool, snap accepted): log(published pick / observed 1981-2010 mean of the window's complete years).
 A gauge marked * is in the water balance's station set (data/wb/stations_20260717.rds), where the balance is fitted and publishes the gauge's own monthly shares, so it is partly in sample there.
-  parts read: wet_balance BABL 3f338142dff4cc788e952a45e4a65384; wet_balance BULK f4fc6fa48f2b1ad7168953cbf1690b69; wet_balance FRAN bd8189a02432a632718f7844c278bc82; wet_balance KISP 16ded1131995d31f2f0c1d088b3f70a9; wet_balance KITR 9c2aee242f4e53100d429476871e0669; wet_balance KLUM 9fc001cea2659dc35f4dba771f79d09d; wet_balance LEUT 75466bc0893536f0e3576697667a8d65; wet_balance LKEL 0beb5319e930cd150c6ed9b7f597f3e8; wet_balance LNAR f3c5f3da4286c98702fceb697f8be905; wet_balance MORR 6e07e6b1272c490113e84225dcb7f5ab; wet_balance TSAY b2dc6a7c0865d24a15745faa7e3c005c; wet_balance UEUT a12424e5510db1a18a132d5d7f108c26; wet_balance UNRS 739485bde8697ae53b439fb77041093b; wet_balance ZYMO 1baba2ef52c003e46fb08f0eeae3fedc; pcic_routed BABL f545ddef9e9322aadc05e42b52dfd7fc; pcic_routed BULK 3d9925107891a7dd532e944dbd599e05; pcic_routed FRAN d914084701b554c85d2c909fc313d097; pcic_routed KISP 7c7a31d1d016bf3127f8d077d2a24028; pcic_routed KITR 956dba5ab95434b2d310671aa75822f9; pcic_routed KLUM 80b7a3e3b9aaefe895752a83926d23f2; pcic_routed LEUT 0660d097079f070676ecd17fd077361a; pcic_routed LKEL 638eb0cf5b11f6bdd216d1c957178bcf; pcic_routed LNAR dcd0c10cbefee3e7e32c8316976052d3; pcic_routed MORR 8e6bcacf28ec9895e3a8c559e17d16be; pcic_routed TSAY e3bcbc74ae4a92e788c742ad9377fe3e; pcic_routed UEUT 904a5c5454ac762d700dd7de599c022f; pcic_routed UNRS e550c9b558c08649d4c8fccbfd056765; pcic_routed ZYMO d3ea8731dca6d3a86ef6a91fc166656a
+  parts read: wet_balance BABL 3f338142dff4cc788e952a45e4a65384; wet_balance BULK f4fc6fa48f2b1ad7168953cbf1690b69; wet_balance FRAN bd8189a02432a632718f7844c278bc82; wet_balance KISP 16ded1131995d31f2f0c1d088b3f70a9; wet_balance KITR 9c2aee242f4e53100d429476871e0669; wet_balance KLUM 9fc001cea2659dc35f4dba771f79d09d; wet_balance LEUT 0d81aa37573d981569f71e1a4921d312; wet_balance LKEL 0beb5319e930cd150c6ed9b7f597f3e8; wet_balance LNAR f3c5f3da4286c98702fceb697f8be905; wet_balance MORR 6e07e6b1272c490113e84225dcb7f5ab; wet_balance TSAY b2dc6a7c0865d24a15745faa7e3c005c; wet_balance UEUT 874cd58e5fe0dce92b809b84eae5c082; wet_balance UNRS 3dc980f0d9c55d61b41137227fc029f5; wet_balance ZYMO 1baba2ef52c003e46fb08f0eeae3fedc; pcic_routed BABL f545ddef9e9322aadc05e42b52dfd7fc; pcic_routed BULK 3d9925107891a7dd532e944dbd599e05; pcic_routed FRAN d914084701b554c85d2c909fc313d097; pcic_routed KISP 7c7a31d1d016bf3127f8d077d2a24028; pcic_routed KITR 956dba5ab95434b2d310671aa75822f9; pcic_routed KLUM 80b7a3e3b9aaefe895752a83926d23f2; pcic_routed LEUT 2b8855dcd73dc72e13f6dae7cc05f853; pcic_routed LKEL 638eb0cf5b11f6bdd216d1c957178bcf; pcic_routed LNAR dcd0c10cbefee3e7e32c8316976052d3; pcic_routed MORR 8e6bcacf28ec9895e3a8c559e17d16be; pcic_routed TSAY e3bcbc74ae4a92e788c742ad9377fe3e; pcic_routed UEUT 8fffaf01b1b491be43de9991fbc6f630; pcic_routed UNRS 524f5506f6b0d9778c699d86b86220f8; pcic_routed ZYMO d3ea8731dca6d3a86ef6a91fc166656a
 
   window         n       q25    median       q75    n (no *)    median   med |r|
-  migration     29    -0.053     0.046     0.256           7     0.046     0.088
-  spawning      29    -0.204     0.040     0.318           7     0.318     0.362
+  migration     29    -0.073     0.046     0.256           7     0.046     0.161
+  spawning      29    -0.204    -0.003     0.232           7    -0.148     0.340
 
   gauge     window     base   observed  published source       log ratio
   08DB001*  migration    30   1412.640   1438.586 pcic_routed      0.018
@@ -257,14 +257,14 @@ A gauge marked * is in the water balance's station set (data/wb/stations_2026071
   08FF005   spawning     13      0.610      0.526 pcic_routed     -0.148
   08FF006*  migration    13      0.276      0.446 pcic_routed      0.478
   08FF006*  spawning     14      0.429      0.338 pcic_routed     -0.237
-  08JA015*  migration    30     10.123      7.687 wet_balance     -0.275
-  08JA015*  spawning     30      5.382      4.087 wet_balance     -0.275
-  08JA016*  migration    12      1.747      1.809 wet_balance      0.035
-  08JA016*  spawning     14      0.509      0.529 wet_balance      0.040
-  08JA028*  migration    10     90.272     59.543 wet_balance     -0.416
-  08JA028*  spawning     10     53.244     35.119 wet_balance     -0.416
-  08JA029   migration    13      0.208      0.212 wet_balance      0.020
-  08JA029   spawning     13      0.074      0.106 wet_balance      0.362
+  08JA015*  migration    30     10.123      7.998 pcic_routed     -0.236
+  08JA015*  spawning     30      5.382      2.302 pcic_routed     -0.849
+  08JA016*  migration    12      1.747      1.191 pcic_routed     -0.383
+  08JA016*  spawning     14      0.509      0.536 pcic_routed      0.052
+  08JA028*  migration    10     90.272     83.357 pcic_routed     -0.080
+  08JA028*  spawning     10     53.244     24.553 pcic_routed     -0.774
+  08JA029   migration    13      0.208      0.134 pcic_routed     -0.441
+  08JA029   spawning     13      0.074      0.062 pcic_routed     -0.175
   08JB013   migration    12      0.090      0.094 pcic_routed      0.046
   08JB013   spawning     12      0.019      0.014 pcic_routed     -0.340
 
@@ -913,3 +913,229 @@ The gauges the 1951-1980 years rest on (extended: years per source; carried: eve
   spawning cov_day: carried 08ED001, 08ED002, 08EE003, 08EE013, 08EE020.
   migration max: carried 08ED001, 08ED002, 08EE003, 08EE013, 08EE020.
   spawning max: carried 08ED001, 08ED002, 08EE003, 08EE013, 08EE020.
+
+## 6. covariance_pick where PCIC covers the site (#147)
+
+PCIC's per-year sub-basin days: 62 files, 1951-2012, built by NewGraphEnvironment/fwapg at 26d75826bc8dc7bf7308d86e06f15fac70fb5ba8 (pcic.series); rows md5 53c39c4e23343f64ff48d1c46b0ce187; their 1981-2010 bins for the 196 sub-basins read held to the 1981-2010 run's pcic.subbasin_daily (worst 0.24 of the bound).
+Covered (snap accepted and a pcic.segment_weights row): 50 of 54 box-pool gauges; not covered: 08EC014, 08JA002, 08JA005, 08JA006. The target, gosnell: covered.
+Leave-one-gauge-out over each statistic's covered departure pool, k = 5 from the rest, both weightings on the same years (centred log NSE, days for cov_day); leak-free drops each gauge's related gauges:
+
+  setting                       n     q25   dist    q75     q25 cov_pk    q75  fall   km d   km c
+  migration mean               29    0.48   0.62   0.75    0.55   0.66   0.80     0     52     60
+  spawning mean                29    0.37   0.68   0.82    0.57   0.72   0.84     0     52     58
+  migration min7               29   -0.14   0.29   0.64    0.29   0.49   0.56     0     52     73
+  spawning min7                29   -0.07   0.39   0.68    0.39   0.57   0.70     0     52     66
+  migration cov_day (days)     29    0.31   0.67   0.81    0.46   0.76   0.84     0     52     64
+  spawning cov_day (days)      29    0.44   0.59   0.77    0.52   0.66   0.81     0     52     68
+  leak-free                    29    0.42   0.57   0.74    0.55   0.66   0.78     0     58     60
+
+(dist, cov_pk: distance's and covariance_pick's quartiles and median; fall: scored gauges where covariance_pick fell back to distance; km d, km c: the median over the scored gauges of the mean ground distance to the donors used.)
+Section 3's distance (donors from the whole departure pool, covered or not), migration mean, at the 29 of these 29 scored gauges that section 3 also scores: median 0.62, deciding nothing.
+
+Per gauge, migration mean (years scored, distance, covariance_pick):
+
+  08DB001  83   0.17   0.21   08ED001  51   0.86   0.91   08ED002  61   0.24   0.75
+  08ED004  27   0.79   0.82   08EE003  44   0.62   0.65   08EE004  72   0.57   0.85
+  08EE008  53   0.73   0.75   08EE012  50   0.49   0.66   08EE013  50   0.66   0.81
+  08EE020  49  -0.64   0.41   08EE025  42   0.56   0.55   08EE028  10  -0.69   0.03
+  08EF001  89   0.75   0.07   08EF005  60   0.81   0.80   08EF006  26   0.74   0.68
+  08EG011  31   0.73   0.80   08EG017  17   0.77   0.62   08EG018  26   0.48   0.60
+  08FE003  53   0.57   0.62   08FF001  58   0.92   0.91   08FF002  57   0.89   0.90
+  08FF003  58   0.80   0.80   08FF005  13   0.52   0.83   08FF006  27   0.64   0.62
+  08JA015  47   0.41   0.32   08JA016  16   0.28   0.15   08JA028  12   0.72   0.65
+  08JA029  26   0.54   0.69   08JB013  25   0.38   0.49
+
+VERDICT (#147's rule, migration mean): covariance_pick ships; gain 0.037 leave-one-out, 0.086 leak-free.
+
+The carried route at gosnell under covariance_pick, from its covered pool less itself (k = 5 of the 15 nearest).
+Before/after (2011-2025 minus before 1981), 90 % interval from 2000 draws adding a held-out covariance_pick residual to each year, set.seed(147); and 1951-1980 to 2016-2025, with its interval (set.seed(1471)) and cover (set.seed(1472)), as section 5:
+
+  statistic window     pre post   carried  % normal      90 % interval    ref  rec   carried  % normal      90 % interval  cover
+  mean      migration   50   14    -0.052      -5.1      -18.2..10.3 %     30    9    -0.145     -13.5       -27.6..3.4 %  0.952
+  mean      spawning    21   15    -0.118     -11.1      -34.8..20.1 %     21   10    -0.173     -15.9      -42.2..22.6 %  0.950
+  min7      migration   26   15    -0.562     -43.0     -61.6..-15.1 %     17   10    -0.636     -47.1     -66.0..-18.8 %  0.980
+  min7      spawning    50   14    -0.221     -19.8       -39.3..6.8 %     30    9    -0.307     -26.5       -48.2..3.0 %  0.992
+  cov_day   migration   20   14    -7.740         -        -15.0..-0.5     20    9    -7.800         -         -16.4..0.2  0.978
+  cov_day   spawning    21   14     1.104         -          -2.2..4.2     21    9     0.190         -          -3.5..4.0  0.949
+  max       migration   50   14     0.025       2.5                  -     30    9    -0.139     -12.9                  -      -
+  max       spawning    21   14     0.265      30.4                  -     21    9     0.166      18.0                  -      -
+
+No covered donor, so not carried: none.
+Fell back to distance at the target: none.
+The gauges the 1951-1980 years rest on (every donor named in those years):
+  migration mean: carried 08EE004, 08EE008, 08EE013, 08EF005, 08JA015.
+  spawning mean: carried 08EE008, 08EF005, 08FF001, 08FF002, 08FF003.
+  migration min7: carried 08EE003, 08EE013, 08FF001, 08FF002, 08FF003.
+  spawning min7: carried 08ED001, 08EE004, 08EE008, 08EF005, 08FF002.
+  migration cov_day: carried 08ED002, 08EE008, 08EF005, 08FF002, 08JA015.
+  spawning cov_day: carried 08EE008, 08EE020, 08EF005, 08FF001, 08JA015.
+  migration max: carried 08EE003, 08EE004, 08EE013, 08EF005, 08JA016.
+  spawning max: carried 08EE008, 08EF005, 08FF001, 08FF002, 08JA015.
+
+Under covariance_pick, migration mean per year at gosnell: the carried departure (% of normal) and the window flow, the normal (23.958 m3/s) times exp(departure):
+
+  year   carried      m3/s   n
+  1931     -11.3    21.248   1
+  1932      -0.8    23.769   1
+  1933      -5.5    22.629   1
+  1934       2.8    24.627   1
+  1935      -2.5    23.352   1
+  1936       6.3    25.461   1
+  1937       0.1    23.989   1
+  1938      -3.2    23.187   1
+  1939      25.8    30.133   1
+  1940      18.8    28.450   1
+  1941     -10.0    21.564   1
+  1942       3.9    24.903   1
+  1943     -15.7    20.198   1
+  1944     -21.6    18.773   1
+  1945      -7.3    22.202   1
+  1946      15.5    27.662   1
+  1947      -2.4    23.387   1
+  1948      20.0    28.761   1
+  1949      -3.9    23.018   1
+  1950      -4.2    22.951   1
+  1951      -9.0    21.810   1
+  1952       0.6    24.095   1
+  1953      13.8    27.275   1
+  1954      26.2    30.239   1
+  1955     -20.7    18.988   1
+  1956     -20.4    19.082   1
+  1957      14.9    27.522   1
+  1958       9.0    26.107   1
+  1959      15.2    27.598   1
+  1960       8.2    25.926   1
+  1961       3.2    24.728   2
+  1962       1.7    24.361   2
+  1963      -4.3    22.933   2
+  1964      19.2    28.567   3
+  1965     -10.3    21.479   3
+  1966       7.2    25.686   3
+  1967      19.6    28.642   3
+  1968      28.0    30.671   3
+  1969       5.5    25.278   3
+  1970     -10.5    21.435   3
+  1971       8.4    25.981   3
+  1972      35.3    32.426   2
+  1973      12.4    26.922   4
+  1974       9.4    26.208   4
+  1975      -5.6    22.612   4
+  1976      65.5    39.658   4
+  1977     -10.0    21.553   5
+  1978      -6.8    22.317   5
+  1979       2.9    24.657   5
+  1980     -20.8    18.969   5
+  1981       3.8    24.873   5
+  1982      -2.0    23.484   5
+  1983     -17.6    19.752   5
+  1984     -13.6    20.698   4
+  1985       3.5    24.803   5
+  1986       0.6    24.112   5
+  1987       0.7    24.130   5
+  1988      -3.3    23.173   5
+  1989      -6.7    22.364   5
+  1990       4.5    25.033   5
+  1991      -9.4    21.712   5
+  1992      -0.6    23.811   5
+  1993      -1.6    23.578   5
+  1994      -3.8    23.044   5
+  1995     -17.6    19.740   5
+  1996      14.6    27.455   5
+  1997      31.7    31.545   5
+  1998      -7.6    22.127   5
+  1999      19.8    28.691   5
+  2000     -21.8    18.742   5
+  2001      -9.3    21.738   5
+  2002      43.4    34.362   5
+  2003     -21.9    18.705   5
+  2004     -14.3    20.543   5
+  2005     -18.4    19.545   5
+  2006     -28.8    17.067   5
+  2007      57.9    37.818   5
+  2008      -4.2    22.950   5
+  2009      12.2    26.874   5
+  2010     -14.0    20.608   5
+  2011      46.2    35.023   5
+  2012      33.0    31.861   5
+  2013      -6.7    22.348   5
+  2014     -14.8    20.402   5
+  2015       9.7    26.291   5
+  2016     -25.0    17.976   4
+  2017      14.9    27.517   5
+  2018       9.3    26.175   5
+  2019     -20.7    18.998   5
+  2020      -3.6    23.092   5
+  2021       9.1    26.146   5
+  2022      14.2    27.368   5
+  2023     -16.8    19.944   5
+  2024     -44.5    13.289   3
+
+Under covariance_pick, spawning mean per year at gosnell: the carried departure (% of normal) and the window flow, the normal (5.339 m3/s) times exp(departure):
+
+  year   carried      m3/s   n
+  1960      42.7     7.620   1
+  1961     -12.5     4.674   1
+  1962     -21.3     4.202   1
+  1963       5.6     5.639   1
+  1964       7.5     5.737   3
+  1965     -29.8     3.749   3
+  1966      16.2     6.206   5
+  1967      62.2     8.662   5
+  1968      40.7     7.511   5
+  1969       5.3     5.622   5
+  1970     -11.5     4.726   5
+  1971      26.0     6.729   5
+  1972     -18.0     4.377   4
+  1973      45.8     7.785   5
+  1974      23.7     6.607   5
+  1975     -30.1     3.734   5
+  1976      34.7     7.192   5
+  1977     -44.4     2.967   5
+  1978      -9.2     4.846   5
+  1979      -8.7     4.873   5
+  1980      38.2     7.380   5
+  1981     -12.9     4.653   5
+  1982     -17.4     4.409   5
+  1983      -7.6     4.935   5
+  1984      32.7     7.083   5
+  1985     -43.4     3.021   5
+  1986     -33.9     3.528   5
+  1987      70.5     9.103   5
+  1988      23.7     6.606   5
+  1989     -44.1     2.986   5
+  1990     -60.0     2.138   5
+  1991     -36.7     3.380   5
+  1992     136.8    12.645   5
+  1993     -58.1     2.237   5
+  1994      19.6     6.384   5
+  1995     -50.6     2.639   5
+  1996       8.0     5.769   5
+  1997     -37.4     3.342   5
+  1998      -7.5     4.938   5
+  1999     -13.1     4.638   5
+  2000       7.6     5.743   5
+  2001      41.3     7.545   5
+  2002      45.6     7.774   5
+  2003      16.7     6.230   5
+  2004      22.9     6.564   5
+  2005     -13.5     4.618   5
+  2006     -53.7     2.474   5
+  2007      -3.5     5.151   5
+  2008     -25.8     3.960   5
+  2009       0.5     5.367   5
+  2010      36.3     7.279   5
+  2011      84.5     9.850   5
+  2012     -17.1     4.426   5
+  2013      -7.7     4.927   5
+  2014     -24.4     4.037   5
+  2015       8.1     5.770   5
+  2016       4.2     5.564   5
+  2017      11.2     5.939   5
+  2018     -69.2     1.645   5
+  2019     -26.3     3.934   5
+  2020      29.1     6.892   5
+  2021      58.6     8.467   5
+  2022     -39.4     3.234   5
+  2023     -54.4     2.432   5
+  2024      41.2     7.540   3
+  2025      22.1     6.522   1

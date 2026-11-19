@@ -100,14 +100,17 @@ In `scripts/departure_site.R`'s header, a "New in #147" block:
 
 ## Phase 4: rerun the sites
 
-- [ ] Check first: the database (bare `PG*`) holds the 1951–2012 run's `pcic.subbasin_daily`,
+- [x] Check first: the database (bare `PG*`) holds the 1951–2012 run's `pcic.subbasin_daily`,
       `pcic.segment_weights` and `pcic.series`; probe with `connect_timeout = 10`.
-- [ ] `departure_site.R` for maxan, swift, naver, gosnell (BULK) and gosnell (MORR), then
+- [x] `departure_site.R` for maxan, swift, naver, gosnell (BULK) and gosnell (MORR), then
       `departure_site_snow.R` for each, from frozen copies; logs under `data/logs/167/`.
-- [ ] `git diff data/checks/departure_site*`: only appended lines after section 5's last line
+- [x] `git diff data/checks/departure_site*`: only appended lines after section 5's last line
       (the reports print no code md5). If any line in sections 1–5 moved, stop and find the cause;
       do not accept the new lines. Maxan BULK still passes both parity gates. Record each site's coverage
       (answers "are the Morice and upper Fraser boxes covered") and verdict.
+
+
+Result: covariance_pick ships at Maxan, Naver and Gosnell (both window sets); distance at Swift (leak-free gain 0.000). Every box is covered (Morice 50/54, upper Fraser 27/30). Maxan, Swift and Naver reports and all five snow reports only gain lines. Gosnell's two reports also change 12 lines in sections 1–5: the published build moved (digest 0f4f8caa → d554e3aa, #163's upload of 13 parts on 2026-11-14 changed LEUT, UEUT, UNRS), so four Nechako box gauges' normal-error rows and the two summary rows changed; the mouth's normal is unchanged. Accepted: the old build no longer exists, and `chinook_sites_data.R` refuses any build but the live one.
 
 ## Phase 5: article, bundles, docs
 
