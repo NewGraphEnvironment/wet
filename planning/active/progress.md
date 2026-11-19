@@ -14,3 +14,4 @@
 - Phase 3: `site_carry_ship()` in `scripts/departure_site_lib.R` with `tests/testthat/test-departure_site_rule.R`; section 6 in `scripts/departure_site.R` (PCIC prep before the window loop, scoring and the shipped route inside it, `cov` in the rds). The modelled statistics are built inline as #122 builds them (`wet_routed_years()` then `wet_window_stats()`), so no new lib helper was needed. The snow script's covariance series waits for the verdicts: it is needed only where a site ships covariance_pick
 - Plan review delivered (findings and verdicts in `planning/active/review-plan.md`); header amended before any run; departure_pcic.R names #135's change
 - Code-check round 1 (spawned 05:25Z): 1 bug, the ungauged mouth's integer64 id zeroed by rbind (reproduced, fixed with an assertion)
+- Code-check round 2 (05:33Z): 2 fragile (section 6 stopped the run where PCIC covers little; the section 3 comparison line counted other gauges); both fixed

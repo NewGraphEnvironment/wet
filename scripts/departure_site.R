@@ -150,7 +150,9 @@
 # leak-free relations already use) is accepted and whose segment has a
 # pcic.segment_weights row (#122's definition); for an ungauged
 # site, the mouth segment above. Section 6 needs fwapg; without it the run
-# stops rather than writing a report that lacks it.
+# stops rather than writing a report that lacks it. Where PCIC covers no box
+# gauge, or a gauge has no donor left, section 6 reports that and nothing is
+# scored there, so distance ships by the rule below.
 #
 # Modelled years, as #122 builds them: each covered segment routed day by day
 # over 1951-2012 from fwapg's per-year sub-basin days (wet_routed_years(); the
@@ -378,23 +380,29 @@ if (site$kind == "ungauged") {
 }
 cov_seg$linear_feature_id <- as.integer(cov_seg$linear_feature_id)
 stopifnot(!anyNA(cov_seg$linear_feature_id), all(cov_seg$linear_feature_id > 0))
-cov_w <- routed_weights(conn, cov_seg$linear_feature_id)
+cov_w <- if (nrow(cov_seg)) routed_weights(conn, cov_seg$linear_feature_id) else NULL
 cov_seg <- cov_seg[cov_seg$linear_feature_id %in% cov_w$linear_feature_id, ]
 if (site$kind == "ungauged") {
   # the mouth stays exactly when its segment has a weights row
   stopifnot(identical(target %in% cov_seg$station_number,
                       as.integer(as.numeric(mouth$segment$linear_feature_id)) %in% cov_w$linear_feature_id))
 }
-cov_dir <- routed_years_dir(conn, pcic_years)
-cov_check <- routed_years_check(conn, cov_dir, pcic_years, period = "1951-2012")
-cov_subs <- sort(unique(c(cov_w$subid, unlist(cov_w$upstream_subids))))
-cov_par <- routed_years_check(conn, cov_dir, 1981:2010, period = "1981-2010", subs = cov_subs)$parity
-n_days_pcic <- sum(365 + (pcic_years %% 4 == 0))
-cov_days <- do.call(rbind, lapply(split(seq_len(nrow(cov_w)), ceiling(seq_len(nrow(cov_w)) / 40)), function(i) {
-  q <- wet_routed_years(cov_dir, cov_w[i, ], years = pcic_years, series = pcic_series)
-  stopifnot(nrow(q) == length(i) * n_days_pcic)
-  q
-}))
+# where PCIC covers no box gauge and no mouth, nothing is read: section 6 says so and distance ships
+cov_check <- NULL
+cov_par <- NULL
+cov_days <- NULL
+if (nrow(cov_seg)) {
+  cov_dir <- routed_years_dir(conn, pcic_years)
+  cov_check <- routed_years_check(conn, cov_dir, pcic_years, period = "1951-2012")
+  cov_subs <- sort(unique(c(cov_w$subid, unlist(cov_w$upstream_subids))))
+  cov_par <- routed_years_check(conn, cov_dir, 1981:2010, period = "1981-2010", subs = cov_subs)$parity
+  n_days_pcic <- sum(365 + (pcic_years %% 4 == 0))
+  cov_days <- do.call(rbind, lapply(split(seq_len(nrow(cov_w)), ceiling(seq_len(nrow(cov_w)) / 40)), function(i) {
+    q <- wet_routed_years(cov_dir, cov_w[i, ], years = pcic_years, series = pcic_series)
+    stopifnot(nrow(q) == length(i) * n_days_pcic)
+    q
+  }))
+}
 
 if (!is.null(conn)) DBI::dbDisconnect(conn)
 
@@ -1220,9 +1228,14 @@ for (m in mx) {
 }
 
 # ---- section 6 (#147): covariance_pick where PCIC covers the site, after every draw above -------
-cws <- wet_window_stats(cov_days, windows, stats = c("mean", "min7", "max", "cov_day"), by = "linear_feature_id")
-mod <- merge(cov_seg, cws[c("linear_feature_id", "variable", "period", "year", "value")],
-             by = "linear_feature_id")[c("station_number", "variable", "period", "year", "value")]
+mod <- if (is.null(cov_days)) {
+  data.frame(station_number = character(), variable = character(), period = character(), year = integer(),
+             value = numeric())
+} else {
+  cws <- wet_window_stats(cov_days, windows, stats = c("mean", "min7", "max", "cov_day"), by = "linear_feature_id")
+  merge(cov_seg, cws[c("linear_feature_id", "variable", "period", "year", "value")],
+        by = "linear_feature_id")[c("station_number", "variable", "period", "year", "value")]
+}
 mod <- mod[order(mod$station_number, mod$variable, mod$period, mod$year), ]
 rownames(mod) <- NULL
 covered <- sort(unique(cov_seg$station_number))
@@ -1243,7 +1256,13 @@ donor_km <- function(g, a) {
 }
 # one held-out gauge under both weightings, scored on the same years; covariance_pick's residuals over
 # its own years with the observed, as section 3 pools them for #126's interval
+cov_na <- function(g) {
+  list(row = data.frame(gauge = g, n = 0L, distance = NA_real_, covariance_pick = NA_real_, fallback = FALSE,
+                        km_distance = NA_real_, km_covariance_pick = NA_real_), resid = numeric())
+}
 cov_one <- function(g, v, p, donors) {
+  # a gauge with no donor left (a pool of one, or every other gauge related to it) is not scored
+  if (!any(wsel(v, p)$station_number %in% setdiff(donors, g))) return(cov_na(g))
   a <- lapply(weightings, function(w) cov_carry(g, v, p, donors, w))
   o <- wsel(v, p)
   o <- o[o$station_number == g, ]
@@ -1275,7 +1294,7 @@ cov_one <- function(g, v, p, donors) {
 cov_run <- function(v, p, drop = NULL) {
   cp <- cov_pool(v, p)
   hs <- lapply(cp, function(g) cov_one(g, v, p, setdiff(cp, drop[[g]])))
-  held <- do.call(rbind, lapply(hs, `[[`, "row"))
+  held <- do.call(rbind, c(list(cov_na("none")$row[0, ]), lapply(hs, `[[`, "row")))
   # both weightings are scored at the same gauges on the same years
   stopifnot(identical(is.na(held$distance), is.na(held$covariance_pick)))
   list(held = held, resid = unlist(lapply(hs, `[[`, "resid")), v = v, p = p)
@@ -1299,9 +1318,10 @@ verdict <- site_carry_ship(med_of(cov_runs[["migration mean"]]), med_of(cov_runs
                            donors = length(setdiff(cov_pool("q_mean", "migration"), target)))
 
 say("", "## 6. covariance_pick where PCIC covers the site (#147)", "",
-    sprintf("PCIC's per-year sub-basin days: %d files, %d-%d, built by NewGraphEnvironment/fwapg at %s (pcic.series); rows md5 %s; their 1981-2010 bins for the %d sub-basins read held to the 1981-2010 run's pcic.subbasin_daily (worst %s of the bound).",
-            length(cov_check$files), min(pcic_years), max(pcic_years), cov_check$commit, cov_check$catalogue_md5,
-            cov_par$subbasins, fmt(cov_par$worst)),
+    if (is.null(cov_check)) "PCIC's per-year sub-basin days: not read, since PCIC covers no box gauge and no target here." else
+      sprintf("PCIC's per-year sub-basin days: %d files, %d-%d, built by NewGraphEnvironment/fwapg at %s (pcic.series); rows md5 %s; their 1981-2010 bins for the %d sub-basins read held to the 1981-2010 run's pcic.subbasin_daily (worst %s of the bound).",
+              length(cov_check$files), min(pcic_years), max(pcic_years), cov_check$commit, cov_check$catalogue_md5,
+              cov_par$subbasins, fmt(cov_par$worst)),
     sprintf("Covered (snap accepted and a pcic.segment_weights row): %d of %d box-pool gauges; not covered: %s. The target, %s: %s.",
             sum(pool$station_number %in% covered), nrow(pool),
             if (all(pool$station_number %in% covered)) "none" else paste(setdiff(pool$station_number, covered), collapse = ", "),
@@ -1317,7 +1337,8 @@ for (nm in names(cov_runs)) {
               fmt(qd[3]), fmt(qc[1]), fmt(qc[2]), fmt(qc[3]), sum(h$fallback), fmt(stats::median(h$km_distance), 0),
               fmt(stats::median(h$km_covariance_pick), 0)))
 }
-s3 <- cm$held[cm$held$gauge %in% cov_runs[["migration mean"]]$held$gauge, ]
+h6 <- cov_runs[["migration mean"]]$held
+s3 <- cm$held[cm$held$gauge %in% h6$gauge[!is.na(h6$distance)], ]
 say("", "(dist, cov_pk: distance's and covariance_pick's quartiles and median; fall: gauges where covariance_pick fell back to distance; km d, km c: the median over gauges of the mean ground distance to the donors used.)",
     sprintf("Section 3's distance (donors from the whole departure pool, covered or not) at the same %d gauges, migration mean: median %s, deciding nothing.",
             sum(!is.na(s3$nse)), fmt(med_na(s3$nse))),
@@ -1404,7 +1425,8 @@ if (verdict$ship == "covariance_pick") {
   }
 }
 cov_out <- list(verdict = verdict, covered = covered, scores = lapply(cov_runs, `[[`, "held"),
-                pcic = list(commit = cov_check$commit, catalogue_md5 = cov_check$catalogue_md5, parity = cov_par),
+                pcic = if (is.null(cov_check)) NULL else
+                  list(commit = cov_check$commit, catalogue_md5 = cov_check$catalogue_md5, parity = cov_par),
                 mx = cov_mx)
 
 # ---- the parity gate (maxan, BULK): #120's tracked report, before anything is written ----------
