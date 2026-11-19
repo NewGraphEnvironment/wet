@@ -77,3 +77,15 @@ Public, anonymous 200: `https://fresh-bc.s3.us-west-2.amazonaws.com/fwapg/extras
   (gain 0.049 and 0.094).
 - m1 has no snow normals grid; copied m4's `data/snow/snow_19812010_4816dbcca8.tif` (md5 1c002ccd…,
   equal on both) so the Maxan snow parity table can run here.
+
+## The short-record bundle (Phase 5)
+
+Rebuilt on m1 after the site reruns, `inst/vignette-data/short_record_values.rds` differed from the
+committed one (built on m4) in `carried`, `change`, `departures`, `fits` (at most 2e-14) and `snow`,
+`snow_change` (at most 3e-11), all `all.equal()` TRUE, beside the new report md5s. The Maxan report
+lines it reads are byte-identical (sections 1–5). The committed bundle is kept: committing the
+m1 rebuild would churn values by rounding (r-packages.md, "rebuild where it was built when values
+pass through BLAS"), and nothing holds its recorded report md5 to the tracked report
+(`test-vignette_data.R` checks only that the field exists). That article stays on distance at
+Maxan (#120's record), while the comparison article now borrows Maxan's departures through
+covariance_pick.

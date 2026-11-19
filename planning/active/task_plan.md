@@ -94,7 +94,7 @@ In `scripts/departure_site.R`'s header, a "New in #147" block:
 - [x] Modelled window statistics helper shared from `scripts/pcic_routed_lib.R` (reading the cache
       through `wet_pcic_years_dir()`); `scripts/departure_site.R` section 6, its report lines, and
       `cov` in the rds (scores, verdict, covariance `mx` entries).
-- [ ] (after Phase 4's verdicts: needed only if a site ships covariance_pick) `scripts/departure_site_snow.R`: where the site's verdict is covariance_pick, an added
+- [x] (after Phase 4's verdicts: needed only if a site ships covariance_pick) `scripts/departure_site_snow.R`: where the site's verdict is covariance_pick, an added
       "carried (covariance_pick)" series; the distance series and #121's lines unchanged.
 - [x] `tests/testthat/test-departure_site_parity.R` passes on the tracked reports.
 
@@ -114,17 +114,17 @@ Result: covariance_pick ships at Maxan, Naver and Gosnell (both window sets); di
 
 ## Phase 5: article, bundles, docs
 
-- [ ] `data-raw/chinook_sites_data.R` (hold the ungauged per-year lines only against the report before `## 6.`, code-check round 4): the carried route from section 6 where the verdict is
+- [x] `data-raw/chinook_sites_data.R` (hold the ungauged per-year lines only against the report before `## 6.`, code-check round 4): the carried route from section 6 where the verdict is
       covariance_pick (every year held to section 6's per-year lines), the weighting and both scores
       per site from section 6's table (same pool), covariance donors added to `gauges`; rebuild.
-- [ ] `data-raw/chinook_sites_map.R`: rebuild, so covariance donors are drawn.
-- [ ] Snow: where covariance ships, the snow script's covariance series and fits go in a table of
+- [x] `data-raw/chinook_sites_map.R`: rebuild, so covariance donors are drawn.
+- [x] Snow: where covariance ships, the snow script's covariance series and fits go in a table of
       their own after every line #121 has (a new column in the per-year table breaks #121's parity);
       the article's snow claims say which carried series they read.
-- [ ] `vignettes/articles/flow-change-sparse-gauges.Rmd`: say how donors are weighted at each site
+- [x] `vignettes/articles/flow-change-sparse-gauges.Rmd`: say how donors are weighted at each site
       and that PCIC's modelled years chose them where that won; update guards and numbers; word cap
       counted (raise rather than cut a required restatement).
-- [ ] Rebuild `data-raw/short_record_vignette_data.R` (the Maxan report's md5 moves); assert every
+- [x] (rebuilt, differences only by rounding, committed bundle kept: findings.md) Rebuild `data-raw/short_record_vignette_data.R` (the Maxan report's md5 moves); assert every
       element but provenance `identical()` to the old bundle. That article stays on distance at
       Maxan (it is #120's record); say so in the final report if Maxan ships covariance_pick.
 - [ ] `research/chinook_sites.md` and `CLAUDE.md` (the #126 paragraph: carry no longer fixed at
