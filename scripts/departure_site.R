@@ -1334,13 +1334,13 @@ for (nm in names(cov_runs)) {
   qd <- stats::quantile(h$distance, c(0.25, 0.5, 0.75), na.rm = TRUE, names = FALSE)
   qc <- stats::quantile(h$covariance_pick, c(0.25, 0.5, 0.75), na.rm = TRUE, names = FALSE)
   say(sprintf("  %-26s %4d  %6s %6s %6s  %6s %6s %6s  %4d %6s %6s", nm, n_of(cov_runs[[nm]]), fmt(qd[1]), fmt(qd[2]),
-              fmt(qd[3]), fmt(qc[1]), fmt(qc[2]), fmt(qc[3]), sum(h$fallback),
+              fmt(qd[3]), fmt(qc[1]), fmt(qc[2]), fmt(qc[3]), sum(h$fallback[!is.na(h$covariance_pick)]),
               fmt(med_na(h$km_distance[!is.na(h$covariance_pick)]), 0),
               fmt(med_na(h$km_covariance_pick[!is.na(h$covariance_pick)]), 0)))
 }
 h6 <- cov_runs[["migration mean"]]$held
 s3 <- cm$held[cm$held$gauge %in% h6$gauge[!is.na(h6$distance)], ]
-say("", "(dist, cov_pk: distance's and covariance_pick's quartiles and median; fall: gauges where covariance_pick fell back to distance; km d, km c: the median over the scored gauges of the mean ground distance to the donors used.)",
+say("", "(dist, cov_pk: distance's and covariance_pick's quartiles and median; fall: scored gauges where covariance_pick fell back to distance; km d, km c: the median over the scored gauges of the mean ground distance to the donors used.)",
     sprintf("Section 3's distance (donors from the whole departure pool, covered or not), migration mean, at the %d of these %d scored gauges that section 3 also scores: median %s, deciding nothing.",
             sum(!is.na(s3$nse)), sum(!is.na(h6$distance)), fmt(med_na(s3$nse))),
     "", "Per gauge, migration mean (years scored, distance, covariance_pick):", "",

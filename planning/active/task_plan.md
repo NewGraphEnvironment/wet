@@ -111,7 +111,7 @@ In `scripts/departure_site.R`'s header, a "New in #147" block:
 
 ## Phase 5: article, bundles, docs
 
-- [ ] `data-raw/chinook_sites_data.R`: the carried route from section 6 where the verdict is
+- [ ] `data-raw/chinook_sites_data.R` (hold the ungauged per-year lines only against the report before `## 6.`, code-check round 4): the carried route from section 6 where the verdict is
       covariance_pick (every year held to section 6's per-year lines), the weighting and both scores
       per site from section 6's table (same pool), covariance donors added to `gauges`; rebuild.
 - [ ] `data-raw/chinook_sites_map.R`: rebuild, so covariance donors are drawn.
