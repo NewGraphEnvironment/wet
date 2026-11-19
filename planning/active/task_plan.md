@@ -129,17 +129,17 @@ Result: covariance_pick ships at Maxan, Naver and Gosnell (both window sets); di
       Maxan (it is #120's record); say so in the final report if Maxan ships covariance_pick.
 - [x] `research/chinook_sites.md` and `CLAUDE.md` (the #126 paragraph: carry no longer fixed at
       inverse distance everywhere; `WET_PCIC_YEARS` default).
-- [ ] Render the article; read guards and word count; offer the rendered page.
+- [x] Render the article; read guards and word count; offer the rendered page.
 
 ## Owed at the end (reported, done after merge)
 
-- [ ] Batch 7's new move picks up #142 and #144 (filed in Phase 0, not owed work here).
+- [x] Batch 7's new move picks up #142 and #144: filed as #179 in Phase 0; nothing owed after the merge.
 
 ## Validation
 
-- [ ] Tests pass
-- [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
+- [x] Tests pass
+- [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
 Verification: the cache by its unit tests and a filled cache passing `routed_years_check()`; the
