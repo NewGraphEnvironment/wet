@@ -25,7 +25,7 @@ ticked and not **waiting**; `/planning-init <umbrella>` plans it, one phase per 
 | - [x] 2 | #164 | 3: the published build's record (4 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/172 |
 | - [x] 3 | #165 | 4, 5: article bundles and maps, docs (4 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/173 |
 | - [x] 4 | #166 | 6: monthly error at the gauges (3 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/175 |
-| - [ ] 5 | #167 | 8: PCIC's per-year files at the sites (2 issues) | open |
+| - [x] 5 | #167 | 8: PCIC's per-year files at the sites (2 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/180 |
 | - [ ] 6 | #168 | 9: the channel-scale pilot (1 issue) | open |
 | - [ ] 7 | #169 | 10: scenarios and coverage (2 issues) | **waiting** on move 6's verdict in `research/pcic_channel_scale.md` |
 | - [ ] 8 | #179 | 7: stations beyond HYDAT (2 issues) | open |
@@ -151,7 +151,7 @@ networks hold no station with a 1981–2010 baseline, so they add no donor there
 
 ### 8. PCIC's per-year files at the sites
 
-- [ ] Carried by move 5, #167
+- [x] Carried by move 5, #167 (merged in https://github.com/NewGraphEnvironment/wet/pull/180)
 
 #135 caches PCIC's per-year files as `wet_hydat()` caches HYDAT, so #147's `covariance_pick` at the
 chinook sites runs without a hand-made directory.
