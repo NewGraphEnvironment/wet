@@ -34,12 +34,12 @@ Water Tool) add carry donors at the four chinook sites, and that #147's `covaria
 
 ## Phase 0: scope
 
-- [ ] Edit #167's body: batch 7 moved out, with the box counts above; the move is #135 + #147.
-- [ ] File a new umbrella issue for batch 7 (#142, #144) and add it to `planning/backlog.md` as its
+- [x] Edit #167's body: batch 7 moved out, with the box counts above; the move is #135 + #147.
+- [x] File a new umbrella issue for batch 7 (#142, #144): #179, and add it to `planning/backlog.md` as its
       own move; move 5's entry names batch 8 only.
-- [ ] One line in #142's and #144's bodies: what the chinook sites gain (no donors; at most Naver's
+- [x] One line in #142's and #144's bodies: what the chinook sites gain (no donors; at most Naver's
       short-record test set), linked to the measurement.
-- [ ] `research/station_sources.md`: the per-box count, as [M].
+- [x] `research/station_sources.md`: the per-box count, as [M].
 
 ## Phase 1: #135, cache PCIC's per-year files
 

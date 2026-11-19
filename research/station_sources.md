@@ -1,6 +1,6 @@
 # Station sources beyond HYDAT: which networks hold BC discharge
 
-**Verified:** 2026-10-29 · **Issues:** #123 (component 4 of #118); spawned wet#142 (provincial harvester), wet#144 (the Water Tool's third-party networks) and wet#140 (BC Hydro) · **Produced by:** web and API reads of each source (URLs inline), `scripts/station_sources_probe.R` → `data/checks/station_sources_20260717.txt` against HYDAT 2026-07-17, and an org-wide search of NewGraphEnvironment code and installed packages · **Status:** complete for the bar below; sources not accessed are listed with what blocked them
+**Verified:** 2026-10-29; the chinook boxes 2026-11-18 · **Issues:** #123 (component 4 of #118); spawned wet#142 (provincial harvester), wet#144 (the Water Tool's third-party networks) and wet#140 (BC Hydro); #167 (the chinook boxes) · **Produced by:** web and API reads of each source (URLs inline), `scripts/station_sources_probe.R` → `data/checks/station_sources_20260717.txt` against HYDAT 2026-07-17, and an org-wide search of NewGraphEnvironment code and installed packages · **Status:** complete for the bar below; sources not accessed are listed with what blocked them
 
 Tags: **[S]** the linked source says it · **[M]** measured (the probe report, or the command named beside it) · **[I]** inferred, not verified.
 
@@ -72,6 +72,24 @@ Networks met along the way, each with what was read and a one-line verdict.
 | Mine and assessment baselines | In consultants' reports (for example eight 2006 stations), not machine-readable [S] | no |
 | River Forecast Centre layers | 522 real-time stations; names give a crosswalk for 7 provincial and 11 USGS stations [M]. Licence "Access Only" [S] | no (a crosswalk, not a source) |
 | UBC Malcolm Knapp East Creek; USGS Kootenay selenium study | DataCite records (10.6084/m9.figshare.19735849; 10.5066/p13btvbb) [M]; not read | leads |
+
+## At the chinook sites' boxes
+
+Counted on 2026-11-18 (#167's plan gate) from the report's "Every station read" table against each
+donor box in `scripts/departure_sites.csv` [M]. No Water Tool third-party station falls in any box.
+The provincial stations with daily discharge:
+
+| site (box) | stations | complete window-years |
+|---|---|---|
+| Maxan, Gosnell (the two boxes overlap) | 08EE0001 (same site as HYDAT 08EE022), 08EE0002 | 2 each |
+| Swift | none | |
+| Naver | 08JC0001, 08JC0002, 08JC0003, 08JC0005, 08JC0006; 08JC0018, 08JC0020, 08MC0001 | 4, 3, 4, 3, 4; 2 each |
+
+Every one of these records runs 2011–2021, so none has a year inside 1981–2010. A carried departure
+needs donors with at least 10 baseline years and extension donors with at least 30
+(`scripts/departure_site.R`), so these networks add no donor at the four sites; at most the five
+Naver stations with 3–4 years could join that box's short-record test set. Their value is
+province-wide (#118), and the harvest moved to its own backlog move, #179.
 
 ## How the counts move under a lower bar
 
