@@ -513,7 +513,9 @@ if (!ship_cov) {
   say(sprintf("The site run's section 6 ships %s here, so there is no second carried route to fit.",
               if (is.null(pr$cov)) "nothing (no section 6 in its rds)" else pr$cov$verdict$ship))
 } else {
-  cov_series <- lapply(windows$window, function(w) {
+  # a window the site run could not carry (no covered donor) has no entry, and no series here
+  cov_w <- windows$window[paste("q_mean", windows$window) %in% names(pr$cov$mx)]
+  cov_series <- lapply(cov_w, function(w) {
     a <- pr$cov$mx[[paste("q_mean", w)]]$a
     fit_series(list(label = sprintf("%s carried", target), gauge = target, window = w,
                     d = data.frame(year = a$year, dep = a$anomaly, donor = NA_character_), le0 = 0L))
@@ -536,7 +538,7 @@ if (!ship_cov) {
                 fmt(f$sigma, 3), fmt(f$r2), fmt(f$lag1), f$pairs))
   }
   say("", "Its log departures per year (covariance_pick):", "",
-      sprintf("  %4s %s", "year", paste(sprintf("%11s", paste("cov", c(migration = "mig", spawning = "spw")[windows$window])),
+      sprintf("  %4s %s", "year", paste(sprintf("%11s", paste("cov", c(migration = "mig", spawning = "spw")[cov_w])),
                                         collapse = "")))
   for (y in years) {
     say(sprintf("  %4d %s", y, paste(vapply(cov_series, function(s) sprintf("%11s", fmt(dep_of(s, y), 3)), ""),

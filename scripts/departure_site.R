@@ -1334,28 +1334,35 @@ for (nm in names(cov_runs)) {
   qd <- stats::quantile(h$distance, c(0.25, 0.5, 0.75), na.rm = TRUE, names = FALSE)
   qc <- stats::quantile(h$covariance_pick, c(0.25, 0.5, 0.75), na.rm = TRUE, names = FALSE)
   say(sprintf("  %-26s %4d  %6s %6s %6s  %6s %6s %6s  %4d %6s %6s", nm, n_of(cov_runs[[nm]]), fmt(qd[1]), fmt(qd[2]),
-              fmt(qd[3]), fmt(qc[1]), fmt(qc[2]), fmt(qc[3]), sum(h$fallback), fmt(stats::median(h$km_distance), 0),
-              fmt(stats::median(h$km_covariance_pick), 0)))
+              fmt(qd[3]), fmt(qc[1]), fmt(qc[2]), fmt(qc[3]), sum(h$fallback),
+              fmt(med_na(h$km_distance[!is.na(h$covariance_pick)]), 0),
+              fmt(med_na(h$km_covariance_pick[!is.na(h$covariance_pick)]), 0)))
 }
 h6 <- cov_runs[["migration mean"]]$held
 s3 <- cm$held[cm$held$gauge %in% h6$gauge[!is.na(h6$distance)], ]
-say("", "(dist, cov_pk: distance's and covariance_pick's quartiles and median; fall: gauges where covariance_pick fell back to distance; km d, km c: the median over gauges of the mean ground distance to the donors used.)",
-    sprintf("Section 3's distance (donors from the whole departure pool, covered or not) at the same %d gauges, migration mean: median %s, deciding nothing.",
-            sum(!is.na(s3$nse)), fmt(med_na(s3$nse))),
+say("", "(dist, cov_pk: distance's and covariance_pick's quartiles and median; fall: gauges where covariance_pick fell back to distance; km d, km c: the median over the scored gauges of the mean ground distance to the donors used.)",
+    sprintf("Section 3's distance (donors from the whole departure pool, covered or not), migration mean, at the %d of these %d scored gauges that section 3 also scores: median %s, deciding nothing.",
+            sum(!is.na(s3$nse)), sum(!is.na(h6$distance)), fmt(med_na(s3$nse))),
     "", "Per gauge, migration mean (years scored, distance, covariance_pick):", "",
-    paste0("  ", vapply(split(seq_len(nrow(cov_runs[[1]]$held)), ceiling(seq_len(nrow(cov_runs[[1]]$held)) / 3)), function(i) {
-      h <- cov_runs[[1]]$held[i, ]
+    if (nrow(h6)) paste0("  ", vapply(split(seq_len(nrow(h6)), ceiling(seq_len(nrow(h6)) / 3)), function(i) {
+      h <- h6[i, ]
       paste(sprintf("%s %3d %6s %6s", h$gauge, h$n, fmt(h$distance), fmt(h$covariance_pick)), collapse = "   ")
-    }, "")),
+    }, "")) else "  none",
     "", sprintf("VERDICT (#147's rule, migration mean): %s ships; %s.", verdict$ship, verdict$reason))
 
 # where covariance_pick ships: the target's carried route under it, with #126's and #152's intervals
 cov_mx <- NULL
 if (verdict$ship == "covariance_pick") {
   cov_mx <- list()
+  cov_none <- character()
   for (cb in combos) {
     v <- cb[1]
     p <- cb[2]
+    # a statistic whose covered pool holds no donor (min7 in a dry box, say) is not carried: reported, not fatal
+    if (!any(wsel(v, p)$station_number %in% setdiff(cov_pool(v, p), target))) {
+      cov_none <- c(cov_none, paste(p, sub("^q_", "", v)))
+      next
+    }
     a <- cov_carry(target, v, p, setdiff(cov_pool(v, p), target), "covariance_pick", stab = stations_t)
     # the held-out run of this statistic and window (max is never scored)
     is_set <- vapply(cov_sets, function(s) s$v == v && s$p == p && is.null(s$drop), TRUE)
@@ -1408,7 +1415,8 @@ if (verdict$ship == "covariance_pick") {
                 length(p$i1_c), length(p$i2_c), fmt(p$carried, 3), if (days) "-" else pc(p$carried, FALSE),
                 ci_txt(p$ci_c, days), fmt(p$cover_c, 3)))
   }
-  say("", sprintf("Fell back to distance at the target: %s.",
+  say("", sprintf("No covered donor, so not carried: %s.", if (length(cov_none)) paste(cov_none, collapse = ", ") else "none"),
+      sprintf("Fell back to distance at the target: %s.",
                   if (any(vapply(cov_mx, `[[`, TRUE, "fallback"))) paste(names(cov_mx)[vapply(cov_mx, `[[`, TRUE, "fallback")], collapse = ", ") else "none"),
       sprintf("The gauges the %d-%d years rest on (every donor named in those years):", min(ref_years), max(ref_years)))
   for (m in cov_mx) say(sprintf("  %s %s: carried %s.", m$p, sub("^q_", "", m$v), paste(m$p152$donors_c, collapse = ", ")))

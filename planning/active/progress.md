@@ -15,3 +15,4 @@
 - Plan review delivered (findings and verdicts in `planning/active/review-plan.md`); header amended before any run; departure_pcic.R names #135's change
 - Code-check round 1 (spawned 05:25Z): 1 bug, the ungauged mouth's integer64 id zeroed by rbind (reproduced, fixed with an assertion)
 - Code-check round 2 (05:33Z): 2 fragile (section 6 stopped the run where PCIC covers little; the section 3 comparison line counted other gauges); both fixed
+- Code-check round 3 (05:40Z): the mechanism named (section 6 reuses idioms that assume the non-empty pools sections 3 and 5 guarantee) with every place it reaches; 4 fragile fixed (a statistic with no covered donor, the phantom per-gauge line, km medians over scored gauges, the section 3 comparison's count), two inside round 2's fixes; the snow script skips a window the site run could not carry
