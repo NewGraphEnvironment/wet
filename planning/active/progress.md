@@ -20,3 +20,4 @@
 - Phase 4 (2026-11-19, 05:56Z–06:47Z, logs `data/logs/167/site_*`, `snow_*`): five site runs and five snow runs from frozen copies of 1b2fb78. Verdicts and the Gosnell build change in `task_plan.md` Phase 4. Parity test passes on the new reports.
 - Phase 5: comparison article data, article (answer, method sentence, scores, limits, word cap 1110) and maps rebuilt; a river label moved clear of the wider Skeena map's keymap; short-record bundle kept (rounding only)
 - Full test suite (06:57Z): 3095 passed, 5 skipped, 1 failed: test-vignette_data.R pinned the bundle's names without `carry`; fixed with assertions on `carry` (passes)
+- Code-check round 5 (06:57Z, Phase 5 diff): 1 bug, an unguarded article sentence ("again clear only at Maxan") the new values made false; rewritten from m7_clear with a guard; a sweep of every other quantified claim found each guarded

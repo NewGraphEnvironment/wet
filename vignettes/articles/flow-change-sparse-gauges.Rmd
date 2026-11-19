@@ -487,6 +487,8 @@ stopifnot(setequal(rk[1:2], c("maxan", "naver")), rk[length(rk)] == "swift")
 m7_sc <- ssc$carried[ssc$setting %in% c("migration min7", "spawning min7")]
 stopifnot(length(m7_sc) == 8)
 m7_fell <- m7[m7$site_id %in% m7_down, ]
+# "clear of no change at Maxan and Gosnell": the same set as the opening's (m7_clear), all among those that fell
+stopifnot(all(m7_clear %in% m7_down))
 ```
 
 The drop in the chinook salmon life history timing window for spawning is largest at Maxan and Naver creeks and smallest at Swift
@@ -494,7 +496,7 @@ Creek, and filling in each gauged stream's own record gives drops in the same di
 (`r pct(min(abs(ext$pct)))`–`r pct(max(abs(ext$pct)))`), clear of no change only at Maxan.
 Borrowed, the spawning window's lowest seven-day flow fell by `r pct(min(abs(m7_fell$pct)))` to
 `r pct(max(abs(m7_fell$pct)))` at `r and_text(sub(" Creek$", "", name_of[m7_down]))` creeks,
-again clear only at Maxan.
+clear of no change at `r and_text(sub(" Creek$", "", name_of[m7_clear]))`.
 
 ```{r change, fig.height = 6.5, fig.cap = "Change in each chinook salmon life history timing window's mean flow (top) and its lowest seven-day flow (bottom), from 1951–1980 to 2016–2025 (to 2024 where 2025 is not yet approved), with its 90% range, by each route the legend names."}
 dd <- ch[ch$group == "BULK" & ch$statistic %in% c("mean", "min7"), ]
