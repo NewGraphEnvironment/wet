@@ -4,7 +4,7 @@
 - code-check.md `## Mechanisms`, every H3 (most relevant here: "A guard that fails toward pass", "A proxy is not the property", "Verification that reads its own output", "A guard's scope, escape hatches, and remedies", "One fact derived twice").
 - code-check-r.md: "`summarise()` and `mutate()` evaluate in order..." not used; "`paste()` with a zero-length argument returns length ONE", "`sort()` and `order()` collate by `LC_COLLATE`" checked against the diff (no hit).
 - code-check-spatial.md: "A raster's drawn footprint..." n/a; the map hunk uses `sf::st_line_sample()` / `st_coordinates()` only (no hit).
-- soul writing.md: "State each claim by the code's definition" and "Check that each guard covers the set its sentence names".
+- the writing convention: "State each claim by the code's definition" and "Check that each guard covers the set its sentence names".
 
 What I checked against the bundle and the reports (read-only R):
 - Every substituted covariance_pick score in `score_settings` (n, q25, median, q75; 24 rows) equals, at `%.2f`, the line in section 6 of its site report: no rounding mismatch.
@@ -21,4 +21,4 @@ What I checked against the bundle and the reports (read-only R):
   - The guard that used to back this sentence (`identical(m7$site_id[m7$pct_hi < 0], "maxan")`) was rewritten for the opening. The change-numbers chunk (lines ~485-489) has nothing that tests this sentence.
   - The word "again" also ties it to the preceding claim about filled-in records ("clear of no change only at Maxan", which `ext` still guards and which still holds). The borrowed min7 result no longer repeats that pattern.
   - Fix: make the clause read from `m7_clear` (as the opening does) and drop "again", or cut the clause.
-  - **Rule:** soul writing.md "Check that each guard covers the set its sentence names"
+  - **Rule:** writing convention "Check that each guard covers the set its sentence names"
