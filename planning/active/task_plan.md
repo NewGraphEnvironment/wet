@@ -43,18 +43,18 @@ Water Tool) add carry donors at the four chinook sites, and that #147's `covaria
 
 ## Phase 1: #135, cache PCIC's per-year files
 
-- [ ] Tests first, `tests/testthat/test-wet_pcic_years.R`, on the `wet_hydat()` pattern
+- [x] Tests first, `tests/testthat/test-wet_pcic_years.R`, on the `wet_hydat()` pattern
       (`tests/testthat/test-wet_hydat.R`): the downloader stood in; a missing year is fetched and
       lands only when its size equals its `pcic.series` bytes; a cut-off download never lands and
       leaves no file under the year's name; a present file is not re-fetched; a cached file of the
       wrong size refuses; `WET_PCIC_YEARS` set → that directory, never written to, missing files
       refuse as now.
-- [ ] `R/wet_pcic_years.R` (internal): `wet_pcic_years_dir(series)` → `WET_PCIC_YEARS`, else
+- [x] `R/wet_pcic_years.R` (internal): `wet_pcic_years_dir(series)` → `WET_PCIC_YEARS`, else
       `tools::R_user_dir("wet", "cache")/pcic_years/<model>_<scenario>/`;
       `wet_pcic_years(years, bytes, series, dir)` downloads missing years from the bucket (option
       `wet.pcic_years_url`) into a `.partial-` tempfile beside them and renames on size match, as
       `wet_hydat_fetch()` does; the download call in its own function so tests can stand it in.
-- [ ] Callers take the default: `routed_years_check()` (`scripts/pcic_routed_lib.R:230`, used by
+- [x] Callers take the default: `routed_years_check()` (`scripts/pcic_routed_lib.R:230`, used by
       `scripts/gauge_monthly_compare.R`) and `scripts/departure_pcic.R:316`/`:456` read the
       `pcic.series` rows first, fill the cache, then run their per-file checks unchanged. Header
       text and `CLAUDE.md` lines naming `WET_PCIC_YEARS` say it defaults to the cache.
