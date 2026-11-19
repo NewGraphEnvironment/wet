@@ -96,17 +96,30 @@ low_spw <- spw[spw$pct_hi < 0, ]
 # the opening: Maxan measured for five summers; Gosnell never gauged; Swift and Naver under twenty
 stopifnot(sites$obs_n[sites$site_id == "maxan"] == 5, identical(sites$kind, c("extend", "extend", "extend", "ungauged")),
           all(sites$obs_n[sites$site_id %in% c("swift", "naver")] < 20))
-# "the borrowed departures show no clear change in the migration window at any stream", both window sets
+# "in the migration window borrowed mean flow fell clearly only at Maxan": of every stream and window
+# set, only Maxan's range stays below no change
 mig_all <- ch[ch$statistic == "mean" & ch$window == "migration" & ch$route == "carried", ]
-stopifnot(all(mig_all$pct_lo < 0), all(mig_all$pct_hi > 0))
-# years per period: 20-30 of 1951-1980 and 9 or 10 of 2016-2025 on every route
-stopifnot(all(ch$n_pre >= 20 & ch$n_pre <= 30), all(ch$n_post %in% 9:10))
+mig_clear <- mig_all[mig_all$pct_hi < 0, ]
+stopifnot(identical(unique(mig_clear$site_id), "maxan"), all(mig_all$pct_lo < 0))
+mig_maxan <- row_of("maxan", "migration", "carried")
+# years per period: 9 or 10 of 2016-2025 on every route; of 1951-1980, 20-30 on every route the change
+# figure draws but Maxan's borrowed one, whose donors (chosen by modelled years) begin in 1971, which the
+# limits say
+stopifnot(all(ch$n_post %in% 9:10), all(ch$n_pre >= 10 & ch$n_pre <= 30))
+drawn_b <- ch[ch$group == "BULK" & ch$statistic %in% c("mean", "min7"), ]
+few_ref <- drawn_b[drawn_b$n_pre < 20, ]
+stopifnot(identical(unique(few_ref$site_id), "maxan"), identical(unique(few_ref$route), "carried"),
+          length(unique(few_ref$n_pre)) == 1)
+# "hold no record from 1952 to 1970": Maxan's borrowed years have 1951 and none of 1952-1970, in both windows
+my <- v$years[v$years$site_id == "maxan" & v$years$group == "BULK" & v$years$route == "borrowed", ]
+stopifnot(!any(my$year %in% 1952:1970), all(tapply(my$year, my$window, function(y) 1951 %in% y)))
 # the lowest seven-day flow in the spawning window, borrowed: "fell at three streams and held at Swift Creek"
 m7 <- do.call(rbind, lapply(ids, row_of, w = "spawning", route = "carried", s = "min7"))
 m7_down <- m7$site_id[m7$pct < -10]
 stopifnot(identical(sort(m7_down), sort(c("maxan", "naver", "gosnell"))), abs(m7$pct[m7$site_id == "swift"]) < 5)
-# "clearly only at Maxan Creek": of the three, only Maxan's range stays below no change
-stopifnot(identical(m7$site_id[m7$pct_hi < 0], "maxan"))
+# "clearly at Maxan and Gosnell": of the three, the ranges that stay below no change
+m7_clear <- m7$site_id[m7$pct_hi < 0]
+stopifnot(identical(sort(m7_clear), c("gosnell", "maxan")))
 # snow over each stream's own catchment: "held 6% to 9% less water and half had melted 9 to 16 days earlier"
 tgt <- c(maxan = "08EE018", swift = "08KA012", naver = "08KE014", gosnell = "gosnell")
 sc_t <- v$snow_change[v$snow_change$group == "BULK" & v$snow_change$gauge == tgt[v$snow_change$site_id], ]
@@ -119,13 +132,21 @@ ssc <- v$score_settings[v$score_settings$group == "BULK", ]
 ss_mig <- ssc[ssc$setting == "migration mean, k = 5", ]
 ss_spw <- ssc[ssc$setting == "spawning mean", ]
 stopifnot(setequal(ss_mig$site_id, ids), setequal(ss_spw$site_id, ids))
-# "below the bar ... at all four" under the Bulkley windows; the migration window at or over it in both sets
-# "scores worse in the spawning window than in the migration window at all four" (the Bulkley windows)
-stopifnot(all(ss_spw$carried[match(ids, ss_spw$site_id)] < ss_mig$carried[match(ids, ss_mig$site_id)]))
-stopifnot(all(ss_spw$carried < 0.5), all(ss_mig$carried >= 0.5),
+# the migration window at or over the bar in both window sets; under the Bulkley windows the spawning
+# window below it only at Swift Creek
+stopifnot(all(ss_mig$carried >= 0.5),
           all(v$score_settings$carried[v$score_settings$setting == "migration mean, k = 5"] >= 0.5))
+spw_below <- ss_spw$site_id[ss_spw$carried < 0.5]
+stopifnot(identical(spw_below, "swift"))
 sc <- v$scores[v$scores$group == "BULK", ]
 stopifnot(identical(sc$site_id, ids))
+# the weighting each stream's borrowed route uses (#147's rule): PCIC's modelled years choose the donors
+# at Maxan, Naver and Gosnell, under both of Gosnell's window sets; nearness alone at Swift
+cy <- unique(v$carry[c("site_id", "group", "ship")])
+cov_ids <- ids[ids %in% cy$site_id[cy$ship == "covariance_pick" & cy$group == "BULK"]]
+stopifnot(identical(cov_ids, c("maxan", "naver", "gosnell")),
+          all(cy$ship[cy$site_id == "gosnell"] == "covariance_pick"), cy$ship[cy$site_id == "swift"] == "distance",
+          identical(sc$weighting, cy$ship[match(paste(sc$site_id, sc$group), paste(cy$site_id, cy$group))]))
 # "filling in a record scores poorly in the upper Fraser ... so Swift Creek's filled-in change is its less
 # certain route": in every row the change figure draws (mean and min7, both windows), Swift's filled-in score
 # is below the bar and below its borrowed score
@@ -151,11 +172,11 @@ lower than over `r ref_text` at all four streams, by `r pct(min(abs(spw$pct)))` 
 `r pct(max(abs(spw$pct)))` from nearby gauges' departures; at
 `r and_text(sub(" Creek$", "", name_of[low_spw$site_id]))` creeks that route's 90% range
 stays below no change. Borrowed, the window's lowest seven-day flow fell at
-`r and_text(sub(" Creek$", "", name_of[m7_down]))` creeks, clearly only at Maxan, and held at
-Swift. In the
-migration window borrowed mean flow shows no clear change at any stream. Snow over every
-catchment peaked lower and melted earlier. Borrowed mean flow scores worse in the spawning
-window than in the migration window at all four under Bulkley windows.
+`r and_text(sub(" Creek$", "", name_of[m7_down]))` creeks, clearly at
+`r and_text(sub(" Creek$", "", name_of[m7_clear]))`, and held at Swift. In the
+migration window borrowed mean flow fell clearly only at Maxan, by `r pct(abs(mig_maxan$pct))`. Snow over every
+catchment peaked lower and melted earlier. Borrowed spawning-window mean flow scores below the
+method's bar only at Swift Creek under Bulkley windows.
 
 ## Where are the four streams?
 
@@ -369,7 +390,10 @@ warming.
 
 Two routes fill in the years a stream was not measured. A gauged stream's missing year comes
 from one nearby gauge, through a fit between the two over their shared years. Any stream can
-also borrow nearby gauges' departures from their own typical flow, year by year.
+also borrow the five nearest gauges' departures from their own typical flow, year by year. At
+`r and_text(sub(" Creek$", "", name_of[cov_ids]))` creeks the five of the fifteen nearest whose
+modelled years [@pacificclimateimpactsconsortiumGriddedHydrologic] move most like the stream's
+lend them instead, as that scored better there on gauges it was not given.
 
 ```{r years-data}
 yy <- v$years[v$years$group == "BULK", ]
@@ -491,9 +515,10 @@ tab <- data.frame(
   `Borrowed, migration` = sprintf("%.2f", ss_mig$carried[match(sc$site_id, ss_mig$site_id)]),
   `Borrowed, spawning` = sprintf("%.2f", ss_spw$carried[match(sc$site_id, ss_spw$site_id)]),
   `Gauges scored` = sc$carried_gauges,
+  `Donors chosen by` = c(distance = "nearness", covariance_pick = "modelled years")[sc$weighting],
   check.names = FALSE)
-knitr::kable(tab, row.names = FALSE, align = "lrrrrr",
-             caption = "Held-out scores of each window's mean flow, over the gauges in each stream's box: the median over gauges, where 1 is perfect and 0 is no better than the average year. The filled-in column is the migration window's; Gosnell Creek has no record of its own to fill in.")
+knitr::kable(tab, row.names = FALSE, align = "lrrrrrl",
+             caption = "Held-out scores of each window's mean flow, over the gauges in each stream's box: the median over gauges, where 1 is perfect and 0 is no better than the average year. The filled-in column is the migration window's; Gosnell Creek has no record of its own to fill in. The borrowed columns score the donors each stream uses, over the gauges the modelled flow covers where modelled years choose them.")
 stopifnot(sc$ols[sc$site_id == "swift"] < 0.2)
 # "only N gauges" and "few long records": the upper Fraser box has the fewest
 stopifnot(sc$ext_gauges[sc$site_id == "swift"] < min(sc$ext_gauges[sc$site_id != "swift"]))
@@ -501,9 +526,9 @@ stopifnot(sc$ext_gauges[sc$site_id == "swift"] < min(sc$ext_gauges[sc$site_id !=
 
 Both routes are scored by hiding a gauge's own record and predicting it from its
 neighbours. A score of 0.5 was set as the method's bar before any stream was run. The
-borrowed departures clear it in the chinook salmon life history timing window for migration in every box and, under the Bulkley's
-windows, fall below it in the spawning window in every box, `r sprintf("%.2f", min(ss_spw$carried))`–`r sprintf("%.2f", max(ss_spw$carried))`,
-so those ranges carry that weaker score. Borrowed, the lowest seven-day flow scores below the bar in
+borrowed departures clear it in the chinook salmon life history timing window for migration in every box. Under the Bulkley's
+windows they fall below it in the spawning window only at Swift Creek,
+`r sprintf("%.2f", ss_spw$carried[ss_spw$site_id == "swift"])`, so that range carries the weaker score. Borrowed, the lowest seven-day flow scores below the bar in
 `r sum(m7_sc < 0.5)` of `r length(m7_sc)` windows and boxes.
 Filling in a record scores poorly in the upper Fraser, with
 `r sc$ext_gauges[sc$site_id == "swift"]` long enough records to test it, so Swift Creek's filled-in
@@ -530,7 +555,6 @@ melt_spw <- v$snow[v$snow$group == "BULK" & v$snow$series == "carried" & v$snow$
                      v$snow$window == "spawning", ]
 stopifnot(setequal(melt_spw$site_id, ids))
 r2_melt <- max(melt_spw$r2)
-stopifnot(r2_melt < min(r2_mig))
 # the measured snow gauges' own records: two per stream, migration-window flow rising with peak snow at
 # every one, and peak snow explaining less in the spawning window
 og_all <- v$snow[v$snow$series == "observed" & v$snow$predictor == "swe", ]
@@ -549,6 +573,9 @@ om <- v$snow[v$snow$group == "BULK" & v$snow$series == "observed" & v$snow$predi
 om_g <- om$r2[om$site_id == "gosnell"]
 stopifnot(identical(sort(om$gauge[om$site_id == "gosnell"]), c("08ED001", "08ED002")), all(om_g >= 0.6),
           all(om$r2[om$site_id != "gosnell"] < 1 / 3))
+# "the melt date explains at most X% of the borrowed departures but Y-Z% of measured flow on the Nanika
+# and Morice": the borrowed share stays below the measured
+stopifnot(r2_melt < min(om_g))
 stopifnot(max(og_spw$r2) < min(og_mig$r2) + 0.1)
 ```
 
@@ -586,6 +613,8 @@ stopifnot(all(v$normal$pick == "pcic_routed"), all(v$daily$source[v$daily$pick] 
   windows.
 - **Each filled-in year rests on one neighbouring gauge**, and the earliest years on
   whichever single gauge reaches back that far.
+- **Maxan Creek's borrowed `r ref_text` mean rests on `r few_ref$n_pre[1]` years**: its
+  donors hold no record from 1952 to 1970.
 
 ## Software and citation
 
@@ -645,7 +674,7 @@ if (!is.null(f)) {
   y <- y[!grepl("^\\s*$", y)]
   n <- sum(lengths(strsplit(trimws(y), "\\s+")))
   message("body prose: ", n, " words")
-  cap <- 1060   # 1000 until #152 restated the window's full name per section
+  cap <- 1110   # 1000 until #152 restated the window's full name per section; 1060 until #147 said how donors are chosen and gave Maxan's short reference period
   if (n > cap) stop("body prose is ", n, " words; the cap is ", cap)
 }
 ```
