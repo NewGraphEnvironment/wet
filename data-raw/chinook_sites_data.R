@@ -58,6 +58,14 @@
 #     90 % interval) at a gauged site, borrowed at every site; every year held
 #     to its line in the site report's per-year tables
 #   - periods: the comparison periods, ref 1951-1980 and recent 2016-2025
+#   - carry (#147): per site and window set, the weighting the borrowed route
+#     ships under #147's rule (distance, or covariance_pick where PCIC's
+#     modelled years choose the donors), the rule's reason, and both
+#     weightings' held-out scores per setting from section 6 of the site
+#     report. Wherever covariance_pick ships, the borrowed route in `change`,
+#     `years`, `scores`, `score_settings`, `snow` and `gauges` is its, held
+#     to section 6's lines (and to the snow report's section 6); elsewhere it
+#     is distance's, from sections 3 to 5
 #   - provenance: wet commit, build date, HYDAT release, the scripts' and the
 #     reports' md5s
 
@@ -114,6 +122,7 @@ gauges <- list()
 windows <- list()
 score_rows <- list()
 years <- list()
+carry <- list()
 reports <- character()
 for (id in site_ids) {
   site <- site_get(id)
@@ -124,6 +133,34 @@ for (id in site_ids) {
     rp <- report_of("site", id, group)
     rs <- report_of("snow", id, group)
     reports[c(rp$path, rs$path)] <- c(rp$md5, rs$md5)
+    # section 6 (#147): which weighting the borrowed route ships, and the lines each part is held to
+    i6 <- grep("^## 6\\. ", rp$lines)
+    j6 <- grep("^## 6\\. ", rs$lines)
+    if (length(i6) != 1 || length(j6) != 1 || is.null(x$cov)) stop(id, " ", group, ": no section 6 (#147)", call. = FALSE)
+    pre6 <- rp$lines[seq_len(i6 - 1)]
+    sec6 <- rp$lines[i6:length(rp$lines)]
+    snow6 <- rs$lines[j6:length(rs$lines)]
+    cv <- x$cov
+    ship <- cv$verdict$ship
+    stopifnot(ship %in% c("distance", "covariance_pick"), identical(ship == "covariance_pick", !is.null(cv$mx)))
+    held(sprintf("VERDICT (#147's rule, migration mean): %s ships; %s.", ship, cv$verdict$reason), sec6,
+         paste(id, group, "verdict"))
+    med_na <- function(z) if (length(z) && any(!is.na(z))) stats::median(z, na.rm = TRUE) else NA_real_
+    for (nm in names(cv$scores)) {
+      h <- cv$scores[[nm]]
+      ok <- !is.na(h$covariance_pick)
+      qd <- stats::quantile(h$distance, c(0.25, 0.5, 0.75), na.rm = TRUE, names = FALSE)
+      qc <- stats::quantile(h$covariance_pick, c(0.25, 0.5, 0.75), na.rm = TRUE, names = FALSE)
+      held(sprintf("  %-26s %4d  %6s %6s %6s  %6s %6s %6s  %4d %6s %6s", nm, sum(ok), fmt(qd[1]), fmt(qd[2]), fmt(qd[3]),
+                   fmt(qc[1]), fmt(qc[2]), fmt(qc[3]), sum(h$fallback[ok]), fmt(med_na(h$km_distance[ok]), 0),
+                   fmt(med_na(h$km_covariance_pick[ok]), 0)), sec6, paste(id, group, "section 6", nm))
+      carry[[length(carry) + 1]] <- data.frame(site_id = id, group = group, setting = nm, ship = ship,
+        reason = cv$verdict$reason, n = sum(ok), distance_q25 = qd[1], distance = qd[2], distance_q75 = qd[3],
+        covariance_pick_q25 = qc[1], covariance_pick = qc[2], covariance_pick_q75 = qc[3],
+        covered = sum(x$pool$station_number %in% cv$covered), pool = nrow(x$pool))
+    }
+    # the shipped route's entry for a statistic and window: covariance_pick's where it ships, else section 5's
+    cov_on <- ship == "covariance_pick"
 
     # the change from 1951-1980 to 2016-2025, each route, with its interval's coverage, held to
     # section 5's table (#152)
@@ -144,6 +181,16 @@ for (id in site_ids) {
         change[[length(change) + 1]] <- data.frame(site_id = id, group = group, statistic = sub("^q_", "", m$v),
           window = m$p, route = "extended", change = p$diff, lo = p$ci[1], hi = p$ci[2], n_pre = length(p$i1),
           n_post = length(p$i2), cover = p$cover)
+      }
+      if (cov_on) {
+        cm6 <- cv$mx[[paste(m$v, m$p)]]
+        if (is.null(cm6)) stop(id, " ", group, ": covariance_pick ships but carried no ", m$v, " ", m$p, call. = FALSE)
+        p <- cm6$p152
+        held(sprintf("  %-9s %-9s %4d %4d %9s %9s %18s   %4d %4d %9s %9s %18s %6s", sub("^q_", "", m$v), m$p,
+                     cm6$n_pre_c, cm6$n_post_c, fmt(cm6$carried, 3), if (days) "-" else pc(cm6$carried, FALSE),
+                     ci_txt(cm6$ci_c, days), length(p$i1_c), length(p$i2_c), fmt(p$carried, 3),
+                     if (days) "-" else pc(p$carried, FALSE), ci_txt(p$ci_c, days), fmt(p$cover_c, 3)),
+             sec6, paste(id, group, "section 6", m$v, m$p))
       }
       change[[length(change) + 1]] <- data.frame(site_id = id, group = group, statistic = sub("^q_", "", m$v),
         window = m$p, route = "carried", change = p$carried, lo = p$ci_c[1], hi = p$ci_c[2], n_pre = length(p$i1_c),
@@ -186,7 +233,17 @@ for (id in site_ids) {
         nq <- x$normal$normal$q_m3s[x$normal$normal$window == w]
         for (j in seq_len(nrow(a))) {
           held(sprintf("  %4d %9s %9s %3d", a$year[j], pc(a$anomaly[j], FALSE), fmt(nq * exp(a$anomaly[j]), 3),
-                       as.integer(a$n_donors[j])), rp$lines, paste(id, group, w, a$year[j]))
+                       as.integer(a$n_donors[j])), pre6, paste(id, group, w, a$year[j]))
+        }
+      }
+      if (cov_on) {
+        # the borrowed years under covariance_pick, each held to section 6's per-year table
+        a <- cv$mx[[paste("q_mean", w)]]$a
+        nq <- if (site$kind == "ungauged") x$normal$normal$q_m3s[x$normal$normal$window == w] else NA_real_
+        for (j in seq_len(nrow(a))) {
+          held(sprintf("  %4d %9s %9s %3d", a$year[j], pc(a$anomaly[j], FALSE),
+                       if (site$kind == "ungauged") fmt(nq * exp(a$anomaly[j]), 3) else "", as.integer(a$n_donors[j])),
+               sec6, paste(id, group, w, a$year[j], "covariance_pick"))
         }
       }
       years[[length(years) + 1]] <- data.frame(site_id = id, group = group, window = w, year = a$year,
@@ -231,26 +288,63 @@ for (id in site_ids) {
       score_rows[[length(score_rows) + 1]] <- data.frame(site_id = id, group = group,
         setting = gsub("\\\\", "", lab), ext_gauges = as.integer(f2[1]), ols = num(f2[3]), move1 = num(f2[4]),
         ratio = num(f2[5]), carried_n = as.integer(f3[1]), carried_q25 = num(f3[2]), carried = num(f3[3]),
-        carried_q75 = num(f3[4]))
+        carried_q75 = num(f3[4]), weighting = "distance")
     }
     mig_row <- score_rows[[length(score_rows) - 5]]
     if (!isTRUE(all.equal(c(mig_row$ols, mig_row$carried), round(c(r$med[["ols"]], cq$median), 2)))) {
       stop(id, " ", group, ": the report's migration-mean scores differ from the series file's", call. = FALSE)
     }
+    if (cov_on) {
+      # the borrowed scores are covariance_pick's, from section 6's table (held above)
+      lab6 <- c("migration mean", "spawning mean", "migration min7", "spawning min7", "migration cov_day (days)",
+                "spawning cov_day (days)")
+      for (k in seq_along(lab6)) {
+        h <- cv$scores[[lab6[k]]]
+        qc <- stats::quantile(h$covariance_pick, c(0.25, 0.5, 0.75), na.rm = TRUE, names = FALSE)
+        ii <- length(score_rows) - 6 + k
+        score_rows[[ii]][c("carried_n", "carried_q25", "carried", "carried_q75")] <-
+          list(sum(!is.na(h$covariance_pick)), round(qc[1], 2), round(qc[2], 2), round(qc[3], 2))
+        score_rows[[ii]]$weighting <- "covariance_pick"
+      }
+    }
+    # the borrowed route's held-out score: section 6's covariance_pick where it ships (its short-record
+    # gauges are not scored there), else section 3's
+    if (cov_on) {
+      h6 <- cv$scores[["migration mean"]]
+      cq <- list(median = stats::median(h6$covariance_pick, na.rm = TRUE),
+                 q = stats::quantile(h6$covariance_pick, c(0.25, 0.5, 0.75), na.rm = TRUE, names = FALSE),
+                 n = sum(!is.na(h6$covariance_pick)), short = NA_real_)
+      cq$usable <- cq$median >= 0.5 - 1e-9
+    }
     scores[[length(scores) + 1]] <- data.frame(site_id = id, group = group, ols = r$med[["ols"]],
       move1 = r$med[["move1"]], ratio = r$med[["ratio"]], rule_pick = r$rule_pick, ext_gauges = r$gauges,
       below_floor = r$below_floor, carried = cq$median, carried_q25 = cq$q[1], carried_q75 = cq$q[3],
-      carried_gauges = cq$n, usable = cq$usable, short = cq$short)
+      carried_gauges = cq$n, usable = cq$usable, short = cq$short, weighting = ship)
 
     # the snow fits, held to the snow report's coefficient table
     ci3 <- function(b, lo, hi, d = 3) ifelse(is.na(b), "-", sprintf("%s [%s, %s]", fmt(b, d), fmt(lo, d), fmt(hi, d)))
+    held(sprintf("## 6. The carried route under covariance_pick (#147)"), snow6, paste(id, group, "snow section 6"))
+    if (cov_on && (is.null(s$cov_fits) || !nrow(s$cov_fits))) stop(id, " ", group, ": no covariance_pick snow fits", call. = FALSE)
+    for (i in seq_len(if (cov_on) nrow(s$cov_fits) else 0)) {
+      f <- s$cov_fits[i, ]
+      se <- s$cov_series[[f$series]]
+      held(sprintf("  %-26s %-5s %4d %26s %26s %26s %6s %5s %6s %5d", paste(sprintf("%s %s", se$label, se$window), "cov"),
+                   f$model, f$n, ci3(f$b0, f$b0_lo, f$b0_hi), ci3(f$bs, f$bs_lo, f$bs_hi), ci3(f$bd, f$bd_lo, f$bd_hi),
+                   fmt(f$sigma, 3), fmt(f$r2), fmt(f$lag1), f$pairs), snow6, paste(id, group, "snow cov", i))
+      if (f$model == "both") next
+      snow[[length(snow) + 1]] <- data.frame(site_id = id, group = group, gauge = se$gauge, series = "carried",
+        window = se$window, predictor = f$model, slope = if (f$model == "swe") f$bs else f$bd,
+        lo = if (f$model == "swe") f$bs_lo else f$bd_lo, hi = if (f$model == "swe") f$bs_hi else f$bd_hi, r2 = f$r2,
+        n = f$n)
+    }
     for (i in seq_len(nrow(s$fits))) {
       f <- s$fits[i, ]
       se <- s$series[[f$series]]
       held(sprintf("  %-26s %-5s %4d %26s %26s %26s %6s %5s %6s %5d", sprintf("%s %s", se$label, se$window), f$model, f$n,
                    ci3(f$b0, f$b0_lo, f$b0_hi), ci3(f$bs, f$bs_lo, f$bs_hi), ci3(f$bd, f$bd_lo, f$bd_hi),
                    fmt(f$sigma, 3), fmt(f$r2), fmt(f$lag1), f$pairs), rs$lines, paste(id, group, "snow", i))
-      if (f$model == "both") next
+      # where covariance_pick ships, the carried series' fits are its (above), not distance's
+      if (f$model == "both" || (cov_on && sub("^\\S+ ", "", se$label) == "carried")) next
       snow[[length(snow) + 1]] <- data.frame(site_id = id, group = group, gauge = se$gauge,
         series = sub("^\\S+ ", "", se$label), window = se$window, predictor = f$model,
         slope = if (f$model == "swe") f$bs else f$bd, lo = if (f$model == "swe") f$bs_lo else f$bd_lo,
@@ -286,7 +380,8 @@ for (id in site_ids) {
     # the gauges the numbers rest on: every donor of every scored statistic, window and window set
     scored <- Filter(function(m) m$v != "q_max", x$mx)
     ext_don <- if (site$kind == "extend") sort(unique(unlist(lapply(scored, function(m) stats::na.omit(m$e$donor))))) else character()
-    car_don <- sort(unique(sub(":.*", "", unlist(lapply(scored, function(m) strsplit(m$a$donors, " "))))))
+    car_mx <- if (cov_on) Filter(function(m) m$v != "q_max", cv$mx) else scored
+    car_don <- sort(unique(sub(":.*", "", unlist(lapply(car_mx, function(m) strsplit(m$a$donors, " "))))))
     gauges[[length(gauges) + 1]] <- rbind(
       if (site$kind == "extend") data.frame(site_id = id, station_number = target, role = "target"),
       if (length(ext_don)) data.frame(site_id = id, station_number = ext_don, role = "extension donor"),
@@ -408,6 +503,7 @@ values <- list(
   snow = do.call(rbind, snow), snow_change = do.call(rbind, snow_change), normal = do.call(rbind, normal),
   gauges = unique(do.call(rbind, gauges)), windows = do.call(rbind, windows), use = use, use_obs = use_obs,
   score_settings = do.call(rbind, score_rows), daily = daily, years = do.call(rbind, years), periods = periods,
+  carry = do.call(rbind, carry),
   provenance = list(wet_commit = wet_commit, built = format(Sys.Date()), hydat = release, scripts = md5,
                     reports = reports))
 rownames(values$change) <- NULL
