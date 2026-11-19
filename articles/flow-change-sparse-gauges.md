@@ -12,14 +12,14 @@ result, runs at each and is scored on gauges it was not given.
 
 **The answer.** In the chinook salmon life history timing window for
 spawning, mean flow over 2016–2025 was lower than over 1951–1980 at all
-four streams, by 15% to 46% from nearby gauges’ departures; at Maxan,
-Naver and Gosnell creeks that route’s 90% range stays below no change.
-Borrowed, the window’s lowest seven-day flow fell at Maxan, Naver and
-Gosnell creeks, clearly only at Maxan, and held at Swift. In the
-migration window borrowed mean flow shows no clear change at any stream.
-Snow over every catchment peaked lower and melted earlier. Borrowed mean
-flow scores worse in the spawning window than in the migration window at
-all four under Bulkley windows.
+four streams, by 15% to 66% from nearby gauges’ departures; at Maxan and
+Gosnell creeks that route’s 90% range stays below no change. Borrowed,
+the window’s lowest seven-day flow fell at Maxan, Naver and Gosnell
+creeks, clearly at Maxan and Gosnell, and held at Swift. In the
+migration window borrowed mean flow fell clearly only at Maxan, by 30%.
+Snow over every catchment peaked lower and melted earlier. Borrowed
+spawning-window mean flow scores below the method’s bar only at Swift
+Creek under Bulkley windows.
 
 ## Where are the four streams?
 
@@ -88,8 +88,17 @@ instead measures this decade at two long-record gauges against
 
 Two routes fill in the years a stream was not measured. A gauged
 stream’s missing year comes from one nearby gauge, through a fit between
-the two over their shared years. Any stream can also borrow nearby
-gauges’ departures from their own typical flow, year by year.
+the two over their shared years. Any stream can also borrow the five
+nearest gauges’ departures from their own typical flow, year by year.
+Nearest is not always most alike, though: a gauge next door can sit
+higher or hold more snow. So where a computer model of the region’s
+rivers ([Pacific Climate Impacts Consortium,
+n.d.](#ref-pacificclimateimpactsconsortiumGriddedHydrologic)) covers the
+gauges, the five of the fifteen nearest whose wet and dry years in the
+model track the stream’s most closely are used instead, wherever that
+predicted hidden gauges better than nearness did: at Maxan, Naver and
+Gosnell creeks ([step by
+step](https://newgraphenvironment.github.io/wet/reference/wet_departure_carry.html#how-donors-are-chosen)).
 
 ![Each chinook salmon life history timing window's mean flow, year by
 year, as a share of its 1981–2010 typical flow (log scale). Large orange
@@ -112,8 +121,8 @@ The drop in the chinook salmon life history timing window for spawning
 is largest at Maxan and Naver creeks and smallest at Swift Creek, and
 filling in each gauged stream’s own record gives drops in the same
 direction (27%–57%), clear of no change only at Maxan. Borrowed, the
-spawning window’s lowest seven-day flow fell by 26% to 40% at Maxan,
-Naver and Gosnell creeks, again clear only at Maxan.
+spawning window’s lowest seven-day flow fell by 30% to 65% at Maxan,
+Naver and Gosnell creeks, clear of no change at Maxan and Gosnell.
 
 ![Change in each chinook salmon life history timing window's mean flow
 (top) and its lowest seven-day flow (bottom), from 1951–1980 to
@@ -131,29 +140,31 @@ week of September to the first week of October ([Bustard and Schell
 2002, 27](#ref-bustard_schell2002ConservingMorice)), so its spawning
 window, September 1 to October 7, falls a month later than the
 Bulkley’s. Under it Gosnell Creek’s spawning-window drop is smaller,
-23%, and its range reaches no change.
+16%, and its range reaches no change.
 
 ## How well does the method score?
 
-| Stream | Filled-in record | Gauges tested | Borrowed, migration | Borrowed, spawning | Gauges scored |
-|:---|---:|---:|---:|---:|---:|
-| Maxan Creek | 0.50 | 21 | 0.63 | 0.49 | 31 |
-| Swift Creek | 0.14 | 11 | 0.51 | 0.43 | 13 |
-| Naver Creek | 0.63 | 17 | 0.60 | 0.42 | 24 |
-| Gosnell Creek | 0.48 | 18 | 0.65 | 0.45 | 30 |
+| Stream | Filled-in record | Gauges tested | Borrowed, migration | Borrowed, spawning | Gauges scored | Donors chosen by |
+|:---|---:|---:|---:|---:|---:|:---|
+| Maxan Creek | 0.50 | 21 | 0.67 | 0.66 | 30 | most alike in the model |
+| Swift Creek | 0.14 | 11 | 0.51 | 0.43 | 13 | nearness |
+| Naver Creek | 0.63 | 17 | 0.75 | 0.60 | 23 | most alike in the model |
+| Gosnell Creek | 0.48 | 18 | 0.67 | 0.71 | 29 | most alike in the model |
 
 Held-out scores of each window’s mean flow, over the gauges in each
 stream’s box: the median over gauges, where 1 is perfect and 0 is no
 better than the average year. The filled-in column is the migration
-window’s; Gosnell Creek has no record of its own to fill in. {.table}
+window’s; Gosnell Creek has no record of its own to fill in. The
+borrowed columns score the donors each stream uses, over the gauges the
+model covers where the model chooses them. {.table}
 
 Both routes are scored by hiding a gauge’s own record and predicting it
 from its neighbours. A score of 0.5 was set as the method’s bar before
 any stream was run. The borrowed departures clear it in the chinook
-salmon life history timing window for migration in every box and, under
-the Bulkley’s windows, fall below it in the spawning window in every
-box, 0.42–0.49, so those ranges carry that weaker score. Borrowed, the
-lowest seven-day flow scores below the bar in 7 of 8 windows and boxes.
+salmon life history timing window for migration in every box. Under the
+Bulkley’s windows they fall below it in the spawning window only at
+Swift Creek, 0.43, so that range carries the weaker score. Borrowed, the
+lowest seven-day flow scores below the bar in 4 of 8 windows and boxes.
 Filling in a record scores poorly in the upper Fraser, with 11 long
 enough records to test it, so Swift Creek’s filled-in change is its less
 certain route.
@@ -169,11 +180,11 @@ year by [`cd`](https://newgraphenvironment.github.io/cd/) ([Irvine
 
 Flow in the chinook salmon life history timing window for migration
 rises with peak snow: the borrowed departures at all four streams, with
-90% ranges above zero and 41–51% of their spread explained, and measured
+90% ranges above zero and 41–53% of their spread explained, and measured
 flow at all 8 snow gauges near the streams (named in advance at Maxan
 Creek, elsewhere the nearest two with long records), 25–62%. In the
-spawning window peak snow explains at most 16% of the borrowed
-departures and 31% of measured flow; the melt date explains at most 23%
+spawning window peak snow explains at most 20% of the borrowed
+departures and 31% of measured flow; the melt date explains at most 43%
 of the borrowed departures but 64–66% of measured flow on the Nanika and
 Morice. ERA5-Land’s 0.1° cells are coarse here.
 
@@ -184,11 +195,13 @@ Morice. ERA5-Land’s 0.1° cells are coarse here.
   published flow for the stream. At 29 gauges in its box with ten or
   more baseline years, that published flow in the chinook salmon life
   history timing window for spawning runs a median 21% above measured,
-  and about 60% or more above at a quarter of them.
+  and about 47% or more above at a quarter of them.
 - **The windows are the Bulkley’s** at all four streams. Only the Morice
   has its own cited windows.
 - **Each filled-in year rests on one neighbouring gauge**, and the
   earliest years on whichever single gauge reaches back that far.
+- **Maxan Creek’s borrowed 1951–1980 mean rests on 10 years**: its
+  donors hold no record from 1952 to 1970.
 
 ## Software and citation
 
@@ -196,7 +209,7 @@ The flows in this article are from HYDAT release 20260717 ([Environment
 and Climate Change Canada
 2021](#ref-environmentandclimatechangecanada2021NationalWater)). Gosnell
 Creek’s typical flow and the hydrographs are `wet`‘s published daily
-flow (build 0f4f8ca; for these four streams, routed flow from the
+flow (build d554e3a; for these four streams, routed flow from the
 Pacific Climate Impacts Consortium ([Pacific Climate Impacts Consortium,
 n.d.](#ref-pacificclimateimpactsconsortiumGriddedHydrologic)), placed on
 the Freshwater Atlas by New Graph’s fork of `fwapg` ([Norris and Irvine
@@ -232,9 +245,9 @@ The software, each cited:
   2026a](#ref-bookdown)) render the article, all in R ([R Core Team
   2025](#ref-base)).
 
-The data were bundled at `wet` commit `52facd0`; this build ran on `wet`
-0.4.38, `cd` 0.6.13, commit 5fc2f76, `gq` 0.24.0 and commit 5f74ba6. To
-cite `wet`:
+The data were bundled at `wet` commit `af968ab3`; this build ran on
+`wet` 0.4.38, `cd` 0.6.13, commit 5fc2f76, `gq` 0.24.0 and commit
+5f74ba6. To cite `wet`:
 
 Irvine A (2026). *wet: Stream Flow and Water Temperature for the BC
 Freshwater Atlas*. New Graph Environment Ltd.

@@ -160,6 +160,39 @@ percent of normal, <code>100 * (exp(anomaly) - 1)</code>, the scale
 <code><a href="https://newgraphenvironment.github.io/cd/reference/cd_anomaly.html" class="external-link">cd::cd_anomaly()</a></code> uses. A statistic named <code>*_cov_day</code> (a day of the
 window) departs in days instead, and has no percent of normal.</p>
     </div>
+    <div class="section level2">
+    <h2 id="how-donors-are-chosen">How donors are chosen<a class="anchor" aria-label="anchor" href="#how-donors-are-chosen"></a></h2>
+
+
+<p>The nearest gauge is not always the most alike: a gauge next door can sit
+higher or hold more snow. <code>weights = "covariance_pick"</code> lets a model of
+the rivers choose instead, in five steps, for each statistic and window on
+its own:</p><ol><li><p><strong>The model's years.</strong> <code>modelled</code> holds a modelled value per year at
+the target and at each candidate donor, such as routed PCIC flow on
+each one's stream segment, 1951–2012.</p></li>
+<li><p><strong>Departures.</strong> Each place's modelled years become departures from its
+own mean, on the log scale (days for <code>*_cov_day</code>), so a big river and
+a small creek can both have a "20 % wetter than usual" year.</p></li>
+<li><p><strong>How alike.</strong> For each candidate, <code>r</code> is the correlation between its
+modelled departures and the target's over the years both have: 1 when
+they rise and fall together, 0 when they are unrelated. Fewer than 30
+shared years counts as 0.</p></li>
+<li><p><strong>Pick and weight.</strong> Among the 15 candidates nearest the target (by
+position and catchment size, as for <code>"distance"</code>), the <code>k</code> with the
+highest <code>r</code> are kept, a tie going to the nearer, each weighted by
+<code>max(r, 0)</code>. If every one weighs 0, it falls back to <code>"distance"</code>: the
+<code>k</code> nearest, weighted by distance.</p></li>
+<li><p><strong>Borrow measured years.</strong> In each year, the target's departure is the
+weighted mean of those donors' measured departures from their own
+baseline means, as with <code>"distance"</code>. The model only chooses the
+donors, so the target's own record never does, and the borrowed years
+run as long as the donors' records do.</p></li>
+</ol><p>With about 60 years, a correlation is uncertain by roughly 0.13, so
+picking the top <code>k</code> partly rewards luck. Whether the model's choice
+predicts better than distance is therefore a question for held-out
+gauges, not for <code>r</code>: wet's chinook pilots use it at a site only where it
+did.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
