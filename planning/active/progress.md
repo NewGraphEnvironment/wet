@@ -19,3 +19,4 @@
 - Code-check round 4 (05:49Z): enumeration of round 3's places against the fixes, all hold; 3 fragile: the fall count (fixed), chinook_sites_data.R's ungauged per-year check (Phase 5), the stale trial report (rerun). Loop ended by enumeration
 - Phase 4 (2026-11-19, 05:56Z–06:47Z, logs `data/logs/167/site_*`, `snow_*`): five site runs and five snow runs from frozen copies of 1b2fb78. Verdicts and the Gosnell build change in `task_plan.md` Phase 4. Parity test passes on the new reports.
 - Phase 5: comparison article data, article (answer, method sentence, scores, limits, word cap 1110) and maps rebuilt; a river label moved clear of the wider Skeena map's keymap; short-record bundle kept (rounding only)
+- Full test suite (06:57Z): 3095 passed, 5 skipped, 1 failed: test-vignette_data.R pinned the bundle's names without `carry`; fixed with assertions on `carry` (passes)
