@@ -11,24 +11,44 @@ installing it; #51: `scripts/wb_inputs.R` and `scripts/wb_term_diagnose.R` drop 
 which decide which changes stale the fit · open issues and pull requests in crate, fwapg, knowledge
 and link on each batch's subject
 
+**Verified:** 2026-11-22 against 24 open issues · **Produced by:** a read of every open issue the file did
+not place (#171, #176, #177, #178, #181, #182) and its comments, and #67, open after move 4 merged · each premise
+grepped against the tree at ddfae39 (#171: `scripts/segment_daily_output.R`'s `own` still lacks `R/wet_segment_daily.R`,
+`scripts/vignette_data_lib.R` and `scripts/segment_group.R`; #177: neither segment reader returns `pick`) · soul's
+`research_check.sh` (four files flagged as grown into logs: `water_balance_method.md`, `discharge_publish.md`,
+`station_flow_departure.md`, `monthly_error.md`) · open issues and pull requests in knowledge, fwapg and fresh on each
+new batch's subject
+
 How to use this file: `/backlog-sweep` writes it. Take the first move in **Moves** that is not
 ticked and not **waiting**; `/planning-init <umbrella>` plans it, one phase per batch, one PR.
-`/gh-pr-merge` step 9c ticks the move on merge; `/compact-prep` names the next. A `NONE` from
-`backlog_moves.sh next` that names batch sections means those batches have no move yet: run
-`/backlog-sweep` again, the backlog is not finished.
+A move that waits only on other moves is `open`, with them in `waits on`; `**waiting**` is for
+a blocker outside this file (the owner, another repo, a PR, a count).
+When the plan finds that a batch, or one of its members, is more than one PR's work, it carries the first piece and files each other piece as its own issue, naming the move it was split from, and leaves it out of this file: the next `/backlog-sweep` reads an issue the file does not name as unplaced, and folds it into a move other than the one it was split from.
+`/gh-pr-merge` step 9c ticks the move on merge, and opens a move `**waiting** on PR #N` (this
+repo's PR, and no other condition) when that PR merges; `/compact-prep` names the next, skipping a
+move whose `waits on` names a move not yet ticked. A plan that defers one of its batches sets that
+section's first line to `- [ ] Not yet in a move`: the tick leaves it open and says so, and `next`
+names it once the move is done, for the next pass to place. A `NONE` from
+`backlog_moves.sh next` that names batch sections means those batches have no move yet, and a
+plain `NONE` is not the end either while an open issue is named nowhere here (`/compact-prep`
+counts them): run `/backlog-sweep` again, the backlog is not finished.
 
 ## Moves
 
-| move | umbrella | batches | state |
-|---|---|---|---|
-| - [x] 1 | #163 | 1, 2: province inputs and run comparison, the fit's own rules (6 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/170 |
-| - [x] 2 | #164 | 3: the published build's record (4 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/172 |
-| - [x] 3 | #165 | 4, 5: article bundles and maps, docs (4 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/173 |
-| - [x] 4 | #166 | 6: monthly error at the gauges (3 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/175 |
-| - [x] 5 | #167 | 8: PCIC's per-year files at the sites (2 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/180 |
-| - [ ] 6 | #168 | 9: the channel-scale pilot (1 issue) | open |
-| - [ ] 7 | #169 | 10: scenarios and coverage (2 issues) | **waiting** on move 6's verdict in `research/pcic_channel_scale.md` |
-| - [ ] 8 | #179 | 7: stations beyond HYDAT (2 issues) | open |
+| move | umbrella | batches | state | lane | waits on | model |
+|---|---|---|---|---|---|---|
+| - [x] 1 | #163 | 1, 2: province inputs and run comparison, the fit's own rules (6 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/170 | — | — | — |
+| - [x] 2 | #164 | 3: the published build's record (4 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/172 | — | — | — |
+| - [x] 3 | #165 | 4, 5: article bundles and maps, docs (4 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/173 | — | — | — |
+| - [x] 4 | #166 | 6: monthly error at the gauges (3 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/175 | — | — | — |
+| - [x] 5 | #167 | 8: PCIC's per-year files at the sites (2 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/180 | — | — | — |
+| - [ ] 6 | #168 | 9: the channel-scale pilot (1 issue) | open | A | — | opus |
+| - [ ] 7 | #169 | 10: scenarios and coverage (2 issues) | **waiting** on move 6's verdict in `research/pcic_channel_scale.md` | A | 6 | fable then opus |
+| - [ ] 8 | #179 | 7: stations beyond HYDAT (2 issues) | open | B | — | opus |
+| - [ ] 9 | #186 | 11: the readers return pick, one list of non-inputs (2 issues) | open | C | — | sonnet |
+| - [ ] 10 | #187 | 12: Swift and Naver creeks under their own windows (1 issue) | open | D | — | opus |
+| - [ ] 11 | #188 | 13: small-basin error and the zone adjustment (4 issues) | open | E | — | fable then opus |
+| - [ ] 12 | #189 | 14: research files around the current state (3 issues) | open | D | 10 | sonnet |
 
 Tracks are separate efforts, not moves: the cross-repo provenance track, whose wet member is #161
 (labelled `track:provenance`), batched here in batch 3 because #88 and #160 take its names.
@@ -47,6 +67,10 @@ Tracks are separate efforts, not moves: the cross-repo provenance track, whose w
 | 8 | #167 | PCIC's per-year files at the sites: #135, #147 | 2 | the `covariance_pick` rule at the sites, registered before any run | `covariance_pick` at the sites needs the per-year files at every run |
 | 9 | #168 | the channel-scale pilot: #9 | 1 | the six sites; whether it also reads water temperature | the oracle batch 10 waits on |
 | 10 | #169 | scenarios and coverage: #4, #5 | 2 | CMIP6 channel-scale, CMIP5 or both by domain; publish scenarios as a new dataset or not | both rescope from batch 9's verdict |
+| 11 | #186 | the readers return pick, one list of non-inputs: #177, #171 | 2 | fix #171 now (one daily rerun and BUILD) or defer it; `pick`'s place in both readers | the publish side's readers and guards; #177 edits a file #171's list lacks |
+| 12 | #187 | Swift and Naver creeks under their own windows: #182 | 1 | the knowledge commit to pin; a guard that the Bulkley and Morice chinook rows match `c97c4d0`'s | moves wet's one pin on the life history table, which every Bulkley and Morice reader follows |
+| 13 | #188 | small-basin error and the zone adjustment: #176, #178, #44, #185 | 4 | the rule, registered before any candidate is scored; which candidates; the hosted WALLY tool only where its terms allow | one oracle, the held-out balance at the gauges; both candidates change the zone adjustment and share one rescore |
+| 14 | #189 | research files around the current state: #181, #183, #184 | 3 | none beyond #181's revise-in-place rule | one method over the files soul's research check flags; waits on move 10 for `research/chinook_sites.md` |
 
 ### 1. Province inputs and run comparison
 
@@ -143,7 +167,8 @@ places more PCIC outlets, which changes the gauge set.
 gauges) both feed `wet_station_daily()`, share the QA and regulation questions, and meet at six
 sites.
 
-Touches `R/wet_station_daily.R` and new readers, `research/station_sources.md`, `data/checks/`.
+**Touches:** `R/wet_station_daily.R`, `research/station_sources.md`, and new readers, with a report under the checks folder (named at the plan gate)
+
 Gate: keep, flag or drop ungraded values; which copy at the shared sites; each series' credit line.
 
 Split from move 5 at its plan gate (2026-11-18): counted against the four chinook site boxes, these
@@ -167,7 +192,9 @@ sites, registered before any run; whether the Morice and upper Fraser boxes are 
 #9 compares PCIC's channel-scale output (VIC-GL-Raven, CMIP6) at about six FWA sites with wet's
 accumulation, routed PCIC and HYDAT. It is the oracle batch 10 waits on.
 
-Touches a new pilot script, `research/pcic_channel_scale.md`. Gate: the six sites; whether it also
+**Touches:** `research/pcic_channel_scale.md`, and a new pilot script
+
+Gate: the six sites; whether it also
 reads water temperature. Open work in fwapg asks whether to run Raven routing on the FWA itself.
 
 ### 10. Scenarios and coverage
@@ -177,14 +204,69 @@ reads water temperature. Open work in fwapg asks whether to run Raven routing on
 #4 (scenario period means) and #5 (coverage and comparison map) both rescope from #9's verdict and
 both need each PCIC product's coverage per watershed group.
 
-Touches new scenario readers and scripts, a dataset ID and crate schema if scenarios are published,
-a coverage report and map. Gate: CMIP6 channel-scale, CMIP5 or both by domain; whether scenarios
+**Touches:** new scenario readers and scripts, a dataset ID and crate schema if scenarios are published, a coverage report and map (all new files, named at the plan gate)
+
+Gate: CMIP6 channel-scale, CMIP5 or both by domain; whether scenarios
 are published as a new dataset.
+
+### 11. The readers return pick, and one list of non-inputs
+
+- [ ] Carried by move 9, #186
+
+#177 (the segment readers return `pick` beside `source`) and #171 (the daily table's list of files that are not inputs of
+the monthly table lacks `R/wet_segment_daily.R`, `scripts/vignette_data_lib.R` and `scripts/segment_group.R`). #177 edits
+one of those files, so a fix to it alone trips the daily guard.
+
+**Touches:** `R/wet_segment_monthly.R`, `R/wet_segment_daily.R`, `scripts/segment_daily_output.R`, `scripts/discharge_publish.R`, `tests/testthat/`
+
+Gate: fix #171 now (one edit to `scripts/segment_daily_output.R` forces a daily rerun of about 132 minutes and a BUILD where
+the full province run is; nothing uploads if every part is identical) or defer it to the next move that reruns the daily
+table; where `pick` sits in both readers' columns.
+
+### 12. Swift and Naver creeks under their own windows
+
+- [ ] Carried by move 10, #187
+
+#182 scores Swift (UFRA) and Naver (COTR) creeks under their own cited chinook windows beside the Bulkley's. It moves wet's
+one pin on the knowledge life history table (`c97c4d0`), which every Bulkley and Morice reader follows.
+
+**Touches:** `data-raw/life_history_data.R`, `scripts/departure_sites.csv`, `inst/vignette-data/`, `data/checks/departure_site_swift_ufra_20260717.txt`, `data/checks/departure_site_naver_cotr_20260717.txt`, `data/checks/departure_site_snow_swift_ufra_20260717.txt`, `data/checks/departure_site_snow_naver_cotr_20260717.txt`, `data-raw/chinook_sites_data.R`, `vignettes/articles/flow-change-sparse-gauges.Rmd`, `research/chinook_sites.md`
+
+Gate: the knowledge commit to pin; a guard that the Bulkley and Morice chinook rows at that commit equal those at
+`c97c4d0`, or differ only in their notes, so the Maxan parity gate cannot break silently. Open work in the knowledge
+repository reviews the Skeena timing rows: it keeps the Bulkley spawning row with a note and may revise the Morice rows
+(search its open issues for "Life history timing, Skeena").
+
+### 13. Small-basin error and the zone adjustment
+
+- [ ] Carried by move 11, #188
+
+#176 diagnoses why the balance runs about 14 % high at gauges under 100 km²; #178 sets WALLY's flows beside ours and tests
+its per-zone trait regression as a candidate adjustment; #44 blends the adjustment across zone lines; #185 consolidates
+`research/monthly_error.md` so the diagnosis revises it in place. One oracle (the held-out balance at the gauges), and both
+candidates change the zone adjustment, so one rescore under one registered rule scores them.
+
+**Touches:** `research/monthly_error.md`, `R/wet_wb_fit.R`, `scripts/wb_validate.R`, and a new diagnosis script and its report under the checks folder, named at the plan gate
+
+Gate: the rule, registered in a script's header before any candidate is scored; which candidates enter; the hosted WALLY
+tool used only where its written terms allow.
+
+### 14. Research files around the current state
+
+- [ ] Carried by move 12, #189
+
+#181 (`water_balance_method.md`, `chinook_sites.md`), #183 (`discharge_publish.md`) and #184 (`station_flow_departure.md`,
+last verified 2026-09-28): one pass, one method, over the files soul's `research_check.sh` flags as grown into logs. Waits
+on move 10, which rewrites `research/chinook_sites.md`.
+
+**Touches:** `research/water_balance_method.md`, `research/chinook_sites.md`, `research/discharge_publish.md`, `research/station_flow_departure.md`, `CLAUDE.md`, `planning/archive/`
+
+Gate: none beyond #181's rule.
 
 ## Singles
 
 - #14: transboundary flow; no shared cost with any batch.
-- #44: blend the zone adjustment; waits on batch 2's main-stem gate.
+- #67: routed PCIC's seasonal shape; its one open ask is the note to PCIC, which goes only with the owner's approval of its wording. Its checks were done in move 4.
 - #76: the `fwa_indexpoint()` tie-break; waits on fwapg's tie rule, and joins move 1 if that lands first (it reruns `scripts/wb_stations.R` and the same chain).
 - #111: waits on fwapg's decision on the default downstream walk.
 - #113: retest the duckdb icu autoload on duckdb 2.0; an upstream reply needs the owner's approval.
