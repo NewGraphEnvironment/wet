@@ -180,7 +180,10 @@ reg_off <- st_meta$station_number[is.na(match(paste(st_meta$station_number, reg_
                                               paste(st_meta$station_number, st_meta$first, st_meta$last)))]
 # a station the reader returns that the registry lacks would be unreachable from wet_station_daily()
 reg_missing <- setdiff(unique(c(lst$station_number, utc$station_number)), st_meta$station_number)
-reg_fail <- length(reg_off) > 0 || length(reg_missing) > 0
+# the registry's HYDAT site against the survey's match, which tier (i) verifies (the site does not depend on years)
+stopifnot(identical(t1$station_id, st_meta$station_number))
+reg_site <- st_meta$station_number[differs(st_meta$hydat_site, t1$hydat) | differs(st_meta$hydat_km, t1$hydat_km)]
+reg_fail <- length(reg_off) > 0 || length(reg_missing) > 0 || length(reg_site) > 0
 neg <- sum(lst$q_m3s < 0)
 
 # ---- report -----------------------------------------------------------------------------------
@@ -214,6 +217,8 @@ out <- c(
           nrow(t3), sum(t3$daily), sum(t1$pass), sum(t2$pass), sum(t3$pass)),
   sprintf("  station registry's first and last days against the shipped reader: %d stations, %d differing%s",
           nrow(st_meta), length(reg_off), if (length(reg_off)) paste0(" (", paste(reg_off, collapse = ", "), ")") else ""),
+  sprintf("  stations whose registry HYDAT site or distance differs from the survey's match: %d%s", length(reg_site),
+          if (length(reg_site)) paste0(" (", paste(reg_site, collapse = ", "), ")") else ""),
   sprintf("  stations the reader returns that the registry lacks: %d%s; registry verdict: %s", length(reg_missing),
           if (length(reg_missing)) paste0(" (", paste(reg_missing, collapse = ", "), ")") else "",
           if (reg_fail) "FAIL, rewrite it with data-raw/station_sources_snapshot.R" else "PASS"),
