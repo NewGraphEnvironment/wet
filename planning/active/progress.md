@@ -46,3 +46,6 @@ mandate; the merge stays with me.
 - Completed: `pick` on both readers (parts, Postgres, fwapg; every frame), tests, `data-raw/monthly_vignette_data.R` subset, vignette sentence, `scripts/discharge_publish_own.R` shared by both guards, `test-publish_own.R`, NEWS; `devtools::test()` 3136 pass, lint and `check_pkgdown()` clean
 - Guard replay: only `R/wet_station_snap.R` and `scripts/pcic_routed_lib.R` remain (real inputs, see findings)
 - Next: `/code-check branch`, archive, PR
+
+## /code-check branch, 2026-11-22
+- Round 1 clean; round 2 one fragile finding (the two-list test matched only `^publish_own <-`), fixed and checked by planting a reassignment; round 3 clean (ran the Postgres reader tests, 103 pass). No defect inside a fix; three reviewer agents.

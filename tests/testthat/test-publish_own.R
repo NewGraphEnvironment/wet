@@ -14,10 +14,13 @@ test_that("both guards source the one list and assign none of their own", {
   for (f in c("discharge_publish.R", "segment_daily_output.R")) {
     lines <- readLines(file.path(d, f))
     expect_true(any(grepl('source("scripts/discharge_publish_own.R")', lines, fixed = TRUE)), info = f)
-    expect_false(any(grepl("^publish_own <-", lines)), info = f)
+    code <- lines[!grepl("^\\s*#", lines)]
+    # no assignment, in any spelling, of a list of its own
+    expect_false(any(grepl("^\\s*publish_own\\s*(<-|=)|assign\\(\\s*[\"']publish_own", code)), info = f)
   }
   # the daily script adds only itself to the shared list
   daily <- readLines(file.path(d, "segment_daily_output.R"))
+  expect_identical(sum(grepl("^\\s*own\\s*(<-|=)", daily)), 1L)
   expect_true('own <- c("scripts/segment_daily_output.R", publish_own)' %in% daily)
   # and the BUILD keeps the daily script out of the list, so its daily check still sees it
   build <- readLines(file.path(d, "discharge_publish.R"))
