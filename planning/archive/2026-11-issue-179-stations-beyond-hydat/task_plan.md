@@ -42,10 +42,6 @@ Asked at the resume, each answered with its recommendation:
 
 8. **The bound, after the registered rule failed** (asked 2026-11-22 once `data/checks/station_sources_bound_20260717.txt` showed it): per WSC sub-drainage. The same ratio, but the largest among HYDAT stations in the station's sub-drainage (the first three characters of its number, `08H`), falling back to the province-wide bound where a sub-drainage has fewer than 10 HYDAT stations. Re-registered before it is applied to the provincial stations; the record says it was chosen after seeing the HYDAT sub-drainage maxima.
 
-## Open decisions
-
-None.
-
 ## Phase 1: the snapshot
 
 - [x] `wet_bcenv(snapshot)` in `R/wet_bcenv.R` (internal): the cached snapshot's file paths under `tools::R_user_dir("wet", "cache")/station_sources/bcenv/<snapshot>/`, newest first, each held to the tracked manifest's size and md5 and refused if it differs. It has no fetch path at all: a missing file is a classed `wet_bcenv_unavailable` error naming the backup to copy it from by hand, as `wet_hydat()` does for a superseded release (simpler than the drafted fetch-from-backup helper, and the province is never reached). File order comes from the names' periods (`wet_bcenv_order()`), so a new snapshot needs no code change
@@ -81,6 +77,6 @@ None.
 - [x] Tests pass (478, 0 failures, 5 skips needing a newer fwapg)
 - [x] `/code-check branch`: 5 rounds, ended by an enumeration of 25 places (`review-verdict.md`)
 - [x] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] `/planning-archive` on completion
 
 How each change is proved: the readers by fixture tests that fail with the defect restored; the cache by a test that a changed md5 refuses and that the province is never fetched for a pinned snapshot; `wet_station_daily()`'s existing behaviour by its tests and a mocked-reader test that HYDAT ids never reach the new source; the harvest by tier (i)'s exact reproduction of the probe's rows and counts, and tier (ii)'s station-by-rule table; `pkgdown::check_pkgdown()`, and `lintr` per file against `origin/main`.
