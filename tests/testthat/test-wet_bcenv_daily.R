@@ -73,6 +73,15 @@ test_that("a file whose last line has no newline is read whole", {
   expect_equal(d$q_m3s, c(2, 3, 4, 5, 6))
 })
 
+test_that("an Unverified hour makes a day unchecked; a grade wet does not know is refused", {
+  f <- local_bcenv_fixture()
+  expect_equal(wet_bcenv_daily("08ZZ0003", bound = 100, cache_dir = f$cache)$status, "unchecked")
+  g <- local_bcenv_fixture()
+  cat("08ZZ0001,Alpha,Active,49.1,-123.1,2020-07-01 08:00:00,Discharge,1.0,m^3/s,Fabulous\n",
+      file = g$paths[1], append = TRUE)
+  expect_error(wet_bcenv_daily("08ZZ0001", cache_dir = g$cache), "grade wet does not know: Fabulous")
+})
+
 test_that("a value that is not a number is refused, not read as missing", {
   f <- local_bcenv_fixture()
   cat("08ZZ0001,Alpha,Active,49.1,-123.1,2020-07-01 08:00:00,Discharge,1.0x,m^3/s,RISC A\n",

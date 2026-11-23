@@ -29,9 +29,12 @@
 #   builds UTC days instead, the survey's rule, which only the harvest report's
 #   reproduction of the survey uses.
 #
+# Every grade in the files must be one wet_bcenv_grades names; a grade it does
+# not know is refused rather than read as graded.
+#
 # Returns wet_station_daily()'s shape, `source` "bcenv". `status` is
-# "unchecked" for a day with any hour graded Undefined or Unspecified, and
-# "provisional" for a day whose hours are all graded: the files carry no
+# "unchecked" for a day with any ungraded hour (Undefined, Unspecified or
+# Unverified), and "provisional" for a day whose hours are all graded: the files carry no
 # approval, so no provincial day is "approved".
 wet_bcenv_daily <- function(stations = NULL, snapshot = wet_bcenv_snapshot, bound = wet_bcenv_bound,
                             min_hours = 20L, cache_dir = tools::R_user_dir("wet", "cache")) {
@@ -90,7 +93,16 @@ wet_bcenv_ratio <- function(ids, bound) {
 
 # The reader version: bump it whenever wet_bcenv_hours() or wet_bcenv_build()
 # change what the stored days hold, so an old cache is never read as new.
-wet_bcenv_reader <- 1L
+wet_bcenv_reader <- 2L
+
+# The grades the province's files carry, read from the 20261028 snapshot:
+# ungraded hours make a day "unchecked", Unusable hours are left out, and the
+# rest are grades (RISC A-E and U, and the older labels).
+wet_bcenv_grades <- list(
+  ungraded = c("Undefined", "Unspecified", "Unverified"),
+  unusable = "Unusable",
+  graded = c("RISC A", "RISC B", "RISC C", "RISC D", "RISC E", "RISC U", "Excellent", "Very Good", "Good", "Poor",
+             "Estimated", "EXCELLENT - RATED STRUCTURE", "Best Practice"))
 
 # The stored days for a snapshot, built if this machine has none yet.
 wet_bcenv_days <- function(snapshot, cache_dir, utc = FALSE) {
@@ -127,6 +139,14 @@ wet_bcenv_build <- function(paths, dest, utc = FALSE) {
   con <- DBI::dbConnect(duckdb::duckdb())
   on.exit(DBI::dbDisconnect(con, shutdown = TRUE), add = TRUE)
   wet_bcenv_hours(con, paths)
+  known <- unlist(wet_bcenv_grades, use.names = FALSE)
+  grades <- DBI::dbGetQuery(con, "SELECT DISTINCT grade FROM h")$grade
+  if (anyNA(grades) || length(setdiff(grades, known))) {
+    stop("a provincial hour carries a grade wet does not know: ",
+         paste(ifelse(is.na(setdiff(grades, known)), "(none)", setdiff(grades, known)), collapse = ", "),
+         "; add it to wet_bcenv_grades and bump wet_bcenv_reader", call. = FALSE)
+  }
+  ungraded <- paste(DBI::dbQuoteString(con, wet_bcenv_grades$ungraded), collapse = ", ")
   # local standard time: 7 hours behind UTC in drainage areas 07 and 10, 8 elsewhere
   offset <- if (utc) "0" else
     "CASE WHEN regexp_matches(regexp_replace(id, '^[A-Z]+', ''), '^(07|10)') THEN 7 ELSE 8 END"
@@ -135,10 +155,11 @@ wet_bcenv_build <- function(paths, dest, utc = FALSE) {
       SELECT id AS station_number,
              CAST(CAST(t AS TIMESTAMP) - to_hours(%s) AS DATE) AS date,
              avg(value) AS q_m3s, count(*) AS hours,
-             count(*) FILTER (WHERE grade IN ('Undefined', 'Unspecified')) AS ungraded
-      FROM h WHERE grade <> 'Unusable'
+             count(*) FILTER (WHERE grade IN (%s)) AS ungraded
+      FROM h WHERE grade <> %s
       GROUP BY 1, 2 ORDER BY 1, 2
-    ) TO %s (FORMAT parquet)", offset, DBI::dbQuoteString(con, dest))))
+    ) TO %s (FORMAT parquet)", offset, ungraded, DBI::dbQuoteString(con, wet_bcenv_grades$unusable),
+    DBI::dbQuoteString(con, dest))))
   invisible(dest)
 }
 

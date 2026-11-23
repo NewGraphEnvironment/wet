@@ -1,5 +1,5 @@
 The province's non-integrated discharge as wet reads it: the harvest report (#142, #179)
-HYDAT release 20260717; snapshot 20261028; reader v1; code_md5 ebd35dd5dfc61206ec05981eae1c2a38
+HYDAT release 20260717; snapshot 20261028; reader v2; code_md5 84bb5f9d95e1666c8cb8646327f74db6
 Windows: CH migration 05-01..08-01 and spawning 08-01..09-15, as the survey (#123).
 
 Tier (i): the survey's rules (UTC days of >= 20 hours, no bound, no negative day dropped)
@@ -17,8 +17,9 @@ Tier (ii): the shipped rules (local standard time days, the plausibility bound, 
   station registry's first and last days against the shipped reader: 211 stations, 0 differing
   stations whose registry HYDAT site or distance differs from the survey's match: 0
   stations whose registry regulation differs from what their name gives: 0
+  registry numbers shaped like HYDAT's, which wet_station_daily() would not read here: 0
   stations the hours hold that the registry lacks: 0; registry verdict: PASS
-  status of shipped days: provisional 72552 (33.8 %), unchecked 142408 (66.2 %)
+  status of shipped days: provisional 72453 (33.7 %), unchecked 142507 (66.3 %)
 
 Stations whose first-last years, window-years outside HYDAT or pass moved (1): station, rule, survey -> LST -> shipped
   08NM0005  LST        2012-2026 12 pass  ->  2012-2026 11 pass  ->  2012-2026 11 pass

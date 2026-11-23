@@ -14,7 +14,8 @@
 # 07ZZ0001 (Peace, UTC-7), in Discharge.csv: 2020-06-02, its first hour 25 and 23 hours of 1 -> 2;
 #   at UTC-8 the first hour would fall on 2020-06-01 and the day would read 1.
 # The archive repeats 08ZZ0001's 2020-06-02 at 99 (the newer file wins), and
-# alone holds 08ZZ0002's 2020-06-02 at 7 with Unspecified hours.
+# alone holds 08ZZ0002's 2020-06-02 at 7 with Unspecified hours and 08ZZ0003's
+# 2020-06-02 at 8 with one Unverified hour.
 bcenv_fixture_rows <- function(id, name, day, hours, value, unit = "m^3/s", grade = "RISC A", offset = 8) {
   t <- as.POSIXct(paste(day, "00:00:00"), tz = "UTC") + (offset + hours) * 3600
   sprintf("%s,%s,Active,49.1,-123.1,%s,Discharge,%s,%s,%s", id, name, format(t, "%Y-%m-%d %H:%M:%S", tz = "UTC"),
@@ -45,7 +46,9 @@ bcenv_fixture <- function(dir) {
                        offset = 7))
   old <- c(
     bcenv_fixture_rows(a, na, "2020-06-02", 0:23, "99.000"),
-    bcenv_fixture_rows("08ZZ0002", "Beta Creek", "2020-06-02", 0:23, "7.000", grade = "Unspecified"))
+    bcenv_fixture_rows("08ZZ0002", "Beta Creek", "2020-06-02", 0:23, "7.000", grade = "Unspecified"),
+    bcenv_fixture_rows("08ZZ0003", "Gamma Creek", "2020-06-02", 0:23, "8.000",
+                       grade = c("Unverified", rep("Good", 23))))
   head <- "Location ID, Location Name, Status, Latitude, Longitude, Date/Time(UTC), Parameter, Value, Unit, Grade\r\n"
   write <- function(rows, file) {
     b <- charToRaw(paste0(head, paste0(rows, "\n", collapse = "")))

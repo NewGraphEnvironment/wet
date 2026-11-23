@@ -190,7 +190,10 @@ reg_site <- st_meta$station_number[differs(st_meta$hydat_site, t1$hydat) | diffe
 # the registry's regulation against the name rule it was written by
 reg_reg <- st_meta$station_number[differs(st_meta$regulation, ifelse(regulation_of(st_meta$name) == "unknown",
                                                                      "unknown", "regulated by name"))]
-reg_fail <- length(reg_off) > 0 || length(reg_missing) > 0 || length(reg_site) > 0 || length(reg_reg) > 0
+# wet_station_daily() sends a HYDAT-shaped number to the federal sources, never to the registry
+reg_hydat <- st_meta$station_number[grepl(wet_hydat_number, st_meta$station_number)]
+reg_fail <- length(reg_off) > 0 || length(reg_missing) > 0 || length(reg_site) > 0 || length(reg_reg) > 0 ||
+  length(reg_hydat) > 0
 neg <- sum(lst$q_m3s < 0)
 
 # ---- report -----------------------------------------------------------------------------------
@@ -228,6 +231,8 @@ out <- c(
           if (length(reg_site)) paste0(" (", paste(reg_site, collapse = ", "), ")") else ""),
   sprintf("  stations whose registry regulation differs from what their name gives: %d%s", length(reg_reg),
           if (length(reg_reg)) paste0(" (", paste(reg_reg, collapse = ", "), ")") else ""),
+  sprintf("  registry numbers shaped like HYDAT's, which wet_station_daily() would not read here: %d%s",
+          length(reg_hydat), if (length(reg_hydat)) paste0(" (", paste(reg_hydat, collapse = ", "), ")") else ""),
   sprintf("  stations the hours hold that the registry lacks: %d%s; registry verdict: %s", length(reg_missing),
           if (length(reg_missing)) paste0(" (", paste(reg_missing, collapse = ", "), ")") else "",
           if (reg_fail) "FAIL, rewrite it with data-raw/station_sources_snapshot.R" else "PASS"),
