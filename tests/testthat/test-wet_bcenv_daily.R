@@ -52,7 +52,7 @@ test_that("a day that straddles UTC midnight is one local day; the Peace keeps U
 test_that("the byte 0x96 in a station name does not stop the read", {
   f <- local_bcenv_fixture()
   con <- DBI::dbConnect(duckdb::duckdb())
-  on.exit(DBI::dbDisconnect(con, shutdown = TRUE))
+  withr::defer(DBI::dbDisconnect(con, shutdown = TRUE))
   wet_bcenv_hours(con, f$paths)
   nm <- DBI::dbGetQuery(con, "SELECT DISTINCT name FROM h WHERE id = '08ZZ0001'")$name
   expect_equal(nm, "Alpha Creek - upper")

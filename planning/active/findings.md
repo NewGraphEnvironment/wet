@@ -26,3 +26,6 @@ Split out of move 5 (#167) at its plan gate, 2026-11-18: at the four chinook sit
 
 | Error | Resolution |
 |-------|------------|
+| Full suite: `test-wet_bcenv.R` failed after `test-wet_bcenv_daily.R`, alone it passed | A bare `on.exit()` inside a `test_that()` replaced the frame's exit handlers, so the mock of `wet_bcenv()` was never restored (and the tempdirs not removed); `withr::defer()` instead. testthat 3.3.2's `local_mocked_bindings()` has no `.local_envir`: `.env` is the cleanup frame, and an unknown argument is read as a binding to mock |
+| duckdb outside strict mode reads a non-numeric value as NULL and keeps a row with extra fields; it drops only a blank line | Values read as text and refused unless numeric; the line-count check catches the blank line |
+| The harvest report's largest relative difference moved between runs (8.78e-16, 8.24e-16) | duckdb's parallel `avg()` sums in no fixed order; the report prints the threshold it meets (`under 1e-12`) |

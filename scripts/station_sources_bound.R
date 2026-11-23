@@ -31,7 +31,9 @@ source("scripts/wb_fit_lib.R")  # wb_release(), wb_hydat()
 release <- wb_release()
 if (release != "20260717") stop("the bound is registered on HYDAT 20260717, not ", release, call. = FALSE)
 self <- gsub("~+~", " ", sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)), fixed = TRUE)
-if (length(self) != 1 || sys.nframe() != 0) stop("run with Rscript, so the script's own md5 can be recorded", call. = FALSE)
+if (length(self) != 1 || sys.nframe() != 0) {
+  stop("run with Rscript, so the script's own md5 can be recorded", call. = FALSE)
+}
 code_md5 <- unname(tools::md5sum(self))
 hydat <- wb_hydat(release)
 report <- file.path("data", "checks", sprintf("station_sources_bound_%s.txt", release))
@@ -94,15 +96,19 @@ out <- c(
   sprintf("Provincial snapshot %s, reader v%d (wet_bcenv_daily(), complete days of >= 20 hours, local standard time)",
           wet_bcenv_snapshot, wet_bcenv_reader),
   paste0("Rule: research/station_sources.md, \"The plausibility bound for the provincial files\": one province-wide ",
-         "bound, registered before measuring, failed a catch; this form, per sub-drainage, was re-registered before it was applied."),
+         paste0("bound, registered before measuring, failed a catch; this form, per",
+                  " sub-drainage, was re-registered before it was applied.")),
   "",
-  sprintf("Population: %d BC stations in HYDAT, %d with >= %d daily flows and a positive flow (%d natural: no REGULATED = 1 row).",
+  sprintf(paste0("Population: %d BC stations in HYDAT, %d with >= %d daily flows and a",
+           " positive flow (%d natural: no REGULATED = 1 row)."),
           nrow(st), nrow(ratio), min_days, nrow(nat)),
   "Ratio: a station's largest daily flow over the median of its positive daily flows.",
-  sprintf("Province-wide largest ratio (.default, for a sub-drainage with fewer than %d stations): %.2f; natural alone %.2f",
+  sprintf(paste0("Province-wide largest ratio (.default, for a sub-drainage with",
+           " fewer than %d stations): %.2f; natural alone %.2f"),
           min_sub, default, bound_nat),
   "",
-  "Per sub-drainage: stations, largest ratio and the station that sets it, natural stations and their largest (reported only), bound taken",
+  paste0("Per sub-drainage: stations, largest ratio and the station that sets it,",
+           " natural stations and their largest (reported only), bound taken"),
   sprintf("  %s  n %3d  max %8.2f (%s)  natural n %3d  max %8s  -> %s", subs$sub, subs$n, subs$max, subs$by, subs$n_nat,
           ifelse(is.na(subs$max_nat), "-", sprintf("%.2f", subs$max_nat)),
           ifelse(subs$n >= min_sub, sprintf("%.2f", subs$max), sprintf(".default %.2f", default))),
@@ -123,7 +129,8 @@ out <- c(
           length(unique(pv$station_number[pv$dropped]))),
   sprintf("  %d negative complete days at %d stations, dropped.", nrow(neg), length(unique(neg$station_number))),
   "",
-  "Stations with days above the bound: station, days dropped, median of positive days (m3/s), cap, largest day dropped, years",
+  paste0("Stations with days above the bound: station, days dropped, median of",
+           " positive days (m3/s), cap, largest day dropped, years"),
   vapply(split(pv[pv$dropped, ], pv$station_number[pv$dropped]), function(x) {
     sprintf("  %s  %5d  %9.3f  %10.1f  %12.1f  %s-%s", x$station_number[1], nrow(x), med[[x$station_number[1]]],
             x$cap[1], max(x$q_m3s), format(min(x$date), "%Y"), format(max(x$date), "%Y"))

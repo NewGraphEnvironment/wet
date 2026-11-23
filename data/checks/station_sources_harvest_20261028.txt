@@ -1,9 +1,9 @@
 The province's non-integrated discharge as wet reads it: the harvest report (#142, #179)
-HYDAT release 20260717; snapshot 20261028; reader v1; code_md5 50e1644d2216e329341e5ec202cbac6f
+HYDAT release 20260717; snapshot 20261028; reader v1; code_md5 335fd7470ad14d021639adcb25d3e090
 Windows: CH migration 05-01..08-01 and spawning 08-01..09-15, as the survey (#123).
 
 Tier (i): the survey's rules (UTC days of >= 20 hours, no bound, no negative day dropped)
-  daily rows, the probe's own query against wet_bcenv_days(utc = TRUE): 215300 against 215300; same station-days TRUE; largest relative difference in flow 8.78e-16
+  daily rows, the probe's own query against wet_bcenv_days(utc = TRUE): 215300 against 215300; same station-days TRUE; largest relative difference in flow under 1e-12
   survey report rows "Every station read", provincial: 211 ours, 211 the survey's; differing rows 0
   "Per network", provincial: ours   read  211  Q  211  new  153  same-site  57  dup   1  >=1  185  >=3  110  seasonal 44
                                survey read  211  Q  211  new  153  same-site  57  dup   1  >=1  185  >=3  110  seasonal 44

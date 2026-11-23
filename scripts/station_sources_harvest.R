@@ -32,7 +32,9 @@ source("scripts/station_sources_lib.R")
 release <- wb_release()
 if (release != "20260717") stop("the survey names HYDAT 20260717, not ", release, call. = FALSE)
 self <- gsub("~+~", " ", sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)), fixed = TRUE)
-if (length(self) != 1 || sys.nframe() != 0) stop("run with Rscript, so the script's own md5 can be recorded", call. = FALSE)
+if (length(self) != 1 || sys.nframe() != 0) {
+  stop("run with Rscript, so the script's own md5 can be recorded", call. = FALSE)
+}
 code_md5 <- unname(tools::md5sum(self))
 snapshot <- wet_bcenv_snapshot
 cache <- tools::R_user_dir("wet", "cache")
@@ -88,9 +90,11 @@ probe_prov_q <- function(prov_paths) {
 st_meta <- wet_bcenv_stations(snapshot)
 station_table <- function(q) {
   rng <- lapply(split(q$date, q$station_number), range)
-  yr <- function(i) vapply(st_meta$station_number, function(s) {
-    if (is.null(rng[[s]])) NA_integer_ else as.integer(format(rng[[s]][i], "%Y"))
-  }, 0L)
+  yr <- function(i) {
+    vapply(st_meta$station_number, function(s) {
+      if (is.null(rng[[s]])) NA_integer_ else as.integer(format(rng[[s]][i], "%Y"))
+    }, 0L)
+  }
   s <- data.frame(station_id = st_meta$station_number, name = st_meta$name, lon = st_meta$lon, lat = st_meta$lat,
                   first = yr(1), last = yr(2))
   s <- hydat_match(s, hy)
@@ -125,7 +129,8 @@ max_rel <- if (same_rows) max(abs(utc$q_m3s - probe$q_m3s) / pmax(abs(probe$q_m3
 if (!same_rows || max_rel > 1e-12) fail <- c(fail, "daily rows")
 
 t1 <- station_table(utc)
-mine <- sprintf("  bcenv | BC ENV non-integrated (provincial files) | %s | %s | %.4f | %.4f | %s-%s | %s | %s | %s | %s | %d/%d | %s",
+mine <- sprintf(paste0("  bcenv | BC ENV non-integrated (provincial files) | %s | %s |",
+         " %.4f | %.4f | %s-%s | %s | %s | %s | %s | %d/%d | %s"),
                 t1$station_id, t1$name, t1$lon, t1$lat, t1$first, t1$last, ifelse(t1$daily, "daily", "no complete day"),
                 regulation_of(t1$name),
                 ifelse(is.na(t1$hydat), "-", sprintf("%s (%.2f km, %s)", t1$hydat, t1$hydat_km, t1$hydat_q)),
@@ -165,27 +170,34 @@ out <- c(
   "Windows: CH migration 05-01..08-01 and spawning 08-01..09-15, as the survey (#123).",
   "",
   "Tier (i): the survey's rules (UTC days of >= 20 hours, no bound, no negative day dropped)",
-  sprintf("  daily rows, the probe's own query against wet_bcenv_days(utc = TRUE): %d against %d; same station-days %s; largest relative difference in flow %s",
-          nrow(utc), nrow(probe), same_rows, if (is.na(max_rel)) "-" else format(signif(max_rel, 3))),
+  sprintf(paste0("  daily rows, the probe's own query against wet_bcenv_days(utc = TRUE): %d against",
+           " %d; same station-days %s; largest relative difference in flow %s"),
+          nrow(utc), nrow(probe), same_rows,
+          if (is.na(max_rel)) "-" else if (max_rel <= 1e-12) "under 1e-12" else format(signif(max_rel, 3))),
   sprintf("  survey report rows \"Every station read\", provincial: %d ours, %d the survey's; differing rows %d",
           length(mine), length(theirs), length(row_diff)),
   if (length(row_diff)) paste0("    ", utils::head(row_diff, 20)),
   sprintf("  \"Per network\", provincial: ours   %s", net_mine),
   sprintf("                               survey %s", net_theirs),
-  sprintf("  passing stations (>= %d complete window-years outside HYDAT's years at the site): %d", min_years, sum(t1$pass)),
-  sprintf("  verdict: %s", if (length(fail)) paste("FAIL:", paste(fail, collapse = ", ")) else "PASS, the survey reproduced"),
+  sprintf(paste0("  passing stations (>= %d complete window-years",
+           " outside HYDAT's years at the site): %d"), min_years, sum(t1$pass)),
+  sprintf("  verdict: %s",
+          if (length(fail)) paste("FAIL:", paste(fail, collapse = ", ")) else "PASS, the survey reproduced"),
   "",
   "Tier (ii): the shipped rules (local standard time days, the plausibility bound, negative days dropped, status)",
-  sprintf("  complete days: %d under the survey's rules, %d under local standard time, %d shipped", nrow(utc), nrow(lst),
+  sprintf(paste0("  complete days: %d under the survey's rules, %d",
+           " under local standard time, %d shipped"), nrow(utc), nrow(lst),
           nrow(shipped)),
   sprintf("  days dropped: %d by the plausibility bound, %d negative", drop_bound, neg),
-  sprintf("  stations: %d read, %d with a complete day; passing %d under the survey's rules, %d under local standard time, %d shipped",
+  sprintf(paste0("  stations: %d read, %d with a complete day; passing %d under the",
+           " survey's rules, %d under local standard time, %d shipped"),
           nrow(t3), sum(t3$daily), sum(t1$pass), sum(t2$pass), sum(t3$pass)),
   sprintf("  status of shipped days: provisional %d (%.1f %%), unchecked %d (%.1f %%)",
           sum(shipped$status == "provisional"), 100 * mean(shipped$status == "provisional"),
           sum(shipped$status == "unchecked"), 100 * mean(shipped$status == "unchecked")),
   "",
-  sprintf("Stations whose first-last years, window-years outside HYDAT or pass moved (%d): station, rule, survey -> LST -> shipped",
+  sprintf(paste0("Stations whose first-last years, window-years outside HYDAT or pass",
+           " moved (%d): station, rule, survey -> LST -> shipped"),
           sum(any_move)),
   sprintf("  %s  %-9s  %s-%s %d %s  ->  %s-%s %d %s  ->  %s-%s %d %s", t1$station_id[any_move],
           ifelse(by_lst & by_bound, "LST+bound", ifelse(by_lst, "LST", "bound"))[any_move],
