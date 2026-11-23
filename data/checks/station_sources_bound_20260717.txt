@@ -1,0 +1,33 @@
+The plausibility bound for the province's non-integrated discharge (#142, #179)
+HYDAT release 20260717; code_md5 e730a35ff2f7c1d638a9f4d0f5e4077d
+Provincial snapshot 20261028, reader v1 (wet_bcenv_daily(), complete days of >= 20 hours, local standard time)
+Rule registered before measuring: research/station_sources.md, "The plausibility bound for the provincial files".
+
+Population: 2324 BC stations in HYDAT, 752 with >= 3650 daily flows and a positive flow (522 natural: no REGULATED = 1 row).
+Bound (largest ratio of a station's largest daily flow to the median of its positive daily flows): 2490.71
+Natural stations alone (reported, deciding nothing): 2490.71
+
+The ten largest ratios:
+  07FD007  POUCE COUPE RIVER BELOW HENDERSON CREEK       natural    days 18336  median     0.538  max    1340.0 on 2011-07-10  ratio  2490.71
+  07FC003  BLUEBERRY RIVER BELOW AITKEN CREEK            natural    days 21527  median     0.378  max     509.0 on 2017-05-13  ratio  1346.56
+  10CD005  ADSETT CREEK AT KILOMETRE 386.0 ALASKA HIGHWA natural    days 15616  median     0.189  max     217.0 on 1998-07-15  ratio  1148.15
+  07FB004  DICKEBUSCH CREEK NEAR THE MOUTH               natural    days 17436  median     0.113  max     114.0 on 2001-07-18  ratio  1008.85
+  07FD001  KISKATINAW RIVER NEAR FARMINGTON              natural    days 23867  median     2.180  max    1370.0 on 2016-06-16  ratio   628.44
+  08MC039  BORLAND CREEK BELOW VALLEY CREEK              regulated  days  9774  median     0.027  max      15.7 on 2009-04-19  ratio   581.48
+  08NM146  CLARK CREEK NEAR WINFIELD                     natural    days  9523  median     0.007  max       3.8 on 2017-05-05  ratio   535.71
+  08LG009  WITCHES BROOK NEAR MERRITT                    regulated  days 12110  median     0.011  max       5.9 on 1971-05-13  ratio   535.45
+  10CD004  BOUGIE CREEK AT KILOMETRE 368 ALASKA HIGHWAY  natural    days 15492  median     0.500  max     267.0 on 1987-08-01  ratio   534.00
+  10CD003  RASPBERRY CREEK NEAR THE MOUTH                natural    days 16593  median     0.299  max     150.0 on 2008-05-21  ratio   502.51
+
+Expected catches (registered):
+  PASS  08HA0036: every day above 1,000 m3/s dropped
+  FAIL  08HD0003: every day above 1,000 m3/s dropped
+  PASS  08MD0002: no day dropped
+  PASS  08MD0003: no day dropped
+
+Applied to the snapshot: 215168 complete days at 196 stations; 28 days at 2 stations above the bound, dropped;
+  0 negative complete days at 0 stations, dropped.
+
+Stations with days above the bound: station, days dropped, median of positive days (m3/s), cap, largest day dropped, years
+  08HA0036     24      0.014        35.7      254467.5  2021-2024
+  08HB0022      4      0.131       326.2         575.5  2020-2021

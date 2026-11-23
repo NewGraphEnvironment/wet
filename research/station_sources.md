@@ -134,6 +134,8 @@ Registered on 2026-11-22, before the bound was measured (#179, decision 3). The 
 
 Produced by `scripts/station_sources_bound.R` → `data/checks/station_sources_bound_20260717.txt`.
 
+**Measured on 2026-11-22: the rule failed one expected catch** [M, first run of the report]. The bound came out at 2,490.71, set by the Pouce Coupe River below Henderson Creek (07FD007) alone; the next largest ratio is 1,346.56 (07FC003). It drops Oliver Creek's 24 impossible days and 4 days at 08HB0022, and no Big Bar day, but none of Amor De Cosmos Creek's 51 days above 1,000 m³/s: on a median of 2.5 m³/s their ratios start at 402. That record is not a few spikes: its 90th percentile is 101 m³/s. As registered, no bound shipped, and the choice went to the owner.
+
 ## Already fetched by a New Graph package?
 
 No (2026-10-28). The installed NewGraphEnvironment packages export only federal fetchers: `ngr::ngr_hyd_q_daily()`, `ngr::ngr_hyd_realtime()` (`tidyhydat::realtime_ws()`) and wet's `wet_station_*()`. A code search of the organisation finds these sources only cited, never fetched.
