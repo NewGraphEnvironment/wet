@@ -36,8 +36,10 @@ wet_bcenv_daily <- function(stations = NULL, snapshot = wet_bcenv_snapshot, boun
   if (!is.null(stations) && (!is.character(stations) || anyNA(stations))) {
     stop("`stations` must be a character vector of station numbers, or NULL for all", call. = FALSE)
   }
-  if (!is.numeric(bound) || length(bound) != 1L || is.na(bound) || bound <= 0) {
-    stop("`bound` must be one positive number (Inf for none)", call. = FALSE)
+  if (!is.numeric(bound) || !length(bound) || anyNA(bound) || any(bound <= 0) ||
+      (is.null(names(bound)) && length(bound) != 1L) || (!is.null(names(bound)) && !".default" %in% names(bound))) {
+    stop("`bound` must be one positive number (Inf for none), or positive numbers named by WSC sub-drainage ",
+         "with a \".default\"", call. = FALSE)
   }
   d <- wet_bcenv_days_read(wet_bcenv_days(snapshot, cache_dir), stations)
   d <- d[d$hours >= min_hours, ]
@@ -46,7 +48,7 @@ wet_bcenv_daily <- function(stations = NULL, snapshot = wet_bcenv_snapshot, boun
   # the bound, relative to each station's median of positive complete-day flows over the whole snapshot
   pos <- d$q_m3s > 0
   med <- vapply(split(d$q_m3s[pos], factor(d$station_number[pos], unique(d$station_number))), stats::median, 0)
-  cap <- bound * unname(med[d$station_number])
+  cap <- wet_bcenv_ratio(d$station_number, bound) * unname(med[d$station_number])
   d <- d[is.na(cap) | d$q_m3s <= cap, ]
   if (!nrow(d)) return(wet_daily_empty())
   d <- d[order(d$station_number, d$date, method = "radix"), ]
@@ -55,11 +57,26 @@ wet_bcenv_daily <- function(stations = NULL, snapshot = wet_bcenv_snapshot, boun
 }
 
 # The plausibility bound (research/station_sources.md, registered before it was
-# measured): the largest ratio of a station's largest daily flow to the median
-# of its positive daily flows over BC's HYDAT 20260717 stations with ten years
-# of days. Measured by scripts/station_sources_bound.R
-# (data/checks/station_sources_bound_20260717.txt).
-wet_bcenv_bound <- Inf
+# applied): per WSC sub-drainage, the largest ratio of a station's largest daily
+# flow to the median of its positive daily flows over BC's HYDAT 20260717
+# stations with ten years of days; ".default", the province-wide largest, for a
+# sub-drainage with fewer than 10 such stations. Measured by
+# scripts/station_sources_bound.R (data/checks/station_sources_bound_20260717.txt),
+# which holds this constant to its measurement.
+wet_bcenv_bound <- c(.default = 2490.71, "07E" = 108.94, "07F" = 2490.71, "08C" = 39.34, "08E" = 119.78,
+                     "08F" = 49.06, "08G" = 389.68, "08H" = 268.07, "08J" = 482.14, "08K" = 205.26,
+                     "08L" = 535.45, "08M" = 581.48, "08N" = 535.71, "10B" = 51.52)
+
+# The ratio bound each station takes: its sub-drainage's (the first three
+# characters of its number once leading letters are dropped), else ".default".
+wet_bcenv_ratio <- function(ids, bound) {
+  if (is.null(names(bound))) return(rep(unname(bound), length(ids)))
+  sub <- sub("^[A-Z]+", "", ids)
+  sub <- ifelse(grepl("^[0-9]{2}[A-Z]", sub), substr(sub, 1, 3), NA_character_)
+  b <- unname(bound[sub])
+  b[is.na(b)] <- bound[[".default"]]
+  b
+}
 
 # The reader version: bump it whenever wet_bcenv_hours() or wet_bcenv_build()
 # change what the stored days hold, so an old cache is never read as new.

@@ -1,11 +1,36 @@
 The plausibility bound for the province's non-integrated discharge (#142, #179)
-HYDAT release 20260717; code_md5 e730a35ff2f7c1d638a9f4d0f5e4077d
+HYDAT release 20260717; code_md5 e75b15c53528ae5be48bffd4c8e8f868
 Provincial snapshot 20261028, reader v1 (wet_bcenv_daily(), complete days of >= 20 hours, local standard time)
-Rule registered before measuring: research/station_sources.md, "The plausibility bound for the provincial files".
+Rule: research/station_sources.md, "The plausibility bound for the provincial files": one province-wide bound, registered before measuring, failed a catch; this form, per sub-drainage, was re-registered before it was applied.
 
 Population: 2324 BC stations in HYDAT, 752 with >= 3650 daily flows and a positive flow (522 natural: no REGULATED = 1 row).
-Bound (largest ratio of a station's largest daily flow to the median of its positive daily flows): 2490.71
-Natural stations alone (reported, deciding nothing): 2490.71
+Ratio: a station's largest daily flow over the median of its positive daily flows.
+Province-wide largest ratio (.default, for a sub-drainage with fewer than 10 stations): 2490.71; natural alone 2490.71
+
+Per sub-drainage: stations, largest ratio and the station that sets it, natural stations and their largest (reported only), bound taken
+  07E  n  17  max   108.94 (07EF004)  natural n  16  max   108.94  -> 108.94
+  07F  n  22  max  2490.71 (07FD007)  natural n  18  max  2490.71  -> 2490.71
+  08B  n   2  max    35.03 (08BB002)  natural n   2  max    35.03  -> .default 2490.71
+  08C  n  13  max    39.34 (08CD001)  natural n  13  max    39.34  -> 39.34
+  08D  n   9  max    45.35 (08DB010)  natural n   9  max    45.35  -> .default 2490.71
+  08E  n  33  max   119.78 (08EE013)  natural n  30  max   119.78  -> 119.78
+  08F  n  17  max    49.06 (08FF006)  natural n  16  max    49.06  -> 49.06
+  08G  n  46  max   389.68 (08GC007)  natural n  28  max   100.43  -> 389.68
+  08H  n  82  max   268.07 (08HA016)  natural n  40  max   268.07  -> 268.07
+  08J  n  24  max   482.14 (08JC006)  natural n  17  max   110.00  -> 482.14
+  08K  n  42  max   205.26 (08KH018)  natural n  41  max   205.26  -> 205.26
+  08L  n 104  max   535.45 (08LG009)  natural n  54  max   230.00  -> 535.45
+  08M  n  84  max   581.48 (08MC039)  natural n  55  max   163.24  -> 581.48
+  08N  n 217  max   535.71 (08NM146)  natural n 143  max   535.71  -> 535.71
+  08O  n   5  max    84.06 (08OA004)  natural n   5  max    84.06  -> .default 2490.71
+  08P  n   1  max    19.40 (08PA001)  natural n   1  max    19.40  -> .default 2490.71
+  09A  n   4  max    16.34 (09AA013)  natural n   4  max    16.34  -> .default 2490.71
+  10A  n   6  max    27.34 (10AC005)  natural n   6  max    27.34  -> .default 2490.71
+  10B  n  15  max    51.52 (10BE011)  natural n  15  max    51.52  -> 51.52
+  10C  n   8  max  1148.15 (10CD005)  natural n   8  max  1148.15  -> .default 2490.71
+  10D  n   1  max    62.05 (10DA001)  natural n   1  max    62.05  -> .default 2490.71
+
+As R (wet_bcenv_bound): c(.default = 2490.71, "07E" = 108.94, "07F" = 2490.71, "08C" = 39.34, "08E" = 119.78, "08F" = 49.06, "08G" = 389.68, "08H" = 268.07, "08J" = 482.14, "08K" = 205.26, "08L" = 535.45, "08M" = 581.48, "08N" = 535.71, "10B" = 51.52)
 
 The ten largest ratios:
   07FD007  POUCE COUPE RIVER BELOW HENDERSON CREEK       natural    days 18336  median     0.538  max    1340.0 on 2011-07-10  ratio  2490.71
@@ -21,13 +46,19 @@ The ten largest ratios:
 
 Expected catches (registered):
   PASS  08HA0036: every day above 1,000 m3/s dropped
-  FAIL  08HD0003: every day above 1,000 m3/s dropped
+  PASS  08HD0003: every day above 1,000 m3/s dropped
   PASS  08MD0002: no day dropped
   PASS  08MD0003: no day dropped
 
-Applied to the snapshot: 215168 complete days at 196 stations; 28 days at 2 stations above the bound, dropped;
+Applied to the snapshot: 215168 complete days at 196 stations; 208 days at 8 stations above the bound, dropped;
   0 negative complete days at 0 stations, dropped.
 
 Stations with days above the bound: station, days dropped, median of positive days (m3/s), cap, largest day dropped, years
-  08HA0036     24      0.014        35.7      254467.5  2021-2024
-  08HB0022      4      0.131       326.2         575.5  2020-2021
+  08HA0020      6      0.025         6.7          10.6  2019-2021
+  08HA0026      1      0.027         7.1          10.7  2020-2020
+  08HA0036     51      0.014         3.8      254467.5  2021-2024
+  08HB0015      1      0.022         5.9           9.0  2017-2017
+  08HB0016     28      0.307        82.4         308.9  2021-2025
+  08HB0022     41      0.131        35.1         575.5  2018-2021
+  08HD0003     71      2.519       675.4        4681.6  2021-2024
+  08MH0037      9      0.008         4.7          17.5  2017-2018

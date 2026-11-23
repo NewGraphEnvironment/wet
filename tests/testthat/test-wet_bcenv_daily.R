@@ -114,3 +114,29 @@ test_that("unknown stations give zero rows of the same shape; bad arguments are 
   expect_error(wet_bcenv_daily(NA_character_, cache_dir = f$cache), "stations")
   expect_error(wet_bcenv_daily("08ZZ0001", bound = 0, cache_dir = f$cache), "bound")
 })
+
+test_that("a named bound is taken per WSC sub-drainage, with a default for the rest", {
+  b <- c(.default = 1000, "08Z" = 2)
+  expect_equal(wet_bcenv_ratio(c("08ZZ0001", "H08ZC0626", "07ZZ0001", "XYZ"), b), c(2, 2, 1000, 1000))
+  expect_equal(wet_bcenv_ratio(c("08ZZ0001", "07ZZ0001"), 5), c(5, 5))
+  f <- local_bcenv_fixture()
+  # 08Z at 2 x the median (4.5) keeps 2, 3, 4, 5, 6 only up to 9; 07Z's lone day stays under the default
+  d <- wet_bcenv_daily(c("08ZZ0001", "07ZZ0001"), bound = b, cache_dir = f$cache)
+  expect_equal(d$q_m3s[d$station_number == "08ZZ0001"], c(2, 3, 4, 5, 6))
+  expect_equal(d$q_m3s[d$station_number == "07ZZ0001"], 1)
+  d1 <- wet_bcenv_daily("08ZZ0001", bound = c(.default = 1000, "08Z" = 1), cache_dir = f$cache)
+  expect_equal(d1$q_m3s, c(2, 3, 4))
+  expect_error(wet_bcenv_daily("08ZZ0001", bound = c("08Z" = 2), cache_dir = f$cache), "default")
+  expect_error(wet_bcenv_daily("08ZZ0001", bound = c(1, 2), cache_dir = f$cache), "bound")
+})
+
+test_that("the shipped bound is the measured one: finite, per sub-drainage, with a default", {
+  expect_true(all(is.finite(wet_bcenv_bound)) && all(wet_bcenv_bound > 1))
+  expect_equal(wet_bcenv_bound[[".default"]], 2490.71)
+  expect_equal(wet_bcenv_bound[["08H"]], 268.07)
+  # the report's printed line is the constant
+  rep <- test_path("..", "..", "data", "checks", "station_sources_bound_20260717.txt")
+  skip_if_not(file.exists(rep), "the bound report is not in this tree")
+  line <- grep("^As R \\(wet_bcenv_bound\\): ", readLines(rep), value = TRUE)
+  expect_identical(eval(parse(text = sub("^As R \\(wet_bcenv_bound\\): ", "", line))), wet_bcenv_bound)
+})
