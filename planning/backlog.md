@@ -53,7 +53,7 @@ counts them): run `/backlog-sweep` again, the backlog is not finished.
 | - [x] 6 | #168 | 9: the channel-scale pilot (1 issue) | done: https://github.com/NewGraphEnvironment/wet/pull/193 | A | — | opus |
 | - [ ] 7 | #169 | 10: scenarios and coverage (2 issues) | **waiting** on move 6's verdict in `research/pcic_channel_scale.md` | A | 6 | fable then opus |
 | - [ ] 8 | #179 | 7: stations beyond HYDAT (1 issue) | open | B | — | opus |
-| - [ ] 9 | #186 | 11: the readers return pick, one list of non-inputs (2 issues) | open | C | — | sonnet |
+| - [x] 9 | #186 | 11: the readers return pick, one list of non-inputs (2 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/197 | C | — | sonnet |
 | - [ ] 10 | #187 | 12: Swift and Naver creeks under their own windows (1 issue) | open | D | — | opus |
 | - [ ] 11 | #188 | 13: small-basin error and the zone adjustment (4 issues) | open | E | — | fable then opus |
 | - [ ] 12 | #189 | 14: research files around the current state (3 issues) | open | D | 10 | sonnet |
@@ -226,7 +226,7 @@ are published as a new dataset.
 
 ### 11. The readers return pick, and one list of non-inputs
 
-- [ ] Carried by move 9, #186
+- [x] Carried by move 9, #186 (merged in https://github.com/NewGraphEnvironment/wet/pull/197)
 
 #177 (the segment readers return `pick` beside `source`) and #171 (the daily table's list of files that are not inputs of
 the monthly table lacks `R/wet_segment_daily.R`, `scripts/vignette_data_lib.R` and `scripts/segment_group.R`). #177 edits
