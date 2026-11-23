@@ -33,7 +33,9 @@
 # (wet_station_daily()); its `first` and `last` are those days'. Which
 # listings are left out as provincial, which continue a provincial station and
 # where each cut falls are all measured on one provincial snapshot, which the
-# registry names (`bcenv_snapshot`): the Tool registry is read only beside it.
+# registry names (`bcenv_snapshot`, and `bcenv_days`, the key of the
+# provincial days the cuts were measured on: its manifest's md5 and the
+# reader version): the Tool registry is read only beside those.
 
 # The snapshot the package reads: the survey's (#123), 2026-10-28.
 wet_bcwatertool_snapshot <- "20261028"
@@ -107,10 +109,12 @@ wet_bcwatertool_stations <- function(snapshot = wet_bcwatertool_snapshot) {
     station_number = "character", id = "character", name = "character", network = "character", lon = "numeric",
     lat = "numeric", subdrainage = "character", nearest_hydat = "character", nearest_km = "numeric",
     first = "Date", last = "Date", regulation = "character", hydat_site = "character", hydat_km = "numeric",
-    credit = "character", continues = "character", continues_before = "Date", bcenv_snapshot = "character"))
+    credit = "character", continues = "character", continues_before = "Date", bcenv_snapshot = "character",
+    bcenv_days = "character"))
   if (anyDuplicated(s$station_number) || anyNA(s$station_number) || anyDuplicated(s$id) || anyNA(s$id) ||
       anyNA(s$subdrainage) || any(grepl(wet_hydat_number, s$station_number)) ||
-      length(unique(s$bcenv_snapshot)) != 1L || anyNA(s$bcenv_snapshot)) {
+      length(unique(s$bcenv_snapshot)) != 1L || anyNA(s$bcenv_snapshot) ||
+      length(unique(s$bcenv_days)) != 1L || anyNA(s$bcenv_days)) {
     stop("the station registry ", path, " does not hold one row per listing, each with its id and sub-drainage, ",
          "a number not shaped like HYDAT's and the one provincial snapshot it was built against", call. = FALSE)
   }
@@ -226,13 +230,19 @@ wet_bcwatertool_credit <- function(meta) {
 }
 
 # The Tool registry beside a provincial snapshot: refused unless it is the one
-# the registry was built against, since its exclusions, continuations and cuts
-# were measured on that snapshot's files.
+# the registry was built against, read by the same provincial reader, since
+# its exclusions, continuations and cuts were measured on those days.
 wet_bcwatertool_against <- function(tool, snapshot) {
   built <- unique(tool$bcenv_snapshot)
   if (!identical(built, snapshot)) {
     stop("the Water Tool's station registry was built against the provincial snapshot ",
          paste(built, collapse = ", "), ", not ", snapshot,
+         "; rewrite it with data-raw/station_sources_bcwatertool.R", call. = FALSE)
+  }
+  days <- unique(tool$bcenv_days)
+  if (!identical(days, wet_bcenv_days_key(snapshot))) {
+    stop("the Water Tool's station registry was built on the provincial days ", paste(days, collapse = ", "),
+         ", not ", wet_bcenv_days_key(snapshot), " (another manifest or reader version)",
          "; rewrite it with data-raw/station_sources_bcwatertool.R", call. = FALSE)
   }
   invisible(tool)

@@ -108,11 +108,17 @@ wet_bcenv_grades <- list(
   graded = c("RISC A", "RISC B", "RISC C", "RISC D", "RISC E", "RISC U", "Excellent", "Very Good", "Good", "Poor",
              "Estimated", "EXCELLENT - RATED STRUCTURE", "Best Practice"))
 
+# What the stored days of a snapshot are built from: its manifest's md5 (first
+# 10 characters) and the reader version. The Water Tool's registry records it,
+# since its cuts were measured on these days.
+wet_bcenv_days_key <- function(snapshot) {
+  sprintf("%s_v%d", substr(unname(tools::md5sum(wet_bcenv_manifest_path(snapshot))), 1, 10), wet_bcenv_reader)
+}
+
 # The stored days for a snapshot, built if this machine has none yet.
 wet_bcenv_days <- function(snapshot, cache_dir, utc = FALSE) {
   dir <- file.path(cache_dir, "station_sources", "bcenv", snapshot)
-  key <- substr(unname(tools::md5sum(wet_bcenv_manifest_path(snapshot))), 1, 10)
-  f <- file.path(dir, sprintf("days%s_%s_v%d.parquet", if (utc) "_utc" else "", key, wet_bcenv_reader))
+  f <- file.path(dir, sprintf("days%s_%s.parquet", if (utc) "_utc" else "", wet_bcenv_days_key(snapshot)))
   if (file.exists(f)) return(f)
   paths <- wet_bcenv(snapshot, cache_dir)
   dir.create(dir, recursive = TRUE, showWarnings = FALSE)

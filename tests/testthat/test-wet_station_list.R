@@ -61,7 +61,8 @@ test_that("a continued provincial station with no complete day takes the listing
       data.frame(station_number = "4601", name = "Alpha", network = "Test", lon = -124, lat = 49,
                  first = as.Date("2012-08-17"), last = as.Date("2015-11-10"), regulation = "unknown",
                  hydat_site = NA_character_, hydat_km = NA_real_, credit = "Data from BCCF.",
-                 continues = "08ZZ0001", continues_before = as.Date("2021-09-30"), bcenv_snapshot = "20261028")
+                 continues = "08ZZ0001", continues_before = as.Date("2021-09-30"), bcenv_snapshot = "20261028",
+                 bcenv_days = wet_bcenv_days_key("20261028"))
     })
   s <- wet_station_list()
   expect_equal(nrow(s), 1)

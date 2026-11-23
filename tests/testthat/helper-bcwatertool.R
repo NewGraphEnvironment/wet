@@ -58,7 +58,7 @@ local_bcwatertool_cache <- function(env = parent.frame()) {
                     last = as.Date(c("2012-08-19", "2020-06-06")), regulation = "unknown", hydat_site = NA_character_,
                     hydat_km = NA_real_, credit = c("Data from BCCF.", "Data from Test District."),
                     continues = c("08ZZ0001", NA), continues_before = as.Date(c("2021-10-01", NA)),
-                    bcenv_snapshot = "20261028")
+                    bcenv_snapshot = "20261028", bcenv_days = wet_bcenv_days_key("20261028"))
   local_mocked_bindings(wet_bcwatertool_manifest = function(snapshot) man,
                         wet_bcwatertool_stations = function(snapshot = "20261028") reg, .env = env)
   list(cache = cache, dir = dir, man = man, reg = reg)

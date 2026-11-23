@@ -151,6 +151,14 @@ wet_station_daily <- function(stations, hydat = wet_hydat_path(), from = NULL, t
   if ("bcwatertool" %in% sources && length(other)) {
     out <- rbind(out, wet_daily_try("bcwatertool", wet_bcwatertool_station_days(other, snapshot)))
   }
+  # each source takes only days the ones before it lack; a station-day given twice means two of them disagree
+  # about where a record ends, and a statistic over the series would count that day twice
+  twice <- duplicated(out[c("station_number", "date")])
+  if (any(twice)) {
+    stop("two sources give one station-day, such as ", out$station_number[twice][1], " on ", out$date[twice][1],
+         " (", paste(out$source[out$station_number == out$station_number[twice][1] &
+                                  out$date == out$date[twice][1]], collapse = ", "), ")", call. = FALSE)
+  }
   out <- out[order(out$station_number, out$date), ]
   wet_daily_gaps(out, from, to)
   out <- out[out$date >= from & out$date <= to, ]
