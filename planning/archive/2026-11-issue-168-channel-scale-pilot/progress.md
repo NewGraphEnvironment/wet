@@ -2,7 +2,7 @@
 
 ## Session 2026-11-22
 
-- Explored and drafted the phases; no plan gate in this pane: parked for the coordinator's plan gate (soul#928)
+- Explored and drafted the phases; no plan gate in this pane: parked for the coordinator's plan gate
 - Created branch `168-backlog-move-6-pilot-pcic-s-channel-scal` off origin/main
 - Scaffolded PWF baseline from issue #168 with the drafted phases
 - Next: parked 2026-11-22; paste the block under ### Resume into a fresh session

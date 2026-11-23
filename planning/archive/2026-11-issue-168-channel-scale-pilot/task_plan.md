@@ -6,7 +6,7 @@ Carries #9 (batch 9 of `planning/backlog.md`). Its verdict is the oracle move 7 
 
 ## Decided at the gate
 
-No plan gate in this pane: `/backlog-dispatch` claimed #168 for this session under a running `/coordinator` (`GATE=coordinator`, soul#928), so the plan was drafted without the owner and parked for the coordinator's plan gate. A Plan review ran before the baseline (`review-plan.md`); its corrections are folded in below, each phase naming what it changed. Every decision #168 reserves for the owner, and every scope change the drafted plan made to #9, was listed as an open decision with a recommendation; the phases are written for the recommended answers, which the owner chose at the resume (below).
+No plan gate in this pane: `/backlog-dispatch` claimed #168 for this session under a running `/coordinator` (`GATE=coordinator`), so the plan was drafted without the owner and parked for the coordinator's plan gate. A Plan review ran before the baseline (`review-plan.md`); its corrections are folded in below, each phase naming what it changed. Every decision #168 reserves for the owner, and every scope change the drafted plan made to #9, was listed as an open decision with a recommendation; the phases are written for the recommended answers, which the owner chose at the resume (below).
 
 What the exploration found (details in `findings.md`), which the recommendations rest on:
 
