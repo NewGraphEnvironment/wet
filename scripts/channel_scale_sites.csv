@@ -1,0 +1,7 @@
+site_id,type,name,station,blue_line_key,downstream_route_measure,linear_feature_id,wsg_code,regulated
+headwater,headwater,Headwater in the Salmon River basin,,,,,,
+salmon,tributary,Salmon River near Prince George,08KC001,,,,,
+quesnel,lake_outlet,Quesnel River at Likely,08KH001,,,,,
+confluence,confluence,Confluence where a tributary's step lands above,,,,,,
+hope,mainstem,Fraser River at Hope,08MF005,,,,,
+lillooet,glacier,Lillooet River near Pemberton,08MG005,,,,,

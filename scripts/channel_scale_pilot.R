@@ -568,19 +568,28 @@ pick_confluence <- function() {
 
 hw <- pick_headwater()
 cf <- pick_confluence()
-picked <- c(headwater = hw$lfid, confluence = cf$upper_lfid)
-for (ty in names(picked)) {
-  got <- as.numeric(sites$linear_feature_id[sites$type == ty])
-  if (!identical(got, picked[[ty]])) {
-    stop("the ", ty, " row of ", sites_csv, " is not the registered rule's pick, ", sprintf("%.0f", picked[[ty]]),
-         call. = FALSE)
-  }
-}
-for (s in gauged) {
-  got <- as.numeric(sites$linear_feature_id[sites$station %in% s])
-  if (!identical(got, as.numeric(snapped$linear_feature_id[snapped$station_number == s]))) {
-    stop(sites_csv, "'s segment for ", s, " is not the snapped station's", call. = FALSE)
-  }
+# every site's row as the rules and the snapped stations give it; the table
+# must hold exactly these
+want <- sites[c("site_id", "type", "name", "station")]
+want$linear_feature_id <- ifelse(want$type == "headwater", hw$lfid, ifelse(want$type == "confluence", cf$upper_lfid,
+                                 as.numeric(snapped$linear_feature_id[match(want$station, snapped$station_number)])))
+stopifnot(!anyNA(want$linear_feature_id))
+seg_at <- DBI::dbGetQuery(conn, sprintf("
+  SELECT linear_feature_id::double precision AS linear_feature_id, blue_line_key, downstream_route_measure,
+         watershed_group_code FROM whse_basemapping.fwa_stream_networks_sp WHERE linear_feature_id IN (%s)",
+  paste(sprintf("%.0f", want$linear_feature_id), collapse = ", ")))
+k <- match(want$linear_feature_id, seg_at$linear_feature_id)
+want$blue_line_key <- seg_at$blue_line_key[k]
+want$downstream_route_measure <- sprintf("%.3f", seg_at$downstream_route_measure[k])
+want$linear_feature_id <- sprintf("%.0f", want$linear_feature_id)
+want$wsg_code <- seg_at$watershed_group_code[k]
+want$regulated <- ifelse(is.na(want$station), NA,
+                         ifelse(st_meta$regulated[match(want$station, st_meta$station_number)] %in% 1, "yes", "no"))
+want[] <- lapply(want, function(x) ifelse(is.na(x), NA_character_, as.character(x)))
+if (!identical(names(sites), names(want)) || !identical(sites, want)) {
+  f_want <- file.path(log_dir, "channel_scale_sites_want.csv")
+  utils::write.csv(want, f_want, row.names = FALSE, na = "")
+  stop(sites_csv, " is not the rules' picks; they are in ", f_want, call. = FALSE)
 }
 sites$linear_feature_id <- as.numeric(sites$linear_feature_id)
 w_s <- routed_weights(conn, sites$linear_feature_id)
