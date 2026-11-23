@@ -1,3 +1,8 @@
+# wet 0.4.41
+
+* `wet_station_daily()` reads the province's non-integrated hydrometric stations (#179): given a provincial number (`"08EE0001"`), it returns that station's daily flow from a pinned snapshot of the province's hourly files (`sources = "bcenv"`). Days above a plausibility bound measured on HYDAT, per WSC sub-drainage, are dropped; a day with any ungraded hour is `"unchecked"`, and `frac_provisional` now counts every status but `"approved"`. Under the survey's own rules the reader reproduces it (#123, #142). These stations are records and held-out tests, not donors, until their regulation is known (#191).
+* duckdb 1.2.0 or later is required.
+
 # wet 0.4.40
 
 * `wet_segment_monthly()` and `wet_segment_daily()` return `pick`, a logical column last: `TRUE` where the source is the segment's default, `NA` on a missing segment's rows and, from fwapg's table, on every row (#177). The two guards that hold a publish to the code its tables were built from, in `scripts/discharge_publish.R` and `scripts/segment_daily_output.R`, now exclude one shared list of files no table reads, `scripts/discharge_publish_own.R`, which gains the readers and the chinook-site and departure code (#171).
