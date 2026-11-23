@@ -1,0 +1,140 @@
+# WALLY's mean annual runoff model beside the open balance and routed PCIC at the calibration gauges (#178)
+
+HYDAT release 20260717; fit 768876badf; WALLY at bcgov/WALLY@9de322b562883a3a590a2e55a0a3f7d7312116f0 (Apache-2.0).
+WALLY is a yardstick here, not an input. The hosted WALLY tool was not used.
+
+## Files read from WALLY's modelling/ folder (md5)
+e59e2f34c82c5b6de31c3f51bca990d3  README.md
+a498243fa110b43759e35ad488ee2e6f  WALLY_Modeling_FSL_V0.5.pdf
+3ff5ff038afffde43fe0661a2ecbb4d0  data/4_training/sept13_2021/all_data.csv
+0452bd800ba08ba7c890b40ec8015767  scripts/build_latest_training_data_sept13_2021.py
+546c0f013e549162805597b84e65618f  models/input_variation_hydro_zone_model.py
+
+## 1. WALLY's predictors, from its own Table 1 (PDF p. 62), before any of our numbers
+
+Mean annual unit runoff (MAR, l/s/km2) is regressed on catchment traits, one ordinary least squares
+model per hydrologic zone (zones 7, 11 and 12 pooled), the trait set chosen as the one with the highest
+minimum R2 over 30 random 70/30 splits (MkMGR, PDF p. 23). The coefficients are unstandardized, so the
+table ranks no trait inside a zone; a trait in a zone's chosen model is counted as used there.
+
+zone      precip slope  DA     glc    elev   PET    solexp
+1         x                    x                          
+2                x                                        
+3         x      x                    x             x     
+4                x                                        
+5         x                           x                   
+6                              x      x      x            
+7_11_12   x                                               
+8         x      x                    x                   
+9                                            x            
+10               x             x             x            
+13        x      x                                        
+14        x      x             x             x            
+15        x                    x      x      x      x     
+16                             x             x      x     
+17        x                                               
+18                             x      x      x      x     
+19        x      x      x      x             x            
+20                                    x      x      x     
+21               x                    x      x            
+22               x                    x      x            
+23        x      x             x      x             x     
+24        x      x             x      x             x     
+25        x      x             x                    x     
+26        x                    x                          
+27        x      x             x             x            
+28        x                    x                          
+29               x      x             x      x            
+zones     16     15     2      14     12     13     8     
+
+Of 27 zone models: precipitation in 16, average slope in 15, glacier cover in 14, potential ET in 13, median elevation in 12, solar exposure in 8, drainage area in 2.
+Slope is in 15 of the 27 models and solar exposure in 8. The PDF (p. 35) names precipitation, slope,
+glacier, PET and median elevation as the important ones and says drainage area and solar exposure do not
+make much impact. Its XGBoost model, one model over all zones with zone as a feature, ranks precipitation
+first by gain (1112, then PET 63.1 and glacier 57.3; p. 62).
+
+## 2. Gauge filters
+
+WALLY (training table and model script):
+- WALLY's own drainage area (delineated from a DEM, then the Freshwater Atlas) within 20 % of HYDAT's gross area;
+- more than 10 years of record, any years (mean annual discharge over the whole record);
+- gross licensed allocation at most 200 % of mean annual discharge, or net allocation zero;
+- no regulation filter: naturalization was not attempted (PDF p. 19).
+The open balance (scripts/wb_stations.R, wet_station_select(), scripts/wb_cv_lib.R):
+- HYDAT regulation flag 0 (natural); no licensed-use filter;
+- at least 10 complete years in 1981-2010 (all 12 months, each with enough days of flow);
+- the gauge snapped to the FWA, its accumulated area within 10 % of HYDAT's gross area;
+- at least 95 % of the basin inside BC and on the climate grid.
+
+WALLY: 534 stations in its training table, 482 after its allocation filter.
+  Of those 482, HYDAT 20260717 flags 110 regulated, 372 natural and 0 with no regulation record.
+Ours: 352 natural stations with 10 or more complete years, 336 snapped within 10 %, 315 calibration gauges.
+
+## 3. Station overlap
+
+280 of our 315 calibration gauges are among WALLY's 482 training stations: a WALLY score there is in-sample.
+Our gauges, by where they stand in WALLY's data:
+  in WALLY's table, dropped by its allocation filter      3
+  in WALLY's training set                               280
+  not in WALLY's table                                   32
+WALLY's training stations, by where they stand in ours:
+  a calibration gauge                                   280
+  fewer than 10 complete years in 1981-2010              76
+  FWA area outside 10 %                                   5
+  regulated or no regulation record in HYDAT            110
+  under 95 % in BC or on the grid                        11
+
+At the 280 shared gauges, WALLY's zone (from the station's location) equals ours (the zone covering most
+of the basin) at 275. WALLY's measured MAR (whole record, its own area) over ours (complete years in
+1981-2010, the FWA area): median 1.010, middle half 0.995 to 1.035.
+
+## 4. By hydrologic zone, in WALLY's metric
+
+WALLY: its Table 1 (N, R2 on all data, MIN R2 over 30 test splits, STEYX); kept is how many of its 482
+training stations its table places in the zone, by the station's location (4 have no zone).
+Ours: held out (blocked CV), by the zone covering most of the basin; R2 and RMSE against observed MAR
+(l/s/km2, complete years in 1981-2010); in is how many of our gauges are WALLY training stations.
+Not like for like: WALLY's R2 includes its training stations and its MAR covers each station's whole
+record; the gauge sets differ.
+
+zone     |    N kept   R2  min STEYX   AVG |   n  in   AVG |   R2  RMSE |   n   R2  RMSE
+         | WALLY (Table 1)                   | our gauges    | balance    | routed PCIC (shared)
+1        |   12   12   89   83   6.8  52.8 |  12  12  54.0 |  22  18.5 |  10  92   6.8
+2        |    7    7   62   62   2.8  14.7 |   5   5  14.9 |  22   4.7 |   1   -   0.9
+3        |   19   19   87   79   1.3  13.4 |  21  16  13.1 |  74   2.5 |  10  75   2.3
+4        |    7    7   92   92   0.6   6.9 |   5   5   7.3 |  60   2.4 |   0   -     -
+5        |    7    7   91   67   1.5  19.5 |   7   7  19.1 |   8   4.8 |   7  98   1.2
+6*       |    6    5  100   97   0.2   3.5 |   3   3   2.4 |  39   0.7 |   3   3   1.1
+7_11_12  |   14   14   95   95   6.4  29.7 |  14  13  28.7 |  90   9.5 |  14  94   8.0
+8        |   23   23   86   82   2.0  11.0 |  23  19  12.1 |  58   4.4 |  22  73   3.3
+9        |    9    9   96   96   3.5  32.8 |   7   6  37.4 |  86   9.6 |   7  89   7.5
+10       |    8    8   90   54   8.1  77.8 |   9   8  77.4 |  52  18.3 |   9  67  14.7
+13       |    8    8   87   72   1.4  29.3 |  10   9  30.0 |  90   5.2 |  10  41   5.7
+14       |   34   34   95   94   3.3  28.7 |  22  19  25.0 |  79   6.0 |  21  91   4.5
+15       |   43   43   87   83   1.5   5.6 |  19  15   5.3 |  84   1.4 |  18  41   3.8
+16       |   14   14   97   95   1.5  15.9 |   6   6  15.8 |  88   3.2 |   6  73   4.4
+17*      |    9    9   75   75   0.5   2.0 |   4   4   1.8 |  97   0.8 |   4  27   1.1
+18       |   16   16   95   88   3.6  26.7 |  12  11  29.3 |  94   4.7 |  12  95   3.8
+19       |   16   16   92   82   0.9  16.5 |  11  10  15.8 |  67   3.2 |  11  68   2.7
+20       |   13   13   89   76   2.3  19.2 |  10  10  18.7 |  25   7.0 |   7  95   6.7
+21       |   17   17   91   86   2.9  26.5 |  13  12  24.3 |  26   8.6 |  13  11   9.4
+22       |   18   18   92   90   3.9  32.9 |  15  12  32.7 |  72   7.2 |  14  84   5.5
+23       |   22   22   90   84   1.8   9.8 |   8   8  11.2 |  66   2.9 |   8  74   2.7
+24       |   32   32   87   84   1.1   5.4 |   9   9   6.6 |  39   4.1 |   9  77   2.3
+25       |   23   23   96   95   3.5  30.0 |  16  15  36.5 |  14  19.1 |  16  75  10.7
+26       |   20   20   78   67  12.9  68.3 |  13  12  76.0 |  53  18.8 |  13  30  24.6
+27       |   27   27   94   92   9.0  70.6 |  12   9  84.0 |  87  14.1 |   9  67  19.3
+28       |   35   35   77   76  10.5  50.2 |  16  15  61.9 |  31  22.7 |  16  57  15.3
+29       |   20   20   75   63  18.9 101.4 |  13  10 122.4 |  54  33.2 |  13  62  29.8
+
+Readable zone classes (5 or more of our gauges): 25 of 27. Median over them: WALLY R2 90 % (MIN R2 83 %),
+the balance's held-out R2 60 %; routed PCIC's 74 % over the 23 classes with 5 or more shared gauges.
+RMSE over STEYX, median: balance 2.16, routed PCIC 1.82 (above 1, ours scatters more than WALLY's fit).
+Zone classes where the balance's held-out R2 is at or above WALLY's all-data R2: 1 of 25.
+
+## 5. Across the province
+
+WALLY: MkMGR's 27 zone models average R2 88 % (MIN R2 82 %); its XGBoost model, R2 96 % and STEYX 5.9 l/s/km2
+over 480 stations, predicted against measured on all data (PDF p. 62, note C).
+Ours, held out, all 315 gauges: the balance R2 87 %, RMSE 12.5 l/s/km2; routed PCIC at its 283 shared gauges
+R2 90 %, RMSE 11.2 l/s/km2. Observed MAR over our gauges: mean 34.0, standard deviation 33.8 l/s/km2.

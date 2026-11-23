@@ -36,6 +36,13 @@ When the plan finds that a batch, or one of its members, is more than one PR's w
 - **A `psql -h 127.0.0.1` probe of the local fwapg did not return in 120 s** (2026-11-23 about 06:00 UTC; cause not found: a password prompt or a stalled Docker engine). Whether `whse_basemapping.fwa_glaciers_poly` exists there is unmeasured; Phase 3 probes it with a connect timeout.
 - **Stale first-party installs:** soul's `check_pkg_stale.sh` reported 10 of 21 stale. The planned scripts load wet from source and no other first-party package; if the build finds one it needs among the `PKGSTALE` lines, the upgrade is asked for, not worked around.
 
+## WALLY (Phase 2, 2026-11-23)
+
+- Training table `4_training/sept13_2021/all_data.csv`: 534 stations (WALLY area within 20 % of HYDAT's, more than 10 years); the model's allocation filter keeps 482 (PDF Figure 14). 4 have no hydrologic zone. Table 1's N sums to 480.
+- HYDAT 20260717 flags 110 of the 482 regulated. 280 of our 315 calibration gauges are training stations.
+- The report's R² is over training and test together (p. 23); the model script at the pinned commit scores test sets. Which one Table 1's MIN R² is cannot be told.
+- The number guard of Phase 1 strips issue numbers and commit shas: moving a heading's issue number onto each statement multiplies it, which is not a typed claim number.
+
 ## Errors Encountered
 
 | Error | Resolution |

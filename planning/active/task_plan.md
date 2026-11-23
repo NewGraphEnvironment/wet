@@ -50,13 +50,13 @@ Prose only; no number changes.
 
 WALLY is a yardstick, never an input (CLAUDE.md, "Own estimates first"). Read `bcgov/WALLY`'s `modelling/` folder at one pinned commit (record the sha; Apache-2.0).
 
-- [ ] Fetch once into `data/wally/raw/` (gitignored), each file's md5 printed in the report: the per-station training tables (`data/3_merged/`, `data/4_training/`) and whatever the folder stores of its k-fold scores. Log each fetch to the main checkout's `data/logs/188/`.
-- [ ] From WALLY's tables alone, list its predictors and which mattered per zone (its coefficients or importances). This list is Phase 3's input. Write it to the report before any of our error numbers exist.
-- [ ] Station overlap: WALLY's training stations against our 315 calibration gauges, per hydrologic zone, so a WALLY score at a gauge it trained on is marked in-sample.
-- [ ] Gauge filters: WALLY's selection (licensed use under 200 % of mean annual flow; drainage area within 5–20 % of HYDAT's) against `wet_station_select()`'s natural-flow set (`R/wet_station_select.R`), as text, with the counts each keeps where its tables give them.
-- [ ] WALLY's held-out mean-annual-flow error by zone beside the held-out balance and routed PCIC by zone. Prefer a score table stored in the repo; where the scores exist only in `WALLY_Modeling_FSL_V0.5.pdf`, transcribe them into `scripts/wally_zone_scores.csv` with a page number per row, read from the PDF itself and checked a second time. Compute ours in WALLY's own metric from the stored held-out values (`cv_aet-cfu.rds`: `obs`, `cv_ann`, `zone`), and say plainly where the two metrics or gauge sets are not comparable.
-- [ ] `scripts/wally_compare.R` writes `data/checks/wally_compare_20260717.txt` through `wb_report()`; two runs give byte-identical reports.
-- [ ] `research/wally.md` (new, with the provenance header `planning.md` asks for, and a row in `research/README.md`): what WALLY is, the comparison, what is in-sample, and that the hosted tool was not used. Nothing about Fathom Scientific beyond what #178's body states from public pages.
+- [x] Fetch once into `data/wally/raw/` (gitignored), each file's md5 printed in the report: the per-station training tables (`data/3_merged/`, `data/4_training/`) and whatever the folder stores of its k-fold scores. Log each fetch to the main checkout's `data/logs/188/`.
+- [x] From WALLY's tables alone, list its predictors and which mattered per zone (its coefficients or importances). This list is Phase 3's input. Write it to the report before any of our error numbers exist.
+- [x] Station overlap: WALLY's training stations against our 315 calibration gauges, per hydrologic zone, so a WALLY score at a gauge it trained on is marked in-sample.
+- [x] Gauge filters: WALLY's selection (licensed use under 200 % of mean annual flow; drainage area within 5–20 % of HYDAT's) against `wet_station_select()`'s natural-flow set (`R/wet_station_select.R`), as text, with the counts each keeps where its tables give them.
+- [x] WALLY's held-out mean-annual-flow error by zone beside the held-out balance and routed PCIC by zone. Prefer a score table stored in the repo; where the scores exist only in `WALLY_Modeling_FSL_V0.5.pdf`, transcribe them into `scripts/wally_zone_scores.csv` with a page number per row, read from the PDF itself and checked a second time. Compute ours in WALLY's own metric from the stored held-out values (`cv_aet-cfu.rds`: `obs`, `cv_ann`, `zone`), and say plainly where the two metrics or gauge sets are not comparable.
+- [x] `scripts/wally_compare.R` writes `data/checks/wally_compare_20260717.txt` through `wb_report()`; two runs give byte-identical reports.
+- [x] `research/wally.md` (new, with the provenance header `planning.md` asks for, and a row in `research/README.md`): what WALLY is, the comparison, what is in-sample, and that the hosted tool was not used. Nothing about Fathom Scientific beyond what #178's body states from public pages.
 
 ## Phase 3: Register the diagnosis rule (#176), before any error-against-trait number
 

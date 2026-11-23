@@ -57,3 +57,10 @@ mandate; the merge stays with me.
 - `research/monthly_error.md` arranged by subject: by region and season, by basin size, routed PCIC's seasonal shape, the Fraser benchmark; "The answer" first; issue numbers moved from headings to statements, and one sentence says they name the report's sections.
 - Guard: with issue numbers and commit shas stripped, the body's number multiset is identical before and after (132 distinct values; none added, none dropped). `grep -c '^## #[0-9]'` is 0.
 - Words: `wc -w` 1,886 → 1,941; soul's `research_check.sh` 1,727 prose words, 3 issue-headed sections (FLAG) → 1,782, 0 (OK). The rise is the tags on each statement and the pointer sentence. The README row names no old section, so it is unchanged.
+
+## Phase 2, 2026-11-23
+
+- `bcgov/WALLY` pinned at 9de322b; five files fetched into the main checkout's `data/wally/raw/<sha>/` (log `data/logs/188/wally_fetch.tsv`). The folder stores no k-fold output (`models/output/` is not committed), so WALLY's scores come from the PDF's Table 1 (p. 62), transcribed into `scripts/wally_zone_scores.csv`: digits checked by machine against the text layer (28 rows, 8 numbers each, no difference), columns from the page image, held to the table's Count and Average rows in the script.
+- WALLY's MAR scores are in-sample (R² over training and test stations, p. 23); no held-out per-zone error exists in the folder or the report, which the report and `research/wally.md` say.
+- Predictor list (Phase 3's input): precipitation in 16 of 27 zone models, slope 15, glacier 14, PET 13, median elevation 12, solar exposure 8, drainage area 2.
+- `data/checks/wally_compare_20260717.txt`: two runs byte-identical (logs `data/logs/188/wally_compare_run{1,2}.log`). `research/wally.md` and its README row written.
