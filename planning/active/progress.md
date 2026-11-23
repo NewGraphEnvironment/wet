@@ -50,3 +50,10 @@ mandate; the merge stays with me.
 - Phase 1: database up, fingerprint equal to the tracked routed report (fwapg 5d50cc1); probes in `findings.md`; the rule block registered at 7d6c7b1 (2026-11-23 01:46:50 UTC), before the first fetch.
 - Phase 2: the site table written from the rules' picks (1ad0efc), which the script refuses to differ from.
 - Commits: 7d6c7b1 (rules), dd0cdbf, 3c05244, 6f4871d (the site check, git quoting, the stations path), 1ad0efc (site table).
+
+## Phases 3-4, 2026-11-23 (m1)
+
+- Fetched once into the main checkout's `data/channel_scale/raw/` (918 MB, 346 NetCDF files and 250 listings); the first run (01:50-02:31 UTC) died at the water-temperature merge (column name), the next at a report format; fixed at d09d1b0..ee3ebdc.
+- The first full report coded rule 3's "lists CMIP6 streamflow" as all 9 GCMs at every outlet; hydromosaic has no TaiESM1 on the coast, so the code was stricter than the rule. Corrected to the rule's words and recorded under "amended after numbers were seen" (023192f).
+- Two runs from the cache (logs `data/logs/168/run4_*`, `run5_*`) gave byte-identical reports.
+- Commits: d09d1b0, ee3ebdc, 023192f, and the report's.

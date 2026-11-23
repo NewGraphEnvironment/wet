@@ -1,0 +1,312 @@
+# PCIC's channel-scale output on the FWA (#9, #168), HYDAT 20260717
+
+## Provenance
+rules: registered at 7d6c7b1, 2026-11-23 01:46:50 UTC; rule block md5 93530d55df7003e7333821ccbb888fc3
+first fetch: 2026-11-23 01:47:59 UTC (after the registration)
+script: scripts/channel_scale_pilot.R at 023192f7
+routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 5d50cc1
+table: 40524444 rows, 3377037 segments, 0 null flows, total 179854603.510890 m3/s
+routed as published equals fwapg's table at the gauges and sites: largest difference 0.0e+00 m3/s
+scored gauges: routed carries >= 0.2 of observed (283), from inst/vignette-data/monthly_values.rds md5 a8093a1a76704e5365a0392ae4ac8c0e
+hydromosaic: 346 NetCDF files, md5 of their md5s d994b90abcae077e630844f8621b3503
+gridded PNWNAmet: TPS_gridded_obs_init RUNOFF + BASEFLOW 1981-2010 over the Fraser, 21648 cells
+
+## Is the portal hydromosaic?
+portal bundle index-Go8VRv5T.js (md5 0c193bf6e094991b0273658e6f56bf08): 'hydromosaic' 0, 'streamflow' 0, 'water_temp' 0, 'bulk-downloads' 0, '.csv' 0, 'bbox-server' 4
+The portal's code names no hydromosaic path, series variable or CSV download; the identity of the portal's product and hydromosaic rests on the shared subid network, runs and variables.
+
+## Domains
+domain    gauges  with outlet  CMIP6 GCMs  rule1 n  pass %  rule1  rule2 |dQ|/Qobs  dNSE  rule2  verdict
+Fraser        87           73           9       73   100.0   pass             0.082 -0.036   fail  CMIP5 gridded
+Coast         91           74           8       74   100.0   pass             0.026 -0.043   pass  CMIP6 routed, through fwapg's crosswalk
+Columbia      77           70           9       70   100.0   pass             0.037 +0.006   pass  CMIP6 routed, through fwapg's crosswalk
+Peace         28           27           9       27   100.0   pass             0.019 -0.006   pass  CMIP6 routed, through fwapg's crosswalk
+gauges: scored gauges by the domain of their segment's sub-basin; CMIP6 GCMs: listed under both SSPs at every
+gauge outlet of the domain
+scored gauges with no outlet on their segment: 39
+GCMs with no series at the domain's gauge outlets (count of outlets):
+  Fraser    none
+  Coast     TaiESM1 74
+  Columbia  none
+  Peace     none
+among fetched outlets: 0 with no PNWNAmet series, 74 with no series for some GCM
+Move 7's first check: whether each CMIP6 run's outlets with series are PNWNAmet's, which fwapg's crosswalk needs (it refuses a run whose crosswalk differs from the stored one).
+
+## Outlets by crosswalk flag (share of the domain's outlets, %)
+domain    outlets        placed no_candidate    no_series broken_chain      demoted
+Fraser      12387          98.7          0.4          0.0          0.8          0.1
+Coast       14605          93.9          5.5          0.2          0.3          0.1
+Columbia    11033          49.4         47.8          0.0          2.8          0.1
+Peace       10691          63.2         36.3          0.0          0.5          0.0
+
+## Rule 1: the crosswalk reproduces PCIC's outlet series
+gauges with an outlet: 244; pass 244; not exact (annual past 1e-4 relative) 2
+annual ratio, published / raw: median 1.000000, range 0.999984 to 1.001249
+failing gauges by type:
+  none
+beehive: no outlet needed it
+failing or not exact:
+station   domain    outlet   annual pub  annual raw     ratio  worst/tol  agree  type
+08LE031   Fraser    3008867     284.341     283.987  1.001249       0.20      n  (passes)
+08LF051   Fraser    3008869     723.445     723.090  1.000491       0.09      n  (passes)
+
+## Rule 2: CMIP6 against PNWNAmet at the gauges, 1981-2010 (historical, ssp245)
+gauges: 244; pass 96; GCM series missing at 74 gauges
+domain    n  |medGCM-PNW|/Qobs median  p90  (medGCM-PNW)/Qobs median   share NSE PNW  GCM  diff median
+Fraser    73                      0.082 0.360                   -0.073           0.880 0.853       -0.036
+Coast     74                      0.026 0.077                   -0.020           0.875 0.824       -0.043
+Columbia  70                      0.037 0.120                   -0.033           0.892 0.897       +0.006
+Peace     27                      0.019 0.091                   +0.015           0.914 0.920       -0.006
+gauges failing rule 2:
+  07EA004   Peace    |dQ|/Qobs 0.259  dNSE +0.099
+  07ED001   Peace    |dQ|/Qobs 0.005  dNSE -0.075
+  07ED003   Peace    |dQ|/Qobs 0.006  dNSE -0.066
+  07EE009   Peace    |dQ|/Qobs 0.010  dNSE -0.161
+  07EE010   Peace    |dQ|/Qobs 0.015  dNSE -0.139
+  07FB003   Peace    |dQ|/Qobs 0.034  dNSE -0.055
+  07FC003   Peace    |dQ|/Qobs 0.057  dNSE +0.153
+  07FD001   Peace    |dQ|/Qobs 0.141  dNSE +0.187
+  07FD004   Peace    |dQ|/Qobs 0.231  dNSE +0.030
+  08CA002   Coast    |dQ|/Qobs 0.051  dNSE -0.122
+  08CA003   Coast    |dQ|/Qobs 0.046  dNSE -0.079
+  08CB001   Coast    |dQ|/Qobs 0.036  dNSE -0.096
+  08CD001   Coast    |dQ|/Qobs 0.004  dNSE -0.069
+  08CE001   Coast    |dQ|/Qobs 0.024  dNSE -0.079
+  08CG001   Coast    |dQ|/Qobs 0.042  dNSE -0.066
+  08CG004   Coast    |dQ|/Qobs 0.020  dNSE -0.070
+  08CG005   Coast    |dQ|/Qobs 0.072  dNSE -0.079
+  08CG006   Coast    |dQ|/Qobs 0.235  dNSE -0.011
+  08DA005   Coast    |dQ|/Qobs 0.019  dNSE -0.120
+  08DB001   Coast    |dQ|/Qobs 0.012  dNSE -0.079
+  08DB010   Coast    |dQ|/Qobs 0.031  dNSE -0.261
+  08DB011   Coast    |dQ|/Qobs 0.024  dNSE -0.190
+  08DC006   Coast    |dQ|/Qobs 0.012  dNSE -0.092
+  08DD001   Coast    |dQ|/Qobs 0.015  dNSE -0.149
+  08EC013   Coast    |dQ|/Qobs 0.001  dNSE -0.059
+  08ED002   Coast    |dQ|/Qobs 0.030  dNSE -0.216
+  08EE004   Coast    |dQ|/Qobs 0.013  dNSE -0.085
+  08EE008   Coast    |dQ|/Qobs 0.093  dNSE -0.071
+  08EE012   Coast    |dQ|/Qobs 0.078  dNSE +0.025
+  08EE013   Coast    |dQ|/Qobs 0.044  dNSE -0.084
+  08EE020   Coast    |dQ|/Qobs 0.023  dNSE -0.067
+  08EG011   Coast    |dQ|/Qobs 0.008  dNSE -0.143
+  08FB005   Coast    |dQ|/Qobs 0.005  dNSE -0.091
+  08FB006   Coast    |dQ|/Qobs 0.006  dNSE -0.165
+  08FB007   Coast    |dQ|/Qobs 0.006  dNSE -0.063
+  08FB009   Coast    |dQ|/Qobs 0.067  dNSE +0.384
+  08FC003   Coast    |dQ|/Qobs 0.062  dNSE -0.032
+  08FE003   Coast    |dQ|/Qobs 0.028  dNSE -0.207
+  08FF001   Coast    |dQ|/Qobs 0.021  dNSE -0.190
+  08FF002   Coast    |dQ|/Qobs 0.026  dNSE -0.207
+  08FF003   Coast    |dQ|/Qobs 0.020  dNSE -0.150
+  08GA047   Coast    |dQ|/Qobs 0.240  dNSE +0.037
+  08GA075   Coast    |dQ|/Qobs 0.011  dNSE -0.266
+  08GE003   Coast    |dQ|/Qobs 0.023  dNSE -0.076
+  08GF005   Coast    |dQ|/Qobs 0.007  dNSE -0.556
+  08GF006   Coast    |dQ|/Qobs 0.062  dNSE +0.080
+  08HA010   Coast    |dQ|/Qobs 0.068  dNSE -0.064
+  08HA070   Coast    |dQ|/Qobs 0.064  dNSE -0.054
+  08HB024   Coast    |dQ|/Qobs 0.079  dNSE +0.281
+  08HB032   Coast    |dQ|/Qobs 0.095  dNSE +0.066
+  08HB048   Coast    |dQ|/Qobs 0.075  dNSE -0.018
+  08HB074   Coast    |dQ|/Qobs 0.006  dNSE -0.056
+  08HB086   Coast    |dQ|/Qobs 0.018  dNSE -0.078
+  08HB089   Coast    |dQ|/Qobs 0.057  dNSE +0.042
+  08HD007   Coast    |dQ|/Qobs 0.111  dNSE -0.034
+  08HD011   Coast    |dQ|/Qobs 0.039  dNSE -0.077
+  08HD015   Coast    |dQ|/Qobs 0.067  dNSE +0.003
+  08HF004   Coast    |dQ|/Qobs 0.091  dNSE +0.289
+  08JA015   Fraser   |dQ|/Qobs 0.165  dNSE +0.064
+  08JA028   Fraser   |dQ|/Qobs 0.199  dNSE +0.229
+  08JB003   Fraser   |dQ|/Qobs 0.233  dNSE -0.065
+  08JD006   Fraser   |dQ|/Qobs 0.403  dNSE -0.004
+  08JE001   Fraser   |dQ|/Qobs 0.186  dNSE +0.002
+  08JE004   Fraser   |dQ|/Qobs 0.063  dNSE -0.057
+  08KA004   Fraser   |dQ|/Qobs 0.056  dNSE -0.036
+  08KA005   Fraser   |dQ|/Qobs 0.119  dNSE -0.020
+  08KA007   Fraser   |dQ|/Qobs 0.299  dNSE +0.013
+  08KA008   Fraser   |dQ|/Qobs 0.201  dNSE -0.008
+  08KA012   Fraser   |dQ|/Qobs 0.472  dNSE -0.012
+  08KA013   Fraser   |dQ|/Qobs 0.135  dNSE -0.012
+  08KB001   Fraser   |dQ|/Qobs 0.058  dNSE -0.086
+  08KB003   Fraser   |dQ|/Qobs 0.098  dNSE -0.134
+  08KB006   Fraser   |dQ|/Qobs 0.024  dNSE -0.149
+  08KC001   Fraser   |dQ|/Qobs 0.087  dNSE -0.241
+  08KC003   Fraser   |dQ|/Qobs 0.214  dNSE -0.272
+  08KD007   Fraser   |dQ|/Qobs 0.019  dNSE -0.166
+  08KE009   Fraser   |dQ|/Qobs 0.024  dNSE -0.114
+  08KE016   Fraser   |dQ|/Qobs 0.159  dNSE -0.076
+  08KG001   Fraser   |dQ|/Qobs 0.065  dNSE -0.099
+  08KH010   Fraser   |dQ|/Qobs 0.022  dNSE -0.064
+  08KH019   Fraser   |dQ|/Qobs 0.073  dNSE -0.181
+  08KH030   Fraser   |dQ|/Qobs 0.016  dNSE -0.105
+  08LA027   Fraser   |dQ|/Qobs 0.067  dNSE +0.006
+  08LA028   Fraser   |dQ|/Qobs 0.106  dNSE +0.030
+  08LB012   Fraser   |dQ|/Qobs 0.105  dNSE +0.078
+  08LB020   Fraser   |dQ|/Qobs 0.067  dNSE -0.015
+  08LB038   Fraser   |dQ|/Qobs 0.014  dNSE -0.057
+  08LB047   Fraser   |dQ|/Qobs 0.118  dNSE -0.025
+  08LB069   Fraser   |dQ|/Qobs 0.060  dNSE -0.014
+  08LB076   Fraser   |dQ|/Qobs 0.055  dNSE -0.043
+  08LC040   Fraser   |dQ|/Qobs 0.223  dNSE -0.064
+  08LD001   Fraser   |dQ|/Qobs 0.126  dNSE -0.010
+  08LE024   Fraser   |dQ|/Qobs 0.181  dNSE -0.040
+  08LE027   Fraser   |dQ|/Qobs 0.183  dNSE -0.010
+  08LE031   Fraser   |dQ|/Qobs 0.151  dNSE -0.007
+  08LE075   Fraser   |dQ|/Qobs 0.727  dNSE -0.109
+  08LE077   Fraser   |dQ|/Qobs 0.092  dNSE +0.053
+  08LF051   Fraser   |dQ|/Qobs 0.082  dNSE -0.036
+  08LG008   Fraser   |dQ|/Qobs 0.010  dNSE -0.148
+  08LG016   Fraser   |dQ|/Qobs 0.524  dNSE +0.049
+  08LG048   Fraser   |dQ|/Qobs 0.117  dNSE -0.218
+  08LG064   Fraser   |dQ|/Qobs 0.352  dNSE +0.035
+  08MA001   Fraser   |dQ|/Qobs 0.073  dNSE -0.060
+  08MA006   Fraser   |dQ|/Qobs 0.664  dNSE -0.005
+  08MB006   Fraser   |dQ|/Qobs 0.014  dNSE -0.065
+  08MC045   Fraser   |dQ|/Qobs 0.107  dNSE +0.036
+  08ME025   Fraser   |dQ|/Qobs 0.052  dNSE -0.071
+  08MF062   Fraser   |dQ|/Qobs 0.686  dNSE -0.302
+  08MF065   Fraser   |dQ|/Qobs 0.000  dNSE -0.156
+  08MF068   Fraser   |dQ|/Qobs 0.362  dNSE -0.216
+  08MG001   Fraser   |dQ|/Qobs 0.034  dNSE -0.172
+  08MG005   Fraser   |dQ|/Qobs 0.161  dNSE -0.016
+  08MG013   Fraser   |dQ|/Qobs 0.092  dNSE -0.074
+  08MG026   Fraser   |dQ|/Qobs 0.775  dNSE -0.207
+  08MH006   Fraser   |dQ|/Qobs 0.092  dNSE +0.009
+  08MH076   Fraser   |dQ|/Qobs 0.074  dNSE -0.122
+  08MH147   Fraser   |dQ|/Qobs 0.027  dNSE -0.141
+  08MH166   Fraser   |dQ|/Qobs 0.140  dNSE +0.070
+  08NE077   Columbia |dQ|/Qobs 0.107  dNSE +0.001
+  08NE087   Columbia |dQ|/Qobs 0.247  dNSE +0.009
+  08NE110   Columbia |dQ|/Qobs 0.120  dNSE -0.003
+  08NE114   Columbia |dQ|/Qobs 0.063  dNSE +0.006
+  08NG076   Columbia |dQ|/Qobs 0.119  dNSE +0.160
+  08NH016   Columbia |dQ|/Qobs 0.152  dNSE -0.210
+  08NH084   Columbia |dQ|/Qobs 0.113  dNSE -0.013
+  08NH115   Columbia |dQ|/Qobs 0.396  dNSE +0.031
+  08NH138   Columbia |dQ|/Qobs 0.097  dNSE +0.019
+  08NJ013   Columbia |dQ|/Qobs 0.050  dNSE +0.021
+  08NJ061   Columbia |dQ|/Qobs 0.121  dNSE -0.073
+  08NJ129   Columbia |dQ|/Qobs 0.099  dNSE +0.058
+  08NJ130   Columbia |dQ|/Qobs 0.067  dNSE +0.099
+  08NJ160   Columbia |dQ|/Qobs 0.094  dNSE +0.036
+  08NJ162   Columbia |dQ|/Qobs 0.057  dNSE -0.033
+  08NJ168   Columbia |dQ|/Qobs 0.115  dNSE +0.057
+  08NK018   Columbia |dQ|/Qobs 0.056  dNSE +0.022
+  08NK026   Columbia |dQ|/Qobs 0.061  dNSE +0.027
+  08NL024   Columbia |dQ|/Qobs 0.016  dNSE -0.053
+  08NL036   Columbia |dQ|/Qobs 0.058  dNSE -0.024
+  08NL071   Columbia |dQ|/Qobs 0.033  dNSE -0.172
+  08NM134   Columbia |dQ|/Qobs 0.066  dNSE -0.065
+  08NM142   Columbia |dQ|/Qobs 0.098  dNSE +0.008
+  08NM171   Columbia |dQ|/Qobs 0.119  dNSE +0.002
+  08NM173   Columbia |dQ|/Qobs 0.291  dNSE +0.006
+  08NM174   Columbia |dQ|/Qobs 0.143  dNSE +0.009
+  08NN015   Columbia |dQ|/Qobs 0.087  dNSE +0.001
+  08NN022   Columbia |dQ|/Qobs 0.059  dNSE -0.019
+  08NN028   Columbia |dQ|/Qobs 0.248  dNSE +0.000
+  08OB002   Coast    |dQ|/Qobs 0.069  dNSE -0.004
+
+## The sites
+site        station  segment     wsg   subid    own agree share  flag     lake  dist_m rank order area_km2 regulated years
+headwater   -         702744940 SALR   2007827    n     y 0.361 placed       n    14.8    1     3     10.0         -     -
+salmon      08KC001   701940975 LSAL   2010082    y     y 1.000 placed       n     1.1    1     7   4227.5        no    25
+quesnel     08KH001   702666848 QUES   2010140    y     y 1.000 placed       n     2.6    1     8   5963.1        no    30
+confluence  -         700353187 BIGC   4009311    y     y 1.000 placed       n     7.6    1     6   1019.0         -     -
+hope        08MF005   701253017 FRCN   4009460    y     n 1.000 placed       n     5.9    1    10 216659.4       yes    30
+lillooet    08MG005   701704476 LILL   4009369    y     y 1.000 placed       n     6.1    1     7   2076.2        no    29
+headwater: 19389 candidates under 10 km2; confluence: 110 junctions where June's step lands above, the pick's
+  joining line 6.557 m3/s in June, upper segment 22.856, next segment up 14.883, 0 m from scored gauge 08MB006
+
+annual flow, 1981-2010 (m3/s): HYDAT, PCIC raw at the outlet (interior: rebuilt from raw), routed as published,
+the balance as published,
+wet's accumulation of the gridded runoff; rule 1 at the site (own segment: raw; interior: rebuilt from raw)
+site        HYDAT    PCIC raw   routed pub  balance pub  wet acc    pub/rule1  rule1
+headwater          -       0.08         0.08         0.13      0.10    1.00000  pass
+salmon         27.41      24.11        24.11        33.60     20.45    1.00000  pass
+quesnel       129.61     127.18       127.18       104.99    134.18    1.00000  pass
+confluence         -       6.92         6.92         9.13      7.23    1.00000  pass
+hope         2663.59    2590.73      2591.08      2701.66   2476.28    1.00014  pass
+lillooet      122.10     116.29       116.29        86.95     99.58    1.00000  pass
+historical, ssp585 against historical, ssp245 before 2015 at the sites: largest daily difference 719.6 m3/s
+1981-2010 annual flow, historical, ssp585 over historical, ssp245, per GCM: median and range over the 9
+  headwater   median 1.0019, 0.9970 to 1.0063
+  salmon      median 1.0029, 0.9925 to 1.0107
+  quesnel     median 1.0004, 0.9971 to 1.0047
+  confluence  median 1.0089, 0.9672 to 1.0353
+  hope        median 0.9983, 0.9818 to 1.0275
+  lillooet    median 1.0002, 0.9963 to 1.0033
+
+## Change signals at the sites (%, decide nothing)
+annual, per GCM (columns as listed: CNRM FGOA IPSL MIRO MPI MRI NorE TaiE UKES) and median
+headwater   ssp245 2041-2070   +8.2  -6.1  -7.4 +12.3  +0.6 +18.0 +18.1  +1.6  +3.8  med   +3.8
+headwater   ssp245 2070-2099   +4.1  -1.8  -2.9  +6.4  +0.3 +26.3 +17.3  +9.2  +7.3  med   +6.4
+headwater   ssp585 2041-2070   +4.4  -2.8  -5.2  +7.8  -6.7 +20.9 +25.9  +9.7 +10.4  med   +7.8
+headwater   ssp585 2070-2099  +27.9  +1.2  +3.7 +16.6  +2.2 +32.8 +17.3  -3.1 +19.6  med  +16.6
+salmon      ssp245 2041-2070   +9.0  -6.1  -5.3 +14.9  +0.9 +21.3 +23.4  +3.9  +6.6  med   +6.6
+salmon      ssp245 2070-2099   +7.5  -0.1  -0.8  +6.0  +2.8 +29.1 +24.0 +13.3 +13.4  med   +7.5
+salmon      ssp585 2041-2070   +9.9  -2.2  -1.9 +10.4  -5.8 +24.9 +30.1 +12.3 +14.3  med  +10.4
+salmon      ssp585 2070-2099  +38.5  +3.4 +10.7 +19.8  +2.6 +39.2 +24.5  +2.7 +31.5  med  +19.8
+quesnel     ssp245 2041-2070   +0.9  -4.3  -6.2  +4.8  -1.6 +13.2 +12.4  +1.6  -3.7  med   +0.9
+quesnel     ssp245 2070-2099   -0.1  -0.2  -5.0  -2.3  -1.9 +12.0 +12.9  +2.1  -2.6  med   -0.2
+quesnel     ssp585 2041-2070   +4.9  -4.3  -4.4  -1.3  -4.1  +9.1 +13.3  -3.0  -3.2  med   -3.0
+quesnel     ssp585 2070-2099  +14.9  +2.6  -3.0  +2.2  -8.7 +17.3 +13.3  -6.3  -3.9  med   +2.2
+confluence  ssp245 2041-2070   +4.0  +3.1  +1.6 +15.0 +11.1 +14.0 +17.9 +16.7  +9.3  med  +11.1
+confluence  ssp245 2070-2099   +7.1  +9.2  +3.7  +7.8 +12.3 +12.1 +19.1 +23.0 +13.1  med  +12.1
+confluence  ssp585 2041-2070   +8.9  +4.8  +5.6  +9.1 +11.7 +10.4 +22.8 +18.6  +5.5  med   +9.1
+confluence  ssp585 2070-2099  +22.3 +16.4 +14.5 +18.2 +16.9 +19.2 +23.2 +25.8 +12.9  med  +18.2
+hope        ssp245 2041-2070   +2.5  -0.9  -2.8  +9.4  +2.6 +13.3 +14.3  +5.1  +1.4  med   +2.6
+hope        ssp245 2070-2099   +2.5  +2.8  -0.2  +2.8  +2.9 +13.3 +15.1  +8.3  +4.7  med   +2.9
+hope        ssp585 2041-2070   +5.6  +0.1  +0.5  +4.3  -0.1 +11.2 +17.4  +5.6  +3.7  med   +4.3
+hope        ssp585 2070-2099  +17.5  +6.9  +5.9 +10.5  +1.1 +19.8 +18.1  +3.9  +7.0  med   +7.0
+lillooet    ssp245 2041-2070   -1.4  +0.9  -4.5  +8.0  +2.8  +6.6 +10.1  +7.8  -2.2  med   +2.8
+lillooet    ssp245 2070-2099   -1.4  +2.4  -7.5  +1.2  +0.0  +3.6  +8.4  +8.0  -1.5  med   +1.2
+lillooet    ssp585 2041-2070   +2.2  +2.2  -4.6  +4.4  +2.9  +4.7 +12.4  +9.0  -1.3  med   +2.9
+lillooet    ssp585 2070-2099   +8.3  +6.3  -3.2  +7.8  -1.4  +6.9  +9.5  +6.3  -2.7  med   +6.3
+by month, median over the 9 GCMs
+site                             Jan    Feb    Mar    Apr    May    Jun    Jul    Aug    Sep    Oct    Nov    Dec
+headwater   ssp245 2041-2070   +53.2  +46.2 +159.5 +219.7  +12.8  -60.5  -72.8  -25.7  -11.1  +40.6 +125.3  +78.1
+headwater   ssp245 2070-2099   +74.1 +113.1 +450.4 +287.8   +3.5  -69.7  -74.0  -31.8   -6.7  +59.5 +161.0 +101.8
+headwater   ssp585 2041-2070   +98.8  +92.4 +225.6 +277.7   +7.6  -70.4  -77.8  -31.9  -17.6  +51.5 +127.1  +98.2
+headwater   ssp585 2070-2099  +227.5 +359.4+1472.0 +445.2  -32.9  -87.1  -83.6  -42.9  -26.6  +84.2 +359.0 +249.7
+salmon      ssp245 2041-2070   +65.8 +109.9 +150.1 +120.3  -14.7  -61.9  -44.6  -17.1   -9.7  +21.6  +73.3  +91.4
+salmon      ssp245 2070-2099   +76.2 +178.4 +353.0 +156.1  -27.1  -69.3  -49.7  -23.7   -5.2  +33.6  +80.9  +90.2
+salmon      ssp585 2041-2070  +102.8 +106.3 +228.3 +146.9  -26.4  -74.9  -48.1  -22.1  -12.1  +28.9 +111.6 +108.9
+salmon      ssp585 2070-2099  +262.8 +517.2 +797.6 +183.6  -57.0  -83.9  -54.3  -27.9  -20.0  +43.6 +220.2 +280.9
+quesnel     ssp245 2041-2070    +8.7  +10.1  +20.5  +57.2  +66.9  +13.7  -24.2  -32.4  -28.2   -3.6  +12.4  +10.2
+quesnel     ssp245 2070-2099   +19.1  +21.0  +34.7  +81.4  +87.6  +10.5  -28.8  -44.3  -36.6   -7.0  +19.5  +19.9
+quesnel     ssp585 2041-2070   +16.0  +17.5  +28.4  +77.7  +73.6  +13.6  -35.7  -45.6  -37.1  -11.5  +24.8  +20.9
+quesnel     ssp585 2070-2099   +36.8  +44.2  +85.1 +179.4 +109.8   -4.0  -46.9  -60.4  -50.4  -16.3  +45.9  +43.4
+confluence  ssp245 2041-2070   +24.6  +25.7  +28.6 +111.7  +92.4  +10.8  -22.4  -27.9  -13.9   +1.9  +22.0  +24.1
+confluence  ssp245 2070-2099   +31.0  +47.0  +67.5 +185.6 +101.7   +8.9  -32.1  -32.5  -21.7   +1.2  +20.9  +22.7
+confluence  ssp585 2041-2070   +30.0  +34.5  +46.1 +163.5  +86.1  +10.7  -28.9  -32.3  -20.8   -3.4  +33.3  +35.2
+confluence  ssp585 2070-2099   +86.4 +108.7 +176.3 +425.2 +129.2   +0.7  -41.6  -44.1  -28.9   -1.6  +66.0  +80.6
+hope        ssp245 2041-2070   +24.5  +28.1  +45.9  +74.9  +67.2  +21.7   -9.5  -25.7  -30.4  -18.0  +14.7  +24.3
+hope        ssp245 2070-2099   +53.5  +60.8  +73.5 +103.7  +77.8  +17.8  -12.2  -32.3  -40.3  -23.0  +18.5  +45.2
+hope        ssp585 2041-2070   +46.5  +45.4  +65.1  +95.0  +78.1  +18.9  -16.0  -37.0  -40.2  -26.0  +22.5  +48.0
+hope        ssp585 2070-2099   +97.8 +109.0 +161.0 +204.4 +118.3  +22.1  -27.4  -48.6  -55.3  -38.6  +34.1  +90.9
+lillooet    ssp245 2041-2070   +36.7  +50.0  +45.2  +52.0  +53.6  +23.2  -11.3  -32.7  -27.0  +15.0  +35.7  +36.7
+lillooet    ssp245 2070-2099   +62.5  +61.7  +67.8  +73.6  +56.6  +21.5  -19.9  -50.9  -42.4  +21.0  +53.2  +54.1
+lillooet    ssp585 2041-2070   +49.2  +51.2  +59.6  +66.0  +44.6  +26.3  -13.9  -40.6  -33.5  +16.2  +63.3  +53.9
+lillooet    ssp585 2070-2099  +100.3 +113.2 +118.0 +145.2  +83.8  +28.5  -36.2  -65.3  -54.7  +30.8  +97.8 +103.8
+
+## Water temperature (PNWNAmet, decides nothing)
+monthly mean, 1981-2010 (degC)
+site           Jan   Feb   Mar   Apr   May   Jun   Jul   Aug   Sep   Oct   Nov   Dec
+headwater      1.4   1.9   3.8   5.2   7.0  11.2  15.5  16.6  11.9   6.5   4.0   1.8
+salmon         0.1   0.1   0.4   2.9  10.4  19.5  26.5  26.7  18.6   9.7   3.1   0.4
+quesnel        0.0   0.0   0.0   0.4   5.7  15.0  18.6  19.2  15.2   8.5   2.6   0.3
+confluence     1.3   1.8   3.2   5.4   6.8   8.7  11.4  12.7  11.2   7.6   4.0   1.5
+hope           0.1   0.2   1.9   6.6  10.7  14.7  18.5  21.2  18.9  12.5   5.3   0.8
+lillooet       1.7   2.1   3.1   4.9   7.6  11.2  14.9  16.0  12.3   7.1   3.4   1.9
+water-temp-bc daily means on the same days, 2002-2012
+08KC001   days     0  bias -  rmse -
+08KH001   days     0  bias -  rmse -
+08MF005   days   409  bias 0.50  rmse 3.06
+08MG005   days     0  bias -  rmse -
+
+## Fetching and scaling
+PNWNAmet streamflow: 33 requests, 247 series, 37.9 MiB, 1.8 min
+CMIP6 streamflow (both SSPs): 311 requests, 2194 series, 797.7 MiB, 34.8 min
+a whole CMIP6 run (48688 outlets with series, at this pace): 17.3 GiB, 772 min of transfer
+done by hand: starting the database; the site table (scripts/channel_scale_sites.csv)
