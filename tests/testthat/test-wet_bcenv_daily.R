@@ -42,7 +42,7 @@ test_that("a day that straddles UTC midnight is one local day; the Peace keeps U
   d <- wet_bcenv_daily(c("08ZZ0001", "07ZZ0001"), bound = 100, cache_dir = f$cache)
   p <- d[d$station_number == "07ZZ0001", ]
   expect_equal(format(p$date), "2020-06-02")
-  expect_equal(p$q_m3s, 1)
+  expect_equal(p$q_m3s, 2)
   # under UTC days the same hours split into two partial days, neither complete
   utc <- wet_bcenv_days_read(wet_bcenv_days("20261028", f$cache, utc = TRUE), "08ZZ0001")
   expect_equal(utc$hours[utc$date == as.Date("2020-06-02")], 16)
@@ -63,6 +63,14 @@ test_that("a row the lenient parser drops is refused", {
   # a blank line is skipped by duckdb outside strict mode, and counted as a line
   cat("\n", file = f$paths[1], append = TRUE)
   expect_error(wet_bcenv_daily("08ZZ0001", cache_dir = f$cache), "different number of rows")
+})
+
+test_that("a file whose last line has no newline is read whole", {
+  f <- local_bcenv_fixture()
+  b <- readBin(f$paths[1], "raw", file.size(f$paths[1]))
+  writeBin(b[-length(b)], f$paths[1])
+  d <- wet_bcenv_daily("08ZZ0001", bound = 100, cache_dir = f$cache)
+  expect_equal(d$q_m3s, c(2, 3, 4, 5, 6))
 })
 
 test_that("a value that is not a number is refused, not read as missing", {
@@ -95,15 +103,22 @@ test_that("the bound drops an impossible day, and a negative day is dropped", {
   expect_false(as.Date("2020-06-07") %in% below$date)
 })
 
-test_that("the stored days are built once and reused, and keyed by reader version", {
+test_that("the stored days are built once and reused, and keyed by the manifest and reader version", {
   f <- local_bcenv_fixture()
   wet_bcenv_daily("08ZZ0001", cache_dir = f$cache)
-  stored <- file.path(f$cache, "station_sources", "bcenv", "20261028", sprintf("days_v%d.parquet", wet_bcenv_reader))
-  expect_true(file.exists(stored))
+  dir <- file.path(f$cache, "station_sources", "bcenv", "20261028")
+  stored <- list.files(dir, pattern = sprintf("^days_[0-9a-f]{10}_v%d[.]parquet$", wet_bcenv_reader), full.names = TRUE)
+  expect_length(stored, 1)
+  # keyed by the manifest's content: another manifest under the same snapshot date is another file
+  local({
+    local_mocked_bindings(wet_bcenv_manifest_path = function(snapshot) f$paths[1])
+    expect_false(identical(wet_bcenv_days("20261028", f$cache), stored))
+  })
+  expect_identical(wet_bcenv_days("20261028", f$cache), stored)
   # a second read does not rebuild: the snapshot's files are no longer needed
   unlink(f$paths)
   expect_equal(nrow(wet_bcenv_daily("08ZZ0001", bound = 100, cache_dir = f$cache)), 5)
-  expect_length(list.files(dirname(stored), pattern = "partial", all.files = TRUE), 0)
+  expect_length(list.files(dir, pattern = "partial", all.files = TRUE), 0)
 })
 
 test_that("unknown stations give zero rows of the same shape; bad arguments are refused", {
@@ -123,7 +138,7 @@ test_that("a named bound is taken per WSC sub-drainage, with a default for the r
   # 08Z at 2 x the median (4.5) keeps 2, 3, 4, 5, 6 only up to 9; 07Z's lone day stays under the default
   d <- wet_bcenv_daily(c("08ZZ0001", "07ZZ0001"), bound = b, cache_dir = f$cache)
   expect_equal(d$q_m3s[d$station_number == "08ZZ0001"], c(2, 3, 4, 5, 6))
-  expect_equal(d$q_m3s[d$station_number == "07ZZ0001"], 1)
+  expect_equal(d$q_m3s[d$station_number == "07ZZ0001"], 2)
   d1 <- wet_bcenv_daily("08ZZ0001", bound = c(.default = 1000, "08Z" = 1), cache_dir = f$cache)
   expect_equal(d1$q_m3s, c(2, 3, 4))
   expect_error(wet_bcenv_daily("08ZZ0001", bound = c("08Z" = 2), cache_dir = f$cache), "default")

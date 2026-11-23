@@ -23,7 +23,8 @@
 #'   first, last, regulation, hydat_site, hydat_km, licence, credit)`, one row
 #'   per station, ordered by number. `first` and `last` are the first and last
 #'   days [wet_station_daily()] returns for the station (`NA` for one with no
-#'   complete day); `hydat_km` is the distance to `hydat_site`; `licence` and
+#'   complete day), recorded when the snapshot was pinned and held to the
+#'   reader's days by the package's harvest check whenever its rules change; `hydat_km` is the distance to `hydat_site`; `licence` and
 #'   `credit` are the terms the source's data carry and the line to credit it
 #'   with.
 #' @examples

@@ -1,9 +1,11 @@
 # Daily flow at the province's non-integrated hydrometric stations (#142),
 # from a pinned snapshot of its hourly files (wet_bcenv()).
 #
-# The hourly files are turned into days once per snapshot and reader version,
+# The hourly files are turned into days once per manifest and reader version,
 # and the days kept in wet's cache beside the snapshot as
-# days_v<wet_bcenv_reader>.parquet: per station and day, the mean flow of the
+# days_<manifest md5>_v<wet_bcenv_reader>.parquet (the md5's first 10
+# characters), so days built from other files under the same snapshot date are
+# never read as these: per station and day, the mean flow of the
 # hours used, how many hours there were and how many of them were ungraded.
 # The rules a caller may want to revisit (how many hours make a day, what an
 # ungraded hour means for status, the plausibility bound) are applied when the
@@ -86,7 +88,8 @@ wet_bcenv_reader <- 1L
 # The stored days for a snapshot, built if this machine has none yet.
 wet_bcenv_days <- function(snapshot, cache_dir, utc = FALSE) {
   dir <- file.path(cache_dir, "station_sources", "bcenv", snapshot)
-  f <- file.path(dir, sprintf("days%s_v%d.parquet", if (utc) "_utc" else "", wet_bcenv_reader))
+  key <- substr(unname(tools::md5sum(wet_bcenv_manifest_path(snapshot))), 1, 10)
+  f <- file.path(dir, sprintf("days%s_%s_v%d.parquet", if (utc) "_utc" else "", key, wet_bcenv_reader))
   if (file.exists(f)) return(f)
   paths <- wet_bcenv(snapshot, cache_dir)
   dir.create(dir, recursive = TRUE, showWarnings = FALSE)
@@ -192,11 +195,15 @@ wet_bcenv_dash <- function(path) {
   out
 }
 
-# Lines in a file, counted as newline bytes.
+# Lines in a file: newline bytes, plus a last line that has none.
 wet_bcenv_lines <- function(f) {
   con <- file(f, "rb")
   on.exit(close(con))
   n <- 0
-  while (length(b <- readBin(con, "raw", 64e6))) n <- n + sum(b == as.raw(10))
-  n
+  last <- as.raw(10)
+  while (length(b <- readBin(con, "raw", 64e6))) {
+    n <- n + sum(b == as.raw(10))
+    last <- b[length(b)]
+  }
+  n + (last != as.raw(10))
 }

@@ -40,6 +40,16 @@ wet_bcenv_snapshot <- "20261028"
 # The tracked manifest of a pinned snapshot. A snapshot without one is refused:
 # only a tracked md5 says a cached copy is the one the results were made from.
 wet_bcenv_manifest <- function(snapshot) {
+  path <- wet_bcenv_manifest_path(snapshot)
+  man <- utils::read.csv(path, colClasses = c(file = "character", bytes = "numeric", md5 = "character"))
+  if (!identical(names(man), c("file", "bytes", "md5")) || !nrow(man) || anyNA(man) ||
+      anyDuplicated(man$file) || !all(grepl("^Discharge[A-Za-z0-9_]*[.]csv$", man$file))) {
+    stop("the manifest ", path, " is not one row per Discharge*.csv file with its bytes and md5", call. = FALSE)
+  }
+  man
+}
+
+wet_bcenv_manifest_path <- function(snapshot) {
   if (!is.character(snapshot) || length(snapshot) != 1L || is.na(snapshot) || !grepl("^[0-9]{8}$", snapshot)) {
     stop("`snapshot` must be one snapshot date as YYYYMMDD", call. = FALSE)
   }
@@ -48,12 +58,7 @@ wet_bcenv_manifest <- function(snapshot) {
     stop("no tracked manifest for the provincial discharge snapshot ", snapshot,
          " (inst/extdata/station_sources/bcenv_", snapshot, ".csv)", call. = FALSE)
   }
-  man <- utils::read.csv(path, colClasses = c(file = "character", bytes = "numeric", md5 = "character"))
-  if (!identical(names(man), c("file", "bytes", "md5")) || !nrow(man) || anyNA(man) ||
-      anyDuplicated(man$file) || !all(grepl("^Discharge[A-Za-z0-9_]*[.]csv$", man$file))) {
-    stop("the manifest ", path, " is not one row per Discharge*.csv file with its bytes and md5", call. = FALSE)
-  }
-  man
+  path
 }
 
 # A cached file must be the manifest's, byte for byte.

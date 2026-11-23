@@ -15,10 +15,12 @@
 # 3. Seeds wet's cache, <cache>/station_sources/bcenv/<snapshot>/, each file
 #    copied to a partial file and renamed into place once its md5 is the
 #    manifest's.
-# 4. With WET_BACKUP=1, copies each file and its .md5 to the private backup
-#    s3://fresh-bc/station_sources/bcenv/<snapshot>/ (aws CLI) and checks each
-#    object's size and recorded md5; the province rewrites Discharge.csv in
-#    place, so this backup is the only other copy of what was read.
+# 4. With WET_BACKUP=1, puts each file and its .md5 in the private backup
+#    s3://fresh-bc/station_sources/bcenv/<snapshot>/ (aws CLI), each as one PUT
+#    with its Content-MD5, so S3 refuses bytes that do not match, and checks each
+#    object's size and ETag (a single PUT's ETag is the md5 of its bytes); the
+#    province rewrites Discharge.csv in place, so this backup is the only other
+#    copy of what was read.
 # 5. Writes the snapshot's station registry,
 #    inst/extdata/station_sources/bcenv_<snapshot>_hydat.csv: one row per
 #    provincial station (its latest name, status and coordinates in the files),
@@ -90,12 +92,14 @@ if (identical(Sys.getenv("WET_BACKUP"), "1")) {
     src <- file.path(cache, man$file[i])
     md5_file <- tempfile(fileext = ".md5")
     writeLines(sprintf("%s  %s", man$md5[i], man$file[i]), md5_file)
-    aws("s3", "cp", "--only-show-errors", src, paste0(bucket, man$file[i]), "--metadata", paste0("md5=", man$md5[i]))
+    key <- sprintf("station_sources/bcenv/%s/%s", snapshot, man$file[i])
+    if (man$bytes[i] >= 5 * 2^30) stop(man$file[i], " is too large for one PUT", call. = FALSE)
+    b64 <- jsonlite::base64_enc(as.raw(strtoi(substring(man$md5[i], seq(1, 31, 2), seq(2, 32, 2)), 16L)))
+    aws("s3api", "put-object", "--bucket", "fresh-bc", "--key", key, "--body", src, "--content-md5", b64)
     aws("s3", "cp", "--only-show-errors", md5_file, paste0(bucket, man$file[i], ".md5"))
-    head <- jsonlite::fromJSON(paste(aws("s3api", "head-object", "--bucket", "fresh-bc", "--key",
-                                         sprintf("station_sources/bcenv/%s/%s", snapshot, man$file[i])),
+    head <- jsonlite::fromJSON(paste(aws("s3api", "head-object", "--bucket", "fresh-bc", "--key", key),
                                      collapse = "\n"))
-    if (!isTRUE(head$ContentLength == man$bytes[i]) || !identical(head$Metadata$md5, man$md5[i])) {
+    if (!isTRUE(head$ContentLength == man$bytes[i]) || !identical(gsub('"', "", head$ETag), man$md5[i])) {
       stop("the backup of ", man$file[i], " does not hold its size and md5", call. = FALSE)
     }
   }

@@ -11,7 +11,8 @@
 #   2020-06-07  24 hours of 1e6                 -> above any sane bound
 #   2020-06-08  24 hours of -1                  -> negative
 #   2020-06-09  24 hours of 6000 l/s            -> 6
-# 07ZZ0001 (Peace, UTC-7), in Discharge.csv: 2020-06-02, 24 hours of 1.
+# 07ZZ0001 (Peace, UTC-7), in Discharge.csv: 2020-06-02, its first hour 25 and 23 hours of 1 -> 2;
+#   at UTC-8 the first hour would fall on 2020-06-01 and the day would read 1.
 # The archive repeats 08ZZ0001's 2020-06-02 at 99 (the newer file wins), and
 # alone holds 08ZZ0002's 2020-06-02 at 7 with Unspecified hours.
 bcenv_fixture_rows <- function(id, name, day, hours, value, unit = "m^3/s", grade = "RISC A", offset = 8) {
@@ -40,7 +41,8 @@ bcenv_fixture <- function(dir) {
     bcenv_fixture_rows(a, na, "2020-06-07", 0:23, "1000000.000"),
     bcenv_fixture_rows(a, na, "2020-06-08", 0:23, "-1.000"),
     bcenv_fixture_rows(a, na, "2020-06-09", 0:23, "6000.000", unit = "l/s"),
-    bcenv_fixture_rows("07ZZ0001", "Peace Creek", "2020-06-02", 0:23, "1.000", grade = "RISC B", offset = 7))
+    bcenv_fixture_rows("07ZZ0001", "Peace Creek", "2020-06-02", 0:23, c("25.000", rep("1.000", 23)), grade = "RISC B",
+                       offset = 7))
   old <- c(
     bcenv_fixture_rows(a, na, "2020-06-02", 0:23, "99.000"),
     bcenv_fixture_rows("08ZZ0002", "Beta Creek", "2020-06-02", 0:23, "7.000", grade = "Unspecified"))

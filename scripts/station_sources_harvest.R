@@ -22,6 +22,13 @@
 #     the bound and the negative rule do. Per network: stations, days, the
 #     status shares, and days the bound dropped.
 #
+# It also holds the shipped station registry's first and last days
+# (inst/extdata/station_sources/bcenv_<snapshot>_hydat.csv, which
+# wet_station_list() returns) to what the shipped reader returns: the
+# registry records them when the snapshot is pinned, so a change to the
+# reader's rules (the bound, the hours rule) must rewrite it
+# (data-raw/station_sources_snapshot.R); a mismatch fails the run.
+#
 # Report: data/checks/station_sources_harvest_<snapshot>.txt (no timestamp; a
 # rerun on the same snapshot and HYDAT reproduces it byte for byte).
 
@@ -161,6 +168,14 @@ by_lst <- moved(t1, t2)
 by_bound <- moved(t2, t3)
 any_move <- by_lst | by_bound
 drop_bound <- nrow(lst[lst$q_m3s >= 0, ]) - nrow(shipped)
+rng <- lapply(split(shipped$date, shipped$station_number), range)
+reg_first <- as.Date(vapply(st_meta$station_number, function(s) if (is.null(rng[[s]])) NA_real_ else
+  as.numeric(rng[[s]][1]), 0), origin = "1970-01-01")
+reg_last <- as.Date(vapply(st_meta$station_number, function(s) if (is.null(rng[[s]])) NA_real_ else
+  as.numeric(rng[[s]][2]), 0), origin = "1970-01-01")
+reg_off <- st_meta$station_number[is.na(match(paste(st_meta$station_number, reg_first, reg_last),
+                                              paste(st_meta$station_number, st_meta$first, st_meta$last)))]
+if (length(reg_off)) fail <- c(fail, "station registry")
 neg <- sum(lst$q_m3s < 0)
 
 # ---- report -----------------------------------------------------------------------------------
@@ -192,6 +207,8 @@ out <- c(
   sprintf(paste0("  stations: %d read, %d with a complete day; passing %d under the",
            " survey's rules, %d under local standard time, %d shipped"),
           nrow(t3), sum(t3$daily), sum(t1$pass), sum(t2$pass), sum(t3$pass)),
+  sprintf("  station registry's first and last days against the shipped reader: %d stations, %d differing%s",
+          nrow(st_meta), length(reg_off), if (length(reg_off)) paste0(" (", paste(reg_off, collapse = ", "), ")") else ""),
   sprintf("  status of shipped days: provisional %d (%.1f %%), unchecked %d (%.1f %%)",
           sum(shipped$status == "provisional"), 100 * mean(shipped$status == "provisional"),
           sum(shipped$status == "unchecked"), 100 * mean(shipped$status == "unchecked")),
@@ -208,6 +225,6 @@ out <- c(
 writeLines(out, report)
 message("wrote ", report)
 if (length(fail)) {
-  message("tier (i) failed: ", paste(fail, collapse = ", "))
+  message("failed: ", paste(fail, collapse = ", "))
   quit(status = 1)
 }
