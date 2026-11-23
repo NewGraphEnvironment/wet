@@ -73,19 +73,23 @@ wet_bcenv_bound <- c(.default = 2490.71, "07E" = 108.94, "07F" = 2490.71, "08C" 
 # Each day's cap: its station's ratio bound times the median of the station's
 # positive flows among the days given (all its complete days in the snapshot);
 # NA for a station with no positive flow. scripts/station_sources_bound.R
-# applies the bound through this same function.
-wet_bcenv_cap <- function(ids, q, bound) {
+# applies the bound through this same function. `sub`, one per day, gives the
+# sub-drainage where the number carries none (the Water Tool's gauges).
+wet_bcenv_cap <- function(ids, q, bound, sub = NULL) {
   pos <- q > 0
   med <- vapply(split(q[pos], factor(ids[pos], unique(ids))), stats::median, 0)
-  wet_bcenv_ratio(ids, bound) * unname(med[ids])
+  wet_bcenv_ratio(ids, bound, sub) * unname(med[ids])
 }
 
 # The ratio bound each station takes: its sub-drainage's (the first three
-# characters of its number once leading letters are dropped), else ".default".
-wet_bcenv_ratio <- function(ids, bound) {
+# characters of its number once leading letters are dropped, unless `sub`
+# gives it), else ".default".
+wet_bcenv_ratio <- function(ids, bound, sub = NULL) {
   if (is.null(names(bound))) return(rep(unname(bound), length(ids)))
-  sub <- sub("^[A-Z]+", "", ids)
-  sub <- ifelse(grepl("^[0-9]{2}[A-Z]", sub), substr(sub, 1, 3), NA_character_)
+  if (is.null(sub)) {
+    sub <- sub("^[A-Z]+", "", ids)
+    sub <- ifelse(grepl("^[0-9]{2}[A-Z]", sub), substr(sub, 1, 3), NA_character_)
+  }
   b <- unname(bound[sub])
   b[is.na(b)] <- bound[[".default"]]
   b
