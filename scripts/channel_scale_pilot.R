@@ -459,7 +459,7 @@ stopifnot(!anyDuplicated(sites$site_id),
           identical(sort(sites$type), sort(c("headwater", "tributary", "lake_outlet", "confluence", "mainstem",
                                               "glacier"))))
 hydat <- wb_hydat(release)
-st_all <- readRDS(wb_stations_path(release))$stations
+st_all <- readRDS(file.path(data_root, "wb", basename(wb_stations_path(release))))$stations
 gauged <- sites$station[!is.na(sites$station)]
 hcon <- wet:::wet_hydat_connect(hydat)
 st_meta <- DBI::dbGetQuery(hcon, sprintf("
