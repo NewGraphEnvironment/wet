@@ -169,7 +169,7 @@ wet_station_daily <- function(stations, hydat = wet_hydat_path(), from = NULL, t
 # comes from the registry, not from the rows read, so it is the same
 # whichever sources are asked.
 wet_bcwatertool_station_days <- function(stations, snapshot) {
-  tool <- wet_bcwatertool_stations()
+  tool <- wet_bcwatertool_against(wet_bcwatertool_stations(), snapshot)
   prov <- wet_bcenv_stations(snapshot)
   wet_registry_check(tool, prov, snapshot)
   own <- tool$station_number[is.na(tool$continues) & tool$station_number %in% stations]

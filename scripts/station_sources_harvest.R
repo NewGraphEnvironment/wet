@@ -340,7 +340,7 @@ prov_re <- "BC ENV non-integrated \\(provincial files\\) ([0-9A-Z]+)"
 tshared <- tsurvey[grepl(prov_re, tsurvey)]
 tshared <- data.frame(nid = vapply(strsplit(tshared, " \\| "), `[`, "", 3),
                       prov = sub(paste0("^.*", prov_re, ".*$"), "\\1", tshared))
-treg <- wet_bcwatertool_stations(tool_snapshot)
+treg <- wet:::wet_bcwatertool_against(wet_bcwatertool_stations(tool_snapshot), snapshot)
 tcont <- treg[!is.na(treg$continues), ]
 tshared_ok <- nrow(tshared) == 7 &&
   setequal(paste(tshared$nid, tshared$prov), paste(tcont$station_number, tcont$continues))

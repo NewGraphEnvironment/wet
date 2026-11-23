@@ -30,7 +30,10 @@
 # station's record (`continues`, the provincial number), and only its days
 # before `continues_before`, the first day the provincial files hold any
 # usable hour of that station, are read, under the provincial number
-# (wet_station_daily()); its `first` and `last` are those days'.
+# (wet_station_daily()); its `first` and `last` are those days'. Which
+# listings are left out as provincial, which continue a provincial station and
+# where each cut falls are all measured on one provincial snapshot, which the
+# registry names (`bcenv_snapshot`): the Tool registry is read only beside it.
 
 # The snapshot the package reads: the survey's (#123), 2026-10-28.
 wet_bcwatertool_snapshot <- "20261028"
@@ -104,11 +107,12 @@ wet_bcwatertool_stations <- function(snapshot = wet_bcwatertool_snapshot) {
     station_number = "character", id = "character", name = "character", network = "character", lon = "numeric",
     lat = "numeric", subdrainage = "character", nearest_hydat = "character", nearest_km = "numeric",
     first = "Date", last = "Date", regulation = "character", hydat_site = "character", hydat_km = "numeric",
-    credit = "character", continues = "character", continues_before = "Date"))
+    credit = "character", continues = "character", continues_before = "Date", bcenv_snapshot = "character"))
   if (anyDuplicated(s$station_number) || anyNA(s$station_number) || anyDuplicated(s$id) || anyNA(s$id) ||
-      anyNA(s$subdrainage) || any(grepl(wet_hydat_number, s$station_number))) {
-    stop("the station registry ", path, " does not hold one row per listing, each with its id and sub-drainage ",
-         "and a number not shaped like HYDAT's", call. = FALSE)
+      anyNA(s$subdrainage) || any(grepl(wet_hydat_number, s$station_number)) ||
+      length(unique(s$bcenv_snapshot)) != 1L || anyNA(s$bcenv_snapshot)) {
+    stop("the station registry ", path, " does not hold one row per listing, each with its id and sub-drainage, ",
+         "a number not shaped like HYDAT's and the one provincial snapshot it was built against", call. = FALSE)
   }
   s[order(s$station_number, method = "radix"), ]
 }
@@ -215,9 +219,23 @@ wet_bcwatertool_read <- function(path, id) {
 # The credit a listing's CSV header asks for: its "Data Licence Information"
 # up to the liability disclaimer that starts "Any reliance".
 wet_bcwatertool_credit <- function(meta) {
-  x <- meta[["Data Licence Information"]]
-  if (is.null(x) || is.na(x)) return(NA_character_)
-  trimws(sub("\\s*Any reliance.*$", "", x))
+  # `[[` on a named character vector errors on an absent key
+  x <- unname(meta[names(meta) == "Data Licence Information"])
+  if (!length(x) || is.na(x[1])) return(NA_character_)
+  trimws(sub("\\s*Any reliance.*$", "", x[1]))
+}
+
+# The Tool registry beside a provincial snapshot: refused unless it is the one
+# the registry was built against, since its exclusions, continuations and cuts
+# were measured on that snapshot's files.
+wet_bcwatertool_against <- function(tool, snapshot) {
+  built <- unique(tool$bcenv_snapshot)
+  if (!identical(built, snapshot)) {
+    stop("the Water Tool's station registry was built against the provincial snapshot ",
+         paste(built, collapse = ", "), ", not ", snapshot,
+         "; rewrite it with data-raw/station_sources_bcwatertool.R", call. = FALSE)
+  }
+  invisible(tool)
 }
 
 wet_bcwatertool_unavailable <- function(...) wet_snapshot_unavailable("wet_bcwatertool_unavailable", ...)

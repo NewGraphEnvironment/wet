@@ -58,8 +58,10 @@
 #    says; the HYDAT station at the same site (scripts/station_sources_lib.R's
 #    hydat_match(), the survey's rule, against HYDAT 20260717); and its credit,
 #    the CSV header's licence line up to its liability disclaimer.
-#    wet_station_daily() and wet_station_list() read it. It refuses a number
-#    shaped like HYDAT's or held by the provincial registry.
+#    wet_station_daily() and wet_station_list() read it, only beside the
+#    provincial snapshot it was built against (`bcenv_snapshot`): a new
+#    provincial pin rewrites it. It refuses a number shaped like HYDAT's or
+#    held by the provincial registry.
 
 devtools::load_all(quiet = TRUE)
 source("scripts/wb_fit_lib.R")     # wb_hydat()
@@ -249,7 +251,8 @@ reg <- data.frame(station_number = wt$nid, id = wt$id, name = wt$name, network =
                   regulation = ifelse(regulation_of(wt$name) == "unknown", "unknown", "regulated by name"),
                   hydat_site = m$hydat, hydat_km = m$hydat_km,
                   credit = vapply(read, function(r) wet:::wet_bcwatertool_credit(r$meta), ""),
-                  continues = wt$continues, continues_before = wt$continues_before)
+                  continues = wt$continues, continues_before = wt$continues_before,
+                  bcenv_snapshot = wet_bcenv_snapshot)
 reg <- reg[order(reg$station_number, method = "radix"), ]
 bad <- reg$station_number[grepl(wet:::wet_hydat_number, reg$station_number) |
                             reg$station_number %in% prov$station_number]

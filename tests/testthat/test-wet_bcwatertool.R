@@ -24,6 +24,9 @@ test_that("a value, unit, QA, date or day the reader does not know is refused, n
   # a stage row is never checked as discharge
   writeLines(bcwatertool_fixture_lines(c("Primary Water Level,2020-06-01,2,m,7")), f)
   expect_equal(nrow(wet_bcwatertool_read(f, "1")$q), 0)
+  # a file with no licence line gives no credit, rather than an error
+  writeLines(c("# Name,x", "", "Analysis,Datetime,Value,Units,QA"), f)
+  expect_identical(wet_bcwatertool_credit(wet_bcwatertool_read(f, "1")$meta), NA_character_)
   writeLines(c("# Name,x", "", "Date,Value", "2020-06-01,2"), f)
   expect_error(wet_bcwatertool_read(f, "1"), "not a Water Tool CSV")
 })
@@ -110,6 +113,7 @@ test_that("the tracked manifest and registry of the pinned snapshot hold their s
   expect_true(all(is.na(cont$first) | cont$last < cont$continues_before))
   expect_setequal(cont$station_number[!is.na(cont$first)], c("4601", "4602", "4603"))
   expect_true(all(is.na(reg$continues_before[is.na(reg$continues)])))
+  expect_equal(unique(reg$bcenv_snapshot), wet_bcenv_snapshot)
   expect_false(any(grepl("Any reliance", reg$credit)))
   expect_error(wet_bcwatertool_manifest("19000101"), "no tracked manifest")
 })

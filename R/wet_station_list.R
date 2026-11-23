@@ -52,7 +52,7 @@ wet_station_list <- function(sources = c("bcenv", "bcwatertool"), snapshot = wet
   }
   out <- list()
   prov <- wet_bcenv_stations(snapshot)
-  tool <- if ("bcwatertool" %in% sources) wet_bcwatertool_stations()
+  tool <- if ("bcwatertool" %in% sources) wet_bcwatertool_against(wet_bcwatertool_stations(), snapshot)
   if (!is.null(tool)) wet_registry_check(tool, prov, snapshot)
   if ("bcenv" %in% sources) {
     p <- data.frame(station_number = prov$station_number, name = prov$name, lon = prov$lon, lat = prov$lat,

@@ -389,7 +389,7 @@ local_bcwatertool_stub <- function(env = parent.frame(), prov_first = as.Date(c(
     },
     wet_bcwatertool_stations = function(snapshot = "20261028") {
       data.frame(station_number = c("4601", "4602", "TST1"), continues = c("08ZZ0001", "08ZZ0002", NA),
-                 continues_before = as.Date(c("2021-10-01", NA, NA)))
+                 continues_before = as.Date(c("2021-10-01", NA, NA)), bcenv_snapshot = "20261028")
     },
     wet_bcwatertool_daily = function(stations, ...) {
       calls$daily[[length(calls$daily) + 1]] <- stations
@@ -453,7 +453,8 @@ test_that("a provincial number no Tool gauge continues never calls the Tool's re
   local_bcwatertool_stub()
   local_mocked_bindings(
     wet_bcwatertool_stations = function(...) {
-      data.frame(station_number = "TST1", continues = NA_character_, continues_before = as.Date(NA))
+      data.frame(station_number = "TST1", continues = NA_character_, continues_before = as.Date(NA),
+                 bcenv_snapshot = "20261028")
     },
     wet_bcwatertool_daily = function(...) stop("Tool reader called"))
   w <- capture_warnings(d <- wet_station_daily("08ZZ0001", h, to = NULL))
@@ -465,10 +466,22 @@ test_that("a number held by both registries is refused, not skipped", {
   h <- local_hydat()
   local_bcwatertool_stub()
   local_mocked_bindings(
-    wet_bcwatertool_stations = function(...) data.frame(station_number = "08ZZ0001", continues = NA_character_))
+    wet_bcwatertool_stations = function(...) {
+      data.frame(station_number = "08ZZ0001", continues = NA_character_, bcenv_snapshot = "20261028")
+    })
   expect_error(wet_station_daily("TST1", h, sources = "bcwatertool"), "both hold 08ZZ0001",
                class = "wet_registry_conflict")
   expect_error(wet_station_list(), "both hold 08ZZ0001")
+})
+
+test_that("the Tool registry is read only beside the provincial snapshot it was built against", {
+  h <- local_hydat()
+  local_bcwatertool_stub()
+  w <- capture_warnings(d <- wet_station_daily(c("08AA001", "TST1"), h, sources = c("hydat", "bcwatertool"),
+                                               snapshot = "20991231"))
+  expect_match(w, "built against the provincial snapshot 20261028, not 20991231", all = FALSE)
+  expect_true(all(d$source == "hydat"))
+  expect_error(wet_station_list("bcwatertool", snapshot = "20991231"), "built against the provincial snapshot")
 })
 
 test_that("a failing Tool source is skipped with a warning", {

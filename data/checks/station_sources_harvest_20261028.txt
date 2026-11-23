@@ -1,5 +1,5 @@
 The province's non-integrated discharge as wet reads it: the harvest report (#142, #179)
-HYDAT release 20260717; snapshot 20261028; reader v2; code_md5 ca3830db37618c4419d27dee363de6d7
+HYDAT release 20260717; snapshot 20261028; reader v2; code_md5 6211e6f4400906509f670f5e79e8fcd3
 Windows: CH migration 05-01..08-01 and spawning 08-01..09-15, as the survey (#123).
 
 Tier (i): the survey's rules (UTC days of >= 20 hours, no bound, no negative day dropped)
