@@ -1,6 +1,6 @@
 # PCIC's channel-scale output on the FWA
 
-**Verified:** 2026-11-23 · **Issues:** #9 (the pilot PCIC suggested), #168 (backlog move 6, which ran it); feeds #169 (move 7: #4 scenarios, #5 coverage) · **Produced by:** `scripts/channel_scale_pilot.R` → `data/checks/channel_scale_pilot_20260717.txt`, HYDAT 2026-07-17, fwapg 5d50cc1's `pcic` schema, the live published build, hydromosaic's series fetched on 2026-11-23. The rules were registered in the script's header at 7d6c7b1 (01:46:50 UTC), before the first fetch (01:47:59 UTC). One amendment was made after the numbers were seen: rule 3's CMIP6 listing check, below. Two runs from the cache gave a byte-identical report (`data/logs/168/`).
+**Verified:** 2026-11-23 · **Issues:** #9 (the pilot PCIC suggested), #168 (backlog move 6, which ran it); feeds #169 (move 7: #4 scenarios, #5 coverage) · **Produced by:** `scripts/channel_scale_pilot.R` → `data/checks/channel_scale_pilot_20260717.txt`, HYDAT 2026-07-17, fwapg 5d50cc1's `pcic` schema, the live published build (512 parts, parts digest d554e3aa…), hydromosaic's series fetched on 2026-11-23. The rules were registered in the script's header at 7d6c7b1 (01:46:50 UTC), before the first fetch (01:47:59 UTC). One amendment was made after the numbers were seen: rule 3's CMIP6 listing check, below. Two runs from the cache gave a byte-identical report (`data/logs/168/`).
 
 ## Verdict
 
@@ -28,14 +28,14 @@ By the registered rules, move 7 builds:
 
 ## The six sites
 
-All in the Fraser. The headwater and the confluence were chosen by rules registered with the others.
+All in the Fraser. The headwater and the confluence were chosen by rules registered with the others; the confluence's segment turned out to be that of a scored gauge, 08MB006 Big Creek above Groundhog Creek.
 
 | site | station | area km² | HYDAT | PCIC raw | routed published | balance published | wet's accumulation |
 |---|---|---|---|---|---|---|---|
 | headwater (SALR, interior) | – | 10.0 | – | 0.08 (rebuilt) | 0.08 | 0.13 | 0.10 |
 | Salmon River near Prince George | 08KC001 | 4,227.5 | 27.41 | 24.11 | 24.11 | 33.60 | 20.45 |
 | Quesnel River at Likely (lake outlet) | 08KH001 | 5,963.1 | 129.61 | 127.18 | 127.18 | 104.99 | 134.18 |
-| confluence (BIGC, near 08MB006) | – | 1,019.0 | – | 6.92 | 6.92 | 9.13 | 7.23 |
+| confluence (BIGC) | 08MB006 | 1,019.0 | 6.04 | 6.92 | 6.92 | 9.13 | 7.23 |
 | Fraser River at Hope (regulated) | 08MF005 | 216,659.4 | 2,663.59 | 2,590.73 | 2,591.08 | 2,701.66 | 2,476.28 |
 | Lillooet River near Pemberton (glacier) | 08MG005 | 2,076.2 | 122.10 | 116.29 | 116.29 | 86.95 | 99.58 |
 
@@ -49,8 +49,9 @@ Annual flow, 1981–2010, m³/s. "wet's accumulation" is PCIC's gridded PNWNAmet
 
 Reported, deciding nothing (`data/checks/channel_scale_pilot_20260717.txt` has every GCM).
 
-- Median annual change over the 9 GCMs, 2070–2099 against 1981–2010: from −0.2 % (Quesnel, SSP2-4.5) to +19.8 % (Salmon, SSP5-8.5); every site shows earlier spring flow and lower July–September flow.
-- PNWNAmet water temperature at the six outlets peaks at 12.7 °C (the confluence) to 26.7 °C (Salmon) in August. water-temp-bc has daily means on the same days only at Hope, 409 days in 2002–2012: PCIC runs 0.50 °C warm, RMSE 3.06 °C.
+- The headwater's series are its sub-basin outlet's (3.69 m³/s, against the segment's 0.08), so its change signals and water temperature describe that larger catchment.
+- Median annual change over the 9 GCMs, 2070–2099 against 1981–2010: from −0.2 % (Quesnel, SSP2-4.5) to +19.8 % (Salmon, SSP5-8.5); every site shows more flow in March and April and less in July to September.
+- PNWNAmet water temperature at the six outlets peaks at 12.7 °C (the confluence) to 26.7 °C (Salmon) in August. Of the five gauged sites, water-temp-bc has daily means on the same days only at Hope, 409 days in 2002–2012: PCIC runs 0.50 °C warm, RMSE 3.06 °C.
 
 ## Crosswalk flags
 
