@@ -333,7 +333,30 @@ verdict <- function(d, zones, check_n = TRUE) {
   }
   r
 }
-# the copy must reproduce #45's stored zone verdicts (none of which its stability step changed)
+# The copy must be #45's verdict() as its script now stands (comments aside), the cache must be newer
+# than the last change to that script (which also derives the columns verdict() reads, and holds the
+# ECCC table), and the copy must reproduce #45's stored zone verdicts (none of which its stability
+# step changed).
+fn_expr <- function(f) {
+  e <- parse(f, keep.source = FALSE)
+  hit <- Filter(function(x) is.call(x) && identical(x[[1]], as.name("<-")) && identical(x[[2]], as.name("verdict")),
+                as.list(e))
+  if (length(hit) != 1L) stop("expected one verdict() in ", f, call. = FALSE)
+  deparse(hit[[1]][[3]])
+}
+f_term <- "scripts/wb_term_diagnose.R"
+if (!identical(fn_expr(f_term), fn_expr("scripts/wb_small_basin.R"))) {
+  stop("the copy of verdict() is not ", f_term, "'s: copy it again", call. = FALSE)
+}
+term_dirty <- system2("git", c("status", "--porcelain", "--", f_term), stdout = TRUE)
+term_commit <- as.numeric(system2("git", c("log", "-1", "--format=%ct", "--", f_term), stdout = TRUE))
+if (length(term_dirty) || length(term_commit) != 1L || is.na(term_commit)) {
+  stop(f_term, " has uncommitted changes, or git cannot date it", call. = FALSE)
+}
+if (as.numeric(file.mtime(file.path("data", "wb_term", sprintf("diagnose_%s.rds", release)))) < term_commit) {
+  stop("data/wb_term/diagnose_", release, ".rds is older than the last commit to ", f_term,
+       ": rerun it", call. = FALSE)
+}
 again <- vapply(tm$zones$zone, function(z) verdict(b[b$zone == z, ], z)$verdict, "")
 if (!identical(unname(again), tm$zones$verdict)) {
   stop("the copied verdict() does not reproduce #45's stored zone verdicts", call. = FALSE)

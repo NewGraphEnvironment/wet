@@ -129,7 +129,7 @@ zone     |    N kept   R2  min STEYX   AVG |   n  in   AVG |   R2  RMSE |   n   
 
 Readable zone classes (5 or more of our gauges): 25 of 27. Median over them: WALLY R2 90 % (MIN R2 83 %),
 the balance's held-out R2 60 %; routed PCIC's 74 % over the 23 classes with 5 or more shared gauges.
-RMSE over STEYX, median: balance 2.16, routed PCIC 1.82 (above 1, ours scatters more than WALLY's fit).
+RMSE over STEYX, median: balance 2.16, routed PCIC 1.82 over its 23 classes (above 1, ours scatters more than WALLY's fit).
 Zone classes where the balance's held-out R2 is at or above WALLY's all-data R2: 1 of 25.
 
 ## 5. Across the province

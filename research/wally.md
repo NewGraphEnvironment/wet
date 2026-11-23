@@ -48,7 +48,7 @@ Ours are scored in WALLY's metric over the 25 zone classes holding 5 or more of 
 - WALLY's median zone R² is 90 % (lowest-split R² 83 %);
 - the held-out balance's median is 60 %, and it reaches WALLY's R² in 1 class of 25;
 - routed PCIC's median is 74 %, over the 23 classes with 5 or more of its shared gauges;
-- the median ratio of our RMSE to WALLY's STEYX is 2.2 for the balance and 1.8 for routed PCIC.
+- the median ratio of our RMSE to WALLY's STEYX is 2.2 for the balance, and 1.8 for routed PCIC over its 23 classes.
 
 Province-wide, the balance's held-out R² is 87 % (RMSE 12.5 l/s/km²) at all 315 gauges, and routed PCIC's is 90 % (11.2) at its 283 shared gauges. WALLY's XGBoost scores 96 % (STEYX 5.9) over 480 stations, its predictions made with all of them in training.
 
