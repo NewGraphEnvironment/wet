@@ -1,5 +1,5 @@
 The province's non-integrated discharge as wet reads it: the harvest report (#142, #179)
-HYDAT release 20260717; snapshot 20261028; reader v2; code_md5 9dccda68e45e24de113177feb4550703
+HYDAT release 20260717; snapshot 20261028; reader v2; code_md5 ca3830db37618c4419d27dee363de6d7
 Windows: CH migration 05-01..08-01 and spawning 08-01..09-15, as the survey (#123).
 
 Tier (i): the survey's rules (UTC days of >= 20 hours, no bound, no negative day dropped)
@@ -198,14 +198,15 @@ Tier (ii): the shipped rules (the nearest HYDAT station's sub-drainage bound, ne
     HRB3144  08H  2022-06-24  34.741
     HRB3144  08H  2022-06-25  35.659
     HRB6660  08H  2024-12-18  0.742
-  continuing listings (7): the days each adds before its provincial station's first day
-    2601 -> 08HC0001 (provincial first 2013-06-29): 1 days added, 2013-06-28 to 2013-06-28; 375 from that day on not read
-    2602 -> 08HC0002 (provincial first 2013-06-28): 1 days added, 2013-06-27 to 2013-06-27; 393 from that day on not read
-    2603 -> 08HC0003 (provincial first 2013-06-28): 1 days added, 2013-06-27 to 2013-06-27; 514 from that day on not read
-    2604 -> 08HC0004 (provincial first 2013-06-29): 1 days added, 2013-06-28 to 2013-06-28; 370 from that day on not read
-    4601 -> 08HB0011 (provincial first 2021-10-01): 1181 days added, 2012-08-17 to 2015-11-10; 0 from that day on not read
-    4602 -> 08HB0008 (provincial first 2021-10-01): 1081 days added, 2012-10-12 to 2015-11-05; 0 from that day on not read
-    4603 -> 08HB0012 (provincial first 2021-10-01): 856 days added, 2012-09-13 to 2015-06-18; 0 from that day on not read
+  continuing listings (7): the days each adds before its provincial station's record begins (the first day the provincial files hold any usable hour of it)
+    2601 -> 08HC0001 (record begins 2013-06-28, first complete day 2013-06-29): 0 days added (none); 376 from then on not read
+    2602 -> 08HC0002 (record begins 2013-06-27, first complete day 2013-06-28): 0 days added (none); 394 from then on not read
+    2603 -> 08HC0003 (record begins 2013-06-27, first complete day 2013-06-28): 0 days added (none); 515 from then on not read
+    2604 -> 08HC0004 (record begins 2013-06-28, first complete day 2013-06-29): 0 days added (none); 371 from then on not read
+    4601 -> 08HB0011 (record begins 2021-09-30, first complete day 2021-10-01): 1181 days added (2012-08-17 to 2015-11-10); 0 from then on not read
+    4602 -> 08HB0008 (record begins 2021-09-30, first complete day 2021-10-01): 1081 days added (2012-10-12 to 2015-11-05); 0 from then on not read
+    4603 -> 08HB0012 (record begins 2021-09-30, first complete day 2021-10-01): 856 days added (2012-09-13 to 2015-06-18); 0 from then on not read
+  registry cut (continues_before) against the provincial files' first hour: 0 differing
   the Tool's provincial listings with discharge the provincial files lack, not read: 08MH0061, H08KC1015
   listings left out of the registry (345), by reason:
     behind the first listing of its nid (the survey's rule) (7; nid:id):

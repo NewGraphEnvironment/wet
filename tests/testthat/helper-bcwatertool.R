@@ -9,7 +9,8 @@
 #   2020-06-04  -1     QA 1                -> negative, dropped
 #   2020-06-05  1e6    QA 1                -> above any sane bound, dropped
 #   2020-06-06  4      QA 1                -> 4, provisional
-# Listing 102 (registry number "4601", continuing provincial 08ZZ0001):
+# Listing 102 (registry number "4601", continuing provincial 08ZZ0001, whose
+# record begins 2021-10-01):
 #   2012-08-17 .. 2012-08-19 at 1, 2, 3, QA 1; 2021-10-02 at 5, QA 1
 bcwatertool_fixture_lines <- function(rows, licence = "Data from Test District. https://example.org/.") {
   disclaimer <- "Any reliance you place upon the information contained here is your sole responsibility."
@@ -54,9 +55,9 @@ local_bcwatertool_cache <- function(env = parent.frame()) {
   reg <- data.frame(station_number = c("4601", "TST1"), id = c("102", "101"), name = c("Grandon", "Alpha Creek"),
                     network = "Test Network", lon = -124, lat = 49.5, subdrainage = "08H",
                     nearest_hydat = "08HB001", nearest_km = 1, first = as.Date(c("2012-08-17", "2020-06-01")),
-                    last = as.Date(c("2021-10-02", "2020-06-06")), regulation = "unknown", hydat_site = NA_character_,
+                    last = as.Date(c("2012-08-19", "2020-06-06")), regulation = "unknown", hydat_site = NA_character_,
                     hydat_km = NA_real_, credit = c("Data from BCCF.", "Data from Test District."),
-                    continues = c("08ZZ0001", NA))
+                    continues = c("08ZZ0001", NA), continues_before = as.Date(c("2021-10-01", NA)))
   local_mocked_bindings(wet_bcwatertool_manifest = function(snapshot) man,
                         wet_bcwatertool_stations = function(snapshot = "20261028") reg, .env = env)
   list(cache = cache, dir = dir, man = man, reg = reg)

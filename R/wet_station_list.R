@@ -17,7 +17,7 @@
 #' joined to the HYDAT station's: `hydat_site` names that station (the same
 #' stream name within 1 km) so a caller can join the two. A Water Tool gauge at
 #' a provincial station's site is not listed: its days before the provincial
-#' station's first continue that station's record under the provincial number
+#' record begins continue that station's record under the provincial number
 #' (see [wet_station_daily()]), and the provincial row's `first`, `licence` and
 #' `credit` say so when both sources are listed. Regulation is known only where
 #' a station's name says it (a dam, diversion, intake and similar); every other
@@ -63,18 +63,23 @@ wet_station_list <- function(sources = c("bcenv", "bcwatertool"), snapshot = wet
     if (!is.null(tool)) {
       cont <- tool[!is.na(tool$continues), ]
       i <- match(cont$continues, p$station_number)
-      # the days the continuing gauge adds: those before the provincial first day, all where it has none
-      added <- !is.na(i) & !is.na(cont$first) & (is.na(p$first[i]) | cont$first < p$first[i])
+      # a continuing listing's first and last are the days it adds, all before the provincial record
+      # begins (continues_before); NA where it adds none
+      added <- !is.na(i) & !is.na(cont$first)
       cont <- cont[added, ]
       i <- i[added]
-      before <- ifelse(is.na(p$first[i]), "all days", paste("days before", format(p$first[i])))
+      before <- ifelse(is.na(cont$continues_before), "all days",
+                       paste("days before", format(cont$continues_before)))
       p$licence[i] <- paste0(p$licence[i], "; ", before, ": none stated")
       p$credit[i] <- paste0(p$credit[i], "; ", before, ": ", cont$credit)
       p$first[i] <- cont$first
+      none <- is.na(p$last[i])  # a provincial station with no complete day: its days are the listing's
+      p$last[i[none]] <- cont$last[none]
     }
     out$bcenv <- p
   }
-  if (!is.null(tool)) {
+  # data.frame() cannot recycle the scalar source onto zero rows
+  if (!is.null(tool) && any(is.na(tool$continues))) {
     t <- tool[is.na(tool$continues), ]
     out$bcwatertool <- data.frame(station_number = t$station_number, name = t$name, lon = t$lon, lat = t$lat,
                                   source = "bcwatertool", network = t$network, first = t$first, last = t$last,

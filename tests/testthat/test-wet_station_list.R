@@ -37,15 +37,38 @@ test_that("a provincial station a Tool gauge continues says so when both sources
   prov <- wet_station_list("bcenv")
   r <- both[both$station_number == "08HB0008", ]
   p <- prov[prov$station_number == "08HB0008", ]
+  cut <- wet_bcwatertool_stations()$continues_before[wet_bcwatertool_stations()$station_number == "4602"]
+  expect_lte(cut, p$first)
   expect_lt(r$first, p$first)
   expect_equal(format(r$first, "%Y"), "2012")
-  expect_equal(r$licence, paste0("OGL-BC 2.0; days before ", p$first, ": none stated"))
-  expect_match(r$credit, paste0("; days before ", p$first, ": Data from BC Conservation Foundation"), fixed = TRUE)
+  expect_equal(r$last, p$last)
+  expect_equal(r$licence, paste0("OGL-BC 2.0; days before ", cut, ": none stated"))
+  expect_match(r$credit, paste0("; days before ", cut, ": Data from BC Conservation Foundation"), fixed = TRUE)
   # every other provincial row is as the provincial list gives it
   moved <- both$station_number[both$source == "bcenv"][
     both$first[both$source == "bcenv"] != prov$first | both$credit[both$source == "bcenv"] != prov$credit]
-  expect_setequal(stats::na.omit(moved), c("08HB0008", "08HB0011", "08HB0012", "08HC0001", "08HC0002", "08HC0003",
-                                           "08HC0004"))
+  # Tofino's four listings are the same gauges as 08HC0001-0004 and add no day
+  expect_setequal(stats::na.omit(moved), c("08HB0008", "08HB0011", "08HB0012"))
+})
+
+test_that("a continued provincial station with no complete day takes the listing's first and last days", {
+  local_mocked_bindings(
+    wet_bcenv_stations = function(snapshot) {
+      data.frame(station_number = "08ZZ0001", name = "Alpha", lon = -124, lat = 49, first = as.Date(NA),
+                 last = as.Date(NA), regulation = "unknown", hydat_site = NA_character_, hydat_km = NA_real_)
+    },
+    wet_bcwatertool_stations = function(snapshot = "20261028") {
+      data.frame(station_number = "4601", name = "Alpha", network = "Test", lon = -124, lat = 49,
+                 first = as.Date("2012-08-17"), last = as.Date("2015-11-10"), regulation = "unknown",
+                 hydat_site = NA_character_, hydat_km = NA_real_, credit = "Data from BCCF.",
+                 continues = "08ZZ0001", continues_before = as.Date("2021-09-30"))
+    })
+  s <- wet_station_list()
+  expect_equal(nrow(s), 1)
+  expect_equal(c(s$first, s$last), as.Date(c("2012-08-17", "2015-11-10")))
+  expect_s3_class(s$last, "Date")
+  expect_equal(s$credit, paste0("Contains information licensed under the Open Government Licence \u2013 British ",
+                                "Columbia; days before 2021-09-30: Data from BCCF."))
 })
 
 test_that("stations at a HYDAT site name it, within 1 km", {

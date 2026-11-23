@@ -17,8 +17,9 @@
 #' `"ogc_1002"`, listed by [wet_station_list()]) are read from a pinned
 #' snapshot of the Tool's daily files. Where such a gauge sits at a provincial
 #' station's site, its record continues the provincial one instead: its days
-#' before the provincial station's first day come back under the provincial
-#' number, with `source` `"bcwatertool"`, and none from that day on. Provincial
+#' before the provincial record begins (the first day the province's files hold
+#' any hour of the station) come back under the provincial number, with
+#' `source` `"bcwatertool"`, and none from that day on. Provincial
 #' and Tool stations are records and held-out tests, not donors, until their
 #' regulation is known.
 #'
@@ -50,8 +51,8 @@
 #'   each publisher's file states, given as `credit` by [wet_station_list()]):
 #'   a day as the Tool gives it, a day above the same bound (its sub-drainage
 #'   taken from the nearest HYDAT station) dropped; and the days of a Tool gauge
-#'   at a provincial station's site before that station's first day, under the
-#'   provincial number. A station's own source comes first, and a second
+#'   at a provincial station's site before that station's record begins, under
+#'   the provincial number. A station's own source comes first, and a second
 #'   publisher's gauge at its site only for the days before it.
 #' @param snapshot The provincial snapshot to read, as `YYYYMMDD`; each pinned
 #'   snapshot's files are held to md5s tracked in the package. Read only for
@@ -161,10 +162,12 @@ wet_station_daily <- function(stations, hydat = wet_hydat_path(), from = NULL, t
 
 # The Water Tool's days for the non-HYDAT numbers asked: a Tool station's own
 # under its number, and a provincial station's continuing listing's days
-# before the provincial station's first day (its registry's `first`, held to
-# the reader by the harvest check; all of them where it has no complete day),
-# under the provincial number. The cut comes from the registry, not from the
-# rows read, so it is the same whichever sources are asked.
+# before the first day the provincial files hold any usable hour of it (the
+# Tool registry's `continues_before`, complete day or not, so a listing that
+# is the same gauge never stands in for the province's own partial days; all
+# of them where the files hold none), under the provincial number. The cut
+# comes from the registry, not from the rows read, so it is the same
+# whichever sources are asked.
 wet_bcwatertool_station_days <- function(stations, snapshot) {
   tool <- wet_bcwatertool_stations()
   prov <- wet_bcenv_stations(snapshot)
@@ -174,8 +177,8 @@ wet_bcwatertool_station_days <- function(stations, snapshot) {
   if (!length(own) && !nrow(cont)) return(wet_daily_empty())
   d <- wet_bcwatertool_daily(c(own, cont$station_number))
   k <- match(d$station_number, cont$station_number)
-  first <- prov$first[match(cont$continues[k], prov$station_number)]
-  keep <- is.na(k) | is.na(first) | d$date < first
+  cut <- cont$continues_before[k]
+  keep <- is.na(k) | is.na(cut) | d$date < cut
   d$station_number[!is.na(k)] <- cont$continues[k[!is.na(k)]]
   d <- d[keep, ]
   rownames(d) <- NULL

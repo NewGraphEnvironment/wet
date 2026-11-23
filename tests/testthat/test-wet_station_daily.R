@@ -376,8 +376,9 @@ test_that("live: Deep Creek's provincial record is read from the pinned snapshot
 
 # The Water Tool's registry and reader stood in for, beside a provincial
 # registry: TST1 is a Tool station of its own; 4601 continues provincial
-# 08ZZ0001 (first day 2021-10-01) and 4602 continues 08ZZ0002 (no complete day).
-local_bcwatertool_stub <- function(env = parent.frame(), prov_first = as.Date(c("2021-10-01", NA))) {
+# 08ZZ0001 (whose record begins 2021-10-01) and 4602 continues 08ZZ0002 (no
+# hour in the provincial files).
+local_bcwatertool_stub <- function(env = parent.frame(), prov_first = as.Date(c("2021-10-02", NA))) {
   calls <- new.env()
   calls$daily <- list()
   local_mocked_bindings(
@@ -387,7 +388,8 @@ local_bcwatertool_stub <- function(env = parent.frame(), prov_first = as.Date(c(
                  symbol = NA_character_, source = "bcenv", status = "provisional")
     },
     wet_bcwatertool_stations = function(snapshot = "20261028") {
-      data.frame(station_number = c("4601", "4602", "TST1"), continues = c("08ZZ0001", "08ZZ0002", NA))
+      data.frame(station_number = c("4601", "4602", "TST1"), continues = c("08ZZ0001", "08ZZ0002", NA),
+                 continues_before = as.Date(c("2021-10-01", NA, NA)))
     },
     wet_bcwatertool_daily = function(stations, ...) {
       calls$daily[[length(calls$daily) + 1]] <- stations
@@ -411,7 +413,7 @@ test_that("a Water Tool number is read from the Tool's source under its own numb
   expect_true(all(t$source == "bcwatertool"))
 })
 
-test_that("a provincial station's record is continued by the Tool gauge at its site, before its first day only", {
+test_that("a provincial station's record is continued by the Tool gauge at its site, before it begins only", {
   h <- local_hydat()
   calls <- local_bcwatertool_stub()
   w <- capture_warnings(d <- wet_station_daily("08ZZ0001", h, to = NULL, sources = c("bcenv", "bcwatertool")))
@@ -422,12 +424,13 @@ test_that("a provincial station's record is continued by the Tool gauge at its s
   expect_true(all(d$station_number == "08ZZ0001"))
   # the years between the two publishers are a gap between sources
   expect_match(w, "gap between sources.*08ZZ0001 2015-11-11 to 2021-09-30 \\(bcwatertool -> bcenv\\)", all = FALSE)
-  # the cut is the registry's first day, whichever sources are asked
+  # the cut is where the provincial record begins, from the registry, whichever sources are asked;
+  # not the provincial first complete day (2021-10-02 here), which would read the province's own partial day
   d2 <- wet_station_daily("08ZZ0001", h, to = NULL, sources = "bcwatertool")
   expect_equal(d2$date, as.Date(c("2015-11-09", "2015-11-10")))
 })
 
-test_that("a provincial station with no complete day takes all its continuing gauge's days", {
+test_that("a provincial station the province's files hold no hour of takes all its continuing gauge's days", {
   h <- local_hydat()
   calls <- local_bcwatertool_stub()
   d <- wet_station_daily("08ZZ0002", h, to = NULL, sources = "bcwatertool")
@@ -449,7 +452,9 @@ test_that("a provincial number no Tool gauge continues never calls the Tool's re
   h <- local_hydat()
   local_bcwatertool_stub()
   local_mocked_bindings(
-    wet_bcwatertool_stations = function(...) data.frame(station_number = "TST1", continues = NA_character_),
+    wet_bcwatertool_stations = function(...) {
+      data.frame(station_number = "TST1", continues = NA_character_, continues_before = as.Date(NA))
+    },
     wet_bcwatertool_daily = function(...) stop("Tool reader called"))
   w <- capture_warnings(d <- wet_station_daily("08ZZ0001", h, to = NULL))
   expect_false(any(grepl("skipped", w)))
@@ -489,5 +494,5 @@ test_that("live: Rosewall Creek's provincial record is continued by BC Conservat
   expect_true(all(d$date[d$source == "bcwatertool"] < first))
   expect_equal(format(range(d$date[d$source == "bcwatertool"]), "%Y"), c("2012", "2015"))
   expect_equal(min(d$date), r$first)
-  expect_match(r$credit, "; days before 2021-10-01: Data from BC Conservation Foundation", fixed = TRUE)
+  expect_match(r$credit, "; days before 2021-09-30: Data from BC Conservation Foundation", fixed = TRUE)
 })

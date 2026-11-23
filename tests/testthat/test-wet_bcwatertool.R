@@ -103,6 +103,13 @@ test_that("the tracked manifest and registry of the pinned snapshot hold their s
   expect_length(intersect(reg$station_number, wet_bcenv_stations(wet_bcenv_snapshot)$station_number), 0)
   expect_true(all(reg$continues[!is.na(reg$continues)] %in% wet_bcenv_stations(wet_bcenv_snapshot)$station_number))
   expect_true(all(grepl("^[0-9]{2}[A-Z]$", reg$subdrainage)))
+  # a continuing listing's days are those before its provincial record begins: none at Tofino, where the
+  # listings are the same gauges, and 2012-2015 at BC Conservation Foundation's three
+  cont <- reg[!is.na(reg$continues), ]
+  expect_false(anyNA(cont$continues_before))
+  expect_true(all(is.na(cont$first) | cont$last < cont$continues_before))
+  expect_setequal(cont$station_number[!is.na(cont$first)], c("4601", "4602", "4603"))
+  expect_true(all(is.na(reg$continues_before[is.na(reg$continues)])))
   expect_false(any(grepl("Any reliance", reg$credit)))
   expect_error(wet_bcwatertool_manifest("19000101"), "no tracked manifest")
 })
@@ -112,6 +119,10 @@ test_that("live: the pinned Tool snapshot in this machine's cache holds the mani
   f <- tryCatch(wet_bcwatertool(reg$id), wet_snapshot_unavailable = function(e) skip(conditionMessage(e)))
   expect_false(anyNA(f))
   d <- wet_bcwatertool_daily(reg$station_number)
+  # a continuing listing's registry days are those before its provincial record begins
+  cut <- reg$continues_before[match(d$station_number, reg$station_number)]
+  d <- d[is.na(cut) | d$date < cut, ]
+  expect_setequal(unique(d$station_number), reg$station_number[!is.na(reg$first)])
   rng <- lapply(split(d$date, d$station_number), range)
   expect_equal(unname(vapply(rng, `[`, 0, 1)), as.numeric(reg$first[match(names(rng), reg$station_number)]))
   expect_equal(unname(vapply(rng, `[`, 0, 2)), as.numeric(reg$last[match(names(rng), reg$station_number)]))

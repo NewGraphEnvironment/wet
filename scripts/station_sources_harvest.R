@@ -42,7 +42,8 @@
 #     status): per network, stations, days and status shares; every day the
 #     bound drops; every listing the registry leaves out, with its reason;
 #     per continuing listing, the days it adds before its provincial station's
-#     first day; and the Tool registry
+#     record begins (the first day the provincial files hold any usable hour
+#     of it, the registry's continues_before); and the Tool registry
 #     (inst/extdata/station_sources/bcwatertool_<snapshot>_hydat.csv) held to
 #     the reader's first and last days, the selection rule recomputed from the
 #     station list, the nearest HYDAT station, the HYDAT match and the name
@@ -188,6 +189,7 @@ if (!identical(net_mine, net_theirs)) fail <- c(fail, "network line")
 # ---- tier (ii): the shipped rules -------------------------------------------------------------
 lst <- wet_bcenv_days_read(wet_bcenv_days(snapshot, cache), NULL)
 held <- unique(lst$station_number)  # every station with a usable hour, complete day or not
+lst_all <- lst
 lst <- lst[lst$hours >= 20, ]
 shipped <- wet_bcenv_daily(NULL, snapshot)
 t2 <- station_table(lst[, c("station_number", "date", "q_m3s")])
@@ -352,7 +354,15 @@ tneg <- sum(tparsed$q_m3s < 0)
 tdropped <- tnobound[is.na(match(paste(tnobound$station_number, tnobound$date),
                                  paste(tshipped$station_number, tshipped$date))), ]
 # the registry: first and last days, the selection, the nearest HYDAT station, the HYDAT match, the name rule
-trng <- lapply(split(tshipped$date, tshipped$station_number), range)
+# a continuing listing's registry days are those before its cut, the first day the provincial
+# files hold any usable hour of its station (complete or not)
+pstart <- vapply(split(as.numeric(lst_all$date), lst_all$station_number), min, 0)
+tcut <- as.Date(unname(pstart[tcont$continues]), origin = "1970-01-01")
+treg_cut <- tcont$station_number[differs(as.numeric(tcont$continues_before), as.numeric(tcut))]
+tk_cut <- tcont$continues_before[match(tshipped$station_number, tcont$station_number)]
+tin <- tshipped[is.na(match(tshipped$station_number, tcont$station_number)) | is.na(tk_cut) |
+                  tshipped$date < tk_cut, ]
+trng <- lapply(split(tin$date, tin$station_number), range)
 tday <- function(k) as.Date(vapply(treg$station_number, function(s) if (is.null(trng[[s]])) NA_real_ else
   as.numeric(trng[[s]][k]), 0), origin = "1970-01-01")
 treg_off <- treg$station_number[differs(as.numeric(treg$first), as.numeric(tday(1))) |
@@ -372,15 +382,16 @@ treg_reg <- treg$station_number[differs(treg$regulation, ifelse(regulation_of(tr
                                                                   "regulated by name"))]
 treg_bad <- treg$station_number[grepl(wet_hydat_number, treg$station_number) |
                                   treg$station_number %in% st_meta$station_number]
-treg_fail <- length(treg_off) > 0 || length(treg_sel) > 0 || length(treg_site) > 0 || length(treg_near) > 0 ||
+treg_fail <- length(treg_off) > 0 || length(treg_cut) > 0 || length(treg_sel) > 0 || length(treg_site) > 0 || length(treg_near) > 0 ||
   length(treg_reg) > 0 || length(treg_bad) > 0
-# what the chain adds: per continuing listing, its days before the provincial first day
+# what the chain adds: per continuing listing, its days before the provincial record begins
 tchain <- do.call(rbind, lapply(seq_len(nrow(tcont)), function(i) {
   d <- tshipped$date[tshipped$station_number == tcont$station_number[i]]
-  f <- st_meta$first[st_meta$station_number == tcont$continues[i]]
-  data.frame(nid = tcont$station_number[i], prov = tcont$continues[i], prov_first = f,
-             added = sum(is.na(f) | d < f), from = if (length(d)) min(d) else NA,
-             to = if (any(is.na(f) | d < f)) max(d[is.na(f) | d < f]) else NA, left = sum(!is.na(f) & d >= f))
+  f <- tcont$continues_before[i]
+  a <- d[is.na(f) | d < f]
+  data.frame(nid = tcont$station_number[i], prov = tcont$continues[i], cut = f,
+             prov_first = st_meta$first[st_meta$station_number == tcont$continues[i]], added = length(a),
+             span = if (length(a)) paste(min(a), "to", max(a)) else "none", left = sum(!is.na(f) & d >= f))
 }))
 # every listing left out of the registry, by reason
 tleft <- rbind(
@@ -490,9 +501,12 @@ out <- c(
   if (nrow(tdropped)) sprintf("    %s  %s  %s  %.3f", tdropped$station_number,
                               treg$subdrainage[match(tdropped$station_number, treg$station_number)],
                               tdropped$date, tdropped$q_m3s),
-  sprintf("  continuing listings (%d): the days each adds before its provincial station's first day", nrow(tcont)),
-  sprintf("    %s -> %s (provincial first %s): %d days added, %s to %s; %d from that day on not read", tchain$nid,
-          tchain$prov, tchain$prov_first, tchain$added, tchain$from, tchain$to, tchain$left),
+  sprintf(paste0("  continuing listings (%d): the days each adds before its provincial station's record begins",
+                 " (the first day the provincial files hold any usable hour of it)"), nrow(tcont)),
+  sprintf("    %s -> %s (record begins %s, first complete day %s): %d days added (%s); %d from then on not read",
+          tchain$nid, tchain$prov, tchain$cut, tchain$prov_first, tchain$added, tchain$span, tchain$left),
+  sprintf("  registry cut (continues_before) against the provincial files' first hour: %d differing%s",
+          length(treg_cut), if (length(treg_cut)) paste0(" (", paste(treg_cut, collapse = ", "), ")") else ""),
   sprintf("  the Tool's provincial listings with discharge the provincial files lack, not read: %s",
           paste(tbenv_q, collapse = ", ")),
   sprintf("  listings left out of the registry (%d), by reason:", nrow(tleft)),

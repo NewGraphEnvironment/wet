@@ -43,8 +43,8 @@ third-party gauges from a pinned snapshot of its daily files (the terms
 each publisher's file states, given as \code{credit} by \code{\link[=wet_station_list]{wet_station_list()}}):
 a day as the Tool gives it, a day above the same bound (its sub-drainage
 taken from the nearest HYDAT station) dropped; and the days of a Tool gauge
-at a provincial station's site before that station's first day, under the
-provincial number. A station's own source comes first, and a second
+at a provincial station's site before that station's record begins, under
+the provincial number. A station's own source comes first, and a second
 publisher's gauge at its site only for the days before it.}
 
 \item{snapshot}{The provincial snapshot to read, as \code{YYYYMMDD}; each pinned
@@ -91,8 +91,9 @@ industry, BC Hydro, research projects; numbers such as \code{"HRB3142"} or
 \code{"ogc_1002"}, listed by \code{\link[=wet_station_list]{wet_station_list()}}) are read from a pinned
 snapshot of the Tool's daily files. Where such a gauge sits at a provincial
 station's site, its record continues the provincial one instead: its days
-before the provincial station's first day come back under the provincial
-number, with \code{source} \code{"bcwatertool"}, and none from that day on. Provincial
+before the provincial record begins (the first day the province's files hold
+any hour of the station) come back under the provincial number, with
+\code{source} \code{"bcwatertool"}, and none from that day on. Provincial
 and Tool stations are records and held-out tests, not donors, until their
 regulation is known.
 

@@ -28,8 +28,9 @@
 # the rule in that script. Most are stations of their own, under the Tool's
 # `nid`; a listing at a provincial station's site instead continues that
 # station's record (`continues`, the provincial number), and only its days
-# before the provincial station's first day are read, under the provincial
-# number (wet_station_daily()).
+# before `continues_before`, the first day the provincial files hold any
+# usable hour of that station, are read, under the provincial number
+# (wet_station_daily()); its `first` and `last` are those days'.
 
 # The snapshot the package reads: the survey's (#123), 2026-10-28.
 wet_bcwatertool_snapshot <- "20261028"
@@ -103,7 +104,7 @@ wet_bcwatertool_stations <- function(snapshot = wet_bcwatertool_snapshot) {
     station_number = "character", id = "character", name = "character", network = "character", lon = "numeric",
     lat = "numeric", subdrainage = "character", nearest_hydat = "character", nearest_km = "numeric",
     first = "Date", last = "Date", regulation = "character", hydat_site = "character", hydat_km = "numeric",
-    credit = "character", continues = "character"))
+    credit = "character", continues = "character", continues_before = "Date"))
   if (anyDuplicated(s$station_number) || anyNA(s$station_number) || anyDuplicated(s$id) || anyNA(s$id) ||
       anyNA(s$subdrainage) || any(grepl(wet_hydat_number, s$station_number))) {
     stop("the station registry ", path, " does not hold one row per listing, each with its id and sub-drainage ",

@@ -46,7 +46,10 @@
 #    d. a listing at a provincial station's site (within 0.5 km and the same
 #       stream name, the survey's rule) continues that station
 #       (`continues`, the provincial number; #195, decision 1) rather than
-#       being a station of its own.
+#       being a station of its own: its days before `continues_before`, the
+#       first day the provincial files hold any usable hour of that station
+#       (complete or not), are read under the provincial number, and its
+#       `first` and `last` are those days' (NA where it adds none).
 #    Per listing: name, network and coordinates from the station list; the
 #    WSC sub-drainage of the nearest HYDAT station, which picks its
 #    plausibility bound (research/station_sources.md, registered 2026-11-23),
@@ -218,10 +221,19 @@ wt$nearest_hydat <- near[1, ]
 wt$nearest_km <- as.numeric(near[2, ])
 wt$subdrainage <- substr(wt$nearest_hydat, 1, 3)
 
-# days under the shipped rules, for first and last
+# the chain's cut: the first day the provincial files hold any usable hour of the continued station,
+# a complete day or not, so a listing that is the same gauge adds none of the province's own partial days
+pdays <- wet:::wet_bcenv_days_read(wet:::wet_bcenv_days(wet_bcenv_snapshot, tools::R_user_dir("wet", "cache")),
+                                   stats::na.omit(wt$continues))
+pstart <- vapply(split(as.numeric(pdays$date), pdays$station_number), min, 0)
+wt$continues_before <- as.Date(unname(pstart[wt$continues]), origin = "1970-01-01")
+
+# days under the shipped rules, for first and last; a continuing listing's are the days the chain adds
 q <- do.call(rbind, lapply(read, function(r) r$q))
 q$station_number <- wt$nid[match(q$id, wt$id)]
 shipped <- wet:::wet_bcwatertool_shape(q, stats::setNames(wt$subdrainage, wt$nid), wet_bcenv_bound)
+cut <- wt$continues_before[match(shipped$station_number, wt$nid)]
+shipped <- shipped[is.na(wt$continues[match(shipped$station_number, wt$nid)]) | is.na(cut) | shipped$date < cut, ]
 rng <- lapply(split(shipped$date, shipped$station_number), range)
 day <- function(k) as.Date(vapply(wt$nid, function(s) if (is.null(rng[[s]])) NA_real_ else as.numeric(rng[[s]][k]), 0),
                            origin = "1970-01-01")
@@ -237,7 +249,7 @@ reg <- data.frame(station_number = wt$nid, id = wt$id, name = wt$name, network =
                   regulation = ifelse(regulation_of(wt$name) == "unknown", "unknown", "regulated by name"),
                   hydat_site = m$hydat, hydat_km = m$hydat_km,
                   credit = vapply(read, function(r) wet:::wet_bcwatertool_credit(r$meta), ""),
-                  continues = wt$continues)
+                  continues = wt$continues, continues_before = wt$continues_before)
 reg <- reg[order(reg$station_number, method = "radix"), ]
 bad <- reg$station_number[grepl(wet:::wet_hydat_number, reg$station_number) |
                             reg$station_number %in% prov$station_number]

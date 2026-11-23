@@ -46,7 +46,7 @@ A station at a HYDAT site keeps its own number, and its days are never
 joined to the HYDAT station's: \code{hydat_site} names that station (the same
 stream name within 1 km) so a caller can join the two. A Water Tool gauge at
 a provincial station's site is not listed: its days before the provincial
-station's first continue that station's record under the provincial number
+record begins continue that station's record under the provincial number
 (see \code{\link[=wet_station_daily]{wet_station_daily()}}), and the provincial row's \code{first}, \code{licence} and
 \code{credit} say so when both sources are listed. Regulation is known only where
 a station's name says it (a dam, diversion, intake and similar); every other
