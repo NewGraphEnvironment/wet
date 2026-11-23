@@ -47,7 +47,7 @@ Start Phase 1 and run every phase to the PR (/code-check branch, /planning-archi
 mandate; the merge stays with me.
 ```
 
-## Phase 0, 2026-11-23 (build session, m1)
+## Phase 0, 2026-11-23 (build session)
 
 - Resumed at about 14:20 UTC (this machine's clock read 7 hours early until about 14:25 UTC, so `date -u` printed 07:20 and commits ef2e88e and 8864113 carry times 7 hours early); merged origin/main (ef2e88e); of the plan's files only `CLAUDE.md` (#142's paragraph) and `planning/backlog.md` (moves 8, 10) moved, neither touching a phase, so the plan stands.
 - `data/wb`, `data/wb_term`, `data/hydz`, `data/wally` symlinked to the main checkout's; `data/wally/raw/` and `data/logs/188/` created there. Fit key `768876badf`, `fit_20260717`. `git status --porcelain` empty.
@@ -67,7 +67,7 @@ mandate; the merge stays with me.
 
 ## Phase 3, 2026-11-23
 
-- Traits buildable: `p_yr`, `pet_yr`, `t_yr`, `elev`, `swe_max` in the upstream files; fwapg answers (connect timeout 10 s) and holds 13,648 FWA glacier polygons (no ltree codes on them, so glacier cover is intersected with the fundamental watersheds, which carry codes). Slope and solar exposure untested: they need the DEM, which m1 lacks; slope is in 15 of WALLY's 27 zone models, solar exposure in 8; both carried to the follow-up.
+- Traits buildable: `p_yr`, `pet_yr`, `t_yr`, `elev`, `swe_max` in the upstream files; fwapg answers (connect timeout 10 s) and holds 13,648 FWA glacier polygons (no ltree codes on them, so glacier cover is intersected with the fundamental watersheds, which carry codes). Slope and solar exposure untested: they need the DEM, which the build machine lacks; slope is in 15 of WALLY's 27 zone models, solar exposure in 8; both carried to the follow-up.
 - Open decision 1 asked and answered (the owner: thresholds as drafted), written into #188's body under "## Decisions".
 - Rule registered alone at 9f5a0da: header of `scripts/wb_small_basin.R`, `scripts/wb_small_basin_rule.R`, `tests/testthat/test-wb_small_basin_rule.R` (41 expectations; four boundary mutations each turn the suite red).
 

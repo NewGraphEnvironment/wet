@@ -45,7 +45,7 @@ When the plan finds that a batch, or one of its members, is more than one PR's w
 
 ## The clock (2026-11-23)
 
-- m1's clock read 7 hours early at the start of this session: `date -u` printed 07:20 UTC while the true time was about 14:20 UTC, and the files and commits made before about 14:25 UTC carry the early time (fetch-log rows 1 and 2, commits ef2e88e and 8864113). R formats UTC correctly (`format(Sys.time(), tz = "UTC")` agreed with `date -u` once corrected). No report prints a time.
+- The build machine's clock read 7 hours early at the start of this session: `date -u` printed 07:20 UTC while the true time was about 14:20 UTC, and the files and commits made before about 14:25 UTC carry the early time (fetch-log rows 1 and 2, commits ef2e88e and 8864113). R formats UTC correctly (`format(Sys.time(), tz = "UTC")` agreed with `date -u` once corrected). No report prints a time.
 
 ## Errors Encountered
 

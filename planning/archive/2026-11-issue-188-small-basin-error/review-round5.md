@@ -76,4 +76,3 @@ The amendment text (header lines 95-111) matches the code:
 - "It changes no number" holds: an earlier run of this HEAD's script (`scratchpad/sb_9.txt`) is byte-identical to data/checks/wb_small_basin_20260717.txt.
 - Neither amendment claims the row set is held, so finding 1 makes no header sentence false. It does make the stale() message's "is not what … makes from this fit now" claim more than the code checks.
 
-/private/tmp/claude-501/-Users-airvine-Projects-repo-wet-188/594eb592-213b-4e77-ba50-0b61e76dd713/scratchpad/review-round5.md

@@ -97,4 +97,3 @@ Prose the branch adds, against the set and report it cites:
   Fix: take `min_basins` and `omega_max` from #45's parse as `fn_expr()` takes verdict(), by the same top-level `<-` match, and refuse unless they equal this script's. Then compare #45's verdict() expression with the in-memory function (`identical(body(verdict), body(eval(expr)))` and the same for `formals`), rather than with this file's text.
   - **Rule:** code-check.md "A guard's scope, escape hatches, and remedies" (the guard covers the function's text, not everything the copied rule reads). The disk-versus-memory part is code-check.md "A proxy is not the property".
 
-/private/tmp/claude-501/-Users-airvine-Projects-repo-wet-188/594eb592-213b-4e77-ba50-0b61e76dd713/scratchpad/review-round4.md
