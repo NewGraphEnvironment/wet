@@ -586,6 +586,8 @@ want$wsg_code <- seg_at$watershed_group_code[k]
 want$regulated <- ifelse(is.na(want$station), NA,
                          ifelse(st_meta$regulated[match(want$station, st_meta$station_number)] %in% 1, "yes", "no"))
 want[] <- lapply(want, function(x) ifelse(is.na(x), NA_character_, as.character(x)))
+want <- want[c("site_id", "type", "name", "station", "blue_line_key", "downstream_route_measure",
+               "linear_feature_id", "wsg_code", "regulated")]
 if (!identical(names(sites), names(want)) || !identical(sites, want)) {
   f_want <- file.path(log_dir, "channel_scale_sites_want.csv")
   utils::write.csv(want, f_want, row.names = FALSE, na = "")

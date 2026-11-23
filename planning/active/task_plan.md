@@ -48,7 +48,7 @@ Review: added (O1–O3, B1, B3, G1, G3–G6, G11, G12, A2, X1): the local databa
 
 Review: 08KC001 replaces "SALR's Salmon River gauge" (it drains part of SALR but is not in it); Hope's regulation is a column, not a filter (B2, A1).
 
-- [ ] `scripts/channel_scale_sites.csv`, one row per site type: `site_id, type, name, station, blue_line_key, downstream_route_measure, linear_feature_id, wsg_code, regulated`, from decision 2's answer and Phase 1's site rules (the site-table convention: the script takes a site id).
+- [x] `scripts/channel_scale_sites.csv`, one row per site type: `site_id, type, name, station, blue_line_key, downstream_route_measure, linear_feature_id, wsg_code, regulated`, from decision 2's answer and Phase 1's site rules (the site-table convention: the script takes a site id).
 - [ ] Gauged sites take their segment from the snapped stations in `data/wb/stations_<release>.rds` (the scored set); full years are counted directly (≥ 20 complete years in 1981–2010, the count `wet_station_select()` uses, without its unregulated filter), with the regulation flag recorded. The report prints each row's checks: station years, regulation, its `pcic.segment_weights` row, its outlet's `pcic.fwa_crosswalk` row (`flag`, `islake`, `distance_to_stream`, `candidate_rank`), upstream area and stream order.
 
 ## Phase 3: PCIC's outlet series
