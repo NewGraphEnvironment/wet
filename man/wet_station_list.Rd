@@ -15,7 +15,8 @@ wet_station_list(sources = "bcenv", snapshot = wet_bcenv_snapshot)
 \code{data.frame(station_number, name, lon, lat, source, network, first, last, regulation, hydat_site, hydat_km, licence, credit)}, one row
 per station, ordered by number. \code{first} and \code{last} are the first and last
 days \code{\link[=wet_station_daily]{wet_station_daily()}} returns for the station (\code{NA} for one with no
-complete day); \code{hydat_km} is the distance to \code{hydat_site}; \code{licence} and
+complete day), recorded when the snapshot was pinned and held to the
+reader's days by the package's harvest check whenever its rules change; \code{hydat_km} is the distance to \code{hydat_site}; \code{licence} and
 \code{credit} are the terms the source's data carry and the line to credit it
 with.
 }
