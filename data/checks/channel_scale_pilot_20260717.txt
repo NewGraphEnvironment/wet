@@ -3,7 +3,7 @@
 ## Provenance
 rules: registered at 7d6c7b1, 2026-11-23 01:46:50 UTC; rule block md5 93530d55df7003e7333821ccbb888fc3
 first fetch: 2026-11-23 01:47:59 UTC (after the registration)
-script: scripts/channel_scale_pilot.R at 18c3069b
+script: scripts/channel_scale_pilot.R at 0eee97b0
 routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 5d50cc1
 table: 40524444 rows, 3377037 segments, 0 null flows, total 179854603.510890 m3/s
 published: 512 parts, live parts md5 d554e3aad481d86bffa4baef687287ed
@@ -216,8 +216,10 @@ quesnel     08KH001   702666848 QUES   2010140    y     y 1.000 placed       n  
 confluence  08MB006   700353187 BIGC   4009311    y     y 1.000 placed       n     7.6    1     6   1019.0        no    30
 hope        08MF005   701253017 FRCN   4009460    y     n 1.000 placed       n     5.9    1    10 216659.4       yes    30
 lillooet    08MG005   701704476 LILL   4009369    y     y 1.000 placed       n     6.1    1     7   2076.2        no    29
-headwater: 19389 candidates under 10 km2; confluence: 110 junctions where June's step lands above, the pick's
-  joining line 6.557 m3/s in June, upper segment 22.856, next segment up 14.883, 0 m from scored gauge 08MB006
+headwater: 19389 candidates under 10 km2; confluence: 110 Fraser junctions where fwapg's qa.sql test fires
+  (June upper minus next segment up over half the joining line's flow); at 104 another line joins at the upper segment's top, and at 94 that line's June flow is at least half the step, an ordinary
+  confluence the test misreads; at the pick a line (blue line 356355602) joins at the top with 7.961 m3/s in June; the pick's
+  joining line 6.557 m3/s in June, upper segment 22.856, next segment up 14.883, 0 m from scored gauge 08MB006's segment
 
 annual flow, 1981-2010 (m3/s): HYDAT, PCIC raw at the outlet (interior: rebuilt from raw), routed as published,
 the balance as published,
