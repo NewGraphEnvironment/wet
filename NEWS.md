@@ -1,3 +1,7 @@
+# wet 0.4.42
+
+* No change to the package's functions. The water balance's small-basin error is diagnosed under a rule registered before any check ran (`scripts/wb_small_basin.R`, #176, #188): its +14 % median at gauges under 100 km² comes in with the zone adjustment, where raw P − AET is +1.9 %. WALLY's zone regressions are compared desk-side at a pinned commit (`scripts/wally_compare.R`, `research/wally.md`, #178), and `research/monthly_error.md` is arranged by subject (#185). The candidate fixes are filed as #199.
+
 # wet 0.4.41
 
 * `wet_station_daily()` reads the province's non-integrated hydrometric stations (#179): given a provincial number (`"08EE0001"`), it returns that station's daily flow from a pinned snapshot of the province's hourly files (`sources = "bcenv"`). Days above a plausibility bound measured on HYDAT, per WSC sub-drainage, are dropped; a day with any ungraded hour is `"unchecked"`, and `frac_provisional` now counts every status but `"approved"`. Under the survey's own rules the reader reproduces it (#123, #142). These stations are records and held-out tests, not donors, until their regulation is known (#191).

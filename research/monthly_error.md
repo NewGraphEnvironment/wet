@@ -1,41 +1,40 @@
-# Monthly flow error at the gauges: by region and season, routed PCIC's shape, and DFO's Fraser benchmark
+# Monthly flow error at the gauges: by region, season and basin size, routed PCIC's shape, and DFO's Fraser benchmark
 
-**Verified:** 2026-11-17; the check-1 paragraph 2026-11-23 (#168) · **Issues:** #166 (backlog move 4), carrying #6, #67 and #162 · **Produced by:** `scripts/gauge_monthly_compare.R` → `data/checks/gauge_monthly_compare_20260717.txt`. Inputs: the shipped fit (HYDAT 2026-07-17, province run 768876badf), fwapg 5d50cc1's routed 1981–2010 run, and fwapg#42's per-year sub-basin days for 1981–2010 (rows built at fwapg 26d7582, on the same crosswalk). Two runs from a frozen copy at the commit the report names gave byte-identical reports (and two each at ba29835 and 7a8a5ac before code review rounds 1 and 2) (`data/logs/166/`). The rules for #67's checks were registered in the script header at 520b9ca, before the numbers they judge; the header keeps that text unchanged and lists apart the amendments code review made after numbers were seen (a rounding threshold, verdict wording and three parity bounds, none of which moves a verdict). · **Status:** measured; the draft to PCIC is not sent.
+**Verified:** 2026-11-17; the check-1 paragraph 2026-11-23 (#168); the small-basin diagnosis 2026-11-23 (#176) · **Issues:** #166 (backlog move 4), carrying #6, #67 and #162; #185 and #176 (backlog move 11): #185 arranged the file by subject, moving no number, and #176 diagnosed the small-basin error, its candidates left to #199 · **Produced by:** `scripts/gauge_monthly_compare.R` → `data/checks/gauge_monthly_compare_20260717.txt`; the small-basin diagnosis `scripts/wb_small_basin.R` → `data/checks/wb_small_basin_20260717.txt`, under a rule registered in its header at 9f5a0da before any of its checks ran (two runs byte-identical, `data/logs/188/`). Inputs: the shipped fit (HYDAT 2026-07-17, province run 768876badf), fwapg 5d50cc1's routed 1981–2010 run, and fwapg#42's per-year sub-basin days for 1981–2010 (rows built at fwapg 26d7582, on the same crosswalk). Two runs from a frozen copy at the commit the report names gave byte-identical reports (and two each at ba29835 and 7a8a5ac before code review rounds 1 and 2) (`data/logs/166/`). The rules for #67's checks were registered in the script header at 520b9ca, before the numbers they judge; the header keeps that text unchanged and lists apart the amendments code review made after numbers were seen (a rounding threshold, verdict wording and three parity bounds, none of which moves a verdict). · **Status:** measured; the draft to PCIC is not sent.
 
-The two published sources are scored against each gauge's monthly means over its complete years in 1981–2010. The open balance is held out (blocked CV), as it ships, and routed PCIC is the published run on the gauge's segment. Both are compared at the 283 shared gauges (routed has flow there and carries at least a fifth of observed annual flow), and the balance alone is scored at all 315. The gauge table is the one the segment-discharge article reads (`inst/vignette-data/monthly_values.rds`), identical value by value.
+The two published sources are scored against each gauge's monthly means over its complete years in 1981–2010. The open balance is held out (blocked CV), as it ships, and routed PCIC is the published run on the gauge's segment. Both are compared at the 283 shared gauges (routed has flow there and carries at least a fifth of observed annual flow), and the balance alone is scored at all 315. The gauge table is the one the segment-discharge article reads (`inst/vignette-data/monthly_values.rds`), identical value by value. Each statement's issue number names the section of `data/checks/gauge_monthly_compare_20260717.txt` it is read from, except the (#176) statements, which are read from `data/checks/wb_small_basin_20260717.txt`.
 
 ## The answer
 
 - **Routed PCIC is low in spring and high in late summer, across the province.** By season, its median error is −17 % in March–May and +17 % in July–August. Over the year it is −3 %. The balance's worst month is April (+10 %), and no season is off by more than 6 %.
 - **Routed PCIC's shape is in PCIC's own outflow (theirs).** At the 242 gauges where fwapg's crosswalk only relabels PCIC's outflow, routed is −13 % in March–April and +17 % in July–August.
-- **Its small-basin loss is mostly volume, not shape.** Under 100 km² routed's monthly NSE is 0.44, but its share NSE, which leaves annual volume out, is 0.80, against the balance's 0.91.
+- **The balance's small-basin bias comes in with the zone adjustment, and catchment traits do not settle it.** Under 100 km² raw P − AET is a median +1.9 % and the adjusted balance +14.3 %. Seven catchment traits, held out, bring that median to +2.7 %, but the interval on it reaches +15.6 %, so the trait check is undecided.
+- **Routed PCIC's small-basin loss is mostly volume, not shape.** Under 100 km² routed's monthly NSE is 0.44, but its share NSE, which leaves annual volume out, is 0.80, against the balance's 0.91.
 - **What drives the shape loss that remains is unresolved.** PCIC's sub-basin resolution and a late melt were each tested against a rule set beforehand, and neither reached it; for resolution the gap runs the other way.
 - **On DFO's weakest statistic routed PCIC scores far higher.** That is the across-gauge R² of the lowest August and September in 1981–2010 (0.97 and 0.98, against DFO's 0.35 and 0.34). At the gauge, though, those lows are where routed is weak: its lowest August is more than half again the observed one at 37 % of the Fraser gauges.
 
-## #6: by region, season and basin size
+## By region and season
 
-- **Routed PCIC by major basin, March–April against July–August:**
+- **Routed PCIC by major basin, March–April against July–August** (#6):
   - the spring shortfall is deepest in the Fraser (−23 %);
   - the summer excess is largest in the Columbia (+32 %);
   - Peace and Coast run −7 to −14 % and +17 to +19 %.
-- **Routed PCIC by hydrologic zone:** the July–August excess passes +30 % in zones 10 (Central Coast Mountains), 19 to 20 (Kootenay), 23 (Okanagan Highland) and 27 (Western South Coast Mountains). The March–April shortfall passes −25 % in zones 01, 09, 10, 14, 16, 20, 22, 23, 25 and 26.
-- **The balance's largest errors by zone:**
+- **Routed PCIC by hydrologic zone:** the July–August excess passes +30 % in zones 10 (Central Coast Mountains), 19 to 20 (Kootenay), 23 (Okanagan Highland) and 27 (Western South Coast Mountains). The March–April shortfall passes −25 % in zones 01, 09, 10, 14, 16, 20, 22, 23, 25 and 26 (#6).
+- **The balance's largest errors by zone** (#6):
   - zone 24, Southern Thompson Plateau: +47 to +62 % by season, the dry interior that #45 and #53 diagnosed without naming one term;
   - zone 08, Nechako Plateau: +12 to +27 %;
   - zone 25, Eastern South Coast Mountains: +50 % in winter and +36 % in spring;
   - zone 28, Eastern Vancouver Island: +45 % in summer and +69 % in July–August.
-- **By basin size,** the balance runs high in every season under 100 km² (+14 to +31 %). From 100 km² up it is within about ±10 % by season, except July–August above 10,000 km² (−20 %).
-- **Routed's July–August excess holds in every size class** (+11 to +33 %). Its March–April shortfall is absent under 100 km² (−1 %) and deepens with size, to −25 % above 10,000 km².
 - Zones with fewer than 5 shared gauges (02, 06, 11, 12, 17) are marked in the report and are not read here.
 
-## #67: routed PCIC's seasonal shape
+## By basin size
 
-**On fwapg 5d50cc1 (the Nechako rebuild), at 283 gauges:**
-- March −11.1 %, April −12.2 %, July +19.7 %, August +12.3 %, against −11, −12, +20 and +13 % on 7c30f58 at 279 gauges, so the rebuild did not move the shape;
-- routed is low in March–April at 64 % of the gauges, high in July–August at 67 %, and both at 44 %;
-- by size class, routed's median monthly NSE is 0.44, 0.80, 0.92 and 0.95, against #67's 0.43, 0.80, 0.92 and 0.95.
-
-**Volume against shape.** Monthly NSE scores volume and shape together. Under 100 km² it follows routed's absolute annual error (Spearman −0.77), while share NSE, the NSE of a gauge's twelve monthly shares of its year, barely does (−0.19).
+- **The balance runs high in every season under 100 km²** (+14 to +31 %). From 100 km² up it is within about ±10 % by season, except July–August above 10,000 km² (−20 %) (#6).
+- **That bias comes in with the zone adjustment (ours).** At the 84 calibration gauges under 100 km² the median annual error is +1.9 % raw (P − AET) and +14.3 % adjusted; at the 231 larger gauges, −15.1 % and −6.7 %. The adjustment, blind to size, lifts both, so small minus larger goes from +17.0 points raw to +21.0 adjusted. By elevation and aridity tercile that contrast is at least +10 points in every class; by hydrologic zone only 3 zones hold 5 gauges on each side, and in 2 of them (08, 28) it is not, so the registered reading is "concentrated" (#176).
+- **What drives the raw contrast is unresolved.** On the 48 small basins PCIC's grid covers, where raw runs +14.8 %, #45's rule reads "compensating": our P and AET both run above PCIC's and nearly cancel (#176).
+- **Catchment traits: undecided.** One least-squares model of the held-out log error on seven traits (log area, P, PET/P, elevation, temperature, peak snow over P, glacier cover), fitted under the fit's blocked folds, brings the small gauges' median to +2.7 % and their mean absolute error from 40.4 to 33.7 %, at a cost of 0.2 points at the larger gauges. The fold-bootstrap 90 % interval on that median, −8.8 to +15.6 %, crosses the registered +5 %. Area alone does almost as much (+3.8 %, 40.4 to 34.9 %) and is undecided too. Slope and solar exposure, which WALLY's models use, need the DEM and were not tested. The province run samples watersheds area-weighted, so centroid sampling is not a cause. Scoring blending and a trait regression is #199's (#176).
+- **Routed's July–August excess holds in every size class** (+11 to +33 %). Its March–April shortfall is absent under 100 km² (−1 %) and deepens with size, to −25 % above 10,000 km² (#6).
+- **Routed's small-basin loss is mostly volume, not shape.** Monthly NSE scores volume and shape together. Under 100 km² it follows routed's absolute annual error (Spearman −0.77), while share NSE, the NSE of a gauge's twelve monthly shares of its year, barely does (−0.19). By size class routed's median monthly NSE is 0.44, 0.80, 0.92 and 0.95, as #67 measured it on 7c30f58 (0.43, 0.80, 0.92 and 0.95), so the Nechako rebuild did not move it (#67).
 
 | Basin size | Gauges | Routed monthly NSE | Balance monthly NSE | Routed share NSE | Balance share NSE |
 |---|---|---|---|---|---|
@@ -46,19 +45,24 @@ The two published sources are scored against each gauge's monthly means over its
 
 So #67's reading that "its monthly shape is where it loses" at small basins was mostly volume. The shape gap to the balance is real, but about 0.11 in share NSE, not the 0.20 the monthly NSE shows.
 
-**Check 1, the shape in PCIC's own outflow: theirs.**
+## Routed PCIC's seasonal shape
+
+- **On fwapg 5d50cc1 (the Nechako rebuild), at 283 gauges,** routed is March −11.1 %, April −12.2 %, July +19.7 % and August +12.3 %, against −11, −12, +20 and +13 % on 7c30f58 at 279 gauges, so the rebuild did not move the shape (#67).
+- Routed is low in March–April at 64 % of the gauges, high in July–August at 67 %, and both at 44 %.
+
+**Check 1, the shape in PCIC's own outflow: theirs** (#67).
 - On a segment an outlet is placed on, routed flow is that outlet's accumulated flow: `share` is 1 at all 245 such gauge segments. fwapg accumulates it down the FWA tree of placed outlets (its README, step 5).
 - Where the placed outlets above the outlet on the FWA are exactly those in its PCIC subtree, that accumulated flow is PCIC's own outflow.
 - This holds at 242 shared gauges, and there routed is −12.6 % in March–April and +16.7 % in July–August, with share NSE 0.89.
 - Only 2 shared gauges have an outlet whose networks differ. The 39 without an outlet on their segment show the same shape (−8.1 %, +17.9 %).
 - A first version of this check compared the outlet with the segment it is placed on. Those are the same number by construction, which the plan review caught; the archive keeps that run.
 
-**Check 2, PCIC's resolution: unresolved, with the gap running the other way.**
+**Check 2, PCIC's resolution: unresolved, with the gap running the other way** (#67).
 - Under 100 km², 41 % of gauges have segments whose flow is all their PCIC sub-basin's local runoff (local share 1), so their months are the sub-basin's own.
 - Routed's share-NSE gap to the balance there is 0.02, against 0.12 at the rest: narrower, the opposite of what coarse sub-basins would produce.
 - Expressing the catchment in VIC-GL cells was dropped: it is the area divided by a cell area that varies only with the cosine of latitude, so it ranks the gauges almost as area does.
 
-**Check 3, late melt: unresolved.**
+**Check 3, late melt: unresolved** (#67).
 - Under 100 km², the share-NSE gap is 0.10 at gauges peaking by May and 0.09 at those peaking later, inside the registered 0.05 margin.
 - By mean upstream elevation the gaps are 0.10, 0.13 and 0.07 by tercile, with no trend.
 
@@ -66,9 +70,9 @@ What remains is the attribution #67 already made: the shape comes from PCIC's mo
 
 **What check 1 rests on, since measured.** It rested on fwapg's statement that accumulated flow equals PCIC's outflow where the two networks agree. The channel-scale pilot (#168, `pcic_channel_scale.md`) read PCIC's raw hydromosaic series at all 244 gauges with an outlet on their segment: routed PCIC as published is PCIC's PNWNAmet outflow over 1981–2010 within 1e-4 of annual flow at 242 and within 0.12 % at the other two, where the networks disagree. So routed's errors here are PCIC's model, not the crosswalk. #6's second reference, PCIC's `hydro_stn_cmip5` routed flow at 190 stations, is an RVIC product on the CMIP5 VIC-GL runs, not the hydromosaic Raven run that wet publishes. It is not scored here.
 
-## #162: DFO's Fraser threat-layer validation
+## The Fraser benchmark: DFO's threat-layer validation
 
-Iacarella, Paterson, Potapova and Weller (2025, DFO CSAS Res. Doc. 2025/013, App. F, Table F1) score downscaled VIC-GL flow at 86 Fraser gauges, across gauges, in m³/s. They report R², MAE, MAPE and NSE on each month's, season's and year's minimum, maximum and mean over 1981–2010. Here the same statistics are computed at our 87 shared Fraser gauges (08J, 08K, 08L, 08M) for both sources on the Mean columns. Routed PCIC is also scored on the Min columns, routed year by year from fwapg#42's files with `wet_routed_years()`.
+Iacarella, Paterson, Potapova and Weller (2025, DFO CSAS Res. Doc. 2025/013, App. F, Table F1) score downscaled VIC-GL flow at 86 Fraser gauges, across gauges, in m³/s. They report R², MAE, MAPE and NSE on each month's, season's and year's minimum, maximum and mean over 1981–2010. Here the same statistics are computed at our 87 shared Fraser gauges (08J, 08K, 08L, 08M) for both sources on the Mean columns. Routed PCIC is also scored on the Min columns, routed year by year from fwapg#42's files with `wet_routed_years()` (#162).
 
 **Checks on the per-year files:**
 - each file equals its `pcic.series` row;

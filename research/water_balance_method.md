@@ -117,7 +117,7 @@ Annual runoff; percentages are mean absolute error. This table is the #11 model.
   - Fraser at Hope 1.05 (PCIC through `wet`: 0.93), Thompson 1.17.
   - Columbia at Birchbank 1.05, although only 86 % of its basin is in BC.
   - Stikine 1.05, Peace 0.94, Skeena 0.86, Nass 0.86.
-- **Zone steps.** The annual map ([wb_runoff_annual.png](wb_runoff_annual.png)) shows straight-edged steps where hydrologic zones meet. The method applies each zone's coefficients up to a hard boundary (§7 item 9). Blending across boundaries is a candidate refinement.
+- **Zone steps.** The annual map ([wb_runoff_annual.png](wb_runoff_annual.png)) shows straight-edged steps where hydrologic zones meet. The method applies each zone's coefficients up to a hard boundary (§7 item 9). Blending across boundaries is a candidate, scored in #199.
 - **No output.** 22,041 watersheds (0.7 %), on small coastal islands that the 30″ inputs do not cover.
 
 ### Refit on HYDAT 2026-07-17 (#43)
@@ -596,6 +596,7 @@ Their accuracy figures are in-sample, and after the undocumented "final adjustme
 - #70: the balance's daily shape within the month. Done; donor ships. See "Daily shape within the month (#70)" above. Published in `segment_daily` (#99).
 - #102: how the monthly shares are made. Done; the donor gauges' shares ship. See "Monthly shares from donor gauges (#102)" above.
 - #76: the province run should reproduce to the bit. Done in code: the fetches return polygons in id order and the upstream sums add them in id order, so shuffled Fraser and Columbia fetches sum to identical values (on the same software; PostGIS, GEOS, PROJ, terra and GDAL each set last bits too). `scripts/wb_upstream_order.R` replays two runs' stored row orders through the sums. Two runs from scratch under it (key `92b893c4da`, 2026-10-24) were identical in every sample and upstream file. `fit_20260717` was refit under that run with its decision files carried over: every decision came out identical (the AET `cfu`, donor shares, the snow specification, the adjustment kept) and every number within 1.3e-12 relative of the fit made under `e675918817`; the balance output and the segment table moved by at most 7.2e-11 relative, which is rounding, and the publish build passes every check.
+- Small basins (#176): the balance's +14 % median at gauges under 100 km² comes in with the zone adjustment (raw P − AET is +1.9 %); against PCIC the raw terms compensate, and catchment traits held out are undecided. See `monthly_error.md`, "By basin size". Zone-line blending and a trait regression are scored in #199.
 - An upstream note to climr on the ClimateNA coastal gap: drafted, not posted.
 - rspatial/terra#2195: `rasterize(filename = )` with an integer datatype writes NA as 0 (worked around in `scripts/wb_inputs.R`).
 
