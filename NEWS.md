@@ -1,4 +1,4 @@
-# wet (development version)
+# wet 0.4.40
 
 * `wet_segment_monthly()` and `wet_segment_daily()` return `pick`, a logical column last: `TRUE` where the source is the segment's default, `NA` on a missing segment's rows and, from fwapg's table, on every row (#177). The two guards that hold a publish to the code its tables were built from, in `scripts/discharge_publish.R` and `scripts/segment_daily_output.R`, now exclude one shared list of files no table reads, `scripts/discharge_publish_own.R`, which gains the readers and the chinook-site and departure code (#171).
 
