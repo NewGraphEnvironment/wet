@@ -123,7 +123,7 @@ Reported as found, not filtered:
 - **Two copies that part in 2021.** The Water Tool's daily values for the provincial stations match the files to within 0.1 % on at least 99.7 % of days in every year with data from 1998 to 2020 (none in 2004–2005). From 2021 they match on only 61–92 % of days [M, report "by year"]. One copy has been revised since the other was taken. Which one is unresolved, because the Aquarius portal was not read.
 - **Coordinates.** The Water Tool places 08JC0002 and 08JC0006 111.6 km from the province's coordinates, a degree of latitude [M]. It also lists 17 provincial stations under "Regulator – BC Oil and Gas Commission": BCER's own (07FA0001, 07FC0001, 10CD0001 and others) beside Okanagan, Shuswap, Nicola, Kootenay and Lower Mainland stations (08NM00xx, 08LC000x, 08LG0019, 08NJ0001, 08MH0062) that are not the regulator's by name or place [M, report; I for ownership]. Where a station is in both, the provincial files are the source for its location and owner.
 
-## The provincial files in wet (wet#142, #179)
+## The provincial files in wet
 
 What `wet_station_daily(sources = "bcenv")` reads, and how it stands against the survey [M, `data/checks/station_sources_harvest_20261028.txt` unless noted]:
 
@@ -137,7 +137,7 @@ What `wet_station_daily(sources = "bcenv")` reads, and how it stands against the
 - **Donors.** None of these stations can be a donor yet: `wet_station_select()` leaves out a station whose regulation is unknown, and every provincial station is unknown or regulated by name. They are records and held-out tests until wet#191 settles regulation.
 - **Still open.** Which copy is current for 2021–2026 (wet#190); Hakai's 2013–2020 record (wet#192); the 15 once-a-day stations (above); the four passing stations 1.4–1.9 km from a same-stream HYDAT gauge (above), which the 1 km match keeps as new sites.
 
-## The plausibility bound for the provincial files (wet#142)
+## The plausibility bound for the provincial files
 
 Registered on 2026-11-22, before the bound was measured (#179, decision 3). The provincial files hold flows no stream could carry (above), so `wet_station_daily()` drops a provincial day whose flow exceeds a bound measured on HYDAT:
 
