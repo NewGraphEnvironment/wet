@@ -29,8 +29,6 @@ The recommended option of each: 1 (d), 2 accepted as listed, 3 (b), 4 (a), 5 (a)
 
 ## Open decisions
 
-None open. A fork met during the build is written here.
-
 ## Phase 1: Database, probes and the registered rule
 
 Review: added (O1–O3, B1, B3, G1, G3–G6, G11, G12, A2, X1): the local database was not running, the probes that shape the rule run before it, and the rule is rewritten.
