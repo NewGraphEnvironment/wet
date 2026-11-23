@@ -19,6 +19,14 @@ grepped against the tree at ddfae39 (#171: `scripts/segment_daily_output.R`'s `o
 `station_flow_departure.md`, `monthly_error.md`) · open issues and pull requests in knowledge, fwapg and fresh on each
 new batch's subject
 
+**Verified:** 2026-11-23 against 34 open issues · **Produced by:** a read of every open issue the file did
+not place (#190, #191, #192, each split from move 8 at its plan gate) and its comments, and #144's body, edited at the
+same gate to say it was split from move 8 too · each premise grepped against move 8's branch (`research/station_sources.md`,
+"Two copies that part in 2021" and "Also found"; `R/wet_station_select.R` leaves out stations with no HYDAT regulation
+record) · the tree unchanged since ddfae39 but for this file · soul's `research_check.sh` (the same four files flagged,
+each already carried by #181, #183, #184 or #185) · open issues and pull requests across the organisation on the provincial
+portal, Hakai, station regulation and the station list (none outside this repository)
+
 How to use this file: `/backlog-sweep` writes it. Take the first move in **Moves** that is not
 ticked and not **waiting**; `/planning-init <umbrella>` plans it, one phase per batch, one PR.
 A move that waits only on other moves is `open`, with them in `waits on`; `**waiting**` is for
@@ -42,13 +50,15 @@ counts them): run `/backlog-sweep` again, the backlog is not finished.
 | - [x] 3 | #165 | 4, 5: article bundles and maps, docs (4 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/173 | — | — | — |
 | - [x] 4 | #166 | 6: monthly error at the gauges (3 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/175 | — | — | — |
 | - [x] 5 | #167 | 8: PCIC's per-year files at the sites (2 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/180 | — | — | — |
-| - [ ] 6 | #168 | 9: the channel-scale pilot (1 issue) | open | A | — | opus |
+| - [x] 6 | #168 | 9: the channel-scale pilot (1 issue) | done: https://github.com/NewGraphEnvironment/wet/pull/193 | A | — | opus |
 | - [ ] 7 | #169 | 10: scenarios and coverage (2 issues) | **waiting** on move 6's verdict in `research/pcic_channel_scale.md` | A | 6 | fable then opus |
-| - [ ] 8 | #179 | 7: stations beyond HYDAT (2 issues) | open | B | — | opus |
+| - [ ] 8 | #179 | 7: stations beyond HYDAT (1 issue) | open | B | — | opus |
 | - [ ] 9 | #186 | 11: the readers return pick, one list of non-inputs (2 issues) | open | C | — | sonnet |
 | - [ ] 10 | #187 | 12: Swift and Naver creeks under their own windows (1 issue) | open | D | — | opus |
 | - [ ] 11 | #188 | 13: small-basin error and the zone adjustment (4 issues) | open | E | — | fable then opus |
 | - [ ] 12 | #189 | 14: research files around the current state (3 issues) | open | D | 10 | sonnet |
+| - [ ] 13 | #195 | 15: second sources for the provincial stations (3 issues) | open | B | 8, 9 | opus |
+| - [ ] 14 | #196 | 16: regulation per non-HYDAT station (1 issue) | open | B | 13 | fable then opus |
 
 Tracks are separate efforts, not moves: the cross-repo provenance track, whose wet member is #161
 (labelled `track:provenance`), batched here in batch 3 because #88 and #160 take its names.
@@ -71,6 +81,8 @@ Tracks are separate efforts, not moves: the cross-repo provenance track, whose w
 | 12 | #187 | Swift and Naver creeks under their own windows: #182 | 1 | the knowledge commit to pin; a guard that the Bulkley and Morice chinook rows match `c97c4d0`'s | moves wet's one pin on the life history table, which every Bulkley and Morice reader follows |
 | 13 | #188 | small-basin error and the zone adjustment: #176, #178, #44, #185 | 4 | the rule, registered before any candidate is scored; which candidates; the hosted WALLY tool only where its terms allow | one oracle, the held-out balance at the gauges; both candidates change the zone adjustment and share one rescore |
 | 14 | #189 | research files around the current state: #181, #183, #184 | 3 | none beyond #181's revise-in-place rule | one method over the files soul's research check flags; waits on move 10 for `research/chinook_sites.md` |
+| 15 | #195 | second sources for the provincial stations: #144, #190, #192 | 3 | which copy at the six shared sites, and one rule for a second publisher's earlier record under a provincial number; whether the province's portal is read (its click-through disclaimer is the owner's to accept); Hakai's record from its published data package or by request (outward contact, through the owner) | one chaining rule in `wet_station_daily()` and one registry and snapshot rebuild serve all three; #190 says which provincial copy is current before the Tool's copy is set beside it; all three split from move 8 |
+| 16 | #196 | regulation per non-HYDAT station: #191 | 1 | the natural, regulated and unknown rule, registered before it is applied; which registers; whether a status can differ by window | one column over the registry batch 15 settles, provincial and Tool stations both; the prerequisite for any non-HYDAT donor (#118) |
 
 ### 1. Province inputs and run comparison
 
@@ -174,6 +186,9 @@ Gate: keep, flag or drop ungraded values; which copy at the shared sites; each s
 Split from move 5 at its plan gate (2026-11-18): counted against the four chinook site boxes, these
 networks hold no station with a 1981–2010 baseline, so they add no donor there (#167's body).
 
+Split again at move 8's own plan gate (2026-11-22): #142 lands here; #144 is its own PR after it and is carried by
+batch 15, with #190, #191 and #192, which move 8 filed for what it left out.
+
 ### 8. PCIC's per-year files at the sites
 
 - [x] Carried by move 5, #167 (merged in https://github.com/NewGraphEnvironment/wet/pull/180)
@@ -187,7 +202,7 @@ sites, registered before any run; whether the Morice and upper Fraser boxes are 
 
 ### 9. The channel-scale pilot
 
-- [ ] Carried by move 6, #168
+- [x] Carried by move 6, #168 (merged in https://github.com/NewGraphEnvironment/wet/pull/193)
 
 #9 compares PCIC's channel-scale output (VIC-GL-Raven, CMIP6) at about six FWA sites with wet's
 accumulation, routed PCIC and HYDAT. It is the oracle batch 10 waits on.
@@ -262,6 +277,42 @@ on move 10, which rewrites `research/chinook_sites.md`.
 **Touches:** `research/water_balance_method.md`, `research/chinook_sites.md`, `research/discharge_publish.md`, `research/station_flow_departure.md`, `CLAUDE.md`, `planning/archive/`
 
 Gate: none beyond #181's rule.
+
+### 15. Second sources for the provincial stations
+
+- [ ] Carried by move 13, #195
+
+#144 (the BC Water Tool's third-party gauges, read through the pinned-snapshot pattern #142 set), #190 (which copy of the
+province's 2021–2026 discharge is current, read against the province's Aquarius portal) and #192 (Hakai's 2013–2020 record
+at its three Calvert and Hecate stations). All three were split from move 8. #144's six shared sites and #192's earlier
+years ask one question: how a second publisher's record continues a provincial station under its number, which
+`wet_station_daily()` answers today only for HYDAT numbers. One rule serves both. #190 says whether the pinned provincial
+snapshot is the current copy before the Tool's copy is set beside it, and a newer snapshot rebuilds the registry this batch
+extends anyway.
+
+**Touches:** `R/wet_station_daily.R`, `R/wet_station_list.R`, `data-raw/station_sources_snapshot.R`, `inst/extdata/station_sources/`, `research/station_sources.md`, `tests/testthat/test-wet_station_daily.R`, `tests/testthat/test-wet_station_list.R`, and new readers with their tests and a report under the checks folder (named at the plan gate)
+
+Gate: which copy at the six shared sites, and the rule for a second publisher's earlier record under a provincial number
+(#144 lists the options; move 8's gate recommended provincial only); whether the province's portal is read, which needs the
+owner to accept its click-through disclaimer; Hakai's record from its published data package or by asking Hakai, an outward
+request that goes through the owner (if it would wait on a reply, #192 is split off again). Waits on move 8, which lands the
+station registry, the snapshot cache and `wet_station_list()`.
+
+### 16. Regulation per non-HYDAT station
+
+- [ ] Carried by move 14, #196
+
+#191 gives each station in the registry a regulation status (natural, regulated or unknown) from what sits upstream of its
+snapped point: dams, reservoirs and licensed diversions, placed on the FWA as `scripts/wb_gauge_diversion.R` places water
+licences for the calibration gauges. Until then `wet_station_select()` leaves every non-HYDAT station out as a donor, so this
+is the prerequisite for any provincial or third-party donor under #118. It follows batch 15 so the status is computed once,
+over the provincial and the Tool's stations both.
+
+**Touches:** `R/wet_station_list.R`, `R/wet_station_select.R`, `data-raw/station_sources_snapshot.R`, `inst/extdata/station_sources/`, `research/station_sources.md`, `tests/testthat/test-wet_station_select.R`, and a new placement script with its report under the checks folder (named at the plan gate)
+
+Gate: the rule for natural, regulated and unknown, registered in a script's header before it is applied; which registers
+enter (the provincial dam register, licensed diversions, reservoirs) and under what licence; whether a status can differ by
+window (a diversion that runs only in summer); where donor selection reads it.
 
 ## Singles
 
