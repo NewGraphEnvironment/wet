@@ -36,9 +36,11 @@ them reads as missing.}
 \code{\link[=wet_catalog]{wet_catalog()}}, which is read when \code{NULL}.}
 }
 \value{
-\code{data.frame(linear_feature_id, doy, q_m3s, source)}, ordered by
-source as given, segment as given and day. A segment with no value for a
-source has all 365 rows, with \code{q_m3s} \code{NA}.
+\code{data.frame(linear_feature_id, doy, q_m3s, source, pick)}, ordered
+by source as given, segment as given and day. \code{pick} is logical, \code{TRUE}
+where the source is the segment's default, as in \code{\link[=wet_segment_monthly]{wet_segment_monthly()}}.
+A segment with no value for a source has all 365 rows, with \code{q_m3s} and
+\code{pick} \code{NA}.
 }
 \description{
 Reads mean flow per day of the year on Freshwater Atlas stream segments, by

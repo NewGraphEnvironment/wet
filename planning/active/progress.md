@@ -41,3 +41,8 @@ Start Phase 1 and run every phase to the PR (/code-check branch, /planning-archi
 /gh-pr-push). This message is the resume instruction that starts the run-to-PR
 mandate; the merge stays with me.
 ```
+
+## Phase 1, 2026-11-22
+- Completed: `pick` on both readers (parts, Postgres, fwapg; every frame), tests, `data-raw/monthly_vignette_data.R` subset, vignette sentence, `scripts/discharge_publish_own.R` shared by both guards, `test-publish_own.R`, NEWS; `devtools::test()` 3136 pass, lint and `check_pkgdown()` clean
+- Guard replay: only `R/wet_station_snap.R` and `scripts/pcic_routed_lib.R` remain (real inputs, see findings)
+- Next: `/code-check branch`, archive, PR

@@ -37,3 +37,13 @@ branch point eaa12d9d; no comments beyond the in-flight claim.
   `identical()`; a fifth column stops it.
 - Fixtures (`tests/testthat/helper-discharge.R`) already carry `pick`; tests pinning four columns:
   `test-wet_segment_monthly.R:25,72`, `test-wet_segment_daily.R:22`.
+
+## Baseline replay and classification (2026-11-22, branch point eaa12d9, segment commit 66cf795)
+
+`git diff --name-only 66cf795 HEAD -- R scripts`, minus the old lists, listed the ten files of the review.
+Classified against what `segment_output.R`, `wb_output.R` and `segment_daily_output.R` source or call:
+`R/wet_station_snap.R` (called by `wb_output.R:103`): roxygen text only. `scripts/pcic_routed_lib.R` (sourced by
+`segment_output.R:41`, `segment_daily_output.R:36`): 104 added lines, none removed, all new functions
+(`routed_years_dir()`, `routed_years_check()`, ...). Real inputs, changed without moving a table; left off the list.
+The other eight (`R/wet_departure_carry.R`, `R/wet_pcic_years.R`, five departure/gauge scripts, `scripts/vignette_map_lib.R`)
+are sourced or called by none of the three: added. After the branch, the replay lists exactly the two real inputs.

@@ -11,7 +11,7 @@ fixture_values <- function() {
   parts <- discharge_fixture_parts()
   seg <- parts[grepl("^segment_monthly", names(parts))]
   src <- sub(".*source=([a-z_]+)/.*", "\\1", names(seg))
-  out <- do.call(rbind, Map(function(d, s) data.frame(d[c("linear_feature_id", "month", "q_m3s")], source = s),
+  out <- do.call(rbind, Map(function(d, s) data.frame(d[c("linear_feature_id", "month", "q_m3s", "pick")], source = s),
                             seg, src))
   rownames(out) <- NULL
   out
@@ -22,8 +22,9 @@ seg_ds <- "discharge/fwa/v1/segment_monthly"
 test_that("the parquet parts give each source's months 0-12, in the station family's shape", {
   cat <- fixture_catalog()
   out <- wet_segment_monthly(NULL, c(701002, 701001), catalog = cat)
-  expect_named(out, c("linear_feature_id", "month", "q_m3s", "source"))
+  expect_named(out, c("linear_feature_id", "month", "q_m3s", "source", "pick"))
   expect_type(out$linear_feature_id, "integer")
+  expect_type(out$pick, "logical")
   expect_type(out$month, "integer")
   expect_identical(nrow(out), 52L)
   # ordered by source as asked, segment as given, month
@@ -33,6 +34,11 @@ test_that("the parquet parts give each source's months 0-12, in the station fami
   fx <- fixture_values()
   key <- function(d) paste(d$source, d$linear_feature_id, d$month)
   expect_equal(out$q_m3s, fx$q_m3s[match(key(out), key(fx))])
+  expect_identical(out$pick, fx$pick[match(key(out), key(fx))])
+  # the fixture's picks: routed on 701001, the balance on 701002, on every month
+  expect_true(all(out$pick[out$source == "pcic_routed" & out$linear_feature_id == 701001L]))
+  expect_true(all(out$pick[out$source == "wet_balance" & out$linear_feature_id == 701002L]))
+  expect_false(any(out$pick[out$source == "wet_balance" & out$linear_feature_id == 701001L]))
   one <- wet_segment_monthly(NULL, 701001, source = "wet_balance", catalog = cat)
   expect_identical(unique(one$source), "wet_balance")
   expect_identical(nrow(one), 13L)
@@ -44,10 +50,14 @@ test_that("a missing segment comes back as 13 NA rows, and duplicates once", {
   expect_identical(nrow(out), 26L)
   expect_identical(out$linear_feature_id, rep(c(701001L, 999L), each = 13))
   expect_true(all(is.na(out$q_m3s[out$linear_feature_id == 999L])))
+  expect_true(all(is.na(out$pick[out$linear_feature_id == 999L])))
   expect_false(anyNA(out$q_m3s[out$linear_feature_id == 701001L]))
+  expect_false(anyNA(out$pick[out$linear_feature_id == 701001L]))
   # a group that does not hold the segment reads as missing, not as an error
   g <- wet_segment_monthly(NULL, 701001, source = "pcic_routed", groups = "BULK", catalog = cat)
   expect_true(all(is.na(g$q_m3s)))
+  expect_type(g$pick, "logical")
+  expect_true(all(is.na(g$pick)))
   g <- wet_segment_monthly(NULL, 701001, source = "pcic_routed", groups = c("BULK", "SALR"), catalog = cat)
   expect_false(anyNA(g$q_m3s))
 })
@@ -69,7 +79,8 @@ test_that("zero segments give zero rows", {
   cat <- fixture_catalog()
   out <- wet_segment_monthly(NULL, integer(), catalog = cat)
   expect_identical(nrow(out), 0L)
-  expect_named(out, c("linear_feature_id", "month", "q_m3s", "source"))
+  expect_named(out, c("linear_feature_id", "month", "q_m3s", "source", "pick"))
+  expect_type(out$pick, "logical")
 })
 
 test_that("two rows for one segment, month and source are refused", {
@@ -102,6 +113,8 @@ test_that("the Postgres table after wet_db_load() reads the same as the parts", 
   expect_identical(nrow(from_pg), 78L)
   expect_equal(from_pg, from_pq)
   expect_identical(sum(is.na(from_pg$q_m3s)), 26L)
+  expect_type(from_pg$pick, "logical")
+  expect_identical(sum(is.na(from_pg$pick)), 26L)
   g <- wet:::wet_segment_read(conn, pg$dataset, 701001, "pcic_routed", "published", "historical", "BULK", NULL)
   expect_true(all(is.na(g$q_m3s)))
   # a scenario never loaded is an error, not every segment missing
@@ -117,9 +130,19 @@ test_that("a table loaded as a subset warns, and a missing table names wet_db_lo
     "subset"
   )
   expect_false(anyNA(out$q_m3s))
+  # a pick-only load holds the picked rows alone: routed on 701001 reads TRUE
+  expect_true(all(out$pick))
   expect_error(wet:::wet_segment_read(conn, "wet_test_nothere/fwa/v1/segment_monthly", 701001, "pcic_routed",
                                       "published", "historical", NULL, NULL),
                "wet_test_nothere.fwa_v1_segment_monthly.*wet_db_load")
+})
+
+test_that("a table loaded without a pick column names wet_db_load()", {
+  conn <- local_fwapg()
+  pg <- local_pg_dataset(conn)
+  DBI::dbExecute(conn, sprintf("ALTER TABLE %s DROP COLUMN pick", gsub("/fwa/v1/", ".fwa_v1_", pg$dataset)))
+  expect_error(wet:::wet_segment_read(conn, pg$dataset, 701001, "pcic_routed", "published", "historical", NULL, NULL),
+               "no `pick` column.*wet_db_load")
 })
 
 test_that("fwapg's routed table gives its months, and month 0 as their plain mean", {
@@ -136,6 +159,10 @@ test_that("fwapg's routed table gives its months, and month 0 as their plain mea
   expect_identical(b$month, 0:12)
   expect_equal(b$q_m3s[-1], ref$q_m3s)
   expect_equal(b$q_m3s[1], mean(ref$q_m3s))
+  # fwapg's table has no pick: wet's rule, so NA, logical
+  expect_named(out, c("linear_feature_id", "month", "q_m3s", "source", "pick"))
+  expect_type(out$pick, "logical")
+  expect_true(all(is.na(out$pick)))
   expect_true(all(is.na(out$q_m3s[out$linear_feature_id == 1L])))
   # left out, `source` is what fwapg holds
   expect_identical(wet_segment_monthly(conn, c(17094080, 1), from = "fwapg"), out)

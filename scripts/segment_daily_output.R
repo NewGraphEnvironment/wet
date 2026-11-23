@@ -76,9 +76,10 @@ if (length(seg_commit) != 1L || !any(grepl(paste0("scoring code ", score_code_md
   stop(f_seg_report, " names no single wet commit, or another fit's scoring code")
 }
 # the monthly table must be what the code as it stands builds; this script and
-# the publish code are the only files it does not depend on
-own <- c("scripts/segment_daily_output.R", "R/wet_catalog.R", "R/wet_db_load.R", "R/wet_values_compare.R",
-         "scripts/discharge_publish.R", "scripts/discharge_publish_lib.R")
+# the files in scripts/discharge_publish_own.R, which scripts/discharge_publish.R
+# shares (#171), are the only ones it does not depend on
+source("scripts/discharge_publish_own.R")  # publish_own
+own <- c("scripts/segment_daily_output.R", publish_own)
 changed <- git("diff", "--name-only", seg_commit, "HEAD", "--", "R", "scripts", paste0(":(exclude)", own))
 if (length(changed)) {
   stop("code changed since the monthly segment table was built at ", seg_commit, " (",

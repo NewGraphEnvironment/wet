@@ -38,10 +38,16 @@ segment outside them reads as missing.}
 \code{\link[=wet_catalog]{wet_catalog()}}, which is read when \code{NULL}.}
 }
 \value{
-\code{data.frame(linear_feature_id, month, q_m3s, source)}, ordered by
-source as given, segment as given and month. A segment with no value for
-a source has all 13 rows, with \code{q_m3s} \code{NA}, so missing coverage stays
-visible after a join.
+\code{data.frame(linear_feature_id, month, q_m3s, source, pick)}, ordered by
+source as given, segment as given and month. \code{pick} is logical: \code{TRUE}
+where the source is the segment's default (\code{pick} in the published
+product) and \code{FALSE} where it is not.
+A segment with no value for a source has all 13 rows, with \code{q_m3s} and
+\code{pick} \code{NA} (not \code{FALSE}: no row says nothing about the default), so
+missing coverage stays visible after a join. With \code{from = "fwapg"}, whose
+table has no \code{pick}, \code{pick} is \code{NA} on every row. A table loaded by
+\code{\link[=wet_db_load]{wet_db_load()}} with \code{pick_only} holds the picked rows alone, so its
+other source reads as missing.
 }
 \description{
 Reads mean flow per month on Freshwater Atlas stream segments, by source,
@@ -82,8 +88,9 @@ a read during a publish can mix two builds, so retry once it completes.
 # Buck Creek at its mouth, where gauge 08EE013 sits, from the published
 # parts over HTTPS (about 3 s)
 q <- wet_segment_monthly(NULL, 17094080, groups = "BULK")
-reshape(q[q$month > 0, ], idvar = c("linear_feature_id", "month"),
-        timevar = "source", direction = "wide")
+q[q$month == 0 & q$pick \%in\% TRUE, ]  # the default source's mean annual flow
+reshape(q[q$month > 0, c("linear_feature_id", "month", "q_m3s", "source")],
+        idvar = c("linear_feature_id", "month"), timevar = "source", direction = "wide")
 
 # the same from Postgres, after wet_db_load()
 conn <- DBI::dbConnect(RPostgres::Postgres(), dbname = "fwapg")
