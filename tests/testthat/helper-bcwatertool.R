@@ -12,8 +12,8 @@
 # Listing 102 (registry number "4601", continuing provincial 08ZZ0001):
 #   2012-08-17 .. 2012-08-19 at 1, 2, 3, QA 1; 2021-10-02 at 5, QA 1
 bcwatertool_fixture_lines <- function(rows, licence = "Data from Test District. https://example.org/.") {
-  c(sprintf('# Data Licence Information,"%s Any reliance you place upon the information contained here is your sole responsibility."',
-            licence),
+  disclaimer <- "Any reliance you place upon the information contained here is your sole responsibility."
+  c(sprintf('# Data Licence Information,"%s %s"', licence, disclaimer),
     "",
     "# Name,Alpha Creek",
     "# Network,Test Network",

@@ -302,7 +302,8 @@ ts$new <- ts$class != "duplicate" & ts$basis == "daily"
 ts$pass <- ts$new & ts$wy_new >= min_years
 ts$network <- tp$net
 tmine <- sprintf("  bcwatertool | %s | %s | %s | %.4f | %.4f | %s-%s | %s | %s | %s | %s | %d/%d | %s",
-                 ts$network, ts$station_id, ts$name, ts$lon, ts$lat, ts$first, ts$last, ts$basis, regulation_of(ts$name),
+                 ts$network, ts$station_id, ts$name, ts$lon, ts$lat, ts$first, ts$last, ts$basis,
+                 regulation_of(ts$name),
                  ifelse(is.na(ts$hydat), "-", sprintf("%s (%.2f km, %s)", ts$hydat, ts$hydat_km, ts$hydat_q)),
                  ts$class, ts$wy, ts$wy_new, ifelse(is.na(ts$seasonal), "-", ts$seasonal))
 tsurvey <- grep("^  bcwatertool \\| ", survey, value = TRUE)
@@ -339,7 +340,8 @@ tshared <- data.frame(nid = vapply(strsplit(tshared, " \\| "), `[`, "", 3),
                       prov = sub(paste0("^.*", prov_re, ".*$"), "\\1", tshared))
 treg <- wet_bcwatertool_stations(tool_snapshot)
 tcont <- treg[!is.na(treg$continues), ]
-tshared_ok <- nrow(tshared) == 7 && setequal(paste(tshared$nid, tshared$prov), paste(tcont$station_number, tcont$continues))
+tshared_ok <- nrow(tshared) == 7 &&
+  setequal(paste(tshared$nid, tshared$prov), paste(tcont$station_number, tcont$continues))
 if (!tshared_ok) tool_fail <- c(tool_fail, "Tool shared sites")
 
 # ---- the Water Tool: tier (ii), the shipped rules ---------------------------------------------

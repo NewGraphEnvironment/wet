@@ -169,7 +169,8 @@ prov <- wet_bcenv_stations(wet_bcenv_snapshot)
 benv <- wt$net == "BC ENV - Real-time Water Data Reporting"
 copy <- !benv & wt$nid %in% prov$station_number
 wt <- wt[!benv & !copy, ]
-message(sprintf("     left out: %d BC ENV listings, %d provincial stations under another network", sum(benv), sum(copy)))
+message(sprintf("     left out: %d BC ENV listings, %d provincial stations under another network",
+                sum(benv), sum(copy)))
 count("b. third-party", wt)
 read <- lapply(wt$id, function(id) {
   p <- wet:::wet_bcwatertool(id, snapshot)
@@ -199,8 +200,10 @@ if (anyDuplicated(stats::na.omit(wt$continues))) stop("two Water Tool listings c
                                                       call. = FALSE)
 count("d. stations of their own", wt[is.na(wt$continues), ])
 count("d. continuing a provincial station's record", wt[!is.na(wt$continues), ])
-for (i in which(!is.na(wt$continues))) message(sprintf("     %s (%s) continues %s (%s)", wt$nid[i], wt$name[i],
-                                                       wt$continues[i], prov$name[prov$station_number == wt$continues[i]]))
+for (i in which(!is.na(wt$continues))) {
+  message(sprintf("     %s (%s) continues %s (%s)", wt$nid[i], wt$name[i], wt$continues[i],
+                  prov$name[prov$station_number == wt$continues[i]]))
+}
 
 # sub-drainage, from the nearest HYDAT station
 hy <- hydat_stations(wb_hydat("20260717"))
@@ -236,7 +239,8 @@ reg <- data.frame(station_number = wt$nid, id = wt$id, name = wt$name, network =
                   credit = vapply(read, function(r) wet:::wet_bcwatertool_credit(r$meta), ""),
                   continues = wt$continues)
 reg <- reg[order(reg$station_number, method = "radix"), ]
-bad <- reg$station_number[grepl(wet:::wet_hydat_number, reg$station_number) | reg$station_number %in% prov$station_number]
+bad <- reg$station_number[grepl(wet:::wet_hydat_number, reg$station_number) |
+                            reg$station_number %in% prov$station_number]
 if (length(bad)) stop("registry numbers shaped like HYDAT's or held by the provincial registry: ",
                       paste(bad, collapse = ", "), call. = FALSE)
 if (anyNA(reg$credit)) stop("a Water Tool listing states no licence line: ",
