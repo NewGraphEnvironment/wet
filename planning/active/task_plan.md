@@ -85,7 +85,7 @@ Review: rule 2 restated (G1); CMIP5 dropped under 3 (b) (S1); the libraries sour
 ## Validation
 
 - [x] Tests pass
-- [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
+- [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
 - [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 

@@ -64,3 +64,8 @@ mandate; the merge stays with me.
 - Issue bodies: #9 gained a Result section above its original plan; #169 records move 6's verdict and its first checks. A comment on fwapg#28 gives the verdict.
 - The run logs and the fetch log are in the main checkout's `data/logs/168/` already (the script writes under `WET_DATA_ROOT`); the worktree holds none.
 - No `R/` change on the branch, so the package tests and lint are unchanged by it.
+
+## Code check, 2026-11-23
+
+- `/code-check branch`, four rounds, each fixed between: round 1 five findings, round 2 five (one inside round 1's fix; one rejected: 0.1249 % rounds to 0.12 %), round 3 eight (the mechanism: a label naming one object while the code computes at an adjacent one; the confluence test fires mostly on ordinary confluences, filed as fwapg#59), round 4 four (inside round 3's fix: top lines with a connector first segment). Ended on an enumeration (`review-verdict.md`): 129 write-up numbers held to the report after round 4's place-by-place walk.
+- Every fix rerun twice from the cache with no network request; reports byte-identical each time (`data/logs/168/run6`–`run13`). The site-table guard was mutation-tested (a wrong station and a reordered table each refuse).
