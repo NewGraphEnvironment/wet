@@ -43,7 +43,7 @@ Annual flow, 1981–2010, m³/s. "wet's accumulation" is PCIC's gridded PNWNAmet
 
 - At every site rule 1 holds: at an outlet's own segment the published flow is PCIC's series; at the interior headwater it is rebuilt exactly from the raw series of the outlets around it and the segment's area share (0.361).
 - At Hope the networks disagree above the outlet and routed reads 0.014 % above PCIC's own. PCIC sits 2.7 % below HYDAT there, despite the regulated record.
-- The confluence rule took fwapg's own test for a tributary's flow landing on the segment above its junction. The test fires at 110 Fraser junctions, but at 94 of them the step is another line joining at the upper segment's top, an ordinary confluence whose flow steps up where it should. The pick is one: Big Creek's segment at 08MB006, where a creek joining at its top carries the step. So the site shows an ordinary confluence, not the mismatch it was meant to show, and its published flow is the outlet's series. The same reading inflates the count fwapg's `sql/qa.sql` holds under 1,000.
+- The confluence rule took fwapg's own test for a tributary's flow landing on the segment above its junction. The test fires at 110 Fraser junctions, but at 96 of them the step is another line joining at the upper segment's top, an ordinary confluence whose flow steps up where it should. The pick is one: Big Creek's segment at 08MB006, where a creek joining at its top carries the step. So the site shows an ordinary confluence, not the mismatch it was meant to show, and its published flow is the outlet's series. The same reading inflates the count fwapg's `sql/qa.sql` holds under 1,000.
 
 ## Change signals and water temperature
 
