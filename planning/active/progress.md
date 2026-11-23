@@ -57,3 +57,10 @@ mandate; the merge stays with me.
 - The first full report coded rule 3's "lists CMIP6 streamflow" as all 9 GCMs at every outlet; hydromosaic has no TaiESM1 on the coast, so the code was stricter than the rule. Corrected to the rule's words and recorded under "amended after numbers were seen" (023192f).
 - Two runs from the cache (logs `data/logs/168/run4_*`, `run5_*`) gave byte-identical reports.
 - Commits: dd680e7, ee3ebdc, 023192f, 1dba165 (report).
+
+## Phase 5, 2026-11-23
+
+- `research/pcic_channel_scale.md` and its index row; `pcic_hydrology.md`, `monthly_error.md` and CLAUDE.md cite the pilot (67c2cc2).
+- Issue bodies: #9 gained a Result section above its original plan; #169 records move 6's verdict and its first checks. A comment on fwapg#28 gives the verdict.
+- The run logs and the fetch log are in the main checkout's `data/logs/168/` already (the script writes under `WET_DATA_ROOT`); the worktree holds none.
+- No `R/` change on the branch, so the package tests and lint are unchanged by it.

@@ -75,8 +75,8 @@ Review: rule 2 restated (G1); CMIP5 dropped under 3 (b) (S1); the libraries sour
 - [x] `research/pcic_channel_scale.md` (provenance line, verdict first, per-domain and per-site tables, mismatch types, flag shares, scaling cost, what move 7 builds on per domain and its first check), and its row in `research/README.md`.
 - [x] Revise `research/pcic_hydrology.md`'s channel-scale section (the product, the run wet publishes, as far as Phase 1 settled it) and `research/monthly_error.md`'s "does not read PCIC's raw hydromosaic series" paragraph to cite the pilot.
 - [x] CLAUDE.md: the pilot script under Scripts; the "PCIC channel-scale" Data Sources line rewritten with the pilot's result.
-- [ ] Edit #9's body (its premise, portal downloads and a hand crosswalk, is superseded) and #169's (move 7 reads the verdict, takes 2070–2099 for CMIP5 and checks the runs' calendars); a comment on fwapg#28 naming the verdict, since its first condition is "the option already on the table".
-- [ ] Before the worktree is removed, move `data/logs/168/` into the main checkout's `data/logs/`.
+- [x] Edit #9's body (its premise, portal downloads and a hand crosswalk, is superseded) and #169's (move 7 reads the verdict, takes 2070–2099 for CMIP5 and checks the runs' calendars); a comment on fwapg#28 naming the verdict, since its first condition is "the option already on the table".
+- [x] Before the worktree is removed, move `data/logs/168/` into the main checkout's `data/logs/`.
 
 ## Owed at the end (reported, done after merge)
 
@@ -84,9 +84,9 @@ Review: rule 2 restated (G1); CMIP5 dropped under 3 (b) (S1); the libraries sour
 
 ## Validation
 
-- [ ] Tests pass
+- [x] Tests pass
 - [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
 How each change is proved: the rule's commit precedes the first fetch (the report prints both, X1); the report is byte-identical across two runs from the same frozen inputs; the report prints each site's checks, the domain probe and the flag shares; the routed fingerprint equals `pcic.runs`'s row; `/code-check` checks that every value in `research/pcic_channel_scale.md` is a line of the tracked report; `gh issue view 9` and `gh issue view 169` show the edited bodies; `devtools::test()` and `lintr` are unchanged by a branch that adds no `R/` code.
