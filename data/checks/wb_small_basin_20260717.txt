@@ -86,7 +86,7 @@ coefficient in one fit on all gauges (response log(adjusted / observed)):
 population: 48 PCIC-covered basins under 100 km2 (Fraser, Peace and Columbia), of 192 in #45's table;
   zones: 07, 08, 09, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27
   median error there: raw +14.8 %, adjusted +27.7 %
-the copied verdict() reproduces #45's 21 stored zone verdicts
+#45's verdict(), evaluated from its script, reproduces its 21 stored zone verdicts
 
 n 48; our raw log error (le_o) +0.138, PCIC's (le_c) -0.014; |le_c| 0.241; closure 0.003 (step 3: usable if both <= 0.25)
 sum dP 10931, sum dA 9219, gap 1712; share P 6.38, share AET -5.38; TerraClimate/P ours 0.82, PCIC 1.03; MOD16/AET 0.85

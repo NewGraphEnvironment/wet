@@ -103,6 +103,12 @@
 #   2. Found by the same review: check C reads #45's cache, which records its release but not the
 #      fit it was made from. The script now rebuilds every column the cache takes from the fit, as
 #      #45 builds it, and refuses a cache that differs. It changes no number.
+#   3. Found by later review rounds: a copy of verdict() and its two constants could drift from
+#      scripts/wb_term_diagnose.R, and the cache's other columns were not tied to #45's current code.
+#      check C now evaluates #45's constants, derivations, ECCC filter and verdict() from its script
+#      by parse() instead of copying them, and holds the cache's base columns to #45's content-keyed
+#      caches (C above). Where this text says verdict() is "copied verbatim", read "taken from
+#      #45's script". It changes no number.
 
 # Registered at 9f5a0da ("Register the small-basin diagnosis rule (#176)").
 #
@@ -115,8 +121,6 @@ source("scripts/wb_small_basin_rule.R")
 insample <- identical(Sys.getenv("WET_SB_INSAMPLE"), "1")
 seed <- 188
 n_boot <- 1000
-min_basins <- 4   # #45's minimum, for verdict() below
-omega_max <- 5    # #45's
 med <- stats::median
 
 # ---- the shipped fit, reproduced before any check ----------------------------------------------
@@ -263,18 +267,42 @@ coef_std <- stats::coef(stats::lm(d$y ~ ., data = z_all))[traits]
 rho <- vapply(traits, function(v) stats::cor(d[[v]][d$small], d$e_adj[d$small], method = "spearman"), 1)
 
 # ---- C. which term, against PCIC ---------------------------------------------------------------
+# #45's rule is evaluated from scripts/wb_term_diagnose.R itself, not copied: its constants, cache
+# keys, derivations, ECCC filter and verdict() are taken by parse() and run here on the base columns
+# of its cache. Its cache records neither the fit nor the code it was made from, so each base column
+# is held to its source: the fit's columns to this fit, as #45 builds them (gauges on one watershed
+# averaged); PCIC's to #45's upstream cache named for its current `pcic_key` (the run, years, variables
+# and the package code that builds them); the ECCC table to its cache named for its current `eccc_key`
+# (the years, the zones zip and #45's script). Every column #45 derives from them is derived again,
+# and must equal the cache's.
+f_term <- "scripts/wb_term_diagnose.R"
 tm <- readRDS(file.path("data", "wb_term", sprintf("diagnose_%s.rds", release)))
 stopifnot(identical(tm$release, release))
+stale <- function(why) {
+  stop("data/wb_term/diagnose_", release, ".rds is not what ", f_term, " makes from this fit now (", why,
+       "): rerun it", call. = FALSE)
+}
+t45 <- new.env(parent = globalenv())
+term_exprs <- as.list(parse(f_term, keep.source = FALSE))
+target <- function(x) {
+  if (is.call(x) && identical(x[[1]], as.name("<-"))) paste(deparse(x[[2]]), collapse = "") else ""
+}
+run45 <- function(names_kept) {
+  hit <- Filter(function(x) target(x) %in% names_kept, term_exprs)
+  for (x in hit) eval(x, t45)
+  vapply(hit, target, "")
+}
+run45(c("years", "min_basins", "omega_max", "out_dir", "vars", "pcic_run", "hz_zip", "pcic_code", "pcic_key",
+        "eccc_key", "f_eccc"))
+stopifnot(!anyNA(t45$pcic_code))
+derived <- c("r_o", "r_c", "dp", "da", "gap", "overshoot", "closure", "a_imp", "le_o", "le_c", "le_cv", "w_harg",
+             "w_pcic", "fu_dom", "cf_p", "cf_model")
 b <- tm$basins
-# The cache records its release, not its fit. Every column it takes from the fit (#45's `cols_g`, read
-# from `cal`, and `cv_ann`) is rebuilt here from this fit as #45 builds it, gauges on one watershed
-# averaged, and must equal the cache's; the rest of a row comes from PCIC and fwapg, not the fit.
+t45$b <- b[setdiff(names(b), derived)]
+
+# the fit's columns (#45's `cols_g`, read from `cal`, and `cv_ann`)
 cols_fit <- c("zone", "nesting", "n_years", "area_km2", "elev", "obs", "p_yr", "aet_cfu", "aet_fu", "pet_yr",
               "ppt_tc", "aet_mod16", "cv_ann")
-stale <- function(why) {
-  stop("data/wb_term/diagnose_", release, ".rds was made from another fit (", why,
-       "): rerun scripts/wb_term_diagnose.R", call. = FALSE)
-}
 fit_rows <- cal[cal$watershed_feature_id %in% b$watershed_feature_id, ]
 fit_rows$cv_ann <- cv$cv_ann[match(fit_rows$station_number, cv$station_number)]
 for (j in seq_len(nrow(b))) {
@@ -288,82 +316,35 @@ for (j in seq_len(nrow(b))) {
     if (!same) stale(paste(v, "at", b$station_number[j]))
   }
 }
-ec <- tm$eccc
-# copied verbatim from scripts/wb_term_diagnose.R (#45's rule as amended), which cannot be sourced
-verdict <- function(d, zones, check_n = TRUE) {
-  e <- ec[ec$zone %in% zones & ec$elev >= med(d$elev) - 500, ]
-  r <- list(n = nrow(d), le_o = med(d$le_o), le_c = med(d$le_c), ale_o = med(abs(d$le_o)),
-            ale_c = med(abs(d$le_c)), closure = med(abs(d$closure)), sdp = sum(d$dp), sda = sum(d$da),
-            g = sum(d$gap), tc_o = med(d$ppt_tc / d$p_yr), tc_c = med(d$ppt_tc / d$p_c),
-            mod16 = med(d$aet_mod16 / d$aet_cfu),
-            # "under both PETs" is per basin: a basin counts only when the test
-            # holds under each PET. NA (implied AET <= 0) fails both tests, so
-            # every basin is in both denominators.
-            w_high = mean(!is.na(d$w_harg) & d$w_harg > omega_max &
-                            !is.na(d$w_pcic) & d$w_pcic > omega_max),
-            w_low = mean(is.finite(d$w_harg) & d$w_harg <= omega_max &
-                           is.finite(d$w_pcic) & d$w_pcic <= omega_max),
-            n_eccc = nrow(e), eccc = if (nrow(e) >= 3) med(e$ratio) else NA_real_)
-  r$share_p <- if (r$g > 0) r$sdp / r$g else NA_real_
-  r$share_a <- if (r$g > 0) -r$sda / r$g else NA_real_
-  r$off <- if (r$ale_o > r$ale_c) "ours" else "theirs"
-  shared <- NULL
-  decompose <- function() {
-    if (r$g <= 0) return("decomposition undefined (our P - AET is not above PCIC's)")
-    in_band <- function(s) s >= 2 / 3 && s <= 1.5
-    p_corr <- r$w_high >= 0.5 || (!is.na(r$eccc) && r$eccc >= 1.10) || r$tc_o <= 0.90
-    a_corr <- r$w_low > 0.5 && r$mod16 >= 1.00
-    if (in_band(r$share_p)) return(if (p_corr) "P side (ours)" else "unresolved: P by decomposition, not corroborated")
-    if (in_band(r$share_a)) return(if (a_corr) "AET side (ours)" else "unresolved: AET by decomposition, not corroborated")
-    if (r$share_p > 1.5 || r$share_a > 1.5) return("compensating (the other term offsets more than half)")
-    "mixed"
-  }
-  r$decomp <- decompose()
-  r$verdict <- if (check_n && r$n < min_basins) {
-    "too few"
-  } else if (r$le_o < 0.10) {
-    "no material gap"
-  } else if (r$ale_c > 0.25 || r$closure > 0.25) {
-    "unresolved: PCIC not a usable reference"
-  } else if (r$le_c >= 0.10 && r$le_c >= (2 / 3) * r$le_o) {
-    if (r$tc_o <= 0.90 && r$tc_c <= 0.90) "P side, shared (ours and theirs)"
-    else "gauge side (unresolved: withdrawals or groundwater)"
-  } else {
-    r$decomp
-  }
-  r
+# PCIC's columns, against #45's upstream cache for its current key
+cols_pcic <- c(names(t45$vars), "pcic_cover")
+for (code in unique(b$basin)) {
+  f_up <- file.path(t45$out_dir, sprintf("pcic_upstream_%s_%s.rds", code, t45$pcic_key))
+  if (!file.exists(f_up)) stale(paste("no", basename(f_up), "for its current code"))
+  up <- readRDS(f_up)
+  up$pcic_cover <- up$coverage
+  i <- b$basin == code
+  k <- match(b$watershed_feature_id[i], up$watershed_feature_id)
+  if (anyNA(k)) stale(paste("basin", code, "lacks a gauge's watershed"))
+  for (v in cols_pcic) if (!isTRUE(all.equal(b[[v]][i], up[[v]][k]))) stale(paste(v, "in basin", code))
 }
-# The copy must be #45's verdict() as its script now stands (comments aside), the cache must be newer
-# than the last change to that script (which also derives the columns verdict() reads, and holds the
-# ECCC table), and the copy must reproduce #45's stored zone verdicts (none of which its stability
-# step changed).
-fn_expr <- function(f) {
-  e <- parse(f, keep.source = FALSE)
-  hit <- Filter(function(x) is.call(x) && identical(x[[1]], as.name("<-")) && identical(x[[2]], as.name("verdict")),
-                as.list(e))
-  if (length(hit) != 1L) stop("expected one verdict() in ", f, call. = FALSE)
-  deparse(hit[[1]][[3]])
+# #45's derivations, its ECCC table, med() and verdict(), from its script
+if (!file.exists(t45$f_eccc)) stale(paste("no", basename(t45$f_eccc), "for its current code"))
+derived_run <- run45(c(paste0("b$", derived), "lerr", "omega_implied", "ec", "ec$ratio", "med", "verdict"))
+if (!setequal(sub("^b\\$", "", grep("^b\\$", derived_run, value = TRUE)), derived)) {
+  stop(f_term, " no longer derives exactly ", paste(derived, collapse = ", "), call. = FALSE)
 }
-f_term <- "scripts/wb_term_diagnose.R"
-if (!identical(fn_expr(f_term), fn_expr("scripts/wb_small_basin.R"))) {
-  stop("the copy of verdict() is not ", f_term, "'s: copy it again", call. = FALSE)
-}
-term_dirty <- system2("git", c("status", "--porcelain", "--", f_term), stdout = TRUE)
-term_commit <- as.numeric(system2("git", c("log", "-1", "--format=%ct", "--", f_term), stdout = TRUE))
-if (length(term_dirty) || length(term_commit) != 1L || is.na(term_commit)) {
-  stop(f_term, " has uncommitted changes, or git cannot date it", call. = FALSE)
-}
-if (as.numeric(file.mtime(file.path("data", "wb_term", sprintf("diagnose_%s.rds", release)))) < term_commit) {
-  stop("data/wb_term/diagnose_", release, ".rds is older than the last commit to ", f_term,
-       ": rerun it", call. = FALSE)
-}
-again <- vapply(tm$zones$zone, function(z) verdict(b[b$zone == z, ], z)$verdict, "")
+for (v in derived) if (!isTRUE(all.equal(t45$b[[v]], b[[v]]))) stale(paste("derived", v))
+if (!isTRUE(all.equal(t45$ec, tm$eccc))) stale("the ECCC table")
+# and #45's verdict() must reproduce its stored zone verdicts (none of which its stability step changed)
+b <- t45$b
+again <- vapply(tm$zones$zone, function(z) t45$verdict(b[b$zone == z, ], z)$verdict, "")
 if (!identical(unname(again), tm$zones$verdict)) {
-  stop("the copied verdict() does not reproduce #45's stored zone verdicts", call. = FALSE)
+  stop("#45's verdict() does not reproduce its stored zone verdicts", call. = FALSE)
 }
 bs <- b[b$area_km2 < 100, ]
 c_zones <- sort(unique(bs$zone))
-rc <- verdict(bs, c_zones)
+rc <- t45$verdict(bs, c_zones)
 attribution <- sb_attribution(rc$verdict)
 
 # ---- report ------------------------------------------------------------------------------------
@@ -449,7 +430,7 @@ say("## C. Which term, against PCIC (#45's rule on the small class)",
     sprintf("  zones: %s", paste(c_zones, collapse = ", ")),
     sprintf("  median error there: raw %+.1f %%, adjusted %+.1f %%", med(err(bs$r_o, bs$obs)),
             med(err(bs$cv_ann, bs$obs))),
-    sprintf("the copied verdict() reproduces #45's %d stored zone verdicts", nrow(tm$zones)),
+    sprintf("#45's verdict(), evaluated from its script, reproduces its %d stored zone verdicts", nrow(tm$zones)),
     "",
     sprintf(paste0("n %d; our raw log error (le_o) %+.3f, PCIC's (le_c) %+.3f; |le_c| %.3f; closure %.3f ",
                    "(step 3: usable if both <= 0.25)"),
@@ -457,8 +438,8 @@ say("## C. Which term, against PCIC (#45's rule on the small class)",
     sprintf(paste0("sum dP %.0f, sum dA %.0f, gap %.0f; share P %s, share AET %s; ",
                    "TerraClimate/P ours %.2f, PCIC %.2f; MOD16/AET %.2f"),
             rc$sdp, rc$sda, rc$g, f2(rc$share_p), f2(rc$share_a), rc$tc_o, rc$tc_c, rc$mod16),
-    sprintf("omega > 5 under both PETs %.0f %%, <= 5 %.0f %%; ECCC stations %d, climr/ECCC %s; decomposition: %s",
-            100 * rc$w_high, 100 * rc$w_low, rc$n_eccc, f2(rc$eccc), rc$decomp),
+    sprintf("omega > %g under both PETs %.0f %%, <= %g %.0f %%; ECCC stations %d, climr/ECCC %s; decomposition: %s",
+            t45$omega_max, 100 * rc$w_high, t45$omega_max, 100 * rc$w_low, rc$n_eccc, f2(rc$eccc), rc$decomp),
     sprintf("Verdict: %s.", rc$verdict),
     "")
 
