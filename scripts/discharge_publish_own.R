@@ -24,5 +24,7 @@ publish_own <- c(
   # functions is called by them (checked against the code at the commit the segment report names)
   "R/wet_departure_carry.R", "R/wet_pcic_years.R",
   "scripts/departure_pcic.R", "scripts/departure_site.R", "scripts/departure_site_lib.R",
-  "scripts/departure_site_snow.R", "scripts/gauge_monthly_compare.R", "scripts/vignette_map_lib.R"
+  "scripts/departure_site_snow.R", "scripts/gauge_monthly_compare.R", "scripts/vignette_map_lib.R",
+  # the channel-scale pilot (#168) and its site table: a script of its own, called by none
+  "scripts/channel_scale_pilot.R", "scripts/channel_scale_sites.csv"
 )
