@@ -6,7 +6,7 @@ Members: #142 (the province's non-integrated hydrometric discharge) and #144 (th
 
 ## Decided at the gate
 
-No plan gate in this pane: dispatched as `park review` by the coordinator (soul#928), 2026-11-22. The phases below are a draft, revised by a Plan review (`planning/active/review-plan.md`, 2 blockers, both probed and confirmed). Every fork the owner must make is under **Open decisions** with a recommendation, for the coordinator to put to the owner. The phases are written for the recommended answers; where another answer changes a phase, the decision says how.
+No plan gate in this pane: dispatched as `park review` by the coordinator, 2026-11-22. The phases below are a draft, revised by a Plan review (`planning/active/review-plan.md`, 2 blockers, both probed and confirmed). Every fork the owner must make is under **Open decisions** with a recommendation, for the coordinator to put to the owner. The phases are written for the recommended answers; where another answer changes a phase, the decision says how.
 
 What the exploration found (2026-11-22, tree at eaa12d9):
 
