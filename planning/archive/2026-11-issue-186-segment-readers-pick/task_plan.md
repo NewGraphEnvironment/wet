@@ -8,7 +8,7 @@ a fix to #177 alone trips the daily guard.
 
 ## Decided at the gate
 
-No plan gate in this pane: dispatched by the coordinator (soul#928), so this is a reviewed park and the
+No plan gate in this pane: dispatched by the coordinator, so this is a reviewed park and the
 coordinator's plan gate decides. The forks the issue names are under `## Decisions (answered by the owner at the resume, 2026-11-22)
 
 - **#171 now:** one shared list in `scripts/discharge_publish_own.R`; the daily rerun and a BUILD are owed after the merge.

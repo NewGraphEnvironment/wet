@@ -2,7 +2,7 @@
 
 ## Session 2026-11-22
 
-- Explored and drafted the phases; no plan gate in this pane: parked for the coordinator's plan gate (soul#928)
+- Explored and drafted the phases; no plan gate in this pane: parked for the coordinator's plan gate
 - Created branch `186-backlog-move-9-the-segment-readers-retur` off origin/main
 - Scaffolded PWF baseline from issue #186 with the drafted phases
 - Next: parked 2026-11-22; paste the block under ### Resume into a fresh session
