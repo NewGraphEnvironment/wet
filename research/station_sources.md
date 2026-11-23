@@ -123,6 +123,17 @@ Reported as found, not filtered:
 - **Two copies that part in 2021.** The Water Tool's daily values for the provincial stations match the files to within 0.1 % on at least 99.7 % of days in every year with data from 1998 to 2020 (none in 2004–2005). From 2021 they match on only 61–92 % of days [M, report "by year"]. One copy has been revised since the other was taken. Which one is unresolved, because the Aquarius portal was not read.
 - **Coordinates.** The Water Tool places 08JC0002 and 08JC0006 111.6 km from the province's coordinates, a degree of latitude [M]. It also lists 17 provincial stations under "Regulator – BC Oil and Gas Commission": BCER's own (07FA0001, 07FC0001, 10CD0001 and others) beside Okanagan, Shuswap, Nicola, Kootenay and Lower Mainland stations (08NM00xx, 08LC000x, 08LG0019, 08NJ0001, 08MH0062) that are not the regulator's by name or place [M, report; I for ownership]. Where a station is in both, the provincial files are the source for its location and owner.
 
+## The plausibility bound for the provincial files (wet#142)
+
+Registered on 2026-11-22, before the bound was measured (#179, decision 3). The provincial files hold flows no stream could carry (above), so `wet_station_daily()` drops a provincial day whose flow exceeds a bound measured on HYDAT:
+
+- **Population.** Every BC station in HYDAT 20260717 (`STATIONS.PROV_TERR_STATE_LOC = 'BC'`) with at least 3,650 daily flows in `DLY_FLOWS`, regulated or not. The bound is set on all of them; the same statistic over the natural stations alone (no `STN_REGULATION` row with `REGULATED = 1`) is reported beside it and decides nothing.
+- **Statistic.** For each station, the ratio of its largest daily flow to the median of its positive daily flows. The bound is the largest such ratio in the population: no provincial day may sit further above its station's typical flow than any day Water Survey of Canada has published in BC. The report lists the ten stations with the largest ratios, so a single station that sets the bound is visible.
+- **Applied.** A provincial day (a complete day as `wet_bcenv_daily()` reads it) is dropped when its flow exceeds the bound times the median of that station's positive complete-day flows over the whole snapshot. A negative daily flow is dropped. A station with no positive flow has no bound.
+- **Expected catches**, stated before measuring: the bound must drop every day above 1,000 m³/s at Oliver Creek in Lake Cowichan (08HA0036) and Amor De Cosmos Creek at Hwy 19 (08HD0003), and must drop no day of the Fraser upstream of and below the Big Bar slide (08MD0002, 08MD0003). If it fails any of these, the rule fails: no bound ships, and the choice goes back to the owner.
+
+Produced by `scripts/station_sources_bound.R` → `data/checks/station_sources_bound_20260717.txt`.
+
 ## Already fetched by a New Graph package?
 
 No (2026-10-28). The installed NewGraphEnvironment packages export only federal fetchers: `ngr::ngr_hyd_q_daily()`, `ngr::ngr_hyd_realtime()` (`tidyhydat::realtime_ws()`) and wet's `wet_station_*()`. A code search of the organisation finds these sources only cited, never fetched.
