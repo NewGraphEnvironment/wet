@@ -48,12 +48,12 @@ Order: `planning/backlog.md`, move 6. Run `/planning-init <this issue>`.
 
 - 2026-11-22: the local fwapg was not accepting connections when the plan was drafted, so the build starts it first and confirms which fwapg commit built its `pcic` schema. The main checkout's `data/pcic/` holds the TPS_gridded_obs_init RUNOFF/BASEFLOW subsets for 1981–2010.
 
-## Build, 2026-11-23 (m1)
+## Build, 2026-11-23
 
 ### Phase 1 probes
 
-- The local fwapg (Docker `fresh-db`, PostGIS 17) was already up at the resume; `pcic.runs` holds both PNWNAmet runs. `routed_fingerprint()` gives 40,524,444 rows, 3,377,037 segments, total 179854603.510890 m3/s, equal to the tracked `data/checks/pcic_routed_compare_20260717.txt`, which names fwapg 5d50cc1: `WET_FWAPG_COMMIT=5d50cc1`.
-- m1's `fwapg.pcic_*` tables are staging leftovers of an older local build (no `pcic_qa_build`); the pilot reads only the `pcic` schema. fwapg's kept NetCDF (`extras/pcic_crosswalk/data/nc/`) is not on m1, so rule 1 cannot tell a series revised since fwapg's build from a crosswalk fault at an agreeing outlet: the rule names that type "unresolved, networks agree".
+- The local fwapg was already up at the resume; `pcic.runs` holds both PNWNAmet runs. `routed_fingerprint()` gives 40,524,444 rows, 3,377,037 segments, total 179854603.510890 m3/s, equal to the tracked `data/checks/pcic_routed_compare_20260717.txt`, which names fwapg 5d50cc1: `WET_FWAPG_COMMIT=5d50cc1`.
+- This database's `fwapg.pcic_*` tables are staging leftovers of an older local build (no `pcic_qa_build`); the pilot reads only the `pcic` schema. fwapg's kept NetCDF (`extras/pcic_crosswalk/data/nc/`) is not on the machine that ran the pilot, so rule 1 cannot tell a series revised since fwapg's build from a crosswalk fault at an agreeing outlet: the rule names that type "unresolved, networks agree".
 - PCIC's domains by subid prefix (subid %/% 1e6), checked against placed outlets' FWA basin root: 1-4 Fraser (100), 5-6 Columbia (300), 206/207/210 Peace (200), 7, 8, 9, 11, 12 the coast (400-960). The script asserts the mapping on every placed outlet.
 - Crosswalk flags: 38,146 placed, 9,993 `no_candidate`, 506 `broken_chain`, 43 `demoted`, 28 `no_series` (48,716 outlets). Most `no_candidate` are prefix 5 (Columbia, 4,857) and 207 (Peace, 3,706) and 210 (161): outlets outside BC's FWA.
 - Scored gauges: the article bundle's 315 gauges, 290 with routed flow, 283 where routed carries >= 0.2 of observed; 244 have an outlet on their own segment (the tracked gauge report's 242 agree + 2 differ). By station domain, about 73 Fraser, 74 coast, 71 Columbia, 27 Peace.

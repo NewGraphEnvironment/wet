@@ -72,9 +72,9 @@ Review: rule 2 restated (G1); CMIP5 dropped under 3 (b) (S1); the libraries sour
 
 ## Phase 5: Verdict, write-up and the issues
 
-- [ ] `research/pcic_channel_scale.md` (provenance line, verdict first, per-domain and per-site tables, mismatch types, flag shares, scaling cost, what move 7 builds on per domain and its first check), and its row in `research/README.md`.
-- [ ] Revise `research/pcic_hydrology.md`'s channel-scale section (the product, the run wet publishes, as far as Phase 1 settled it) and `research/monthly_error.md`'s "does not read PCIC's raw hydromosaic series" paragraph to cite the pilot.
-- [ ] CLAUDE.md: the pilot script under Scripts; the "PCIC channel-scale" Data Sources line rewritten with the pilot's result.
+- [x] `research/pcic_channel_scale.md` (provenance line, verdict first, per-domain and per-site tables, mismatch types, flag shares, scaling cost, what move 7 builds on per domain and its first check), and its row in `research/README.md`.
+- [x] Revise `research/pcic_hydrology.md`'s channel-scale section (the product, the run wet publishes, as far as Phase 1 settled it) and `research/monthly_error.md`'s "does not read PCIC's raw hydromosaic series" paragraph to cite the pilot.
+- [x] CLAUDE.md: the pilot script under Scripts; the "PCIC channel-scale" Data Sources line rewritten with the pilot's result.
 - [ ] Edit #9's body (its premise, portal downloads and a hand crosswalk, is superseded) and #169's (move 7 reads the verdict, takes 2070–2099 for CMIP5 and checks the runs' calendars); a comment on fwapg#28 naming the verdict, since its first condition is "the option already on the table".
 - [ ] Before the worktree is removed, move `data/logs/168/` into the main checkout's `data/logs/`.
 
