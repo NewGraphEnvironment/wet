@@ -78,9 +78,9 @@ None.
 
 ## Validation
 
-- [ ] Tests pass
-- [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
+- [x] Tests pass (478, 0 failures, 5 skips needing a newer fwapg)
+- [x] `/code-check branch`: 5 rounds, ended by an enumeration of 25 places (`review-verdict.md`)
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
 How each change is proved: the readers by fixture tests that fail with the defect restored; the cache by a test that a changed md5 refuses and that the province is never fetched for a pinned snapshot; `wet_station_daily()`'s existing behaviour by its tests and a mocked-reader test that HYDAT ids never reach the new source; the harvest by tier (i)'s exact reproduction of the probe's rows and counts, and tier (ii)'s station-by-rule table; `pkgdown::check_pkgdown()`, and `lintr` per file against `origin/main`.
