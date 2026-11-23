@@ -114,7 +114,7 @@ source("scripts/pcic_routed_lib.R") # routed_*
 
 f_self <- "scripts/channel_scale_pilot.R"
 git <- function(...) {
-  x <- suppressWarnings(system2("git", c(...), stdout = TRUE, stderr = TRUE))
+  x <- suppressWarnings(system2("git", shQuote(c(...)), stdout = TRUE, stderr = TRUE))
   if (!is.null(attr(x, "status"))) stop("git ", paste(c(...), collapse = " "), " failed: ", paste(x, collapse = " "))
   x
 }
