@@ -161,8 +161,11 @@ lst <- lst[lst$hours >= 20, ]
 shipped <- wet_bcenv_daily(NULL, snapshot)
 t2 <- station_table(lst[, c("station_number", "date", "q_m3s")])
 t3 <- station_table(shipped)
+# per station, element by element; two NAs are equal
+differs <- function(x, y) ifelse(is.na(x) | is.na(y), is.na(x) != is.na(y), x != y)
 moved <- function(a, b) {
-  !(a$first %in% b$first & a$last %in% b$last & a$wy_new == b$wy_new & a$pass == b$pass)
+  stopifnot(identical(a$station_id, b$station_id))
+  differs(a$first, b$first) | differs(a$last, b$last) | a$wy_new != b$wy_new | a$pass != b$pass
 }
 by_lst <- moved(t1, t2)
 by_bound <- moved(t2, t3)
@@ -175,7 +178,9 @@ reg_last <- as.Date(vapply(st_meta$station_number, function(s) if (is.null(rng[[
   as.numeric(rng[[s]][2]), 0), origin = "1970-01-01")
 reg_off <- st_meta$station_number[is.na(match(paste(st_meta$station_number, reg_first, reg_last),
                                               paste(st_meta$station_number, st_meta$first, st_meta$last)))]
-if (length(reg_off)) fail <- c(fail, "station registry")
+# a station the reader returns that the registry lacks would be unreachable from wet_station_daily()
+reg_missing <- setdiff(unique(c(lst$station_number, utc$station_number)), st_meta$station_number)
+reg_fail <- length(reg_off) > 0 || length(reg_missing) > 0
 neg <- sum(lst$q_m3s < 0)
 
 # ---- report -----------------------------------------------------------------------------------
@@ -209,6 +214,9 @@ out <- c(
           nrow(t3), sum(t3$daily), sum(t1$pass), sum(t2$pass), sum(t3$pass)),
   sprintf("  station registry's first and last days against the shipped reader: %d stations, %d differing%s",
           nrow(st_meta), length(reg_off), if (length(reg_off)) paste0(" (", paste(reg_off, collapse = ", "), ")") else ""),
+  sprintf("  stations the reader returns that the registry lacks: %d%s; registry verdict: %s", length(reg_missing),
+          if (length(reg_missing)) paste0(" (", paste(reg_missing, collapse = ", "), ")") else "",
+          if (reg_fail) "FAIL, rewrite it with data-raw/station_sources_snapshot.R" else "PASS"),
   sprintf("  status of shipped days: provisional %d (%.1f %%), unchecked %d (%.1f %%)",
           sum(shipped$status == "provisional"), 100 * mean(shipped$status == "provisional"),
           sum(shipped$status == "unchecked"), 100 * mean(shipped$status == "unchecked")),
@@ -224,7 +232,7 @@ out <- c(
 )
 writeLines(out, report)
 message("wrote ", report)
-if (length(fail)) {
-  message("failed: ", paste(fail, collapse = ", "))
+if (length(fail) || reg_fail) {
+  message("failed: ", paste(c(fail, if (reg_fail) "station registry"), collapse = ", "))
   quit(status = 1)
 }

@@ -48,10 +48,7 @@ wet_bcenv_daily <- function(stations = NULL, snapshot = wet_bcenv_snapshot, boun
   d <- d[d$hours >= min_hours, ]
   if (!nrow(d)) return(wet_daily_empty())
   d <- d[d$q_m3s >= 0, ]
-  # the bound, relative to each station's median of positive complete-day flows over the whole snapshot
-  pos <- d$q_m3s > 0
-  med <- vapply(split(d$q_m3s[pos], factor(d$station_number[pos], unique(d$station_number))), stats::median, 0)
-  cap <- wet_bcenv_ratio(d$station_number, bound) * unname(med[d$station_number])
+  cap <- wet_bcenv_cap(d$station_number, d$q_m3s, bound)
   d <- d[is.na(cap) | d$q_m3s <= cap, ]
   if (!nrow(d)) return(wet_daily_empty())
   d <- d[order(d$station_number, d$date, method = "radix"), ]
@@ -69,6 +66,16 @@ wet_bcenv_daily <- function(stations = NULL, snapshot = wet_bcenv_snapshot, boun
 wet_bcenv_bound <- c(.default = 2490.71, "07E" = 108.94, "07F" = 2490.71, "08C" = 39.34, "08E" = 119.78,
                      "08F" = 49.06, "08G" = 389.68, "08H" = 268.07, "08J" = 482.14, "08K" = 205.26,
                      "08L" = 535.45, "08M" = 581.48, "08N" = 535.71, "10B" = 51.52)
+
+# Each day's cap: its station's ratio bound times the median of the station's
+# positive flows among the days given (all its complete days in the snapshot);
+# NA for a station with no positive flow. scripts/station_sources_bound.R
+# applies the bound through this same function.
+wet_bcenv_cap <- function(ids, q, bound) {
+  pos <- q > 0
+  med <- vapply(split(q[pos], factor(ids[pos], unique(ids))), stats::median, 0)
+  wet_bcenv_ratio(ids, bound) * unname(med[ids])
+}
 
 # The ratio bound each station takes: its sub-drainage's (the first three
 # characters of its number once leading letters are dropped), else ".default".

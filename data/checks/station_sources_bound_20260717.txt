@@ -1,5 +1,5 @@
 The plausibility bound for the province's non-integrated discharge (#142, #179)
-HYDAT release 20260717; code_md5 a51667e9280a3ef0f77b8ebf87b1f5f3
+HYDAT release 20260717; code_md5 f6a52bba631a1729d0ed83c23dd6fbf2
 Provincial snapshot 20261028, reader v1 (wet_bcenv_daily(), complete days of >= 20 hours, local standard time)
 Rule: research/station_sources.md, "The plausibility bound for the provincial files": one province-wide bound, registered before measuring, failed a catch; this form, per sub-drainage, was re-registered before it was applied.
 

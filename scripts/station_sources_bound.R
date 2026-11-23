@@ -73,10 +73,9 @@ bound_nat <- round(max(nat$ratio), 2)
 
 # ---- the provincial snapshot under that bound -------------------------------------------------
 pv <- wet_bcenv_daily(NULL, bound = Inf)
-pos <- pv$q_m3s > 0
-med <- vapply(split(pv$q_m3s[pos], factor(pv$station_number[pos], unique(pv$station_number))), stats::median, 0)
-pv$cap <- wet_bcenv_ratio(pv$station_number, bound) * unname(med[pv$station_number])
+pv$cap <- wet_bcenv_cap(pv$station_number, pv$q_m3s, bound)
 pv$dropped <- !is.na(pv$cap) & pv$q_m3s > pv$cap
+med <- vapply(split(pv$q_m3s[pv$q_m3s > 0], pv$station_number[pv$q_m3s > 0]), stats::median, 0)
 neg <- wet_bcenv_days_read(wet_bcenv_days(wet_bcenv_snapshot, tools::R_user_dir("wet", "cache")), NULL)
 neg <- neg[neg$hours >= 20 & neg$q_m3s < 0, ]
 catch <- data.frame(
