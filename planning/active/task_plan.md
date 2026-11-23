@@ -67,7 +67,7 @@ How the plan carries 1(b), decided by the plan (mechanism):
 ## Validation
 
 - [x] Tests pass
-- [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
+- [x] `/code-check` clean (branch mode: three rounds, ended on the enumeration in `review-enumeration.md`) (each commit, or once over the branch with `/code-check branch`)
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
