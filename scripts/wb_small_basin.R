@@ -101,8 +101,8 @@
 #      run (A reads "concentrated", C "compensating"), so no verdict moves; the functions stay as
 #      registered.
 #   2. Found by the same review: check C reads #45's cache, which records its release but not the
-#      fit it was made from. The script now refuses a cache whose single-gauge rows' `cv_ann`
-#      differ from this fit's. It changes no number.
+#      fit it was made from. The script now rebuilds every column the cache takes from the fit, as
+#      #45 builds it, and refuses a cache that differs. It changes no number.
 
 # Registered at 9f5a0da ("Register the small-basin diagnosis rule (#176)").
 #
@@ -266,12 +266,27 @@ rho <- vapply(traits, function(v) stats::cor(d[[v]][d$small], d$e_adj[d$small], 
 tm <- readRDS(file.path("data", "wb_term", sprintf("diagnose_%s.rds", release)))
 stopifnot(identical(tm$release, release))
 b <- tm$basins
-# the cache records its release, not its fit: hold its single-gauge rows to this fit's held-out values
-one <- !grepl("+", b$station_number, fixed = TRUE)
-k <- match(b$station_number[one], cv$station_number)
-if (anyNA(k) || !isTRUE(all.equal(b$cv_ann[one], cv$cv_ann[k]))) {
-  stop("data/wb_term/diagnose_", release, ".rds was made from another fit: rerun scripts/wb_term_diagnose.R",
-       call. = FALSE)
+# The cache records its release, not its fit. Every column it takes from the fit (#45's `cols_g`, read
+# from `cal`, and `cv_ann`) is rebuilt here from this fit as #45 builds it, gauges on one watershed
+# averaged, and must equal the cache's; the rest of a row comes from PCIC and fwapg, not the fit.
+cols_fit <- c("zone", "nesting", "n_years", "area_km2", "elev", "obs", "p_yr", "aet_cfu", "aet_fu", "pet_yr",
+              "ppt_tc", "aet_mod16", "cv_ann")
+stale <- function(why) {
+  stop("data/wb_term/diagnose_", release, ".rds was made from another fit (", why,
+       "): rerun scripts/wb_term_diagnose.R", call. = FALSE)
+}
+fit_rows <- cal[cal$watershed_feature_id %in% b$watershed_feature_id, ]
+fit_rows$cv_ann <- cv$cv_ann[match(fit_rows$station_number, cv$station_number)]
+for (j in seq_len(nrow(b))) {
+  r <- fit_rows[fit_rows$watershed_feature_id == b$watershed_feature_id[j], ]
+  if (!setequal(r$station_number, strsplit(b$station_number[j], "+", fixed = TRUE)[[1]])) {
+    stale(paste("gauges at watershed", b$watershed_feature_id[j]))
+  }
+  for (v in cols_fit) {
+    want <- if (is.numeric(r[[v]])) mean(r[[v]]) else r[[v]][1]
+    same <- if (is.numeric(want)) isTRUE(all.equal(b[[v]][j], want)) else identical(b[[v]][j], want)
+    if (!same) stale(paste(v, "at", b$station_number[j]))
+  }
 }
 ec <- tm$eccc
 # copied verbatim from scripts/wb_term_diagnose.R (#45's rule as amended), which cannot be sourced

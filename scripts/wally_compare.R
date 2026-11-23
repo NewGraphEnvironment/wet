@@ -196,9 +196,16 @@ why[!wk$station_number %in% ours$station_number] <- "under 95 % in BC or on the 
 why[!wk$station_number %in% s$stations$station_number[s$stations$accepted]] <- "FWA area outside 10 %"
 why[!wk$station_number %in% s$stations$station_number] <- "fewer than 10 complete years in 1981-2010"
 why[!wk$regulated %in% 0] <- "regulated or no regulation record in HYDAT"
+# fixed levels, so the tables print in one order whatever the locale's collation
+why <- factor(why, levels = c("a calibration gauge", "regulated or no regulation record in HYDAT",
+                              "fewer than 10 complete years in 1981-2010", "FWA area outside 10 %",
+                              "under 95 % in BC or on the grid"))
 why_ours <- rep("not in WALLY's table", nrow(ours))
 why_ours[in_w_all] <- "in WALLY's table, dropped by its allocation filter"
 why_ours[in_w] <- "in WALLY's training set"
+why_ours <- factor(why_ours, levels = c("in WALLY's training set", "in WALLY's table, dropped by its allocation filter",
+                                        "not in WALLY's table"))
+stopifnot(!anyNA(why), !anyNA(why_ours))
 say("## 3. Station overlap",
     "",
     sprintf("%d of our %d calibration gauges are among WALLY's %d training stations: a WALLY score there is in-sample.",

@@ -74,14 +74,14 @@ Ours: 352 natural stations with 10 or more complete years, 336 snapped within 10
 
 280 of our 315 calibration gauges are among WALLY's 482 training stations: a WALLY score there is in-sample.
 Our gauges, by where they stand in WALLY's data:
-  in WALLY's table, dropped by its allocation filter      3
   in WALLY's training set                               280
+  in WALLY's table, dropped by its allocation filter      3
   not in WALLY's table                                   32
 WALLY's training stations, by where they stand in ours:
   a calibration gauge                                   280
+  regulated or no regulation record in HYDAT            110
   fewer than 10 complete years in 1981-2010              76
   FWA area outside 10 %                                   5
-  regulated or no regulation record in HYDAT            110
   under 95 % in BC or on the grid                        11
 
 At the 280 shared gauges, WALLY's zone (from the station's location) equals ours (the zone covering most
