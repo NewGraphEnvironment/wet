@@ -1,6 +1,6 @@
 # WALLY's mean annual runoff model beside wet's estimates at the calibration gauges
 
-**Verified:** 2026-11-23 · **Issues:** #178 (its desk comparison and gauge filters), in backlog move 11 (#188) · **Produced by:** `scripts/wally_compare.R` → `data/checks/wally_compare_20260717.txt`. Inputs: `bcgov/WALLY`'s `modelling/` folder at commit 9de322b (Apache-2.0; each file's md5 in the report, each fetch in `data/logs/188/wally_fetch.tsv`), Table 1 of its report `WALLY_Modeling_FSL_V0.5.pdf` transcribed in `scripts/wally_zone_scores.csv` (digits from the PDF's text layer, each coefficient's column from the page image, both held to the table's own Count and Average rows), and the shipped fit (HYDAT 2026-07-17, province run 768876badf). Two runs gave byte-identical reports. · **Status:** desk comparison done; the hosted tool was not used; WALLY's approach as a candidate adjustment is scored in a follow-up issue.
+**Verified:** 2026-11-23 · **Issues:** #178 (its desk comparison and gauge filters), in backlog move 11 (#188) · **Produced by:** `scripts/wally_compare.R` → `data/checks/wally_compare_20260717.txt`. Inputs: `bcgov/WALLY`'s `modelling/` folder at commit 9de322b (Apache-2.0; each file's md5 in the report, each fetch in `data/logs/188/wally_fetch.tsv`), Table 1 of its report `WALLY_Modeling_FSL_V0.5.pdf` transcribed in `scripts/wally_zone_scores.csv` (digits from the PDF's text layer, each coefficient's column from the page image, both held to the table's own Count and Average rows), and the shipped fit (HYDAT 2026-07-17, province run 768876badf). Two runs gave byte-identical reports. · **Status:** desk comparison done; the hosted tool was not used; WALLY's approach as a candidate adjustment is scored in #199.
 
 WALLY, the province's Water Allocation Data Library, estimates mean annual runoff (MAR, in l/s/km²) at ungauged sites by regressing it on catchment traits, one model per hydrologic zone. Its 2021 modelling folder is open. Under "own estimates first" (CLAUDE.md) it is a yardstick here, not an input.
 
@@ -52,7 +52,7 @@ Ours are scored in WALLY's metric over the 25 zone classes holding 5 or more of 
 
 Province-wide, the balance's held-out R² is 87 % (RMSE 12.5 l/s/km²) at all 315 gauges, and routed PCIC's is 90 % (11.2) at its 283 shared gauges. WALLY's XGBoost scores 96 % (STEYX 5.9) over 480 stations, its predictions made with all of them in training.
 
-How much of the gap is the scoring is not known: an in-sample R² on 6 to 43 stations from a model with up to 5 traits is optimistic, by an amount the report does not measure. Whether a per-zone regression on catchment traits holds up held out is the candidate the follow-up issue scores, under a rule registered before its numbers.
+How much of the gap is the scoring is not known: an in-sample R² on 6 to 43 stations from a model with up to 5 traits is optimistic, by an amount the report does not measure. Whether a per-zone regression on catchment traits holds up held out is the candidate #199 scores, under a rule registered before its numbers.
 
 ## Not done here
 

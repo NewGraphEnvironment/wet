@@ -43,6 +43,10 @@ When the plan finds that a batch, or one of its members, is more than one PR's w
 - The report's R² is over training and test together (p. 23); the model script at the pinned commit scores test sets. Which one Table 1's MIN R² is cannot be told.
 - The number guard of Phase 1 strips issue numbers and commit shas: moving a heading's issue number onto each statement multiplies it, which is not a typed claim number.
 
+## The clock (2026-11-23)
+
+- m1's clock read 7 hours early at the start of this session: `date -u` printed 07:20 UTC while the true time was about 14:20 UTC, and the files and commits made before about 14:25 UTC carry the early time (fetch-log rows 1 and 2, commits ef2e88e and 8864113). R formats UTC correctly (`format(Sys.time(), tz = "UTC")` agreed with `date -u` once corrected). No report prints a time.
+
 ## Errors Encountered
 
 | Error | Resolution |

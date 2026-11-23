@@ -49,7 +49,7 @@ mandate; the merge stays with me.
 
 ## Phase 0, 2026-11-23 (build session, m1)
 
-- Resumed at 07:20 UTC; merged origin/main (ef2e88e); of the plan's files only `CLAUDE.md` (#142's paragraph) and `planning/backlog.md` (moves 8, 10) moved, neither touching a phase, so the plan stands.
+- Resumed at about 14:20 UTC (this machine's clock read 7 hours early until about 14:25 UTC, so `date -u` printed 07:20 and commits ef2e88e and 8864113 carry times 7 hours early); merged origin/main (ef2e88e); of the plan's files only `CLAUDE.md` (#142's paragraph) and `planning/backlog.md` (moves 8, 10) moved, neither touching a phase, so the plan stands.
 - `data/wb`, `data/wb_term`, `data/hydz`, `data/wally` symlinked to the main checkout's; `data/wally/raw/` and `data/logs/188/` created there. Fit key `768876badf`, `fit_20260717`. `git status --porcelain` empty.
 
 ## Phase 1, 2026-11-23
@@ -64,3 +64,16 @@ mandate; the merge stays with me.
 - WALLY's MAR scores are in-sample (R² over training and test stations, p. 23); no held-out per-zone error exists in the folder or the report, which the report and `research/wally.md` say.
 - Predictor list (Phase 3's input): precipitation in 16 of 27 zone models, slope 15, glacier 14, PET 13, median elevation 12, solar exposure 8, drainage area 2.
 - `data/checks/wally_compare_20260717.txt`: two runs byte-identical (logs `data/logs/188/wally_compare_run{1,2}.log`). `research/wally.md` and its README row written.
+
+## Phase 3, 2026-11-23
+
+- Traits buildable: `p_yr`, `pet_yr`, `t_yr`, `elev`, `swe_max` in the upstream files; fwapg answers (connect timeout 10 s) and holds 13,648 FWA glacier polygons (no ltree codes on them, so glacier cover is intersected with the fundamental watersheds, which carry codes). Slope and solar exposure untested: they need the DEM, which m1 lacks; slope is in 15 of WALLY's 27 zone models, solar exposure in 8; both carried to the follow-up.
+- Open decision 1 asked and answered (the owner: thresholds as drafted), written into #188's body under "## Decisions".
+- Rule registered alone at 9f5a0da: header of `scripts/wb_small_basin.R`, `scripts/wb_small_basin_rule.R`, `tests/testthat/test-wb_small_basin_rule.R` (41 expectations; four boundary mutations each turn the suite red).
+
+## Phase 4, 2026-11-23
+
+- Body committed at ae9d606 before the tracked runs. It reproduced the registered medians (small raw +1.9, adjusted +14.3; larger −15.1, −6.7) and the fit's scoring md5 (df3280b5) before any check.
+- Verdicts: A concentrated (zone split 1 of 3 readable classes at +10; elevation and aridity 3 of 3); B undecided (full model: small median +2.7 %, interval −8.8 to +15.6 %, small MAE 40.4 → 33.7, larger +0.2; area-only +3.8 %, −5.6 to +19.1 %, 40.4 → 34.9, +0.6); C compensating on 48 PCIC-covered small basins (raw +14.8 %, adjusted +27.7 % there), so the raw contrast is unresolved. The copied `verdict()` reproduced #45's 21 stored zone verdicts.
+- Held-out proof: `WET_SB_INSAMPLE=1` gives different predictions and a lower mean absolute log residual (0.23117 against 0.24369). Two runs byte-identical. Logs `data/logs/188/wb_small_basin_{dev1,run1,run2,insample}.log`. Glacier intersections sum to the table's 28,847 km².
+- Follow-up filed as #199 (blending, a trait regression via a check B rerun with slope and solar exposure). `research/monthly_error.md` (basin-size statements, an answer bullet, header), `research/water_balance_method.md` (zone steps, follow-ups) and `research/README.md` revised.
