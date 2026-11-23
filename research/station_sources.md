@@ -157,6 +157,15 @@ Produced by `scripts/station_sources_bound.R` → `data/checks/station_sources_b
 - **Expected catches**: the same four.
 - **What was seen first.** This form was chosen after the HYDAT sub-drainage maxima had been computed (`08H`'s is 268.07, over 82 stations) and Amor De Cosmos Creek's smallest ratio above 1,000 m³/s (402) was known, so its catch is not an independent test of the rule. Its effect on the other provincial stations had not been computed; the report lists every station it drops days at.
 
+## The plausibility bound for the Water Tool's gauges
+
+Registered on 2026-11-23, before it was applied or measured on any Tool series (#195, the owner's decision 2). The Tool's third-party gauges take the provincial rule's per-sub-drainage bound (above), with the sub-drainage taken from where the gauge sits, since their numbers (`HRB3142`, `ogc_1002`, `UC 5`) carry none:
+
+- **The sub-drainage of a gauge** is that of the HYDAT station nearest to it: every station in HYDAT 20260717's `STATIONS` with coordinates (any province, any data type, active or discontinued), by straight-line distance in BC Albers, its number's first three characters. The registry stores it, the nearest station and its distance, so a gauge far from any HYDAT station, or near a divide, is visible.
+- **Applied.** As for the provincial stations: a Tool day is dropped when its flow exceeds its sub-drainage's bound (`wet_bcenv_bound`; `.default`, 2,490.71, for a sub-drainage without one of its own) times the median of the listing's positive daily flows over its whole pinned record. A negative daily flow is dropped. A listing with no positive flow has no bound. The seven listings that continue a provincial station's record are bounded the same way, over their own record, before their days are cut.
+- **Expected catches:** none stated. The harvest report lists every station and day the bound drops.
+- **What was seen first.** The HYDAT sub-drainage maxima (`08H` 268.07) and the bound's effect on the provincial stations were known; no Tool series had been read under any bound, and no Tool station's ratio had been computed.
+
 ## Already fetched by a New Graph package?
 
 No (2026-10-28). The installed NewGraphEnvironment packages export only federal fetchers: `ngr::ngr_hyd_q_daily()`, `ngr::ngr_hyd_realtime()` (`tidyhydat::realtime_ws()`) and wet's `wet_station_*()`. A code search of the organisation finds these sources only cited, never fetched.

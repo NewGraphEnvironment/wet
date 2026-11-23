@@ -57,7 +57,7 @@ counts them): run `/backlog-sweep` again, the backlog is not finished.
 | - [ ] 10 | #187 | 12: Swift and Naver creeks under their own windows (1 issue) | **waiting** on knowledge#256 (the owner, 2026-11-23: adopt the UFRA and COTR windows only once knowledge reads NuSEDS dates) | D | — | opus |
 | - [x] 11 | #188 | 13: small-basin error and the zone adjustment (4 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/200 | E | — | fable then opus |
 | - [ ] 12 | #189 | 14: research files around the current state (3 issues) | open | D | 10 | sonnet |
-| - [ ] 13 | #195 | 15: second sources for the provincial stations (3 issues) | open | B | 8, 9 | opus |
+| - [ ] 13 | #195 | 15: second sources for the provincial stations (1 issue) | open | B | 8, 9 | opus |
 | - [ ] 14 | #196 | 16: regulation per non-HYDAT station (1 issue) | open | B | 13 | fable then opus |
 
 Tracks are separate efforts, not moves: the cross-repo provenance track, whose wet member is #161
@@ -81,7 +81,7 @@ Tracks are separate efforts, not moves: the cross-repo provenance track, whose w
 | 12 | #187 | Swift and Naver creeks under their own windows: #182 | 1 | the knowledge commit to pin; a guard that the Bulkley and Morice chinook rows match `c97c4d0`'s | moves wet's one pin on the life history table, which every Bulkley and Morice reader follows |
 | 13 | #188 | small-basin error and the zone adjustment: #176, #178, #44, #185 | 4 | the rule, registered before any candidate is scored; which candidates; the hosted WALLY tool only where its terms allow | one oracle, the held-out balance at the gauges; both candidates change the zone adjustment and share one rescore |
 | 14 | #189 | research files around the current state: #181, #183, #184 | 3 | none beyond #181's revise-in-place rule | one method over the files soul's research check flags; waits on move 10 for `research/chinook_sites.md` |
-| 15 | #195 | second sources for the provincial stations: #144, #190, #192 | 3 | which copy at the six shared sites, and one rule for a second publisher's earlier record under a provincial number; whether the province's portal is read (its click-through disclaimer is the owner's to accept); Hakai's record from its published data package or by request (outward contact, through the owner) | one chaining rule in `wet_station_daily()` and one registry and snapshot rebuild serve all three; #190 says which provincial copy is current before the Tool's copy is set beside it; all three split from move 8 |
+| 15 | #195 | second sources for the provincial stations: #144 | 1 | which copy at the six shared sites, and one rule for a second publisher's earlier record under a provincial number; whether the province's portal is read (its click-through disclaimer is the owner's to accept); Hakai's record from its published data package or by request (outward contact, through the owner) | one chaining rule in `wet_station_daily()` and one registry and snapshot rebuild serve all three; #190 says which provincial copy is current before the Tool's copy is set beside it; all three split from move 8 |
 | 16 | #196 | regulation per non-HYDAT station: #191 | 1 | the natural, regulated and unknown rule, registered before it is applied; which registers; whether a status can differ by window | one column over the registry batch 15 settles, provincial and Tool stations both; the prerequisite for any non-HYDAT donor (#118) |
 
 ### 1. Province inputs and run comparison
@@ -187,7 +187,8 @@ Split from move 5 at its plan gate (2026-11-18): counted against the four chinoo
 networks hold no station with a 1981–2010 baseline, so they add no donor there (#167's body).
 
 Split again at move 8's own plan gate (2026-11-22): #142 lands here; #144 is its own PR after it and is carried by
-batch 15, with #190, #191 and #192, which move 8 filed for what it left out.
+batch 15, with #190, #191 and #192, which move 8 filed for what it left out (#190 and #192 split from batch 15 at move 13's
+resume, 2026-11-23, for the next sweep to place).
 
 ### 8. PCIC's per-year files at the sites
 
@@ -289,6 +290,11 @@ years ask one question: how a second publisher's record continues a provincial s
 `wet_station_daily()` answers today only for HYDAT numbers. One rule serves both. #190 says whether the pinned provincial
 snapshot is the current copy before the Tool's copy is set beside it, and a newer snapshot rebuilds the registry this batch
 extends anyway.
+
+Split at move 13's resume (2026-11-23): this batch carries #144 and the chaining rule (the owner chose to chain a second
+publisher's earlier days under the provincial number). #190 waits on the owner accepting the Aquarius portal's
+disclaimer, and #192 on Hakai's data route; each is its own issue again, its owner question in its body, for the next
+`/backlog-sweep` to place.
 
 **Touches:** `R/wet_station_daily.R`, `R/wet_station_list.R`, `data-raw/station_sources_snapshot.R`, `inst/extdata/station_sources/`, `research/station_sources.md`, `tests/testthat/test-wet_station_daily.R`, `tests/testthat/test-wet_station_list.R`, and new readers with their tests and a report under the checks folder (named at the plan gate)
 
