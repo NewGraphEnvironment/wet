@@ -24,12 +24,7 @@ No gate ran in this pane: the park was dispatched by the coordinator (2026-11-23
 - **The data stays in the main checkout.** The worktree has no `data/wb`; the scripts read `data/` relative to the working directory through `scripts/wb_fit_lib.R`. Run them from the worktree with `data/wb`, `data/wb_term` and `data/hydz` symlinked to the main checkout's (all gitignored; confirm `git status --porcelain` stays empty), and write run logs straight into the main checkout's `data/logs/188/`.
 - **Check B's thresholds (the owner, 2026-11-23): as drafted** — ±5 % median, ≥3.0-point MAE gain at small gauges, ≤1.0-point loss at the rest, bootstrap "undecided" band. Written into #188's body under "## Decisions".
 - No comment on #188, #176, #178, #44 or #185 asks for anything (read 2026-11-23: only claim notices on #188).
-
-## Open decisions
-
-None open. Decision 1 (check B's thresholds) was answered by the owner on 2026-11-23, above.
-
-Settled by the Plan review as mechanism, no longer asked: **which candidates the follow-up scores.** Zone-line blending (#44) enters whatever the diagnosis finds; the trait regression enters only if check B passes. The follow-up has its own gate, where its ship rule is settled.
+- Settled by the Plan review as mechanism, not asked: **which candidates the follow-up scores.** Zone-line blending (#44) enters whatever the diagnosis finds; the trait regression enters only if check B passes. The follow-up has its own gate, where its ship rule is settled.
 
 ## Phase 0: Data setup (added by the Plan review)
 
@@ -116,11 +111,11 @@ Tasks:
 - [x] Edit issue bodies (edit, never a correcting comment): #176 ticks its to-do items with the verdict and report path, naming the traits tested and those not; #178 ticks items 1 and 2, keeps item 3 open, and names the follow-up for item 4; #44 names the follow-up as where it is scored; #188 says what the move carried and names the follow-up. Resolve every issue number the branch introduces with `gh issue view` before the pull request.
 - [x] `CLAUDE.md`, Architecture: one entry each for `scripts/wb_small_basin.R` and `scripts/wally_compare.R`, in the style of the `wb_term_diagnose.R` entry (rule registered where, report path, what it needs). `research/README.md` rows current.
 - [x] Assert the fit is not staled: `git diff --stat origin/main...HEAD -- scripts/wb_score_md5.R scripts/wb_cv_lib.R scripts/wb_gate_rule.R scripts/wb_validate.R scripts/wb_aet_compare.R R/wet_wb_fit.R R/wet_wb_adjust.R R/wet_share_fit.R R/wet_share_predict.R R/wet_donor_mean.R R/wet_flow_validate.R R/wet_cv_folds.R R/wet_wb_raw.R R/wet_mm_to_m3s.R` prints nothing.
-- [ ] Pull request body: `Fixes #176`, `Fixes #185`; `Relates to #178, #44, #188`.
+- [x] Pull request body: `Fixes #176`, `Fixes #185`; `Relates to #178, #44, #188`.
 
 ## Owed at the end (reported, done after merge)
 
-- [ ] Move the worktree's run logs, if any landed under its own `data/logs/`, into the main checkout's `data/logs/188/` before the worktree is removed.
+- [x] Move the worktree's run logs, if any landed under its own `data/logs/`, into the main checkout's `data/logs/188/` before the worktree is removed. (None did: the worktree's `data/logs/188` is a symlink to the main checkout's, so every log was written there.)
 
 ## Validation
 
@@ -128,7 +123,7 @@ Tasks:
 - [x] `lintr::lint_package()` adds no lint (new files: none in `wally_compare.R` or the test; in `wb_small_basin.R` only `#45's` comments read as code and functions sourced from other scripts, as existing scripts carry; one indentation lint in the registered rule file, left unchanged)
 - [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
 - [x] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion; the archive README carries `## Measurement` and `## Evidence` (log prefix `data/logs/188/`)
+- [x] `/planning-archive` on completion; the archive README carries `## Measurement` and `## Evidence` (log prefix `data/logs/188/`)
 
 How each change is proved:
 
