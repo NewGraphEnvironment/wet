@@ -1,5 +1,22 @@
 # Changelog
 
+## wet 0.4.42
+
+- No change to the package’s functions. The water balance’s small-basin
+  error is diagnosed under a rule registered before any check ran
+  (`scripts/wb_small_basin.R`,
+  [\#176](https://github.com/NewGraphEnvironment/wet/issues/176),
+  [\#188](https://github.com/NewGraphEnvironment/wet/issues/188)): its
+  +14 % median at gauges under 100 km² comes in with the zone
+  adjustment, where raw P − AET is +1.9 %. WALLY’s zone regressions are
+  compared desk-side at a pinned commit (`scripts/wally_compare.R`,
+  `research/wally.md`,
+  [\#178](https://github.com/NewGraphEnvironment/wet/issues/178)), and
+  `research/monthly_error.md` is arranged by subject
+  ([\#185](https://github.com/NewGraphEnvironment/wet/issues/185)). The
+  candidate fixes are filed as
+  [\#199](https://github.com/NewGraphEnvironment/wet/issues/199).
+
 ## wet 0.4.41
 
 - [`wet_station_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_station_daily.md)

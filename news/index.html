@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.41</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.42</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,6 +39,10 @@
       <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.42" id="wet-0442">wet 0.4.42<a class="anchor" aria-label="anchor" href="#wet-0442"></a></h2>
+<ul><li>No change to the package’s functions. The water balance’s small-basin error is diagnosed under a rule registered before any check ran (<code>scripts/wb_small_basin.R</code>, <a href="https://github.com/NewGraphEnvironment/wet/issues/176" class="external-link">#176</a>, <a href="https://github.com/NewGraphEnvironment/wet/issues/188" class="external-link">#188</a>): its +14 % median at gauges under 100 km² comes in with the zone adjustment, where raw P − AET is +1.9 %. WALLY’s zone regressions are compared desk-side at a pinned commit (<code>scripts/wally_compare.R</code>, <code>research/wally.md</code>, <a href="https://github.com/NewGraphEnvironment/wet/issues/178" class="external-link">#178</a>), and <code>research/monthly_error.md</code> is arranged by subject (<a href="https://github.com/NewGraphEnvironment/wet/issues/185" class="external-link">#185</a>). The candidate fixes are filed as <a href="https://github.com/NewGraphEnvironment/wet/issues/199" class="external-link">#199</a>.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.41" id="wet-0441">wet 0.4.41<a class="anchor" aria-label="anchor" href="#wet-0441"></a></h2>
 <ul><li>
