@@ -1,6 +1,6 @@
 # PCIC's channel-scale output on the FWA
 
-**Verified:** 2026-11-23 · **Issues:** #9 (the pilot PCIC suggested), #168 (backlog move 6, which ran it); feeds #169 (move 7: #4 scenarios, #5 coverage) · **Produced by:** `scripts/channel_scale_pilot.R` → `data/checks/channel_scale_pilot_20260717.txt`, HYDAT 2026-07-17, fwapg 5d50cc1's `pcic` schema, the live published build (512 parts, parts digest d554e3aa…), hydromosaic's series fetched on 2026-11-23. The rules were registered in the script's header at 7d6c7b1 (01:46:50 UTC), before the first fetch (01:47:59 UTC). One amendment was made after the numbers were seen: rule 3's CMIP6 listing check, below. Two runs from the cache gave a byte-identical report (`data/logs/168/`).
+**Verified:** 2026-11-23 · **Issues:** #9 (the pilot PCIC suggested), #168 (backlog move 6, which ran it); feeds #169 (move 7: #4 scenarios, #5 coverage) · **Produced by:** `scripts/channel_scale_pilot.R` → `data/checks/channel_scale_pilot_20260717.txt`, HYDAT 2026-07-17, fwapg 5d50cc1's `pcic` schema, the live published build (512 parts, parts digest d554e3aa…), hydromosaic's series fetched on 2026-11-23. The rules were registered in the script's header at 7d6c7b1 (01:46:50 UTC), before the first fetch the script logged (01:47:59 UTC); the listing probes made while planning read no flow value. One amendment was made after the numbers were seen: rule 3's CMIP6 listing check, below. Two runs from the cache gave a byte-identical report (`data/logs/168/`).
 
 ## Verdict
 
@@ -24,7 +24,7 @@ By the registered rules, move 7 builds:
 - fwapg's crosswalk (`extras/pcic_crosswalk`) places those outlets on the FWA, and wet publishes its PNWNAmet run as routed PCIC. Scaling PCIC's output to the whole network, #9's question, is already done for the PNWNAmet run; for a CMIP6 run it is the same job with `MODEL` and `SCENARIO` set.
 - hydromosaic lists CMIP6 streamflow at every scored outlet in the Peace and Columbia, where PCIC's July 2026 correspondence said those domains were still to be added. Whether those series are the released product or an earlier run is PCIC's to say.
 - On the coast TaiESM1 has no series at any of the 74 outlets scored; the other 8 GCMs are complete.
-- The historical half of each SSP's series is its own: `historical, ssp585` differs from `historical, ssp245` before 2015 (by up to 720 m³/s on a day at the six sites), though their 1981–2010 annual flows agree within about 3.5 % at the six sites. MBCn corrects each scenario on its own, so a change signal is taken against the same scenario's 1981–2010.
+- The historical half of each SSP's series is its own: `historical, ssp585` differs from `historical, ssp245` before 2015 (by up to 720 m³/s on a day at the six sites), though their 1981–2010 annual flows agree within about 3.5 % at the six sites. Why is PCIC's to say (correcting each scenario on its own with MBCn would do it); either way a change signal is taken against the same scenario's 1981–2010.
 
 ## The six sites
 

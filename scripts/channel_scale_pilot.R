@@ -117,6 +117,13 @@
 #   outlet lists streamflow for at least one GCM under both SSPs, and the
 #   report says how many GCMs each domain has. Rule 2's "median over the 9
 #   GCMs" is a median over the 8 on the coast.
+# - "The domain's outlets" is read at the scored gauges' outlets only (27 to
+#   74 per domain), not at every outlet of the domain; the report labels it so.
+# - The site table is held whole to the rules, in the rules' row order: the
+#   stations the rule names for the four gauged types, and for the two
+#   rule-chosen sites the snapped station on the picked segment, if any (the
+#   confluence's segment is 08MB006's). Before code review round 2 the table's
+#   station cell for a rule-chosen site went unchecked.
 
 devtools::load_all(quiet = TRUE)
 source("scripts/wb_fit_lib.R")      # wb_release(), wb_hydat(), wb_stations_path()
@@ -586,7 +593,16 @@ hw <- pick_headwater()
 cf <- pick_confluence()
 # every site's row as the rules and the snapped stations give it; the table
 # must hold exactly these
-want <- sites[c("site_id", "type", "name", "station")]
+types <- c("headwater", "tributary", "lake_outlet", "confluence", "mainstem", "glacier")
+named <- c(tributary = "08KC001", lake_outlet = "08KH001", mainstem = "08MF005", glacier = "08MG005")
+want <- sites[match(types, sites$type), c("site_id", "type", "name", "station")]
+want$type <- types
+on_seg <- function(lfid) {
+  s <- st_all$station_number[st_all$linear_feature_id %in% lfid]
+  if (length(s) == 1L) s else if (!length(s)) NA_character_ else stop("two stations on segment ", lfid, call. = FALSE)
+}
+want$station <- ifelse(types %in% names(named), named[types],
+                       c(headwater = on_seg(hw$lfid), confluence = on_seg(cf$upper_lfid))[types])
 want$linear_feature_id <- ifelse(want$type == "headwater", hw$lfid, ifelse(want$type == "confluence", cf$upper_lfid,
                                  as.numeric(snapped$linear_feature_id[match(want$station, snapped$station_number)])))
 stopifnot(!anyNA(want$linear_feature_id))
@@ -626,7 +642,9 @@ seg_meta <- DBI::dbGetQuery(conn, sprintf("
   FROM whse_basemapping.fwa_stream_networks_sp WHERE linear_feature_id IN (%s) ORDER BY linear_feature_id",
   paste(sprintf("%.0f", sites$linear_feature_id), collapse = ", ")))
 sites <- merge(sites, seg_meta, by = "linear_feature_id", all.x = TRUE, sort = FALSE)
-sites <- sites[match(c("headwater", "tributary", "lake_outlet", "confluence", "mainstem", "glacier"), sites$type), ]
+sites <- sites[match(types, sites$type), ]
+rownames(sites) <- NULL
+si <- match(sites$linear_feature_id, w_s$linear_feature_id)   # again, in the table's order after the merge
 site_ws <- lut(sites$linear_feature_id)
 sites$watershed_feature_id <- site_ws$watershed_feature_id[match(sites$linear_feature_id, site_ws$linear_feature_id)]
 ai <- match(sites$watershed_feature_id, acc$watershed_feature_id)
