@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.40</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.41</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,6 +39,12 @@
       <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.41" id="wet-0441">wet 0.4.41<a class="anchor" aria-label="anchor" href="#wet-0441"></a></h2>
+<ul><li>
+<code><a href="../reference/wet_station_daily.html">wet_station_daily()</a></code> reads the province’s non-integrated hydrometric stations (<a href="https://github.com/NewGraphEnvironment/wet/issues/179" class="external-link">#179</a>): given a provincial number (<code>"08EE0001"</code>), it returns that station’s daily flow from a pinned snapshot of the province’s hourly files (<code>sources = "bcenv"</code>). Days above a plausibility bound measured on HYDAT, per WSC sub-drainage, are dropped; a day with any ungraded hour is <code>"unchecked"</code>, and <code>frac_provisional</code> now counts every status but <code>"approved"</code>. Under the survey’s own rules the reader reproduces it (<a href="https://github.com/NewGraphEnvironment/wet/issues/123" class="external-link">#123</a>, <a href="https://github.com/NewGraphEnvironment/wet/issues/142" class="external-link">#142</a>). These stations are records and held-out tests, not donors, until their regulation is known (<a href="https://github.com/NewGraphEnvironment/wet/issues/191" class="external-link">#191</a>).</li>
+<li>duckdb 1.2.0 or later is required.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.40" id="wet-0440">wet 0.4.40<a class="anchor" aria-label="anchor" href="#wet-0440"></a></h2>
 <ul><li>

@@ -1,5 +1,23 @@
 # Changelog
 
+## wet 0.4.41
+
+- [`wet_station_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_station_daily.md)
+  reads the province’s non-integrated hydrometric stations
+  ([\#179](https://github.com/NewGraphEnvironment/wet/issues/179)):
+  given a provincial number (`"08EE0001"`), it returns that station’s
+  daily flow from a pinned snapshot of the province’s hourly files
+  (`sources = "bcenv"`). Days above a plausibility bound measured on
+  HYDAT, per WSC sub-drainage, are dropped; a day with any ungraded hour
+  is `"unchecked"`, and `frac_provisional` now counts every status but
+  `"approved"`. Under the survey’s own rules the reader reproduces it
+  ([\#123](https://github.com/NewGraphEnvironment/wet/issues/123),
+  [\#142](https://github.com/NewGraphEnvironment/wet/issues/142)). These
+  stations are records and held-out tests, not donors, until their
+  regulation is known
+  ([\#191](https://github.com/NewGraphEnvironment/wet/issues/191)).
+- duckdb 1.2.0 or later is required.
+
 ## wet 0.4.40
 
 - [`wet_segment_monthly()`](https://newgraphenvironment.github.io/wet/reference/wet_segment_monthly.md)

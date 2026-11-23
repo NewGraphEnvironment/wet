@@ -246,13 +246,13 @@ The software, each cited:
   2025](#ref-base)).
 
 The data were bundled at `wet` commit `af968ab3`; this build ran on
-`wet` 0.4.40, `cd` 0.6.13, commit 20e6df2, `gq` 0.25.0 and commit
+`wet` 0.4.41, `cd` 0.6.13, commit 20e6df2, `gq` 0.25.0 and commit
 6cf0856. To cite `wet`:
 
 Irvine A (2026). *wet: Stream Flow and Water Temperature for the BC
 Freshwater Atlas*. New Graph Environment Ltd.
 <doi:10.5281/zenodo.23305781> <https://doi.org/10.5281/zenodo.23305781>.
-Version 0.4.40, <https://github.com/NewGraphEnvironment/wet>.
+Version 0.4.41, <https://github.com/NewGraphEnvironment/wet>.
 
 ## References
 
