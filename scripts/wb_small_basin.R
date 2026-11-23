@@ -106,8 +106,8 @@
 #   3. Found by later review rounds: a copy of verdict() and its two constants could drift from
 #      scripts/wb_term_diagnose.R, and the cache's other columns were not tied to #45's current code.
 #      check C now evaluates #45's constants, derivations, ECCC filter and verdict() from its script
-#      by parse() instead of copying them, and holds the cache's base columns to #45's content-keyed
-#      caches (C above). Where this text says verdict() is "copied verbatim", read "taken from
+#      by parse() instead of copying them, and holds the cache's base columns and its set of rows to
+#      #45's content-keyed caches (C above). Where this text says verdict() is "copied verbatim", read "taken from
 #      #45's script". It changes no number.
 
 # Registered at 9f5a0da ("Register the small-basin diagnosis rule (#176)").
@@ -282,7 +282,8 @@ stale <- function(why) {
   stop("data/wb_term/diagnose_", release, ".rds is not what ", f_term, " makes from this fit now (", why,
        "): rerun it", call. = FALSE)
 }
-t45 <- new.env(parent = globalenv())
+# parent: the attached packages, not this script's globals, so #45's statements see only each other and wet
+t45 <- new.env(parent = parent.env(globalenv()))
 term_exprs <- as.list(parse(f_term, keep.source = FALSE))
 target <- function(x) {
   if (is.call(x) && identical(x[[1]], as.name("<-"))) paste(deparse(x[[2]]), collapse = "") else ""
@@ -292,8 +293,8 @@ run45 <- function(names_kept) {
   for (x in hit) eval(x, t45)
   vapply(hit, target, "")
 }
-run45(c("years", "min_basins", "omega_max", "out_dir", "vars", "pcic_run", "hz_zip", "pcic_code", "pcic_key",
-        "eccc_key", "f_eccc"))
+run45(c("years", "basins", "min_cover", "min_basins", "omega_max", "out_dir", "vars", "pcic_run", "hz_zip",
+        "pcic_code", "pcic_key", "eccc_key", "f_eccc"))
 stopifnot(!anyNA(t45$pcic_code))
 derived <- c("r_o", "r_c", "dp", "da", "gap", "overshoot", "closure", "a_imp", "le_o", "le_c", "le_cv", "w_harg",
              "w_pcic", "fu_dom", "cf_p", "cf_model")
@@ -316,18 +317,24 @@ for (j in seq_len(nrow(b))) {
     if (!same) stale(paste(v, "at", b$station_number[j]))
   }
 }
-# PCIC's columns, against #45's upstream cache for its current key
+# PCIC's columns, against #45's upstream cache for its current key; and the row set, which #45 makes
+# from its basins' gauged watersheds with PCIC over at least `min_cover` of them, one row per watershed
 cols_pcic <- c(names(t45$vars), "pcic_cover")
-for (code in unique(b$basin)) {
+if (anyDuplicated(b$watershed_feature_id)) stale("a watershed in two rows")
+want_ws <- integer()
+for (code in t45$basins) {
   f_up <- file.path(t45$out_dir, sprintf("pcic_upstream_%s_%s.rds", code, t45$pcic_key))
   if (!file.exists(f_up)) stale(paste("no", basename(f_up), "for its current code"))
   up <- readRDS(f_up)
   up$pcic_cover <- up$coverage
+  want_ws <- c(want_ws, up$watershed_feature_id[up$watershed_feature_id %in% cal$watershed_feature_id &
+                                                  up$pcic_cover >= t45$min_cover])
   i <- b$basin == code
   k <- match(b$watershed_feature_id[i], up$watershed_feature_id)
   if (anyNA(k)) stale(paste("basin", code, "lacks a gauge's watershed"))
   for (v in cols_pcic) if (!isTRUE(all.equal(b[[v]][i], up[[v]][k]))) stale(paste(v, "in basin", code))
 }
+if (!setequal(want_ws, b$watershed_feature_id) || !all(b$basin %in% t45$basins)) stale("the set of basins")
 # #45's derivations, its ECCC table, med() and verdict(), from its script
 if (!file.exists(t45$f_eccc)) stale(paste("no", basename(t45$f_eccc), "for its current code"))
 derived_run <- run45(c(paste0("b$", derived), "lerr", "omega_implied", "ec", "ec$ratio", "med", "verdict"))
