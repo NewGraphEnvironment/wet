@@ -217,11 +217,9 @@ if (length(seg_commit) != 1L) stop(f_seg_report, " names no wet commit")
 # while a file left off the exclusions only forces a rebuild. The vignette
 # data guards read the published tree and this report, and only data-raw/
 # sources them.
-# wet_segment_daily() and scripts/segment_group.R read the published product
-# and feed no table (#164), as wet_catalog() and wet_db_load() do.
-publish_own <- c("R/wet_catalog.R", "R/wet_db_load.R", "R/wet_values_compare.R", "R/wet_segment_daily.R",
-                 "scripts/discharge_publish.R", "scripts/discharge_publish_lib.R", "scripts/vignette_data_lib.R",
-                 "scripts/segment_group.R")
+# The exclusions are scripts/discharge_publish_own.R's, shared with
+# scripts/segment_daily_output.R (#171).
+source("scripts/discharge_publish_own.R")  # publish_own: the one list of non-inputs (#171)
 # the daily table is made after the monthly one and from it, so its script is
 # no input of the monthly table
 daily_own <- "scripts/segment_daily_output.R"

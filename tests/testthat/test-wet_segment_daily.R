@@ -10,7 +10,7 @@ daily_values <- function() {
   parts <- discharge_fixture_parts()
   d <- parts[grepl("^segment_daily", names(parts))]
   src <- sub(".*source=([a-z_]+)/.*", "\\1", names(d))
-  out <- do.call(rbind, Map(function(x, s) data.frame(x[c("linear_feature_id", "doy", "q_m3s")], source = s), d, src))
+  out <- do.call(rbind, Map(function(x, s) data.frame(x[c("linear_feature_id", "doy", "q_m3s", "pick")], source = s), d, src))
   rownames(out) <- NULL
   out
 }
@@ -19,14 +19,16 @@ test_that("the daily parts give each source's 365 days, in the monthly reader's 
   cat <- daily_catalog()
   expect_setequal(cat$code[cat$dataset == "discharge/fwa/v1/segment_daily"], "SALR")
   out <- wet_segment_daily(NULL, c(701002, 701001), groups = "SALR", catalog = cat)
-  expect_named(out, c("linear_feature_id", "doy", "q_m3s", "source"))
+  expect_named(out, c("linear_feature_id", "doy", "q_m3s", "source", "pick"))
   expect_type(out$doy, "integer")
+  expect_type(out$pick, "logical")
   expect_identical(nrow(out), 4L * 365L)
   expect_identical(out$source, rep(c("pcic_routed", "wet_balance"), each = 730))
   expect_identical(out$doy, rep(1:365, 4))
   fx <- daily_values()
   key <- function(d) paste(d$source, d$linear_feature_id, d$doy)
   expect_equal(out$q_m3s, fx$q_m3s[match(key(out), key(fx))])
+  expect_identical(out$pick, fx$pick[match(key(out), key(fx))])
   # what wet_flow_window() does with it
   w <- wet_flow_window(out, data.frame(window = "jan", start = "01-01", end = "01-31"))
   expect_identical(unique(w$basis), "daily")
@@ -54,7 +56,9 @@ test_that("a missing segment is 365 NA rows", {
   out <- wet_segment_daily(NULL, c(999, 701001), source = "wet_balance", groups = "SALR", catalog = cat)
   expect_identical(nrow(out), 730L)
   expect_true(all(is.na(out$q_m3s[out$linear_feature_id == 999L])))
+  expect_true(all(is.na(out$pick[out$linear_feature_id == 999L])))
   expect_false(anyNA(out$q_m3s[out$linear_feature_id == 701001L]))
+  expect_false(anyNA(out$pick[out$linear_feature_id == 701001L]))
 })
 
 test_that("the daily dataset loads into Postgres keyed by doy, for named groups, and reads as the parts", {
@@ -85,6 +89,8 @@ test_that("the daily dataset loads into Postgres keyed by doy, for named groups,
   from_pq <- wet:::wet_segment_read(NULL, ds, c(701001, 701002), c("pcic_routed", "wet_balance"), "published",
                                     "historical", "SALR", cat)
   expect_equal(from_pg, from_pq)
+  expect_type(from_pg$pick, "logical")
+  expect_false(anyNA(from_pg$pick))
   # a subset of days and groups is recorded
   wet_db_load(conn, cat, ds, doys = 1:31, groups = "SALR", cache_dir = withr::local_tempdir())
   expect_identical(DBI::dbGetQuery(conn, paste("SELECT count(*)::int AS n FROM", tbl))$n, 4L * 31L)

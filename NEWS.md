@@ -1,3 +1,7 @@
+# wet (development version)
+
+* `wet_segment_monthly()` and `wet_segment_daily()` return `pick`, a logical column last: `TRUE` where the source is the segment's default, `NA` on a missing segment's rows and, from fwapg's table, on every row (#177). The two guards that hold a publish to the code its tables were built from, in `scripts/discharge_publish.R` and `scripts/segment_daily_output.R`, now exclude one shared list of files no table reads, `scripts/discharge_publish_own.R`, which gains the readers and the chinook-site and departure code (#171).
+
 # wet 0.4.39
 
 * Departures at the chinook sites can be borrowed from the gauges whose years PCIC's model says move most like the stream's (#147, #167). Each site report gains a section 6 that scores `covariance_pick` against the five nearest gauges at the box's PCIC-covered gauges, under a rule registered before any run; it ships at Maxan, Naver and Gosnell creeks, and Swift Creek keeps the nearest. The comparison article carries each stream's shipped route, says in plain words how donors are chosen, and states Maxan's 10-year 1951–1980 base; `wet_departure_carry()`'s help page gains the step-by-step. PCIC's per-year files now come from a per-machine cache filled from the public bucket, each file kept only at its `pcic.series` size, with `WET_PCIC_YEARS` still naming any other directory (#135).
