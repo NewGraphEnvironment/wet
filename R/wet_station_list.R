@@ -41,7 +41,7 @@ wet_station_list <- function(sources = "bcenv", snapshot = wet_bcenv_snapshot) {
              network = "BC ENV non-integrated hydrometric network", first = s$first, last = s$last,
              regulation = s$regulation, hydat_site = s$hydat_site, hydat_km = s$hydat_km,
              licence = "OGL-BC 2.0",
-             credit = "Contains information licensed under the Open Government Licence – British Columbia")
+             credit = "Contains information licensed under the Open Government Licence \u2013 British Columbia")
 }
 
 # The station registry of a provincial snapshot, written with the snapshot by

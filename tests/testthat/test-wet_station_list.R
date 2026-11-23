@@ -8,7 +8,7 @@ test_that("the provincial list is one row per station with the documented column
   expect_s3_class(s$first, "Date")
   expect_true(all(s$first <= s$last, na.rm = TRUE))
   expect_true(all(s$source == "bcenv") && all(s$licence == "OGL-BC 2.0"))
-  expect_match(s$credit[1], "Open Government Licence – British Columbia", fixed = TRUE)
+  expect_match(s$credit[1], "Open Government Licence \u2013 British Columbia", fixed = TRUE)
   expect_true(all(s$regulation %in% c("unknown", "regulated by name")))
   # BC's longitudes and latitudes
   expect_true(all(s$lon > -140 & s$lon < -114 & s$lat > 48 & s$lat < 60.1))
