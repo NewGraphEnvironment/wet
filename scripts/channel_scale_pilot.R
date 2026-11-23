@@ -805,7 +805,7 @@ wt_cmp <- do.call(rbind, lapply(gauged, function(s) {
   pc <- data.frame(date = dl$dates, pcic = dl$v[, match(sub, dl$ids)])
   ob <- if (is.null(obs_t)) NULL else obs_t[obs_t$station_number == s, ]
   if (is.null(ob) || !nrow(ob)) return(data.frame(station = s, n = 0L, bias = NA, rmse = NA))
-  m <- merge(pc, data.frame(date = as.Date(ob$date), obs = ob$value), by = "date")
+  m <- merge(pc, data.frame(date = as.Date(ob$date), obs = ob$t_mean_c), by = "date")
   data.frame(station = s, n = nrow(m), bias = if (nrow(m)) mean(m$pcic - m$obs) else NA,
              rmse = if (nrow(m)) sqrt(mean((m$pcic - m$obs)^2)) else NA)
 }))

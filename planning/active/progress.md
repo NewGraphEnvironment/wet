@@ -42,3 +42,11 @@ Start Phase 1 and run every phase to the PR (/code-check branch, /planning-archi
 /gh-pr-push). This message is the resume instruction that starts the run-to-PR
 mandate; the merge stays with me.
 ```
+
+## Resume and Phases 1-2, 2026-11-23 (m1)
+
+- Resumed in worktree `wet-168`; nothing in the plan's files had moved on origin/main since the park, so the plan stood.
+- The owner chose the recommended answer of each open decision: 1 (d) all scored gauges, 2 the six sites, 3 (b) CMIP5 to move 7, 4 (a) water temperature as climatology, 5 (a) 90 % / median.
+- Phase 1: database up, fingerprint equal to the tracked routed report (fwapg 5d50cc1); probes in `findings.md`; the rule block registered at 7d6c7b1 (2026-11-23 01:46:50 UTC), before the first fetch.
+- Phase 2: the site table written from the rules' picks (1ad0efc), which the script refuses to differ from.
+- Commits: 7d6c7b1 (rules), dd0cdbf, 3c05244, 6f4871d (the site check, git quoting, the stations path), 1ad0efc (site table).
