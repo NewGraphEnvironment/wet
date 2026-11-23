@@ -148,11 +148,11 @@ say("## 1. WALLY's predictors, from its own Table 1 (PDF p. 62), before any of o
     "minimum R2 over 30 random 70/30 splits (MkMGR, PDF p. 23). The coefficients are unstandardized, so the",
     "table ranks no trait inside a zone; a trait in a zone's chosen model is counted as used there.",
     "",
-    sprintf("%-9s %s", "zone", paste(sprintf("%-6s", c("precip", "slope", "DA", "glc", "elev", "PET", "solexp")),
-                                      collapse = " ")))
+    sprintf("%-9s %s", "zone",
+            paste(sprintf("%-6s", c("precip", "slope", "DA", "glc", "elev", "PET", "solexp")), collapse = " ")))
 for (k in seq_len(nrow(zt))) {
-  say(sprintf("%-9s %s", zt$zone[k], paste(sprintf("%-6s", ifelse(unlist(zt[k, names(cols_pred)]) == 1, "x", "")),
-                                         collapse = " ")))
+  marks <- ifelse(unlist(zt[k, names(cols_pred)]) == 1, "x", "")
+  say(sprintf("%-9s %s", zt$zone[k], paste(sprintf("%-6s", marks), collapse = " ")))
 }
 used <- colSums(zt[names(cols_pred)])
 say(sprintf("%-9s %s", "zones", paste(sprintf("%-6d", used), collapse = " ")),
@@ -191,12 +191,14 @@ say("## 2. Gauge filters",
 in_w <- ours$station_number %in% wt$station_number[wt$kept]
 in_w_all <- ours$station_number %in% wt$station_number
 wk <- wt[wt$kept, ]
-why <- ifelse(!wk$regulated %in% 0, "regulated or no regulation record in HYDAT",
-       ifelse(!wk$station_number %in% s$stations$station_number, "fewer than 10 complete years in 1981-2010",
-       ifelse(!wk$station_number %in% s$stations$station_number[s$stations$accepted], "FWA area outside 10 %",
-       ifelse(!wk$station_number %in% ours$station_number, "under 95 % in BC or on the grid", "a calibration gauge"))))
-why_ours <- ifelse(in_w, "in WALLY's training set",
-            ifelse(in_w_all, "in WALLY's table, dropped by its allocation filter", "not in WALLY's table"))
+why <- rep("a calibration gauge", nrow(wk))
+why[!wk$station_number %in% ours$station_number] <- "under 95 % in BC or on the grid"
+why[!wk$station_number %in% s$stations$station_number[s$stations$accepted]] <- "FWA area outside 10 %"
+why[!wk$station_number %in% s$stations$station_number] <- "fewer than 10 complete years in 1981-2010"
+why[!wk$regulated %in% 0] <- "regulated or no regulation record in HYDAT"
+why_ours <- rep("not in WALLY's table", nrow(ours))
+why_ours[in_w_all] <- "in WALLY's table, dropped by its allocation filter"
+why_ours[in_w] <- "in WALLY's training set"
 say("## 3. Station overlap",
     "",
     sprintf("%d of our %d calibration gauges are among WALLY's %d training stations: a WALLY score there is in-sample.",
@@ -260,9 +262,11 @@ for (k in seq_len(nrow(by_zone))) {
 rd <- by_zone[by_zone$n >= 5, ]
 rr <- rd[rd$n_r >= 5, ]
 say("",
-    sprintf("Readable zone classes (5 or more of our gauges): %d of %d. Median over them: WALLY R2 %.0f %% (MIN R2 %.0f %%),",
+    sprintf(paste0("Readable zone classes (5 or more of our gauges): %d of %d. ",
+                   "Median over them: WALLY R2 %.0f %% (MIN R2 %.0f %%),"),
             nrow(rd), nrow(by_zone), stats::median(rd$w_r2), stats::median(rd$w_min)),
-    sprintf("the balance's held-out R2 %.0f %%; routed PCIC's %.0f %% over the %d classes with 5 or more shared gauges.",
+    sprintf(paste0("the balance's held-out R2 %.0f %%; routed PCIC's %.0f %% over the %d classes ",
+                   "with 5 or more shared gauges."),
             100 * stats::median(rd$b_r2), 100 * stats::median(rr$r_r2), nrow(rr)),
     sprintf("RMSE over STEYX, median: balance %.2f, routed PCIC %.2f (above 1, ours scatters more than WALLY's fit).",
             stats::median(rd$b_rmse / rd$w_steyx), stats::median(rr$r_rmse / rr$w_steyx)),
@@ -271,7 +275,8 @@ say("",
     "")
 say("## 5. Across the province",
     "",
-    sprintf("WALLY: MkMGR's 27 zone models average R2 %d %% (MIN R2 %d %%); its XGBoost model, R2 %d %% and STEYX %.1f l/s/km2",
+    sprintf(paste0("WALLY: MkMGR's 27 zone models average R2 %d %% (MIN R2 %d %%); ",
+                   "its XGBoost model, R2 %d %% and STEYX %.1f l/s/km2"),
             round(mean(zt$r2)), round(mean(zt$min_r2)), xg$r2, xg$steyx),
     sprintf("over %d stations, predicted against measured on all data (PDF p. 62, note C).", xg$n),
     sprintf("Ours, held out, all %d gauges: the balance R2 %s, RMSE %.1f l/s/km2; routed PCIC at its %d shared gauges",

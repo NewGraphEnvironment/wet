@@ -8,7 +8,7 @@ WALLY, the province's Water Allocation Data Library, estimates mean annual runof
 
 - **WALLY's models lean on precipitation, slope and glacier cover.** Of its 27 zone models, precipitation is in 16, average slope in 15, glacier cover in 14, potential ET in 13, median elevation in 12, solar exposure in 8 and drainage area in 2.
 - **Its gauge set is close to ours but not natural-flow only.** 280 of our 315 calibration gauges are among its 482 training stations, so a WALLY score there is in-sample. It filters on licensed use, not regulation: HYDAT flags 110 of its 482 stations as regulated.
-- **Its published scores are not held out, and ours are, so the two are not a race.** In each zone WALLY's R² is computed over training and test stations together. Its median zone R² is 90 %, against the balance's held-out 60 % and routed PCIC's 74 % on the same zone classes. Province-wide, the held-out balance reaches R² 87 % and routed PCIC 90 %, against WALLY's in-sample XGBoost 96 %.
+- **Its published scores are not held out, and ours are, so the two are not a race.** In each zone WALLY's R² is computed over training and test stations together. Over the 25 zone classes holding 5 or more of our gauges, its median zone R² is 90 %, against the balance's held-out 60 %; routed PCIC's is 74 % over the 23 classes with 5 or more of its gauges. Province-wide, the held-out balance reaches R² 87 % and routed PCIC 90 %, against WALLY's in-sample XGBoost 96 %.
 
 ## What WALLY's models use
 

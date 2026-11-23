@@ -92,7 +92,17 @@
 # term with its corroboration, otherwise unresolved there (sb_attribution()). B's verdict is
 # reported beside it; a pass enters the trait regression in the follow-up issue's candidates.
 #
-# Amendments after numbers were seen: none.
+# Amendments after numbers were seen:
+#   1. Found by code review after the first run: the verdict functions registered with this header
+#      (scripts/wb_small_basin_rule.R, 9f5a0da) can return two outcomes this text does not name.
+#      sb_reading_contrast() returns "unreadable" when a split has no readable class, where this
+#      text reads "concentrated"; sb_attribution() returns "ours and theirs, P" when check C reads
+#      "P side, shared (ours and theirs)", where this text reads "ours, P". Neither fires in this
+#      run (A reads "concentrated", C "compensating"), so no verdict moves; the functions stay as
+#      registered.
+#   2. Found by the same review: check C reads #45's cache, which records its release but not the
+#      fit it was made from. The script now refuses a cache whose single-gauge rows' `cv_ann`
+#      differ from this fit's. It changes no number.
 
 # Registered at 9f5a0da ("Register the small-basin diagnosis rule (#176)").
 #
@@ -155,7 +165,8 @@ q_glacier <- "
   JOIN whse_basemapping.fwa_watersheds_poly w ON ST_Intersects(w.geom, g.geom)
   GROUP BY w.watershed_feature_id, w.wscode_ltree, w.localcode_ltree
   ORDER BY w.watershed_feature_id"
-gl_table <- DBI::dbGetQuery(conn, "SELECT count(*)::int AS n, sum(ST_Area(geom)) AS m2 FROM whse_basemapping.fwa_glaciers_poly")
+gl_table <- DBI::dbGetQuery(conn, paste("SELECT count(*)::int AS n, sum(ST_Area(geom)) AS m2",
+                                        "FROM whse_basemapping.fwa_glaciers_poly"))
 gl_dir <- file.path("data", "wb_small_basin")
 dir.create(gl_dir, recursive = TRUE, showWarnings = FALSE)
 gl_key <- substr(wet:::wet_md5_text(paste(q_glacier, gl_table$n, sprintf("%.0f", gl_table$m2), sep = "|")), 1, 10)
@@ -255,6 +266,13 @@ rho <- vapply(traits, function(v) stats::cor(d[[v]][d$small], d$e_adj[d$small], 
 tm <- readRDS(file.path("data", "wb_term", sprintf("diagnose_%s.rds", release)))
 stopifnot(identical(tm$release, release))
 b <- tm$basins
+# the cache records its release, not its fit: hold its single-gauge rows to this fit's held-out values
+one <- !grepl("+", b$station_number, fixed = TRUE)
+k <- match(b$station_number[one], cv$station_number)
+if (anyNA(k) || !isTRUE(all.equal(b$cv_ann[one], cv$cv_ann[k]))) {
+  stop("data/wb_term/diagnose_", release, ".rds was made from another fit: rerun scripts/wb_term_diagnose.R",
+       call. = FALSE)
+}
 ec <- tm$eccc
 # copied verbatim from scripts/wb_term_diagnose.R (#45's rule as amended), which cannot be sourced
 verdict <- function(d, zones, check_n = TRUE) {
@@ -368,13 +386,18 @@ for (nm in c("full", "area-only")) {
               r$med_small, r$ci[1], r$ci[2], r$mae_small[1], r$mae_small[2], r$mae_small[2] - r$mae_small[1],
               r$mae_large[1], r$mae_large[2], r$mae_large[2] - r$mae_large[1], r$verdict$verdict))
 }
-say(sprintf("tests (full): median within +/-%.0f %% %s; small MAE gain >= %.1f %s; larger MAE cost <= %.1f %s; interval crosses %s",
+say(sprintf(paste0("tests (full): median within +/-%.0f %% %s; small MAE gain >= %.1f %s; ",
+                   "larger MAE cost <= %.1f %s; interval crosses %s"),
             sb_median_pts, b_full$verdict$tests[["median"]], sb_gain_pts, b_full$verdict$tests[["gain"]], sb_cost_pts,
             b_full$verdict$tests[["cost"]], b_full$verdict$crosses),
     sprintf("larger gauges' median corrected error: full %+.1f %%, area-only %+.1f %%", b_full$med_large,
             b_area$med_large),
     sprintf("Verdict: %s.%s", b_full$verdict$verdict,
-            if (b_area$verdict$verdict == "traits explain the small-basin error") " Area alone passes the same tests." else ""),
+            if (b_area$verdict$verdict == "traits explain the small-basin error") {
+              " Area alone passes the same tests."
+            } else {
+              ""
+            }),
     "",
     "Per trait (decides nothing): Spearman with the adjusted error at the small gauges, and the standardized",
     "coefficient in one fit on all gauges (response log(adjusted / observed)):",
@@ -386,15 +409,18 @@ say("## C. Which term, against PCIC (#45's rule on the small class)",
     sprintf("population: %d PCIC-covered basins under 100 km2 (Fraser, Peace and Columbia), of %d in #45's table;",
             nrow(bs), nrow(b)),
     sprintf("  zones: %s", paste(c_zones, collapse = ", ")),
-    sprintf("  median error there: raw %+.1f %%, adjusted %+.1f %%", med(err(bs$r_o, bs$obs)), med(err(bs$cv_ann, bs$obs))),
+    sprintf("  median error there: raw %+.1f %%, adjusted %+.1f %%", med(err(bs$r_o, bs$obs)),
+            med(err(bs$cv_ann, bs$obs))),
     sprintf("the copied verdict() reproduces #45's %d stored zone verdicts", nrow(tm$zones)),
     "",
-    sprintf("n %d; our raw log error (le_o) %+.3f, PCIC's (le_c) %+.3f; |le_c| %.3f; closure %.3f (step 3: usable if both <= 0.25)",
+    sprintf(paste0("n %d; our raw log error (le_o) %+.3f, PCIC's (le_c) %+.3f; |le_c| %.3f; closure %.3f ",
+                   "(step 3: usable if both <= 0.25)"),
             rc$n, rc$le_o, rc$le_c, rc$ale_c, rc$closure),
-    sprintf("sum dP %.0f, sum dA %.0f, gap %.0f; share P %s, share AET %s; TerraClimate/P ours %.2f, PCIC %.2f; MOD16/AET %.2f",
+    sprintf(paste0("sum dP %.0f, sum dA %.0f, gap %.0f; share P %s, share AET %s; ",
+                   "TerraClimate/P ours %.2f, PCIC %.2f; MOD16/AET %.2f"),
             rc$sdp, rc$sda, rc$g, f2(rc$share_p), f2(rc$share_a), rc$tc_o, rc$tc_c, rc$mod16),
     sprintf("omega > 5 under both PETs %.0f %%, <= 5 %.0f %%; ECCC stations %d, climr/ECCC %s; decomposition: %s",
-            100 * rc$w_high, 100 * rc$w_low, rc$n_eccc, if (is.na(rc$eccc)) "-" else sprintf("%.2f", rc$eccc), rc$decomp),
+            100 * rc$w_high, 100 * rc$w_low, rc$n_eccc, f2(rc$eccc), rc$decomp),
     sprintf("Verdict: %s.", rc$verdict),
     "")
 
