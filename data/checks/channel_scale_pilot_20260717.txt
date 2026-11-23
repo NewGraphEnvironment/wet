@@ -3,7 +3,7 @@
 ## Provenance
 rules: registered at 7d6c7b1, 2026-11-23 01:46:50 UTC; rule block md5 93530d55df7003e7333821ccbb888fc3
 first fetch: 2026-11-23 01:47:59 UTC (after the registration)
-script: scripts/channel_scale_pilot.R at 6c9778d3
+script: scripts/channel_scale_pilot.R at 18c3069b
 routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 5d50cc1
 table: 40524444 rows, 3377037 segments, 0 null flows, total 179854603.510890 m3/s
 published: 512 parts, live parts md5 d554e3aad481d86bffa4baef687287ed
