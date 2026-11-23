@@ -136,6 +136,13 @@ Produced by `scripts/station_sources_bound.R` → `data/checks/station_sources_b
 
 **Measured on 2026-11-22: the rule failed one expected catch** [M, first run of the report]. The bound came out at 2,490.71, set by the Pouce Coupe River below Henderson Creek (07FD007) alone; the next largest ratio is 1,346.56 (07FC003). It drops Oliver Creek's 24 impossible days and 4 days at 08HB0022, and no Big Bar day, but none of Amor De Cosmos Creek's 51 days above 1,000 m³/s: on a median of 2.5 m³/s their ratios start at 402. That record is not a few spikes: its 90th percentile is 101 m³/s. As registered, no bound shipped, and the choice went to the owner.
 
+**Re-registered on 2026-11-22, by the owner's choice, before it was applied to the provincial stations.** The same statistic, taken per WSC sub-drainage:
+
+- **Population and statistic.** As above, grouped by sub-drainage, the first three characters of the HYDAT station number (`08H`, Vancouver Island). Each sub-drainage's bound is the largest ratio among its stations. A sub-drainage with fewer than 10 such stations takes the province-wide bound, 2,490.71. Natural-only bounds are reported beside each and decide nothing.
+- **Applied.** A provincial station takes the bound of its own sub-drainage, the first three characters of its number once any leading letters are dropped (`H08KC0626` is `08K`); a number of another shape takes the province-wide bound. Otherwise as above.
+- **Expected catches**: the same four.
+- **What was seen first.** This form was chosen after the HYDAT sub-drainage maxima had been computed (`08H`'s is 268.07, over 82 stations) and Amor De Cosmos Creek's smallest ratio above 1,000 m³/s (402) was known, so its catch is not an independent test of the rule. Its effect on the other provincial stations had not been computed; the report lists every station it drops days at.
+
 ## Already fetched by a New Graph package?
 
 No (2026-10-28). The installed NewGraphEnvironment packages export only federal fetchers: `ngr::ngr_hyd_q_daily()`, `ngr::ngr_hyd_realtime()` (`tidyhydat::realtime_ws()`) and wet's `wet_station_*()`. A code search of the organisation finds these sources only cited, never fetched.
