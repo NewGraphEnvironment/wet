@@ -67,10 +67,10 @@ None.
 
 ## Phase 4: harvest report and research
 
-- [ ] `scripts/station_sources_harvest.R` → `data/checks/station_sources_harvest_20261028.txt`, in two tiers: (i) under the survey's own rules (UTC days, no bound, HYDAT 20260717, the probe's match) the reader reproduces the probe's `prov_q` rows exactly and the 110 passing provincial stations; (ii) under the shipped rules (local standard time days, status, the bound), each station whose count moved is listed with the rule that moved it; per network, stations, days, `status` shares and days dropped by the bound
-- [ ] `research/station_sources.md` revised in place: the harvest's verdicts, the bound, the decisions above, what decision 7 means for #118, and the items still open
-- [ ] File each item this PR leaves out as its own issue naming move 8 (the Aquarius comparison of the province's 2021–2026 copy; regulation per station; Hakai's 2013–2020 record, which needs Hakai's consent); edit #142's body to say what landed, and #144's to carry what decision 1 moved to it
-- [ ] `CLAUDE.md`'s station-flow line names the new source; `NEWS.md` entry
+- [x] `scripts/station_sources_harvest.R` → `data/checks/station_sources_harvest_20261028.txt`, in two tiers: (i) under the survey's own rules (UTC days, no bound, HYDAT 20260717, the probe's match) the reader reproduces the probe's `prov_q` rows exactly and the 110 passing provincial stations; (ii) under the shipped rules (local standard time days, status, the bound), each station whose count moved is listed with the rule that moved it; per network, stations, days, `status` shares and days dropped by the bound
+- [x] `research/station_sources.md` revised in place: the harvest's verdicts, the bound, the decisions above, what decision 7 means for #118, and the items still open
+- [x] File each item this PR leaves out as its own issue naming move 8 (#190 Aquarius, #191 regulation, #192 Hakai) (the Aquarius comparison of the province's 2021–2026 copy; regulation per station; Hakai's 2013–2020 record, which needs Hakai's consent); edit #142's body to say what landed, and #144's to carry what decision 1 moved to it
+- [x] `CLAUDE.md`'s station-flow line names the new source; the `NEWS.md` entry is drafted in the PR body for `/gh-pr-merge`'s release commit, where this repo's NEWS entries land
 
 ## Owed at the end (reported, done after merge)
 

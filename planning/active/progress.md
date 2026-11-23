@@ -46,3 +46,11 @@ Start Phase 1 and run every phase to the PR (/code-check branch, /planning-archi
 /gh-pr-push). This message is the resume instruction that starts the run-to-PR
 mandate; the merge stays with me.
 ```
+
+## Session 2026-11-22 (resume, run to PR)
+
+- Resumed from the park; nothing the plan names had moved on main. The owner answered the seven open decisions, each with its recommendation.
+- Phase 1 (82af4902): snapshot pinned, manifest tracked, cache seeded, private backup made and checked.
+- Phase 2 (c4111983 registration, bc8f6457 reader and failed measurement, 64b2feba re-registration, b6d1ef5b shipped bound): the province-wide bound (2,490.71, 07FD007) missed 08HD0003's impossible days; the owner chose the per-sub-drainage form (decision 8), which passes all four catches and drops 208 days at 8 stations.
+- Phase 3 (a08467e2): `"bcenv"` in `wet_station_daily()`, `wet_station_list()`, the registry, `frac_provisional`.
+- Phase 4: harvest report (tier (i) reproduces the survey exactly; tier (ii): one station moves, 110 still pass), research revised, #190–#192 filed, #142 and #144 bodies edited.

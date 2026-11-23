@@ -1,13 +1,13 @@
 # Station sources beyond HYDAT: which networks hold BC discharge
 
-**Verified:** 2026-10-29; the chinook boxes 2026-11-18 · **Issues:** #123 (component 4 of #118); spawned wet#142 (provincial harvester), wet#144 (the Water Tool's third-party networks) and wet#140 (BC Hydro); #167 (the chinook boxes) · **Produced by:** web and API reads of each source (URLs inline), `scripts/station_sources_probe.R` → `data/checks/station_sources_20260717.txt` against HYDAT 2026-07-17, and an org-wide search of NewGraphEnvironment code and installed packages · **Status:** complete for the bar below; sources not accessed are listed with what blocked them
+**Verified:** 2026-10-29; the chinook boxes 2026-11-18; the provincial files in wet 2026-11-22 · **Issues:** #123 (component 4 of #118); spawned wet#142 (provincial harvester), wet#144 (the Water Tool's third-party networks) and wet#140 (BC Hydro); #167 (the chinook boxes); #179 (move 8, which landed #142 and spawned #190, #191, #192) · **Produced by:** web and API reads of each source (URLs inline), `scripts/station_sources_probe.R` → `data/checks/station_sources_20260717.txt` against HYDAT 2026-07-17, an org-wide search of NewGraphEnvironment code and installed packages; for the provincial files in wet, `scripts/station_sources_bound.R` and `scripts/station_sources_harvest.R` (reports beside the survey's) · **Status:** complete for the bar below; sources not accessed are listed with what blocked them
 
 Tags: **[S]** the linked source says it · **[M]** measured (the probe report, or the command named beside it) · **[I]** inferred, not verified.
 
 ## The answer
 
 Two sources are harvest candidates:
-- **the province's non-integrated hydrometric network**, published as hourly CSVs under the Open Government Licence – British Columbia. 110 of its 211 stations have at least 3 complete Chinook-window years that HYDAT does not hold [M]. Its harvester is wet#142.
+- **the province's non-integrated hydrometric network**, published as hourly CSVs under the Open Government Licence – British Columbia. 110 of its 211 stations have at least 3 complete Chinook-window years that HYDAT does not hold [M]. Its harvester, wet#142, landed in #179: `wet_station_daily()` reads it (below, "The provincial files in wet").
 - **the third-party networks the BC Water Tool serves**: 35 more stations pass the station test, 6 of them at sites that also pass in the provincial files [M]. They pass the terms, access and station tests; each operator's rating is not stated, so the rating test is confirmed in their harvester, wet#144.
 
 The **Columbia Basin Water Hub** is a lead: its discharge datasets carry Creative Commons BY-SA licences (18 of the 76 non-commercial, and 39 "amended" with the amendment not stated) [M], and 29 of its stations pass on the period proxy, but the daily values that would settle the station test have not been read: robots.txt disallows the API, and each dataset's CSV download sits behind a bot check, so a scripted reader needs Living Lakes Canada's consent. Two **USGS** gauges inside BC are test-only, below the 5-station threshold.
@@ -32,7 +32,7 @@ Written before any source was checked (#123's plan gate, 2026-10-28), and revise
 - **test-only**: discharge that can be used for scoring but fails the terms, QA or station tests. We score against it and never publish from it.
 - **no**: stage only, no discharge, a duplicate of HYDAT, or no access. A station at a HYDAT site is a duplicate only where its period overlaps HYDAT's there. One that adds years at a discontinued HYDAT site is counted as "same site, new years".
 
-Regulation is recorded for each station (natural, regulated or unknown), because the pilot's donor pool was natural only. The probe can flag regulation only from station names: 10 provincial stations (4 of them passing) and 15 Water Tool listings (none passing) read as regulated by name, and every other station is unknown [M, report "Regulation"]. Establishing it is part of wet#142 and wet#144.
+Regulation is recorded for each station (natural, regulated or unknown), because the pilot's donor pool was natural only. The probe can flag regulation only from station names: 10 provincial stations (4 of them passing) and 15 Water Tool listings (none passing) read as regulated by name, and every other station is unknown [M, report "Regulation"]. Establishing it is wet#191.
 
 ## Inventory
 
@@ -122,6 +122,19 @@ Reported as found, not filtered:
 - **Impossible values, graded.** Oliver Creek in Lake Cowichan (08HA0036) reaches 2.1 million m³/s on RISC C and U hours in 2021–2024. Amor De Cosmos Creek (08HD0003) reaches about 7,000 m³/s on RISC C, U and Unspecified hours in 2021–2025 [M]. Complete days do not depend on magnitude, so the counts stand. A harvester needs a plausibility rule (wet#142). The Fraser at the Big Bar slide (08MD0002 and 08MD0003, up to 9,887 m³/s) is plausible.
 - **Two copies that part in 2021.** The Water Tool's daily values for the provincial stations match the files to within 0.1 % on at least 99.7 % of days in every year with data from 1998 to 2020 (none in 2004–2005). From 2021 they match on only 61–92 % of days [M, report "by year"]. One copy has been revised since the other was taken. Which one is unresolved, because the Aquarius portal was not read.
 - **Coordinates.** The Water Tool places 08JC0002 and 08JC0006 111.6 km from the province's coordinates, a degree of latitude [M]. It also lists 17 provincial stations under "Regulator – BC Oil and Gas Commission": BCER's own (07FA0001, 07FC0001, 10CD0001 and others) beside Okanagan, Shuswap, Nicola, Kootenay and Lower Mainland stations (08NM00xx, 08LC000x, 08LG0019, 08NJ0001, 08MH0062) that are not the regulator's by name or place [M, report; I for ownership]. Where a station is in both, the provincial files are the source for its location and owner.
+
+## The provincial files in wet (wet#142, #179)
+
+What `wet_station_daily(sources = "bcenv")` reads, and how it stands against the survey [M, `data/checks/station_sources_harvest_20261028.txt` unless noted]:
+
+- **One pinned snapshot**, the survey's (2026-10-28), held to md5s tracked in `inst/extdata/station_sources/bcenv_20261028.csv` and backed up privately: the province rewrites `Discharge.csv` in place, so the snapshot cannot be fetched again. A newer snapshot is a new pin.
+- **Days.** A day is a local-standard-time day with at least 20 hours: UTC−8, or UTC−7 in drainage areas 07 and 10, so a provincial day means what a HYDAT day means. The East Kootenay and Creston also keep Mountain time; none of the snapshot's stations sits there [M, the station registry], and a future one would be read an hour off. `Unusable` and `NaN` hours are left out; an hour two files hold is taken from the newer.
+- **Status.** A day with any `Undefined` or `Unspecified` hour is `"unchecked"` (66.2 % of shipped days), a fully graded day `"provisional"`; none is `"approved"`, since the files carry no approval. `frac_provisional` counts both.
+- **Identity.** A provincial station keeps its own number. `wet_station_list()` names the HYDAT station at the same site (1 km, same stream name: 58 stations, the survey's 57 same-site and 1 duplicate), so a caller can join the two; no record is continued across numbers.
+- **The survey reproduced.** Under the survey's own rules (UTC days, no bound) the reader returns the probe's 215,300 station-days exactly (flows within 9e-16 relative), all 211 of its provincial station rows, and its 110 passing stations.
+- **What the shipped rules move.** Local-standard-time days give 215,168 complete days; the bound drops 208 of them, leaving 214,960; no day is negative. One station's count moves: 08NM0005 has 11 window-years outside HYDAT instead of 12, and still passes. 110 stations pass.
+- **Donors.** None of these stations can be a donor yet: `wet_station_select()` leaves out a station whose regulation is unknown, and every provincial station is unknown or regulated by name. They are records and held-out tests until wet#191 settles regulation.
+- **Still open.** Which copy is current for 2021–2026 (wet#190); Hakai's 2013–2020 record (wet#192); the four passing stations 1.4–1.9 km from a same-stream HYDAT gauge (above), which the 1 km match keeps as new sites.
 
 ## The plausibility bound for the provincial files (wet#142)
 
