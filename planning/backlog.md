@@ -50,7 +50,7 @@ counts them): run `/backlog-sweep` again, the backlog is not finished.
 | - [x] 3 | #165 | 4, 5: article bundles and maps, docs (4 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/173 | — | — | — |
 | - [x] 4 | #166 | 6: monthly error at the gauges (3 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/175 | — | — | — |
 | - [x] 5 | #167 | 8: PCIC's per-year files at the sites (2 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/180 | — | — | — |
-| - [ ] 6 | #168 | 9: the channel-scale pilot (1 issue) | open | A | — | opus |
+| - [x] 6 | #168 | 9: the channel-scale pilot (1 issue) | done: https://github.com/NewGraphEnvironment/wet/pull/193 | A | — | opus |
 | - [ ] 7 | #169 | 10: scenarios and coverage (2 issues) | **waiting** on move 6's verdict in `research/pcic_channel_scale.md` | A | 6 | fable then opus |
 | - [ ] 8 | #179 | 7: stations beyond HYDAT (1 issue) | open | B | — | opus |
 | - [ ] 9 | #186 | 11: the readers return pick, one list of non-inputs (2 issues) | open | C | — | sonnet |
@@ -202,7 +202,7 @@ sites, registered before any run; whether the Morice and upper Fraser boxes are 
 
 ### 9. The channel-scale pilot
 
-- [ ] Carried by move 6, #168
+- [x] Carried by move 6, #168 (merged in https://github.com/NewGraphEnvironment/wet/pull/193)
 
 #9 compares PCIC's channel-scale output (VIC-GL-Raven, CMIP6) at about six FWA sites with wet's
 accumulation, routed PCIC and HYDAT. It is the oracle batch 10 waits on.
