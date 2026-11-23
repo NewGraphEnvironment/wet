@@ -109,7 +109,7 @@ or <code>ignore_truncation</code>.</p></dd>
 cut), <code>anomaly_type</code> (<code>"absolute"</code>), <code>unit</code> (<code>"degC_day"</code>), and over the
 days from <code>start_date</code> to <code>end_date</code> that have a value: <code>n_days</code> (how
 many), <code>frac_ice</code> (<code>NA</code>: there is no ice flag), <code>frac_provisional</code> (share
-whose <code>status</code> is <code>"provisional"</code>, <code>NA</code> without a <code>status</code> column) and
+whose <code>status</code> is anything but <code>"approved"</code>, <code>NA</code> without a <code>status</code> column) and
 <code>frac_filled</code> (share that were filled, <code>NA</code> without a <code>filled</code> column).
 The columns are those of <code><a href="wet_window_stats.html">wet_window_stats()</a></code> plus <code>frac_filled</code>. One row
 per series and year that <code><a href="https://poissonconsulting.github.io/gsdd/reference/gsdd.html" class="external-link">gsdd::gsdd()</a></code> returns. The interval of a

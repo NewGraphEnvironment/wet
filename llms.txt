@@ -159,6 +159,8 @@ departures carried to an ungauged site.
   : Observed day-of-year flow climatology at HYDAT stations
 - [`wet_station_select()`](https://newgraphenvironment.github.io/wet/reference/wet_station_select.md)
   : Natural-flow HYDAT stations with a usable record in a period
+- [`wet_station_list()`](https://newgraphenvironment.github.io/wet/reference/wet_station_list.md)
+  : Hydrometric stations beyond HYDAT that wet reads
 - [`wet_station_snap()`](https://newgraphenvironment.github.io/wet/reference/wet_station_snap.md)
   : Snap HYDAT stations to FWA fundamental watersheds, checked by
   drainage area

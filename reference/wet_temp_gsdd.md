@@ -66,9 +66,9 @@ A data frame: the `by` columns, `variable` (`"gsdd"`), `period`
 cut), `anomaly_type` (`"absolute"`), `unit` (`"degC_day"`), and over the
 days from `start_date` to `end_date` that have a value: `n_days` (how
 many), `frac_ice` (`NA`: there is no ice flag), `frac_provisional`
-(share whose `status` is `"provisional"`, `NA` without a `status`
-column) and `frac_filled` (share that were filled, `NA` without a
-`filled` column). The columns are those of
+(share whose `status` is anything but `"approved"`, `NA` without a
+`status` column) and `frac_filled` (share that were filled, `NA` without
+a `filled` column). The columns are those of
 [`wet_window_stats()`](https://newgraphenvironment.github.io/wet/reference/wet_window_stats.md)
 plus `frac_filled`. One row per series and year that
 [`gsdd::gsdd()`](https://poissonconsulting.github.io/gsdd/reference/gsdd.html)

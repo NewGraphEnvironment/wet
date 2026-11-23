@@ -63,7 +63,8 @@ rests on (ice-affected winter flows are estimates).</p>
 <span>  hydat <span class="op">=</span> <span class="fu">wet_hydat_path</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  from <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.Date</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  sources <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hydat"</span>, <span class="st">"provisional"</span>, <span class="st">"realtime"</span><span class="op">)</span></span>
+<span>  sources <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hydat"</span>, <span class="st">"provisional"</span>, <span class="st">"realtime"</span>, <span class="st">"bcenv"</span><span class="op">)</span>,</span>
+<span>  snapshot <span class="op">=</span> <span class="va">wet_bcenv_snapshot</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -72,7 +73,8 @@ rests on (ice-affected winter flows are estimates).</p>
 
 
 <dl><dt id="arg-stations">stations<a class="anchor" aria-label="anchor" href="#arg-stations"></a></dt>
-<dd><p>Character vector of station numbers.</p></dd>
+<dd><p>Character vector of station numbers: HYDAT's
+(<code>"08EE013"</code>) or the provincial network's (<code>"08EE0001"</code>), mixed freely.</p></dd>
 
 
 <dt id="arg-hydat">hydat<a class="anchor" aria-label="anchor" href="#arg-hydat"></a></dt>
@@ -86,15 +88,27 @@ download location.</p></dd>
 
 
 <dt id="arg-sources">sources<a class="anchor" aria-label="anchor" href="#arg-sources"></a></dt>
-<dd><p>Which sources to read, from <code>"hydat"</code>, <code>"provisional"</code> and
-<code>"realtime"</code>. Each source continues the one before it, per station, from
+<dd><p>Which sources to read, from <code>"hydat"</code>, <code>"provisional"</code>,
+<code>"realtime"</code> and <code>"bcenv"</code>. The first three read HYDAT-numbered stations
+only, and each continues the one before it, per station, from
 that source's last day over its whole record: provisional days are used
 only after HYDAT's last day, and real-time days only after both, whatever
 <code>from</code> and <code>to</code> are. <code>"provisional"</code> reads the water-temp-bc archive of ECCC daily means
 (option <code>wet.provisional_root</code>, default
 <code>s3://water-temp-bc/data/canonical/Parameter=6/</code>) with duckdb, and
 <code>"realtime"</code> calls <code><a href="https://docs.ropensci.org/tidyhydat/reference/realtime_ws.html" class="external-link">tidyhydat::realtime_ws()</a></code> for the days after the
-other sources end (at most about 18 months back).</p></dd>
+other sources end (at most about 18 months back). <code>"bcenv"</code> reads the
+provincial network's stations named in <code>snapshot</code>'s station registry,
+from the province's hourly files (Open Government Licence - British
+Columbia), with duckdb: a day is a local-standard-time day with at least
+20 hours, hours graded Unusable left out, and a day above a plausibility
+bound measured on HYDAT dropped.</p></dd>
+
+
+<dt id="arg-snapshot">snapshot<a class="anchor" aria-label="anchor" href="#arg-snapshot"></a></dt>
+<dd><p>The provincial snapshot to read, as <code>YYYYMMDD</code>; each pinned
+snapshot's files are held to md5s tracked in the package. Read only for
+stations that are not HYDAT-numbered.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -102,10 +116,13 @@ other sources end (at most about 18 months back).</p></dd>
     <p><code>data.frame(station_number, date, q_m3s, symbol, source, status)</code>,
 one row per station-day that has a flow, ordered by station and date.
 <code>symbol</code> is HYDAT's daily symbol (<code>"B"</code> ice, <code>"E"</code> estimated, <code>"A"</code>
-partial day, <code>"D"</code> dry) or <code>NA</code>; <code>status</code> is <code>"approved"</code> or
-<code>"provisional"</code> (any ECCC approval other than final counts as
-provisional). Provisional days carry no ice symbol, so their <code>NA</code> means
-"not recorded", not "open water".</p>
+partial day, <code>"D"</code> dry) or <code>NA</code>. <code>status</code> is <code>"approved"</code> for HYDAT and
+for an ECCC day whose approval says final, and <code>"provisional"</code> for any
+other ECCC day. A provincial day is <code>"provisional"</code> when every hour in it
+carries a grade and <code>"unchecked"</code> when any hour is graded Undefined or
+Unspecified: the province's files carry no approval, so none is
+<code>"approved"</code>. Provisional and provincial days carry no ice symbol, so
+their <code>NA</code> means "not recorded", not "open water".</p>
 <p>A gap between the end of one source and the start of the next (for
 example an old HYDAT ending before the provisional archive begins) is
 left unfilled and reported with a warning when it overlaps <code>from</code>-<code>to</code>. A source that fails is skipped
@@ -113,7 +130,12 @@ with a warning and the others are returned.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Ported from <code>ngr::ngr_hyd_q_daily()</code>, which joined HYDAT with about 18
+    <p>Stations of the province's non-integrated hydrometric network (numbers such
+as <code>"08EE0001"</code>, listed by <code><a href="wet_station_list.html">wet_station_list()</a></code>) are read from a pinned
+snapshot of the province's hourly files instead. Such a station keeps its
+own number: where it sits at a HYDAT station's site, the two records are not
+joined, and <code><a href="wet_station_list.html">wet_station_list()</a></code> names the HYDAT station so a caller can.</p>
+<p>Ported from <code>ngr::ngr_hyd_q_daily()</code>, which joined HYDAT with about 18
 months of real-time flow.</p>
     </div>
 
@@ -123,6 +145,10 @@ months of real-time flow.</p>
 <span class="r-in"><span><span class="co"># Buck Creek at the mouth, from the start of its record to last week</span></span></span>
 <span class="r-in"><span><span class="va">q</span> <span class="op">&lt;-</span> <span class="fu">wet_station_daily</span><span class="op">(</span><span class="st">"08EE013"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">q</span><span class="op">$</span><span class="va">source</span>, <span class="va">q</span><span class="op">$</span><span class="va">status</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Deep Creek, a provincial station near Smithers</span></span></span>
+<span class="r-in"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu">wet_station_daily</span><span class="op">(</span><span class="st">"08EE0001"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">source</span>, <span class="va">d</span><span class="op">$</span><span class="va">status</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

@@ -35,8 +35,9 @@ wet_window_stats(
 
   A data frame with a `Date` column `date`, a numeric value column and
   the `by` id columns. Optional `symbol` (HYDAT `"B"` = ice) and
-  `status` (`"provisional"`) columns give `frac_ice` and
-  `frac_provisional`.
+  `status` columns give `frac_ice` and `frac_provisional`; every status
+  other than `"approved"` (`"provisional"`, `"unchecked"`) counts as
+  provisional.
 
 - windows:
 

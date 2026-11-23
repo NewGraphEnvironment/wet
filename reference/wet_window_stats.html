@@ -85,8 +85,9 @@ first.</p>
 <dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
 <dd><p>A data frame with a <code>Date</code> column <code>date</code>, a numeric value column
 and the <code>by</code> id columns. Optional <code>symbol</code> (HYDAT <code>"B"</code> = ice) and
-<code>status</code> (<code>"provisional"</code>) columns give <code>frac_ice</code> and
-<code>frac_provisional</code>.</p></dd>
+<code>status</code> columns give <code>frac_ice</code> and <code>frac_provisional</code>; every status
+other than <code>"approved"</code> (<code>"provisional"</code>, <code>"unchecked"</code>) counts as
+provisional.</p></dd>
 
 
 <dt id="arg-windows">windows<a class="anchor" aria-label="anchor" href="#arg-windows"></a></dt>
