@@ -52,9 +52,9 @@ counts them): run `/backlog-sweep` again, the backlog is not finished.
 | - [x] 5 | #167 | 8: PCIC's per-year files at the sites (2 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/180 | — | — | — |
 | - [x] 6 | #168 | 9: the channel-scale pilot (1 issue) | done: https://github.com/NewGraphEnvironment/wet/pull/193 | A | — | opus |
 | - [ ] 7 | #169 | 10: scenarios and coverage (2 issues) | **waiting** on move 6's verdict in `research/pcic_channel_scale.md` | A | 6 | fable then opus |
-| - [ ] 8 | #179 | 7: stations beyond HYDAT (1 issue) | open | B | — | opus |
+| - [x] 8 | #179 | 7: stations beyond HYDAT (1 issue) | done: https://github.com/NewGraphEnvironment/wet/pull/194 | B | — | opus |
 | - [x] 9 | #186 | 11: the readers return pick, one list of non-inputs (2 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/197 | C | — | sonnet |
-| - [ ] 10 | #187 | 12: Swift and Naver creeks under their own windows (1 issue) | open | D | — | opus |
+| - [ ] 10 | #187 | 12: Swift and Naver creeks under their own windows (1 issue) | **waiting** on knowledge#256 (the owner, 2026-11-23: adopt the UFRA and COTR windows only once knowledge reads NuSEDS dates) | D | — | opus |
 | - [ ] 11 | #188 | 13: small-basin error and the zone adjustment (4 issues) | open | E | — | fable then opus |
 | - [ ] 12 | #189 | 14: research files around the current state (3 issues) | open | D | 10 | sonnet |
 | - [ ] 13 | #195 | 15: second sources for the provincial stations (3 issues) | open | B | 8, 9 | opus |
@@ -173,7 +173,7 @@ places more PCIC outlets, which changes the gauge set.
 
 ### 7. Stations beyond HYDAT
 
-- [ ] Carried by move 8, #179
+- [x] Carried by move 8, #179 (merged in https://github.com/NewGraphEnvironment/wet/pull/194)
 
 #142 (the province's non-integrated hydrometric network) and #144 (the BC Water Tool's third-party
 gauges) both feed `wet_station_daily()`, share the QA and regulation questions, and meet at six
