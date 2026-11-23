@@ -1,6 +1,6 @@
 # Changelog
 
-## wet (development version)
+## wet 0.4.40
 
 - [`wet_segment_monthly()`](https://newgraphenvironment.github.io/wet/reference/wet_segment_monthly.md)
   and
