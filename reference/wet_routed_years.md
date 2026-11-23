@@ -75,7 +75,7 @@ if (requireNamespace("duckdb", quietly = TRUE)) {
   head(s[c("linear_feature_id", "year", "value")])
 }
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmps6Q5AI/duckdb
+#> ℹ /tmp/RtmpzjWAet/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
