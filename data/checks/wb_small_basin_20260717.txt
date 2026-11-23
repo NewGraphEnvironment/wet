@@ -1,0 +1,105 @@
+# Why the open balance runs high at small basins (#176), under the rule registered at 9f5a0da
+
+fit: 20260717, province run 768876badf, scoring code df3280b5c3ff52385f631bc09d3eaadd (equal to the fit's); HYDAT 20260717
+gauges: 315 calibration gauges, 84 under 100 km2 (small), 231 of 100 km2 and up (larger)
+error: 100 * (modelled - observed) / observed, annual; raw is P - AET, adjusted the held-out balance as shipped
+
+Reproduced before any check (registered, known before the rule):
+  median error, small: raw +1.9 %, adjusted +14.3 %; larger: raw -15.1 %, adjusted -6.7 %
+
+## A. Where the bias enters (described; the reading is the only part registered unseen)
+
+All gauges: small minus larger median error, raw +17.0 points, adjusted +21.0 points.
+By class (n small / n larger; * fewer than 5 on a side, not read):
+
+zone       class      ns  nl    raw s  raw l raw s-l    adj s  adj l adj s-l
+           01     *    3   9    +15.1  -24.0   +39.1    +46.6  -15.9   +62.5
+           02     *    0   5        -  -22.2       -        -  -21.9       -
+           03     *    1  20   +101.4  -24.6  +126.0    +57.4   +6.5   +50.9
+           04     *    0   5        -  -35.8       -        -  -32.9       -
+           05     *    0   7        -  -19.4       -        -   -7.3       -
+           06     *    0   3        -  +28.0       -        -  +28.0       -
+           07     *    2   7     +4.8   -5.2    +9.9     +4.8   -5.2    +9.9
+           08          5  18     -4.7   -3.5    -1.2    +20.0  +14.0    +6.0
+           09     *    1   6    -27.6  -18.3    -9.3    -25.7  -18.1    -7.6
+           10     *    2   7    +10.4  -22.1   +32.5    +17.3  -12.5   +29.8
+           11     *    1   1    +23.4  -11.9   +35.3    +23.4  -11.9   +35.3
+           12     *    0   3        -  -29.5       -        -  -29.0       -
+           13     *    0  10        -  -18.5       -        -  -14.5       -
+           14     *    3  19    +15.5  -24.4   +39.9    +50.1   -9.8   +59.9
+           15     *    3  16    +78.8  +62.0   +16.9     -7.4   -0.2    -7.2
+           16     *    1   5    -16.9  -10.3    -6.5    -16.9   -5.5   -11.4
+           17     *    4   0    +47.6      -       -    +47.6      -       -
+           18     *    1  11    -15.3  -15.0    -0.3    -15.3   -9.0    -6.3
+           19     *    2   9    -31.2  -22.4    -8.8     -7.7  -14.0    +6.3
+           20     *    2   8    -29.8  -29.1    -0.7    +13.5   -9.6   +23.1
+           21     *    9   4    +18.0  -10.8   +28.8    +18.0   -8.3   +26.3
+           22          5  10    +11.4  -16.1   +27.6    +41.3   -5.4   +46.6
+           23     *    2   6    +79.9   -2.2   +82.2    +80.5   -0.6   +81.2
+           24     *    6   3    +69.8  +26.5   +43.3    +56.5  +26.5   +30.0
+           25     *    1  15     -5.4  -18.4   +13.0    +47.8   +6.0   +41.9
+           26     *    3  10     -0.5  -20.7   +20.2    +26.6   -3.1   +29.8
+           27     *   11   1    -16.7  -17.2    +0.5    -11.3   -6.7    -4.6
+           28          5  11    -11.5   +7.4   -18.9     -8.7  +18.5   -27.2
+           29     *   11   2    -16.7  -11.9    -4.8    +10.7   -9.0   +19.7
+
+elevation  class      ns  nl    raw s  raw l raw s-l    adj s  adj l adj s-l
+           low        45  60     +0.7   -8.9    +9.6    +12.6   +2.5   +10.1
+           middle     15  90    +30.2  -13.5   +43.7    +47.8   -6.6   +54.4
+           high       24  81     +0.7  -19.6   +20.3     +9.5  -10.2   +19.7
+
+aridity    class      ns  nl    raw s  raw l raw s-l    adj s  adj l adj s-l
+           low        39  66     -7.5  -18.5   +11.0     +6.5  -10.4   +16.9
+           middle     17  88     -7.4  -18.7   +11.4    +11.6   -6.9   +18.5
+           high       28  77    +48.1   -8.7   +56.8    +40.3   +2.3   +38.1
+
+zone       readable 3, at or above +10 points 1 (33 %); below: 08, 28
+elevation  readable 3, at or above +10 points 3 (100 %)
+aridity    readable 3, at or above +10 points 3 (100 %)
+Reading: the adjusted contrast is concentrated.
+
+## B. Do catchment traits explain it (held out under the fit's blocked folds)
+
+traits: log_area, p_yr, arid, elev, t_yr, swe_p, glacier; glacier cover from 13648 FWA glacier polygons (28847 km2), 154 gauges with any
+not tested: average slope and solar exposure (need the DEM; carried to the follow-up issue)
+folds: 94; bootstrap: 1000 draws of the folds, seed 188 (draws with no small gauge: full 0, area-only 0)
+
+model      small med      90 % interval   small MAE base->corr  larger MAE base->corr  verdict
+full           +2.7 % [  -8.8,  +15.6] %    40.4 ->  33.7 ( -6.7)    22.8 ->  23.0 ( +0.2)  undecided
+area-only      +3.8 % [  -5.6,  +19.1] %    40.4 ->  34.9 ( -5.5)    22.8 ->  23.4 ( +0.6)  undecided
+tests (full): median within +/-5 % TRUE; small MAE gain >= 3.0 TRUE; larger MAE cost <= 1.0 TRUE; interval crosses TRUE
+larger gauges' median corrected error: full -4.3 %, area-only -6.0 %
+Verdict: undecided.
+
+Per trait (decides nothing): Spearman with the adjusted error at the small gauges, and the standardized
+coefficient in one fit on all gauges (response log(adjusted / observed)):
+  log_area   -0.09    -0.052
+  p_yr       -0.26    -0.007
+  arid       +0.29    +0.047
+  elev       +0.07    +0.011
+  t_yr       -0.05    +0.056
+  swe_p      +0.07    +0.002
+  glacier    -0.22    -0.065
+
+## C. Which term, against PCIC (#45's rule on the small class)
+
+population: 48 PCIC-covered basins under 100 km2 (Fraser, Peace and Columbia), of 192 in #45's table;
+  zones: 07, 08, 09, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27
+  median error there: raw +14.8 %, adjusted +27.7 %
+#45's verdict(), evaluated from its script, reproduces its 21 stored zone verdicts
+
+n 48; our raw log error (le_o) +0.138, PCIC's (le_c) -0.014; |le_c| 0.241; closure 0.003 (step 3: usable if both <= 0.25)
+sum dP 10931, sum dA 9219, gap 1712; share P 6.38, share AET -5.38; TerraClimate/P ours 0.82, PCIC 1.03; MOD16/AET 0.85
+omega > 5 under both PETs 21 %, <= 5 56 %; ECCC stations 11, climr/ECCC 1.03; decomposition: compensating (the other term offsets more than half)
+Verdict: compensating (the other term offsets more than half).
+
+## D. Sampling
+
+The province run samples each fundamental watershed area-weighted (scripts/wb_province.R,
+wet_ws_sample(st, ws, "area")): #176's centroid-against-area-weighted candidate does not describe it.
+
+## Attribution
+
+- The adjustment's lift at small gauges: ours, known before the rule; the contrast is concentrated.
+- The raw small-minus-larger contrast, on check C's 48 basins: unresolved (check C: compensating (the other term offsets more than half)).
+- Catchment traits (check B): undecided.
