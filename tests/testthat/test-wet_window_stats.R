@@ -96,6 +96,15 @@ test_that("ice and provisional shares come from symbol and status", {
   expect_true(is.na(s$frac_ice) && is.na(s$frac_provisional))
 })
 
+test_that("every status but approved counts as provisional: an unchecked window is all provisional", {
+  x <- daily("2001-01-01", "2001-01-31")
+  x$status <- "unchecked"
+  expect_equal(wet_window_stats(x, win("jan", "01-01", "01-31"), stats = "mean")$frac_provisional, 1)
+  x$status <- ifelse(x$date <= as.Date("2001-01-10"), "approved", ifelse(x$date <= as.Date("2001-01-20"),
+                                                                          "provisional", "unchecked"))
+  expect_equal(wet_window_stats(x, win("jan", "01-01", "01-31"), stats = "mean")$frac_provisional, 21 / 31)
+})
+
 test_that("series are kept apart by id, and a threshold can differ per id", {
   x <- rbind(daily("2001-01-01", "2001-01-31", 1, "A"), daily("2001-01-01", "2001-01-31", 5, "B"))
   s <- wet_window_stats(x, win("jan", "01-01", "01-31"), stats = c("mean", "frac_below"),

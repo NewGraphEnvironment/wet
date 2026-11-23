@@ -6,29 +6,48 @@
 #' from and its HYDAT symbol, so a result built on the series can say what it
 #' rests on (ice-affected winter flows are estimates).
 #'
+#' Stations of the province's non-integrated hydrometric network (numbers such
+#' as `"08EE0001"`, listed by [wet_station_list()]) are read from a pinned
+#' snapshot of the province's hourly files instead. Such a station keeps its
+#' own number: where it sits at a HYDAT station's site, the two records are not
+#' joined, and [wet_station_list()] names the HYDAT station so a caller can.
+#'
 #' Ported from `ngr::ngr_hyd_q_daily()`, which joined HYDAT with about 18
 #' months of real-time flow.
 #'
-#' @param stations Character vector of station numbers.
+#' @param stations Character vector of station numbers: HYDAT's
+#'   (`"08EE013"`) or the provincial network's (`"08EE0001"`), mixed freely.
 #' @inheritParams wet_station_select
 #' @param from,to Optional first and last date (a `Date` or a string
 #'   `as.Date()` reads). `NULL` means no bound.
-#' @param sources Which sources to read, from `"hydat"`, `"provisional"` and
-#'   `"realtime"`. Each source continues the one before it, per station, from
+#' @param sources Which sources to read, from `"hydat"`, `"provisional"`,
+#'   `"realtime"` and `"bcenv"`. The first three read HYDAT-numbered stations
+#'   only, and each continues the one before it, per station, from
 #'   that source's last day over its whole record: provisional days are used
 #'   only after HYDAT's last day, and real-time days only after both, whatever
 #'   `from` and `to` are. `"provisional"` reads the water-temp-bc archive of ECCC daily means
 #'   (option `wet.provisional_root`, default
 #'   `s3://water-temp-bc/data/canonical/Parameter=6/`) with duckdb, and
 #'   `"realtime"` calls [tidyhydat::realtime_ws()] for the days after the
-#'   other sources end (at most about 18 months back).
+#'   other sources end (at most about 18 months back). `"bcenv"` reads the
+#'   provincial network's stations named in `snapshot`'s station registry,
+#'   from the province's hourly files (Open Government Licence - British
+#'   Columbia), with duckdb: a day is a local-standard-time day with at least
+#'   20 hours, hours graded Unusable left out, and a day above a plausibility
+#'   bound measured on HYDAT dropped.
+#' @param snapshot The provincial snapshot to read, as `YYYYMMDD`; each pinned
+#'   snapshot's files are held to md5s tracked in the package. Read only for
+#'   stations that are not HYDAT-numbered.
 #' @return `data.frame(station_number, date, q_m3s, symbol, source, status)`,
 #'   one row per station-day that has a flow, ordered by station and date.
 #'   `symbol` is HYDAT's daily symbol (`"B"` ice, `"E"` estimated, `"A"`
-#'   partial day, `"D"` dry) or `NA`; `status` is `"approved"` or
-#'   `"provisional"` (any ECCC approval other than final counts as
-#'   provisional). Provisional days carry no ice symbol, so their `NA` means
-#'   "not recorded", not "open water".
+#'   partial day, `"D"` dry) or `NA`. `status` is `"approved"` for HYDAT and
+#'   for an ECCC day whose approval says final, and `"provisional"` for any
+#'   other ECCC day. A provincial day is `"provisional"` when every hour in it
+#'   carries a grade and `"unchecked"` when any hour is graded Undefined or
+#'   Unspecified: the province's files carry no approval, so none is
+#'   `"approved"`. Provisional and provincial days carry no ice symbol, so
+#'   their `NA` means "not recorded", not "open water".
 #'
 #'   A gap between the end of one source and the start of the next (for
 #'   example an old HYDAT ending before the provisional archive begins) is
@@ -39,22 +58,31 @@
 #' # Buck Creek at the mouth, from the start of its record to last week
 #' q <- wet_station_daily("08EE013")
 #' table(q$source, q$status)
+#'
+#' # Deep Creek, a provincial station near Smithers
+#' d <- wet_station_daily("08EE0001")
+#' table(d$source, d$status)
 #' }
 #' @export
 wet_station_daily <- function(stations, hydat = wet_hydat_path(), from = NULL, to = Sys.Date(),
-                              sources = c("hydat", "provisional", "realtime")) {
+                              sources = c("hydat", "provisional", "realtime", "bcenv"),
+                              snapshot = wet_bcenv_snapshot) {
   if (!is.character(stations) || !length(stations) || anyNA(stations)) {
     stop("`stations` must be a non-empty character vector of station numbers", call. = FALSE)
   }
-  bad <- setdiff(sources, c("hydat", "provisional", "realtime"))
+  bad <- setdiff(sources, c("hydat", "provisional", "realtime", "bcenv"))
   if (!length(sources) || length(bad)) {
-    stop("`sources` must be some of \"hydat\", \"provisional\", \"realtime\"", call. = FALSE)
+    stop("`sources` must be some of \"hydat\", \"provisional\", \"realtime\", \"bcenv\"", call. = FALSE)
   }
   # numeric as.Date() needs an origin before R 4.3
   from <- if (is.null(from)) as.Date(-Inf, origin = "1970-01-01") else as.Date(from)
   to <- if (is.null(to)) as.Date(Inf, origin = "1970-01-01") else as.Date(to)
   if (from > to) stop("`from` is after `to`", call. = FALSE)
   stations <- unique(stations)
+  # the federal sources read HYDAT-numbered stations; any other number is looked up in the
+  # provincial snapshot's registry, which a call with HYDAT numbers alone never opens
+  federal <- stations[grepl(wet_hydat_number, stations)]
+  other <- setdiff(stations, federal)
 
   # The readers return each source's whole record for the stations. Where one
   # source ends, where the next continues, and the gaps between them are all
@@ -62,17 +90,17 @@ wet_station_daily <- function(stations, hydat = wet_hydat_path(), from = NULL, t
   # therefore never fills a hole inside HYDAT's approved record, which ECCC
   # chose not to publish, whatever window is asked for.
   out <- wet_daily_empty()
-  if ("hydat" %in% sources) {
-    out <- wet_daily_try("hydat", wet_hydat_daily(hydat, stations))
+  if ("hydat" %in% sources && length(federal)) {
+    out <- wet_daily_try("hydat", wet_hydat_daily(hydat, federal))
   }
-  if ("provisional" %in% sources) {
-    pv <- wet_daily_try("provisional", wet_provisional_daily(stations))
+  if ("provisional" %in% sources && length(federal)) {
+    pv <- wet_daily_try("provisional", wet_provisional_daily(federal))
     out <- rbind(out, wet_daily_after(pv, out))
   }
-  if ("realtime" %in% sources) {
+  if ("realtime" %in% sources && length(federal)) {
     # today's daily mean is still accumulating
     end <- min(to, Sys.Date() - 1)
-    rt <- lapply(stations, function(st) {
+    rt <- lapply(federal, function(st) {
       have <- out$date[out$station_number == st]
       # the feed's whole reachable record, not from `from`: gaps are read from
       # whole records, and the final trim applies from/to. c() dispatches on
@@ -84,6 +112,12 @@ wet_station_daily <- function(stations, hydat = wet_hydat_path(), from = NULL, t
     rt <- do.call(rbind, c(list(wet_daily_empty()), rt))
     out <- rbind(out, wet_daily_after(rt, out))
   }
+  if ("bcenv" %in% sources && length(other)) {
+    out <- rbind(out, wet_daily_try("bcenv", {
+      ids <- intersect(other, wet_bcenv_stations(snapshot)$station_number)
+      if (length(ids)) wet_bcenv_daily(ids, snapshot) else wet_daily_empty()
+    }))
+  }
   out <- out[order(out$station_number, out$date), ]
   wet_daily_gaps(out, from, to)
   out <- out[out$date >= from & out$date <= to, ]
@@ -92,6 +126,9 @@ wet_station_daily <- function(stations, hydat = wet_hydat_path(), from = NULL, t
   if (length(none)) warning("no flow found for: ", paste(none, collapse = ", "), call. = FALSE)
   out
 }
+
+# A HYDAT station number: two digits, two letters, three digits.
+wet_hydat_number <- "^[0-9]{2}[A-Z]{2}[0-9]{3}$"
 
 # Rows of `x` dated after the last day `prior` holds for the same station.
 # `prior` is always a whole record, never a from/to window of one.

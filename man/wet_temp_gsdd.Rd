@@ -34,7 +34,7 @@ A data frame: the \code{by} columns, \code{variable} (\code{"gsdd"}), \code{peri
 cut), \code{anomaly_type} (\code{"absolute"}), \code{unit} (\code{"degC_day"}), and over the
 days from \code{start_date} to \code{end_date} that have a value: \code{n_days} (how
 many), \code{frac_ice} (\code{NA}: there is no ice flag), \code{frac_provisional} (share
-whose \code{status} is \code{"provisional"}, \code{NA} without a \code{status} column) and
+whose \code{status} is anything but \code{"approved"}, \code{NA} without a \code{status} column) and
 \code{frac_filled} (share that were filled, \code{NA} without a \code{filled} column).
 The columns are those of \code{\link[=wet_window_stats]{wet_window_stats()}} plus \code{frac_filled}. One row
 per series and year that \code{gsdd::gsdd()} returns. The interval of a

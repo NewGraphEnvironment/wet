@@ -17,6 +17,7 @@ reference:
   - wet_station_monthly
   - wet_station_doy
   - wet_station_select
+  - wet_station_list
   - wet_station_snap
   - wet_window_extend
   - wet_departure_carry
