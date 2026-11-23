@@ -107,6 +107,16 @@
 # 2070-2099 against 1981-2010) and water temperature are reported and decide
 # nothing.
 # ---- end of registered rules --------------------------------------------------------------------
+#
+# ---- amended after numbers were seen (#168) ------------------------------------------------------
+# - Rule 3's "lists CMIP6 streamflow at the domain's outlets" was coded at
+#   first (7d6c7b1 to ee3ebdc) as all 9 GCMs under both SSPs at every outlet,
+#   stricter than the rule's words. hydromosaic has no TaiESM1 series at any
+#   coast outlet scored (8 GCMs there), which that code read as no CMIP6 on
+#   the coast. Since 2026-11-23 the code follows the rule's words: every
+#   outlet lists streamflow for at least one GCM under both SSPs, and the
+#   report says how many GCMs each domain has. Rule 2's "median over the 9
+#   GCMs" is a median over the 8 on the coast.
 
 devtools::load_all(quiet = TRUE)
 source("scripts/wb_fit_lib.R")      # wb_release(), wb_hydat(), wb_stations_path()
@@ -253,6 +263,7 @@ g$outlet <- ifelse(!is.na(wi) & !is.na(own_seg) & own_seg == g$linear_feature_id
                    w_g$subid[wi], NA_integer_)
 stopifnot(all(w_g$share[wi[!is.na(g$outlet)]] == 1))
 g$domain <- ifelse(is.na(g$outlet), NA, domain_of(g$outlet))
+g$seg_domain <- ifelse(is.na(wi), NA, domain_of(w_g$subid[wi]))
 g$agree <- NA
 for (k in which(!is.na(g$outlet))) g$agree[k] <- agree_at(g$outlet[k])
 g$islake <- xw$islake[match(g$outlet, xw$subid)]
@@ -555,12 +566,11 @@ pick_confluence <- function() {
       WHERE qt.q_m3s > 1 AND qu.q_m3s - qa.q_m3s > 0.5 * qt.q_m3s
     )
     SELECT s.trib_lfid, s.upper_lfid, s.above_lfid, s.q_trib, s.q_upper, s.q_above,
-           min(ST_Distance(s.geom, g.geom)) AS dist_m,
-           (SELECT count(*) FROM steps) AS n_steps
+           ST_Distance(s.geom, g.geom) AS dist_m, g.linear_feature_id::double precision AS gauge_lfid,
+           (SELECT count(*) FROM steps)::integer AS n_steps
     FROM steps s CROSS JOIN whse_basemapping.fwa_stream_networks_sp g
     WHERE g.linear_feature_id IN (%5$s)
-    GROUP BY s.trib_lfid, s.upper_lfid, s.above_lfid, s.q_trib, s.q_upper, s.q_above
-    ORDER BY dist_m, s.upper_lfid LIMIT 1",
+    ORDER BY dist_m, s.upper_lfid, g.linear_feature_id LIMIT 1",
     routed_table, run_on("qt"), run_on("qu"), run_on("qa"), paste(sprintf("%.0f", gl), collapse = ", ")))
   stopifnot(nrow(j) == 1L)
   j
@@ -703,7 +713,8 @@ g_ann <- sapply(gcms, function(gm) ann(col_of(gcm[[gm]]$ssp245$clim[["1981-2010"
 g_ann <- matrix(g_ann, nrow = nrow(r2), dimnames = list(NULL, gcms))
 r2$gcm_missing <- rowSums(is.na(g_ann))
 r2$q_gcm_med <- apply(g_ann, 1, stats::median, na.rm = TRUE)
-r2$stat_ann <- abs(r2$q_gcm_med - r2$q_raw) / r2$q_obs
+r2$signed_ann <- (r2$q_gcm_med - r2$q_raw) / r2$q_obs
+r2$stat_ann <- abs(r2$signed_ann)
 med_month <- sapply(seq_len(nrow(r2)), function(k) {
   apply(sapply(gcms, function(gm) col_of(gcm[[gm]]$ssp245$clim[["1981-2010"]], r2$outlet[k])[, 1]), 1,
         stats::median, na.rm = TRUE)
@@ -719,16 +730,23 @@ r2$pass <- r2$stat_ann <= r2_ann & r2$d_nse >= -r2_nse
 lst <- do.call(rbind, lapply(ids_g, function(s) {
   li <- listing(s)
   li <- li[li$variable == "streamflow", ]
-  data.frame(outlet = s, pnw = any(li$model == "PNWNAmet"),
-             cmip6 = sum(li$model %in% gcms & li$scenario %in% c(ssp245, ssp585)))
+  both <- vapply(gcms, function(gm) all(c(ssp245, ssp585) %in% li$scenario[li$model == gm]), TRUE)
+  data.frame(outlet = s, pnw = any(li$model == "PNWNAmet"), n_gcm = sum(both))
 }))
 lst$domain <- domain_of(lst$outlet)
 dom <- data.frame(domain = domains)
-dom$gauges <- vapply(domains, function(d) sum(g$domain %in% d), 1L)
+dom$gauges <- vapply(domains, function(d) sum(g$seg_domain %in% d), 1L)
 dom$cmip6_listed <- vapply(domains, function(d) {
   x <- lst[lst$domain == d, ]
-  if (!nrow(x)) NA else all(x$cmip6 == 2L * length(gcms))
+  if (!nrow(x)) NA else all(x$n_gcm > 0)
 }, NA)
+dom$gcms <- vapply(domains, function(d) {
+  x <- lst[lst$domain == d, ]
+  if (!nrow(x)) NA_integer_ else as.integer(min(x$n_gcm))
+}, 1L)
+gcm_missing <- t(sapply(domains, function(d) vapply(gcms, function(gm) {
+  sum(gcm[[gm]]$ssp245$missing %in% r1$outlet[r1$domain == d])
+}, 1L)))
 dom$r1_n <- vapply(domains, function(d) sum(r1$domain == d), 1L)
 dom$r1_share <- vapply(domains, function(d) mean(r1$pass[r1$domain == d]), 1)
 dom$r1_pass <- dom$r1_share >= pass1
@@ -766,6 +784,7 @@ site_r1 <- lapply(seq_len(nrow(sites)), function(i) {
   c(ratio = mean(pub) / mean(mod), worst = max(abs(pub - mod) / pmax(r1_mon * mod, r1_floor)))
 })
 sites$r1_ratio <- vapply(site_r1, `[[`, 1, "ratio")
+sites$q_raw[interior] <- vapply(rebuild, mean, 1)
 sites$r1_pass <- abs(sites$r1_ratio - 1) <= r1_ann & vapply(site_r1, `[[`, 1, "worst") <= 1
 # historical, ssp585 against historical, ssp245 before 2015, at the sites
 pre2015 <- vapply(gcms, function(gm) {
@@ -779,6 +798,10 @@ pre2015 <- vapply(gcms, function(gm) {
     max(abs(a[[k]]$v[i, , drop = FALSE] - vb[i, , drop = FALSE]))
   }, 1))
 }, 1)
+base_ratio <- t(sapply(gcms, function(gm) {
+  colMeans(col_of(gcm[[gm]]$ssp585$clim[["1981-2010"]], sites$subid)) /
+    colMeans(col_of(gcm[[gm]]$ssp245$clim[["1981-2010"]], sites$subid))
+}))
 # change signals at the sites: each window's annual and monthly flow over 1981-2010's
 change <- do.call(rbind, lapply(c(ssp245 = "ssp245", ssp585 = "ssp585"), function(sc) {
   do.call(rbind, lapply(c("2041-2070", "2070-2099"), function(w) {
@@ -823,9 +846,9 @@ if (first_fetch <= reg$utc) {
 }
 used <- c(pnw$files, unlist(lapply(gcm, function(x) c(x$ssp245$files, x$ssp585$files))), wt$files)
 used_md5 <- tools::md5sum(used)
-okb <- fl[fl$code == "200" & fl$file %in% basename(used) & grepl("^(PNWNAmet|[A-Z])", fl$what) &
-            fl$what != "listing", ]
-okb <- okb[!duplicated(okb$file, fromLast = TRUE), ]
+okb <- fl[fl$code == "200" & !fl$what %in% c("listing", "portal"), ]
+okb <- okb[file.path(raw_dir, okb$host, gsub("[^A-Za-z0-9]+", "_", okb$what), okb$file) %in% used, ]
+okb <- okb[!duplicated(paste(okb$host, okb$what, okb$file), fromLast = TRUE), ]
 okb$gcm <- !startsWith(okb$what, "PNWNAmet")
 cost <- function(x) c(req = nrow(x), series = sum(x$n), mb = sum(x$bytes) / 2^20, mins = sum(x$secs) / 60)
 c_pnw <- cost(okb[!okb$gcm & grepl("streamflow", okb$what), ])
@@ -859,23 +882,29 @@ out <- c(
         "product and hydromosaic rests on the shared subid network, runs and variables."),
   "",
   "## Domains",
-  "domain    gauges  with outlet  CMIP6 listed  rule1 n  pass %  rule1  rule2 |dQ|/Qobs  dNSE  rule2  verdict",
-  sprintf("%-9s %6d %12d %13s %8d %7s %6s %17s %5s %6s  %s", dom$domain, dom$gauges, dom$r1_n,
-          ifelse(is.na(dom$cmip6_listed), "-", ifelse(dom$cmip6_listed, "all", "not all")), dom$r1_n,
+  "domain    gauges  with outlet  CMIP6 GCMs  rule1 n  pass %  rule1  rule2 |dQ|/Qobs  dNSE  rule2  verdict",
+  sprintf("%-9s %6d %12d %11s %8d %7s %6s %17s %5s %6s  %s", dom$domain, dom$gauges, dom$r1_n,
+          ifelse(is.na(dom$cmip6_listed), "-", ifelse(dom$cmip6_listed, as.character(dom$gcms), "none")), dom$r1_n,
           ifelse(dom$r1_n > 0, sprintf("%.1f", 100 * dom$r1_share), "-"),
           ifelse(is.na(dom$r1_pass), "-", ifelse(dom$r1_pass, "pass", "fail")),
           ifelse(is.na(dom$r2_ann), "-", sprintf("%.3f", dom$r2_ann)), ifelse(is.na(dom$r2_nse), "-", sprintf("%+.3f", dom$r2_nse)),
           ifelse(is.na(dom$r2_pass), "-", ifelse(dom$r2_pass, "pass", "fail")), dom$verdict),
+  "gauges: scored gauges by the domain of their segment's sub-basin; CMIP6 GCMs: listed under both SSPs at every",
+  "gauge outlet of the domain",
   sprintf("scored gauges with no outlet on their segment: %d", sum(is.na(g$outlet))),
-  sprintf("among fetched outlets: %d with no PNWNAmet series, %d with no series for some GCM (%s)", length(miss_pnw),
-          length(miss_gcm), if (length(miss_gcm)) paste(miss_gcm, collapse = ", ") else "none"),
+  "GCMs with no series at the domain's gauge outlets (count of outlets):",
+  sprintf("  %-9s %s", domains, apply(gcm_missing, 1, function(r) {
+    if (all(r == 0)) "none" else paste(sprintf("%s %d", names(r)[r > 0], r[r > 0]), collapse = ", ")
+  })),
+  sprintf("among fetched outlets: %d with no PNWNAmet series, %d with no series for some GCM", length(miss_pnw),
+          length(miss_gcm)),
   paste("Move 7's first check: whether each CMIP6 run's outlets with series are PNWNAmet's, which fwapg's crosswalk",
         "needs (it refuses a run whose crosswalk differs from the stored one)."),
   "",
   "## Outlets by crosswalk flag (share of the domain's outlets, %)",
-  sprintf("%-9s %7s  %s", "domain", "outlets", paste(sprintf("%12s", colnames(flags)), collapse = "")),
-  sprintf("%-9s %7d  %s", rownames(flags), rowSums(flags),
-          apply(flags, 1, function(r) paste(sprintf("%12.1f", 100 * r / sum(r)), collapse = ""))),
+  sprintf("%-9s %7s %s", "domain", "outlets", paste(sprintf("%13s", colnames(flags)), collapse = "")),
+  sprintf("%-9s %7d %s", rownames(flags), rowSums(flags),
+          apply(flags, 1, function(r) paste(sprintf("%13.1f", 100 * r / sum(r)), collapse = ""))),
   "",
   "## Rule 1: the crosswalk reproduces PCIC's outlet series",
   sprintf("gauges with an outlet: %d; pass %d; not exact (annual past 1e-4 relative) %d", nrow(r1), sum(r1$pass),
@@ -887,19 +916,21 @@ out <- c(
   else "  none",
   if (length(bee_diff)) sprintf("beehive against services at %d outlets: largest monthly difference %.1e m3/s",
                                 length(bee_diff), max(bee_diff)) else "beehive: no outlet needed it",
-  "station   domain    outlet   annual pub  annual raw     ratio  worst/tol  type",
-  with(r1[!r1$pass, ], sprintf("%-9s %-8s %8d %11s %11s %9s %10s  %s", station_number, domain, outlet, num(q_pub),
-                               num(q_raw), num(ratio, 5), num(worst_month, 2), type)),
+  "failing or not exact:",
+  "station   domain    outlet   annual pub  annual raw     ratio  worst/tol  agree  type",
+  with(r1[!r1$pass | !r1$exact, ], sprintf("%-9s %-8s %8d %11s %11s %9s %10s  %5s  %s", station_number, domain,
+                                           outlet, num(q_pub), num(q_raw), num(ratio, 6), num(worst_month, 2),
+                                           ifelse(agree, "y", "n"), ifelse(pass, "(passes)", type))),
   "",
   "## Rule 2: CMIP6 against PNWNAmet at the gauges, 1981-2010 (historical, ssp245)",
   sprintf("gauges: %d; pass %d; GCM series missing at %d gauges", nrow(r2), sum(r2$pass), sum(r2$gcm_missing > 0)),
-  "domain    n  |medGCM-PNW|/Qobs median  p90   share NSE PNW  GCM  diff median",
+  "domain    n  |medGCM-PNW|/Qobs median  p90  (medGCM-PNW)/Qobs median   share NSE PNW  GCM  diff median",
   vapply(domains, function(d) {
     x <- r2[r2$domain == d, ]
     if (!nrow(x)) return(sprintf("%-8s %2d", d, 0L))
-    sprintf("%-8s %3d %26.3f %5.3f %13.3f %5.3f %+12.3f", d, nrow(x), stats::median(x$stat_ann),
-            stats::quantile(x$stat_ann, 0.9, names = FALSE), stats::median(x$nse_pnw), stats::median(x$nse_gcm),
-            stats::median(x$d_nse))
+    sprintf("%-8s %3d %26.3f %5.3f %+24.3f %15.3f %5.3f %+12.3f", d, nrow(x), stats::median(x$stat_ann),
+            stats::quantile(x$stat_ann, 0.9, names = FALSE), stats::median(x$signed_ann), stats::median(x$nse_pnw),
+            stats::median(x$nse_gcm), stats::median(x$d_nse))
   }, ""),
   "gauges failing rule 2:",
   if (any(!r2$pass)) with(r2[!r2$pass, ], sprintf("  %-9s %-8s |dQ|/Qobs %.3f  dNSE %+.3f", station_number, domain,
@@ -915,17 +946,22 @@ out <- c(
           ifelse(is.na(sites$regulated), "-", sites$regulated), ifelse(is.na(sites$n_years), "-", sites$n_years)),
   sprintf("headwater: %d candidates under 10 km2; confluence: %d junctions where June's step lands above, the pick's",
           hw$n, as.integer(cf$n_steps)),
-  sprintf("  joining line %.3f m3/s in June, upper segment %.3f, next segment up %.3f, %.0f m from a scored gauge",
-          cf$q_trib, cf$q_upper, cf$q_above, cf$dist_m),
+  sprintf("  joining line %.3f m3/s in June, upper segment %.3f, next segment up %.3f, %.0f m from scored gauge %s",
+          cf$q_trib, cf$q_upper, cf$q_above, cf$dist_m,
+          paste(g$station_number[g$linear_feature_id == cf$gauge_lfid], collapse = ", ")),
   "",
-  "annual flow, 1981-2010 (m3/s): HYDAT, PCIC raw at the outlet, routed as published, the balance as published,",
+  "annual flow, 1981-2010 (m3/s): HYDAT, PCIC raw at the outlet (interior: rebuilt from raw), routed as published,",
+  "the balance as published,",
   "wet's accumulation of the gridded runoff; rule 1 at the site (own segment: raw; interior: rebuilt from raw)",
   "site        HYDAT    PCIC raw   routed pub  balance pub  wet acc    pub/rule1  rule1",
   sprintf("%-11s %8s %10s %12s %12s %9s %10s  %s", sites$site_id, num(sites$q_obs, 2), num(sites$q_raw, 2),
           num(sites$q_pub, 2), num(sites$q_bal, 2), num(sites$q_wet_acc, 2), num(sites$r1_ratio, 5),
           ifelse(sites$r1_pass, "pass", "fail")),
-  sprintf("historical, ssp585 against historical, ssp245 before 2015 at the sites: largest difference %.1e m3/s",
+  sprintf("historical, ssp585 against historical, ssp245 before 2015 at the sites: largest daily difference %.1f m3/s",
           max(pre2015)),
+  "1981-2010 annual flow, historical, ssp585 over historical, ssp245, per GCM: median and range over the 9",
+  sprintf("  %-11s median %.4f, %.4f to %.4f", sites$site_id, apply(base_ratio, 2, stats::median),
+          apply(base_ratio, 2, min), apply(base_ratio, 2, max)),
   "",
   "## Change signals at the sites (%, decide nothing)",
   "annual, per GCM (columns as listed: CNRM FGOA IPSL MIRO MPI MRI NorE TaiE UKES) and median",
