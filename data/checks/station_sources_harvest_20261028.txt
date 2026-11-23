@@ -1,5 +1,5 @@
 The province's non-integrated discharge as wet reads it: the harvest report (#142, #179)
-HYDAT release 20260717; snapshot 20261028; reader v2; code_md5 6211e6f4400906509f670f5e79e8fcd3
+HYDAT release 20260717; snapshot 20261028; reader v2; code_md5 d08e46c71b0f787ccaeec3682768cc0e
 Windows: CH migration 05-01..08-01 and spawning 08-01..09-15, as the survey (#123).
 
 Tier (i): the survey's rules (UTC days of >= 20 hours, no bound, no negative day dropped)
@@ -272,9 +272,10 @@ Tier (ii): the shipped rules (the nearest HYDAT station's sub-drainage bound, ne
       S-510:6745, SON-water:31909, TRZ-water:16917, WAH-water:3293, WHI-water:4535, Wasa Lake:11920,
       manson:19607
   registry against the reader's first and last days: 53 listings, 0 differing
+  registry id, name, network and coordinates against the station list, credit against the CSV: 0 differing
   registry listings against the selection recomputed from the station list: 0 differing
   registry HYDAT site or distance against the survey's match: 0 differing
-  registry nearest HYDAT station or sub-drainage recomputed: 0 differing
+  registry nearest HYDAT station, its distance or sub-drainage recomputed: 0 differing
   registry regulation against the name rule: 0 differing; numbers shaped like HYDAT's or provincial: 0
   sub-drainages read (nearest HYDAT station): 07F 11, 08D 7, 08G 1, 08H 18, 08M 2, 10C 8, 10D 5, 10F 1; farthest nearest station 126.98 km (ogc_1004)
   Tool registry verdict: PASS

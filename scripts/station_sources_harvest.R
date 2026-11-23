@@ -47,7 +47,7 @@
 #     (inst/extdata/station_sources/bcwatertool_<snapshot>_hydat.csv) held to
 #     the reader's first and last days, the selection rule recomputed from the
 #     station list, the nearest HYDAT station, the HYDAT match and the name
-#     rule; a mismatch fails the run (rewrite it with
+#     rule, its copied fields held to the station list and CSV headers; a mismatch fails the run (rewrite it with
 #     data-raw/station_sources_bcwatertool.R).
 #
 # It also holds the shipped station registry's first and last days
@@ -375,14 +375,27 @@ treg_site <- treg$station_number[is.na(tk) | differs(treg$hydat_site, ts$hydat[t
 hy_xy <- albers(hy$lon, hy$lat)
 t_xy <- albers(treg$lon, treg$lat)
 tnear <- vapply(seq_len(nrow(treg)), function(i) {
-  hy$station_number[which.min((hy_xy[, 1] - t_xy[i, 1])^2 + (hy_xy[, 2] - t_xy[i, 2])^2)]
-}, "")
-treg_near <- treg$station_number[tnear != treg$nearest_hydat | substr(tnear, 1, 3) != treg$subdrainage]
+  d <- sqrt((hy_xy[, 1] - t_xy[i, 1])^2 + (hy_xy[, 2] - t_xy[i, 2])^2)
+  j <- which.min(d)
+  c(hy$station_number[j], sprintf("%.2f", d[j]))
+}, c("", ""))
+treg_near <- treg$station_number[tnear[1, ] != treg$nearest_hydat | substr(tnear[1, ], 1, 3) != treg$subdrainage |
+                                   differs(treg$nearest_km, as.numeric(tnear[2, ]))]
 treg_reg <- treg$station_number[differs(treg$regulation, ifelse(regulation_of(treg$name) == "unknown", "unknown",
                                                                   "regulated by name"))]
 treg_bad <- treg$station_number[grepl(wet_hydat_number, treg$station_number) |
                                   treg$station_number %in% st_meta$station_number]
-treg_fail <- length(treg_off) > 0 || length(treg_cut) > 0 || length(treg_sel) > 0 || length(treg_site) > 0 || length(treg_near) > 0 ||
+# the registry's fields copied from the station list and the CSV headers, held to them (coordinates at the
+# 15 significant digits write.csv() keeps)
+tl <- wt[match(treg$station_number, wt$nid), ]
+tcredit <- vapply(seq_len(nrow(treg)), function(i) {
+  wet:::wet_bcwatertool_credit(wet:::wet_bcwatertool_read(wet:::wet_bcwatertool(treg$id[i], tool_snapshot),
+                                                           treg$id[i])$meta)
+}, "")
+treg_copy <- treg$station_number[is.na(tl$nid) | differs(treg$id, as.character(tl$id)) | differs(treg$name, tl$name) |
+                                   differs(treg$network, tl$net) | differs(treg$lon, signif(tl$lon, 15)) |
+                                   differs(treg$lat, signif(tl$lat, 15)) | differs(treg$credit, tcredit)]
+treg_fail <- length(treg_off) > 0 || length(treg_cut) > 0 || length(treg_copy) > 0 || length(treg_sel) > 0 || length(treg_site) > 0 || length(treg_near) > 0 ||
   length(treg_reg) > 0 || length(treg_bad) > 0
 # what the chain adds: per continuing listing, its days before the provincial record begins
 tchain <- do.call(rbind, lapply(seq_len(nrow(tcont)), function(i) {
@@ -516,11 +529,13 @@ out <- c(
   })),
   sprintf("  registry against the reader's first and last days: %d listings, %d differing%s", nrow(treg),
           length(treg_off), if (length(treg_off)) paste0(" (", paste(treg_off, collapse = ", "), ")") else ""),
+  sprintf("  registry id, name, network and coordinates against the station list, credit against the CSV: %d differing%s",
+          length(treg_copy), if (length(treg_copy)) paste0(" (", paste(treg_copy, collapse = ", "), ")") else ""),
   sprintf("  registry listings against the selection recomputed from the station list: %d differing%s",
           length(treg_sel), if (length(treg_sel)) paste0(" (", paste(treg_sel, collapse = ", "), ")") else ""),
   sprintf("  registry HYDAT site or distance against the survey's match: %d differing%s", length(treg_site),
           if (length(treg_site)) paste0(" (", paste(treg_site, collapse = ", "), ")") else ""),
-  sprintf("  registry nearest HYDAT station or sub-drainage recomputed: %d differing%s", length(treg_near),
+  sprintf("  registry nearest HYDAT station, its distance or sub-drainage recomputed: %d differing%s", length(treg_near),
           if (length(treg_near)) paste0(" (", paste(treg_near, collapse = ", "), ")") else ""),
   sprintf("  registry regulation against the name rule: %d differing; numbers shaped like HYDAT's or provincial: %d%s",
           length(treg_reg), length(treg_bad),
