@@ -42,3 +42,13 @@ Start Phase 1 and run every phase to the PR (/code-check branch, /planning-archi
 /gh-pr-push). This message is the resume instruction that starts the run-to-PR
 mandate; the merge stays with me.
 ```
+
+## Phase 1, 2026-11-23
+
+- Resumed from the park; main merged in (2771a11). Asked the four open decisions: the owner chose 1(b) chain earlier days, 2(a) per sub-drainage bound, 3 not read, 4 all 391 cached and backed up with the fetch process documented (21d81fa; #195's body, #190 and #192 split with their owner questions).
+- Registered the Tool's bound before any code applied it (21d81fa).
+- Reader, chain, pin, registry and tests (1ac68fc); the pin and backup ran on the survey machine with `WET_BACKUP=1`: 392 files, each held to its size and ETag; registry byte-identical on rerun.
+- Harvest's Tool tier (d5ac974): the survey reproduced; 149 days dropped by the bound; report byte-identical on rerun.
+- Research and CLAUDE.md (e98cea7); lint (2c121b5).
+- `/code-check branch`: round 1 (6378c12) cut the chain at the provincial record's first hour, not its first complete day, so Tofino's four listings, the same gauges, add nothing; round 2 (9e50a1b) named the provincial snapshot in the Tool registry; round 3 (1b73c3f) keyed it on the provincial days and refused a station-day given twice; enumeration (666f509, 2e88099) held every registry column to its source.
+- Full suite 3,397 passed, 0 failed, 5 fwapg skips; `check_pkgdown()` clean.
