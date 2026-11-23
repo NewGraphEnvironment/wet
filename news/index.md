@@ -1,5 +1,21 @@
 # Changelog
 
+## wet (development version)
+
+- [`wet_segment_monthly()`](https://newgraphenvironment.github.io/wet/reference/wet_segment_monthly.md)
+  and
+  [`wet_segment_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_segment_daily.md)
+  return `pick`, a logical column last: `TRUE` where the source is the
+  segment’s default, `NA` on a missing segment’s rows and, from fwapg’s
+  table, on every row
+  ([\#177](https://github.com/NewGraphEnvironment/wet/issues/177)). The
+  two guards that hold a publish to the code its tables were built from,
+  in `scripts/discharge_publish.R` and `scripts/segment_daily_output.R`,
+  now exclude one shared list of files no table reads,
+  `scripts/discharge_publish_own.R`, which gains the readers and the
+  chinook-site and departure code
+  ([\#171](https://github.com/NewGraphEnvironment/wet/issues/171)).
+
 ## wet 0.4.39
 
 - Departures at the chinook sites can be borrowed from the gauges whose

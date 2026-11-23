@@ -61,9 +61,12 @@ wet_segment_daily(
 
 ## Value
 
-`data.frame(linear_feature_id, doy, q_m3s, source)`, ordered by source
-as given, segment as given and day. A segment with no value for a source
-has all 365 rows, with `q_m3s` `NA`.
+`data.frame(linear_feature_id, doy, q_m3s, source, pick)`, ordered by
+source as given, segment as given and day. `pick` is logical, `TRUE`
+where the source is the segment's default, as in
+[`wet_segment_monthly()`](https://newgraphenvironment.github.io/wet/reference/wet_segment_monthly.md).
+A segment with no value for a source has all 365 rows, with `q_m3s` and
+`pick` `NA`.
 
 ## What the days are
 

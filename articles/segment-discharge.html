@@ -170,13 +170,13 @@ the months can be read without it, and the days cannot:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/reshape.html" class="external-link">reshape</a></span><span class="op">(</span><span class="va">q</span><span class="op">[</span><span class="va">q</span><span class="op">$</span><span class="va">month</span> <span class="op">&gt;</span> <span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"source"</span>, <span class="st">"month"</span>, <span class="st">"q_m3s"</span><span class="op">)</span><span class="op">]</span>, idvar <span class="op">=</span> <span class="st">"month"</span>,</span>
 <span>        timevar <span class="op">=</span> <span class="st">"source"</span>, direction <span class="op">=</span> <span class="st">"wide"</span><span class="op">)</span></span></code></pre></div>
 <p><code><a href="../reference/wet_segment_monthly.html">wet_segment_monthly()</a></code> returns
-<code>linear_feature_id, month, q_m3s, source</code>, the shape of
-<code><a href="../reference/wet_station_monthly.html">wet_station_monthly()</a></code>’s gauge record, so a comparison is a
-join on <code>month</code>. A segment a source lacks comes back with
-<code>NA</code> months, not missing rows.
-<code><a href="../reference/wet_segment_daily.html">wet_segment_daily()</a></code> reads a segment’s days, and
-<code><a href="../reference/wet_flow_window.html">wet_flow_window()</a></code> the mean flow over a timing window from
-days or months:</p>
+<code>linear_feature_id, month, q_m3s, source, pick</code>, the shape of
+<code><a href="../reference/wet_station_monthly.html">wet_station_monthly()</a></code>’s gauge record with <code>pick</code>
+added, so a comparison is a join on <code>month</code>. A segment a
+source lacks comes back with <code>NA</code> months and <code>NA</code>
+<code>pick</code>, not missing rows. <code><a href="../reference/wet_segment_daily.html">wet_segment_daily()</a></code>
+reads a segment’s days, and <code><a href="../reference/wet_flow_window.html">wet_flow_window()</a></code> the mean flow
+over a timing window from days or months:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">q</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/wet_segment_daily.html">wet_segment_daily</a></span><span class="op">(</span><span class="cn">NULL</span>, <span class="fl">17094080</span>, groups <span class="op">=</span> <span class="st">"BULK"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/wet_flow_window.html">wet_flow_window</a></span><span class="op">(</span><span class="va">q</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>window <span class="op">=</span> <span class="st">"spring"</span>, start <span class="op">=</span> <span class="st">"04-15"</span>, end <span class="op">=</span> <span class="st">"06-15"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>

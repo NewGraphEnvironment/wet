@@ -108,10 +108,11 @@ reshape(q[q$month > 0, c("source", "month", "q_m3s")], idvar = "month",
 ```
 
 [`wet_segment_monthly()`](https://newgraphenvironment.github.io/wet/reference/wet_segment_monthly.md)
-returns `linear_feature_id, month, q_m3s, source`, the shape of
+returns `linear_feature_id, month, q_m3s, source, pick`, the shape of
 [`wet_station_monthly()`](https://newgraphenvironment.github.io/wet/reference/wet_station_monthly.md)’s
-gauge record, so a comparison is a join on `month`. A segment a source
-lacks comes back with `NA` months, not missing rows.
+gauge record with `pick` added, so a comparison is a join on `month`. A
+segment a source lacks comes back with `NA` months and `NA` `pick`, not
+missing rows.
 [`wet_segment_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_segment_daily.md)
 reads a segment’s days, and
 [`wet_flow_window()`](https://newgraphenvironment.github.io/wet/reference/wet_flow_window.md)

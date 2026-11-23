@@ -108,10 +108,16 @@ segment outside them reads as missing.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p><code>data.frame(linear_feature_id, month, q_m3s, source)</code>, ordered by
-source as given, segment as given and month. A segment with no value for
-a source has all 13 rows, with <code>q_m3s</code> <code>NA</code>, so missing coverage stays
-visible after a join.</p>
+    <p><code>data.frame(linear_feature_id, month, q_m3s, source, pick)</code>, ordered by
+source as given, segment as given and month. <code>pick</code> is logical: <code>TRUE</code>
+where the source is the segment's default (<code>pick</code> in the published
+product) and <code>FALSE</code> where it is not.
+A segment with no value for a source has all 13 rows, with <code>q_m3s</code> and
+<code>pick</code> <code>NA</code> (not <code>FALSE</code>: no row says nothing about the default), so
+missing coverage stays visible after a join. With <code>from = "fwapg"</code>, whose
+table has no <code>pick</code>, <code>pick</code> is <code>NA</code> on every row. A table loaded by
+<code><a href="wet_db_load.html">wet_db_load()</a></code> with <code>pick_only</code> holds the picked rows alone, so its
+other source reads as missing.</p>
     </div>
     <div class="section level2">
     <h2 id="where-the-values-come-from">Where the values come from<a class="anchor" aria-label="anchor" href="#where-the-values-come-from"></a></h2>
@@ -152,8 +158,9 @@ a read during a publish can mix two builds, so retry once it completes.</p>
 <span class="r-in"><span><span class="co"># Buck Creek at its mouth, where gauge 08EE013 sits, from the published</span></span></span>
 <span class="r-in"><span><span class="co"># parts over HTTPS (about 3 s)</span></span></span>
 <span class="r-in"><span><span class="va">q</span> <span class="op">&lt;-</span> <span class="fu">wet_segment_monthly</span><span class="op">(</span><span class="cn">NULL</span>, <span class="fl">17094080</span>, groups <span class="op">=</span> <span class="st">"BULK"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/reshape.html" class="external-link">reshape</a></span><span class="op">(</span><span class="va">q</span><span class="op">[</span><span class="va">q</span><span class="op">$</span><span class="va">month</span> <span class="op">&gt;</span> <span class="fl">0</span>, <span class="op">]</span>, idvar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"linear_feature_id"</span>, <span class="st">"month"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>        timevar <span class="op">=</span> <span class="st">"source"</span>, direction <span class="op">=</span> <span class="st">"wide"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">q</span><span class="op">[</span><span class="va">q</span><span class="op">$</span><span class="va">month</span> <span class="op">==</span> <span class="fl">0</span> <span class="op">&amp;</span> <span class="va">q</span><span class="op">$</span><span class="va">pick</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="cn">TRUE</span>, <span class="op">]</span>  <span class="co"># the default source's mean annual flow</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/reshape.html" class="external-link">reshape</a></span><span class="op">(</span><span class="va">q</span><span class="op">[</span><span class="va">q</span><span class="op">$</span><span class="va">month</span> <span class="op">&gt;</span> <span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"linear_feature_id"</span>, <span class="st">"month"</span>, <span class="st">"q_m3s"</span>, <span class="st">"source"</span><span class="op">)</span><span class="op">]</span>,</span></span>
+<span class="r-in"><span>        idvar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"linear_feature_id"</span>, <span class="st">"month"</span><span class="op">)</span>, timevar <span class="op">=</span> <span class="st">"source"</span>, direction <span class="op">=</span> <span class="st">"wide"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># the same from Postgres, after wet_db_load()</span></span></span>
 <span class="r-in"><span><span class="va">conn</span> <span class="op">&lt;-</span> <span class="fu">DBI</span><span class="fu">::</span><span class="fu"><a href="https://dbi.r-dbi.org/reference/dbConnect.html" class="external-link">dbConnect</a></span><span class="op">(</span><span class="fu">RPostgres</span><span class="fu">::</span><span class="fu"><a href="https://rpostgres.r-dbi.org/reference/Postgres.html" class="external-link">Postgres</a></span><span class="op">(</span><span class="op">)</span>, dbname <span class="op">=</span> <span class="st">"fwapg"</span><span class="op">)</span></span></span>

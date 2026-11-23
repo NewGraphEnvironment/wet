@@ -63,10 +63,17 @@ wet_segment_monthly(
 
 ## Value
 
-`data.frame(linear_feature_id, month, q_m3s, source)`, ordered by source
-as given, segment as given and month. A segment with no value for a
-source has all 13 rows, with `q_m3s` `NA`, so missing coverage stays
-visible after a join.
+`data.frame(linear_feature_id, month, q_m3s, source, pick)`, ordered by
+source as given, segment as given and month. `pick` is logical: `TRUE`
+where the source is the segment's default (`pick` in the published
+product) and `FALSE` where it is not. A segment with no value for a
+source has all 13 rows, with `q_m3s` and `pick` `NA` (not `FALSE`: no
+row says nothing about the default), so missing coverage stays visible
+after a join. With `from = "fwapg"`, whose table has no `pick`, `pick`
+is `NA` on every row. A table loaded by
+[`wet_db_load()`](https://newgraphenvironment.github.io/wet/reference/wet_db_load.md)
+with `pick_only` holds the picked rows alone, so its other source reads
+as missing.
 
 ## Where the values come from
 
@@ -114,8 +121,9 @@ if (FALSE) { # \dontrun{
 # Buck Creek at its mouth, where gauge 08EE013 sits, from the published
 # parts over HTTPS (about 3 s)
 q <- wet_segment_monthly(NULL, 17094080, groups = "BULK")
-reshape(q[q$month > 0, ], idvar = c("linear_feature_id", "month"),
-        timevar = "source", direction = "wide")
+q[q$month == 0 & q$pick %in% TRUE, ]  # the default source's mean annual flow
+reshape(q[q$month > 0, c("linear_feature_id", "month", "q_m3s", "source")],
+        idvar = c("linear_feature_id", "month"), timevar = "source", direction = "wide")
 
 # the same from Postgres, after wet_db_load()
 conn <- DBI::dbConnect(RPostgres::Postgres(), dbname = "fwapg")
