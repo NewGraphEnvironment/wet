@@ -52,9 +52,8 @@ wet_bcenv_stations <- function(snapshot) {
   path <- system.file("extdata", "station_sources", sprintf("bcenv_%s_hydat.csv", snapshot), package = "wet")
   if (!nzchar(path)) stop("no station registry for the provincial snapshot ", snapshot, call. = FALSE)
   s <- utils::read.csv(path, na.strings = "", encoding = "UTF-8", colClasses = c(
-    station_number = "character", name = "character", status = "character", lon = "numeric", lat = "numeric",
-    first = "Date", last = "Date", regulation = "character", hydat_site = "character", hydat_km = "numeric",
-    hydat_class = "character"))
+    station_number = "character", name = "character", lon = "numeric", lat = "numeric",
+    first = "Date", last = "Date", regulation = "character", hydat_site = "character", hydat_km = "numeric"))
   if (anyDuplicated(s$station_number) || anyNA(s$station_number)) {
     stop("the station registry ", path, " does not hold one row per station", call. = FALSE)
   }

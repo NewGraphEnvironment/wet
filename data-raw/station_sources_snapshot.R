@@ -23,7 +23,7 @@
 #    copy of what was read.
 # 5. Writes the snapshot's station registry,
 #    inst/extdata/station_sources/bcenv_<snapshot>_hydat.csv: one row per
-#    provincial station (its latest name, status and coordinates in the files),
+#    provincial station (its latest name and coordinates in the files),
 #    its first and last complete day as wet_bcenv_daily() reads them, its
 #    regulation as far as its name says, and the HYDAT station at the same site
 #    (scripts/station_sources_lib.R's hydat_match(), the survey's rule, against
@@ -113,8 +113,7 @@ hy <- hydat_stations(wb_hydat("20260717"))
 duck <- DBI::dbConnect(duckdb::duckdb())
 wet:::wet_bcenv_hours(duck, wet:::wet_bcenv(snapshot))
 st <- DBI::dbGetQuery(duck, "
-  SELECT id AS station_number, arg_max(name, t) AS name, arg_max(status, t) AS status,
-         arg_max(lon, t) AS lon, arg_max(lat, t) AS lat
+  SELECT id AS station_number, arg_max(name, t) AS name, arg_max(lon, t) AS lon, arg_max(lat, t) AS lat
   FROM h GROUP BY 1 ORDER BY 1")
 DBI::dbDisconnect(duck, shutdown = TRUE)
 st <- st[order(st$station_number, method = "radix"), ]
@@ -130,7 +129,6 @@ m <- hydat_match(data.frame(station_id = st$station_number, name = st$name, lon 
 stopifnot(identical(m$station_id, st$station_number))
 st$hydat_site <- m$hydat
 st$hydat_km <- m$hydat_km
-st$hydat_class <- m$class
 reg_path <- file.path(out_dir, sprintf("bcenv_%s_hydat.csv", snapshot))
 utils::write.csv(st, reg_path, row.names = FALSE, na = "")
 message("wrote ", reg_path, ": ", nrow(st), " stations, ", sum(!is.na(st$first)), " with a complete day, ",

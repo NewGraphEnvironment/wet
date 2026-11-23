@@ -75,7 +75,8 @@ bound_nat <- round(max(nat$ratio), 2)
 pv <- wet_bcenv_daily(NULL, bound = Inf)
 pv$cap <- wet_bcenv_cap(pv$station_number, pv$q_m3s, bound)
 pv$dropped <- !is.na(pv$cap) & pv$q_m3s > pv$cap
-med <- vapply(split(pv$q_m3s[pv$q_m3s > 0], pv$station_number[pv$q_m3s > 0]), stats::median, 0)
+# the median each cap was taken from, read back from the cap, not computed again
+pv$med <- pv$cap / wet_bcenv_ratio(pv$station_number, bound)
 neg <- wet_bcenv_days_read(wet_bcenv_days(wet_bcenv_snapshot, tools::R_user_dir("wet", "cache")), NULL)
 neg <- neg[neg$hours >= 20 & neg$q_m3s < 0, ]
 catch <- data.frame(
@@ -131,7 +132,7 @@ out <- c(
   paste0("Stations with days above the bound: station, days dropped, median of",
            " positive days (m3/s), cap, largest day dropped, years"),
   vapply(split(pv[pv$dropped, ], pv$station_number[pv$dropped]), function(x) {
-    sprintf("  %s  %5d  %9.3f  %10.1f  %12.1f  %s-%s", x$station_number[1], nrow(x), med[[x$station_number[1]]],
+    sprintf("  %s  %5d  %9.3f  %10.1f  %12.1f  %s-%s", x$station_number[1], nrow(x), x$med[1],
             x$cap[1], max(x$q_m3s), format(min(x$date), "%Y"), format(max(x$date), "%Y"))
   }, "")
 )

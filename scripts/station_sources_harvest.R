@@ -147,7 +147,10 @@ theirs <- grep("^  bcenv \\| ", survey, value = TRUE)
 theirs <- sub("^((?:[^|]*\\|){12}[^|]*?) \\|.*$", "\\1", theirs, perl = TRUE)
 theirs_id <- vapply(strsplit(theirs, " \\| "), `[`, "", 3)
 row_diff <- setdiff(union(mine, theirs), intersect(mine, theirs))
-if (length(row_diff)) fail <- c(fail, "station rows")
+# as multisets: a set difference cannot see a line given twice
+if (length(row_diff) || !identical(sort(mine, method = "radix"), sort(theirs, method = "radix"))) {
+  fail <- c(fail, "station rows")
+}
 net_mine <- sprintf("read %4d  Q %4d  new %4d  same-site %3d  dup %3d  >=1 %4d  >=3 %4d  seasonal %s",
                     nrow(t1), nrow(t1), sum(t1$class == "not in HYDAT"), sum(t1$class == "same site, new years"),
                     sum(t1$class == "duplicate"), sum(t1$new & t1$wy_new >= 1), sum(t1$new & t1$wy_new >= min_years),
@@ -157,6 +160,7 @@ if (!identical(net_mine, net_theirs)) fail <- c(fail, "network line")
 
 # ---- tier (ii): the shipped rules -------------------------------------------------------------
 lst <- wet_bcenv_days_read(wet_bcenv_days(snapshot, cache), NULL)
+held <- unique(lst$station_number)  # every station with a usable hour, complete day or not
 lst <- lst[lst$hours >= 20, ]
 shipped <- wet_bcenv_daily(NULL, snapshot)
 t2 <- station_table(lst[, c("station_number", "date", "q_m3s")])
@@ -179,11 +183,14 @@ reg_last <- as.Date(vapply(st_meta$station_number, function(s) if (is.null(rng[[
 reg_off <- st_meta$station_number[is.na(match(paste(st_meta$station_number, reg_first, reg_last),
                                               paste(st_meta$station_number, st_meta$first, st_meta$last)))]
 # a station the reader returns that the registry lacks would be unreachable from wet_station_daily()
-reg_missing <- setdiff(unique(c(lst$station_number, utc$station_number)), st_meta$station_number)
+reg_missing <- setdiff(held, st_meta$station_number)
 # the registry's HYDAT site against the survey's match, which tier (i) verifies (the site does not depend on years)
 stopifnot(identical(t1$station_id, st_meta$station_number))
 reg_site <- st_meta$station_number[differs(st_meta$hydat_site, t1$hydat) | differs(st_meta$hydat_km, t1$hydat_km)]
-reg_fail <- length(reg_off) > 0 || length(reg_missing) > 0 || length(reg_site) > 0
+# the registry's regulation against the name rule it was written by
+reg_reg <- st_meta$station_number[differs(st_meta$regulation, ifelse(regulation_of(st_meta$name) == "unknown",
+                                                                     "unknown", "regulated by name"))]
+reg_fail <- length(reg_off) > 0 || length(reg_missing) > 0 || length(reg_site) > 0 || length(reg_reg) > 0
 neg <- sum(lst$q_m3s < 0)
 
 # ---- report -----------------------------------------------------------------------------------
@@ -219,7 +226,9 @@ out <- c(
           nrow(st_meta), length(reg_off), if (length(reg_off)) paste0(" (", paste(reg_off, collapse = ", "), ")") else ""),
   sprintf("  stations whose registry HYDAT site or distance differs from the survey's match: %d%s", length(reg_site),
           if (length(reg_site)) paste0(" (", paste(reg_site, collapse = ", "), ")") else ""),
-  sprintf("  stations the reader returns that the registry lacks: %d%s; registry verdict: %s", length(reg_missing),
+  sprintf("  stations whose registry regulation differs from what their name gives: %d%s", length(reg_reg),
+          if (length(reg_reg)) paste0(" (", paste(reg_reg, collapse = ", "), ")") else ""),
+  sprintf("  stations the hours hold that the registry lacks: %d%s; registry verdict: %s", length(reg_missing),
           if (length(reg_missing)) paste0(" (", paste(reg_missing, collapse = ", "), ")") else "",
           if (reg_fail) "FAIL, rewrite it with data-raw/station_sources_snapshot.R" else "PASS"),
   sprintf("  status of shipped days: provisional %d (%.1f %%), unchecked %d (%.1f %%)",
