@@ -69,5 +69,5 @@ Order: `planning/backlog.md`, move 6. Run `/planning-init <this issue>`.
 ### Site picks (rules applied, 2026-11-23)
 
 - headwater: 702744940 (SALR, blue line 356342351), the largest interior segment under 10 km2 above 08KC001.
-- confluence: 700353187 (BIGC), the junction where June's step lands on the segment above nearest a scored gauge with an outlet.
+- confluence: 700353187 (BIGC, 08MB006's segment), the junction nearest a scored gauge where fwapg's qa.sql test fires; code review round 3 found the test fires mostly on ordinary confluences, this one among them (a line joining at the segment's top carries the step), recorded as an amendment.
 - 08KC001 701940975 (LSAL), 08KH001 702666848 (QUES), 08MF005 701253017 (FRCN, snapped), 08MG005 701704476 (LILL).

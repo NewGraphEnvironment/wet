@@ -588,16 +588,23 @@ steps_sql <- function() sprintf("
       JOIN %1$s qu ON qu.linear_feature_id = j.upper_lfid AND qu.month = 6 AND %3$s
       JOIN %1$s qa ON qa.linear_feature_id = j.above_lfid AND qa.month = 6 AND %4$s
       WHERE qt.q_m3s > 1 AND qu.q_m3s - qa.q_m3s > 0.5 * qt.q_m3s
-    ), tops AS (
-      SELECT s.upper_lfid, max(qx.q_m3s) AS q_top, min(bp2.blue_line_key) AS top_blk
+    ), top_lines AS (
+      SELECT s.upper_lfid, bp2.blue_line_key AS top_blk
       FROM steps s
       JOIN whse_basemapping.fwa_stream_networks_sp a ON a.linear_feature_id = s.above_lfid
       JOIN fwapg.blk_paths bp2 ON bp2.path_blks[1] = s.main_blk
         AND abs(bp2.path_measures[1] - a.downstream_route_measure) < 0.001
-      JOIN LATERAL (SELECT t.linear_feature_id FROM whse_basemapping.fwa_stream_networks_sp t
-                    WHERE t.blue_line_key = bp2.blue_line_key ORDER BY t.downstream_route_measure LIMIT 1) m ON true
-      JOIN %1$s qx ON qx.linear_feature_id = m.linear_feature_id AND qx.month = 6 AND %5$s
-      GROUP BY s.upper_lfid
+    ), tops AS (
+      -- each top line's June flow on its lowest segment that carries routed flow (a
+      -- line's first segment can be a connector with none); per upper segment the
+      -- line with the most, its key and flow kept together
+      SELECT l.upper_lfid, max(m.q_m3s) AS q_top,
+             (array_agg(l.top_blk ORDER BY m.q_m3s DESC, l.top_blk))[1] AS top_blk
+      FROM top_lines l
+      JOIN LATERAL (SELECT qx.q_m3s FROM whse_basemapping.fwa_stream_networks_sp t
+                    JOIN %1$s qx ON qx.linear_feature_id = t.linear_feature_id AND qx.month = 6 AND %5$s
+                    WHERE t.blue_line_key = l.top_blk ORDER BY t.downstream_route_measure LIMIT 1) m ON true
+      GROUP BY l.upper_lfid
     )",
   routed_table, run_on("qt"), run_on("qu"), run_on("qa"), run_on("qx"))
 pick_confluence <- function() {
@@ -606,7 +613,7 @@ pick_confluence <- function() {
     SELECT s.trib_lfid, s.upper_lfid, s.above_lfid, s.q_trib, s.q_upper, s.q_above,
            ST_Distance(s.geom, g.geom) AS dist_m, g.linear_feature_id::double precision AS gauge_lfid,
            (SELECT count(*) FROM steps)::integer AS n_steps,
-           (SELECT count(*) FROM tops)::integer AS n_top,
+           (SELECT count(DISTINCT upper_lfid) FROM top_lines)::integer AS n_top,
            (SELECT count(*) FROM steps s2 JOIN tops t2 USING (upper_lfid)
             WHERE t2.q_top >= 0.5 * (s2.q_upper - s2.q_above))::integer AS n_top_explains,
            t.q_top, t.top_blk
@@ -750,9 +757,11 @@ r1$type <- ifelse(r1$pass, "", ifelse(r1$no_series, "no series", ifelse(!r1$agre
                                                                          ifelse(r1$islake, "lake outlet", NA))))
 recheck <- r1$outlet[is.na(r1$type)]
 bee_diff <- setNames(numeric(), character())
+bee_files <- character()
 if (length(recheck)) {
   stamp("beehive, ", length(recheck), " outlets")
   bee <- run_clim(recheck, "PNWNAmet", "historical", host = "beehive")
+  bee_files <- bee$files
   bm <- col_of(bee$clim[["1981-2010"]], recheck)
   bee_diff <- setNames(apply(abs(bm - col_of(pnw_m, recheck)), 2, max), recheck)
   r1$type[is.na(r1$type)] <- ifelse(bee_diff[as.character(r1$outlet[is.na(r1$type)])] > 1e-9,
@@ -904,7 +913,7 @@ if (first_fetch <= reg$utc) {
   stop("the first fetch (", utc_txt(first_fetch), ") precedes the rules' registration (", utc_txt(reg$utc), ")",
        call. = FALSE)
 }
-used <- c(pnw$files, unlist(lapply(gcm, function(x) c(x$ssp245$files, x$ssp585$files))), wt$files)
+used <- c(pnw$files, unlist(lapply(gcm, function(x) c(x$ssp245$files, x$ssp585$files))), wt$files, bee_files)
 used_md5 <- tools::md5sum(used)
 okb <- fl[fl$code == "200" & !fl$what %in% c("listing", "portal"), ]
 okb <- okb[file.path(raw_dir, okb$host, gsub("[^A-Za-z0-9]+", "_", okb$what), okb$file) %in% used, ]
