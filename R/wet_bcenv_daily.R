@@ -180,7 +180,8 @@ wet_bcenv_hours <- function(con, paths) {
   if (!identical(as.numeric(n$n[match(unname(tmp), n$filename)]), unname(lines))) {
     stop("a provincial file read a different number of rows than it has lines", call. = FALSE)
   }
-  # values are read as text: outside strict mode duckdb would read one that is not a number as NULL, silently
+  # values are read as text and checked here, so a value that is not a number is refused by name before any
+  # read; the row count above never casts the column, so it cannot see one
   bad <- DBI::dbGetQuery(con, sprintf("
     SELECT count(*) AS n, any_value(value) AS v FROM %s
     WHERE trim(param) = 'Discharge' AND trim(value) <> '' AND TRY_CAST(trim(value) AS DOUBLE) IS NULL", src))

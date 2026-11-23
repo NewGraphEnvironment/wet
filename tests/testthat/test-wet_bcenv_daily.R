@@ -82,7 +82,7 @@ test_that("an Unverified hour makes a day unchecked; a grade wet does not know i
   expect_error(wet_bcenv_daily("08ZZ0001", cache_dir = g$cache), "grade wet does not know: Fabulous")
 })
 
-test_that("a value that is not a number is refused, not read as missing", {
+test_that("a value that is not a number is refused, and named", {
   f <- local_bcenv_fixture()
   cat("08ZZ0001,Alpha,Active,49.1,-123.1,2020-07-01 08:00:00,Discharge,1.0x,m^3/s,RISC A\n",
       file = f$paths[1], append = TRUE)
