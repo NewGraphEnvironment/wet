@@ -55,7 +55,7 @@ counts them): run `/backlog-sweep` again, the backlog is not finished.
 | - [x] 8 | #179 | 7: stations beyond HYDAT (1 issue) | done: https://github.com/NewGraphEnvironment/wet/pull/194 | B | — | opus |
 | - [x] 9 | #186 | 11: the readers return pick, one list of non-inputs (2 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/197 | C | — | sonnet |
 | - [ ] 10 | #187 | 12: Swift and Naver creeks under their own windows (1 issue) | **waiting** on knowledge#256 (the owner, 2026-11-23: adopt the UFRA and COTR windows only once knowledge reads NuSEDS dates) | D | — | opus |
-| - [ ] 11 | #188 | 13: small-basin error and the zone adjustment (4 issues) | open | E | — | fable then opus |
+| - [x] 11 | #188 | 13: small-basin error and the zone adjustment (4 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/200 | E | — | fable then opus |
 | - [ ] 12 | #189 | 14: research files around the current state (3 issues) | open | D | 10 | sonnet |
 | - [ ] 13 | #195 | 15: second sources for the provincial stations (3 issues) | open | B | 8, 9 | opus |
 | - [ ] 14 | #196 | 16: regulation per non-HYDAT station (1 issue) | open | B | 13 | fable then opus |
@@ -254,7 +254,7 @@ repository reviews the Skeena timing rows: it keeps the Bulkley spawning row wit
 
 ### 13. Small-basin error and the zone adjustment
 
-- [ ] Carried by move 11, #188
+- [x] Carried by move 11, #188 (merged in https://github.com/NewGraphEnvironment/wet/pull/200)
 
 #176 diagnoses why the balance runs about 14 % high at gauges under 100 km²; #178 sets WALLY's flows beside ours and tests
 its per-zone trait regression as a candidate adjustment; #44 blends the adjustment across zone lines; #185 consolidates
