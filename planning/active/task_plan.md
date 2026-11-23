@@ -124,10 +124,10 @@ Tasks:
 
 ## Validation
 
-- [ ] Tests pass (`devtools::test()`; the new rule tests run with `NOT_CRAN=true`)
-- [ ] `lintr::lint_package()` adds no lint
-- [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
+- [x] Tests pass (`devtools::test()`; the new rule tests run with `NOT_CRAN=true`)
+- [x] `lintr::lint_package()` adds no lint (new files: none in `wally_compare.R` or the test; in `wb_small_basin.R` only `#45's` comments read as code and functions sourced from other scripts, as existing scripts carry; one indentation lint in the registered rule file, left unchanged)
+- [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion; the archive README carries `## Measurement` and `## Evidence` (log prefix `data/logs/188/`)
 
 How each change is proved:
