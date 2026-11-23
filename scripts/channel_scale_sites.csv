@@ -2,6 +2,6 @@ site_id,type,name,station,blue_line_key,downstream_route_measure,linear_feature_
 headwater,headwater,Headwater in the Salmon River basin,,356342351,8849.956,702744940,SALR,
 salmon,tributary,Salmon River near Prince George,08KC001,356364485,10614.648,701940975,LSAL,no
 quesnel,lake_outlet,Quesnel River at Likely,08KH001,356363937,107004.417,702666848,QUES,no
-confluence,confluence,Confluence where a tributary's step lands above,08MB006,356360939,72785.999,700353187,BIGC,no
+confluence,confluence,Big Creek above Groundhog Creek (a confluence),08MB006,356360939,72785.999,700353187,BIGC,no
 hope,mainstem,Fraser River at Hope,08MF005,356364114,158462.644,701253017,FRCN,yes
 lillooet,glacier,Lillooet River near Pemberton,08MG005,356359224,103237.271,701704476,LILL,no

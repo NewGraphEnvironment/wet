@@ -124,6 +124,14 @@
 #   rule-chosen sites the snapped station on the picked segment, if any (the
 #   confluence's segment is 08MB006's). Before code review round 2 the table's
 #   station cell for a rule-chosen site went unchecked.
+# - The confluence rule's test (fwapg's sql/qa.sql: June's upper minus next
+#   segment up over half the joining line's flow) fires mostly on ordinary
+#   confluences: FWA segments break at every junction, so another line often
+#   joins at the upper segment's top, and its flow steps up on the upper
+#   segment as it should. The report counts how often (code review round 3);
+#   the pick is one, so the site is an ordinary confluence of Big Creek, not
+#   a tributary landing above. Sites decide nothing; the pick is kept as the
+#   rule made it.
 
 devtools::load_all(quiet = TRUE)
 source("scripts/wb_fit_lib.R")      # wb_release(), wb_hydat(), wb_stations_path()
@@ -352,6 +360,7 @@ bulk <- function(ids, model, scenario, variable, host = "services") {
   ids <- sort(unique(ids))
   out <- list()
   missing <- integer()
+  read <- character()
   get_batch <- function(b) {
     nm <- batch_name(b)
     f <- file.path(dir, paste0(nm, ".nc"))
@@ -401,11 +410,12 @@ bulk <- function(ids, model, scenario, variable, host = "services") {
     x <- nc_read(f, variable)
     if (!setequal(x$ids, b)) stop(f, " holds other outlets than its batch", call. = FALSE)
     out[[length(out) + 1]] <<- x
+    read <<- c(read, f)
   }
   for (p in split(ids, ids %/% 1e6)) {
     for (b in split(p, ceiling(seq_along(p) / batch_max))) get_batch(b)
   }
-  list(series = out, missing = sort(missing), files = list.files(dir, pattern = "\\.nc$", full.names = TRUE))
+  list(series = out, missing = sort(missing), files = sort(read))
 }
 # each series' days checked against its outlet's listing, day 1 dropped; the
 # monthly climatology of `years` (each month the mean of its days) per window
@@ -553,14 +563,15 @@ pick_headwater <- function() {
 # the routed run's filter on one alias of its table
 run_on <- function(a) sprintf("(%1$s.model, %1$s.scenario, %1$s.period) = ('%2$s', '%3$s', '%4$s')", a,
                               routed_run$model, routed_run$scenario, routed_run$period)
-pick_confluence <- function() {
-  gl <- g$linear_feature_id[!is.na(g$outlet)]
-  j <- DBI::dbGetQuery(conn, sprintf("
+# fwapg's junctions in the Fraser where its qa.sql test fires, as CTEs over
+# the routed run's June flow; the top-joining line is any other line whose mouth
+# is at the upper segment's top (the next segment up's start)
+steps_sql <- function() sprintf("
     WITH junctions AS (
       SELECT
         (SELECT t.linear_feature_id FROM whse_basemapping.fwa_stream_networks_sp t
          WHERE t.blue_line_key = bp.blue_line_key ORDER BY t.downstream_route_measure LIMIT 1) AS trib_lfid,
-        u.linear_feature_id AS upper_lfid, u.geom,
+        u.linear_feature_id AS upper_lfid, u.geom, u.blue_line_key AS main_blk,
         (SELECT a.linear_feature_id FROM whse_basemapping.fwa_stream_networks_sp a
          WHERE a.blue_line_key = u.blue_line_key AND a.downstream_route_measure > u.downstream_route_measure + 0.001
          ORDER BY a.downstream_route_measure LIMIT 1) AS above_lfid
@@ -570,21 +581,39 @@ pick_confluence <- function() {
       WHERE cardinality(bp.path_blks) > 0 AND u.wscode_ltree <@ '100'::ltree
     ), steps AS (
       SELECT j.trib_lfid::double precision AS trib_lfid, j.upper_lfid::double precision AS upper_lfid,
-             j.above_lfid::double precision AS above_lfid, j.geom,
+             j.above_lfid::double precision AS above_lfid, j.geom, j.main_blk,
              qt.q_m3s AS q_trib, qu.q_m3s AS q_upper, qa.q_m3s AS q_above
       FROM junctions j
       JOIN %1$s qt ON qt.linear_feature_id = j.trib_lfid AND qt.month = 6 AND %2$s
       JOIN %1$s qu ON qu.linear_feature_id = j.upper_lfid AND qu.month = 6 AND %3$s
       JOIN %1$s qa ON qa.linear_feature_id = j.above_lfid AND qa.month = 6 AND %4$s
       WHERE qt.q_m3s > 1 AND qu.q_m3s - qa.q_m3s > 0.5 * qt.q_m3s
-    )
+    ), tops AS (
+      SELECT s.upper_lfid, max(qx.q_m3s) AS q_top, min(bp2.blue_line_key) AS top_blk
+      FROM steps s
+      JOIN whse_basemapping.fwa_stream_networks_sp a ON a.linear_feature_id = s.above_lfid
+      JOIN fwapg.blk_paths bp2 ON bp2.path_blks[1] = s.main_blk
+        AND abs(bp2.path_measures[1] - a.downstream_route_measure) < 0.001
+      JOIN LATERAL (SELECT t.linear_feature_id FROM whse_basemapping.fwa_stream_networks_sp t
+                    WHERE t.blue_line_key = bp2.blue_line_key ORDER BY t.downstream_route_measure LIMIT 1) m ON true
+      JOIN %1$s qx ON qx.linear_feature_id = m.linear_feature_id AND qx.month = 6 AND %5$s
+      GROUP BY s.upper_lfid
+    )",
+  routed_table, run_on("qt"), run_on("qu"), run_on("qa"), run_on("qx"))
+pick_confluence <- function() {
+  gl <- g$linear_feature_id[!is.na(g$outlet)]
+  j <- DBI::dbGetQuery(conn, paste(steps_sql(), sprintf("
     SELECT s.trib_lfid, s.upper_lfid, s.above_lfid, s.q_trib, s.q_upper, s.q_above,
            ST_Distance(s.geom, g.geom) AS dist_m, g.linear_feature_id::double precision AS gauge_lfid,
-           (SELECT count(*) FROM steps)::integer AS n_steps
+           (SELECT count(*) FROM steps)::integer AS n_steps,
+           (SELECT count(*) FROM tops)::integer AS n_top,
+           (SELECT count(*) FROM steps s2 JOIN tops t2 USING (upper_lfid)
+            WHERE t2.q_top >= 0.5 * (s2.q_upper - s2.q_above))::integer AS n_top_explains,
+           t.q_top, t.top_blk
     FROM steps s CROSS JOIN whse_basemapping.fwa_stream_networks_sp g
-    WHERE g.linear_feature_id IN (%5$s)
-    ORDER BY dist_m, s.upper_lfid, g.linear_feature_id LIMIT 1",
-    routed_table, run_on("qt"), run_on("qu"), run_on("qa"), paste(sprintf("%.0f", gl), collapse = ", ")))
+    LEFT JOIN tops t ON t.upper_lfid = s.upper_lfid
+    WHERE g.linear_feature_id IN (%s)
+    ORDER BY dist_m, s.upper_lfid, g.linear_feature_id LIMIT 1", paste(sprintf("%.0f", gl), collapse = ", "))))
   stopifnot(nrow(j) == 1L)
   j
 }
@@ -755,7 +784,8 @@ lst <- do.call(rbind, lapply(ids_g, function(s) {
   li <- listing(s)
   li <- li[li$variable == "streamflow", ]
   both <- vapply(gcms, function(gm) all(c(ssp245, ssp585) %in% li$scenario[li$model == gm]), TRUE)
-  data.frame(outlet = s, pnw = any(li$model == "PNWNAmet"), n_gcm = sum(both))
+  data.frame(outlet = s, pnw = any(li$model == "PNWNAmet"), n_gcm = sum(both),
+             gcm_set = paste(gcms[both], collapse = ","))
 }))
 lst$domain <- domain_of(lst$outlet)
 dom <- data.frame(domain = domains)
@@ -766,7 +796,7 @@ dom$cmip6_listed <- vapply(domains, function(d) {
 }, NA)
 dom$gcms <- vapply(domains, function(d) {
   x <- lst[lst$domain == d, ]
-  if (!nrow(x)) NA_integer_ else as.integer(min(x$n_gcm))
+  if (!nrow(x)) NA_integer_ else length(Reduce(intersect, strsplit(x$gcm_set, ",", fixed = TRUE)))
 }, 1L)
 gcm_missing <- t(sapply(domains, function(d) vapply(gcms, function(gm) {
   sum(gcm[[gm]]$ssp245$missing %in% r1$outlet[r1$domain == d])
@@ -974,9 +1004,14 @@ out <- c(
           ifelse(is.na(site_x$flag), "placed", site_x$flag), ifelse(site_x$islake, "y", "n"), site_x$distance_to_stream,
           as.character(site_x$candidate_rank), sites$stream_order, sites$area_km2,
           ifelse(is.na(sites$regulated), "-", sites$regulated), ifelse(is.na(sites$n_years), "-", sites$n_years)),
-  sprintf("headwater: %d candidates under 10 km2; confluence: %d junctions where June's step lands above, the pick's",
+  sprintf("headwater: %d candidates under 10 km2; confluence: %d Fraser junctions where fwapg's qa.sql test fires",
           hw$n, as.integer(cf$n_steps)),
-  sprintf("  joining line %.3f m3/s in June, upper segment %.3f, next segment up %.3f, %.0f m from scored gauge %s",
+  sprintf(paste("  (June upper minus next segment up over half the joining line's flow); at %d another line joins at the",
+                "upper segment's top, and at %d that line's June flow is at least half the step, an ordinary"),
+          as.integer(cf$n_top), as.integer(cf$n_top_explains)),
+  sprintf("  confluence the test misreads; at the pick a line (blue line %s) joins at the top with %.3f m3/s in June; the pick's",
+          ifelse(is.na(cf$top_blk), "-", format(cf$top_blk, scientific = FALSE)), ifelse(is.na(cf$q_top), NA, cf$q_top)),
+  sprintf("  joining line %.3f m3/s in June, upper segment %.3f, next segment up %.3f, %.0f m from scored gauge %s's segment",
           cf$q_trib, cf$q_upper, cf$q_above, cf$dist_m,
           paste(g$station_number[g$linear_feature_id == cf$gauge_lfid], collapse = ", ")),
   "",
