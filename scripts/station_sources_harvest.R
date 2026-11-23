@@ -22,6 +22,33 @@
 #     the bound and the negative rule do. Per network: stations, days, the
 #     status shares, and days the bound dropped.
 #
+# The Water Tool's third-party gauges (#144, #195), on the pinned Tool snapshot
+# (wet_bcwatertool_snapshot), in the same two tiers:
+#
+# (i) Under the survey's rules (every "Preliminary Discharge" row with a value,
+#     no bound, no negative day dropped), the reader must reproduce the survey:
+#     - its daily rows exactly: the probe's read_wt() parse, copied verbatim
+#       below, on every pinned third-party CSV, against wet_bcwatertool_days();
+#     - the survey report's 103 third-party "Every station read" rows (the
+#       Tool's listings outside "BC ENV - Real-time Water Data Reporting" and
+#       the provincial registry), cut to their first 13 fields;
+#     - its third-party "Per network" lines;
+#     - its passing third-party stations (35), and the seven listings it puts
+#       at a provincial station's site, which must be the registry's
+#       continuing listings, each with the same provincial station.
+#     Any difference fails the run (exit 1).
+# (ii) Under the shipped rules (wet_bcwatertool_daily(): the bound of the
+#     nearest HYDAT station's sub-drainage, negative days dropped, QA as
+#     status): per network, stations, days and status shares; every day the
+#     bound drops; every listing the registry leaves out, with its reason;
+#     per continuing listing, the days it adds before its provincial station's
+#     first day; and the Tool registry
+#     (inst/extdata/station_sources/bcwatertool_<snapshot>_hydat.csv) held to
+#     the reader's first and last days, the selection rule recomputed from the
+#     station list, the nearest HYDAT station, the HYDAT match and the name
+#     rule; a mismatch fails the run (rewrite it with
+#     data-raw/station_sources_bcwatertool.R).
+#
 # It also holds the shipped station registry's first and last days
 # (inst/extdata/station_sources/bcenv_<snapshot>_hydat.csv, which
 # wet_station_list() returns) to what the shipped reader returns: the
@@ -196,6 +223,181 @@ reg_fail <- length(reg_off) > 0 || length(reg_missing) > 0 || length(reg_site) >
   length(reg_hydat) > 0
 neg <- sum(lst$q_m3s < 0)
 
+# ---- the Water Tool: tier (i), the survey's rules ---------------------------------------------
+tool_snapshot <- wet_bcwatertool_snapshot
+tool_man <- wet:::wet_bcwatertool_manifest(tool_snapshot)
+tool_dir <- file.path(cache, "station_sources", "bcwatertool", tool_snapshot)
+`%||%` <- function(a, b) if (is.null(a)) b else a
+tool_list_path <- file.path(tool_dir, wet:::wet_bcwatertool_list_file(tool_snapshot))
+wet:::wet_bcenv_check(tool_list_path, tool_man$bytes[tool_man$file == basename(tool_list_path)],
+                      tool_man$md5[tool_man$file == basename(tool_list_path)])
+feat <- jsonlite::fromJSON(tool_list_path, simplifyVector = FALSE)$features
+wt_all <- do.call(rbind, lapply(feat, function(f) {
+  p <- f$properties
+  data.frame(id = p$id, nid = p$nid %||% NA_character_, name = p$name, net = p$net,
+             status = p$status %||% NA_character_, n_yr = length(p$yr),
+             lon = f$geometry$coordinates[[1]], lat = f$geometry$coordinates[[2]], stringsAsFactors = FALSE)
+}))
+# the survey's listings (scripts/station_sources_probe.R, verbatim)
+wt <- wt_all[wt_all$n_yr > 0 & wt_all$net != "Water Survey of Canada", ]
+wt <- wt[order(wt$nid, wt$id, method = "radix"), ]
+wt_dup <- wt[duplicated(wt$nid), ]
+wt <- wt[!duplicated(wt$nid), ]   # the tool repeats some stations under one nid
+tool_benv <- "BC ENV - Real-time Water Data Reporting"
+tp <- wt[wt$net != tool_benv & !wt$nid %in% st_meta$station_number, ]
+tool_paths <- wet:::wet_bcwatertool(as.character(tp$id), tool_snapshot)
+# the probe's read_wt(), its parse verbatim; the fetch replaced by the pinned file
+read_wt <- function(id, path) {
+  if (is.na(path)) return(list(licence = NA_character_, area = NA_real_, q = NULL, analyses = "csv HTTP status"))
+  lines <- readLines(path, warn = FALSE, encoding = "UTF-8")
+  meta <- grep("^# ", lines, value = TRUE)
+  field <- function(k) {
+    m <- grep(paste0("^# ", k, ","), meta, value = TRUE)
+    if (length(m)) gsub('^"|"$', "", sub(paste0("^# ", k, ","), "", m[1])) else NA_character_
+  }
+  body <- lines[!grepl("^#", lines) & nzchar(lines)]
+  x <- if (length(body) > 1) utils::read.csv(text = body, quote = "", na.strings = c("", "NA"),
+                                              stringsAsFactors = FALSE) else NULL
+  q <- if (!is.null(x)) x[x$Analysis == "Preliminary Discharge" & !is.na(x$Value), ] else NULL
+  list(licence = field("Data Licence Information"), area = suppressWarnings(as.numeric(field("Drainage Area"))),
+       q = if (!is.null(q) && nrow(q)) data.frame(station_number = as.character(id), date = as.Date(q$Datetime),
+                                                  q_m3s = as.numeric(q$Value), qa = q$QA) else NULL,
+       analyses = if (!is.null(x)) paste(sort(unique(x$Analysis), method = "radix"), collapse = "; ") else "")
+}
+tp_read <- lapply(seq_len(nrow(tp)), function(i) read_wt(tp$id[i], tool_paths[i]))
+tp$discharge <- vapply(tp_read, function(r) !is.null(r$q), FALSE)
+probe_wt <- do.call(rbind, lapply(tp_read, function(r) r$q))
+probe_wt <- probe_wt[order(probe_wt$station_number, probe_wt$date, method = "radix"), ]
+mine_wt <- wet:::wet_bcwatertool_days(as.character(tp$id), tool_snapshot)
+mine_wt <- mine_wt[order(mine_wt$id, mine_wt$date, method = "radix"), ]
+tool_same_rows <- identical(paste(mine_wt$id, mine_wt$date, mine_wt$qa),
+                            paste(probe_wt$station_number, probe_wt$date, probe_wt$qa)) &&
+  identical(mine_wt$q_m3s, probe_wt$q_m3s)
+tool_fail <- character()
+if (!tool_same_rows) tool_fail <- c(tool_fail, "Tool daily rows")
+
+# the survey's per-listing quantities, from the survey's days
+sq <- probe_wt
+sq$station_number <- tp$nid[match(sq$station_number, as.character(tp$id))]
+rng_y <- lapply(split(sq$date, sq$station_number), function(d) as.integer(format(range(d), "%Y")))
+ts <- data.frame(station_id = tp$nid, name = tp$name, lon = tp$lon, lat = tp$lat,
+                 first = vapply(tp$nid, function(s) rng_y[[s]][1] %||% NA_integer_, 0L),
+                 last = vapply(tp$nid, function(s) rng_y[[s]][2] %||% NA_integer_, 0L))
+ts <- hydat_match(ts, hy)
+ws_t <- wet_window_stats(sq[, c("station_number", "date", "q_m3s")], windows, stats = "mean")
+tq_from <- hy$q_from[match(ts$hydat, hy$station_number)]
+tq_to <- hy$q_to[match(ts$hydat, hy$station_number)]
+tcount <- function(i, new_only) {
+  r <- ws_t[ws_t$station_number == ts$station_id[i], ]
+  if (new_only && !is.na(tq_from[i])) r <- r[r$year < tq_from[i] | r$year > tq_to[i], ]
+  if (!nrow(r)) return(0L)
+  max(table(factor(r$period, levels = windows$window)))
+}
+ts$wy <- vapply(seq_len(nrow(ts)), tcount, 0L, new_only = FALSE)
+ts$wy_new <- vapply(seq_len(nrow(ts)), tcount, 0L, new_only = TRUE)
+ts$basis <- ifelse(tp$discharge, "daily", "no discharge series")
+twinter <- unique(sq$station_number[format(sq$date, "%m") %in% c("12", "01", "02")])
+ts$seasonal <- ifelse(ts$basis == "daily", !ts$station_id %in% twinter, NA)
+ts$new <- ts$class != "duplicate" & ts$basis == "daily"
+ts$pass <- ts$new & ts$wy_new >= min_years
+ts$network <- tp$net
+tmine <- sprintf("  bcwatertool | %s | %s | %s | %.4f | %.4f | %s-%s | %s | %s | %s | %s | %d/%d | %s",
+                 ts$network, ts$station_id, ts$name, ts$lon, ts$lat, ts$first, ts$last, ts$basis, regulation_of(ts$name),
+                 ifelse(is.na(ts$hydat), "-", sprintf("%s (%.2f km, %s)", ts$hydat, ts$hydat_km, ts$hydat_q)),
+                 ts$class, ts$wy, ts$wy_new, ifelse(is.na(ts$seasonal), "-", ts$seasonal))
+tsurvey <- grep("^  bcwatertool \\| ", survey, value = TRUE)
+tsurvey <- tsurvey[!startsWith(tsurvey, paste0("  bcwatertool | ", tool_benv, " | "))]
+ttheirs <- sub("^((?:[^|]*\\|){12}[^|]*?) \\|.*$", "\\1", tsurvey, perl = TRUE)
+trow_diff <- setdiff(union(tmine, ttheirs), intersect(tmine, ttheirs))
+if (length(trow_diff) || !identical(sort(tmine, method = "radix"), sort(ttheirs, method = "radix"))) {
+  tool_fail <- c(tool_fail, "Tool station rows")
+}
+tnets <- sort(unique(ts$network), method = "radix")
+tnet_mine <- vapply(tnets, function(n) {
+  x <- ts[ts$network == n, ]
+  q <- x$basis == "daily"
+  sprintf("  %-12s %-60s read %4d  Q %4d  new %4d  same-site %3d  dup %3d  >=1 %4d  >=3 %4d  seasonal %s",
+          "bcwatertool", substr(n, 1, 60), nrow(x), sum(q), sum(q & x$class == "not in HYDAT"),
+          sum(q & x$class == "same site, new years"), sum(q & x$class == "duplicate"),
+          sum(x$new & x$wy_new >= 1), sum(x$new & x$wy_new >= min_years),
+          if (all(is.na(x$seasonal))) "-" else as.character(sum(x$seasonal, na.rm = TRUE)))
+}, "")
+tnet_theirs <- sub("  \\[.*$", "", grep("^  bcwatertool  ", survey, value = TRUE))
+tnet_theirs <- tnet_theirs[!grepl(paste0("^  bcwatertool  ", tool_benv, " "), tnet_theirs)]
+if (!identical(unname(tnet_mine), tnet_theirs)) tool_fail <- c(tool_fail, "Tool network lines")
+# passing, read from the survey's rows: not a duplicate, daily, >= 3 new window-years
+tf <- strsplit(ttheirs, " \\| ")
+tpass_theirs <- vapply(tf[vapply(tf, function(f) f[11] != "duplicate" && f[8] == "daily" &&
+                                    as.integer(sub("^.*/", "", f[12])) >= min_years, FALSE)], `[`, "", 3)
+if (!setequal(ts$station_id[ts$pass], tpass_theirs) || length(tpass_theirs) != 35) {
+  tool_fail <- c(tool_fail, "Tool passing stations")
+}
+# the survey's shared sites: third-party rows whose "same site listed as" names a provincial station
+prov_re <- "BC ENV non-integrated \\(provincial files\\) ([0-9A-Z]+)"
+tshared <- tsurvey[grepl(prov_re, tsurvey)]
+tshared <- data.frame(nid = vapply(strsplit(tshared, " \\| "), `[`, "", 3),
+                      prov = sub(paste0("^.*", prov_re, ".*$"), "\\1", tshared))
+treg <- wet_bcwatertool_stations(tool_snapshot)
+tcont <- treg[!is.na(treg$continues), ]
+tshared_ok <- nrow(tshared) == 7 && setequal(paste(tshared$nid, tshared$prov), paste(tcont$station_number, tcont$continues))
+if (!tshared_ok) tool_fail <- c(tool_fail, "Tool shared sites")
+
+# ---- the Water Tool: tier (ii), the shipped rules ---------------------------------------------
+tshipped <- wet_bcwatertool_daily(treg$station_number, tool_snapshot)
+tnobound <- wet_bcwatertool_daily(treg$station_number, tool_snapshot, bound = Inf)
+tparsed <- wet:::wet_bcwatertool_days(treg$id, tool_snapshot)
+tneg <- sum(tparsed$q_m3s < 0)
+tdropped <- tnobound[is.na(match(paste(tnobound$station_number, tnobound$date),
+                                 paste(tshipped$station_number, tshipped$date))), ]
+# the registry: first and last days, the selection, the nearest HYDAT station, the HYDAT match, the name rule
+trng <- lapply(split(tshipped$date, tshipped$station_number), range)
+tday <- function(k) as.Date(vapply(treg$station_number, function(s) if (is.null(trng[[s]])) NA_real_ else
+  as.numeric(trng[[s]][k]), 0), origin = "1970-01-01")
+treg_off <- treg$station_number[differs(as.numeric(treg$first), as.numeric(tday(1))) |
+                                  differs(as.numeric(treg$last), as.numeric(tday(2)))]
+tsel <- tp$nid[tp$discharge]
+treg_sel <- setdiff(union(tsel, treg$station_number), intersect(tsel, treg$station_number))
+tk <- match(treg$station_number, ts$station_id)
+treg_site <- treg$station_number[is.na(tk) | differs(treg$hydat_site, ts$hydat[tk]) |
+                                   differs(treg$hydat_km, ts$hydat_km[tk])]
+hy_xy <- albers(hy$lon, hy$lat)
+t_xy <- albers(treg$lon, treg$lat)
+tnear <- vapply(seq_len(nrow(treg)), function(i) {
+  hy$station_number[which.min((hy_xy[, 1] - t_xy[i, 1])^2 + (hy_xy[, 2] - t_xy[i, 2])^2)]
+}, "")
+treg_near <- treg$station_number[tnear != treg$nearest_hydat | substr(tnear, 1, 3) != treg$subdrainage]
+treg_reg <- treg$station_number[differs(treg$regulation, ifelse(regulation_of(treg$name) == "unknown", "unknown",
+                                                                  "regulated by name"))]
+treg_bad <- treg$station_number[grepl(wet_hydat_number, treg$station_number) |
+                                  treg$station_number %in% st_meta$station_number]
+treg_fail <- length(treg_off) > 0 || length(treg_sel) > 0 || length(treg_site) > 0 || length(treg_near) > 0 ||
+  length(treg_reg) > 0 || length(treg_bad) > 0
+# what the chain adds: per continuing listing, its days before the provincial first day
+tchain <- do.call(rbind, lapply(seq_len(nrow(tcont)), function(i) {
+  d <- tshipped$date[tshipped$station_number == tcont$station_number[i]]
+  f <- st_meta$first[st_meta$station_number == tcont$continues[i]]
+  data.frame(nid = tcont$station_number[i], prov = tcont$continues[i], prov_first = f,
+             added = sum(is.na(f) | d < f), from = if (length(d)) min(d) else NA,
+             to = if (any(is.na(f) | d < f)) max(d[is.na(f) | d < f]) else NA, left = sum(!is.na(f) & d >= f))
+}))
+# every listing left out of the registry, by reason
+tleft <- rbind(
+  data.frame(nid = wt_dup$nid, id = wt_dup$id, net = wt_dup$net,
+             reason = "behind the first listing of its nid (the survey's rule)"),
+  data.frame(nid = wt$nid[wt$net == tool_benv], id = wt$id[wt$net == tool_benv], net = tool_benv,
+             reason = "the Tool's copy of the provincial network"),
+  data.frame(nid = wt$nid[wt$net != tool_benv & wt$nid %in% st_meta$station_number],
+             id = wt$id[wt$net != tool_benv & wt$nid %in% st_meta$station_number],
+             net = wt$net[wt$net != tool_benv & wt$nid %in% st_meta$station_number],
+             reason = "a provincial station the Tool files under another network"),
+  data.frame(nid = tp$nid[!tp$discharge], id = tp$id[!tp$discharge], net = tp$net[!tp$discharge],
+             reason = "no discharge series (stage or other series only)"))
+# the Tool's provincial listings with discharge the provincial files lack (#195, decision 3: not read)
+tbenv_q <- wt[wt$net == tool_benv & !wt$nid %in% st_meta$station_number, ]
+tbenv_q <- tbenv_q$nid[vapply(wet:::wet_bcwatertool(as.character(tbenv_q$id), tool_snapshot), function(p)
+  !is.na(p) && nrow(wet:::wet_bcwatertool_read(p, "x")$q) > 0, FALSE)]
+wrap_ids <- function(x) strwrap(paste(x, collapse = ", "), width = 110, indent = 6, exdent = 6)
+
 # ---- report -----------------------------------------------------------------------------------
 out <- c(
   "The province's non-integrated discharge as wet reads it: the harvest report (#142, #179)",
@@ -247,11 +449,76 @@ out <- c(
           ifelse(by_lst & by_bound, "LST+bound", ifelse(by_lst, "LST", "bound"))[any_move],
           t1$first[any_move], t1$last[any_move], t1$wy_new[any_move], ifelse(t1$pass, "pass", "-")[any_move],
           t2$first[any_move], t2$last[any_move], t2$wy_new[any_move], ifelse(t2$pass, "pass", "-")[any_move],
-          t3$first[any_move], t3$last[any_move], t3$wy_new[any_move], ifelse(t3$pass, "pass", "-")[any_move])
+          t3$first[any_move], t3$last[any_move], t3$wy_new[any_move], ifelse(t3$pass, "pass", "-")[any_move]),
+  "",
+  "The BC Water Tool's third-party gauges (#144, #195)",
+  sprintf("Water Tool snapshot %s: %d manifest files; station list %s", tool_snapshot, nrow(tool_man),
+          tool_man$md5[tool_man$file == basename(tool_list_path)]),
+  "",
+  "Tier (i): the survey's rules (every discharge row with a value, no bound, no negative day dropped)",
+  sprintf(paste0("  daily rows, the probe's read_wt() against wet_bcwatertool_days(), over the %d third-party",
+                 " listings: %d against %d; identical %s"), nrow(tp), nrow(mine_wt), nrow(probe_wt), tool_same_rows),
+  sprintf("  survey report rows \"Every station read\", third-party: %d ours, %d the survey's; differing rows %d",
+          length(tmine), length(ttheirs), length(trow_diff)),
+  if (length(trow_diff)) paste0("    ", utils::head(trow_diff, 20)),
+  sprintf("  \"Per network\", third-party: %d lines ours, %d the survey's; identical %s", length(tnet_mine),
+          length(tnet_theirs), identical(unname(tnet_mine), tnet_theirs)),
+  sprintf("  passing third-party stations: %d ours, %d the survey's", sum(ts$pass), length(tpass_theirs)),
+  sprintf("  at a provincial station's site in the survey: %d (%s); the registry's continuing listings agree: %s",
+          nrow(tshared), paste(sprintf("%s at %s", tshared$nid, tshared$prov), collapse = ", "), tshared_ok),
+  sprintf("  verdict: %s",
+          if (length(tool_fail)) paste("FAIL:", paste(tool_fail, collapse = ", ")) else "PASS, the survey reproduced"),
+  "",
+  "Tier (ii): the shipped rules (the nearest HYDAT station's sub-drainage bound, negative days dropped, QA as status)",
+  sprintf("  listings read: %d, %d stations of their own and %d continuing a provincial station", nrow(treg),
+          sum(is.na(treg$continues)), nrow(tcont)),
+  sprintf("  days: %d discharge rows with a value, %d negative, %d dropped by the bound, %d shipped", nrow(tparsed),
+          tneg, nrow(tdropped), nrow(tshipped)),
+  sprintf("  status of shipped days: provisional %d (%.1f %%), unchecked %d (%.1f %%)",
+          sum(tshipped$status == "provisional"), 100 * mean(tshipped$status == "provisional"),
+          sum(tshipped$status == "unchecked"), 100 * mean(tshipped$status == "unchecked")),
+  "  per network (stations of their own, shipped days, unchecked share; continuing listings apart):",
+  vapply(sort(unique(treg$network[is.na(treg$continues)]), method = "radix"), function(n) {
+    ids <- treg$station_number[treg$network == n & is.na(treg$continues)]
+    d <- tshipped[tshipped$station_number %in% ids, ]
+    sprintf("    %-48s %3d stations  %7d days  unchecked %5.1f %%", n, length(ids), nrow(d),
+            100 * mean(d$status == "unchecked"))
+  }, ""),
+  sprintf("  days the bound drops (%d): station, sub-drainage, date, flow", nrow(tdropped)),
+  if (nrow(tdropped)) sprintf("    %s  %s  %s  %.3f", tdropped$station_number,
+                              treg$subdrainage[match(tdropped$station_number, treg$station_number)],
+                              tdropped$date, tdropped$q_m3s),
+  sprintf("  continuing listings (%d): the days each adds before its provincial station's first day", nrow(tcont)),
+  sprintf("    %s -> %s (provincial first %s): %d days added, %s to %s; %d from that day on not read", tchain$nid,
+          tchain$prov, tchain$prov_first, tchain$added, tchain$from, tchain$to, tchain$left),
+  sprintf("  the Tool's provincial listings with discharge the provincial files lack, not read: %s",
+          paste(tbenv_q, collapse = ", ")),
+  sprintf("  listings left out of the registry (%d), by reason:", nrow(tleft)),
+  unlist(lapply(unique(tleft$reason), function(r) {
+    x <- tleft[tleft$reason == r, ]
+    c(sprintf("    %s (%d; nid:id):", r, nrow(x)), wrap_ids(sprintf("%s:%s", x$nid, x$id)))
+  })),
+  sprintf("  registry against the reader's first and last days: %d listings, %d differing%s", nrow(treg),
+          length(treg_off), if (length(treg_off)) paste0(" (", paste(treg_off, collapse = ", "), ")") else ""),
+  sprintf("  registry listings against the selection recomputed from the station list: %d differing%s",
+          length(treg_sel), if (length(treg_sel)) paste0(" (", paste(treg_sel, collapse = ", "), ")") else ""),
+  sprintf("  registry HYDAT site or distance against the survey's match: %d differing%s", length(treg_site),
+          if (length(treg_site)) paste0(" (", paste(treg_site, collapse = ", "), ")") else ""),
+  sprintf("  registry nearest HYDAT station or sub-drainage recomputed: %d differing%s", length(treg_near),
+          if (length(treg_near)) paste0(" (", paste(treg_near, collapse = ", "), ")") else ""),
+  sprintf("  registry regulation against the name rule: %d differing; numbers shaped like HYDAT's or provincial: %d%s",
+          length(treg_reg), length(treg_bad),
+          if (length(c(treg_reg, treg_bad))) paste0(" (", paste(c(treg_reg, treg_bad), collapse = ", "), ")") else ""),
+  sprintf("  sub-drainages read (nearest HYDAT station): %s; farthest nearest station %.2f km (%s)",
+          paste(sprintf("%s %d", names(table(treg$subdrainage)), table(treg$subdrainage)), collapse = ", "),
+          max(treg$nearest_km), treg$station_number[which.max(treg$nearest_km)]),
+  sprintf("  Tool registry verdict: %s",
+          if (treg_fail) "FAIL, rewrite it with data-raw/station_sources_bcwatertool.R" else "PASS")
 )
 writeLines(out, report)
 message("wrote ", report)
-if (length(fail) || reg_fail) {
-  message("failed: ", paste(c(fail, if (reg_fail) "station registry"), collapse = ", "))
+if (length(fail) || reg_fail || length(tool_fail) || treg_fail) {
+  message("failed: ", paste(c(fail, if (reg_fail) "station registry", tool_fail,
+                              if (treg_fail) "Water Tool registry"), collapse = ", "))
   quit(status = 1)
 }
