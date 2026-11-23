@@ -349,6 +349,14 @@ bulk <- function(ids, model, scenario, variable, host = "services") {
     nm <- batch_name(b)
     f <- file.path(dir, paste0(nm, ".nc"))
     fm <- file.path(dir, paste0(nm, ".missing"))
+    fs <- file.path(dir, paste0(nm, ".split"))
+    halve <- function() {
+      h <- length(b) %/% 2
+      get_batch(b[seq_len(h)])
+      get_batch(b[-seq_len(h)])
+    }
+    # a batch hydromosaic would not serve whole was halved once; its halves are what is kept
+    if (file.exists(fs)) return(invisible(halve()))
     if (file.exists(fm)) {
       missing <<- c(missing, b)
       return(invisible())
@@ -379,10 +387,8 @@ bulk <- function(ids, model, scenario, variable, host = "services") {
           return(invisible())
         }
         if (code != 422L && length(b) <= 50L) stop("bulk download failed for ", nm, call. = FALSE)
-        h <- length(b) %/% 2
-        get_batch(b[seq_len(h)])
-        get_batch(b[-seq_len(h)])
-        return(invisible())
+        writeLines("", fs)
+        return(invisible(halve()))
       }
     }
     x <- nc_read(f, variable)
@@ -802,6 +808,13 @@ base_ratio <- t(sapply(gcms, function(gm) {
   colMeans(col_of(gcm[[gm]]$ssp585$clim[["1981-2010"]], sites$subid)) /
     colMeans(col_of(gcm[[gm]]$ssp245$clim[["1981-2010"]], sites$subid))
 }))
+# an interior site's series are its sub-basin outlet's, which drains more than the
+# site: its rows below are labelled with a star
+sig_lab <- ifelse(sites$own, sites$site_id, paste0(sites$site_id, "*"))
+star_note <- if (length(interior)) sprintf(
+  "* rows of an interior site are its sub-basin outlet's (%s), not the site's", paste(sprintf(
+    "%s: outlet %d, %.2f m3/s in 1981-2010", sites$site_id[interior], sites$subid[interior],
+    colMeans(col_of(pnw_m, sites$subid[interior]))), collapse = "; ")) else character()
 # change signals at the sites: each window's annual and monthly flow over 1981-2010's
 change <- do.call(rbind, lapply(c(ssp245 = "ssp245", ssp585 = "ssp585"), function(sc) {
   do.call(rbind, lapply(c("2041-2070", "2070-2099"), function(w) {
@@ -809,7 +822,7 @@ change <- do.call(rbind, lapply(c(ssp245 = "ssp245", ssp585 = "ssp585"), functio
       cl <- gcm[[gm]][[sc]]$clim
       b0 <- col_of(cl[["1981-2010"]], sites$subid)
       b1 <- col_of(cl[[w]], sites$subid)
-      data.frame(site_id = sites$site_id, scenario = sc, window = w, gcm = gm,
+      data.frame(site_id = sig_lab, scenario = sc, window = w, gcm = gm,
                  ann = 100 * (colMeans(b1) / colMeans(b0) - 1),
                  t(100 * (b1 / b0 - 1)), check.names = FALSE)
     }))
@@ -820,14 +833,13 @@ names(change)[6:17] <- month.abb
 # water temperature: PNWNAmet's 1981-2010 months at the sites, and the
 # gauged sites' observed days within 2002-2012 where both exist
 wt_m <- col_of(wt$clim[["1981-2010"]], sites$subid)
-obs_t <- tryCatch(wet_temp_daily(gauged, from = as.Date("2002-01-01"), to = as.Date("2012-12-31")),
-                  error = function(e) NULL)
+obs_t <- wet_temp_daily(gauged, from = as.Date("2002-01-01"), to = as.Date("2012-12-31"))
 wt_cmp <- do.call(rbind, lapply(gauged, function(s) {
   sub <- sites$subid[sites$station %in% s]
   dl <- Filter(function(z) sub %in% z$ids, wt$daily)[[1]]
   pc <- data.frame(date = dl$dates, pcic = dl$v[, match(sub, dl$ids)])
-  ob <- if (is.null(obs_t)) NULL else obs_t[obs_t$station_number == s, ]
-  if (is.null(ob) || !nrow(ob)) return(data.frame(station = s, n = 0L, bias = NA, rmse = NA))
+  ob <- obs_t[obs_t$station_number == s, ]
+  if (!nrow(ob)) return(data.frame(station = s, n = 0L, bias = NA, rmse = NA))
   m <- merge(pc, data.frame(date = as.Date(ob$date), obs = ob$t_mean_c), by = "date")
   data.frame(station = s, n = nrow(m), bias = if (nrow(m)) mean(m$pcic - m$obs) else NA,
              rmse = if (nrow(m)) sqrt(mean((m$pcic - m$obs)^2)) else NA)
@@ -867,7 +879,7 @@ out <- c(
   sprintf("script: %s at %s", f_self, wet_commit),
   routed_report_line(fwapg_commit),
   paste("table:", routed_fp),
-  sprintf("published: %d parts, live parts md5 %s", nrow(cat_pub$parts), pub_digest),
+  sprintf("published: %d parts, live parts md5 %s", nrow(cat_pub), pub_digest),
   sprintf("routed as published equals fwapg's table at the gauges and sites: largest difference %.1e m3/s", d_pub),
   sprintf("scored gauges: %s (%d), from inst/vignette-data/monthly_values.rds md5 %s", "routed carries >= 0.2 of observed",
           nrow(g), unname(tools::md5sum(file.path("inst", "vignette-data", "monthly_values.rds")))),
@@ -960,12 +972,14 @@ out <- c(
   sprintf("historical, ssp585 against historical, ssp245 before 2015 at the sites: largest daily difference %.1f m3/s",
           max(pre2015)),
   "1981-2010 annual flow, historical, ssp585 over historical, ssp245, per GCM: median and range over the 9",
-  sprintf("  %-11s median %.4f, %.4f to %.4f", sites$site_id, apply(base_ratio, 2, stats::median),
+  sprintf("  %-11s median %.4f, %.4f to %.4f", sig_lab, apply(base_ratio, 2, stats::median),
           apply(base_ratio, 2, min), apply(base_ratio, 2, max)),
+  star_note,
   "",
   "## Change signals at the sites (%, decide nothing)",
+  star_note,
   "annual, per GCM (columns as listed: CNRM FGOA IPSL MIRO MPI MRI NorE TaiE UKES) and median",
-  unlist(lapply(sites$site_id, function(s) {
+  unlist(lapply(sig_lab, function(s) {
     x <- change[change$site_id == s, ]
     vapply(split(x, paste(x$scenario, x$window)), function(y) {
       sprintf("%-11s %-6s %-9s %s  med %+6.1f", s, y$scenario[1], y$window[1],
@@ -974,7 +988,7 @@ out <- c(
   })),
   "by month, median over the 9 GCMs",
   sprintf("%-11s %-6s %-9s %s", "site", "", "", paste(sprintf("%7s", month.abb), collapse = "")),
-  unlist(lapply(sites$site_id, function(s) {
+  unlist(lapply(sig_lab, function(s) {
     x <- change[change$site_id == s, ]
     vapply(split(x, paste(x$scenario, x$window)), function(y) {
       sprintf("%-11s %-6s %-9s %s", s, y$scenario[1], y$window[1],
@@ -985,7 +999,8 @@ out <- c(
   "## Water temperature (PNWNAmet, decides nothing)",
   "monthly mean, 1981-2010 (degC)",
   sprintf("%-11s %s", "site", paste(sprintf("%6s", month.abb), collapse = "")),
-  sprintf("%-11s %s", sites$site_id, apply(wt_m, 2, function(v) paste(sprintf("%6.1f", v), collapse = ""))),
+  sprintf("%-11s %s", sig_lab, apply(wt_m, 2, function(v) paste(sprintf("%6.1f", v), collapse = ""))),
+  star_note,
   "water-temp-bc daily means on the same days, 2002-2012",
   sprintf("%-9s days %5d  bias %s  rmse %s", wt_cmp$station, wt_cmp$n, num(wt_cmp$bias, 2), num(wt_cmp$rmse, 2)),
   "",
