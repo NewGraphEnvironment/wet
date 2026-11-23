@@ -46,3 +46,14 @@ Start Phase 1 and run every phase to the PR (/code-check branch, /planning-archi
 /gh-pr-push). This message is the resume instruction that starts the run-to-PR
 mandate; the merge stays with me.
 ```
+
+## Phase 0, 2026-11-23 (build session, m1)
+
+- Resumed at 07:20 UTC; merged origin/main (ef2e88e); of the plan's files only `CLAUDE.md` (#142's paragraph) and `planning/backlog.md` (moves 8, 10) moved, neither touching a phase, so the plan stands.
+- `data/wb`, `data/wb_term`, `data/hydz`, `data/wally` symlinked to the main checkout's; `data/wally/raw/` and `data/logs/188/` created there. Fit key `768876badf`, `fit_20260717`. `git status --porcelain` empty.
+
+## Phase 1, 2026-11-23
+
+- `research/monthly_error.md` arranged by subject: by region and season, by basin size, routed PCIC's seasonal shape, the Fraser benchmark; "The answer" first; issue numbers moved from headings to statements, and one sentence says they name the report's sections.
+- Guard: with issue numbers and commit shas stripped, the body's number multiset is identical before and after (132 distinct values; none added, none dropped). `grep -c '^## #[0-9]'` is 0.
+- Words: `wc -w` 1,886 → 1,941; soul's `research_check.sh` 1,727 prose words, 3 issue-headed sections (FLAG) → 1,782, 0 (OK). The rise is the tags on each statement and the pointer sentence. The README row names no old section, so it is unchanged.

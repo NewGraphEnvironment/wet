@@ -34,17 +34,17 @@ Settled by the Plan review as mechanism, no longer asked: **which candidates the
 
 ## Phase 0: Data setup (added by the Plan review)
 
-- [ ] In the worktree, symlink `data/wb`, `data/wb_term`, `data/hydz` and `data/wally` to the main checkout's (create `data/wally/raw/` and `data/logs/188/` there first; neither exists). Confirm `git status --porcelain` is empty after.
-- [ ] Record `date -u` and the main checkout's fit key (`768876badf`) in `progress.md`.
+- [x] In the worktree, symlink `data/wb`, `data/wb_term`, `data/hydz` and `data/wally` to the main checkout's (create `data/wally/raw/` and `data/logs/188/` there first; neither exists). Confirm `git status --porcelain` is empty after.
+- [x] Record `date -u` and the main checkout's fit key (`768876badf`) in `progress.md`.
 
 ## Phase 1: Consolidate `research/monthly_error.md` (#185)
 
 Prose only; no number changes.
 
-- [ ] Record the file's prose word count and its numbers before the edit: `grep -oE '[+−-]?[0-9]+(\.[0-9]+)?' research/monthly_error.md | sort | uniq -c` to a temp file.
-- [ ] Fold the three issue-headed sections ("#6: ...", "#67: ...", "#162: ...") into statements by subject: by region and season; by basin size; routed PCIC's seasonal shape; the Fraser benchmark. One statement per finding, each pointing at `data/checks/gauge_monthly_compare_20260717.txt`. Keep "The answer" first. Keep the header line's provenance; add #185 to its issues. Issue numbers move from headings to the end of the statement they belong to.
-- [ ] Guard, body only (the header line is exempt: it gains "#185"): the multiset of numbers after the edit is a subset of the one before, each number dropped is listed in the commit message with why, and `grep -c '^## #[0-9]' research/monthly_error.md` is 0. The guard shows no number was typed, not that each still sits in its claim: read the diff for that. Report `wc -w` before and after (1,886 before; #185's 1,685 is soul's `research_check.sh` prose count).
-- [ ] Update the file's row in `research/README.md` if its description names the old sections.
+- [x] Record the file's prose word count and its numbers before the edit: `grep -oE '[+−-]?[0-9]+(\.[0-9]+)?' research/monthly_error.md | sort | uniq -c` to a temp file.
+- [x] Fold the three issue-headed sections ("#6: ...", "#67: ...", "#162: ...") into statements by subject: by region and season; by basin size; routed PCIC's seasonal shape; the Fraser benchmark. One statement per finding, each pointing at `data/checks/gauge_monthly_compare_20260717.txt`. Keep "The answer" first. Keep the header line's provenance; add #185 to its issues. Issue numbers move from headings to the end of the statement they belong to.
+- [x] Guard, body only (the header line is exempt: it gains "#185"): the multiset of numbers after the edit is a subset of the one before, each number dropped is listed in the commit message with why, and `grep -c '^## #[0-9]' research/monthly_error.md` is 0. The guard shows no number was typed, not that each still sits in its claim: read the diff for that. Report `wc -w` before and after (1,886 before; #185's 1,685 is soul's `research_check.sh` prose count).
+- [x] Update the file's row in `research/README.md` if its description names the old sections.
 
 ## Phase 2: WALLY desk comparison (#178, items 1 and 2)
 
