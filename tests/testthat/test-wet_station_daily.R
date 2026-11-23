@@ -292,3 +292,82 @@ test_that("live: Buck Creek runs from HYDAT through provisional to real-time", {
   expect_false(any(duplicated(d$date)))
   expect_gt(max(d$date), Sys.Date() - 10)
 })
+
+# The provincial reader and registry stood in for: 08ZZ0001 is a provincial station.
+local_bcenv_stub <- function(env = parent.frame()) {
+  calls <- new.env()
+  calls$daily <- list()
+  local_mocked_bindings(
+    wet_bcenv_stations = function(snapshot) data.frame(station_number = c("08ZZ0001", "08ZZ0002")),
+    wet_bcenv_daily = function(stations, snapshot) {
+      calls$daily[[length(calls$daily) + 1]] <- stations
+      data.frame(station_number = "08ZZ0001", date = as.Date("2020-06-02") + 0:2, q_m3s = c(2, 3, 4),
+                 symbol = NA_character_, source = "bcenv", status = c("provisional", "unchecked", "provisional"))
+    },
+    .env = env)
+  calls
+}
+
+test_that("a call with HYDAT numbers alone opens neither the provincial registry nor its reader", {
+  h <- local_hydat()
+  local_mocked_bindings(wet_bcenv_stations = function(...) stop("registry opened"),
+                        wet_bcenv_daily = function(...) stop("provincial reader called"))
+  w <- capture_warnings(d <- wet_station_daily("08AA001", h, sources = c("hydat", "bcenv")))
+  expect_length(w, 0)
+  expect_true(all(d$source == "hydat"))
+})
+
+test_that("a provincial number is read from the provincial source, and never asked of the federal ones", {
+  h <- local_hydat()
+  calls <- local_bcenv_stub()
+  asked <- character()
+  local_mocked_bindings(wet_provisional_daily = function(stations) {
+    asked <<- c(asked, stations)
+    wet_daily_empty()
+  })
+  d <- wet_station_daily(c("08AA001", "08ZZ0001"), h, to = NULL, sources = c("hydat", "provisional", "bcenv"))
+  expect_equal(asked, "08AA001")
+  expect_equal(calls$daily, list("08ZZ0001"))
+  p <- d[d$station_number == "08ZZ0001", ]
+  expect_equal(p$q_m3s, c(2, 3, 4))
+  expect_true(all(p$source == "bcenv"))
+  expect_equal(p$status, c("provisional", "unchecked", "provisional"))
+  expect_equal(unique(d$station_number), c("08AA001", "08ZZ0001"))
+})
+
+test_that("from and to trim provincial days too; a number in neither source is warned about", {
+  h <- local_hydat()
+  calls <- local_bcenv_stub()
+  expect_warning(d <- wet_station_daily(c("08ZZ0001", "XX0001"), h, from = "2020-06-03", sources = "bcenv"),
+                 "no flow found for: XX0001")
+  expect_equal(d$date, as.Date(c("2020-06-03", "2020-06-04")))
+  # only numbers in the registry reach the reader
+  expect_equal(calls$daily, list("08ZZ0001"))
+})
+
+test_that("without \"bcenv\" a provincial number gets no flow, and the reader is not called", {
+  h <- local_hydat()
+  local_mocked_bindings(wet_bcenv_stations = function(...) stop("registry opened"),
+                        wet_bcenv_daily = function(...) stop("provincial reader called"))
+  expect_warning(d <- wet_station_daily("08ZZ0001", h, sources = "hydat"), "no flow found for: 08ZZ0001")
+  expect_equal(nrow(d), 0)
+})
+
+test_that("a failing provincial source is skipped with a warning", {
+  h <- local_hydat()
+  local_mocked_bindings(wet_bcenv_stations = function(...) stop("no registry here"))
+  w <- capture_warnings(d <- wet_station_daily(c("08AA001", "08ZZ0001"), h, sources = c("hydat", "bcenv")))
+  expect_match(w, "source \"bcenv\" skipped: no registry here", all = FALSE)
+  expect_true(all(d$source == "hydat"))
+})
+
+test_that("live: Deep Creek's provincial record is read from the pinned snapshot", {
+  skip_if_not_installed("duckdb")
+  tryCatch(wet_bcenv(), wet_bcenv_unavailable = function(e) skip(conditionMessage(e)))
+  d <- wet_station_daily("08EE0001", sources = "bcenv", to = NULL)
+  expect_gt(nrow(d), 500)
+  expect_true(all(d$source == "bcenv") && all(d$status %in% c("provisional", "unchecked")))
+  expect_false(anyDuplicated(d$date) > 0)
+  s <- wet_station_list()
+  expect_equal(range(d$date), c(s$first[s$station_number == "08EE0001"], s$last[s$station_number == "08EE0001"]))
+})

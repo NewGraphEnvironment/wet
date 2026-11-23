@@ -9,11 +9,13 @@ wet_station_daily(
   hydat = wet_hydat_path(),
   from = NULL,
   to = Sys.Date(),
-  sources = c("hydat", "provisional", "realtime")
+  sources = c("hydat", "provisional", "realtime", "bcenv"),
+  snapshot = wet_bcenv_snapshot
 )
 }
 \arguments{
-\item{stations}{Character vector of station numbers.}
+\item{stations}{Character vector of station numbers: HYDAT's
+(\code{"08EE013"}) or the provincial network's (\code{"08EE0001"}), mixed freely.}
 
 \item{hydat}{Path to the HYDAT sqlite database. Defaults to tidyhydat's
 download location.}
@@ -21,24 +23,37 @@ download location.}
 \item{from, to}{Optional first and last date (a \code{Date} or a string
 \code{as.Date()} reads). \code{NULL} means no bound.}
 
-\item{sources}{Which sources to read, from \code{"hydat"}, \code{"provisional"} and
-\code{"realtime"}. Each source continues the one before it, per station, from
+\item{sources}{Which sources to read, from \code{"hydat"}, \code{"provisional"},
+\code{"realtime"} and \code{"bcenv"}. The first three read HYDAT-numbered stations
+only, and each continues the one before it, per station, from
 that source's last day over its whole record: provisional days are used
 only after HYDAT's last day, and real-time days only after both, whatever
 \code{from} and \code{to} are. \code{"provisional"} reads the water-temp-bc archive of ECCC daily means
 (option \code{wet.provisional_root}, default
 \verb{s3://water-temp-bc/data/canonical/Parameter=6/}) with duckdb, and
 \code{"realtime"} calls \code{\link[tidyhydat:realtime_ws]{tidyhydat::realtime_ws()}} for the days after the
-other sources end (at most about 18 months back).}
+other sources end (at most about 18 months back). \code{"bcenv"} reads the
+provincial network's stations named in \code{snapshot}'s station registry,
+from the province's hourly files (Open Government Licence - British
+Columbia), with duckdb: a day is a local-standard-time day with at least
+20 hours, hours graded Unusable left out, and a day above a plausibility
+bound measured on HYDAT dropped.}
+
+\item{snapshot}{The provincial snapshot to read, as \code{YYYYMMDD}; each pinned
+snapshot's files are held to md5s tracked in the package. Read only for
+stations that are not HYDAT-numbered.}
 }
 \value{
 \code{data.frame(station_number, date, q_m3s, symbol, source, status)},
 one row per station-day that has a flow, ordered by station and date.
 \code{symbol} is HYDAT's daily symbol (\code{"B"} ice, \code{"E"} estimated, \code{"A"}
-partial day, \code{"D"} dry) or \code{NA}; \code{status} is \code{"approved"} or
-\code{"provisional"} (any ECCC approval other than final counts as
-provisional). Provisional days carry no ice symbol, so their \code{NA} means
-"not recorded", not "open water".
+partial day, \code{"D"} dry) or \code{NA}. \code{status} is \code{"approved"} for HYDAT and
+for an ECCC day whose approval says final, and \code{"provisional"} for any
+other ECCC day. A provincial day is \code{"provisional"} when every hour in it
+carries a grade and \code{"unchecked"} when any hour is graded Undefined or
+Unspecified: the province's files carry no approval, so none is
+\code{"approved"}. Provisional and provincial days carry no ice symbol, so
+their \code{NA} means "not recorded", not "open water".
 
 A gap between the end of one source and the start of the next (for
 example an old HYDAT ending before the provisional archive begins) is
@@ -53,6 +68,12 @@ from and its HYDAT symbol, so a result built on the series can say what it
 rests on (ice-affected winter flows are estimates).
 }
 \details{
+Stations of the province's non-integrated hydrometric network (numbers such
+as \code{"08EE0001"}, listed by \code{\link[=wet_station_list]{wet_station_list()}}) are read from a pinned
+snapshot of the province's hourly files instead. Such a station keeps its
+own number: where it sits at a HYDAT station's site, the two records are not
+joined, and \code{\link[=wet_station_list]{wet_station_list()}} names the HYDAT station so a caller can.
+
 Ported from \code{ngr::ngr_hyd_q_daily()}, which joined HYDAT with about 18
 months of real-time flow.
 }
@@ -61,5 +82,9 @@ months of real-time flow.
 # Buck Creek at the mouth, from the start of its record to last week
 q <- wet_station_daily("08EE013")
 table(q$source, q$status)
+
+# Deep Creek, a provincial station near Smithers
+d <- wet_station_daily("08EE0001")
+table(d$source, d$status)
 }
 }

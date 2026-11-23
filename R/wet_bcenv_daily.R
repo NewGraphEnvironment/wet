@@ -41,6 +41,7 @@ wet_bcenv_daily <- function(stations = NULL, snapshot = wet_bcenv_snapshot, boun
     stop("`bound` must be one positive number (Inf for none), or positive numbers named by WSC sub-drainage ",
          "with a \".default\"", call. = FALSE)
   }
+  if (!requireNamespace("duckdb", quietly = TRUE)) stop("install duckdb to read provincial flows", call. = FALSE)
   d <- wet_bcenv_days_read(wet_bcenv_days(snapshot, cache_dir), stations)
   d <- d[d$hours >= min_hours, ]
   if (!nrow(d)) return(wet_daily_empty())

@@ -19,6 +19,13 @@
 #    s3://fresh-bc/station_sources/bcenv/<snapshot>/ (aws CLI) and checks each
 #    object's size and recorded md5; the province rewrites Discharge.csv in
 #    place, so this backup is the only other copy of what was read.
+# 5. Writes the snapshot's station registry,
+#    inst/extdata/station_sources/bcenv_<snapshot>_hydat.csv: one row per
+#    provincial station (its latest name, status and coordinates in the files),
+#    its first and last complete day as wet_bcenv_daily() reads them, its
+#    regulation as far as its name says, and the HYDAT station at the same site
+#    (scripts/station_sources_lib.R's hydat_match(), the survey's rule, against
+#    HYDAT 20260717). wet_station_daily() and wet_station_list() read it.
 #
 # A new snapshot: download every Discharge*.csv the province's directory lists
 # into a fresh directory, name it here, and run with WET_BACKUP=1.
@@ -94,3 +101,33 @@ if (identical(Sys.getenv("WET_BACKUP"), "1")) {
   }
   message("backed up to ", bucket)
 }
+
+# ---- 5. the station registry ------------------------------------------------------------------
+source("scripts/wb_fit_lib.R")     # wb_hydat()
+source("scripts/station_sources_lib.R")
+hy <- hydat_stations(wb_hydat("20260717"))
+duck <- DBI::dbConnect(duckdb::duckdb())
+wet:::wet_bcenv_hours(duck, wet:::wet_bcenv(snapshot))
+st <- DBI::dbGetQuery(duck, "
+  SELECT id AS station_number, arg_max(name, t) AS name, arg_max(status, t) AS status,
+         arg_max(lon, t) AS lon, arg_max(lat, t) AS lat
+  FROM h GROUP BY 1 ORDER BY 1")
+DBI::dbDisconnect(duck, shutdown = TRUE)
+st <- st[order(st$station_number, method = "radix"), ]
+q <- wet:::wet_bcenv_daily(NULL, snapshot)
+rng <- lapply(split(q$date, q$station_number), range)
+st$first <- as.Date(vapply(st$station_number, function(s) if (is.null(rng[[s]])) NA_real_ else as.numeric(rng[[s]][1]),
+                           0), origin = "1970-01-01")
+st$last <- as.Date(vapply(st$station_number, function(s) if (is.null(rng[[s]])) NA_real_ else as.numeric(rng[[s]][2]),
+                          0), origin = "1970-01-01")
+st$regulation <- ifelse(regulation_of(st$name) == "unknown", "unknown", "regulated by name")
+m <- hydat_match(data.frame(station_id = st$station_number, name = st$name, lon = st$lon, lat = st$lat,
+                            first = as.integer(format(st$first, "%Y")), last = as.integer(format(st$last, "%Y"))), hy)
+stopifnot(identical(m$station_id, st$station_number))
+st$hydat_site <- m$hydat
+st$hydat_km <- m$hydat_km
+st$hydat_class <- m$class
+reg_path <- file.path(out_dir, sprintf("bcenv_%s_hydat.csv", snapshot))
+utils::write.csv(st, reg_path, row.names = FALSE, na = "")
+message("wrote ", reg_path, ": ", nrow(st), " stations, ", sum(!is.na(st$first)), " with a complete day, ",
+        sum(!is.na(st$hydat_site)), " at a HYDAT site")

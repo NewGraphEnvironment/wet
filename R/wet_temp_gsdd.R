@@ -27,7 +27,7 @@
 #'   cut), `anomaly_type` (`"absolute"`), `unit` (`"degC_day"`), and over the
 #'   days from `start_date` to `end_date` that have a value: `n_days` (how
 #'   many), `frac_ice` (`NA`: there is no ice flag), `frac_provisional` (share
-#'   whose `status` is `"provisional"`, `NA` without a `status` column) and
+#'   whose `status` is anything but `"approved"`, `NA` without a `status` column) and
 #'   `frac_filled` (share that were filled, `NA` without a `filled` column).
 #'   The columns are those of [wet_window_stats()] plus `frac_filled`. One row
 #'   per series and year that `gsdd::gsdd()` returns. The interval of a
@@ -86,18 +86,18 @@ wet_temp_gsdd <- function(x, value = "t_mean_c", by = "station_number",
       b <- wet_md_date(y + (md[2] < md[1]), md[2], start = FALSE)
       match(seq(a, b, by = "day"), s$date)
     })
-    frac <- function(ok, col, hit) {
+    frac <- function(ok, col, hit, negate = FALSE) {
       if (!ok) return(rep(NA_real_, length(year)))
       vapply(win, function(k) {
         k <- k[!is.na(k)]
-        if (length(k)) mean(s[[col]][k] %in% hit) else NA_real_
+        if (length(k)) mean(s[[col]][k] %in% hit != negate) else NA_real_
       }, numeric(1))
     }
     data.frame(x[rep(i[1], length(year)), by, drop = FALSE], variable = "gsdd",
                period = "growing_season", year = year, value = as.numeric(g$gsdd),
                anomaly_type = "absolute", unit = "degC_day",
                n_days = vapply(win, function(k) sum(!is.na(k)), integer(1)),
-               frac_ice = NA_real_, frac_provisional = frac(has_status, "status", "provisional"),
+               frac_ice = NA_real_, frac_provisional = frac(has_status, "status", "approved", negate = TRUE),
                frac_filled = frac(has_filled, "filled", TRUE))
   })
   out <- do.call(rbind, out)
