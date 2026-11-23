@@ -2,7 +2,7 @@
 
 ## Session 2026-11-23
 
-- Explored and drafted the phases; no plan gate in this pane: parked for the coordinator's plan gate (soul#928)
+- Explored and drafted the phases; no plan gate in this pane: parked for the coordinator's plan gate
 - Created branch `188-backlog-move-11-small-basin-error-and-th` off origin/main
 - Scaffolded PWF baseline from issue #188 with the drafted phases
 - Next: parked 2026-11-23; paste the block under ### Resume into a fresh session
