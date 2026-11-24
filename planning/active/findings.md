@@ -75,6 +75,23 @@ Left out of move 8 (#179, #142).
 - Round 3, mechanism: "natural" is rg_status()'s residual arm, so whatever an evidence filter excludes reads as no evidence. Its enumeration (planning/active/review-round3.md, 18 rows for the rule's restatements, 25 for the filters) found: #53's 1 mm own-reach test dropping a licence indexed exactly at 08NK0006 (owner's decision: Amendment 3, a 100 m margin on the station's line; moves 08NK0006 and 08HC0004 to regulated); 128 unlocated surface licences (now counted in the report; none names a natural station's stream); watershed vs segment codes differing at 16 stations, every effect toward regulated (accepted, as #53); NA codes on a snapped station (now stops); power PODs counted over repeats (now kept rows, 845).
 - After Amendment 3: natural 75 (52 provincial, 23 Tool), regulated 110, unknown 72; HYDAT's comparison unchanged. Run log `data/logs/196/station_regulation_run10.log`.
 
+## Review round 4 and the enumeration that ends the loop, 2026-11-24
+
+Round 4 found no defect inside Amendment 3's code and walked mechanism B (every evidence filter's complement) over 37 rows, none open (planning/active/review-round4.md). Its one finding was mechanism A one amendment later: the report's amendment list was a hand-typed literal naming Amendments 1-2, and it gave no statuses per version. Fixed: the list is read from the rule file's `# ---- Amendment N` headers, and the report scores Amendment 1 alone (94 natural), 1-2 (77) and 1-3 (75) from the same caches, naming each station that moved, and lists regulating dams beyond the 100 m margin at natural stations (John Frank Lake Dam, 212.6 m below 08LE0001).
+
+Mechanism A, every place that restates the rule's branches or amendments, against its source (the rule file's header and `rg_status()`), measured 2026-11-24:
+
+| place | how it follows the source | verdict |
+|---|---|---|
+| report, rule section | amendments read from the rule file's headers | agrees (derived) |
+| report, why tally | regexes over `rg_status()`'s why strings | agrees: every fragment in the status file maps to one of its 9 emitters |
+| report, statuses per version | `score()` with the rule's functions | agrees (derived) |
+| status CSV | `rg_status()` output and its seven evidence arguments as columns | agrees (derived) |
+| `wet_station_list()` roxygen and man page | hand text: regulated by name, dam, L, S; unknown not placed, outside BC, power or no-volume licence, no flow | agrees |
+| research/station_sources.md | Regulated and Unknown bullets, Amendments 1-3 | agrees |
+| CLAUDE.md bullet | branches, the surface mask, the 100 m margin, amendment commits | agrees |
+| tests/testthat/test-station_regulation_rule.R | each branch at its edge, `rg_own_below()`, `rg_split_pods()` | agrees (83 expectations) |
+
 ## Errors Encountered
 
 | Error | Resolution |

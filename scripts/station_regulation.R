@@ -237,43 +237,57 @@ st$q_source <- q0$source[match(st$linear_feature_id, q0$linear_feature_id)]
 st$q_m3s[!st$accepted] <- NA
 
 # ---- 5. per station -----------------------------------------------------------------------------
-u_lic <- merge(up[c("station_number", "pid", "own")],
-               lic_pts[c("pid", "class", "candidate", "surface", "power", "novol", "v")], by = "pid")
-u_dam <- up[up$pid %in% dam_pts$pid, ]
 count_by <- function(x) as.integer(table(factor(x, st$station_number)))
 sum_by <- function(v, x) {
   s <- tapply(v, factor(x, st$station_number), sum)
   s[is.na(s)] <- 0
   unname(s)
 }
-# surface PODs only, as the rule says and #53's base_mask does
-cons <- u_lic$candidate & u_lic$surface & u_lic$class == "consumptive"
-stor <- u_lic$candidate & u_lic$surface & u_lic$class == "storage"
-st$dams_up <- count_by(u_dam$station_number)
-st$L_m3yr <- sum_by(u_lic$v[cons], u_lic$station_number[cons])
-st$S_m3yr <- sum_by(u_lic$v[stor], u_lic$station_number[stor])
-st$n_cons <- count_by(u_lic$station_number[cons])
-st$n_stor <- count_by(u_lic$station_number[stor])
-st$power_up <- st$station_number %in% u_lic$station_number[u_lic$power]
-st$novol_up <- st$station_number %in% u_lic$station_number[u_lic$novol]
-st$outside_bc <- st$station_number %in% pl$border
+flow_yr <- ifelse(!is.na(st$q_m3s) & st$q_m3s > 0, st$q_m3s * rg_year_s, NA_real_)
+off <- !st$accepted
+# The evidence and status of every station from the upstream pairs `up`; `novol` FALSE scores the
+# rule as it stood before Amendment 2. Each version since stations were placed is scored from the
+# same caches, so the report can give the statuses under each (the rule's amendment protocol).
+score <- function(up, novol = TRUE) {
+  u_lic <- merge(up[c("station_number", "pid", "own")],
+                 lic_pts[c("pid", "class", "candidate", "surface", "power", "novol", "v")], by = "pid")
+  u_dam <- up[up$pid %in% dam_pts$pid, ]
+  # surface PODs only, as the rule says and #53's base_mask does
+  cons <- u_lic$candidate & u_lic$surface & u_lic$class == "consumptive"
+  stor <- u_lic$candidate & u_lic$surface & u_lic$class == "storage"
+  x <- data.frame(
+    dams_up = count_by(u_dam$station_number),
+    L_m3yr = sum_by(u_lic$v[cons], u_lic$station_number[cons]),
+    S_m3yr = sum_by(u_lic$v[stor], u_lic$station_number[stor]),
+    n_cons = count_by(u_lic$station_number[cons]),
+    n_stor = count_by(u_lic$station_number[stor]),
+    power_up = st$station_number %in% u_lic$station_number[u_lic$power],
+    novol_up = novol & st$station_number %in% u_lic$station_number[u_lic$novol],
+    outside_bc = st$station_number %in% pl$border
+  )
+  x$L_share <- x$L_m3yr / flow_yr
+  x$S_share <- x$S_m3yr / flow_yr
+  for (v in c("dams_up", "power_up", "novol_up", "outside_bc", "L_share", "S_share")) x[[v]][off] <- NA
+  s <- rg_status(st$name_regulated, st$accepted, x$dams_up, x$L_share, x$S_share, x$outside_bc, x$power_up,
+                 x$novol_up)
+  cbind(x, s)
+}
+cur <- score(up)
+for (v in names(cur)) st[[v]] <- cur[[v]]
 st$manmade_up <- pl$manmade$manmade_up[match(st$station_number, pl$manmade$station_number)]
 st$manmade_up[is.na(st$manmade_up)] <- 0L
-flow_yr <- ifelse(!is.na(st$q_m3s) & st$q_m3s > 0, st$q_m3s * rg_year_s, NA_real_)
-st$L_share <- st$L_m3yr / flow_yr
-st$S_share <- st$S_m3yr / flow_yr
-off <- !st$accepted
-st$dams_up[off] <- NA
-st$power_up[off] <- NA
-st$novol_up[off] <- NA
-st$outside_bc[off] <- NA
 st$manmade_up[off] <- NA
-st$L_share[off] <- NA
-st$S_share[off] <- NA
-s <- rg_status(st$name_regulated, st$accepted, st$dams_up, st$L_share, st$S_share, st$outside_bc, st$power_up,
-               st$novol_up)
-st$regulation <- s$regulation
-st$why <- s$why
+# the versions since stations were placed: Amendment 1 alone (#53's own-reach test, no no-volume
+# arm), with Amendment 2, and with Amendment 3 (the shipped one)
+up_53 <- local({
+  # no point on the station's line is within the margin, so #53's 1 mm test alone decides
+  own <- pl$own
+  own$below_m[own$same_line %in% TRUE] <- Inf
+  rg_upstream_pairs(pl$up, own)
+})
+versions <- list(`Amendment 1` = score(up_53, novol = FALSE)$regulation,
+                 `Amendments 1-2` = score(up_53)$regulation,
+                 `Amendments 1-3` = st$regulation)
 if (anyNA(st$regulation) || !all(st$regulation %in% rg_vocab)) stop("a status outside the vocabulary")
 if (any(st$name_regulated & st$regulation != "regulated")) {
   stop("a station regulated by name came out ",
@@ -326,10 +340,10 @@ lines <- c(
   "",
   "== The rule as registered",
   "  registered at 2d93787fb631ccd3b231827c2484c0f58029cb3d, before any station was snapped or placed;",
-  sprintf("  run under %s, with Amendment 1 (2026-11-24: a shared quantity split over the PODs that are", rule_commit),
-  "  not rediversions) and Amendment 2 (2026-11-24: a licence with no volume upstream makes a station unknown)",
-  "  the registered version stopped at a shared licence before placing any station, so no status exists under it;",
-  "  no status shipped before Amendment 2",
+  sprintf("  run under %s, with the amendments its header dates:", rule_commit),
+  paste0("    ", sub("^# ---- (Amendment [0-9]+, [0-9-]+ \\(.*\\)) -*$", "\\1",
+                     grep("^# ---- Amendment [0-9]+, ", readLines(rule_files[1]), value = TRUE))),
+  "  the registered version stopped at a shared licence before placing any station, so no status exists under it",
   sprintf("  %s md5 %s", names(rule_md5), rule_md5),
   "",
   "== Inputs",
@@ -367,6 +381,26 @@ lines <- c(
     dn <- dam_pts$DAM_NAME[match(gone[cls == "regulating dam"], dam_pts$pid)]
     c(if (length(gone)) sprintf("  not placed, so tested upstream of no station: %s", tab(table(cls))),
       if (length(dn)) sprintf("  regulating dams not placed: %s", paste(sort(dn, method = "radix"), collapse = ", ")))
+  }),
+  "",
+  "== Statuses under each version since stations were placed (the rule's amendment protocol)",
+  "  scored from the same snapshot, snap, placement and flows with this script (L and S on surface PODs only)",
+  fmt_mat(do.call(rbind, lapply(versions, function(v) table(factor(v, rg_vocab))))),
+  unlist(lapply(2:length(versions), function(k) {
+    moved <- which(versions[[k]] != versions[[k - 1]])
+    c(sprintf("  %s -> %s: %d stations", names(versions)[k - 1], names(versions)[k], length(moved)),
+      if (length(moved)) sprintf("    %s %s -> %s", st$station_number[moved], versions[[k - 1]][moved],
+                                 versions[[k]][moved]))
+  })),
+  local({
+    # regulating dams on a natural station's own line, dropped as more than the margin below it
+    o <- pl$own[pl$own$pid %in% dam_pts$pid & pl$own$same_line %in% TRUE & !(pl$own$upstream %in% TRUE), ]
+    o <- o[o$station_number %in% st$station_number[st$regulation == "natural"], ]
+    o <- o[order(o$station_number, o$below_m, method = "radix"), ]
+    c(sprintf("  regulating dams below a natural station on its own line, beyond the %g m margin: %d", rg_own_margin_m,
+              nrow(o)),
+      if (nrow(o)) sprintf("    %s: %s, %.1f m below", o$station_number, dam_pts$DAM_NAME[match(o$pid, dam_pts$pid)],
+                           o$below_m))
   }),
   "",
   "== Population",
