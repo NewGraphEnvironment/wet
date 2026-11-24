@@ -43,6 +43,15 @@ Left out of move 8 (#179, #142).
 - Dam register (the cached copy of #53's snapshot, 2026-10-07): 2,490 dams; regulated code Regulated 1,710, `Regulated - Part 3 Exempt` 290, Non-Regulated incl. minor 490; operation Active 2,081, Breached 122, Decommissioned 99, Not Constructed 110, Deactivated 34, Removed 22, Application 22; height median 3 m (165 NA).
 - Registries: `bcenv_20261028_hydat.csv` 211 stations; `bcwatertool_20261028_hydat.csv` 53 rows (46 own, 7 continuing a provincial number, which `wet_station_list()` folds into the provincial row).
 
+## Phase 1, 2026-11-24
+
+- **Licences of the registers** [catalogue API `package_search`, read 2026-11-24]: `bc-dams` (`WRIS_DAMS_PUBLIC_SVW`) Open Government Licence - British Columbia; `water-rights-licences-public` (`WLS_WATER_RIGHTS_LICENCES_SV`) "Access Only", publish state PENDING ARCHIVE. The province's copyright page (`www2.gov.bc.ca/gov/content?id=1AAACC9C65754E4D89A118B875E0FBDA`): Data Catalogue material that is "access only" may not be reproduced without written permission. Owner's decision 5: ship derived values only.
+- **Successor layer** `water-rights-licences` (`WLS_WATER_RIGHTS_LICENCES_SP`, also Access Only, PUBLISHED) is not on the public WFS: `DescribeFeatureType` returns no fields. The `_SV` layer still answers, 118,717 rows (117,945 on #53's 2026-10-07 snapshot).
+- **Tool drainage areas are km^2**: Beatton River at Tommy Lakes Road (Tool) 1852.0 vs HYDAT 07FC008 1851.7 at 0.04 km; Petitot listings 9863.2 and 20410.5 upstream of 10DA001 (22260). 32 of 53 Tool rows state an area; none of the 7 continuing listings does.
+- **Code sets in #53's snapshot**: DAM_REGULATED_CODE Regulated 1710 / Regulated - Part 3 Exempt 290 / Non-Regulated - Including Minor Dam 490; DAM_OPERATION_CODE Active 2081, Application 22, Breached (Failed) 122, Deactivated 34, Decommissioned 99, Not Constructed 110, Removed 22; DAM_FUNCTION Conversion 315, Main 1934, Outlet 38, Saddle 171, Spillway 32; LICENCE_STATUS Abandoned 14985, Cancelled 7883, Current 94717, Expired 360. None NA.
+- **Border lines** in fwapg: `whse_basemapping.fwa_approx_borders` holds AB_120, USA_49, YTNWT_60 (one line each); no Alaska line, where rivers leave BC rather than enter it.
+- **Float edge**: `abs(ratio - 1) <= 0.1` (wet_station_snap()'s comparison) rejects a ratio of exactly 1.1 (1.1 - 1 > 0.1 in doubles); kept as wet_station_snap() has it, tested just inside and outside.
+
 ## Errors Encountered
 
 | Error | Resolution |

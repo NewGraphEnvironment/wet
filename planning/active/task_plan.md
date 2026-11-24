@@ -19,9 +19,9 @@ No plan gate in this pane: dispatched by `/coordinator` as `park review` (GATE=c
 - **Licences of the registers are measured and published**, not only noted in planning: the research section and the report state each layer's licence as read from its catalogue record, and the status file and `wet_station_list()`'s docs carry its credit line, since derived data ships in `inst/extdata` (review G6).
 - **Conservative direction:** a wrong "regulated" loses a donor; a wrong "natural" puts regulated flow in a donor pool. Every recommendation below leans to regulated or unknown when in doubt.
 
-## Open decisions
+## Decided at the plan gate (2026-11-23, issue #196 `## Decisions`)
 
-The coordinator puts these to the owner before Phase 1. Each has a recommendation; Phase 1 registers whatever is chosen, before any station is placed.
+The owner took the recommended option on each of the four decisions below, the area-only leg included.
 
 1. **The rule for natural, regulated and unknown, and which registers enter.** Recommended:
    - *Registers.* The provincial dam register (`WRIS_DAMS_PUBLIC_SVW`) and water rights licences (`WLS_WATER_RIGHTS_LICENCES_SV`), both BC WFS layers (licence read in Phase 1). Reservoirs enter through the dam register and storage licences, which every licensed reservoir has; FWA man-made waterbodies upstream are reported beside the status and decide nothing.
@@ -34,14 +34,19 @@ The coordinator puts these to the owner before Phase 1. Each has a recommendatio
 2. **One status per station, or by window.** The licence layer has no period-of-use field (its `DescribeFeatureType`, read 2026-11-23, lists none; nor did #53 request one), so a window status could rest only on purpose codes. Recommended: one annual status now; a window status waits until a donor pool needs one and a source states the season.
 3. **Where donor selection reads it, and how far this PR goes.** Recommended: `wet_station_list()`'s `regulation` column carries the status, and `wet_station_select()` stays HYDAT-only (its SQL reads HYDAT's flag and complete years), its docs pointing to `wet_station_list()` for the natural non-HYDAT stations. Putting those stations into a donor pool (`scripts/departure_site.R`'s box, `wet_window_extend()`) is filed as its own issue naming move 14 and #118, left out of `planning/backlog.md` for the next `/backlog-sweep`. The backlog's touch list names `R/wet_station_select.R` and its test: under this recommendation the function changes by a doc line and its test file not at all.
 4. **Where the status is stored.** Recommended: its own tracked file, `inst/extdata/station_sources/regulation_<bcenv snapshot>.csv` (`station_number`, `source`, `regulation`, `why`, `dams_up`, `L_share`, `S_share`, `snap_stream`, `snap_leg`, `snap_m`, the WFS snapshot date, both station snapshots, each registry's md5, and the registers' credit), written by the new script and read by `wet_station_list()` in place of the registries' name-only column. The two pinned registries are not rewritten, so `scripts/station_sources_harvest.R`'s check of the registry against the name rule (lines 219-221, 384) still holds, and regulation can be redone on a new WFS snapshot without re-pinning the station data. The alternative, rewriting the registries' `regulation` column, needs both data-raw writers rerun with their raw copies (`WET_BCWATERTOOL_RAW`) and moves the harvest check: two PRs.
+5. **What ships from the licence layer, whose terms are "Access Only"** (met in Phase 1, 2026-11-24). The catalogue record `water-rights-licences-public` (`WLS_WATER_RIGHTS_LICENCES_SV`) gives the licence "Access Only"; the province's copyright page says such materials are "access only and reproduction is not permitted without written permission". The dam register (`bc-dams`) is OGL-BC. Decision 4's status file was to carry each register's credit line; the licence layer has none to carry. Decided by the owner 2026-11-24 (asked in the resume session): the recommended option, ship only values wet computes (status, `why`, `L_share`, `S_share`, counts), never a licence record (number, POD, quantity, location), and state the layer's terms in the docs, the status file and research, as #53's tracked report already publishes per-gauge L and S from the same layer.
+
+## Open decisions
+
+None open.
 
 ## Phase 1: Register the rule
 
-- [ ] Read each WFS layer's catalogue record and record its licence and credit line (research section, later the report)
-- [ ] Check the Tool's drainage-area unit against same-stream HYDAT gross areas (the Petitot listings, 9,863.2 and 20,410.5); the result goes into the rule, before it is committed
-- [ ] `scripts/station_regulation_rule.R`: header registering the rule as decided (open decisions 1 and 2), the population (both registries, folded as `wet_station_list()` folds them), what was seen first, the amendment protocol and the report path; pure functions for the name fold match, the tie break, the area test and the status, with the exact code sets
-- [ ] `tests/testthat/test-station_regulation_rule.R`: each threshold at its edge, each unknown branch, ties, a name-regulated station never natural, a code outside the set refused
-- [ ] `research/station_sources.md`: a "Regulation (registered <date>)" section carrying the rule and the registers' licences; committed with the rule file, before the script places any station
+- [x] Read each WFS layer's catalogue record and record its licence and credit line (research section, later the report)
+- [x] Check the Tool's drainage-area unit against same-stream HYDAT gross areas (the Petitot listings, 9,863.2 and 20,410.5); the result goes into the rule, before it is committed
+- [x] `scripts/station_regulation_rule.R`: header registering the rule as decided (open decisions 1 and 2), the population (both registries, folded as `wet_station_list()` folds them), what was seen first, the amendment protocol and the report path; pure functions for the name fold match, the tie break, the area test and the status, with the exact code sets
+- [x] `tests/testthat/test-station_regulation_rule.R`: each threshold at its edge, each unknown branch, ties, a name-regulated station never natural, a code outside the set refused
+- [x] `research/station_sources.md`: a "Regulation (registered <date>)" section carrying the rule and the registers' licences; committed with the rule file, before the script places any station
 
 ## Phase 2: Snapshot, snap and place
 
