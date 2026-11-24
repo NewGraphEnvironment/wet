@@ -1,0 +1,869 @@
+Regulation per non-HYDAT station (#196): provincial snapshot 20261028, Water Tool snapshot 20261028, WFS snapshot 20261124
+Produced by scripts/station_regulation.R under the rule in scripts/station_regulation_rule.R.
+
+== The rule as registered
+  registered at 2d93787fb631ccd3b231827c2484c0f58029cb3d, before any station was snapped or placed;
+  run under 0c6d31ff2261056827f47b7d081a941f4701f5e9, with Amendment 1 (2026-11-24: a shared quantity split over the PODs that are
+  not rediversions) and Amendment 2 (2026-11-24: a licence with no volume upstream makes a station unknown)
+  the registered version stopped at a shared licence before placing any station, so no status exists under it;
+  no status shipped before Amendment 2
+  scripts/station_regulation_rule.R md5 c511359bfaf4233c3588d2d1ff4b3e09
+  scripts/station_sources_lib.R md5 d9dad7b62ca120b1d1b565256fc3d797
+
+== Inputs
+  registry bcenv_20261028_hydat.csv md5 377347e147efa6e5a0df6f975df8d452
+  registry bcwatertool_20261028_hydat.csv md5 27f2039c650d58b2154275f98acba3f9
+  HYDAT 20260717 (drainage areas and regulation flags at the stations' HYDAT sites)
+  WFS layer WLS_WATER_RIGHTS_LICENCES_SV: 118717 rows, the server's count when taken
+  WFS layer WRIS_DAMS_PUBLIC_SVW: 2485 rows, the server's count when taken
+  WFS file licences_01.csv md5 3f83f32de0bf41dbe5575b7f21c23b01
+  WFS file licences_02.csv md5 4f5a6ffc6122a61eb87a72a73c491544
+  WFS file licences_03.csv md5 2035af6b7fc2d554e57abc7c48931b23
+  WFS file licences_04.csv md5 6d8757cdcd3b18812c8b437874a3de8d
+  WFS file licences_05.csv md5 6bbfdee95bb9a3d282aed355e52aa214
+  WFS file licences_06.csv md5 f0a57d67bd64176ad3bd839cb3e940db
+  WFS file licences_07.csv md5 ee86be5d51dc2e4ca708103f129445b1
+  WFS file licences_08.csv md5 bddb0a58ab67288c4e6e674bb371660a
+  WFS file licences_09.csv md5 92ef491e5122e10080accce8054ff89d
+  WFS file licences_10.csv md5 24118007087cff887e1dba47f465f2ea
+  WFS file licences_11.csv md5 a029b4042efec1b794701313b16c126b
+  WFS file licences_12.csv md5 e2489bf3918a886ec64d994e352005ee
+  WFS file dams_01.csv md5 66056baa1d1d876225b128841bbe6fa9
+  terms: WRIS_DAMS_PUBLIC_SVW (catalogue record bc-dams) Open Government Licence - British Columbia;
+         WLS_WATER_RIGHTS_LICENCES_SV (record water-rights-licences-public) Access Only: only values wet computes ship
+  published build: catalog digest d554e3aad481d86bffa4baef687287ed; 43 segment_monthly historical parts verified before and 43 after the read
+  dams: 2485, 1838 regulating for the rule (active, Regulated or Regulated - Part 3 Exempt), 1838 of those located
+  licence rows: 118717; Current 95422; counted (located, surface, consumptive or storage, kept, quantity > 0, not rediverted) 58081; power PODs 1043; no volume (Amendment 2) 1646
+  points placed in an FWA watershed: 72023 of 72028
+
+== Population
+  257 stations: 211 provincial, 46 Water Tool listings of their own (7 continuing listings folded into their provincial station)
+  drainage area known: 93 (HYDAT site 61, Tool header 32)
+
+== Snap acceptance by leg and source
+                 source
+  snap            bcenv bcwatertool
+    area              1          11
+    name            117           2
+    name and area    50          23
+    not snapped      43          10
+
+  not snapped, by reason:
+   reason                                                n 
+   no candidate on the named stream and no drainage area 43
+   no candidate within tolerance                          2
+   the named stream's area ratio # is outside 1 +/- 0.10  8
+
+== Status by source
+             source
+  status      bcenv bcwatertool
+    natural      54          23
+    regulated    99           9
+    unknown      58          14
+
+== Change from the registries' name-only column
+                     now
+  registry            natural regulated unknown
+    regulated by name       0        11       0
+    unknown                77        97      72
+
+== Why, by status (each reason counted wherever it applies)
+  natural (77):
+    no regulating dam, use and storage under 10 % 77
+  regulated (108):
+    regulating dam(s) upstream 89
+    licensed use >= 10 % 52
+    licensed storage >= 10 % 44
+    licence with no volume upstream 40
+    power licence upstream 16
+    name 11
+    no accepted snap 4
+  unknown (72):
+    no accepted snap 49
+    licence with no volume upstream 18
+    upstream area outside BC 4
+    power licence upstream 2
+
+== The rule beside HYDAT's regulation flag, at the provincial stations at a HYDAT site (decides nothing)
+  58 stations
+                   rule
+  hydat             natural regulated unknown
+    HYDAT natural        11        10       9
+    HYDAT regulated       4        21       3
+
+== Every station
+  L, S: licensed consumptive use and storage upstream, % of the mean annual flow (published pick, month 0); man: FWA man-made waterbodies upstream
+   station   src  status    leg           snap_m area    ratio q_m3s    dams
+   07FA0001  prov natural   name          22                   0.134    0   
+   07FC0001  prov unknown   name          43                   3.97     0   
+   07FC0002  prov natural   name          7                    1.55     0   
+   08EE0001  prov natural   name and area 12     96.4    1.01  0.819    0   
+   08EE0002  prov natural   name          20                   0.897    0   
+   08GA0005  prov natural   name          18                   0.0686   0   
+   08GB0001  prov regulated name          14                   2.73     1   
+   08HA0001  prov unknown   -                    14.6                       
+   08HA0003  prov natural   name          64                   0.326    0   
+   08HA0005  prov natural   name          2                    0.017    0   
+   08HA0006  prov regulated name          19                   0.0921   3   
+   08HA0019  prov unknown   -                    8.4                        
+   08HA0020  prov regulated name and area 12     20.7    1.04  0.291    3   
+   08HA0021  prov regulated name          21                   0.0302   1   
+   08HA0022  prov regulated name and area 2      301.8   1.03  12.7     6   
+   08HA0023  prov regulated name          3                    17.3     3   
+   08HA0024  prov regulated name          12                   17.5     3   
+   08HA0026  prov unknown   -                                               
+   08HA0027  prov natural   name and area 25     13.7    1.02  0.261    0   
+   08HA0029  prov unknown   -                                               
+   08HA0032  prov unknown   -                    2.7                        
+   08HA0033  prov unknown   -                    2.7                        
+   08HA0036  prov natural   name          244                  0.248    0   
+   08HA0037  prov regulated name          14                   9.74     1   
+   08HA0038  prov regulated name          3                    6.17     3   
+   08HA0039  prov regulated name and area 0      17.1    0.99  0.454    1   
+   08HA0045  prov regulated name and area 27     37.5    1.01  1.04     13  
+   08HB0002  prov natural   name and area 1      11.2    1.05  0.33     0   
+   08HB0003  prov natural   name          4                    0.163    0   
+   08HB0006  prov natural   name          42                   0.128    0   
+   08HB0007  prov natural   name          20                   4.04     0   
+   08HB0008  prov natural   name and area 13     43.8    1.01  2.08     0   
+   08HB0010  prov natural   name and area 41     33.3    1.02  0.849    0   
+   08HB0011  prov natural   name          14                   0.133    0   
+   08HB0012  prov regulated name          9                    8.14     3   
+   08HB0013  prov regulated name and area 4      451.6   0.99  53.7     5   
+   08HB0015  prov regulated name and area 3      28.7    1.00  0.699    4   
+   08HB0016  prov unknown   -                    15.8                       
+   08HB0017  prov natural   name          5                    1.49     0   
+   08HB0018  prov unknown   name          29                   0.321    0   
+   08HB0019  prov natural   name          10                   2.93     0   
+   08HB0021  prov regulated name and area 29     65.2    1.07  1.79     1   
+   08HB0022  prov regulated name          4                    1.73     2   
+   08HB0023  prov regulated name          15                   9.07     1   
+   08HB0024  prov natural   name          0                    1.48     0   
+   08HB0025  prov natural   name          30                   0.186    0   
+   08HB0027  prov unknown   -                                               
+   08HB0030  prov natural   name          4                    0.827    0   
+   08HB0031  prov natural   name          374                  0.0683   0   
+   08HB0032  prov natural   name          1                    0.784    0   
+   08HB0033  prov natural   name          2                    0.0978   0   
+   08HB0034  prov natural   name          4                    0.28     0   
+   08HB0037  prov regulated name and area 2      28.0    1.04  1.1      2   
+   08HB0040  prov natural   name          18                   0.11     0   
+   08HC0001  prov regulated name and area 7      2.5     0.93  0.283    1   
+   08HC0002  prov unknown   -                                               
+   08HC0003  prov unknown   -                                               
+   08HC0004  prov natural   name          74                   0.279    0   
+   08HD0003  prov natural   name          6                    4.98     0   
+   08HF0001  prov natural   name          20                   10.1     0   
+   08JC0001  prov natural   name and area 10     57.0    1.00  0.132    0   
+   08JC0002  prov natural   name and area 13     131.4   1.01  0.549    0   
+   08JC0003  prov regulated name          6                    0.226    1   
+   08JC0005  prov natural   name          0                    1.3      0   
+   08JC0006  prov natural   name and area 7      339.2   1.03  1.07     0   
+   08JC0018  prov natural   name          0                    0.244    0   
+   08JC0020  prov natural   name          0                    0.244    0   
+   08LB0001  prov unknown   name and area 3      132.9   1.01  0.787    0   
+   08LB0002  prov unknown   name and area 3      132.9   1.03  0.795    0   
+   08LB0003  prov unknown   name          38                   0.431    0   
+   08LC0001  prov unknown   -                                               
+   08LC0002  prov regulated name and area 3      15.4    1.01  0.125    1   
+   08LC0005  prov regulated name          1                    3.32     1   
+   08LC0006  prov regulated name and area 12     253.7   1.01  3.32     1   
+   08LE0001  prov natural   name          2                    0.0576   0   
+   08LE0002  prov regulated name          1                    0.08     2   
+   08LE0006  prov regulated name          1                    4.53     7   
+   08LF0011  prov natural   name          8                    0.267    0   
+   08LG0003  prov regulated name          3                    7.08     16  
+   08LG0004  prov regulated name          9                    7.2      20  
+   08LG0006  prov regulated name and area 11     228.8   1.01  0.66     3   
+   08LG0007  prov regulated name          13                   6.15     17  
+   08LG0008  prov regulated name          3                    16.9     99  
+   08LG0009  prov regulated name          4                    0.957    8   
+   08LG0013  prov regulated name          5                    0.546    3   
+   08LG0015  prov regulated name and area 2      1191.0  1.00  2.98     25  
+   08LG0019  prov unknown   -                                               
+   08LG0020  prov regulated name          8                    4.78     15  
+   08MB0001  prov unknown   name          6                    0.186    0   
+   08MB0002  prov natural   name          0                    0.198    0   
+   08MB0003  prov unknown   name          4                    0.545    0   
+   08MC0001  prov regulated name          1                    1.43     2   
+   08MD0002  prov regulated name          92                   1.52e+03 413 
+   08MD0003  prov regulated name          102                  1.52e+03 413 
+   08MF0004  prov regulated name and area 8      11.8    1.04  0.363    0   
+   08MG0001  prov regulated name          24                   81.2     2   
+   08MG0002  prov regulated name          58                   6.43     2   
+   08MG0003  prov regulated name          19                   52.2     4   
+   08MG0004  prov regulated name          20                   3.97     2   
+   08MG0005  prov unknown   name and area 11     643.4   1.07  18       0   
+   08MH0009  prov unknown   -                                               
+   08MH0014  prov unknown   name          10                   0.257    0   
+   08MH0016  prov unknown   -                                               
+   08MH0020  prov regulated name          2                    4.89     0   
+   08MH0022  prov unknown   name          4                    0.204    0   
+   08MH0027  prov unknown   name and area 1      26.4    1.03  0.781    0   
+   08MH0028  prov unknown   -                                               
+   08MH0029  prov unknown   -                                               
+   08MH0031  prov unknown   -                                               
+   08MH0032  prov regulated -                                               
+   08MH0033  prov unknown   -                                               
+   08MH0034  prov natural   name          1                    0.194    0   
+   08MH0035  prov unknown   -                                               
+   08MH0036  prov unknown   -                                               
+   08MH0037  prov unknown   -                                               
+   08MH0038  prov natural   name          17                   0.00512  0   
+   08MH0039  prov unknown   -                                               
+   08MH0040  prov unknown   -                                               
+   08MH0041  prov unknown   -                                               
+   08MH0042  prov unknown   -                                               
+   08MH0048  prov unknown   name          0                    1.19     0   
+   08MH0049  prov unknown   name          4                    1.19     0   
+   08MH0051  prov unknown   name and area 3      15.0    1.08  0.55     0   
+   08MH0052  prov regulated name          13                   0.314    1   
+   08MH0053  prov regulated name          2                    1.11     3   
+   08MH0054  prov unknown   name          4                    0.703    0   
+   08MH0056  prov unknown   -                    20.4                       
+   08MH0057  prov unknown   name and area 16     15.0    1.08  0.55     0   
+   08MH0058  prov unknown   -                                               
+   08MH0060  prov natural   name          1                    0.32     0   
+   08MH0062  prov natural   name          21                   5.65     0   
+   08NE0001  prov natural   name          13                   2.33     0   
+   08NH0001  prov natural   name and area 3      46.1    1.00  1.66     0   
+   08NH0003  prov regulated -                    6.9                        
+   08NJ0001  prov natural   name and area 1      79.5    1.00  2.49     0   
+   08NK0001  prov unknown   name          12                   1.08     0   
+   08NK0002  prov regulated name and area 18     43.7    1.00  0.936    0   
+   08NK0003  prov regulated name          8                    2.3      0   
+   08NK0004  prov regulated name          6                    1.24     0   
+   08NK0005  prov unknown   name          3                    0.817    0   
+   08NK0006  prov natural   name          7                    0.12     0   
+   08NK0007  prov regulated name          7                    2.06     0   
+   08NK0008  prov regulated name          26                   0.334    0   
+   08NK0009  prov unknown   -                                               
+   08NK0010  prov regulated name and area 6      638.0   1.01  9.58     1   
+   08NK0011  prov regulated name          2                    0.431    0   
+   08NK0012  prov regulated name          10                   0.866    1   
+   08NK0013  prov natural   name          4                    0.227    0   
+   08NK0014  prov regulated name          4                    0.176    1   
+   08NL0001  prov regulated name and area 13     149.8   1.00  0.35     1   
+   08NL0002  prov regulated name and area 3      349.0   1.00  0.685    3   
+   08NM0002  prov regulated name and area 5      202.3   1.01  0.566    2   
+   08NM0003  prov natural   name and area 0      294.7   1.00  2.32     0   
+   08NM0004  prov natural   name and area 7      184.7   1.00  1.06     0   
+   08NM0005  prov regulated name and area 6      66.2    0.99  0.458    3   
+   08NM0006  prov regulated name and area 4      202.9   1.02  0.475    1   
+   08NM0008  prov regulated name          20                   0.566    2   
+   08NM0009  prov regulated name          20                   1.7      20  
+   08NM0010  prov regulated name          12                   0.0947   4   
+   08NM0011  prov regulated name and area 19     38.9    1.00  0.0747   4   
+   08NM0012  prov regulated name          4                    6.44     21  
+   08NM0013  prov regulated name          4                    6.44     21  
+   08NM0014  prov regulated name          10                   6.35     21  
+   08NM0015  prov regulated name and area 4      784.5   1.00  6.34     21  
+   08NM0017  prov regulated name and area 63     783.8   1.00  6.34     21  
+   08NM0018  prov regulated name          22                   6.34     21  
+   08NM0019  prov regulated name          18                   6.33     21  
+   08NM0020  prov regulated name          13                   5.24     10  
+   08NM0021  prov regulated name          17                   6.34     21  
+   08NM0022  prov regulated -                                               
+   08NM0023  prov regulated name          2                    6.35     21  
+   08NM0024  prov regulated name          50                   0.041    0   
+   08NM0025  prov regulated name and area 8      69.6    1.09  0.573    0   
+   08NM0026  prov regulated name          6                    0.274    0   
+   08NM0028  prov regulated name          2                    0.549    4   
+   08NM0029  prov unknown   -                                               
+   08NM0030  prov unknown   -                                               
+   08NM0032  prov unknown   -                                               
+   08NM0033  prov natural   name and area 3      203.5   1.00  1.06     0   
+   08NM0043  prov unknown   -                                               
+   08NM0046  prov regulated name          22                   0.177    1   
+   08NM0047  prov regulated name          5                    0.603    3   
+   08NM0048  prov regulated name          2                    0.524    3   
+   08NM0049  prov regulated name          6                    0.149    0   
+   08NM0050  prov regulated name and area 12     218.9   1.00  0.43     3   
+   08NM0051  prov regulated name          8                    0.298    5   
+   08NM0052  prov regulated name and area 5      143.2   1.01  0.418    12  
+   08NM0053  prov regulated area          6      260.7   1.00  0.822    4   
+   08NM0054  prov regulated name and area 9      148.0   1.00  0.434    3   
+   08NM0055  prov unknown   -                                               
+   08NM0056  prov unknown   -                                               
+   08NM0057  prov regulated name          7                    0.107    6   
+   08NM0058  prov regulated name          8                    0.602    14  
+   08NM0059  prov regulated name          42                   0.395    4   
+   08NM0060  prov regulated name          3                    0.564    13  
+   08NM0064  prov regulated name          1                    0.602    14  
+   08NM0065  prov natural   name and area 17     184.7   1.00  1.06     0   
+   08NM0066  prov natural   name          5                    2.32     0   
+   08NM0069  prov regulated name          22                   0.177    1   
+   08NM0072  prov unknown   -                                               
+   08NM0073  prov regulated name          18                   0.107    6   
+   08NM0074  prov regulated name and area 39     79.9    0.94  0.258    0   
+   08NM0075  prov regulated name          48                   0.0855   0   
+   08NM0076  prov regulated name          100                  0.461    2   
+   08NM0077  prov natural   name and area 17     50.7    1.01  0.219    0   
+   10CD0001  prov unknown   -                                               
+   1AHA040   prov natural   name          116                  0.39     0   
+   1AHA045   prov unknown   -                                               
+   H08KC0626 prov unknown   -                                               
+   H08KC0703 prov unknown   -                                               
+   H08KC0844 prov unknown   -                                               
+   07FA0002  tool regulated name and area 6      134.0   1.00  0.0988   2   
+   07FA0003  tool natural   name and area 7      132.0   1.00  0.912    0   
+   07FB0001  tool natural   name and area 4      23.9    1.00  0.0964   0   
+   07FC0003  tool natural   name and area 15     312.0   1.00  1.03     0   
+   07FC0004  tool unknown   name and area 36     2416.0  1.01  9.52     0   
+   10CD0002  tool natural   name and area 2      102.0   1.00  0.453    0   
+   4604      tool regulated name and area 7      57.9    1.03  1.57     2   
+   61001     tool regulated area          108    17.3    1.00  0.664    0   
+   61002     tool unknown   name and area 47     300.2   1.00  21.8     0   
+   61003     tool natural   name and area 51     74.3    1.00  2.81     0   
+   61004     tool natural   area          58     84.5    1.00  6.88     0   
+   61005     tool natural   area          31     61.8    0.99  3.33     0   
+   61006     tool unknown   name and area 35     417.9   0.99  22.9     0   
+   61007     tool natural   name and area 12     67.4    0.99  1.94     0   
+   61011     tool natural   name and area 2      91.5    1.01  0.41     0   
+   61012     tool natural   name and area 9      103.9   1.00  0.462    0   
+   61013     tool natural   name and area 2      294.1   0.94  1.21     0   
+   BLC-water tool regulated -                                               
+   BSE2      tool regulated area          4      905.0   0.98  3.78     7   
+   CML-water tool unknown   -                    1455.0                     
+   ELA-water tool natural   name and area 52     1215.0  1.01  77.2     0   
+   HRB15636  tool unknown   -                                               
+   HRB2626   tool natural   name and area 25     2190.6  1.00  9.65     0   
+   HRB2627   tool natural   area          3      408.5   0.98  1.85     0   
+   HRB2628   tool natural   area          9      311.1   1.00  1.44     0   
+   HRB2629   tool natural   name and area 72     457.5   1.00  1.97     0   
+   HRB2632   tool natural   name and area 2      105.3   1.00  0.432    0   
+   HRB2633   tool natural   name and area 14     158.4   1.00  0.698    0   
+   HRB2634   tool natural   area          32     482.7   1.00  1.08     0   
+   HRB3142   tool regulated name          25                   0.264    4   
+   HRB3143   tool unknown   -                                               
+   HRB3144   tool unknown   -                                               
+   HRB3145   tool unknown   -                                               
+   HRB433    tool unknown   -                                               
+   HRB5454   tool regulated area          4      1852.0  1.00  6.99     9   
+   HRB6660   tool unknown   -                                               
+   HRB7633   tool unknown   -                                               
+   JCL-water tool unknown   -                                               
+   PUN-water tool regulated name          7                    34.3     11  
+   UC 5      tool natural   area          10     32.6    1.00  0.129    0   
+   ogc_1001  tool natural   area          17     1004.6  1.00  3.56     0   
+   ogc_1002  tool natural   name and area 16     433.4   0.97  1.82     0   
+   ogc_1003  tool regulated area          9      989.2   1.00  2.83     3   
+   ogc_1004  tool unknown   name and area 40     9863.2  1.00  32.7     0   
+   ogc_1005  tool natural   name and area 27     341.4   1.00  0.494    0   
+   ogc_1006  tool unknown   name and area 71     20410.5 0.99  74       0   
+   L      S     man
+   0.0    0.0   0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+   1.2    0.0   0  
+   0.0    0.0   0  
+   3.8    0.0   0  
+   0.0    1.0   0  
+                   
+   0.4    0.1   0  
+   0.9    0.0   0  
+   144.1  0.2   0  
+                   
+   1.3    0.8   0  
+   11.9   0.0   0  
+   1.5    0.2   0  
+   1.4    0.6   0  
+   1.4    0.6   0  
+                   
+   9.1    0.4   0  
+                   
+                   
+                   
+   0.0    0.0   0  
+   0.0    0.1   0  
+   0.0    2.2   0  
+   1.3    0.8   0  
+   48.6   45.5  1  
+   0.6    0.2   0  
+   1.6    0.0   0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+   0.2    0.0   0  
+   0.3    0.0   0  
+   0.0    1.6   0  
+   0.0    3.0   0  
+   5.2    0.4   0  
+                   
+   0.0    0.0   0  
+   0.2    0.0   0  
+   0.0    0.0   0  
+   0.3    0.2   0  
+   1.0    0.4   2  
+   0.0    0.0   0  
+   0.0    0.0   0  
+   1.0    0.7   0  
+                   
+   0.1    0.0   1  
+   0.1    0.0   0  
+   0.0    0.0   0  
+   0.1    0.0   0  
+   0.2    0.0   0  
+   0.0    11.3  0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+                   
+                   
+   0.0    0.0   0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+   7.6    1.1   0  
+   6.4    0.5   0  
+   1.3    0.6   0  
+   0.1    0.0   0  
+   0.1    0.0   0  
+   7.8    2.7   0  
+   7.7    2.7   0  
+   2.5    2.3   0  
+                   
+   0.0    61.2  0  
+   9.8    2.3   0  
+   10.4   2.3   0  
+   0.0    0.0   0  
+   0.6    10.7  0  
+   2.9    1.2   1  
+   1.4    0.0   0  
+   1.8    0.9   1  
+   2.1    1.0   1  
+   29.9   16.3  0  
+   9.1    6.1   0  
+   14.1   17.1  3  
+   11.2   21.2  0  
+   0.1    19.7  0  
+   21.0   9.8   2  
+                   
+   6.6    6.0   0  
+   0.8    0.0   0  
+   0.0    0.0   0  
+   3.0    0.0   0  
+   9.1    4.5   0  
+   1.1    50.2  59 
+   1.1    50.2  59 
+   50.0   0.0   0  
+   0.0    0.0   0  
+   3.1    0.0   0  
+   1.2    0.0   0  
+   0.1    0.0   0  
+   0.1    0.0   0  
+                   
+   0.0    0.0   0  
+                   
+   4.0    0.4   5  
+   0.0    0.0   0  
+   2.4    0.8   2  
+                   
+                   
+                   
+                   
+                   
+   0.0    0.0   0  
+                   
+                   
+                   
+   0.0    0.0   0  
+                   
+                   
+                   
+                   
+   0.4    0.0   0  
+   0.4    0.0   0  
+   1.0    0.0   0  
+   0.2    20.1  0  
+   0.2    0.0   0  
+   0.0    0.0   0  
+                   
+   0.7    0.0   0  
+                   
+   0.1    0.0   0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+                   
+   0.3    0.0   0  
+   4.1    0.0   0  
+   68.1   0.0   1  
+   54.9   0.0   0  
+   31.7   2.3   0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+   21.1   1.4   0  
+   98.8   0.0   0  
+                   
+   16.4   0.1   0  
+   31.6   0.0   1  
+   21.3   0.6   0  
+   0.0    0.0   0  
+   5.7    0.0   2  
+   1.7    17.4  0  
+   2.9    10.5  0  
+   17.8   14.8  0  
+   1.0    0.1   0  
+   3.5    2.2   0  
+   4.7    116.7 0  
+   36.3   9.2   0  
+   12.3   14.8  0  
+   98.4   75.0  5  
+   36.2   16.1  0  
+   2.2    14.1  0  
+   29.8   20.1  1  
+   29.8   20.1  1  
+   29.2   20.4  1  
+   29.1   20.4  1  
+   29.0   20.4  1  
+   29.0   20.4  1  
+   29.3   20.5  1  
+   0.8    16.2  0  
+   29.0   20.4  1  
+                   
+   29.2   20.4  1  
+   52.9   0.0   0  
+   103.6  13.1  0  
+   13.3   1.5   0  
+   54.0   97.4  0  
+                   
+                   
+                   
+   2.4    0.0   0  
+                   
+   49.1   14.7  0  
+   4.1    4.1   0  
+   33.1   15.0  0  
+   83.1   0.0   0  
+   256.4  5.9   5  
+   13.5   7.5   0  
+   58.9   47.0  0  
+   15.9   2.4   4  
+   56.8   66.2  0  
+                   
+                   
+   93.2   55.3  0  
+   4785.6 53.8  0  
+   65.4   63.8  0  
+   71.5   57.3  0  
+   4785.6 53.8  0  
+   3.5    2.2   0  
+   0.2    0.1   0  
+   49.1   14.7  0  
+                   
+   93.2   55.3  0  
+   0.0    0.0   0  
+   17.8   0.0   0  
+   2.9    15.2  0  
+   0.0    0.0   0  
+                   
+   4.1    0.0   0  
+                   
+                   
+                   
+                   
+   0.0    0.0   0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+   0.1    0.0   0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+   1.1    0.4   2  
+   11.8   0.0   0  
+   0.4    0.0   0  
+   0.0    0.0   0  
+   1.1    0.0   0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+                   
+   0.2    0.1   0  
+                   
+   0.0    0.0   0  
+                   
+   0.0    0.0   0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+   1.4    0.8   0  
+                   
+                   
+                   
+                   
+   0.9    0.2   0  
+                   
+                   
+                   
+   1.7    11.0  1  
+   0.0    0.0   0  
+   0.0    0.0   0  
+   0.0    0.0   0  
+   2.5    2.2   0  
+   0.0    0.0   0  
+   0.0    0.0   2  
+   0.0    0.0   0  
+   why                                                                                                                               
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   upstream area outside BC                                                                                                          
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 1.2 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 3.8 %, storage 0.0 %                                                                              
+   name; 1 regulating dam upstream                                                                                                   
+   no accepted snap                                                                                                                  
+   no regulating dam; licensed use 0.4 %, storage 0.1 %                                                                              
+   no regulating dam; licensed use 0.9 %, storage 0.0 %                                                                              
+   name; 3 regulating dams upstream; licensed use 144.1 %                                                                            
+   no accepted snap                                                                                                                  
+   3 regulating dams upstream                                                                                                        
+   1 regulating dam upstream; licensed use 11.9 %                                                                                    
+   6 regulating dams upstream; power licence upstream; licence with no volume upstream                                               
+   3 regulating dams upstream                                                                                                        
+   3 regulating dams upstream                                                                                                        
+   no accepted snap                                                                                                                  
+   no regulating dam; licensed use 9.1 %, storage 0.4 %                                                                              
+   no accepted snap                                                                                                                  
+   no accepted snap                                                                                                                  
+   no accepted snap                                                                                                                  
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   1 regulating dam upstream; power licence upstream; licence with no volume upstream                                                
+   3 regulating dams upstream                                                                                                        
+   1 regulating dam upstream                                                                                                         
+   13 regulating dams upstream; licensed use 48.6 %; licensed storage 45.5 %                                                         
+   no regulating dam; licensed use 0.6 %, storage 0.2 %                                                                              
+   no regulating dam; licensed use 1.6 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.2 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.3 %, storage 0.0 %                                                                              
+   3 regulating dams upstream                                                                                                        
+   5 regulating dams upstream; power licence upstream                                                                                
+   4 regulating dams upstream                                                                                                        
+   no accepted snap                                                                                                                  
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   licence with no volume upstream                                                                                                   
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   1 regulating dam upstream                                                                                                         
+   2 regulating dams upstream                                                                                                        
+   1 regulating dam upstream; power licence upstream                                                                                 
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 1.0 %, storage 0.7 %                                                                              
+   no accepted snap                                                                                                                  
+   no regulating dam; licensed use 0.1 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.1 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.1 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.2 %, storage 0.0 %                                                                              
+   2 regulating dams upstream; licensed storage 11.3 %                                                                               
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   1 regulating dam upstream                                                                                                         
+   no accepted snap                                                                                                                  
+   no accepted snap                                                                                                                  
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   1 regulating dam upstream                                                                                                         
+   no regulating dam; licensed use 6.4 %, storage 0.5 %                                                                              
+   no regulating dam; licensed use 1.3 %, storage 0.6 %                                                                              
+   no regulating dam; licensed use 0.1 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.1 %, storage 0.0 %                                                                              
+   licence with no volume upstream                                                                                                   
+   licence with no volume upstream                                                                                                   
+   licence with no volume upstream                                                                                                   
+   no accepted snap                                                                                                                  
+   name; 1 regulating dam upstream; licensed storage 61.2 %                                                                          
+   1 regulating dam upstream                                                                                                         
+   1 regulating dam upstream; licensed use 10.4 %                                                                                    
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   2 regulating dams upstream; licensed storage 10.7 %; licence with no volume upstream                                              
+   7 regulating dams upstream; licence with no volume upstream                                                                       
+   no regulating dam; licensed use 1.4 %, storage 0.0 %                                                                              
+   16 regulating dams upstream                                                                                                       
+   20 regulating dams upstream                                                                                                       
+   3 regulating dams upstream; licensed use 29.9 %; licensed storage 16.3 %                                                          
+   17 regulating dams upstream; licence with no volume upstream                                                                      
+   99 regulating dams upstream; licensed use 14.1 %; licensed storage 17.1 %; licence with no volume upstream                        
+   8 regulating dams upstream; licensed use 11.2 %; licensed storage 21.2 %                                                          
+   3 regulating dams upstream; licensed storage 19.7 %                                                                               
+   25 regulating dams upstream; licensed use 21.0 %; licence with no volume upstream                                                 
+   no accepted snap                                                                                                                  
+   15 regulating dams upstream                                                                                                       
+   power licence upstream                                                                                                            
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   licence with no volume upstream                                                                                                   
+   2 regulating dams upstream; licence with no volume upstream                                                                       
+   413 regulating dams upstream; licensed storage 50.2 %; power licence upstream; licence with no volume upstream                    
+   413 regulating dams upstream; licensed storage 50.2 %; power licence upstream; licence with no volume upstream                    
+   licensed use 50.0 %                                                                                                               
+   2 regulating dams upstream; power licence upstream                                                                                
+   2 regulating dams upstream; power licence upstream; licence with no volume upstream                                               
+   4 regulating dams upstream; power licence upstream; licence with no volume upstream                                               
+   2 regulating dams upstream; power licence upstream; licence with no volume upstream                                               
+   power licence upstream; licence with no volume upstream                                                                           
+   no accepted snap                                                                                                                  
+   licence with no volume upstream                                                                                                   
+   no accepted snap                                                                                                                  
+   name; licence with no volume upstream                                                                                             
+   licence with no volume upstream                                                                                                   
+   licence with no volume upstream                                                                                                   
+   no accepted snap                                                                                                                  
+   no accepted snap                                                                                                                  
+   no accepted snap                                                                                                                  
+   name; no accepted snap                                                                                                            
+   no accepted snap                                                                                                                  
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no accepted snap                                                                                                                  
+   no accepted snap                                                                                                                  
+   no accepted snap                                                                                                                  
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no accepted snap                                                                                                                  
+   no accepted snap                                                                                                                  
+   no accepted snap                                                                                                                  
+   no accepted snap                                                                                                                  
+   licence with no volume upstream                                                                                                   
+   licence with no volume upstream                                                                                                   
+   licence with no volume upstream                                                                                                   
+   1 regulating dam upstream; licensed storage 20.1 %                                                                                
+   3 regulating dams upstream; licence with no volume upstream                                                                       
+   licence with no volume upstream                                                                                                   
+   no accepted snap                                                                                                                  
+   licence with no volume upstream                                                                                                   
+   no accepted snap                                                                                                                  
+   no regulating dam; licensed use 0.1 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   name; no accepted snap                                                                                                            
+   no regulating dam; licensed use 0.3 %, storage 0.0 %                                                                              
+   licence with no volume upstream                                                                                                   
+   licensed use 68.1 %; licence with no volume upstream                                                                              
+   licensed use 54.9 %; licence with no volume upstream                                                                              
+   licensed use 31.7 %; licence with no volume upstream                                                                              
+   licence with no volume upstream                                                                                                   
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   licensed use 21.1 %; licence with no volume upstream                                                                              
+   licensed use 98.8 %; licence with no volume upstream                                                                              
+   no accepted snap                                                                                                                  
+   1 regulating dam upstream; licensed use 16.4 %; licence with no volume upstream                                                   
+   licensed use 31.6 %; licence with no volume upstream                                                                              
+   1 regulating dam upstream; licensed use 21.3 %; licence with no volume upstream                                                   
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   1 regulating dam upstream                                                                                                         
+   1 regulating dam upstream; licensed storage 17.4 %                                                                                
+   3 regulating dams upstream; licensed storage 10.5 %; power licence upstream                                                       
+   2 regulating dams upstream; licensed use 17.8 %; licensed storage 14.8 %; power licence upstream                                  
+   no regulating dam; licensed use 1.0 %, storage 0.1 %                                                                              
+   no regulating dam; licensed use 3.5 %, storage 2.2 %                                                                              
+   3 regulating dams upstream; licensed storage 116.7 %                                                                              
+   1 regulating dam upstream; licensed use 36.3 %; licence with no volume upstream                                                   
+   2 regulating dams upstream; licensed use 12.3 %; licensed storage 14.8 %; power licence upstream                                  
+   20 regulating dams upstream; licensed use 98.4 %; licensed storage 75.0 %; power licence upstream; licence with no volume upstream
+   4 regulating dams upstream; licensed use 36.2 %; licensed storage 16.1 %                                                          
+   4 regulating dams upstream; licensed storage 14.1 %                                                                               
+   21 regulating dams upstream; licensed use 29.8 %; licensed storage 20.1 %; licence with no volume upstream                        
+   21 regulating dams upstream; licensed use 29.8 %; licensed storage 20.1 %; licence with no volume upstream                        
+   21 regulating dams upstream; licensed use 29.2 %; licensed storage 20.4 %; licence with no volume upstream                        
+   21 regulating dams upstream; licensed use 29.1 %; licensed storage 20.4 %; licence with no volume upstream                        
+   21 regulating dams upstream; licensed use 29.0 %; licensed storage 20.4 %; licence with no volume upstream                        
+   21 regulating dams upstream; licensed use 29.0 %; licensed storage 20.4 %; licence with no volume upstream                        
+   21 regulating dams upstream; licensed use 29.3 %; licensed storage 20.5 %; licence with no volume upstream                        
+   name; 10 regulating dams upstream; licensed storage 16.2 %                                                                        
+   21 regulating dams upstream; licensed use 29.0 %; licensed storage 20.4 %; licence with no volume upstream                        
+   name; no accepted snap                                                                                                            
+   21 regulating dams upstream; licensed use 29.2 %; licensed storage 20.4 %; licence with no volume upstream                        
+   licensed use 52.9 %                                                                                                               
+   licensed use 103.6 %; licensed storage 13.1 %                                                                                     
+   licensed use 13.3 %                                                                                                               
+   4 regulating dams upstream; licensed use 54.0 %; licensed storage 97.4 %; power licence upstream                                  
+   no accepted snap                                                                                                                  
+   no accepted snap                                                                                                                  
+   no accepted snap                                                                                                                  
+   no regulating dam; licensed use 2.4 %, storage 0.0 %                                                                              
+   no accepted snap                                                                                                                  
+   1 regulating dam upstream; licensed use 49.1 %; licensed storage 14.7 %                                                           
+   3 regulating dams upstream                                                                                                        
+   name; 3 regulating dams upstream; licensed use 33.1 %; licensed storage 15.0 %                                                    
+   licensed use 83.1 %                                                                                                               
+   3 regulating dams upstream; licensed use 256.4 %; licence with no volume upstream                                                 
+   5 regulating dams upstream; licensed use 13.5 %                                                                                   
+   12 regulating dams upstream; licensed use 58.9 %; licensed storage 47.0 %                                                         
+   4 regulating dams upstream; licensed use 15.9 %; licence with no volume upstream                                                  
+   3 regulating dams upstream; licensed use 56.8 %; licensed storage 66.2 %                                                          
+   no accepted snap                                                                                                                  
+   no accepted snap                                                                                                                  
+   6 regulating dams upstream; licensed use 93.2 %; licensed storage 55.3 %                                                          
+   14 regulating dams upstream; licensed use 4785.6 %; licensed storage 53.8 %; licence with no volume upstream                      
+   4 regulating dams upstream; licensed use 65.4 %; licensed storage 63.8 %                                                          
+   13 regulating dams upstream; licensed use 71.5 %; licensed storage 57.3 %; licence with no volume upstream                        
+   14 regulating dams upstream; licensed use 4785.6 %; licensed storage 53.8 %; licence with no volume upstream                      
+   no regulating dam; licensed use 3.5 %, storage 2.2 %                                                                              
+   no regulating dam; licensed use 0.2 %, storage 0.1 %                                                                              
+   1 regulating dam upstream; licensed use 49.1 %; licensed storage 14.7 %                                                           
+   no accepted snap                                                                                                                  
+   6 regulating dams upstream; licensed use 93.2 %; licensed storage 55.3 %                                                          
+   name                                                                                                                              
+   licensed use 17.8 %                                                                                                               
+   2 regulating dams upstream; licensed storage 15.2 %                                                                               
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no accepted snap                                                                                                                  
+   no regulating dam; licensed use 4.1 %, storage 0.0 %                                                                              
+   no accepted snap                                                                                                                  
+   no accepted snap                                                                                                                  
+   no accepted snap                                                                                                                  
+   no accepted snap                                                                                                                  
+   2 regulating dams upstream                                                                                                        
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.1 %, storage 0.0 %                                                                              
+   upstream area outside BC                                                                                                          
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   2 regulating dams upstream                                                                                                        
+   licensed use 11.8 %                                                                                                               
+   licence with no volume upstream                                                                                                   
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 1.1 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   licence with no volume upstream                                                                                                   
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   name; no accepted snap                                                                                                            
+   7 regulating dams upstream                                                                                                        
+   no accepted snap                                                                                                                  
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no accepted snap                                                                                                                  
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   4 regulating dams upstream                                                                                                        
+   no accepted snap                                                                                                                  
+   no accepted snap                                                                                                                  
+   no accepted snap                                                                                                                  
+   no accepted snap                                                                                                                  
+   9 regulating dams upstream                                                                                                        
+   no accepted snap                                                                                                                  
+   no accepted snap                                                                                                                  
+   no accepted snap                                                                                                                  
+   11 regulating dams upstream; licensed storage 11.0 %; power licence upstream; licence with no volume upstream                     
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   3 regulating dams upstream                                                                                                        
+   upstream area outside BC                                                                                                          
+   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   upstream area outside BC                                                                                                          

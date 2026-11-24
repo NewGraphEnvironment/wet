@@ -52,7 +52,26 @@ Left out of move 8 (#179, #142).
 - **Border lines** in fwapg: `whse_basemapping.fwa_approx_borders` holds AB_120, USA_49, YTNWT_60 (one line each); no Alaska line, where rivers leave BC rather than enter it.
 - **Float edge**: `abs(ratio - 1) <= 0.1` (wet_station_snap()'s comparison) rejects a ratio of exactly 1.1 (1.1 - 1 > 0.1 in doubles); kept as wet_station_snap() has it, tested just inside and outside.
 
+## Phase 2, 2026-11-24
+
+- **WFS snapshot 20261124**: 118,717 licence rows (Current 95,422), 2,485 dams (1,838 regulating for the rule, all located); 70,382 points placed (70,377 fall in an FWA watershed). Run log `data/logs/196/station_regulation_run2.log`, about 50 s from cold (`run1` stopped on a shared licence, Amendment 1).
+- **A shared licence with a rediversion POD** (one licence, two purposes, flag M): #53's split halved its quantity at the diversion point and its shared-POD check stopped the first run. Owner's decision: Amendment 1, split over non-rediversion PODs. (Licence identifiers are kept out of tracked text: the layer is Access Only, decision 5.)
+- **Snap**: 204 of 257 accepted (name 119, name and area 73, area 12); 43 not snapped name no candidate's stream and state no area, 8 fail the area test on their named stream, 2 have no candidate within 1 km.
+- **Status**: natural 92 (67 provincial, 25 Tool), regulated 110, unknown 55 (49 not snapped, 4 outside BC, 2 power).
+- **HYDAT's flag at the 58 provincial stations at a HYDAT site** (decides nothing): HYDAT natural 30 (rule 13 natural, 11 regulated, 6 unknown), HYDAT regulated 28 (21 regulated, 6 natural, 1 unknown). The 6 HYDAT-regulated naturals (Deep, Louis x2, Shorts x2, Whiteman) have no regulating dam and use 1-8 %.
+- **Rerun from cache**: report and status file byte-identical (`cmp`, run4).
+- The shared-POD check is an invariant after Amendment 1 (every term of `candidate` is either in `rg_split_pods()` or constant within a licence-purpose); its test restores #53's split and shows it fire.
+
+## Review round 1, 2026-11-24
+
+- **Groundwater in L and S**: the copied `candidate` has no surface test and the script never applied #53's `base_mask` (`u$surface`), so 9,420 of 67,501 counted rows were wells. Fixed in the script (the rule already said surface). 08GA0005 (44.5 % -> 3.8 %) and 08HA0027 (18.3 % -> 9.1 %) go regulated -> natural.
+- **Licence identifiers in tracked text**: the amendment, tests, research, report and findings named a licence number, its POD numbers and quantities, against decision 5. Redacted everywhere, and the five unpushed commits after the registering commit rebuilt so none carries them (old tip kept locally as branch `backup-196-pre-rewrite`, not pushed). The amended rule is now commit 0c6d31ff.
+- **No-volume licences**: 1,646 Current surface licence rows that would count state no volume (880 Total Flow, 766 zero or missing). Owner's decision: Amendment 2, such a licence upstream makes an otherwise-natural station unknown. 17 naturals -> unknown.
+- **After both**: natural 77 (54 provincial, 23 Tool), regulated 108, unknown 72; HYDAT's flag at the 58 shared sites: HYDAT natural 11/10/9, HYDAT regulated 4 natural (Deep, Shorts x2, Whiteman; use 1-4 %), 21 regulated, 3 unknown. Run log `data/logs/196/station_regulation_run7.log`.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
+| Script stopped: "cannot read ... at the rule's registering commit" | The full hash had been typed from the short one; taken from `git rev-parse` |
+| `local_mocked_bindings()` cannot mock `base::system.file` | Internal `wet_station_sources_path()` the tests mock |

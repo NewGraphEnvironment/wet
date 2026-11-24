@@ -50,28 +50,28 @@ None open.
 
 ## Phase 2: Snapshot, snap and place
 
-- [ ] `scripts/station_regulation_lib.R`: WFS paging (held to the server's count, ids in sequence), the licence-row rules, the snap query with `gnis_name`, the placement SQL, each naming its source lines
-- [ ] `scripts/station_regulation.R`: stops unless the rule file is at its registering sha; snapshot both layers into `data/station_regulation/raw/<date>/` with md5s and counts; stop on a code outside the known sets
-- [ ] Snap every station by the registered rule (connection from `WET_PG*`, `connect_timeout` set); Tool areas from `wet_bcwatertool_read()`, HYDAT areas at the 58 sites; acceptance by leg and source
-- [ ] Place dams and licence points in FWA watersheds and test upstream of each accepted snap (codes, then stream position in the station's own reach); upstream area outside BC per station
-- [ ] Mean annual flow per accepted snap from the published parts (`wet_segment_monthly()`, month 0, `pick`), parts verified with `wet_catalog_verify()` and the digest recorded
-- [ ] Per station: dams upstream, L, S, power PODs upstream, FWA man-made waterbodies upstream (reported only), the status and its `why`; snap, placement and flows cached keyed on their inputs
+- [x] `scripts/station_regulation_lib.R`: WFS paging (held to the server's count, ids in sequence), the licence-row rules, the snap query with `gnis_name`, the placement SQL, each naming its source lines
+- [x] `scripts/station_regulation.R`: stops unless the rule file is at its registering sha; snapshot both layers into `data/station_regulation/raw/<date>/` with md5s and counts; stop on a code outside the known sets
+- [x] Snap every station by the registered rule (connection from `WET_PG*`, `connect_timeout` set); Tool areas from `wet_bcwatertool_read()`, HYDAT areas at the 58 sites; acceptance by leg and source
+- [x] Place dams and licence points in FWA watersheds and test upstream of each accepted snap (codes, then stream position in the station's own reach); upstream area outside BC per station
+- [x] Mean annual flow per accepted snap from the published parts (`wet_segment_monthly()`, month 0, `pick`), parts verified with `wet_catalog_verify()` and the digest recorded
+- [x] Per station: dams upstream, L, S, power PODs upstream, FWA man-made waterbodies upstream (reported only), the status and its `why`; snap, placement and flows cached keyed on their inputs
 
 ## Phase 3: Store and read the status
 
-- [ ] Write the status as open decision 4 decides (recommended: `inst/extdata/station_sources/regulation_<snapshot>.csv`, one row per listed station, no NA status)
-- [ ] Internal `wet_station_regulation()`, called by `wet_station_list()` after `wet_registry_check()`: refuses a status file whose snapshots or registry md5s differ, a missing station, an NA status or one outside the vocabulary; `regulation` takes natural, regulated or unknown; docs say where it comes from, the registers' credit, and that natural stations may be donors
-- [ ] `R/wet_station_select.R` docs: HYDAT only, pointing to `wet_station_list()` for natural non-HYDAT stations (as open decision 3 decides)
-- [ ] `R/wet_station_daily.R:22-25` docs: the "not donors until their regulation is known" sentence rewritten
-- [ ] Tests: `tests/testthat/test-wet_station_list.R` (every station has a status in the vocabulary; a natural station has an accepted snap; a station regulated by name stays regulated; the status file's guards), and `wet_station_regulation()` mocked in the registry-mocking tests of `tests/testthat/test-wet_station_list.R` and `tests/testthat/test-wet_station_daily.R`
-- [ ] Plant each defect and show its guard fires: in the reader (a station missing from the status file, an NA status, a status outside the vocabulary, a stale registry md5) and in the script (a WFS count short of the server's hits, an out-of-sequence page, a dam code outside the set, a name-regulated station coming out natural, the rule file changed since its registering sha)
+- [x] Write the status as open decision 4 decides (recommended: `inst/extdata/station_sources/regulation_<snapshot>.csv`, one row per listed station, no NA status)
+- [x] Internal `wet_station_regulation()`, called by `wet_station_list()` after `wet_registry_check()`: refuses a status file whose snapshots or registry md5s differ, a missing station, an NA status or one outside the vocabulary; `regulation` takes natural, regulated or unknown; docs say where it comes from, the registers' credit, and that natural stations may be donors
+- [x] `R/wet_station_select.R` docs: HYDAT only, pointing to `wet_station_list()` for natural non-HYDAT stations (as open decision 3 decides)
+- [x] `R/wet_station_daily.R:22-25` docs: the "not donors until their regulation is known" sentence rewritten
+- [x] Tests: `tests/testthat/test-wet_station_list.R` (every station has a status in the vocabulary; a natural station has an accepted snap; a station regulated by name stays regulated; the status file's guards), and `wet_station_regulation()` mocked in the registry-mocking tests of `tests/testthat/test-wet_station_list.R` and `tests/testthat/test-wet_station_daily.R`
+- [x] Plant each defect and show its guard fires: in the reader (a station missing from the status file, an NA status, a status outside the vocabulary, a stale registry md5) and in the script (a WFS count short of the server's hits, an out-of-sequence page, a dam code outside the set, a name-regulated station coming out natural, the rule file changed since its registering sha)
 
 ## Phase 4: Report and record
 
-- [ ] `data/checks/station_regulation_<bcenv snapshot>.txt`: the rule file's sha and md5, snapshot md5s, counts and licences, the catalog digest, snap acceptance by leg and source, each station's status and why, counts by status and source, the stations that change from "unknown", the rule beside HYDAT's flag at the 58 shared sites; rerun from cache and `cmp` byte-identical
-- [ ] `research/station_sources.md`: the regulation paragraph (line 35), the two **Donors** bullets and **Still open** rewritten from the report; `**Verified:**` and `**Issues:**` updated
-- [ ] `CLAUDE.md` lines 80-81 (the station-sources bullets: records and held-out tests, not donors): name the status and the script; `NEWS.md` entry
-- [ ] File the donor-pool issue (open decision 3), naming move 14 and #118, not added to `planning/backlog.md`
+- [x] `data/checks/station_regulation_<bcenv snapshot>.txt`: the rule file's sha and md5, snapshot md5s, counts and licences, the catalog digest, snap acceptance by leg and source, each station's status and why, counts by status and source, the stations that change from "unknown", the rule beside HYDAT's flag at the 58 shared sites; rerun from cache and `cmp` byte-identical
+- [x] `research/station_sources.md`: the regulation paragraph (line 35), the two **Donors** bullets and **Still open** rewritten from the report; `**Verified:**` and `**Issues:**` updated
+- [x] `CLAUDE.md` lines 80-81 (the station-sources bullets: records and held-out tests, not donors): name the status and the script; `NEWS.md` entry (left to `/gh-pr-merge`, whose release commit writes every entry)
+- [x] File the donor-pool issue (open decision 3), naming move 14 and #118, not added to `planning/backlog.md` (#202)
 - [ ] `devtools::document()`, `lintr` against `origin/main` per file, `devtools::test()`, `pkgdown::check_pkgdown()`
 
 ## Owed at the end (reported, done after merge)
