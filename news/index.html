@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.43</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.44</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,6 +39,11 @@
       <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.44" id="wet-0444">wet 0.4.44<a class="anchor" aria-label="anchor" href="#wet-0444"></a></h2>
+<ul><li>
+<code><a href="../reference/wet_station_list.html">wet_station_list()</a></code>’s <code>regulation</code> is now each station’s status from what sits upstream of it: natural, regulated or unknown (<a href="https://github.com/NewGraphEnvironment/wet/issues/196" class="external-link">#196</a>, <a href="https://github.com/NewGraphEnvironment/wet/issues/191" class="external-link">#191</a>). Of the 257 provincial and Water Tool stations, 75 are natural, 110 regulated and 72 unknown, from BC’s dam register and water rights licences placed upstream on the Freshwater Atlas under a rule registered before it was applied (<code>scripts/station_regulation.R</code>, report <code>data/checks/station_regulation_20261028.txt</code>). A station is regulated where its name says so, an active dam in the register’s regulated classes sits upstream, or licensed use or storage is at least 10 % of the segment’s published mean annual flow; unknown where it cannot be placed, part of its basin is outside BC, or a power licence or one that states no volume draws upstream. The licence layer’s terms allow only values wet computes to ship. <code><a href="../reference/wet_station_select.html">wet_station_select()</a></code> stays HYDAT-only; using the natural stations as donors is <a href="https://github.com/NewGraphEnvironment/wet/issues/202" class="external-link">#202</a>.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.43" id="wet-0443">wet 0.4.43<a class="anchor" aria-label="anchor" href="#wet-0443"></a></h2>
 <ul><li>

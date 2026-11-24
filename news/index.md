@@ -1,5 +1,27 @@
 # Changelog
 
+## wet 0.4.44
+
+- [`wet_station_list()`](https://newgraphenvironment.github.io/wet/reference/wet_station_list.md)’s
+  `regulation` is now each station’s status from what sits upstream of
+  it: natural, regulated or unknown
+  ([\#196](https://github.com/NewGraphEnvironment/wet/issues/196),
+  [\#191](https://github.com/NewGraphEnvironment/wet/issues/191)). Of
+  the 257 provincial and Water Tool stations, 75 are natural, 110
+  regulated and 72 unknown, from BC’s dam register and water rights
+  licences placed upstream on the Freshwater Atlas under a rule
+  registered before it was applied (`scripts/station_regulation.R`,
+  report `data/checks/station_regulation_20261028.txt`). A station is
+  regulated where its name says so, an active dam in the register’s
+  regulated classes sits upstream, or licensed use or storage is at
+  least 10 % of the segment’s published mean annual flow; unknown where
+  it cannot be placed, part of its basin is outside BC, or a power
+  licence or one that states no volume draws upstream. The licence
+  layer’s terms allow only values wet computes to ship.
+  [`wet_station_select()`](https://newgraphenvironment.github.io/wet/reference/wet_station_select.md)
+  stays HYDAT-only; using the natural stations as donors is
+  [\#202](https://github.com/NewGraphEnvironment/wet/issues/202).
+
 ## wet 0.4.43
 
 - [`wet_station_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_station_daily.md)
