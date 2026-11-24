@@ -29,7 +29,8 @@
 #' at least 10 % of the segment's published mean annual flow;
 #' `"unknown"` where the station could not be placed on the Freshwater Atlas
 #' stream its name or drainage area gives, part of its basin lies outside BC,
-#' a power licence draws upstream, or its segment has no published flow; and
+#' a power licence or a licence that states no volume draws upstream, or its
+#' segment has no published flow; and
 #' `"natural"` otherwise. A natural station can serve as a donor where a
 #' natural record is needed. The status, its reasons and the shares are in
 #' the package's `extdata/station_sources/regulation_<snapshot>.csv`. They

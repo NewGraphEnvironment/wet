@@ -35,6 +35,8 @@ Produced by scripts/station_regulation.R under the rule in scripts/station_regul
   dams: 2485, 1838 regulating for the rule (active, Regulated or Regulated - Part 3 Exempt), 1838 of those located
   licence rows: 118717; Current 95422; counted (located, surface, consumptive or storage, kept, quantity > 0, not rediverted) 58081; power PODs 1043; no volume (Amendment 2) 1646
   points placed in an FWA watershed: 72023 of 72028
+  not placed, so tested upstream of no station: counted surface POD 4, regulating dam 1
+  regulating dams not placed: TUCKER CREEK DAM
 
 == Population
   257 stations: 211 provincial, 46 Water Tool listings of their own (7 continuing listings folded into their provincial station)

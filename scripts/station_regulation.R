@@ -342,6 +342,16 @@ lines <- c(
                 "quantity > 0, not rediverted) %d; power PODs %d; no volume (Amendment 2) %d"), nrow(lic_all), nrow(lic), sum(lic$candidate & lic$surface), sum(lic$power),
           sum(lic$novol)),
   sprintf("  points placed in an FWA watershed: %d of %d", length(pl$placed), nrow(pts)),
+  local({
+    gone <- setdiff(pts$pid, pl$placed)
+    cls <- ifelse(gone %in% dam_pts$pid, "regulating dam",
+                  ifelse(gone %in% lic_pts$pid[lic_pts$candidate & lic_pts$surface], "counted surface POD",
+                         ifelse(gone %in% lic_pts$pid[lic_pts$power], "power POD",
+                                ifelse(gone %in% lic_pts$pid[lic_pts$novol], "no-volume POD", "groundwater POD"))))
+    dn <- dam_pts$DAM_NAME[match(gone[cls == "regulating dam"], dam_pts$pid)]
+    c(if (length(gone)) sprintf("  not placed, so tested upstream of no station: %s", tab(table(cls))),
+      if (length(dn)) sprintf("  regulating dams not placed: %s", paste(sort(dn, method = "radix"), collapse = ", ")))
+  }),
   "",
   "== Population",
   sprintf(paste("  %d stations: %d provincial, %d Water Tool listings of their own (%d continuing listings",

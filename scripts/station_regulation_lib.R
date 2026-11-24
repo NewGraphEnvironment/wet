@@ -87,6 +87,12 @@ rg_wfs_read <- function(k, files, raw_dir) {
 rg_licence_rows <- function(lic) {
   rg_codes_check(lic$LICENCE_STATUS, rg_licence_status_codes, "LICENCE_STATUS")
   lic <- lic[lic$LICENCE_STATUS == "Current", ]
+  # a subtype the snapshot of 2026-11-24 did not hold would read as groundwater and drop out of
+  # every count, and a located surface row with no purpose would be classed "none": both stop
+  rg_codes_check(lic$POD_SUBTYPE, c("PG", "POD", "PWD"), "POD_SUBTYPE")
+  if (any(!is.na(lic$SHAPE) & lic$POD_SUBTYPE == "POD" & is.na(lic$PURPOSE_USE_CODE))) {
+    stop("a located surface licence row has no PURPOSE_USE_CODE: a question for the owner", call. = FALSE)
+  }
   lic$units <- trimws(lic$QUANTITY_UNITS)
   to_m3yr <- c("m3/year" = 1, "m3/day" = 365.25, "m3/sec" = 365.25 * 86400)
   lic$m3yr <- as.numeric(lic$QUANTITY) * unname(to_m3yr[lic$units])  # NA: no volume

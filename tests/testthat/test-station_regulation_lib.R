@@ -94,6 +94,15 @@ test_that("a surface licence that would count but states no volume is flagged (A
   expect_equal(x$novol, c(TRUE, FALSE))
 })
 
+test_that("a POD subtype outside the known set, or a surface row with no purpose, stops", {
+  e <- local_lib()
+  expect_error(e$rg_licence_rows(licence_rows(POD_SUBTYPE = c("POD", "PX"))), "POD_SUBTYPE")
+  expect_error(e$rg_licence_rows(licence_rows(POD_SUBTYPE = c("POD", NA))), "POD_SUBTYPE holds NA")
+  expect_error(e$rg_licence_rows(licence_rows(PURPOSE_USE_CODE = c("03B", NA))), "no PURPOSE_USE_CODE")
+  # a groundwater row with no purpose is not a question
+  expect_no_error(e$rg_licence_rows(licence_rows(PURPOSE_USE_CODE = c("03B", NA), POD_SUBTYPE = c("POD", "PWD"))))
+})
+
 test_that("a split over a POD that cannot count stops", {
   e <- local_lib()
   # under #53's split (rediversions included), a licence with a rediversion POD loses half its quantity
