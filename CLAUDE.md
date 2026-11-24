@@ -1080,6 +1080,38 @@ Both fail quietly in a waiter: an empty list reads as "no runs yet", so the loop
 
 *1 line of evidence for this rule is in `conventions/ci-monitoring.md`.*
 
+# Code Check — Python
+Traps in Python: the interpreter, pytest, the HTTP stack under pystac, and MkDocs.
+
+*Index only: each rule's heading and first sentence. The full text is soul's `conventions/code-check-python.md`; read it before writing or reviewing code in its area. `/code-check` loads it in full.*
+
+### A script named after a stdlib module shadows that module when run by path
+Name a script so it cannot collide with the standard library (`enum_sites.py`, not `enum.py`).
+
+### Proxy variables do not take a pystac test offline: block at the socket
+To make Python tests network-proof, patch the socket layer to refuse every non-loopback lookup and connection, in `pytest_configure`, and clear the proxy variables with `NO_PROXY=*`.
+
+### A conftest guard covers only the invocations that load it
+Put a session-wide guard in the repository's root `conftest.py`, and pin it by behaviour in a child process.
+
+### `mkdocs build --strict -q` passes a dead link
+Run `mkdocs build --strict` without `-q`, and set all seven `validation:` keys to `warn` in `mkdocs.yml`.
+
+### `tempfile.mkstemp` then `os.replace` leaves the target at mode 0600
+Set the temp file's mode before the rename: the target's own (`os.stat(path).st_mode & 0o7777`) when it exists, `0o666 & ~umask` when it does not.
+
+### A line break inside an f-string's braces parses only on Python 3.12+
+Parse or test a script under its declared `requires-python` floor (`uv run --python 3.11 --script …`).
+
+### Drive LibreOffice over UNO as an `soffice` macro, not with its bundled Python
+Put the script in the private profile's `user/Scripts/python/` and start it as a macro, since on macOS LibreOffice's bundled interpreter run directly is killed at once.
+
+### `re.match` with `$` accepts a trailing newline
+Validate a whole string with `re.fullmatch()`, and write `[0-9]` for an ASCII digit.
+
+### `urllib.parse` normalises differently on different routes
+Remove dot segments yourself (RFC 3986 §5.2.4) and merge by hand before comparing a path from a URL with a key: `urljoin`, `urlsplit`, `urldefrag` and `posixpath.normpath` each normalise more, on some routes only.
+
 # Code Check — R
 Traps in R: the language and base/utils behaviour, package internals (`R CMD build`, `.Rbuildignore`, roxygen, lintr, `data-raw/`, testthat, pak), and the DBI/duckdb/arrow data layer.
 
@@ -1475,6 +1507,12 @@ Write a JSON object with an empty key as text, not through `toJSON()`.
 ### Probing a TMB objective can break `vcov()` on the fit
 Compute `vcov()` and `SE()` before probing a TMB objective, or save and restore `env$last.par.best` and `env$value.best` around the probe.
 
+### Numeric routines that err at their edge, and `round()`
+`besselI(x, nu, expon.scaled = TRUE)` returns 0 with no warning for large `x`.
+
+### knitr and pandoc rewrite a caption: `fig.cap` is evaluated late, and `alt` copies it
+Set `fig.alt` from a call, not from the caption's value.
+
 # Code Check — Shell
 Tool-level traps in bash, sed, git and `gh`, and in the host toolchain those commands depend on.
 
@@ -1559,7 +1597,7 @@ Wait on the PIDs you started (`wait "$pid"`), because a bare `wait` also blocks 
 Inside the branch, `$?` is the status of the `!` compound — which is **0 by construction**, because the negation succeeded.
 
 ### A `pgrep -f` waiter matches a waiter's command line, so it never exits
-Wait on a PID with `while kill -0 "$PID"; do sleep 30; done`, never on `pgrep -f "job"`, whose pattern matches a waiting loop's command line so it never exits.
+Wait on a PID with `while ps -p "$PID" >/dev/null 2>&1; do sleep 30; done`, never on `pgrep -f "job"`, whose pattern matches a waiting loop's command line so it never exits.
 
 ### `timeout` is GNU coreutils — a portable deadline
 An assertion around something that might hang can only pass or hang, never fail (`code-check.md`, "Restore the bug and prove the guard fires").
@@ -1698,6 +1736,12 @@ Give each setup step its own `|| exit 1` and branch with `if`.
 
 ### An Actions `run:` step with no `shell:` has no `pipefail`
 Set `defaults: run: shell: bash` on the job, since a Linux step with no `shell:` runs `bash -e {0}`.
+
+### `git mv -k` on an untracked file exits 0 and moves nothing
+Rename an untracked file with `mv` and a tracked one with `git mv` without `-k`, then check the new path exists.
+
+### `pipefail` fails `cmd | head -N | grep -q` on SIGPIPE
+Capture the output first (`out=$(cmd 2>&1)`) and test the variable, or run the probe without `pipefail`.
 
 # Code Check — Spatial
 terra, sf, bcdata, GDAL/OGR CLIs.
@@ -1992,6 +2036,12 @@ Before calling two DEMs the same surface, regress their difference on the refere
 ### A nodata value written to PNG comes back from magick as alpha
 Read a PNG that terra or GDAL wrote with `magick::image_convert(magick::image_read(f), matte = FALSE)`: their nodata becomes a tRNS chunk, which magick reads as alpha.
 
+### An ogr2ogr load's column order depends on whether it was the database's first
+Set a loaded table's column order yourself when anything hashes its rows: the first load into a database puts the geometry last, every later one second.
+
+### Headless Chrome's `--screenshot` captures a MapLibre map before it draws
+Capture a mapgl or MapLibre page after a real wait (`chromote`, `Sys.sleep(15)`), never with Chrome's `--screenshot --virtual-time-budget`.
+
 # Code Check Conventions
 Structured checklist for reviewing diffs before commit.
 
@@ -2159,10 +2209,10 @@ Before opening a PR, and again before merging:
 ```bash
 git fetch -q origin
 git log --oneline HEAD..origin/main          # what landed while you worked
-git diff origin/main -- DESCRIPTION NEWS.md  # a version you did not bump
+git diff origin/main -- DESCRIPTION NEWS.md  # a NEWS bullet you did not write
 ```
 
-**A version bump you did not make is the tell**, and usually the only one — the tree is
+**A release you did not make is the tell**, and usually the only one — the tree is
 clean, the branch is healthy, and nothing in git hints that someone solved your problem
 an hour ago.
 
@@ -3054,6 +3104,23 @@ Keep a register, one row per record field, saying whether a difference refuses, 
 ### Map existing names to the shared keys and to STAC's; converge forward-only
 Map each existing field name to its key in the receipt and, on a catalogue, to STAC's own (`file:checksum`, `file:size`, `processing:software`, `processing:datetime`), and rename only when the writer moves to a receipt (rule 1).
 
+# Python Conventions
+How New Graph Environment repos declare and run Python, the sibling of `r-packages.md`.
+
+*Index only: each rule's heading and first sentence. The full text is soul's `conventions/python.md`; read it before writing or reviewing code in its area.*
+
+### Declare dependencies in `pyproject.toml` and commit `uv.lock`
+A repo whose Python is a package, or whose scripts import a shared module of the repo's own, declares its dependencies in `pyproject.toml`, commits the `uv.lock` that `uv lock` writes, runs through `uv run`, and adds no `environment.yml`.
+
+### A loose script carries its dependencies inline
+A standalone script that imports no module of the repo's own declares its third-party imports in PEP 723 inline metadata and runs with `uv run --script`; one that imports only the standard library needs none.
+
+### Two exceptions, each named in the repo's `CLAUDE.md`
+Conda stays where a conda-forge binary that has no wheel is load-bearing, and PyQGIS scripts declare nothing, because QGIS's own interpreter runs them.
+
+### Never `conda run -n` an environment the repo does not declare
+A script that runs `conda run -n <env>` against an environment declared in no file of its own repo cannot run from a fresh clone, so declare the dependencies here instead.
+
 
 # R Package Development Conventions
 
@@ -3252,7 +3319,8 @@ Then keep the vignette and its bundle true as both move:
 3. **Check every number the prose quotes** with a `stopifnot()` in the chunk that computes
    it, so the build fails when the data no longer supports the sentence.
 4. **Prove a refactor did not move the numbers:** render before and after, strip the HTML
-   to text, and diff. Only the prose you meant to change differs.
+   to text, and diff, then compare `alt`, `title`, `aria-label`, `id` and `href` as well: a
+   text diff is blind to attributes. Only the prose you meant to change differs.
 5. **The bundle carries provenance**, the commit and date it was built at, which the
    vignette prints. A regeneration forced by a script change asserts every other element
    `identical()` to the old bundle; rebuild where it was built when values pass through BLAS.
@@ -3261,7 +3329,7 @@ Then keep the vignette and its bundle true as both move:
    installed copy's bundle, while `rmarkdown::render()` after `pkgload::load_all()` reads
    the source tree's: the same article can pass one way and fail the other.
 
-*13 lines of evidence for this rule are in `conventions/r-packages.md`.*
+*14 lines of evidence for this rule are in `conventions/r-packages.md`.*
 
 ### Test data
 
@@ -3340,9 +3408,10 @@ exclusions: list(
      Link to the pkgdown reference page for details — don't duplicate it.
    - Don't list every function; the pkgdown reference page is the single
      source of truth for what's in the package.
-2. Bump version in `DESCRIPTION` (e.g., `0.0.0.9000` → `0.1.0`) — as the **final** commit of the branch, after verification numbers/tests are final. Mid-branch bumps are premature and churn: additional code changes end up bundled inside a "release" that already claimed the version.
-3. Commit as "Release vX.Y.Z"
-4. Tag: `git tag vX.Y.Z && git push && git push --tags`
+2. **Leave the version to the merge:** add the bullet under the development heading, change no
+   version, and put `Bump: major|minor|patch` on its own line in the PR body; `/gh-pr-merge`
+   releases (the first: `first-release=0.1.0`).
+3. With no merge: commit "Release vX.Y.Z", then `git tag vX.Y.Z && git push && git push --tags`.
 
 ## Repository Setup
 
