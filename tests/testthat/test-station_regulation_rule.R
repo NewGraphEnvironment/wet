@@ -14,9 +14,10 @@ cand_of <- function(gnis, dist, area, lfid = seq_along(gnis), ws = seq_along(gni
 }
 # one snapped station with flow, all tests clear, unless overridden
 status_of <- function(r, ..., name_regulated = FALSE, snapped = TRUE) {
-  a <- utils::modifyList(list(dams_up = 0L, L_share = 0, S_share = 0, outside_bc = FALSE, power_up = FALSE),
+  a <- utils::modifyList(list(dams_up = 0L, L_share = 0, S_share = 0, outside_bc = FALSE, power_up = FALSE,
+                              novol_up = FALSE),
                          list(...))
-  r$rg_status(name_regulated, snapped, a$dams_up, a$L_share, a$S_share, a$outside_bc, a$power_up)
+  r$rg_status(name_regulated, snapped, a$dams_up, a$L_share, a$S_share, a$outside_bc, a$power_up, a$novol_up)
 }
 
 test_that("L and S regulate at exactly the share, not below", {
@@ -42,9 +43,15 @@ test_that("a regulating dam upstream regulates", {
 test_that("each unknown branch gives unknown, and a dam, L or S still regulates there", {
   r <- local_rule()
   expect_equal(status_of(r, snapped = FALSE, dams_up = NA, L_share = NA, S_share = NA, outside_bc = NA,
-                         power_up = NA)$regulation, "unknown")
+                         power_up = NA, novol_up = NA)$regulation, "unknown")
   expect_equal(status_of(r, outside_bc = TRUE)$regulation, "unknown")
   expect_equal(status_of(r, power_up = TRUE)$regulation, "unknown")
+  # Amendment 2: a licence with no volume upstream
+  x <- status_of(r, novol_up = TRUE, L_share = 0.05)
+  expect_equal(x$regulation, "unknown")
+  expect_equal(x$why, "licence with no volume upstream")
+  expect_equal(status_of(r, novol_up = TRUE, S_share = 0.1)$regulation, "regulated")
+  expect_equal(status_of(r, novol_up = TRUE, dams_up = 1L)$regulation, "regulated")
   x <- status_of(r, L_share = NA, S_share = NA)
   expect_equal(x$regulation, "unknown")
   expect_equal(x$why, "no published flow")
@@ -59,7 +66,7 @@ test_that("a station regulated by name is never natural or unknown", {
   r <- local_rule()
   expect_equal(status_of(r, name_regulated = TRUE)$regulation, "regulated")
   x <- status_of(r, name_regulated = TRUE, snapped = FALSE, dams_up = NA, L_share = NA, S_share = NA,
-                 outside_bc = NA, power_up = NA)
+                 outside_bc = NA, power_up = NA, novol_up = NA)
   expect_equal(x$regulation, "regulated")
   expect_equal(x$why, "name; no accepted snap")
   expect_equal(status_of(r, name_regulated = TRUE, outside_bc = TRUE)$regulation, "regulated")
@@ -68,15 +75,16 @@ test_that("a station regulated by name is never natural or unknown", {
 
 test_that("the status refuses incomplete inputs for a snapped station", {
   r <- local_rule()
-  expect_error(status_of(r, dams_up = NA), "dams, border and power")
-  expect_error(status_of(r, outside_bc = NA), "dams, border and power")
+  expect_error(status_of(r, dams_up = NA), "dams, border, power and no-volume")
+  expect_error(status_of(r, outside_bc = NA), "dams, border, power and no-volume")
+  expect_error(status_of(r, novol_up = NA), "dams, border, power and no-volume")
   expect_error(status_of(r, L_share = NA), "both NA")
   expect_error(status_of(r, L_share = -0.1), "non-negative")
-  expect_error(r$rg_status(NA, TRUE, 0L, 0, 0, FALSE, FALSE), "TRUE or FALSE")
-  expect_error(r$rg_status(c(FALSE, FALSE), TRUE, 0L, 0, 0, FALSE, FALSE), "one value per station")
+  expect_error(r$rg_status(NA, TRUE, 0L, 0, 0, FALSE, FALSE, FALSE), "TRUE or FALSE")
+  expect_error(r$rg_status(c(FALSE, FALSE), TRUE, 0L, 0, 0, FALSE, FALSE, FALSE), "one value per station")
   # every status is in the vocabulary
   x <- r$rg_status(c(FALSE, TRUE, FALSE), c(TRUE, FALSE, FALSE), c(0L, NA, NA), c(0, NA, NA), c(0, NA, NA),
-                   c(FALSE, NA, NA), c(FALSE, NA, NA))
+                   c(FALSE, NA, NA), c(FALSE, NA, NA), c(FALSE, NA, NA))
   expect_true(all(x$regulation %in% r$rg_vocab))
   expect_equal(x$regulation, c("natural", "regulated", "unknown"))
 })
@@ -102,6 +110,15 @@ test_that("licence classes follow #53's purpose codes, power counted as instream
   expect_equal(r$rg_licence_class(c("08A", "07A", "01A", NA, "11B")),
                c("storage", "instream", "consumptive", "none", "instream"))
   expect_true(all(r$rg_power_codes %in% r$rg_instream_codes))
+})
+
+test_that("a shared quantity is split over kept, located PODs that are not rediversions (Amendment 1)", {
+  r <- local_rule()
+  # one licence's two PODs: the first diverts, the second rediverts
+  expect_equal(r$rg_split_pods(located = c(TRUE, TRUE), kept = c(TRUE, TRUE), shared = c(TRUE, TRUE),
+                               redivert = c(FALSE, TRUE)), c(TRUE, FALSE))
+  expect_equal(r$rg_split_pods(c(FALSE, TRUE, TRUE), c(TRUE, FALSE, TRUE), c(TRUE, TRUE, FALSE),
+                               c(FALSE, FALSE, FALSE)), c(FALSE, FALSE, FALSE))
 })
 
 test_that("the name leg takes the nearest candidate on the named stream", {

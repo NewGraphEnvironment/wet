@@ -86,6 +86,24 @@
 #
 # Report: data/checks/station_regulation_<bcenv snapshot>.txt. Status file:
 # inst/extdata/station_sources/regulation_<bcenv snapshot>.csv.
+#
+# ---- Amendment 1, 2026-11-24 (the owner's decision, before any station was placed) ----------
+# The first run, on the WFS snapshot of 2026-11-24, stopped on #53's check that every located
+# POD of a shared licence-purpose is counted: one licence shares its quantity over its diversion
+# point and a rediversion point (REDIVERSION_IND "Y"), which is never counted, so the diversion
+# point carried half of it. No station had been snapped or placed, so no status exists under the
+# registered version. Amended: a shared quantity is split over the group's located PODs that are
+# not rediversions (rg_split_pods()), since a rediversion moves water already diverted at
+# another POD; the check holds over those PODs and still stops on any other gap.
+#
+# ---- Amendment 2, 2026-11-24 (the owner's decision, after review, before any status shipped) --
+# A licence that states no volume (units "Total Flow", for the whole flow of its source, or a
+# zero or missing quantity) cannot enter L or S, so a station below one could read natural with
+# its licensed use unknown. Amended: a Current, located, surface (POD_SUBTYPE "POD") consumptive
+# or storage licence row with no volume, kept and not a rediversion, upstream makes a station
+# that nothing regulates unknown, as a power licence does (rg_status()'s `novol_up`). The same
+# review found the script counting groundwater PODs in L and S, against the header's
+# "surface": corrected in the script, not the rule.
 # ---------------------------------------------------------------------------------------------
 
 rg_share <- 0.10              # L or S at or above this share of the mean annual flow: regulated
@@ -125,6 +143,12 @@ rg_dam_regulating <- function(operation, regulated, fun) {
   rg_codes_check(regulated, rg_dam_regulated_codes, "DAM_REGULATED_CODE")
   rg_codes_check(fun, rg_dam_function_codes, "DAM_FUNCTION")
   operation == "Active" & regulated %in% rg_dam_regulated
+}
+
+# The PODs a shared quantity is split over (Amendment 1): located, kept (not a licensee repeat),
+# sharing, and not a rediversion. #53 split over located kept sharing PODs, rediversions included.
+rg_split_pods <- function(located, kept, shared, redivert) {
+  located & kept & shared & !redivert
 }
 
 # A licence row's class, as #53 classes it; NA purpose is "none".
@@ -185,19 +209,19 @@ rg_snap_pick <- function(cand, name, area_km2) {
 }
 
 # The status of each station. `name_regulated` and `snapped` are logical; for snapped stations
-# `dams_up` (regulating dams upstream), `outside_bc` and `power_up` must be known, and L_share
-# and S_share are NA together, where the segment has no published flow. Returns
-# data.frame(regulation, why).
-rg_status <- function(name_regulated, snapped, dams_up, L_share, S_share, outside_bc, power_up) {
+# `dams_up` (regulating dams upstream), `outside_bc`, `power_up` and `novol_up` (a licence with no
+# volume upstream, Amendment 2) must be known, and L_share and S_share are NA together, where the
+# segment has no published flow. Returns data.frame(regulation, why).
+rg_status <- function(name_regulated, snapped, dams_up, L_share, S_share, outside_bc, power_up, novol_up) {
   n <- length(name_regulated)
-  args <- list(snapped, dams_up, L_share, S_share, outside_bc, power_up)
+  args <- list(snapped, dams_up, L_share, S_share, outside_bc, power_up, novol_up)
   if (any(lengths(args) != n)) stop("every argument needs one value per station", call. = FALSE)
   if (!is.logical(name_regulated) || !is.logical(snapped) || anyNA(name_regulated) || anyNA(snapped)) {
     stop("name_regulated and snapped must be TRUE or FALSE", call. = FALSE)
   }
   s <- snapped
-  if (anyNA(dams_up[s]) || anyNA(outside_bc[s]) || anyNA(power_up[s]) || any(dams_up[s] < 0)) {
-    stop("a snapped station needs its dams, border and power tests", call. = FALSE)
+  if (anyNA(dams_up[s]) || anyNA(outside_bc[s]) || anyNA(power_up[s]) || anyNA(novol_up[s]) || any(dams_up[s] < 0)) {
+    stop("a snapped station needs its dams, border, power and no-volume tests", call. = FALSE)
   }
   if (any(is.na(L_share[s]) != is.na(S_share[s])) ||
       any(!is.na(L_share[s]) & (!is.finite(L_share[s]) | L_share[s] < 0 | !is.finite(S_share[s]) | S_share[s] < 0))) {
@@ -219,10 +243,11 @@ rg_status <- function(name_regulated, snapped, dams_up, L_share, S_share, outsid
     if (hit_S) why <- c(why, paste("licensed storage", pct(S_share[i])))
     if (outside_bc[i]) why <- c(why, "upstream area outside BC")
     if (power_up[i]) why <- c(why, "power licence upstream")
+    if (novol_up[i]) why <- c(why, "licence with no volume upstream")
     if (!flow) why <- c(why, "no published flow")
     reg <- if (name_regulated[i] || hit_dam || hit_L || hit_S) {
       "regulated"
-    } else if (outside_bc[i] || power_up[i] || !flow) {
+    } else if (outside_bc[i] || power_up[i] || novol_up[i] || !flow) {
       "unknown"
     } else {
       why <- sprintf("no regulating dam; licensed use %s, storage %s", pct(L_share[i]), pct(S_share[i]))
