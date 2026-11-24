@@ -36,10 +36,6 @@ The owner took the recommended option on each of the four decisions below, the a
 4. **Where the status is stored.** Recommended: its own tracked file, `inst/extdata/station_sources/regulation_<bcenv snapshot>.csv` (`station_number`, `source`, `regulation`, `why`, `dams_up`, `L_share`, `S_share`, `snap_stream`, `snap_leg`, `snap_m`, the WFS snapshot date, both station snapshots, each registry's md5, and the registers' credit), written by the new script and read by `wet_station_list()` in place of the registries' name-only column. The two pinned registries are not rewritten, so `scripts/station_sources_harvest.R`'s check of the registry against the name rule (lines 219-221, 384) still holds, and regulation can be redone on a new WFS snapshot without re-pinning the station data. The alternative, rewriting the registries' `regulation` column, needs both data-raw writers rerun with their raw copies (`WET_BCWATERTOOL_RAW`) and moves the harvest check: two PRs.
 5. **What ships from the licence layer, whose terms are "Access Only"** (met in Phase 1, 2026-11-24). The catalogue record `water-rights-licences-public` (`WLS_WATER_RIGHTS_LICENCES_SV`) gives the licence "Access Only"; the province's copyright page says such materials are "access only and reproduction is not permitted without written permission". The dam register (`bc-dams`) is OGL-BC. Decision 4's status file was to carry each register's credit line; the licence layer has none to carry. Decided by the owner 2026-11-24 (asked in the resume session): the recommended option, ship only values wet computes (status, `why`, `L_share`, `S_share`, counts), never a licence record (number, POD, quantity, location), and state the layer's terms in the docs, the status file and research, as #53's tracked report already publishes per-gauge L and S from the same layer.
 
-## Open decisions
-
-None open.
-
 ## Phase 1: Register the rule
 
 - [x] Read each WFS layer's catalogue record and record its licence and credit line (research section, later the report)

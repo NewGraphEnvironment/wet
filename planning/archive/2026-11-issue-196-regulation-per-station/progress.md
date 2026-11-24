@@ -44,3 +44,24 @@ Start Phase 1 and run every phase to the PR (/code-check branch, /planning-archi
 /gh-pr-push). This message is the resume instruction that starts the run-to-PR
 mandate; the merge stays with me.
 ```
+
+## Phase 1, 2026-11-24
+- Resumed on m1 (worktree wet-196); nothing on main had moved since the park; the four plan-gate decisions were in #196's body
+- Read both layers' catalogue records: the licence layer is Access Only and pending archive (its successor not on the public WFS); owner's decision 5, derived values only
+- Tool drainage areas checked as km^2; the rule, its closed code sets and tests registered with research's Regulation section
+- Commit: 2d93787f (the registering commit)
+
+## Phase 2, 2026-11-24
+- First run stopped on #53's shared-POD check (a licence with a rediversion POD): Amendment 1, owner's decision
+- Script and lib written; WFS snapshot 20261124; 204 of 257 snapped; rerun from cache byte-identical
+- Commits: 0c6d31ff (Amendments 1-2), c74e7382
+
+## Phase 3, 2026-11-24
+- Status file and the internal reader `wet_station_regulation()`; docs of `wet_station_list()`, `wet_station_select()`, `wet_station_daily()`; reader guards and script guards each shown firing (planted in a detached worktree)
+- Commit: b531469f
+
+## Phase 4, 2026-11-24
+- Report, research and CLAUDE.md; donor-pool issue #202 filed; NEWS left to the release step
+- /code-check branch: four rounds, ended on an enumeration. Round 1: groundwater in L and S (fixed), licence identifiers in tracked text (removed; the unpushed commits rebuilt), no-volume licences (Amendment 2). Round 2: doc gap, unplaced points, unchecked subtypes. Round 3: the own-reach 1 mm test (Amendment 3, 100 m), unlocated licences, NA codes, power counted over repeats. Round 4: the report's amendment list hand-typed (now derived, with statuses per version)
+- Final: 75 natural, 110 regulated, 72 unknown; full suite 3,534 expectations, 0 failed
+- Commits: 6c1194e1, a06b54b3, 6c9cb1e5 (Amendment 3), 71bea115, afb7900c
