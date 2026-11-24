@@ -42,6 +42,8 @@
 #' maximum is a second call on `t_max_c`.
 #'
 #' @inheritParams wet_station_daily
+#' @param stations Character vector of HYDAT station numbers (`"08EE013"`),
+#'   as water-temp-bc archives them.
 #' @param valid Plausible range of a reading, in degrees C, both ends kept.
 #' @param min_hours Hours of the day (1 to 24) that must have a valid reading
 #'   for the day to count.

@@ -4,21 +4,28 @@
 \alias{wet_station_list}
 \title{Hydrometric stations beyond HYDAT that wet reads}
 \usage{
-wet_station_list(sources = "bcenv", snapshot = wet_bcenv_snapshot)
+wet_station_list(
+  sources = c("bcenv", "bcwatertool"),
+  snapshot = wet_bcenv_snapshot
+)
 }
 \arguments{
-\item{sources}{Which networks to list; only \code{"bcenv"} so far.}
+\item{sources}{Which networks to list, from \code{"bcenv"} and \code{"bcwatertool"}.}
 
-\item{snapshot}{The provincial snapshot, as \code{YYYYMMDD}.}
+\item{snapshot}{The provincial snapshot, as \code{YYYYMMDD}. The Water Tool's is
+the one the package pins.}
 }
 \value{
 \code{data.frame(station_number, name, lon, lat, source, network, first, last, regulation, hydat_site, hydat_km, licence, credit)}, one row
-per station, ordered by number. \code{first} and \code{last} are the first and last
-days \code{\link[=wet_station_daily]{wet_station_daily()}} returns for the station (\code{NA} for one with no
-complete day), recorded when the snapshot was pinned and held to the
-reader's days by the package's harvest check whenever its rules change; \code{hydat_km} is the distance to \code{hydat_site}; \code{licence} and
+per station, ordered by source and number. \code{first} and \code{last} are the
+first and last days \code{\link[=wet_station_daily]{wet_station_daily()}} returns for the station (\code{NA}
+for one with no complete day), recorded when the snapshot was pinned and
+held to the reader's days by the package's harvest check whenever its
+rules change; \code{hydat_km} is the distance to \code{hydat_site}; \code{licence} and
 \code{credit} are the terms the source's data carry and the line to credit it
-with.
+with (a Water Tool file states no licence, so its \code{licence} is \code{NA}, and
+its \code{credit} is its file's own statement, its liability disclaimer left
+out).
 }
 \description{
 One row per station of the networks \code{\link[=wet_station_daily]{wet_station_daily()}} reads outside
@@ -27,21 +34,29 @@ the HYDAT station at the same site where there is one. For HYDAT's own
 stations, use \code{\link[=wet_station_select]{wet_station_select()}}.
 }
 \details{
-The province's non-integrated hydrometric network (\code{"bcenv"}) is the one
-such network so far: stations run by the province and its partners, whose
-hourly discharge the province publishes beside HYDAT. Its list comes from a
-pinned snapshot of those files, made with the package, so it needs no
-download.
+Two such networks: the province's non-integrated hydrometric network
+(\code{"bcenv"}), stations run by the province and its partners whose hourly
+discharge the province publishes beside HYDAT, and the third-party gauges
+the BC Water Tool serves (\code{"bcwatertool"}): regional districts, industry,
+BC Hydro, the Regulator and research projects, each \code{network} the Tool
+names. Both lists come from pinned snapshots made with the package, so they
+need no download.
 
-A provincial station at a HYDAT site keeps its own number, and its days are
-never joined to the HYDAT station's: \code{hydat_site} names that station (the
-same stream name within 1 km) so a caller can join the two. Regulation is
-known only where a station's name says it (a dam, diversion, intake and
-similar); every other station is \code{"unknown"}, not natural.
+A station at a HYDAT site keeps its own number, and its days are never
+joined to the HYDAT station's: \code{hydat_site} names that station (the same
+stream name within 1 km) so a caller can join the two. A Water Tool gauge at
+a provincial station's site is not listed: its days before the provincial
+record begins continue that station's record under the provincial number
+(see \code{\link[=wet_station_daily]{wet_station_daily()}}), and the provincial row's \code{first}, \code{licence} and
+\code{credit} say so when both sources are listed. Regulation is known only where
+a station's name says it (a dam, diversion, intake and similar); every other
+station is \code{"unknown"}, not natural, and none is a donor until it is known.
 }
 \examples{
 s <- wet_station_list()
-nrow(s)
-# provincial stations at a HYDAT station's site, carrying its record on in new years
+table(s$source)
+# stations at a HYDAT station's site, carrying its record on in new years
 head(s[!is.na(s$hydat_site), c("station_number", "name", "first", "last", "hydat_site", "hydat_km")])
+# the Water Tool's networks
+table(s$network[s$source == "bcwatertool"])
 }

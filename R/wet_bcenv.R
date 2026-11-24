@@ -98,7 +98,10 @@ wet_bcenv_order <- function(files) {
 
 # The snapshot cannot be had here, as opposed to a cache holding the wrong
 # file: a classed error, so a live test can skip on this and on nothing else.
-wet_bcenv_unavailable <- function(...) {
-  stop(structure(class = c("wet_bcenv_unavailable", "error", "condition"),
+# Each pinned source has its own class under wet_snapshot_unavailable.
+wet_bcenv_unavailable <- function(...) wet_snapshot_unavailable("wet_bcenv_unavailable", ...)
+
+wet_snapshot_unavailable <- function(class, ...) {
+  stop(structure(class = c(class, "wet_snapshot_unavailable", "error", "condition"),
                  list(message = paste0(...), call = NULL)))
 }

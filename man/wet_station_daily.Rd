@@ -9,13 +9,14 @@ wet_station_daily(
   hydat = wet_hydat_path(),
   from = NULL,
   to = Sys.Date(),
-  sources = c("hydat", "provisional", "realtime", "bcenv"),
+  sources = c("hydat", "provisional", "realtime", "bcenv", "bcwatertool"),
   snapshot = wet_bcenv_snapshot
 )
 }
 \arguments{
 \item{stations}{Character vector of station numbers: HYDAT's
-(\code{"08EE013"}) or the provincial network's (\code{"08EE0001"}), mixed freely.}
+(\code{"08EE013"}), the provincial network's (\code{"08EE0001"}) or a Water Tool
+gauge's (\code{"HRB3142"}), mixed freely.}
 
 \item{hydat}{Path to the HYDAT sqlite database. Defaults to tidyhydat's
 download location.}
@@ -24,7 +25,7 @@ download location.}
 \code{as.Date()} reads). \code{NULL} means no bound.}
 
 \item{sources}{Which sources to read, from \code{"hydat"}, \code{"provisional"},
-\code{"realtime"} and \code{"bcenv"}. The first three read HYDAT-numbered stations
+\code{"realtime"}, \code{"bcenv"} and \code{"bcwatertool"}. The first three read HYDAT-numbered stations
 only, and each continues the one before it, per station, from
 that source's last day over its whole record: provisional days are used
 only after HYDAT's last day, and real-time days only after both, whatever
@@ -37,11 +38,20 @@ provincial network's stations named in \code{snapshot}'s station registry,
 from the province's hourly files (Open Government Licence - British
 Columbia), with duckdb: a day is a local-standard-time day with at least
 20 hours, hours graded Unusable left out, and a day above a plausibility
-bound measured on HYDAT dropped.}
+bound measured on HYDAT dropped. \code{"bcwatertool"} reads the Water Tool's
+third-party gauges from a pinned snapshot of its daily files (the terms
+each publisher's file states, given as \code{credit} by \code{\link[=wet_station_list]{wet_station_list()}}):
+a day as the Tool gives it, a day above the same bound (its sub-drainage
+taken from the nearest HYDAT station) dropped; and the days of a Tool gauge
+at a provincial station's site before that station's record begins, under
+the provincial number. A station's own source comes first, and a second
+publisher's gauge at its site only for the days before it.}
 
 \item{snapshot}{The provincial snapshot to read, as \code{YYYYMMDD}; each pinned
 snapshot's files are held to md5s tracked in the package. Read only for
-stations that are not HYDAT-numbered.}
+stations that are not HYDAT-numbered. The Water Tool's snapshot is the one
+the package pins; a number both its registry and \code{snapshot}'s hold is
+refused.}
 }
 \value{
 \code{data.frame(station_number, date, q_m3s, symbol, source, status)},
@@ -52,8 +62,10 @@ for an ECCC day whose approval says final, and \code{"provisional"} for any
 other ECCC day. A provincial day is \code{"provisional"} when every hour in it
 carries a grade and \code{"unchecked"} when any hour is graded Undefined or
 Unspecified: the province's files carry no approval, so none is
-\code{"approved"}. Provisional and provincial days carry no ice symbol, so
-their \code{NA} means "not recorded", not "open water".
+\code{"approved"}. A Water Tool day is \code{"provisional"} where the Tool marks it
+quality checked and \code{"unchecked"} where it does not. Provisional,
+provincial and Tool days carry no ice symbol, so their \code{NA} means "not
+recorded", not "open water".
 
 A gap between the end of one source and the start of the next (for
 example an old HYDAT ending before the provisional archive begins) is
@@ -74,6 +86,17 @@ snapshot of the province's hourly files instead. Such a station keeps its
 own number: where it sits at a HYDAT station's site, the two records are not
 joined, and \code{\link[=wet_station_list]{wet_station_list()}} names the HYDAT station so a caller can.
 
+The third-party gauges the BC Water Tool serves (regional districts,
+industry, BC Hydro, research projects; numbers such as \code{"HRB3142"} or
+\code{"ogc_1002"}, listed by \code{\link[=wet_station_list]{wet_station_list()}}) are read from a pinned
+snapshot of the Tool's daily files. Where such a gauge sits at a provincial
+station's site, its record continues the provincial one instead: its days
+before the provincial record begins (the first day the province's files hold
+any hour of the station) come back under the provincial number, with
+\code{source} \code{"bcwatertool"}, and none from that day on. Provincial
+and Tool stations are records and held-out tests, not donors, until their
+regulation is known.
+
 Ported from \code{ngr::ngr_hyd_q_daily()}, which joined HYDAT with about 18
 months of real-time flow.
 }
@@ -86,5 +109,10 @@ table(q$source, q$status)
 # Deep Creek, a provincial station near Smithers
 d <- wet_station_daily("08EE0001")
 table(d$source, d$status)
+
+# Rosewall Creek on Vancouver Island: the province's years from 2021, and
+# BC Conservation Foundation's 2012-2015 gauge at the site before them
+r <- wet_station_daily("08HB0008")
+table(format(r$date, "\%Y"), r$source)
 }
 }
