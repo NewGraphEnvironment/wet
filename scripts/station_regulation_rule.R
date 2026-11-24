@@ -104,6 +104,14 @@
 # that nothing regulates unknown, as a power licence does (rg_status()'s `novol_up`). The same
 # review found the script counting groundwater PODs in L and S, against the header's
 # "surface": corrected in the script, not the rule.
+#
+# ---- Amendment 3, 2026-11-24 (the owner's decision, after review, before any status shipped) --
+# #53's stream-position test drops a point on the station's own reach that indexes even 1 mm
+# below the station, so a licence or dam at the gauge (one indexed exactly at its measure) or a
+# few metres below it was dropped and the station could read natural. A station's and a point's
+# coordinates cannot be told apart that closely. Amended: a point on the station's own blue
+# line in its own reach is dropped only when it indexes more than rg_own_margin_m below the
+# station; within that, a tie included, it counts as upstream (rg_own_below()).
 # ---------------------------------------------------------------------------------------------
 
 rg_share <- 0.10              # L or S at or above this share of the mean annual flow: regulated
@@ -111,6 +119,7 @@ rg_snap_tolerance_m <- 1000   # fwa_indexpoint() search distance, as wet_station
 rg_snap_candidates <- 5L      # fwa_indexpoint() candidates, as wet_station_snap()
 rg_snap_max_dev <- 0.10       # upstream area within this of the drainage area, as wet_station_snap()
 rg_year_s <- 365.25 * 86400   # seconds per year, as #53's m3/year conversion
+rg_own_margin_m <- 100       # Amendment 3: an own-reach point within this below the station is upstream
 rg_vocab <- c("natural", "regulated", "unknown")
 rg_borders <- c("AB_120", "USA_49", "YTNWT_60")
 
@@ -135,6 +144,14 @@ rg_codes_check <- function(x, known, what) {
          ", outside the rule's known set: a question for the owner, then an amendment", call. = FALSE)
   }
   invisible(TRUE)
+}
+
+# Amendment 3: whether an own-reach point is below the station and dropped. `indexed` and
+# `upstream` are #53's stream-position test (fwa_indexpoint() found the point's stream;
+# fwa_upstream() on measures); `same_line` whether the point indexes to the station's blue line,
+# `below_m` how far below the station's measure it indexes there (negative above).
+rg_own_below <- function(indexed, upstream, same_line, below_m) {
+  indexed %in% TRUE & !(upstream %in% TRUE) & !(same_line %in% TRUE & !is.na(below_m) & below_m <= rg_own_margin_m)
 }
 
 # A dam that regulates for the rule: active, and in the register's regulated classes.

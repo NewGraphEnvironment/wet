@@ -112,6 +112,19 @@ test_that("licence classes follow #53's purpose codes, power counted as instream
   expect_true(all(r$rg_power_codes %in% r$rg_instream_codes))
 })
 
+test_that("an own-reach point is dropped only more than 100 m below the station (Amendment 3)", {
+  r <- local_rule()
+  expect_equal(r$rg_own_margin_m, 100)
+  # a tie, just inside and just beyond the margin, on the station's line
+  expect_equal(r$rg_own_below(TRUE, FALSE, TRUE, c(0, 100, 100.001, 500)), c(FALSE, FALSE, TRUE, TRUE))
+  # upstream by #53's test stays upstream; a point not indexed is never dropped
+  expect_false(r$rg_own_below(TRUE, TRUE, TRUE, 500))
+  expect_false(r$rg_own_below(FALSE, NA, NA, NA))
+  # on another blue line, #53's test decides
+  expect_true(r$rg_own_below(TRUE, FALSE, FALSE, 10))
+  expect_true(r$rg_own_below(TRUE, FALSE, NA, NA))
+})
+
 test_that("a shared quantity is split over kept, located PODs that are not rediversions (Amendment 1)", {
   r <- local_rule()
   # one licence's two PODs: the first diverts, the second rediverts
