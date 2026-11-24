@@ -59,9 +59,25 @@ provincial record begins continue that station's record under the
 provincial number (see
 [`wet_station_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_station_daily.md)),
 and the provincial row's `first`, `licence` and `credit` say so when
-both sources are listed. Regulation is known only where a station's name
-says it (a dam, diversion, intake and similar); every other station is
-`"unknown"`, not natural, and none is a donor until it is known.
+both sources are listed.
+
+`regulation` is each station's status from what sits upstream of it, one
+for the year as a whole, under a rule registered before it was applied:
+`"regulated"` where the name says so (a dam, diversion, intake and
+similar), an active dam in the provincial register's regulated classes
+sits upstream, or licensed consumptive use or licensed storage upstream
+is at least 10 % of the segment's published mean annual flow;
+`"unknown"` where the station could not be placed on the Freshwater
+Atlas stream its name or drainage area gives, part of its basin lies
+outside BC, a power licence or a licence that states no volume draws
+upstream, or its segment has no published flow; and `"natural"`
+otherwise. A natural station can serve as a donor where a natural record
+is needed. The status, its reasons and the shares are in the package's
+`extdata/station_sources/regulation_<snapshot>.csv`. They use BC's dam
+register (contains information licensed under the Open Government
+Licence - British Columbia) and are computed from the Province of
+British Columbia's water rights licences, whose terms are "Access Only":
+no licence record is reproduced.
 
 ## Examples
 

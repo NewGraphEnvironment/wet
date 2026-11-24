@@ -116,8 +116,10 @@ gauge sits at a provincial station's site, its record continues the
 provincial one instead: its days before the provincial record begins
 (the first day the province's files hold any hour of the station) come
 back under the provincial number, with `source` `"bcwatertool"`, and
-none from that day on. Provincial and Tool stations are records and
-held-out tests, not donors, until their regulation is known.
+none from that day on. Each provincial and Tool station's regulation,
+natural, regulated or unknown, is
+[`wet_station_list()`](https://newgraphenvironment.github.io/wet/reference/wet_station_list.md)'s
+`regulation`.
 
 Ported from `ngr::ngr_hyd_q_daily()`, which joined HYDAT with about 18
 months of real-time flow.
