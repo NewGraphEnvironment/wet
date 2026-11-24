@@ -30,8 +30,8 @@ wet_temp_daily(
 
 - stations:
 
-  Character vector of station numbers: HYDAT's (`"08EE013"`) or the
-  provincial network's (`"08EE0001"`), mixed freely.
+  Character vector of HYDAT station numbers (`"08EE013"`), as
+  water-temp-bc archives them.
 
 - from, to:
 

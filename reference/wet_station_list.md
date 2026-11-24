@@ -10,53 +10,68 @@ one. For HYDAT's own stations, use
 ## Usage
 
 ``` r
-wet_station_list(sources = "bcenv", snapshot = wet_bcenv_snapshot)
+wet_station_list(
+  sources = c("bcenv", "bcwatertool"),
+  snapshot = wet_bcenv_snapshot
+)
 ```
 
 ## Arguments
 
 - sources:
 
-  Which networks to list; only `"bcenv"` so far.
+  Which networks to list, from `"bcenv"` and `"bcwatertool"`.
 
 - snapshot:
 
-  The provincial snapshot, as `YYYYMMDD`.
+  The provincial snapshot, as `YYYYMMDD`. The Water Tool's is the one
+  the package pins.
 
 ## Value
 
 `data.frame(station_number, name, lon, lat, source, network, first, last, regulation, hydat_site, hydat_km, licence, credit)`,
-one row per station, ordered by number. `first` and `last` are the first
-and last days
+one row per station, ordered by source and number. `first` and `last`
+are the first and last days
 [`wet_station_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_station_daily.md)
 returns for the station (`NA` for one with no complete day), recorded
 when the snapshot was pinned and held to the reader's days by the
 package's harvest check whenever its rules change; `hydat_km` is the
 distance to `hydat_site`; `licence` and `credit` are the terms the
-source's data carry and the line to credit it with.
+source's data carry and the line to credit it with (a Water Tool file
+states no licence, so its `licence` is `NA`, and its `credit` is its
+file's own statement, its liability disclaimer left out).
 
 ## Details
 
-The province's non-integrated hydrometric network (`"bcenv"`) is the one
-such network so far: stations run by the province and its partners,
-whose hourly discharge the province publishes beside HYDAT. Its list
-comes from a pinned snapshot of those files, made with the package, so
-it needs no download.
+Two such networks: the province's non-integrated hydrometric network
+(`"bcenv"`), stations run by the province and its partners whose hourly
+discharge the province publishes beside HYDAT, and the third-party
+gauges the BC Water Tool serves (`"bcwatertool"`): regional districts,
+industry, BC Hydro, the Regulator and research projects, each `network`
+the Tool names. Both lists come from pinned snapshots made with the
+package, so they need no download.
 
-A provincial station at a HYDAT site keeps its own number, and its days
-are never joined to the HYDAT station's: `hydat_site` names that station
-(the same stream name within 1 km) so a caller can join the two.
-Regulation is known only where a station's name says it (a dam,
-diversion, intake and similar); every other station is `"unknown"`, not
-natural.
+A station at a HYDAT site keeps its own number, and its days are never
+joined to the HYDAT station's: `hydat_site` names that station (the same
+stream name within 1 km) so a caller can join the two. A Water Tool
+gauge at a provincial station's site is not listed: its days before the
+provincial record begins continue that station's record under the
+provincial number (see
+[`wet_station_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_station_daily.md)),
+and the provincial row's `first`, `licence` and `credit` say so when
+both sources are listed. Regulation is known only where a station's name
+says it (a dam, diversion, intake and similar); every other station is
+`"unknown"`, not natural, and none is a donor until it is known.
 
 ## Examples
 
 ``` r
 s <- wet_station_list()
-nrow(s)
-#> [1] 211
-# provincial stations at a HYDAT station's site, carrying its record on in new years
+table(s$source)
+#> 
+#>       bcenv bcwatertool 
+#>         211          46 
+# stations at a HYDAT station's site, carrying its record on in new years
 head(s[!is.na(s$hydat_site), c("station_number", "name", "first", "last", "hydat_site", "hydat_km")])
 #>    station_number                                    name      first       last
 #> 4        08EE0001           Deep Creek at Farewell Bridge 2016-05-04 2018-11-22
@@ -72,4 +87,23 @@ head(s[!is.na(s$hydat_site), c("station_number", "name", "first", "last", "hydat
 #> 13    08HA055     0.21
 #> 15    08HA045     0.06
 #> 19    08HA019     0.20
+# the Water Tool's networks
+table(s$network[s$source == "bcwatertool"])
+#> 
+#>  BC Conservation Foundation (Vancouver Island) 
+#>                                              1 
+#>       BC Environmental Assessment Office (EAO) 
+#>                                              7 
+#>                                       BC Hydro 
+#>                                              5 
+#>                    Capital (Regional District) 
+#>                                              8 
+#>                                  Geoscience BC 
+#>                                              7 
+#>                   Oil and Gas Industry Network 
+#>                                             10 
+#>          Regulator – BC Oil and Gas Commission 
+#>                                              6 
+#> UNBC (Collected for academic research project) 
+#>                                              2 
 ```

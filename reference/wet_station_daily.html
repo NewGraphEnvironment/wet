@@ -63,7 +63,7 @@ rests on (ice-affected winter flows are estimates).</p>
 <span>  hydat <span class="op">=</span> <span class="fu">wet_hydat_path</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  from <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.Date</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  sources <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hydat"</span>, <span class="st">"provisional"</span>, <span class="st">"realtime"</span>, <span class="st">"bcenv"</span><span class="op">)</span>,</span>
+<span>  sources <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hydat"</span>, <span class="st">"provisional"</span>, <span class="st">"realtime"</span>, <span class="st">"bcenv"</span>, <span class="st">"bcwatertool"</span><span class="op">)</span>,</span>
 <span>  snapshot <span class="op">=</span> <span class="va">wet_bcenv_snapshot</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -74,7 +74,8 @@ rests on (ice-affected winter flows are estimates).</p>
 
 <dl><dt id="arg-stations">stations<a class="anchor" aria-label="anchor" href="#arg-stations"></a></dt>
 <dd><p>Character vector of station numbers: HYDAT's
-(<code>"08EE013"</code>) or the provincial network's (<code>"08EE0001"</code>), mixed freely.</p></dd>
+(<code>"08EE013"</code>), the provincial network's (<code>"08EE0001"</code>) or a Water Tool
+gauge's (<code>"HRB3142"</code>), mixed freely.</p></dd>
 
 
 <dt id="arg-hydat">hydat<a class="anchor" aria-label="anchor" href="#arg-hydat"></a></dt>
@@ -89,7 +90,7 @@ download location.</p></dd>
 
 <dt id="arg-sources">sources<a class="anchor" aria-label="anchor" href="#arg-sources"></a></dt>
 <dd><p>Which sources to read, from <code>"hydat"</code>, <code>"provisional"</code>,
-<code>"realtime"</code> and <code>"bcenv"</code>. The first three read HYDAT-numbered stations
+<code>"realtime"</code>, <code>"bcenv"</code> and <code>"bcwatertool"</code>. The first three read HYDAT-numbered stations
 only, and each continues the one before it, per station, from
 that source's last day over its whole record: provisional days are used
 only after HYDAT's last day, and real-time days only after both, whatever
@@ -102,13 +103,22 @@ provincial network's stations named in <code>snapshot</code>'s station registry,
 from the province's hourly files (Open Government Licence - British
 Columbia), with duckdb: a day is a local-standard-time day with at least
 20 hours, hours graded Unusable left out, and a day above a plausibility
-bound measured on HYDAT dropped.</p></dd>
+bound measured on HYDAT dropped. <code>"bcwatertool"</code> reads the Water Tool's
+third-party gauges from a pinned snapshot of its daily files (the terms
+each publisher's file states, given as <code>credit</code> by <code><a href="wet_station_list.html">wet_station_list()</a></code>):
+a day as the Tool gives it, a day above the same bound (its sub-drainage
+taken from the nearest HYDAT station) dropped; and the days of a Tool gauge
+at a provincial station's site before that station's record begins, under
+the provincial number. A station's own source comes first, and a second
+publisher's gauge at its site only for the days before it.</p></dd>
 
 
 <dt id="arg-snapshot">snapshot<a class="anchor" aria-label="anchor" href="#arg-snapshot"></a></dt>
 <dd><p>The provincial snapshot to read, as <code>YYYYMMDD</code>; each pinned
 snapshot's files are held to md5s tracked in the package. Read only for
-stations that are not HYDAT-numbered.</p></dd>
+stations that are not HYDAT-numbered. The Water Tool's snapshot is the one
+the package pins; a number both its registry and <code>snapshot</code>'s hold is
+refused.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -121,8 +131,10 @@ for an ECCC day whose approval says final, and <code>"provisional"</code> for an
 other ECCC day. A provincial day is <code>"provisional"</code> when every hour in it
 carries a grade and <code>"unchecked"</code> when any hour is graded Undefined or
 Unspecified: the province's files carry no approval, so none is
-<code>"approved"</code>. Provisional and provincial days carry no ice symbol, so
-their <code>NA</code> means "not recorded", not "open water".</p>
+<code>"approved"</code>. A Water Tool day is <code>"provisional"</code> where the Tool marks it
+quality checked and <code>"unchecked"</code> where it does not. Provisional,
+provincial and Tool days carry no ice symbol, so their <code>NA</code> means "not
+recorded", not "open water".</p>
 <p>A gap between the end of one source and the start of the next (for
 example an old HYDAT ending before the provisional archive begins) is
 left unfilled and reported with a warning when it overlaps <code>from</code>-<code>to</code>. A source that fails is skipped
@@ -135,6 +147,16 @@ as <code>"08EE0001"</code>, listed by <code><a href="wet_station_list.html">wet_
 snapshot of the province's hourly files instead. Such a station keeps its
 own number: where it sits at a HYDAT station's site, the two records are not
 joined, and <code><a href="wet_station_list.html">wet_station_list()</a></code> names the HYDAT station so a caller can.</p>
+<p>The third-party gauges the BC Water Tool serves (regional districts,
+industry, BC Hydro, research projects; numbers such as <code>"HRB3142"</code> or
+<code>"ogc_1002"</code>, listed by <code><a href="wet_station_list.html">wet_station_list()</a></code>) are read from a pinned
+snapshot of the Tool's daily files. Where such a gauge sits at a provincial
+station's site, its record continues the provincial one instead: its days
+before the provincial record begins (the first day the province's files hold
+any hour of the station) come back under the provincial number, with
+<code>source</code> <code>"bcwatertool"</code>, and none from that day on. Provincial
+and Tool stations are records and held-out tests, not donors, until their
+regulation is known.</p>
 <p>Ported from <code>ngr::ngr_hyd_q_daily()</code>, which joined HYDAT with about 18
 months of real-time flow.</p>
     </div>
@@ -149,6 +171,11 @@ months of real-time flow.</p>
 <span class="r-in"><span><span class="co"># Deep Creek, a provincial station near Smithers</span></span></span>
 <span class="r-in"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu">wet_station_daily</span><span class="op">(</span><span class="st">"08EE0001"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">source</span>, <span class="va">d</span><span class="op">$</span><span class="va">status</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Rosewall Creek on Vancouver Island: the province's years from 2021, and</span></span></span>
+<span class="r-in"><span><span class="co"># BC Conservation Foundation's 2012-2015 gauge at the site before them</span></span></span>
+<span class="r-in"><span><span class="va">r</span> <span class="op">&lt;-</span> <span class="fu">wet_station_daily</span><span class="op">(</span><span class="st">"08HB0008"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span><span class="va">r</span><span class="op">$</span><span class="va">date</span>, <span class="st">"%Y"</span><span class="op">)</span>, <span class="va">r</span><span class="op">$</span><span class="va">source</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
