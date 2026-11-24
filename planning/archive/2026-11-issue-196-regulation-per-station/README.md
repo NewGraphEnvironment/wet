@@ -12,6 +12,6 @@ WFS snapshot 2026-11-24: 118,717 licence rows (95,422 Current), 2,485 dams (1,83
 
 ## Owed
 
-- Close #191 with the PR; tick move 14 in `planning/backlog.md` (`/gh-pr-merge`)
+- Tick move 14 in `planning/backlog.md` (`/gh-pr-merge`); #191 closes with the PR
 
 Closed by: the PR for #196 (opened from branch `196-backlog-move-14-regulation-per-non-hydat`)

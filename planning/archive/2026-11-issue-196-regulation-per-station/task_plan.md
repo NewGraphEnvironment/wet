@@ -72,7 +72,7 @@ The owner took the recommended option on each of the four decisions below, the a
 
 ## Owed at the end (reported, done after merge)
 
-- [ ] Close #191 with the PR; tick move 14 in `planning/backlog.md` (`/gh-pr-merge`)
+- [ ] Tick move 14 in `planning/backlog.md` (`/gh-pr-merge`); #191 closes with the PR
 
 ## Validation
 
