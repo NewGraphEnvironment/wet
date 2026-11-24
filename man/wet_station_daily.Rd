@@ -93,9 +93,9 @@ snapshot of the Tool's daily files. Where such a gauge sits at a provincial
 station's site, its record continues the provincial one instead: its days
 before the provincial record begins (the first day the province's files hold
 any hour of the station) come back under the provincial number, with
-\code{source} \code{"bcwatertool"}, and none from that day on. Provincial
-and Tool stations are records and held-out tests, not donors, until their
-regulation is known.
+\code{source} \code{"bcwatertool"}, and none from that day on. Each provincial
+and Tool station's regulation, natural, regulated or unknown, is
+\code{\link[=wet_station_list]{wet_station_list()}}'s \code{regulation}.
 
 Ported from \code{ngr::ngr_hyd_q_daily()}, which joined HYDAT with about 18
 months of real-time flow.

@@ -48,9 +48,24 @@ stream name within 1 km) so a caller can join the two. A Water Tool gauge at
 a provincial station's site is not listed: its days before the provincial
 record begins continue that station's record under the provincial number
 (see \code{\link[=wet_station_daily]{wet_station_daily()}}), and the provincial row's \code{first}, \code{licence} and
-\code{credit} say so when both sources are listed. Regulation is known only where
-a station's name says it (a dam, diversion, intake and similar); every other
-station is \code{"unknown"}, not natural, and none is a donor until it is known.
+\code{credit} say so when both sources are listed.
+
+\code{regulation} is each station's status from what sits upstream of it, one
+for the year as a whole, under a rule registered before it was applied:
+\code{"regulated"} where the name says so (a dam, diversion, intake and
+similar), an active dam in the provincial register's regulated classes
+sits upstream, or licensed consumptive use or licensed storage upstream is
+at least 10 \% of the segment's published mean annual flow;
+\code{"unknown"} where the station could not be placed on the Freshwater Atlas
+stream its name or drainage area gives, part of its basin lies outside BC,
+a power licence draws upstream, or its segment has no published flow; and
+\code{"natural"} otherwise. A natural station can serve as a donor where a
+natural record is needed. The status, its reasons and the shares are in
+the package's \verb{extdata/station_sources/regulation_<snapshot>.csv}. They
+use BC's dam register (contains information licensed under the Open
+Government Licence - British Columbia) and are computed from the
+Province of British Columbia's water rights licences, whose terms are
+"Access Only": no licence record is reproduced.
 }
 \examples{
 s <- wet_station_list()

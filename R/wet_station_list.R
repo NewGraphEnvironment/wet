@@ -19,9 +19,24 @@
 #' a provincial station's site is not listed: its days before the provincial
 #' record begins continue that station's record under the provincial number
 #' (see [wet_station_daily()]), and the provincial row's `first`, `licence` and
-#' `credit` say so when both sources are listed. Regulation is known only where
-#' a station's name says it (a dam, diversion, intake and similar); every other
-#' station is `"unknown"`, not natural, and none is a donor until it is known.
+#' `credit` say so when both sources are listed.
+#'
+#' `regulation` is each station's status from what sits upstream of it, one
+#' for the year as a whole, under a rule registered before it was applied:
+#' `"regulated"` where the name says so (a dam, diversion, intake and
+#' similar), an active dam in the provincial register's regulated classes
+#' sits upstream, or licensed consumptive use or licensed storage upstream is
+#' at least 10 % of the segment's published mean annual flow;
+#' `"unknown"` where the station could not be placed on the Freshwater Atlas
+#' stream its name or drainage area gives, part of its basin lies outside BC,
+#' a power licence draws upstream, or its segment has no published flow; and
+#' `"natural"` otherwise. A natural station can serve as a donor where a
+#' natural record is needed. The status, its reasons and the shares are in
+#' the package's `extdata/station_sources/regulation_<snapshot>.csv`. They
+#' use BC's dam register (contains information licensed under the Open
+#' Government Licence - British Columbia) and are computed from the
+#' Province of British Columbia's water rights licences, whose terms are
+#' "Access Only": no licence record is reproduced.
 #'
 #' @param sources Which networks to list, from `"bcenv"` and `"bcwatertool"`.
 #' @param snapshot The provincial snapshot, as `YYYYMMDD`. The Water Tool's is
@@ -54,10 +69,12 @@ wet_station_list <- function(sources = c("bcenv", "bcwatertool"), snapshot = wet
   prov <- wet_bcenv_stations(snapshot)
   tool <- if ("bcwatertool" %in% sources) wet_bcwatertool_against(wet_bcwatertool_stations(), snapshot)
   if (!is.null(tool)) wet_registry_check(tool, prov, snapshot)
+  status <- wet_station_regulation(snapshot)
   if ("bcenv" %in% sources) {
     p <- data.frame(station_number = prov$station_number, name = prov$name, lon = prov$lon, lat = prov$lat,
                     source = "bcenv", network = "BC ENV non-integrated hydrometric network", first = prov$first,
-                    last = prov$last, regulation = prov$regulation, hydat_site = prov$hydat_site,
+                    last = prov$last, regulation = wet_regulation_of(status, prov$station_number, "bcenv"),
+                    hydat_site = prov$hydat_site,
                     hydat_km = prov$hydat_km, licence = "OGL-BC 2.0",
                     credit = "Contains information licensed under the Open Government Licence \u2013 British Columbia")
     if (!is.null(tool)) {
@@ -83,12 +100,62 @@ wet_station_list <- function(sources = c("bcenv", "bcwatertool"), snapshot = wet
     t <- tool[is.na(tool$continues), ]
     out$bcwatertool <- data.frame(station_number = t$station_number, name = t$name, lon = t$lon, lat = t$lat,
                                   source = "bcwatertool", network = t$network, first = t$first, last = t$last,
-                                  regulation = t$regulation, hydat_site = t$hydat_site, hydat_km = t$hydat_km,
+                                  regulation = wet_regulation_of(status, t$station_number, "bcwatertool"),
+                                  hydat_site = t$hydat_site, hydat_km = t$hydat_km,
                                   licence = NA_character_, credit = t$credit)
   }
   out <- do.call(rbind, unname(out))
   rownames(out) <- NULL
   out
+}
+
+# Each station's regulation status, written by scripts/station_regulation.R
+# for a provincial snapshot and shipped with the package (#196):
+# data.frame(station_number, source, regulation, why, ...), one row per station
+# of both registries. Refused unless it was built from the registries shipped
+# beside it (their snapshots and md5s) and every status is in the vocabulary.
+wet_station_regulation <- function(snapshot) {
+  path <- wet_station_sources_path(sprintf("regulation_%s.csv", snapshot))
+  if (!nzchar(path)) {
+    stop("no regulation status for the provincial snapshot ", snapshot,
+         "; write it with scripts/station_regulation.R", call. = FALSE)
+  }
+  r <- utils::read.csv(path, na.strings = "", encoding = "UTF-8", colClasses = "character")
+  reg <- c(bcenv = sprintf("bcenv_%s_hydat.csv", snapshot),
+           bcwatertool = sprintf("bcwatertool_%s_hydat.csv", wet_bcwatertool_snapshot))
+  md5 <- vapply(reg, function(f) {
+    p <- wet_station_sources_path(f)
+    if (nzchar(p)) unname(tools::md5sum(p)) else NA_character_
+  }, "")
+  built <- c(unique(r$bcenv_snapshot), unique(r$bcwatertool_snapshot), unique(r$bcenv_registry_md5),
+             unique(r$bcwatertool_registry_md5))
+  if (!identical(built, c(snapshot, wet_bcwatertool_snapshot, unname(md5)))) {
+    stop("the regulation status ", path, " was built from other station registries than those shipped beside it",
+         "; rewrite it with scripts/station_regulation.R", call. = FALSE)
+  }
+  if (anyNA(r$station_number) || anyDuplicated(r$station_number) || !all(r$regulation %in% wet_regulation_vocab)) {
+    stop("the regulation status ", path, " does not hold one row per station, each natural, regulated or unknown",
+         call. = FALSE)
+  }
+  r
+}
+
+wet_regulation_vocab <- c("natural", "regulated", "unknown")
+
+# A file shipped under extdata/station_sources/, "" when there is none.
+wet_station_sources_path <- function(f) system.file("extdata", "station_sources", f, package = "wet")
+
+# The status of each of `numbers` from `source`, refused unless the status file
+# holds every one of them under that source.
+wet_regulation_of <- function(status, numbers, source) {
+  i <- match(numbers, status$station_number)
+  miss <- numbers[is.na(i) | status$source[i] != source]
+  if (length(miss)) {
+    stop("the regulation status has no ", source, " row for ", paste(utils::head(miss, 5), collapse = ", "),
+         if (length(miss) > 5) sprintf(" and %d more", length(miss) - 5),
+         "; rewrite it with scripts/station_regulation.R", call. = FALSE)
+  }
+  status$regulation[i]
 }
 
 # The station registry of a provincial snapshot, written with the snapshot by
