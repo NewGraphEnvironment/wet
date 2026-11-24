@@ -35,3 +35,8 @@ least \code{min_years} complete years inside \code{years}. A complete year has a
 months, each with at least \code{min_days} days of daily flow. Seasonal gauges
 therefore never qualify.
 }
+\details{
+HYDAT's stations only. For natural stations outside HYDAT, the province's
+non-integrated network and the BC Water Tool's gauges, see
+\code{\link[=wet_station_list]{wet_station_list()}}'s \code{regulation}.
+}

@@ -6,6 +6,10 @@
 #' months, each with at least `min_days` days of daily flow. Seasonal gauges
 #' therefore never qualify.
 #'
+#' HYDAT's stations only. For natural stations outside HYDAT, the province's
+#' non-integrated network and the BC Water Tool's gauges, see
+#' [wet_station_list()]'s `regulation`.
+#'
 #' @param hydat Path to the HYDAT sqlite database. Defaults to tidyhydat's
 #'   download location.
 #' @param years Integer vector of calendar years.
