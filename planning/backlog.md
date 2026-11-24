@@ -58,7 +58,7 @@ counts them): run `/backlog-sweep` again, the backlog is not finished.
 | - [x] 11 | #188 | 13: small-basin error and the zone adjustment (4 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/200 | E | — | fable then opus |
 | - [ ] 12 | #189 | 14: research files around the current state (3 issues) | open | D | 10 | sonnet |
 | - [x] 13 | #195 | 15: second sources for the provincial stations (1 issue) | done: https://github.com/NewGraphEnvironment/wet/pull/201 | B | 8, 9 | opus |
-| - [ ] 14 | #196 | 16: regulation per non-HYDAT station (1 issue) | open | B | 13 | fable then opus |
+| - [x] 14 | #196 | 16: regulation per non-HYDAT station (1 issue) | done: https://github.com/NewGraphEnvironment/wet/pull/203 | B | 13 | fable then opus |
 
 Tracks are separate efforts, not moves: the cross-repo provenance track, whose wet member is #161
 (labelled `track:provenance`), batched here in batch 3 because #88 and #160 take its names.
@@ -306,7 +306,7 @@ station registry, the snapshot cache and `wet_station_list()`.
 
 ### 16. Regulation per non-HYDAT station
 
-- [ ] Carried by move 14, #196
+- [x] Carried by move 14, #196 (merged in https://github.com/NewGraphEnvironment/wet/pull/203)
 
 #191 gives each station in the registry a regulation status (natural, regulated or unknown) from what sits upstream of its
 snapped point: dams, reservoirs and licensed diversions, placed on the FWA as `scripts/wb_gauge_diversion.R` places water
