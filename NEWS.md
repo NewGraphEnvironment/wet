@@ -1,3 +1,7 @@
+# wet 0.4.43
+
+* `wet_station_daily()` reads the BC Water Tool's third-party gauges (`sources = "bcwatertool"`, #144, #195): 46 stations from regional districts, industry, BC Hydro, the Regulator and research projects, from a pinned snapshot of the Tool's daily files, listed by `wet_station_list()` beside the provincial network. Where a Tool gauge sits at a provincial station's site, its days before the provincial record begins continue that record under the provincial number (BC Conservation Foundation's 2012–2015 years at three Vancouver Island stations). These stations are records and held-out tests, not donors, until their regulation is known.
+
 # wet 0.4.42
 
 * No change to the package's functions. The water balance's small-basin error is diagnosed under a rule registered before any check ran (`scripts/wb_small_basin.R`, #176, #188): its +14 % median at gauges under 100 km² comes in with the zone adjustment, where raw P − AET is +1.9 %. WALLY's zone regressions are compared desk-side at a pinned commit (`scripts/wally_compare.R`, `research/wally.md`, #178), and `research/monthly_error.md` is arranged by subject (#185). The candidate fixes are filed as #199.
