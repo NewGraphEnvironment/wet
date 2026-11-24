@@ -187,19 +187,23 @@ rg_sql_up <- "
   WHERE whse_basemapping.fwa_upstream(g.wscode::ltree, g.localcode::ltree, p.wscode, p.localcode)"
 rg_sql_own <- "
   SELECT o.station_number, o.pid, i.blue_line_key IS NOT NULL AS indexed,
+         i.blue_line_key = m.blue_line_key AS same_line, m.measure - i.downstream_route_measure AS below_m,
          whse_basemapping.fwa_upstream(m.blue_line_key, m.measure, m.wscode::ltree, m.localcode::ltree,
            i.blue_line_key, i.downstream_route_measure, i.wscode_ltree, i.localcode_ltree) AS upstream
   FROM gd_own o JOIN gd_ws p ON p.pid = o.pid JOIN gd_gm m ON m.station_number = o.station_number
   LEFT JOIN LATERAL whse_basemapping.fwa_indexpoint(p.geom, 100, 1) i ON true"
 
 # The pairs (station, point) upstream once own-reach points below the station are removed, as
-# scripts/wb_gauge_diversion.R:229-238 removes them.
+# scripts/wb_gauge_diversion.R:229-238 removes them, with the rule's Amendment 3 margin
+# (rg_own_below(): a point within rg_own_margin_m below the station on its line is upstream).
+# The own-reach query (rg_sql_own) adds same_line and below_m for it.
 rg_upstream_pairs <- function(up, own) {
   stopifnot(!anyDuplicated(up[c("station_number", "pid")]), !anyDuplicated(own[c("station_number", "pid")]))
   k_own <- match(paste(up$station_number, up$pid), paste(own$station_number, own$pid))
   stopifnot(identical(!is.na(k_own), up$own))
   up$indexed <- own$indexed[k_own]
-  up$below <- up$own & up$indexed %in% TRUE & !(own$upstream[k_own] %in% TRUE)
+  up$below <- up$own & rg_own_below(own$indexed[k_own], own$upstream[k_own], own$same_line[k_own],
+                                     own$below_m[k_own])
   up <- up[!up$below, ]
   up[order(up$station_number, up$pid, method = "radix"), ]
 }

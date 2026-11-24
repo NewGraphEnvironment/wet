@@ -116,9 +116,15 @@ test_that("own-reach points below the station are dropped from the upstream pair
   e <- local_lib()
   up <- data.frame(station_number = c("A", "A", "B"), pid = c("L1", "D2", "L1"), own = c(TRUE, FALSE, TRUE))
   own <- data.frame(station_number = c("A", "B"), pid = c("L1", "L1"), indexed = c(TRUE, TRUE),
-                    upstream = c(FALSE, TRUE))
+                    upstream = c(FALSE, TRUE), same_line = c(TRUE, TRUE), below_m = c(250, -40))
   x <- e$rg_upstream_pairs(up, own)
   expect_equal(paste(x$station_number, x$pid), c("A D2", "B L1"))
+  # Amendment 3: a point at the station, or within 100 m below it on its line, stays upstream
+  own$below_m[1] <- 0
+  expect_equal(paste(e$rg_upstream_pairs(up, own)$station_number, e$rg_upstream_pairs(up, own)$pid),
+               c("A D2", "A L1", "B L1"))
+  own$below_m[1] <- 100.5
+  expect_equal(nrow(e$rg_upstream_pairs(up, own)), 2)
   # an own-reach pair with no stream-position result is a broken placement
   expect_error(e$rg_upstream_pairs(up, own[2, ]))
 })

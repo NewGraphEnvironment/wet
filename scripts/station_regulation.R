@@ -27,7 +27,7 @@ source("scripts/station_regulation_lib.R")
 stamp <- function(...) message(format(Sys.time(), "%H:%M:%S "), ...)
 
 # ---- the rule as registered ---------------------------------------------------------------------
-rule_commit <- "0c6d31ff2261056827f47b7d081a941f4701f5e9"
+rule_commit <- "6c9cb1e5f0ff2e667777449c697a403cb11f64aa"
 rule_files <- c("scripts/station_regulation_rule.R", "scripts/station_sources_lib.R")
 rule_md5 <- vapply(rule_files, function(f) {
   tmp <- tempfile()
@@ -164,6 +164,12 @@ for (v in c("gnis_name", "blue_line_key", "measure", "seg_wscode", "seg_localcod
 }
 st$snap_stream <- ifelse(st$accepted, st$gnis_name, NA_character_)
 sn <- st[st$accepted, ]
+# a snapped station with no codes would be tested upstream of nothing and read natural
+codes <- c("wscode", "localcode", "seg_wscode", "seg_localcode", "blue_line_key", "measure")
+if (anyNA(sn[codes])) {
+  stop("a snapped station has no FWA codes or measure: ",
+       paste(sn$station_number[!stats::complete.cases(sn[codes])], collapse = ", "))
+}
 stamp(nrow(sn), " of ", nrow(st), " stations snapped")
 
 # ---- 3. placement, border, man-made waterbodies -------------------------------------------------
@@ -339,8 +345,18 @@ lines <- c(
   sprintf(paste("  dams: %d, %d regulating for the rule (active, Regulated or Regulated - Part 3 Exempt),",
                 "%d of those located"), nrow(dams), sum(dams$regulating), nrow(dam_pts)),
   sprintf(paste("  licence rows: %d; Current %d; counted (located, surface, consumptive or storage, kept,",
-                "quantity > 0, not rediverted) %d; power PODs %d; no volume (Amendment 2) %d"), nrow(lic_all), nrow(lic), sum(lic$candidate & lic$surface), sum(lic$power),
-          sum(lic$novol)),
+                "quantity > 0, not rediverted) %d; power PODs %d; no volume (Amendment 2) %d"), nrow(lic_all),
+          nrow(lic), sum(lic$candidate & lic$surface), sum(lic$power & !lic$dup_pod), sum(lic$novol)),
+  local({
+    # surface consumptive, storage or power rows with no location: tested upstream of no station
+    off <- !lic$located & lic$surface & !lic$dup_pod & !lic$redivert
+    k <- ifelse(lic$PURPOSE_USE_CODE[off] %in% rg_power_codes, "power",
+                ifelse(!lic$class[off] %in% c("consumptive", "storage"), NA,
+                       ifelse(!is.na(lic$v[off]) & lic$v[off] > 0, paste(lic$class[off], "with a volume"),
+                              paste(lic$class[off], "with no volume"))))
+    k <- k[!is.na(k)]
+    if (length(k)) sprintf("  surface licence rows with no location, so tested upstream of no station: %s", tab(table(k)))
+  }),
   sprintf("  points placed in an FWA watershed: %d of %d", length(pl$placed), nrow(pts)),
   local({
     gone <- setdiff(pts$pid, pl$placed)

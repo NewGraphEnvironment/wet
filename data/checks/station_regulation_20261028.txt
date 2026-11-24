@@ -3,11 +3,11 @@ Produced by scripts/station_regulation.R under the rule in scripts/station_regul
 
 == The rule as registered
   registered at 2d93787fb631ccd3b231827c2484c0f58029cb3d, before any station was snapped or placed;
-  run under 0c6d31ff2261056827f47b7d081a941f4701f5e9, with Amendment 1 (2026-11-24: a shared quantity split over the PODs that are
+  run under 6c9cb1e5f0ff2e667777449c697a403cb11f64aa, with Amendment 1 (2026-11-24: a shared quantity split over the PODs that are
   not rediversions) and Amendment 2 (2026-11-24: a licence with no volume upstream makes a station unknown)
   the registered version stopped at a shared licence before placing any station, so no status exists under it;
   no status shipped before Amendment 2
-  scripts/station_regulation_rule.R md5 c511359bfaf4233c3588d2d1ff4b3e09
+  scripts/station_regulation_rule.R md5 98232f236ce681402bbf02dcfdc34dd8
   scripts/station_sources_lib.R md5 d9dad7b62ca120b1d1b565256fc3d797
 
 == Inputs
@@ -33,7 +33,8 @@ Produced by scripts/station_regulation.R under the rule in scripts/station_regul
          WLS_WATER_RIGHTS_LICENCES_SV (record water-rights-licences-public) Access Only: only values wet computes ship
   published build: catalog digest d554e3aad481d86bffa4baef687287ed; 43 segment_monthly historical parts verified before and 43 after the read
   dams: 2485, 1838 regulating for the rule (active, Regulated or Regulated - Part 3 Exempt), 1838 of those located
-  licence rows: 118717; Current 95422; counted (located, surface, consumptive or storage, kept, quantity > 0, not rediverted) 58081; power PODs 1043; no volume (Amendment 2) 1646
+  licence rows: 118717; Current 95422; counted (located, surface, consumptive or storage, kept, quantity > 0, not rediverted) 58081; power PODs 845; no volume (Amendment 2) 1646
+  surface licence rows with no location, so tested upstream of no station: consumptive with a volume 95, consumptive with no volume 27, power 2, storage with a volume 2, storage with no volume 2
   points placed in an FWA watershed: 72023 of 72028
   not placed, so tested upstream of no station: counted surface POD 4, regulating dam 1
   regulating dams not placed: TUCKER CREEK DAM
@@ -59,24 +60,24 @@ Produced by scripts/station_regulation.R under the rule in scripts/station_regul
 == Status by source
              source
   status      bcenv bcwatertool
-    natural      54          23
-    regulated    99           9
+    natural      52          23
+    regulated   101           9
     unknown      58          14
 
 == Change from the registries' name-only column
                      now
   registry            natural regulated unknown
     regulated by name       0        11       0
-    unknown                77        97      72
+    unknown                75        99      72
 
 == Why, by status (each reason counted wherever it applies)
-  natural (77):
-    no regulating dam, use and storage under 10 % 77
-  regulated (108):
-    regulating dam(s) upstream 89
-    licensed use >= 10 % 52
+  natural (75):
+    no regulating dam, use and storage under 10 % 75
+  regulated (110):
+    regulating dam(s) upstream 90
+    licensed use >= 10 % 53
     licensed storage >= 10 % 44
-    licence with no volume upstream 40
+    licence with no volume upstream 41
     power licence upstream 16
     name 11
     no accepted snap 4
@@ -153,7 +154,7 @@ Produced by scripts/station_regulation.R under the rule in scripts/station_regul
    08HC0001  prov regulated name and area 7      2.5     0.93  0.283    1   
    08HC0002  prov unknown   -                                               
    08HC0003  prov unknown   -                                               
-   08HC0004  prov natural   name          74                   0.279    0   
+   08HC0004  prov regulated name          74                   0.279    1   
    08HD0003  prov natural   name          6                    4.98     0   
    08HF0001  prov natural   name          20                   10.1     0   
    08JC0001  prov natural   name and area 10     57.0    1.00  0.132    0   
@@ -236,7 +237,7 @@ Produced by scripts/station_regulation.R under the rule in scripts/station_regul
    08NK0003  prov regulated name          8                    2.3      0   
    08NK0004  prov regulated name          6                    1.24     0   
    08NK0005  prov unknown   name          3                    0.817    0   
-   08NK0006  prov natural   name          7                    0.12     0   
+   08NK0006  prov regulated name          7                    0.12     0   
    08NK0007  prov regulated name          7                    2.06     0   
    08NK0008  prov regulated name          26                   0.334    0   
    08NK0009  prov unknown   -                                               
@@ -359,14 +360,14 @@ Produced by scripts/station_regulation.R under the rule in scripts/station_regul
    0.0    0.0   0  
    1.2    0.0   0  
    0.0    0.0   0  
-   3.8    0.0   0  
+   3.9    0.0   0  
    0.0    1.0   0  
                    
    0.4    0.1   0  
    0.9    0.0   0  
    144.1  0.2   0  
                    
-   1.3    0.8   0  
+   1.4    0.9   0  
    11.9   0.0   0  
    1.5    0.2   0  
    1.4    0.6   0  
@@ -398,7 +399,7 @@ Produced by scripts/station_regulation.R under the rule in scripts/station_regul
    0.3    0.2   0  
    1.0    0.4   2  
    0.0    0.0   0  
-   0.0    0.0   0  
+   0.4    0.0   0  
    1.0    0.7   0  
                    
    0.1    0.0   1  
@@ -408,10 +409,10 @@ Produced by scripts/station_regulation.R under the rule in scripts/station_regul
    0.2    0.0   0  
    0.0    11.3  0  
    0.0    0.0   0  
-   0.0    0.0   0  
+   2.8    0.0   0  
                    
                    
-   0.0    0.0   0  
+   6.8    0.5   0  
    0.0    0.0   0  
    0.0    0.0   0  
    0.0    0.0   0  
@@ -486,15 +487,15 @@ Produced by scripts/station_regulation.R under the rule in scripts/station_regul
    0.1    0.0   0  
    0.0    0.0   0  
    0.0    0.0   0  
-   0.0    0.0   0  
+   8.5    0.0   0  
                    
    0.3    0.0   0  
    4.1    0.0   0  
    68.1   0.0   1  
    54.9   0.0   0  
    31.7   2.3   0  
-   0.0    0.0   0  
-   0.0    0.0   0  
+   0.5    0.0   0  
+   36.2   0.0   0  
    21.1   1.4   0  
    98.8   0.0   0  
                    
@@ -514,7 +515,7 @@ Produced by scripts/station_regulation.R under the rule in scripts/station_regul
    98.4   75.0  5  
    36.2   16.1  0  
    2.2    14.1  0  
-   29.8   20.1  1  
+   29.9   20.1  1  
    29.8   20.1  1  
    29.2   20.4  1  
    29.1   20.4  1  
@@ -536,7 +537,7 @@ Produced by scripts/station_regulation.R under the rule in scripts/station_regul
                    
    49.1   14.7  0  
    4.1    4.1   0  
-   33.1   15.0  0  
+   33.7   15.0  0  
    83.1   0.0   0  
    256.4  5.9   5  
    13.5   7.5   0  
@@ -547,11 +548,11 @@ Produced by scripts/station_regulation.R under the rule in scripts/station_regul
                    
    93.2   55.3  0  
    4785.6 53.8  0  
-   65.4   63.8  0  
+   65.5   63.8  0  
    71.5   57.3  0  
    4785.6 53.8  0  
    3.5    2.2   0  
-   0.2    0.1   0  
+   0.9    0.1   0  
    49.1   14.7  0  
                    
    93.2   55.3  0  
@@ -617,7 +618,7 @@ Produced by scripts/station_regulation.R under the rule in scripts/station_regul
    no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
    no regulating dam; licensed use 1.2 %, storage 0.0 %                                                                              
    no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
-   no regulating dam; licensed use 3.8 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 3.9 %, storage 0.0 %                                                                              
    name; 1 regulating dam upstream                                                                                                   
    no accepted snap                                                                                                                  
    no regulating dam; licensed use 0.4 %, storage 0.1 %                                                                              
@@ -656,7 +657,7 @@ Produced by scripts/station_regulation.R under the rule in scripts/station_regul
    1 regulating dam upstream                                                                                                         
    2 regulating dams upstream                                                                                                        
    1 regulating dam upstream; power licence upstream                                                                                 
-   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 0.4 %, storage 0.0 %                                                                              
    no regulating dam; licensed use 1.0 %, storage 0.7 %                                                                              
    no accepted snap                                                                                                                  
    no regulating dam; licensed use 0.1 %, storage 0.0 %                                                                              
@@ -669,7 +670,7 @@ Produced by scripts/station_regulation.R under the rule in scripts/station_regul
    1 regulating dam upstream                                                                                                         
    no accepted snap                                                                                                                  
    no accepted snap                                                                                                                  
-   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   1 regulating dam upstream                                                                                                         
    no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
    no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
    no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
@@ -744,7 +745,7 @@ Produced by scripts/station_regulation.R under the rule in scripts/station_regul
    no regulating dam; licensed use 0.1 %, storage 0.0 %                                                                              
    no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
    no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
-   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   no regulating dam; licensed use 8.5 %, storage 0.0 %                                                                              
    name; no accepted snap                                                                                                            
    no regulating dam; licensed use 0.3 %, storage 0.0 %                                                                              
    licence with no volume upstream                                                                                                   
@@ -752,7 +753,7 @@ Produced by scripts/station_regulation.R under the rule in scripts/station_regul
    licensed use 54.9 %; licence with no volume upstream                                                                              
    licensed use 31.7 %; licence with no volume upstream                                                                              
    licence with no volume upstream                                                                                                   
-   no regulating dam; licensed use 0.0 %, storage 0.0 %                                                                              
+   licensed use 36.2 %; licence with no volume upstream                                                                              
    licensed use 21.1 %; licence with no volume upstream                                                                              
    licensed use 98.8 %; licence with no volume upstream                                                                              
    no accepted snap                                                                                                                  
@@ -772,7 +773,7 @@ Produced by scripts/station_regulation.R under the rule in scripts/station_regul
    20 regulating dams upstream; licensed use 98.4 %; licensed storage 75.0 %; power licence upstream; licence with no volume upstream
    4 regulating dams upstream; licensed use 36.2 %; licensed storage 16.1 %                                                          
    4 regulating dams upstream; licensed storage 14.1 %                                                                               
-   21 regulating dams upstream; licensed use 29.8 %; licensed storage 20.1 %; licence with no volume upstream                        
+   21 regulating dams upstream; licensed use 29.9 %; licensed storage 20.1 %; licence with no volume upstream                        
    21 regulating dams upstream; licensed use 29.8 %; licensed storage 20.1 %; licence with no volume upstream                        
    21 regulating dams upstream; licensed use 29.2 %; licensed storage 20.4 %; licence with no volume upstream                        
    21 regulating dams upstream; licensed use 29.1 %; licensed storage 20.4 %; licence with no volume upstream                        
@@ -794,7 +795,7 @@ Produced by scripts/station_regulation.R under the rule in scripts/station_regul
    no accepted snap                                                                                                                  
    1 regulating dam upstream; licensed use 49.1 %; licensed storage 14.7 %                                                           
    3 regulating dams upstream                                                                                                        
-   name; 3 regulating dams upstream; licensed use 33.1 %; licensed storage 15.0 %                                                    
+   name; 3 regulating dams upstream; licensed use 33.7 %; licensed storage 15.0 %                                                    
    licensed use 83.1 %                                                                                                               
    3 regulating dams upstream; licensed use 256.4 %; licence with no volume upstream                                                 
    5 regulating dams upstream; licensed use 13.5 %                                                                                   
@@ -805,11 +806,11 @@ Produced by scripts/station_regulation.R under the rule in scripts/station_regul
    no accepted snap                                                                                                                  
    6 regulating dams upstream; licensed use 93.2 %; licensed storage 55.3 %                                                          
    14 regulating dams upstream; licensed use 4785.6 %; licensed storage 53.8 %; licence with no volume upstream                      
-   4 regulating dams upstream; licensed use 65.4 %; licensed storage 63.8 %                                                          
+   4 regulating dams upstream; licensed use 65.5 %; licensed storage 63.8 %                                                          
    13 regulating dams upstream; licensed use 71.5 %; licensed storage 57.3 %; licence with no volume upstream                        
    14 regulating dams upstream; licensed use 4785.6 %; licensed storage 53.8 %; licence with no volume upstream                      
    no regulating dam; licensed use 3.5 %, storage 2.2 %                                                                              
-   no regulating dam; licensed use 0.2 %, storage 0.1 %                                                                              
+   no regulating dam; licensed use 0.9 %, storage 0.1 %                                                                              
    1 regulating dam upstream; licensed use 49.1 %; licensed storage 14.7 %                                                           
    no accepted snap                                                                                                                  
    6 regulating dams upstream; licensed use 93.2 %; licensed storage 55.3 %                                                          

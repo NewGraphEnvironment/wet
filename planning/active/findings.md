@@ -69,6 +69,12 @@ Left out of move 8 (#179, #142).
 - **No-volume licences**: 1,646 Current surface licence rows that would count state no volume (880 Total Flow, 766 zero or missing). Owner's decision: Amendment 2, such a licence upstream makes an otherwise-natural station unknown. 17 naturals -> unknown.
 - **After both**: natural 77 (54 provincial, 23 Tool), regulated 108, unknown 72; HYDAT's flag at the 58 shared sites: HYDAT natural 11/10/9, HYDAT regulated 4 natural (Deep, Shorts x2, Whiteman; use 1-4 %), 21 regulated, 3 unknown. Run log `data/logs/196/station_regulation_run7.log`.
 
+## Review rounds 2 and 3, 2026-11-24
+
+- Round 2: the roxygen omitted Amendment 2's case (fixed); unplaced points now counted by class in the report (Tucker Creek Dam and 4 counted surface PODs, none upstream of a natural station); POD_SUBTYPE and a located surface row with no purpose now stop.
+- Round 3, mechanism: "natural" is rg_status()'s residual arm, so whatever an evidence filter excludes reads as no evidence. Its enumeration (planning/active/review-round3.md, 18 rows for the rule's restatements, 25 for the filters) found: #53's 1 mm own-reach test dropping a licence indexed exactly at 08NK0006 (owner's decision: Amendment 3, a 100 m margin on the station's line; moves 08NK0006 and 08HC0004 to regulated); 128 unlocated surface licences (now counted in the report; none names a natural station's stream); watershed vs segment codes differing at 16 stations, every effect toward regulated (accepted, as #53); NA codes on a snapped station (now stops); power PODs counted over repeats (now kept rows, 845).
+- After Amendment 3: natural 75 (52 provincial, 23 Tool), regulated 110, unknown 72; HYDAT's comparison unchanged. Run log `data/logs/196/station_regulation_run10.log`.
+
 ## Errors Encountered
 
 | Error | Resolution |
