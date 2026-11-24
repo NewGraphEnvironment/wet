@@ -57,7 +57,7 @@ counts them): run `/backlog-sweep` again, the backlog is not finished.
 | - [ ] 10 | #187 | 12: Swift and Naver creeks under their own windows (1 issue) | **waiting** on knowledge#256 (the owner, 2026-11-23: adopt the UFRA and COTR windows only once knowledge reads NuSEDS dates) | D | — | opus |
 | - [x] 11 | #188 | 13: small-basin error and the zone adjustment (4 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/200 | E | — | fable then opus |
 | - [ ] 12 | #189 | 14: research files around the current state (3 issues) | open | D | 10 | sonnet |
-| - [ ] 13 | #195 | 15: second sources for the provincial stations (1 issue) | open | B | 8, 9 | opus |
+| - [x] 13 | #195 | 15: second sources for the provincial stations (1 issue) | done: https://github.com/NewGraphEnvironment/wet/pull/201 | B | 8, 9 | opus |
 | - [ ] 14 | #196 | 16: regulation per non-HYDAT station (1 issue) | open | B | 13 | fable then opus |
 
 Tracks are separate efforts, not moves: the cross-repo provenance track, whose wet member is #161
@@ -281,7 +281,7 @@ Gate: none beyond #181's rule.
 
 ### 15. Second sources for the provincial stations
 
-- [ ] Carried by move 13, #195
+- [x] Carried by move 13, #195 (merged in https://github.com/NewGraphEnvironment/wet/pull/201)
 
 #144 (the BC Water Tool's third-party gauges, read through the pinned-snapshot pattern #142 set), #190 (which copy of the
 province's 2021–2026 discharge is current, read against the province's Aquarius portal) and #192 (Hakai's 2013–2020 record
