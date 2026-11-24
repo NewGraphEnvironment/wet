@@ -1,5 +1,23 @@
 # Changelog
 
+## wet 0.4.43
+
+- [`wet_station_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_station_daily.md)
+  reads the BC Water Tool’s third-party gauges
+  (`sources = "bcwatertool"`,
+  [\#144](https://github.com/NewGraphEnvironment/wet/issues/144),
+  [\#195](https://github.com/NewGraphEnvironment/wet/issues/195)): 46
+  stations from regional districts, industry, BC Hydro, the Regulator
+  and research projects, from a pinned snapshot of the Tool’s daily
+  files, listed by
+  [`wet_station_list()`](https://newgraphenvironment.github.io/wet/reference/wet_station_list.md)
+  beside the provincial network. Where a Tool gauge sits at a provincial
+  station’s site, its days before the provincial record begins continue
+  that record under the provincial number (BC Conservation Foundation’s
+  2012–2015 years at three Vancouver Island stations). These stations
+  are records and held-out tests, not donors, until their regulation is
+  known.
+
 ## wet 0.4.42
 
 - No change to the package’s functions. The water balance’s small-basin
