@@ -4,6 +4,7 @@ coverage_published,polygon,,class_pub,routed on part,Routed on part,#cc79a7,0.85
 coverage_published,polygon,,class_pub,balance alone,The balance alone,#d55e00,0.85,,,,,,,,,,,,,,,,"Okabe-Ito vermillion, as flow_source's balance: routed on under 5 %"
 coverage_scenarios,polygon,,class_scen,CMIP6 routed,CMIP6 routed (PCIC channel-scale),#009e73,0.85,,,,,,,,,,,,,,,,Okabe-Ito bluish green
 coverage_scenarios,polygon,,class_scen,CMIP5 gridded,CMIP5 gridded (scored first),#e69f00,0.85,,,,,,,,,,,,,,,,Okabe-Ito orange
+coverage_scenarios,polygon,,class_scen,undecided,Undecided (CMIP5 failed rule 5),#56b4e9,0.85,,,,,,,,,,,,,,,,"Okabe-Ito sky blue: the Fraser when rule 5 fails, back to the owner"
 coverage_scenarios,polygon,,class_scen,part or mixed,Part or mixed,#f0e442,0.85,,,,,,,,,,,,,,,,Okabe-Ito yellow
 coverage_scenarios,polygon,,class_scen,none,None,#bdbdbd,0.85,,,,,,,,,,,,,,,,"ColorBrewer Greys light: no PCIC product"
 coverage_lines,line,,part,group,Watershed group,,,#ffffff,0.15,1,,,,,,,,,,,,,"White separators between groups"

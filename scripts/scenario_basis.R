@@ -297,16 +297,17 @@ sites$watershed_feature_id <- targets$watershed_feature_id[match(as.numeric(site
 stopifnot(!anyNA(fr$watershed_feature_id), !anyNA(sites$watershed_feature_id))
 want_ws <- sort(unique(c(fr$watershed_feature_id, sites$watershed_feature_id)))
 
-# fetches each year of a gridded run one at a time, logging every file that was not cached
+# fetches each year of a gridded run one at a time; wet_pcic_fetch() reports every request it
+# makes (a retry or a refused one included) to the request log option, so each is logged with
+# the status it got. A cached year makes no request and logs nothing.
 fetch_run <- function(run, years) {
   for (v in vars) for (y in years) {
-    before <- list.files(pcic_dir)
-    t0 <- Sys.time()
-    f <- wet_pcic_fetch(v, bbox, sprintf("%d-01-01", y), sprintf("%d-12-31", y), run = run, dir = pcic_dir)
-    if (!basename(f) %in% before) {
-      fetch_log(f_log, "services", paste(run, v, y), 1L, 200L, file.size(f),
-                as.numeric(Sys.time() - t0, units = "secs"), basename(f))
-    }
+    what <- paste(run, v, y)
+    old <- options(wet.pcic_request_log = function(url, status, bytes, secs) {
+      fetch_log(f_log, "services", what, 1L, status, bytes, secs, sub("\\?.*$", "", basename(url)))
+    })
+    wet_pcic_fetch(v, bbox, sprintf("%d-01-01", y), sprintf("%d-12-31", y), run = run, dir = pcic_dir)
+    options(old)
   }
 }
 run_files <- function(run, years) {

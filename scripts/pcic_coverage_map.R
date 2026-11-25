@@ -84,7 +84,7 @@ cls <- function(layer, expect) {
   list(values = x$values[expect], labels = stats::setNames(x$labels, names(x$values))[expect])
 }
 pal_pub <- cls("coverage_published", c("both", "routed on part", "balance alone"))
-scen_lev <- intersect(c("CMIP6 routed", "CMIP5 gridded", "part or mixed", "none"), grp$class_scen)
+scen_lev <- intersect(c("CMIP6 routed", "CMIP5 gridded", "undecided", "part or mixed", "none"), grp$class_scen)
 pal_scen <- cls("coverage_scenarios", scen_lev)
 lines <- cls("coverage_lines", c("group", "bc", "river"))
 ln <- reg$layers$coverage_lines$classification$classes

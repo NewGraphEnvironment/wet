@@ -96,6 +96,13 @@ listing <- function(subid, dir, f_log, fetch, host = "https://services.pacificcl
     } else if (r$code != 200L) {
       stop("listing of outlet ", subid, " answered ", r$code, call. = FALSE)
     }
+    # a 200 that is not a listing (an HTML page, a cut body) is refused, not cached
+    body <- tryCatch(jsonlite::fromJSON(tmp), error = function(e) NULL)
+    if (!(is.list(body) && length(body) == 0L) &&
+          !(is.data.frame(body) && all(c("model", "scenario", "variable", "start_time", "end_time",
+                                          "num_times") %in% names(body)))) {
+      stop("listing of outlet ", subid, " answered 200 with no listing in it; not cached", call. = FALSE)
+    }
     con <- gzfile(paste0(f, ".tmp"), "w")
     writeLines(readLines(tmp, warn = FALSE), con)
     close(con)

@@ -44,3 +44,8 @@ it is kept: an HTML page saved under a \code{.nc} name, or a file on another
 calendar, is exactly how a download goes wrong silently. A file already in
 the cache is returned as it is, unread. Requests carry the user agent \code{wet}.
 }
+\details{
+A function set as option \code{wet.pcic_request_log}, taking \verb{(url, status, bytes, secs)}, is called after every request this makes, a retry or a
+refused one included (\code{status} 0 where curl itself failed), so a caller can
+keep a record of each request.
+}

@@ -9,6 +9,11 @@
 #' calendar, is exactly how a download goes wrong silently. A file already in
 #' the cache is returned as it is, unread. Requests carry the user agent `wet`.
 #'
+#' A function set as option `wet.pcic_request_log`, taking `(url, status,
+#' bytes, secs)`, is called after every request this makes, a retry or a
+#' refused one included (`status` 0 where curl itself failed), so a caller can
+#' keep a record of each request.
+#'
 #' @inheritParams wet_pcic_url
 #' @inheritParams wet_pcic_index
 #' @param dir Cache directory.
@@ -36,7 +41,12 @@ wet_pcic_fetch <- function(variable, bbox, start, end,
   tries <- 5L
   for (k in seq_len(tries)) {
     unlink(tmp)
-    res <- wet_http_disk(url, tmp, timeout)
+    t0 <- Sys.time()
+    res <- tryCatch(wet_http_disk(url, tmp, timeout), error = function(e) {
+      wet_request_log(url, 0L, tmp, t0)
+      stop(e)
+    })
+    wet_request_log(url, res$status, tmp, t0)
     if (!res$status %in% c(429L, 503L)) break
     if (k == tries) {
       stop("PCIC answered HTTP ", res$status, " on ", tries, " tries for ", url,
@@ -77,6 +87,16 @@ wet_http_disk <- function(url, path, timeout) {
 }
 
 wet_wait <- function(seconds) Sys.sleep(seconds)
+
+# Calls option wet.pcic_request_log, when it is a function, with one request's outcome.
+wet_request_log <- function(url, status, path, t0) {
+  f <- getOption("wet.pcic_request_log")
+  if (is.function(f)) {
+    f(url, as.integer(status), if (file.exists(path)) file.size(path) else 0,
+      as.numeric(Sys.time() - t0, units = "secs"))
+  }
+  invisible()
+}
 
 # NetCDF classic/64-bit ("CDF\001", "CDF\002", "CDF\005") or NetCDF-4/HDF5.
 wet_is_netcdf <- function(path) {

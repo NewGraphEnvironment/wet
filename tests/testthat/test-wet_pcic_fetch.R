@@ -115,3 +115,25 @@ test_that("a NetCDF holding other days is refused and not cached", {
   expect_error(fetch_one(dir), "holds other days")
   expect_length(list.files(dir), 0L)
 })
+
+test_that("every request is reported to the request log, retries and failures included", {
+  dir <- withr::local_tempdir()
+  seen <- integer()
+  withr::local_options(wet.pcic_request_log = function(url, status, bytes, secs) seen <<- c(seen, status))
+  calls <- 0L
+  local_mocked_bindings(
+    wet_http_disk = function(url, path, timeout) {
+      calls <<- calls + 1L
+      writeLines("busy", path)
+      if (calls == 1L) return(list(status = 429L, retry_after = 1))
+      list(status = 404L, retry_after = NA_real_)
+    },
+    wet_wait = function(seconds) invisible()
+  )
+  expect_error(fetch_one(dir), "HTTP 404")
+  expect_equal(seen, c(429L, 404L))
+  seen <- integer()
+  local_mocked_bindings(wet_http_disk = function(url, path, timeout) stop("Timeout was reached"))
+  expect_error(fetch_one(dir), "Timeout")
+  expect_equal(seen, 0L)
+})
