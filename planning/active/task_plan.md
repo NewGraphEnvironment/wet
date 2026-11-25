@@ -36,4 +36,4 @@ Batch 17 (#198): re-run `scripts/segment_output.R`, `scripts/segment_daily_outpu
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
-How each change is proved: the BUILD report's per-part line reads 512 of 512 identical to live, its tree parts md5 equals the live parts md5, and `git diff` of .
+How each change is proved: the BUILD report's per-part line reads 512 of 512 identical to live, its tree parts md5 equals the live parts md5, and the segment tables' md5s equal `_pre208`'s or each difference is attributed.
