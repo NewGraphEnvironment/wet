@@ -84,7 +84,7 @@ Change, Bulkley windows unless named, carried / extended, with the 90 % range:
   | site | spawning mean | migration mean | spawning min7 | migration min7 |
   |---|---|---|---|---|
   | Maxan | -66 % (-82..-36) | -30 % (-49..-4) | -65 % (-81..-37) | -42 % (-68..+3) |
-  | Naver | -35 % (-59..+2) | -13 % | -30 % (-52..+4) | -16 % |
+  | Naver | -35 % (-58..+2) | -13 % | -30 % (-52..+4) | -16 % |
   | Gosnell | -29 % (-48..-5) | -10 % | -37 % (-56..-15) | -20 % |
   | Gosnell, Morice windows | -16 % (-42..+23) | -14 % | -27 % (-48..+3) | -47 % (-66..-19) |
 
@@ -97,7 +97,7 @@ Change, Bulkley windows unless named, carried / extended, with the 90 % range:
 
 ## Swift and Naver under their own windows (#187)
 
-knowledge's life history table holds cited chinook windows for the upper Fraser and the Cottonwood since its #174 (rows added at 4e2d8a0c; their notes revised at a475dfe7 by knowledge#256, starts, ends and sources unchanged). `data-raw/life_history_data.R` reads the table at a475dfe7, while `data-raw/station_vignette_data.R` keeps BULK at c97c4d0; `lh_pin_guard()` stops the read unless every MORR row is unchanged in every column and every BULK row in every column but `note`, and unless BULK's chinook rows equal `life_history_bulk.csv`'s (`tests/testthat/test-life_history_pin.R`).
+knowledge's life history table holds cited chinook windows for the upper Fraser and the Cottonwood since its #174 (rows added at 4e2d8a0c; their notes revised at a475dfe7 by knowledge#256, starts, ends and sources unchanged). `data-raw/life_history_data.R` reads the table at a475dfe7, while `data-raw/station_vignette_data.R` keeps BULK at c97c4d0; `lh_pin_guard()` stops the read unless every MORR row is unchanged in every column and every BULK row in every column but `note`, and unless BULK's chinook migration and spawning rows equal `life_history_bulk.csv`'s (`tests/testthat/test-life_history_pin.R`).
 
 | group | migration (sources) | spawning (sources) |
 |---|---|---|
@@ -110,12 +110,12 @@ Both start migration a month before the Bulkley's (05-01 to 08-01) and spawn in 
 
 | site, windows | ships | spawning mean | migration mean | held-out carried NSE, migration / spawning |
 |---|---|---|---|---|
-| Swift, UFRA | distance (gain −0.021) | −15 % (−33..+6) | −6 % | 0.55 / 0.42 |
+| Swift, UFRA | distance (gain −0.021) | −15 % (−33..+5) | −6 % | 0.55 / 0.42 |
 | Swift, BULK | distance | −15 % (−32..+5) | −5 % | 0.51 / 0.43 |
 | Naver, COTR | covariance_pick (gain 0.139, leak-free 0.159) | −35 % (−59..+9) | −11 % | 0.74 / 0.56 |
-| Naver, BULK | covariance_pick | −35 % (−59..+2) | −13 % | 0.75 / 0.60 |
+| Naver, BULK | covariance_pick | −35 % (−58..+2) | −13 % | 0.75 / 0.60 |
 
 - **Own windows barely move the drop.** At both streams the spawning-window change is within a point of its value under the Bulkley windows, and neither range clears no change. Swift's filled-in route falls 32 % (−49..−6) under UFRA against 27 % under BULK; its OLS scores stay poor.
-- **Every interval's coverage** is 0.93 or more on mean and min7, both routes.
+- **Every UFRA and COTR interval's coverage** is 0.93 or more on mean and min7, both routes.
 - **Snow:** migration-window flow rises with peak SWE under both new window sets, carried and at both measured snow gauges, with ranges above zero. Swift's snow gauges under UFRA are 08LB038 and 08KA007 (under BULK, 08LB038 and 08KA001): the header's rule takes the nearest two with long records, and the complete years depend on the windows.
 - **The bundle** gains the two window sets' rows and two donor gauges used only under COTR (08JE001, 08KF001), which widen the article's Fraser map. The article reports the second window sets in one paragraph and keeps its figures on the Bulkley windows, as it did for the Morice.

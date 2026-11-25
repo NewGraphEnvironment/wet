@@ -547,7 +547,7 @@ for (id in names(own)) {
 }
 ```
 
-Swift and Naver creeks have cited windows too. Upper Fraser chinook enter the river from
+Swift and Naver creeks have cited windows too. Fraser River chinook enter the river from
 April [@bradford_taylor2023Diversityfreshwater, p. 131; citing @cosewic2018COSEWICAssessment],
 and Cottonwood River chinook pass the lower Fraser in April and May
 [@candy_etal2002discussionpaper, p. 22]. Spawner surveys

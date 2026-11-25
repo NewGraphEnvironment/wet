@@ -8,8 +8,8 @@
 # group's rows of knowledge's data/life_history_timing.csv at a pinned commit,
 # one row per species and life stage, keeping only rows with both a start and
 # an end, in life_history_bulk.csv's columns (data-raw/station_vignette_data.R
-# writes that one and is not touched here). knowledge is private, so its CSV
-# is read with `gh api`, which needs a GitHub login with access to the repo.
+# writes that one and is not touched here). knowledge's CSV is read with
+# `gh api`, which needs a GitHub login.
 #
 # Chinook windows, asserted below row by row with their exact sources:
 # - MORR: Bustard and Schell (2002) (migration 05-01..09-30, spawning
