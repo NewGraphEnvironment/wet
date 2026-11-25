@@ -71,3 +71,7 @@ mandate; the merge stays with me.
 ## Phase 5, 2026-11-25
 - research/pcic_scenarios.md (new), pcic_channel_scale.md's move-7 section revised in place, research/README.md row, CLAUDE.md (architecture, two script bullets, two data-source bullets). Every number traced to a report line or the coverage table; balance-alone groups and the coast's share of "routed on part" read from the table before writing them.
 - Next: Phase 6 (issues).
+
+## Phase 6, 2026-11-25
+- Filed #225 (the unscored products, split from #5). #5 retitled to the coverage report and map, body edited; closes with the PR. #4 retitled and rescoped in place (answer (a): the checks wait on PCIC), stays open. #169's body gained the carried scope. Nothing filed in fwapg (rule 4 did not run).
+- Next: /code-check branch, archive, PR.
