@@ -1,0 +1,20 @@
+Which copy of the province's 2021-2026 non-integrated discharge is current: the Aquarius portal (#190)
+Rules: the header of scripts/station_sources_portal.R. Counts and shares only; no portal value.
+
+The pick (rule 2), from the cached copies: provincial snapshot 20261028, Tool snapshot 20261028, days 2021-01-01 to 2026-10-27
+  provincial stations the Tool also lists, with a common 24-hour UTC day: 112; eligible (>= 365 days): 82
+  eligible stations' Tool-province days within 0.1 %: 80.9 % of 101250 station-days
+  station, role, common days, share within 0.1 %:
+    08NE0001  differs most     771    9.1 %
+    08MH0056  differs most    1508   22.4 %
+    08MH0054  differs most    1222   27.3 %
+    08NM0054  differs most    1101   29.0 %
+    08NM0050  differs most    1174   30.3 %
+    08NM0057  agrees          1037  100.0 %
+    08NM0004  agrees           853  100.0 %
+    08MH0016  agrees           843  100.0 %
+    07FC0001  drainage 07      811   99.9 %
+    08HB0031  drainage 08H    1674   99.8 %
+    08NM0002  drainage 08N    2109   94.7 %
+
+Pick only (WET_PORTAL_PICK_ONLY=1): no portal value read.
