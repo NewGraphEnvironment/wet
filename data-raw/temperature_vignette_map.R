@@ -25,8 +25,12 @@
 # The list's "network" attribute holds what the tree says in numbers: `orders`
 # (every tree segment of the basin by stream order, with the orders drawn),
 # `reaches`, `km`, `with_station` (segments holding a station) and `wscode`.
-# Its "provenance" adds the tree table and its row count to vm_layers()'s: the
-# database records no build for the tree, and the count names one.
+# Its "provenance" adds the tree table, its row count and an md5 of the
+# basin's segment ids in order to vm_layers()'s: the database records no build
+# for the tree, so the count and the md5 are what name the one drawn. The copy
+# drawn on 2026-11-25 has the 2026-10 build's 4,510,368 rows and no upstream
+# area column, so the additive-function step of the network check was not run
+# on this copy; the basin rule rests on the fork's record of that check.
 #
 # Every order is drawn. Measured on 2026-11-25 (planning/archive/*issue-220*):
 # at 200 m, about a pixel of a map this size, all 52,293 segments are 351 KB,
@@ -43,7 +47,10 @@ source("scripts/vignette_data_lib.R")  # vd_connect()
 source("scripts/vignette_map_lib.R")
 sf::sf_use_s2(FALSE)
 
-values <- readRDS(file.path("inst", "vignette-data", "temperature_values.rds"))
+f_values <- file.path("inst", "vignette-data", "temperature_values.rds")
+# the stations and the pick are the committed bundle's, so the two files are built from one
+if (length(vd_git("status", "--porcelain", "--", f_values))) stop("commit ", f_values, " first: its stations are drawn")
+values <- readRDS(f_values)
 basin <- values$basin
 hydat <- wb_hydat(wb_release())
 stopifnot(identical(format(as.Date(wet_hydat_release(hydat), "%Y%m%d")), values$provenance$hydat))
@@ -103,7 +110,10 @@ layers <- vm_layers(list(basin = tr$basin, tree = tr$tree, streams = clip(stream
 attr(layers, "network") <- list(orders = tr$orders, reaches = sum(tr$orders$segments), km = sum(tr$orders$km),
                                 with_station = length(unique(st$linear_feature_id)), wscode = tr$wscode)
 prov <- attr(layers, "provenance")
-prov$tree <- list(table = "whse_basemapping.fwa_stream_networks_mainflow_tree", rows = tree_rows)
+f_ids <- tempfile()
+writeLines(sprintf("%.0f", tr$ids), f_ids)
+prov$tree <- list(table = "whse_basemapping.fwa_stream_networks_mainflow_tree", rows = tree_rows,
+                  basin_ids_md5 = unname(tools::md5sum(f_ids)))
 attr(layers, "provenance") <- prov
 vm_write(layers, basename(out))
 print(vapply(layers, nrow, 0L))

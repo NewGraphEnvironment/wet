@@ -5,7 +5,25 @@
 #
 # Writes inst/vignette-data/temperature_values.rds: one station's year of
 # daily water temperature with a gap filled, its growing season and degree
-# days, the stations of its basin, and how the station-year was picked.
+# days, the stations of its basin, and how the station-year was picked:
+#   - basin: the row of scripts/temperature_basins.csv, with the main stem's
+#     watershed code
+#   - stations: the basin's temperature stations, each with its segment
+#   - pool: the stations the fill was fitted with (the row's sub-drainage)
+#   - candidates, pick: the rule's table (below) and the year it lands on;
+#     `run_days` and `run_edge` are each year's runs of missing days in the
+#     window and whether each touches an end of it, so the pick can be
+#     recomputed from the table
+#   - year: the picked year by day: `t_mean_c` (observed or filled), `filled`,
+#     the fill's interval, air temperature, open-loop air2stream (`s_open_c`),
+#     and `t_edge_c`, the same fill made with the last observed day before the
+#     gap hidden (a comparison, not the pick: `edge` says which day and what
+#     it does to the year's degree days)
+#   - season, gsdd: the growing season gsdd::gss() finds and its degree days,
+#     filled and unfilled
+#   - fit: the station's row of wet_temp_fill()'s fit
+#   - validation: the fill's held-out error, read from its tracked report
+#   - provenance
 #
 # THE RULES, written before the pick was computed.
 #
@@ -122,6 +140,13 @@ if (any(under & !snap$accepted)) {
 }
 basin_st <- snap$station_number[under]
 stopifnot(length(basin_st) > 0)
+basin$wscode <- main
+# a snap that was not accepted is placed by its best candidate's code: say which, so a station
+# left out of the basin that way is seen
+if (any(!snap$accepted)) {
+  message("snaps not accepted (none under ", main, "): ",
+          paste(snap$station_number[!snap$accepted], snap$wscode[!snap$accepted], collapse = "; "))
+}
 
 # ---- air, and the fill of the whole pool -----------------------------------------------------
 f_air <- file.path(cache, sprintf("%s_air_%s_%s.rds", basin$pool, substr(from, 1, 4), substr(to, 1, 4)))
@@ -155,7 +180,8 @@ cand <- do.call(rbind, lapply(basin_st, function(s) {
     long <- r[r$days > other_max, ]
     one <- nrow(long) == 1 && !long$edge
     data.frame(station_number = s, year = y, observed = g$observed, runs = nrow(r),
-               runs_over = nrow(long),
+               runs_over = nrow(long), run_days = paste(r$days, collapse = ","),
+               run_edge = paste(as.integer(r$edge), collapse = ","),
                gap_start = if (one) long$start else as.Date(NA),
                gap_end = if (one) long$end else as.Date(NA),
                gap_days = if (one) long$days else NA_integer_)
@@ -244,6 +270,24 @@ acc <- vapply(seq_len(nrow(season)), function(i) {
 }, 0)
 stopifnot(isTRUE(all.equal(acc, season$gsdd, tolerance = 1e-10)))
 
+# ---- the same fill with the day before the gap hidden -----------------------------------------
+# A comparison, not the pick: the fill restarts from every observed day, so the last one before
+# a gap sets where the fill begins. Hiding it shows what that one reading carries into the year.
+edge_day <- max(ws$date[ws$date < pick$gap_start])
+stopifnot(edge_day == pick$gap_start - 1)
+fill_edge <- wet_temp_fill(water[!(water$station_number == s & water$date == edge_day), ], air, pool = pool)
+fe <- fill_edge[fill_edge$station_number == s, ]
+year$t_edge_c <- fe$t_mean_c[match(days, fe$date)]
+# away from the hidden day and the gap the two fills hold the same observed days
+stopifnot(isTRUE(all.equal(year$t_edge_c[in_win & !year$filled & days != edge_day],
+                           year$t_mean_c[in_win & !year$filled & days != edge_day])))
+gap_sum <- function(col) sum(year[[col]][in_gap])
+edge <- list(date = edge_day, t_mean_c = year$t_mean_c[days == edge_day],
+             t_before_c = year$t_mean_c[days == edge_day - 1],
+             gsdd = value_of(wet_temp_gsdd(fe), s, y),
+             gap_filled = gap_sum("t_mean_c"), gap_edge = gap_sum("t_edge_c"), gap_open = gap_sum("s_open_c"))
+stopifnot(!is.na(edge$gsdd))
+
 # ---- the stations of the basin ----------------------------------------------------------------
 i <- match(basin_st, st$station_number)
 j <- match(basin_st, snap$station_number)
@@ -278,7 +322,7 @@ validation <- list(report = f_val, truth_station_years = as.integer(truth[[1]][2
 values <- list(
   basin = basin, stations = stations, pool = list(prefix = basin$pool, stations = length(pool_st)),
   candidates = cand, pick = pick, year = year, season = season,
-  gsdd = list(filled = gsdd_filled, unfilled = value_of(obs_gsdd, s, y)),
+  gsdd = list(filled = gsdd_filled, unfilled = value_of(obs_gsdd, s, y)), edge = edge,
   fit = as.list(f1), validation = validation,
   provenance = list(commit = commit, retrieved = format(retrieved), from = from, to = to, archive = root,
                     air = getOption("cd.daily_url", "https://stac-era5-land.s3.us-west-2.amazonaws.com/daily"),
@@ -286,10 +330,11 @@ values <- list(
                     cd = as.character(utils::packageVersion("cd")),
                     gsdd = as.character(utils::packageVersion("gsdd")))
 )
-# a rerun that changes no value keeps the committed file: the commit and the versions it ran on aside
+# a rerun that changes no value keeps the committed file: the commit, the day the archive was
+# read and the versions it ran on aside
 same <- function(a, b) {
   drop <- function(x) {
-    x$provenance[c("commit", "cd", "gsdd")] <- NULL
+    x$provenance[c("commit", "retrieved", "cd", "gsdd")] <- NULL
     x
   }
   identical(drop(a), drop(b))
