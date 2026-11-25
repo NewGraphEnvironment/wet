@@ -52,4 +52,6 @@ one row per qualifying station, with the complete years as attribute
 HYDAT's stations only. For natural stations outside HYDAT, the
 province's non-integrated network and the BC Water Tool's gauges, see
 [`wet_station_list()`](https://newgraphenvironment.github.io/wet/reference/wet_station_list.md)'s
-`regulation`.
+`regulation`; they are not donors, since none holds 10 years of
+1981–2010 record and on an estimated baseline they made carried
+departures worse.
