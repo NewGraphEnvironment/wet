@@ -11,9 +11,10 @@
 # code the recovery guard names, each marked (A1) below. No threshold moved.
 # Amendment 2, after the scores, from code review; no score moved (scripts/temp_baseline_rule.R
 # is as registered, and data/checks/temp_baseline.txt differs from its first commit only in the
-# code and frame it names). It is the "Recovery first" paragraph, marked (A2): what the guard
-# reads grew to the recovery and scoring scripts, both of the recovery's PASS lines, a frame key
-# that covers the stations' own fits, and a report held to HEAD's copy.
+# frame and code it names and in no longer printing wet's version). It is the "Recovery first"
+# paragraph, marked (A2): what the guard reads grew to the recovery and scoring scripts, both
+# of the recovery's PASS lines, a frame key over everything the frame holds, and a report held
+# to HEAD's copy.
 #
 # Truth. The station-years of scripts/temp_fill_validate.R (1 March - 30 November observed with
 #   no gap longer than 2 days), at the stations the holdout frame keeps

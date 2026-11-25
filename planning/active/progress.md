@@ -101,3 +101,30 @@
   turned a test red (a related station left in training; the statistic by station-year; unpaired
   years kept; the scoring script dropped from the md5; any lib md5 accepted; the donor interval
   ignoring spread).
+
+## Code-check round 4, 2026-11-25
+- Narrow, on round 3's fixes. Four findings, all `fragile`, all inside them (`review-round4.md`):
+  the frame key's column list was still by hand and missed `wscode` and `localcode`, which the
+  recovery reads for the direction of each related pair; the derived test of the md5's file
+  list followed functions and not constants; two round 3 tests stayed green with their defect
+  restored; Amendment 2's "differs only in the code and frame it names" left out the dropped
+  version line.
+- Fixed by removing the lists rather than extending them: `tb_frame_key()` hashes everything the
+  frame holds but the key (every column of every table under its name, the related pairs, the
+  provenance); the derived test maps every top-level object of `R/` to its file by parsing, and
+  walks constants as well as functions; the frame-key test walks every column of every table
+  rather than naming some; the load test stubs every later read of the files. The amendment is
+  reworded. The key changes with its definition again; no score moves.
+- Mutation table at e9929bcd (round 3's guards), in a scratch copy: the scorer stopped on all 20
+  planted defects (the 16 of round 2's table, plus a report modified and flagged
+  assume-unchanged, and a frame rds with a fit, a trait or a flag altered under its name); the
+  untouched copy reproduced the committed scores report byte for byte.
+- Lib mutations against the tests as they now stand, each turning a test red: a related station
+  left in training; the statistic by station-year; a reached file dropped from the md5 list; the
+  load returning a later read; the load not rechecking the files; the frame key skipping the
+  fit table, column names, list names, table names, or all but the first table; the reader not
+  recomputing the key; "committed" read from `git status`; a constant the fill reads moved to an
+  unhashed file. Two of these survived the tests as round 3 left them (the later read, found by
+  this table and by round 4; column names, found by this table) and are why the tests changed.
+- Reviewer agents so far on this task: one plan review and four code rounds. Rounds 2, 3 and 4
+  each found a defect inside the round before's fix, which is why it ran past three.

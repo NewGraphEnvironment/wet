@@ -263,6 +263,7 @@ test_that("loading refuses a lib other than the one hashed, before it loads anyt
 
 test_that("loading stops when a hashed file moves while it loads, and returns the md5 taken before", {
   l <- local_tb_lib()
+  no_reread <- local_tb_lib()  # a second copy of the lib, sourced before the directory changes
   root <- normalizePath(testthat::test_path("..", ".."))
   tmp <- withr::local_tempdir()
   for (f in l$tb_code_files) {
@@ -274,6 +275,11 @@ test_that("loading stops when a hashed file moves while it loads, and returns th
   loaded <- FALSE
   expect_identical(l$tb_code_load(lib_md5, load = function(envir) loaded <<- TRUE), l$tb_code_md5())
   expect_true(loaded)
+  # the md5 returned is of the hashes taken before the load: with every later read of the files
+  # made to fail, loading still returns it
+  first <- l$tb_code_md5()
+  assign("tb_code_md5", function(...) stop("a read of the files after the load"), no_reread)
+  expect_identical(no_reread$tb_code_load(lib_md5, load = function(envir) NULL), first)
   expect_silent(l$tb_code_same(l$tb_code_md5()))
   before <- l$tb_code_md5()
   # a file edited during the load: refused, whichever of the files it is
@@ -282,10 +288,12 @@ test_that("loading stops when a hashed file moves while it loads, and returns th
   expect_error(l$tb_code_same(before), "changed while this ran")
 })
 
-test_that("the frame's key covers the fits and the flags, and the reader recomputes it", {
+test_that("the frame's key covers every field the frame holds, and the reader recomputes it", {
   l <- local_tb_lib()
   st <- data.frame(station_number = c("a", "b", "c"), fold = c("f1", "f1", "f2"), lake = c(TRUE, FALSE, NA),
-                   regulated = c("natural", "regulated", "unflagged"), area_km2 = c(10, 200, 3000))
+                   regulated = c("natural", "regulated", "unflagged"), area_km2 = c(10, 200, 3000),
+                   wscode = c("100", "100.500000", "200"), localcode = c("100", "100.500000", "200"),
+                   lon = c(-125, -124, -123))
   for (t in l$tb_traits) st[[t]] <- c(1, 2, 3) * nchar(t)
   related <- matrix(FALSE, 3, 3, dimnames = list(st$station_number, st$station_number))
   related[1, 2] <- related[2, 1] <- TRUE
@@ -293,27 +301,59 @@ test_that("the frame's key covers the fits and the flags, and the reader recompu
              truth = data.frame(station_number = c("a", "a", "b", "c"), year = c(2011, 2012, 2011, 2013)),
              fit = data.frame(station_number = st$station_number, a1 = c(0.5, 0.4, 0.3), a2 = c(0.1, 0.1, 0.2),
                               a3 = c(0.15, 0.1, 0.3), rmse_open = c(1, 1.2, 0.9), rho = c(0.9, 0.95, 0.8),
-                              sigma = c(0.3, 0.4, 0.5), n_obs = c(400L, 900L, 2000L)))
+                              sigma = c(0.3, 0.4, 0.5), n_obs = c(400L, 900L, 2000L)),
+             dropped = data.frame(station_number = "d", reason = "too little record to fit"),
+             provenance = list(release = "20260717", run = "abc"))
   key <- l$tb_frame_key(fr)
   expect_match(key, "^[0-9a-f]{10}$")
-  # one value changed in one part of the frame
-  change <- function(part, col, i, value) {
-    g <- fr
-    g[[part]][[col]][i] <- value
-    g
+  # every column of every table, walked rather than listed: one value moved in each moves the key
+  another <- function(v) {
+    if (is.logical(v)) !(v %in% TRUE) else if (is.numeric(v)) v * 1.5 + 1 else paste0(v, "x")
   }
-  changed <- list(fit = change("fit", "a1", 2, 0.41), rho = change("fit", "rho", 1, 0.5),
-                  trait = change("stations", "elev", 3, st$elev[3] + 100),
-                  fold = change("stations", "fold", 2, "f2"), area = change("stations", "area_km2", 1, 11),
-                  lake = change("stations", "lake", 2, TRUE),
-                  regulated = change("stations", "regulated", 1, "regulated"),
-                  truth = change("truth", "year", 4, 2014))
-  changed$related <- fr
-  changed$related$related[1, 3] <- changed$related$related[3, 1] <- TRUE
-  for (k in names(changed)) expect_false(identical(l$tb_frame_key(changed[[k]]), key), label = k)
+  cells <- do.call(rbind, lapply(c("stations", "fit", "truth", "dropped"), function(part) {
+    data.frame(part = part, col = setdiff(names(fr[[part]]), "station_number"))
+  }))
+  expect_gt(nrow(cells), 20)
+  for (r in seq_len(nrow(cells))) {
+    g <- fr
+    g[[cells$part[r]]][[cells$col[r]]][1] <- another(fr[[cells$part[r]]][[cells$col[r]]][1])
+    expect_false(identical(l$tb_frame_key(g), key), label = paste(cells$part[r], cells$col[r]))
+  }
+  g <- fr
+  g$related[1, 3] <- g$related[3, 1] <- TRUE
+  expect_false(identical(l$tb_frame_key(g), key))
+  g <- fr
+  g$provenance$run <- "abd"
+  expect_false(identical(l$tb_frame_key(g), key))
+  # a column added, renamed or moved between stations is another frame too
+  g <- fr
+  g$stations$extra <- 1
+  expect_false(identical(l$tb_frame_key(g), key))
+  g <- fr
+  g$stations[2:3, c("wscode", "localcode")] <- g$stations[3:2, c("wscode", "localcode")]
+  expect_false(identical(l$tb_frame_key(g), key))
+  g <- fr
+  names(g$stations)[names(g$stations) == "lon"] <- "lat"
+  expect_false(identical(l$tb_frame_key(g), key))
+  g <- fr
+  names(g$provenance) <- c("release", "province_run")
+  expect_false(identical(l$tb_frame_key(g), key))
+  g <- fr
+  names(g)[names(g) == "dropped"] <- "dropt"   # the same place in the order, another name
+  expect_false(identical(l$tb_frame_key(g), key))
+  # the key itself is not part of what it covers, and it survives a save and a read
+  expect_identical(l$tb_frame_key(c(fr, list(key = key))), key)
+  f_rt <- withr::local_tempfile(fileext = ".rds")
+  saveRDS(fr, f_rt)
+  expect_identical(l$tb_frame_key(readRDS(f_rt)), key)
   # below 6 significant digits is the same frame
-  expect_identical(l$tb_frame_key(change("fit", "a1", 2, 0.4 + 1e-9)), key)
+  g <- fr
+  g$fit$a1[2] <- 0.4 + 1e-9
+  expect_identical(l$tb_frame_key(g), key)
   expect_error(l$tb_frame_key(within(fr, fit <- fit[3:1, ])), "not in one order")
+  expect_error(l$tb_frame_key(fr[c("stations", "fit")]), "holds stations, fit, truth and related")
+  changed <- list(fit = fr)
+  changed$fit$fit$a1[2] <- 0.41
 
   # the reader refuses a file whose content moved under its name
   tmp <- withr::local_tempdir()
@@ -370,20 +410,33 @@ test_that("committed means the file is HEAD's blob, whatever git status would sa
   expect_false(l$tb_committed("report.txt"))
 })
 
-test_that("every wet function the scoring path reaches lives in a file the code md5 names", {
+test_that("every wet object the scoring path reaches is defined in a file the code md5 names", {
   l <- local_tb_lib()
   testthat::skip_if_not_installed("codetools")
   find_globals <- utils::getFromNamespace("findGlobals", "codetools")
   root <- testthat::test_path("..", "..")
   ns <- asNamespace("wet")
-  # entry points: every wet function named in the scoring path's own files; of
+  # where each object of the package is defined: every top-level assignment in R/, read from
+  # the files, so a constant counts as much as a function and no source reference is needed
+  defs <- do.call(rbind, lapply(list.files(file.path(root, "R"), "[.]R$", full.names = TRUE), function(f) {
+    ex <- parse(f, keep.source = FALSE)
+    nm <- unlist(lapply(ex, function(e) {
+      if (is.call(e) && (identical(e[[1]], as.name("<-")) || identical(e[[1]], as.name("="))) && is.name(e[[2]])) {
+        as.character(e[[2]])
+      }
+    }))
+    if (length(nm)) data.frame(name = nm, file = basename(f))
+  }))
+  expect_false(anyDuplicated(defs$name) > 0)
+  file_of <- stats::setNames(defs$file, defs$name)
+  # entry points: every wet object named in the scoring path's own files; of
   # scripts/temp_fill_validate.R only `gsdd_year` is taken, so only its definition is read
   own <- setdiff(grep("^scripts/", l$tb_code_files, value = TRUE), "scripts/temp_fill_validate.R")
   taken <- new.env()
   l$tb_take(file.path(root, "scripts/temp_fill_validate.R"), "gsdd_year", taken)
   src <- c(unlist(lapply(file.path(root, own), readLines)), deparse(taken$gsdd_year))
-  named <- unique(unlist(regmatches(src, gregexpr("\\bwet_[A-Za-z0-9_.]+(?=\\()", src, perl = TRUE))))
-  entry <- named[vapply(named, function(n) exists(n, ns, inherits = FALSE) && is.function(get(n, ns)), logical(1))]
+  named <- unique(unlist(regmatches(src, gregexpr("\\bwet_[A-Za-z0-9_.]+", src, perl = TRUE))))
+  entry <- intersect(named, names(file_of))
   expect_true(all(c("wet_fill_prepare", "wet_a2s_fit", "wet_a2s_run", "wet_donor_mean", "wet_fwa_upstream",
                     "wet_temp_gsdd", "wet_md5_text") %in% entry))
   reached <- character()
@@ -393,15 +446,13 @@ test_that("every wet function the scoring path reaches lives in a file the code 
     todo <- todo[-1]
     if (n %in% reached) next
     reached <- c(reached, n)
-    g <- find_globals(get(n, ns), merge = TRUE)
-    todo <- c(todo, g[vapply(g, function(x) exists(x, ns, inherits = FALSE) && is.function(get(x, ns)), logical(1))])
+    obj <- get(n, ns)
+    if (is.function(obj)) todo <- c(todo, intersect(find_globals(obj, merge = TRUE), names(file_of)))
   }
-  file_of <- vapply(reached, function(n) {
-    f <- utils::getSrcFilename(get(n, ns))
-    if (length(f)) f else NA_character_
-  }, character(1))
-  testthat::skip_if(anyNA(file_of), "the package was loaded without source references")
+  # a constant the fill reads is reached, so the walk is not of functions alone
+  expect_true("wet_air_gap" %in% reached)
   # wet_md5_text() builds the md5 itself, so a change to it moves every md5: it needs no entry
-  outside <- file_of[!file_of %in% basename(l$tb_code_files) & names(file_of) != "wet_md5_text"]
+  outside <- file_of[setdiff(reached, "wet_md5_text")]
+  outside <- outside[!outside %in% basename(l$tb_code_files)]
   expect_identical(unname(outside), character(0), info = paste(names(outside), outside, collapse = "; "))
 })

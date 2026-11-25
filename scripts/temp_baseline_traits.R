@@ -259,7 +259,7 @@ stopifnot(identical(fit$station_number, stations$station_number), all(fit$a3 > 0
 frame <- list(stations = stations, truth = truth, related = related, dropped = dropped, fit = fit,
               provenance = list(release = release, run = basename(key_dir), glacier = basename(g$f_gl),
                                 lake = basename(f_lk)))
-# the key is of what a score or the recovery reads from the frame (tb_frame_key()), fits included
+# the key is of everything the frame holds (tb_frame_key())
 key <- tb_frame_key(frame)
 frame$key <- key
 f_frame <- file.path(out_dir, sprintf("frame_%s.rds", key))

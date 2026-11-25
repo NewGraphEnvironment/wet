@@ -28,23 +28,32 @@ tb_take <- function(file, what, envir) {
 # The traits every candidate reads, in the rule's order (scripts/temp_baseline.R).
 tb_traits <- c("elev", "e_km", "n_km", "snowmelt_doy_50", "swe_max", "log_area", "glacier", "lake_cover")
 
-# The frame's key: 10 hex over what a score or the recovery reads from it. The stations with
-# their folds, traits, area, lake-outlet and regulation flags; each station's own fit; the truth
-# station-years; and the related pairs. Numbers enter at 6 significant digits. The writer names
-# the frame by it and the reader recomputes it, so a frame file whose content moved is refused.
+# The frame's key: 10 hex over everything the frame holds but the key itself. Every column of
+# every table (the stations, their own fits, the truth station-years, the dropped stations), the
+# related pairs and the provenance, each under its name. Nothing is picked by hand, so a field a
+# script reads cannot be outside it. Numbers enter at 6 significant digits. The writer names the
+# frame by it and the reader recomputes it, so a frame file whose content moved is refused.
 tb_frame_key <- function(fr) {
-  st <- fr$stations
-  fit <- fr$fit
-  if (!identical(fit$station_number, st$station_number) || !identical(rownames(fr$related), st$station_number)) {
+  if (!is.list(fr) || !all(c("stations", "fit", "truth", "related") %in% names(fr))) {
+    stop("a frame holds stations, fit, truth and related", call. = FALSE)
+  }
+  if (!identical(fr$fit$station_number, fr$stations$station_number) ||
+        !identical(rownames(fr$related), fr$stations$station_number)) {
     stop("the frame's stations, fits and related pairs are not in one order", call. = FALSE)
   }
-  txt <- function(d) {
-    do.call(paste, c(lapply(d, function(v) if (is.numeric(v)) formatC(v, digits = 6, format = "g") else as.character(v)),
-                     sep = "|"))
+  txt <- function(v) if (is.numeric(v)) formatC(v, digits = 6, format = "g") else as.character(v)
+  part <- function(v) {
+    if (is.data.frame(v)) {
+      c(paste(names(v), collapse = "|"), do.call(paste, c(lapply(v, txt), sep = "|")))
+    } else if (is.matrix(v)) {
+      c(paste(dim(v), collapse = "x"), txt(v))
+    } else {
+      u <- unlist(v)
+      c(paste(names(u), collapse = "|"), txt(u))
+    }
   }
-  canon <- c(txt(st[c("station_number", "fold", "lake", "regulated", "area_km2", tb_traits)]),
-             txt(fit[c("a1", "a2", "a3", "rmse_open", "rho", "sigma", "n_obs")]),
-             paste(fr$truth$station_number, fr$truth$year), which(fr$related))
+  held <- sort(setdiff(names(fr), "key"), method = "radix")
+  canon <- unlist(lapply(held, function(k) c(paste0("#", k), part(fr[[k]]))))
   substr(wet:::wet_md5_text(canon), 1, 10)
 }
 
