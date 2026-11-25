@@ -27,7 +27,9 @@
 #             the stations upstream of the held-out one, and one that removes only those
 #             downstream. Each must read z below -3 on every component. The other two
 #             candidates use neighbours little or not at all, so their z says little about a
-#             pool. The report is written either way; a failing one says FAIL and the run stops.
+#             pool.
+# The tracked report is removed when a run starts and written when it finishes, saying PASS or
+# FAIL, so a run that stops anywhere leaves no passing report behind it.
 #   Also the regression's coefficients against the known ones, and one set with no network part
 #   and no noise, where the regression must return theta exactly.
 #
@@ -51,6 +53,9 @@ lib <- "scripts/temp_baseline_lib.R"
 lib_md5 <- tools::md5sum(lib)
 source(lib)
 code <- tb_code_load(lib_md5)
+# only a run that finishes leaves a report: a stop below cannot leave the last run's PASS standing
+f_report <- file.path("data", "checks", "temp_baseline_recover.txt")
+unlink(f_report)
 options(width = 160)
 stamp <- function(...) message(format(Sys.time(), "%H:%M:%S"), " ", ...)
 n_sim <- 1600
@@ -267,8 +272,8 @@ lines <- c(
   "## Refitted theta against the simulated theta, every station of every set",
   fmt(fit_tab))
 tb_code_same(code)
-# written either way: a failing report replaces a passing one, so nothing scores on a stale PASS
-writeLines(lines, file.path("data", "checks", "temp_baseline_recover.txt"))
+# a failing run writes its failing report
+writeLines(lines, f_report)
 cat(lines, sep = "\n")
 if (!leak_ok || !fires) {
   stop("the leak-free check ", if (!leak_ok) "failed" else "could not see a leak it was shown",

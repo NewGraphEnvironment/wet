@@ -28,6 +28,26 @@ tb_take <- function(file, what, envir) {
 # The traits every candidate reads, in the rule's order (scripts/temp_baseline.R).
 tb_traits <- c("elev", "e_km", "n_km", "snowmelt_doy_50", "swe_max", "log_area", "glacier", "lake_cover")
 
+# The frame's key: 10 hex over what a score or the recovery reads from it. The stations with
+# their folds, traits, area, lake-outlet and regulation flags; each station's own fit; the truth
+# station-years; and the related pairs. Numbers enter at 6 significant digits. The writer names
+# the frame by it and the reader recomputes it, so a frame file whose content moved is refused.
+tb_frame_key <- function(fr) {
+  st <- fr$stations
+  fit <- fr$fit
+  if (!identical(fit$station_number, st$station_number) || !identical(rownames(fr$related), st$station_number)) {
+    stop("the frame's stations, fits and related pairs are not in one order", call. = FALSE)
+  }
+  txt <- function(d) {
+    do.call(paste, c(lapply(d, function(v) if (is.numeric(v)) formatC(v, digits = 6, format = "g") else as.character(v)),
+                     sep = "|"))
+  }
+  canon <- c(txt(st[c("station_number", "fold", "lake", "regulated", "area_km2", tb_traits)]),
+             txt(fit[c("a1", "a2", "a3", "rmse_open", "rho", "sigma", "n_obs")]),
+             paste(fr$truth$station_number, fr$truth$year), which(fr$related))
+  substr(wet:::wet_md5_text(canon), 1, 10)
+}
+
 # The holdout frame the tracked report names (scripts/temp_baseline_traits.R writes both).
 tb_frame_report <- file.path("data", "checks", "temp_baseline_frame.txt")
 tb_frame_read <- function(dir = file.path("data", "temp_baseline")) {
@@ -40,6 +60,7 @@ tb_frame_read <- function(dir = file.path("data", "temp_baseline")) {
   if (!file.exists(f)) stop("the frame the report names is not here: ", f, call. = FALSE)
   fr <- readRDS(f)
   if (!identical(fr$key, key)) stop(f, " holds frame ", fr$key, call. = FALSE)
+  if (!identical(tb_frame_key(fr), key)) stop(f, " no longer holds the frame it is named for", call. = FALSE)
   fr
 }
 
@@ -284,33 +305,52 @@ tb_code_lib <- "scripts/temp_baseline_lib.R"
 tb_code_files <- c(tb_code_lib, "scripts/temp_baseline_rule.R", "scripts/temp_baseline_recover.R",
                    "scripts/temp_baseline.R", "scripts/temp_fill_validate.R", "R/wet_temp_fill.R",
                    "R/wet_temp_gsdd.R", "R/wet_donor_mean.R", "R/wet_cv_folds.R")
+tb_code_md5_of <- function(md5) wet:::wet_md5_text(paste(tb_code_files, unname(md5)))
 tb_code_md5 <- function(root = ".") {
   f <- file.path(root, tb_code_files)
   if (!all(file.exists(f))) stop("missing: ", paste(f[!file.exists(f)], collapse = ", "), call. = FALSE)
-  wet:::wet_md5_text(paste(tb_code_files, unname(tools::md5sum(f))))
+  tb_code_md5_of(tools::md5sum(f))
 }
-# Load what a score runs, and return the md5 of exactly what was loaded. The caller hashes this
-# lib before sourcing it and passes that md5 in; here every file tb_code_md5() names is hashed,
-# then the package is loaded, the rule sourced and `gsdd_year` taken from
-# scripts/temp_fill_validate.R into `envir`, then every file is hashed again. A file that moved
-# in between stops the run, so the md5 returned is of the code in memory.
-tb_code_load <- function(lib_md5, envir = parent.frame()) {
+# Load what a score runs, and return the md5 of what was loaded. The caller hashes this lib
+# before sourcing it and passes that md5 in. Here every file tb_code_md5() names is hashed, then
+# `load` runs (the package loaded, the rule sourced and `gsdd_year` taken from
+# scripts/temp_fill_validate.R into `envir`), then every file is hashed again. A file that moved
+# in between stops the run, and the md5 returned is of the first hashes, the ones taken before
+# anything was loaded, never a later read.
+tb_code_load <- function(lib_md5, envir = parent.frame(), load = tb_code_loader) {
   pre <- tools::md5sum(tb_code_files)
   if (anyNA(pre)) stop("missing: ", paste(tb_code_files[is.na(pre)], collapse = ", "), call. = FALSE)
   if (!identical(unname(pre[[tb_code_lib]]), unname(lib_md5))) {
     stop(tb_code_lib, " changed between its hash and its source(): run it again", call. = FALSE)
   }
-  devtools::load_all(quiet = TRUE)
-  sys.source("scripts/temp_baseline_rule.R", envir = envir)
-  tb_take("scripts/temp_fill_validate.R", "gsdd_year", envir)
+  load(envir)
   if (!identical(pre, tools::md5sum(tb_code_files))) {
     stop("a file tb_code_md5() names changed while it was being loaded: run it again", call. = FALSE)
   }
-  tb_code_md5()
+  tb_code_md5_of(pre)
+}
+tb_code_loader <- function(envir) {
+  devtools::load_all(quiet = TRUE)
+  sys.source("scripts/temp_baseline_rule.R", envir = envir)
+  tb_take("scripts/temp_fill_validate.R", "gsdd_year", envir)
 }
 tb_code_same <- function(md5) {
   if (!identical(tb_code_md5(), md5)) {
     stop("a file tb_code_md5() names changed while this ran: nothing was written, run it again", call. = FALSE)
   }
   invisible(md5)
+}
+
+# Is `f` committed exactly as it stands: the file's blob is the one HEAD holds at that path. Not
+# read from `git status`, which skips a path flagged assume-unchanged or skip-worktree and reads
+# as clean when the command fails. Either git call failing is FALSE.
+tb_committed <- function(f) {
+  one <- function(args) {
+    x <- suppressWarnings(system2("git", args, stdout = TRUE, stderr = FALSE))
+    if (!is.null(attr(x, "status")) || length(x) != 1L || !grepl("^[0-9a-f]{40,64}$", x)) NA_character_ else x[[1]]
+  }
+  if (!file.exists(f)) return(FALSE)
+  blob <- one(c("hash-object", "--", f))
+  head <- one(c("rev-parse", "--verify", "-q", paste0("HEAD:./", f)))
+  !is.na(blob) && !is.na(head) && identical(blob, head)
 }

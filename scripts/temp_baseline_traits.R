@@ -256,15 +256,12 @@ fit <- do.call(rbind, lapply(stations$station_number, function(s) {
 }))
 rownames(fit) <- NULL
 stopifnot(identical(fit$station_number, stations$station_number), all(fit$a3 > 0 & fit$a3 < 1))
-# The key is of what a score depends on: the stations, their traits to 6 significant digits,
-# their folds, the truth years and the related pairs.
-canon <- c(do.call(paste, c(lapply(stations[c("station_number", "fold", tb_traits)], function(x) {
-  if (is.numeric(x)) formatC(x, digits = 6, format = "g") else x
-}), sep = "|")), paste(truth$station_number, truth$year), which(related))
-key <- substr(wet:::wet_md5_text(canon), 1, 10)
-frame <- list(key = key, stations = stations, truth = truth, related = related, dropped = dropped, fit = fit,
+frame <- list(stations = stations, truth = truth, related = related, dropped = dropped, fit = fit,
               provenance = list(release = release, run = basename(key_dir), glacier = basename(g$f_gl),
                                 lake = basename(f_lk)))
+# the key is of what a score or the recovery reads from the frame (tb_frame_key()), fits included
+key <- tb_frame_key(frame)
+frame$key <- key
 f_frame <- file.path(out_dir, sprintf("frame_%s.rds", key))
 saveRDS(frame, f_frame)
 stamp("wrote ", f_frame)

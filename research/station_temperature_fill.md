@@ -84,9 +84,9 @@ Of the days in the Mar–Nov windows, 36 % are filled.
 
 ## A station with no record: a whole station held out
 
-**Verified:** 2026-11-25 · **Issue:** #213 · HYDAT 2026-07-17, province run `768876badf`, frame `bd5db3bd6b`
+**Verified:** 2026-11-25 · **Issue:** #213 · HYDAT 2026-07-17, province run `768876badf`, frame `1c62e46b83`
 
-**The answer.** Hide a station's whole record, predict its three air2stream parameters from its catchment, and run the model on its own air temperature. The best of three predictions misses a growing season's degree days by about 295 °C-days. With the station's own parameters the miss is 98, and with every station given the population's mean parameters it is 413. Each figure is the mean, over 209 held-out stations, of the station's mean absolute GSDD error over its complete seasons. Catchment traits recover about a third of what a record gives, and the gap that is left, about 200 °C-days, is twice the width of the band the cutthroat thresholds turn on (800 to 900 degree days). A per-reach estimate from traits alone cannot place a reach on one side of that band.
+**The answer.** Hide a station's whole record, predict its three air2stream parameters from its catchment, and run the model on its own air temperature. The best of three predictions misses a growing season's degree days by about 295 °C-days. With the station's own parameters the miss is 97, and with every station given the population's mean parameters it is 413. Each figure is the mean, over 209 held-out stations, of the station's mean absolute GSDD error over its complete seasons. Catchment traits recover about a third of what a record gives, and the gap that is left, about 200 °C-days, is twice the width of the band the cutthroat thresholds turn on (800 to 900 degree days). A per-reach estimate from traits alone cannot place a reach on one side of that band.
 
 **What was held out.** The 257 stations and 999 station-years of the fill's validation, less 48 stations:
 - 18 with fewer than 365 observed days, which `wet_temp_fill()` does not fit;
@@ -119,7 +119,7 @@ GSDD error is the mean over stations of each station's mean absolute error, in �
 
 **What the scores show.**
 - **The traits carry about a third of the signal.** Held out, the regression explains 30 % of the variance in the equilibrium intercept, 33 % in the slope and 19 % in the response rate (leak-free). The population mean also runs cold, by 118 to 122 °C-days on average; the regression's mean error is within 8.
-- **Neighbours on the same stream help the nearest-stations mean, not the regression.** Removing them costs the nearest-stations mean 11.5 °C-days and the regression 4.1. That is what neighbours are worth to these two candidates. What a model built to use the network adds is #223's question.
+- **Neighbours on the same stream help the nearest-stations mean more than the regression.** Removing them costs the nearest-stations mean 11.5 °C-days and the regression 4.1. That is what neighbours are worth to these two candidates. What a model built to use the network adds is #223's question.
 - **Lake outlets are where traits fail.** At the 32 lake outlets the regression misses by 408 °C-days leak-free, against 278 elsewhere; the benchmark is the same at both (102 and 97). Lake cover as a share of the basin does not capture a lake at the gauge.
 - **Regulated stations are worse** (376 against 260 at natural ones), with the same benchmark at both (96 and 99).
 - **Glacier-fed stations are not worse.** With a glacier upstream the regression misses by 267, and by 324 without. The benchmark is worse there (111 against 86).
@@ -138,7 +138,7 @@ GSDD error is the mean over stations of each station's mean absolute error, in �
 **Limits.**
 - The stations are gauges, mostly rivers, and the 48 dropped are not a random draw: lake-level gauges, small creeks and transboundary rivers are under-represented.
 - The simulation tests the path, not the size: it draws the three parameters independently, though at the real fits the intercept and slope offset each other (correlation −0.49).
-- Kriging on the stream network, the candidate that would use neighbours on purpose, is scored on this frame under this rule in #223. The scores it is set beside are in `data/temp_baseline/scores_bd5db3bd6b.rds`.
+- Kriging on the stream network, the candidate that would use neighbours on purpose, is scored on this frame under this rule in #223. The scores it is set beside are in `data/temp_baseline/scores_1c62e46b83.rds`.
 
 ## Using it
 

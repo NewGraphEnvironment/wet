@@ -9,6 +9,11 @@
 # Amendment 1, also before any real score (no candidate had predicted a real station): the truth
 # set's exclusions, the series a run starts on, which station-years the statistic reads, and the
 # code the recovery guard names, each marked (A1) below. No threshold moved.
+# Amendment 2, after the scores, from code review; no score moved (scripts/temp_baseline_rule.R
+# is as registered, and data/checks/temp_baseline.txt differs from its first commit only in the
+# code and frame it names). It is the "Recovery first" paragraph, marked (A2): what the guard
+# reads grew to the recovery and scoring scripts, both of the recovery's PASS lines, a frame key
+# that covers the stations' own fits, and a report held to HEAD's copy.
 #
 # Truth. The station-years of scripts/temp_fill_validate.R (1 March - 30 November observed with
 #   no gap longer than 2 days), at the stations the holdout frame keeps
@@ -66,11 +71,13 @@
 # sub-drainage, lake influence, glacier cover and HYDAT's regulation flag; and how often each
 # candidate's interval holds the station's own theta.
 #
-# Recovery first. This script refuses to score unless data/checks/temp_baseline_recover.txt is
-# committed and names (A1) the md5 of the code a score depends on as this run loaded it
-# (tb_code_load() in scripts/temp_baseline_lib.R) and the holdout frame it ran on
-# (scripts/temp_baseline_recover.R: every candidate on stations simulated from known
-# trait-to-parameter relationships with a part shared along the stream network).
+# Recovery first (A2). This script refuses to score unless data/checks/temp_baseline_recover.txt
+# is HEAD's copy of it (tb_committed()), says PASS for its leak-free check and for that check's
+# ability to fail, and names the md5 of the code as this run loaded it (tb_code_load(), over
+# tb_code_files in scripts/temp_baseline_lib.R) and the holdout frame as it stands
+# (tb_frame_key()). The recovery is scripts/temp_baseline_recover.R: every candidate on stations
+# simulated from known trait-to-parameter relationships with a part shared along the stream
+# network.
 # ---------------------------------------------------------------------------------------------
 
 # Needs data/temp_fill/ (scripts/temp_fill_validate.R's caches) and the frame. Writes
@@ -89,10 +96,7 @@ stopifnot(requireNamespace("gsdd", quietly = TRUE))
 fr <- tb_frame_read()
 f_recover <- file.path("data", "checks", "temp_baseline_recover.txt")
 if (!file.exists(f_recover)) stop(f_recover, " is missing: run scripts/temp_baseline_recover.R", call. = FALSE)
-tracked <- suppressWarnings(system2("git", c("ls-files", "--error-unmatch", "--", f_recover), stdout = TRUE,
-                                    stderr = TRUE))
-dirty <- system2("git", c("status", "--porcelain", "--", f_recover), stdout = TRUE)
-if (!is.null(attr(tracked, "status")) || length(dirty)) {
+if (!tb_committed(f_recover)) {
   stop(f_recover, " is not committed as it stands: commit the recovery run before scoring", call. = FALSE)
 }
 rec <- readLines(f_recover)

@@ -74,3 +74,30 @@
 - A defect inside a fix has now appeared, so the loop ends on an enumeration, not a quiet round.
 - Rerun: log `data/logs/213/recover_r2_*`; every number of the report but the code md5 and the
   new table is unchanged.
+
+## Code-check round 3, 2026-11-25
+- Asked for the mechanism and an enumeration. The mechanism (`review-round3.md`): a short token
+  (the frame key, the code md5, a `: PASS` line, "committed") stands for a sentence with "every"
+  or "as it stands" in it, and is computed from a hand-written list somewhere else. Its tables:
+  88 guards and 64 quantified or numeric claims; 11 and 5 rows wider than the code or report,
+  every one inside six findings. All six fixed at the mechanism:
+  1. the frame key is one function, `tb_frame_key()`, over the fits and flags as well as the
+     traits, folds, truth years and related pairs, and `tb_frame_read()` recomputes it;
+  2. the recovery removes its tracked report when it starts, so any stop leaves none;
+  3. `tb_code_load()` returns the md5 of the hashes taken before the load, not a third read;
+  4. "committed" is the file's blob against HEAD's (`tb_committed()`), not `git status`;
+  5. two wordings (97, not 98; neighbours help the donor mean "more than" the regression);
+  6. the header records Amendment 2: the guard's paragraph changed in review, after the scores,
+     with no score moved.
+- The hashed file list is now also checked by derivation: a test walks every wet function the
+  scoring path names and requires its source file to be in `tb_code_files`.
+- The frame key changes with its definition (it now covers the fits); frame and scores files
+  are renamed with it. No score moves.
+- Mutation table, run in a scratch copy at 26096074 before these fixes (the guards as round 2
+  left them): the scorer stopped on all 16 planted defects (recovery report deleted; modified
+  and uncommitted; another frame; another code md5; either PASS line turned to FAIL; one line
+  added to each of the nine hashed files; a frame report naming a frame not on disk), and the
+  untouched copy reproduced the committed scores report byte for byte. Six lib mutations each
+  turned a test red (a related station left in training; the statistic by station-year; unpaired
+  years kept; the scoring script dropped from the md5; any lib md5 accepted; the donor interval
+  ignoring spread).

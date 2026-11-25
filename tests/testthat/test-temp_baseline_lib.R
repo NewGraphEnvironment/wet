@@ -260,3 +260,148 @@ test_that("loading refuses a lib other than the one hashed, before it loads anyt
   withr::local_dir(withr::local_tempdir())
   expect_error(l$tb_code_load("x"), "missing")
 })
+
+test_that("loading stops when a hashed file moves while it loads, and returns the md5 taken before", {
+  l <- local_tb_lib()
+  root <- normalizePath(testthat::test_path("..", ".."))
+  tmp <- withr::local_tempdir()
+  for (f in l$tb_code_files) {
+    dir.create(dirname(file.path(tmp, f)), recursive = TRUE, showWarnings = FALSE)
+    file.copy(file.path(root, f), file.path(tmp, f))
+  }
+  withr::local_dir(tmp)
+  lib_md5 <- tools::md5sum(l$tb_code_lib)
+  loaded <- FALSE
+  expect_identical(l$tb_code_load(lib_md5, load = function(envir) loaded <<- TRUE), l$tb_code_md5())
+  expect_true(loaded)
+  expect_silent(l$tb_code_same(l$tb_code_md5()))
+  before <- l$tb_code_md5()
+  # a file edited during the load: refused, whichever of the files it is
+  expect_error(l$tb_code_load(lib_md5, load = function(envir) cat("\n", file = "R/wet_donor_mean.R", append = TRUE)),
+               "changed while it was being loaded")
+  expect_error(l$tb_code_same(before), "changed while this ran")
+})
+
+test_that("the frame's key covers the fits and the flags, and the reader recomputes it", {
+  l <- local_tb_lib()
+  st <- data.frame(station_number = c("a", "b", "c"), fold = c("f1", "f1", "f2"), lake = c(TRUE, FALSE, NA),
+                   regulated = c("natural", "regulated", "unflagged"), area_km2 = c(10, 200, 3000))
+  for (t in l$tb_traits) st[[t]] <- c(1, 2, 3) * nchar(t)
+  related <- matrix(FALSE, 3, 3, dimnames = list(st$station_number, st$station_number))
+  related[1, 2] <- related[2, 1] <- TRUE
+  fr <- list(stations = st, related = related,
+             truth = data.frame(station_number = c("a", "a", "b", "c"), year = c(2011, 2012, 2011, 2013)),
+             fit = data.frame(station_number = st$station_number, a1 = c(0.5, 0.4, 0.3), a2 = c(0.1, 0.1, 0.2),
+                              a3 = c(0.15, 0.1, 0.3), rmse_open = c(1, 1.2, 0.9), rho = c(0.9, 0.95, 0.8),
+                              sigma = c(0.3, 0.4, 0.5), n_obs = c(400L, 900L, 2000L)))
+  key <- l$tb_frame_key(fr)
+  expect_match(key, "^[0-9a-f]{10}$")
+  # one value changed in one part of the frame
+  change <- function(part, col, i, value) {
+    g <- fr
+    g[[part]][[col]][i] <- value
+    g
+  }
+  changed <- list(fit = change("fit", "a1", 2, 0.41), rho = change("fit", "rho", 1, 0.5),
+                  trait = change("stations", "elev", 3, st$elev[3] + 100),
+                  fold = change("stations", "fold", 2, "f2"), area = change("stations", "area_km2", 1, 11),
+                  lake = change("stations", "lake", 2, TRUE),
+                  regulated = change("stations", "regulated", 1, "regulated"),
+                  truth = change("truth", "year", 4, 2014))
+  changed$related <- fr
+  changed$related$related[1, 3] <- changed$related$related[3, 1] <- TRUE
+  for (k in names(changed)) expect_false(identical(l$tb_frame_key(changed[[k]]), key), label = k)
+  # below 6 significant digits is the same frame
+  expect_identical(l$tb_frame_key(change("fit", "a1", 2, 0.4 + 1e-9)), key)
+  expect_error(l$tb_frame_key(within(fr, fit <- fit[3:1, ])), "not in one order")
+
+  # the reader refuses a file whose content moved under its name
+  tmp <- withr::local_tempdir()
+  withr::local_dir(tmp)
+  dir.create("data/checks", recursive = TRUE)
+  dir.create("data/temp_baseline")
+  fr$key <- key
+  writeLines(c("a report", paste("frame:", key)), l$tb_frame_report)
+  f <- file.path("data", "temp_baseline", sprintf("frame_%s.rds", key))
+  saveRDS(fr, f)
+  expect_identical(l$tb_frame_read()$key, key)
+  saveRDS(c(changed$fit, list(key = key)), f)
+  expect_error(l$tb_frame_read(), "no longer holds the frame")
+  saveRDS(within(fr, key <- "0000000000"), f)
+  expect_error(l$tb_frame_read(), "holds frame 0000000000")
+  unlink(f)
+  expect_error(l$tb_frame_read(), "is not here")
+  writeLines("a report", l$tb_frame_report)
+  expect_error(l$tb_frame_read(), "names no frame")
+  unlink(l$tb_frame_report)
+  expect_error(l$tb_frame_read(), "is missing")
+})
+
+test_that("committed means the file is HEAD's blob, whatever git status would say", {
+  l <- local_tb_lib()
+  testthat::skip_if(Sys.which("git") == "", "no git")
+  tmp <- withr::local_tempdir()
+  withr::local_dir(tmp)
+  git <- function(...) {
+    system2("git", c("-c", "user.name=t", "-c", "user.email=t@example.invalid", ...), stdout = FALSE, stderr = FALSE)
+  }
+  testthat::skip_if(git("init", "-q") != 0, "git init failed")
+  dir.create("data/checks", recursive = TRUE)
+  f <- "data/checks/report.txt"
+  writeLines("Leak-free check: FAIL", f)
+  expect_false(l$tb_committed(f))                      # untracked
+  git("add", f)
+  expect_false(l$tb_committed(f))                      # staged, no commit yet
+  git("commit", "-q", "-m", "one")
+  expect_true(l$tb_committed(f))
+  writeLines("Leak-free check: PASS", f)
+  expect_false(l$tb_committed(f))                      # modified
+  # git status is blind to a flagged path; the blob comparison is not
+  git("update-index", "--assume-unchanged", f)
+  expect_identical(system2("git", c("status", "--porcelain", "--", f), stdout = TRUE), character(0))
+  expect_false(l$tb_committed(f))
+  git("update-index", "--no-assume-unchanged", f)
+  writeLines("Leak-free check: FAIL", f)
+  expect_true(l$tb_committed(f))
+  expect_false(l$tb_committed("data/checks/absent.txt"))
+  # outside a repository every answer is no
+  withr::local_dir(withr::local_tempdir())
+  writeLines("x", "report.txt")
+  expect_false(l$tb_committed("report.txt"))
+})
+
+test_that("every wet function the scoring path reaches lives in a file the code md5 names", {
+  l <- local_tb_lib()
+  testthat::skip_if_not_installed("codetools")
+  find_globals <- utils::getFromNamespace("findGlobals", "codetools")
+  root <- testthat::test_path("..", "..")
+  ns <- asNamespace("wet")
+  # entry points: every wet function named in the scoring path's own files; of
+  # scripts/temp_fill_validate.R only `gsdd_year` is taken, so only its definition is read
+  own <- setdiff(grep("^scripts/", l$tb_code_files, value = TRUE), "scripts/temp_fill_validate.R")
+  taken <- new.env()
+  l$tb_take(file.path(root, "scripts/temp_fill_validate.R"), "gsdd_year", taken)
+  src <- c(unlist(lapply(file.path(root, own), readLines)), deparse(taken$gsdd_year))
+  named <- unique(unlist(regmatches(src, gregexpr("\\bwet_[A-Za-z0-9_.]+(?=\\()", src, perl = TRUE))))
+  entry <- named[vapply(named, function(n) exists(n, ns, inherits = FALSE) && is.function(get(n, ns)), logical(1))]
+  expect_true(all(c("wet_fill_prepare", "wet_a2s_fit", "wet_a2s_run", "wet_donor_mean", "wet_fwa_upstream",
+                    "wet_temp_gsdd", "wet_md5_text") %in% entry))
+  reached <- character()
+  todo <- entry
+  while (length(todo)) {
+    n <- todo[1]
+    todo <- todo[-1]
+    if (n %in% reached) next
+    reached <- c(reached, n)
+    g <- find_globals(get(n, ns), merge = TRUE)
+    todo <- c(todo, g[vapply(g, function(x) exists(x, ns, inherits = FALSE) && is.function(get(x, ns)), logical(1))])
+  }
+  file_of <- vapply(reached, function(n) {
+    f <- utils::getSrcFilename(get(n, ns))
+    if (length(f)) f else NA_character_
+  }, character(1))
+  testthat::skip_if(anyNA(file_of), "the package was loaded without source references")
+  # wet_md5_text() builds the md5 itself, so a change to it moves every md5: it needs no entry
+  outside <- file_of[!file_of %in% basename(l$tb_code_files) & names(file_of) != "wet_md5_text"]
+  expect_identical(unname(outside), character(0), info = paste(names(outside), outside, collapse = "; "))
+})

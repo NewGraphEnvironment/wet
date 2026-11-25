@@ -1,5 +1,5 @@
 Holdout frame of the whole-station temperature baseline (#213)
-frame: bd5db3bd6b
+frame: 1c62e46b83
 HYDAT 20260717; province run 768876badf; glacier cache glacier_ws_a2874d628d.rds; lake cache lake_ws_37795e2f7b.rds
 lake cover reads 386025 FWA lakes (22479 km2) and 1812 manmade waterbodies (31 km2)
 

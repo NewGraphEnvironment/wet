@@ -1,6 +1,6 @@
 Recovery run of the whole-station temperature baseline (#213)
-frame: bd5db3bd6b
-code: 9b2ebd59b94e4347ed3816e7e89be0e7
+frame: 1c62e46b83
+code: e302db7b1897c09b4ff74db3557c3156
 stations 209; seed 213; 1600 parameter sets; 5 end-to-end sets
 theta's variance: traits 50 %, network 25 %, noise 25 %
 
