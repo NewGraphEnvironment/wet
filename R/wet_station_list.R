@@ -31,8 +31,10 @@
 #' stream its name or drainage area gives, part of its basin lies outside BC,
 #' a power licence or a licence that states no volume draws upstream, or its
 #' segment has no published flow; and
-#' `"natural"` otherwise. A natural station can serve as a donor where a
-#' natural record is needed. The status, its reasons and the shares are in
+#' `"natural"` otherwise. No natural station holds the 10 years of 1981–2010
+#' record a baseline needs, and on a baseline estimated from HYDAT gauges they made departures
+#' carried from donors worse at held-out HYDAT gauges, so they serve as records
+#' and held-out tests, not donors. The status, its reasons and the shares are in
 #' the package's `extdata/station_sources/regulation_<snapshot>.csv`. They
 #' use BC's dam register (contains information licensed under the Open
 #' Government Licence - British Columbia) and are computed from the

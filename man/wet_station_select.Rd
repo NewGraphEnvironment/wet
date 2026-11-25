@@ -38,5 +38,7 @@ therefore never qualify.
 \details{
 HYDAT's stations only. For natural stations outside HYDAT, the province's
 non-integrated network and the BC Water Tool's gauges, see
-\code{\link[=wet_station_list]{wet_station_list()}}'s \code{regulation}.
+\code{\link[=wet_station_list]{wet_station_list()}}'s \code{regulation}; they are not donors, since none holds
+10 years of 1981–2010 record and on an estimated baseline they made carried
+departures worse.
 }
