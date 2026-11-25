@@ -103,7 +103,8 @@ pool_st <- sort(unique(water$station_number), method = "radix")
 hydat <- wb_hydat(wb_release())
 st <- vm_stations(hydat, pool_st)
 if (anyNA(st$drainage_area_gross_km2)) {
-  stop("no gross drainage area in HYDAT for: ", paste(st$station_number[is.na(st$drainage_area_gross_km2)], collapse = ", "))
+  stop("no gross drainage area in HYDAT for: ",
+       paste(st$station_number[is.na(st$drainage_area_gross_km2)], collapse = ", "))
 }
 conn <- vd_connect()
 main <- DBI::dbGetQuery(conn, sprintf("
@@ -196,7 +197,9 @@ gap_max <- gap_days[2]
 if (!any(qualifies(gap_max))) gap_max <- gap_days_wide
 cand$qualifies <- qualifies(gap_max)
 print(cand[!is.na(cand$gap_days) | cand$qualifies, ], row.names = FALSE)
-if (!any(cand$qualifies)) stop("no station-year of ", basin$basin, " meets the rule, at ", gap_days_wide, " days either")
+if (!any(cand$qualifies)) {
+  stop("no station-year of ", basin$basin, " meets the rule, at ", gap_days_wide, " days either")
+}
 o <- order(abs(cand$gap_days - gap_target), -cand$year, cand$station_number, method = "radix")
 o <- o[cand$qualifies[o]]
 cand$picked <- seq_len(nrow(cand)) == o[1]
