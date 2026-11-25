@@ -60,7 +60,7 @@ counts them): run `/backlog-sweep` again, the backlog is not finished.
 | - [x] 4 | #166 | 6: monthly error at the gauges (3 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/175 | — | — | — |
 | - [x] 5 | #167 | 8: PCIC's per-year files at the sites (2 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/180 | — | — | — |
 | - [x] 6 | #168 | 9: the channel-scale pilot (1 issue) | done: https://github.com/NewGraphEnvironment/wet/pull/193 | A | — | opus |
-| - [ ] 7 | #169 | 10: scenarios and coverage (3 issues) | open: start here | A | 6 | fable then opus |
+| - [x] 7 | #169 | 10: scenarios and coverage (3 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/228 | A | 6 | fable then opus |
 | - [x] 8 | #179 | 7: stations beyond HYDAT (1 issue) | done: https://github.com/NewGraphEnvironment/wet/pull/194 | B | — | opus |
 | - [x] 9 | #186 | 11: the readers return pick, one list of non-inputs (2 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/197 | C | — | sonnet |
 | - [ ] 10 | #187 | 12: Swift and Naver creeks under their own windows (1 issue) | **waiting** on knowledge#256 (the owner, 2026-11-23: adopt the UFRA and COTR windows only once knowledge reads NuSEDS dates) | D | 18 | opus |
@@ -232,7 +232,7 @@ reads water temperature. Open work in fwapg asks whether to run Raven routing on
 
 ### 10. Scenarios and coverage
 
-- [ ] Carried by move 7, #169
+- [x] Carried by move 7, #169 (merged in https://github.com/NewGraphEnvironment/wet/pull/228)
 
 #205 re-verifies `research/pcic_hydrology.md`, which this move's choice of PCIC products rewrites.
 
