@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">wet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.45</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,6 +39,11 @@
       <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.5.0" id="wet-050">wet 0.5.0<a class="anchor" aria-label="anchor" href="#wet-050"></a></h2>
+<ul><li>
+<code><a href="../reference/wet_runoff_monthly.html">wet_runoff_monthly()</a></code> and <code><a href="../reference/wet_pcic_monthly.html">wet_pcic_monthly()</a></code> give a PCIC gridded run’s mean monthly totals; <code><a href="../reference/wet_pcic_fetch.html">wet_pcic_fetch()</a></code> reads its HTTP status, waits when PCIC asks it to, and refuses a download whose days are not the ones asked for (<a href="https://github.com/NewGraphEnvironment/wet/issues/169" class="external-link">#169</a>, <a href="https://github.com/NewGraphEnvironment/wet/issues/5" class="external-link">#5</a>). <code>inst/cartography/wet_coverage.csv</code> records which product covers each watershed group.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.45" id="wet-0445">wet 0.4.45<a class="anchor" aria-label="anchor" href="#wet-0445"></a></h2>
 <ul><li>No change to the package’s functions; <code><a href="../reference/wet_station_list.html">wet_station_list()</a></code> and <code><a href="../reference/wet_station_select.html">wet_station_select()</a></code> say what the test below found. The natural stations outside HYDAT (<a href="https://github.com/NewGraphEnvironment/wet/issues/211" class="external-link">#211</a>, <a href="https://github.com/NewGraphEnvironment/wet/issues/202" class="external-link">#202</a>) were tested as departure donors under a rule registered before any score (<code>scripts/departure_donors_rule.R</code>, report <code>data/checks/departure_donors_20260717_20261028.txt</code>). None holds the 10 years of 1981–2010 record a baseline needs, so the 33 with at least 3 complete window-years through 2024 were each given one estimated from HYDAT gauges; held out at HYDAT’s gauges, they made the carried migration-window departure worse (median paired difference in RMSE +0.032 leave-one-gauge-out, +0.015 leak-free, against a bar of −0.01). Donor selection stays HYDAT-only, and no site report moves.</li>

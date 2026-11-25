@@ -1,10 +1,14 @@
 # Download a PCIC VIC-GL subset over OPeNDAP
 
 Requests `VAR[t0:t1][lat0:lat1][lon0:lon1]` as NetCDF and caches it. The
-file is checked for a NetCDF signature before it is kept: an HTTP error
-or redirect page saved under a `.nc` name is exactly how a download goes
-wrong silently (PCIC moved hosts in 2026 and `curl` without `-L` saves
-the 301 body).
+download reads its HTTP status: a 429 or 503 (the server asking for
+less) waits for `Retry-After`, or 60 s doubling when none is given, and
+tries again, five tries in all; any other status but 200 stops. A 200 is
+checked for a NetCDF signature, and its days must be exactly `start` to
+`end`, before it is kept: an HTML page saved under a `.nc` name, or a
+file on another calendar, is exactly how a download goes wrong silently.
+A file already in the cache is returned as it is, unread. Requests carry
+the user agent `wet`.
 
 ## Usage
 
@@ -55,3 +59,10 @@ wet_pcic_fetch(
 ## Value
 
 Path to the NetCDF file.
+
+## Details
+
+A function set as option `wet.pcic_request_log`, taking
+`(url, status, bytes, secs)`, is called after every request this makes,
+a retry or a refused one included (`status` 0 where curl itself failed),
+so a caller can keep a record of each request.

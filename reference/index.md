@@ -78,8 +78,12 @@ route PCIC’s per-year sub-basin flows to FWA segments day by day.
   : Download a PCIC VIC-GL subset over OPeNDAP
 - [`wet_pcic_annual()`](https://newgraphenvironment.github.io/wet/reference/wet_pcic_annual.md)
   : Mean annual total per cell, fetched one year at a time
+- [`wet_pcic_monthly()`](https://newgraphenvironment.github.io/wet/reference/wet_pcic_monthly.md)
+  : Mean monthly total per cell, fetched one year at a time
 - [`wet_runoff_annual()`](https://newgraphenvironment.github.io/wet/reference/wet_runoff_annual.md)
   : Mean annual total per cell from a daily raster
+- [`wet_runoff_monthly()`](https://newgraphenvironment.github.io/wet/reference/wet_runoff_monthly.md)
+  : Mean monthly total per cell from a daily raster
 
 ## Watersheds and upstream accumulation
 

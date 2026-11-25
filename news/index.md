@@ -1,5 +1,19 @@
 # Changelog
 
+## wet 0.5.0
+
+- [`wet_runoff_monthly()`](https://newgraphenvironment.github.io/wet/reference/wet_runoff_monthly.md)
+  and
+  [`wet_pcic_monthly()`](https://newgraphenvironment.github.io/wet/reference/wet_pcic_monthly.md)
+  give a PCIC gridded run’s mean monthly totals;
+  [`wet_pcic_fetch()`](https://newgraphenvironment.github.io/wet/reference/wet_pcic_fetch.md)
+  reads its HTTP status, waits when PCIC asks it to, and refuses a
+  download whose days are not the ones asked for
+  ([\#169](https://github.com/NewGraphEnvironment/wet/issues/169),
+  [\#5](https://github.com/NewGraphEnvironment/wet/issues/5)).
+  `inst/cartography/wet_coverage.csv` records which product covers each
+  watershed group.
+
 ## wet 0.4.45
 
 - No change to the package’s functions;
