@@ -70,3 +70,7 @@ mandate; the merge stays with me.
 - `research/chinook_sites.md`: verified line, the windows sentence (`:21`), and a section "Swift and Naver under their own windows (#187)" (windows and sources, estimate caveat, header-source note, change and scores, snow gauges, bundle).
 - `CLAUDE.md`: the chinook-sites paragraph names each site's window sets and the separate pin with `lh_pin_guard()`; the shipped route holds under every window set; the article's cap 1,245.
 - Follow-up issue drafted in `followup-issue.md`; `gh issue create` refused by the auto-mode classifier ("Sensitive Information Leakage"), left for the owner.
+
+## Validation, 2026-11-25
+- Full suite (NOT_CRAN=true): 3543 pass, 1 fail (the vignette-data budget did not list the two new CSVs; fixed in 2291851, that file 263 pass); test-life_history_pin.R rerun after the round fixes: pass.
+- `/code-check branch`: four rounds (1: maps draw every window set's donors; 2: "a few visits" not in the source; 3: four scope shifts; 4: a defect inside round 3's fix, the Fraser entry widened), ended on an enumeration of the 41 added or rewritten sentences (`review-enumeration.md`); verdict in `review-verdict.md`. Readability: the rendered article was read before the rounds and its text diffed against main; re-rendered after round 4.

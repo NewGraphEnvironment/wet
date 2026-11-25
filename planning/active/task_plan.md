@@ -65,9 +65,9 @@ Review: the bundle script needs no logic change (`:130` loops every group; `:391
 
 ## Validation
 
-- [ ] Tests pass
-- [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
+- [x] Tests pass
+- [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
 Verification: Phase 1 by the guard and its restored defect, and `life_history_morr.csv` unchanged; Phase 2 by the BULK reports byte-identical and the Maxan parity test; Phase 3 by the bundle compared element by element with its expected differences named, every new sentence's `stopifnot()`, and the text diff of the rendered article; Phase 4 by grepping `research/` and `CLAUDE.md` for "No cited windows exist yet", "at every site", "Only the Morice" and "Bulkley's at all four".
