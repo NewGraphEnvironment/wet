@@ -46,6 +46,8 @@ The departure itself is cd's, in degrees C: `wet_window_stats(value = "t_mean_c"
 
 ## duckdb note
 
+**Two reads of the same archive differ in the last bits of the daily mean** (measured 2026-11-25, #220): of 47,430 station-days at the 25 stations of sub-drainage 08E, 2002–2025, `t_mean_c` differed on 22,201, by 7.1e-15 °C at most, while `t_min_c`, `t_max_c` and `n_hours` were identical. The mean is duckdb's `avg()` over hourly means of `avg()` over readings, taken in parallel in no fixed order. A file built from the daily means is therefore compared with a tolerance, not a checksum, until the order is fixed (#224).
+
 In the R client, duckdb 1.5.2 and 1.5.6, `epoch()` on a `TIMESTAMPTZ` autoloads the icu extension, and the query that triggers that autoload binds its arithmetic unreliably. Measured 2026-10-06, `epoch(TIMESTAMPTZ '2020-01-01 00:00:00+00') + 1.5` in 15 fresh R processes on 1.5.6:
 
 - 9 binder errors, `No function matches … '+(DOUBLE, DECIMAL(2,1))'` with an empty candidate list (once with the operator name missing);

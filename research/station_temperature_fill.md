@@ -94,3 +94,4 @@ Of the days in the Mar–Nov windows, 36 % are filled.
 - No seasonal hysteresis term. The monthly bias above is small enough not to need one at the gauges.
 - Validation is at ECCC gauges only; no logger series was held out.
 - The interval has no parameter uncertainty.
+- No screen for a reading that is not water beside a gap. The fill restarts from every observed day, so the last reading before a gap sets where it begins: at 08EE012 on 24 August 2020 (15.5 °C after 9.6 °C, air at 9.8 °C, no neighbour moving more than 0.5 °C) it carried 67 °C-days into the year's 1,460 (measured 2026-11-25, #220; the screen is #222).
