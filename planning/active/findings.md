@@ -60,3 +60,34 @@ Relates to #214
   training, and only the leak-free pool removes them. 97 stations have at least one.
 - The lake query (386,025 lakes and 1,812 manmade waterbodies against the fundamental
   watersheds) took about 4 minutes on the local database; cached as `lake_ws_37795e2f7b.rds`.
+
+## The recovery run (2026-11-25)
+
+**First run (log `data/logs/213/recover_20261125T1903*`), part 1 sound, part 2 mis-simulated.**
+
+- Part 1 (200 parameter sets, 43 s): bias under 0.04 of a unit everywhere; the regression's
+  held-out RMSE sits on the floor (1.283 against 1.246 for eq0); every candidate's 90 %
+  interval covers 0.895 to 0.903; the leak-free check passes (largest |z| 1.4), and in blocked
+  CV the donor mean shows the leak (z −3.1, −2.3, −3.5), the mean and the regression none.
+- Part 2 (5 end-to-end sets, 10 min) gave nonsense sizes: refitted eq0 RMSE 342 against a
+  simulated spread of 1.76, and the regression's GSDD error 1,403 °C-days with a range to
+  3,982. Cause, measured from the frame's fits: the simulated departure used each station's
+  fitted `rho` and `sigma`, and at the 19 stations with `rho` at or above 0.99 that implies a
+  stationary standard deviation up to 17.8 °C (median 1.2), where the real departure's is
+  `rmse_open`, at most 3.1 °C. The refit of such a series sends `a3` toward 0 and `a1 / a3` to
+  the hundreds, and one such station moves a mean or a regression. The real fits have no such
+  station (eq0 from −2.2 to 7.5).
+- Fix: the simulated departure keeps the station's `rho` and takes its observed spread
+  (`rmse_open`). What stays true and is worth saying: theta = `a1 / a3` is fragile wherever
+  `a3` is poorly identified, so a candidate's training set has to be checked for it; the real
+  frame passes.
+- Also seen: at the real fits eq0 and eq1 are correlated −0.49. The simulation draws the three
+  components independently, so its GSDD errors overstate real ones; part 2 tests the path.
+
+**Second run (log `data/logs/213/recover_20261125T1915*`), the one committed.** Part 1 is
+unchanged (same seed, same code). Part 2: refitted theta is within 0.18 (eq0), 0.016 (eq1) and
+0.07 (rate) of the simulated value at the median station, a tenth of the simulated spread; GSDD
+mean absolute error 120 °C-days for the run on the simulated parameters (the departure alone),
+93 for the refit, 413 for the regression, 471 to 481 for the donor mean and 598 for the
+population mean, in the order the simulation built in. Pools differ by 1 for the regression and
+10 for the donor mean.

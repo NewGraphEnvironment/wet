@@ -140,7 +140,7 @@ Mechanism, decided in the plan (mine, one line of why each):
       toy frame with known answers; the leak-free pool leaves no related station in training;
       the simulated network part is correlated only between connected pairs; empty and NA
       inputs.
-- [ ] `scripts/temp_baseline_recover.R`, fixed seed, 200 simulated parameter sets: bias, RMSE and
+- [x] `scripts/temp_baseline_recover.R`, fixed seed, 200 simulated parameter sets: bias, RMSE and
       90 % interval coverage per candidate, θ component and pool; the leak-free check (each
       candidate's leak-free error equals, within Monte Carlo error, its error when the held-out
       station's network part alone is replaced by an independent draw of the same variance);
@@ -151,7 +151,7 @@ Mechanism, decided in the plan (mine, one line of why each):
       by assertion). *Review:* replacing the network part everywhere, as first planned, also
       removes the correlation among training stations and is wrong for the donor mean; and the
       assertion cannot be against a truth that carries the departure.
-- [ ] Report `data/checks/temp_baseline_recover.txt` (naming the frame and `tb_code_md5()`, one
+- [x] Report `data/checks/temp_baseline_recover.txt` (naming the frame and `tb_code_md5()`, one
       md5 over every file a score depends on; *review:* not the lib and rule alone), log under
       `data/logs/213/`, committed before Phase 4 runs.
 

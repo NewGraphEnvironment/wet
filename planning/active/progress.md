@@ -27,3 +27,10 @@
   a test red (a related station left in training, the network part shared by all, theta not
   inverted, one pool enough to displace, exactly 50 not close).
 - Next: the recovery run (Phase 3), then the real scores
+
+## Phase 3, 2026-11-25
+- Completed: `scripts/temp_baseline_recover.R` and `data/checks/temp_baseline_recover.txt`
+  (frame `bd5db3bd6b`, code `b8cadd96`): leak-free check PASS, intervals cover 0.895 to 0.903,
+  the regression exact on the noise-free set. The first run's end-to-end part was mis-simulated
+  (findings, "The recovery run"); the committed report is the second run.
+- Next: the real scores (Phase 4), which refuse without this commit
