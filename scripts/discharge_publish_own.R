@@ -29,5 +29,7 @@ publish_own <- c(
   "scripts/channel_scale_pilot.R", "scripts/channel_scale_sites.csv",
   # PCIC's gridded readers and what scenarios and coverage build on (#169): R/wet_pcic_fetch.R is
   # called by the MAD and term scripts, not by the three table scripts or what they source
-  "R/wet_pcic_fetch.R", "R/wet_pcic_monthly.R", "R/wet_runoff_monthly.R"
+  "R/wet_pcic_fetch.R", "R/wet_pcic_monthly.R", "R/wet_runoff_monthly.R",
+  "scripts/scenario_basis.R", "scripts/scenario_basis_lib.R", "scripts/pcic_coverage.R",
+  "scripts/pcic_coverage_map.R"
 )
