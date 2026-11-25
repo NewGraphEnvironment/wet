@@ -1,3 +1,7 @@
+# wet 0.5.2
+
+* No change to the package's functions. Water temperature at a station with no record is scored under a rule registered before any score (`scripts/temp_baseline.R`, #213): with a whole station held out, air2stream parameters predicted from catchment traits miss growing-season degree days by about 295 °C-days at 209 stations, against 97 with a station's own parameters and 413 for the population mean, which is not close under the rule (`research/station_temperature_fill.md`). Network kriging on the same holdout is #223.
+
 # wet 0.5.1
 
 * A new article, Stream Temperature per Segment: How We Get There, shows in four figures what growing-season degree days are, where water temperature is measured in one basin, and the steps from stations to every stream reach (#220). No change to the package's functions.
