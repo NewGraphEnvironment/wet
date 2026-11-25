@@ -662,8 +662,8 @@ stopifnot(all(v$normal$pick == "pcic_routed"), all(v$daily$source[v$daily$pick] 
   measured, and about `r pct(pct_of(nerr$err_q75))` or more above at a quarter of them.
 - **The windows are the Bulkley's** at all four streams, and the flow figures show only those; Swift,
   Naver and Gosnell creeks also run under their own stocks'. The upper Fraser and Cottonwood
-  spawning windows rest on survey dates that are estimates from a few visits, so their edges are
-  uncertain.
+  spawning windows rest on survey estimates, not the first and last spawners seen, so their edges
+  are uncertain.
 - **Each filled-in year rests on one neighbouring gauge**, and the earliest years on
   whichever single gauge reaches back that far.
 - **Maxan Creek's borrowed `r ref_text` mean rests on `r few_ref$n_pre[1]` years**: its
