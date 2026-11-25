@@ -212,7 +212,7 @@ Changed by the plan review: #4 closes only when both rules ran; the unrun checks
 
 ## Owed at the end (reported, done after merge)
 
-- [ ] Any run log this worktree wrote under its own `data/logs/169/` moved into the main checkout's `data/logs/169/` before the worktree is removed.
+- [x] Any run log this worktree wrote under its own `data/logs/169/` moved into the main checkout's `data/logs/169/` before the worktree is removed.
 - [ ] Under answer (a) to open decision 1: PCIC's answer, when it comes, recorded in `research/pcic_hydrology.md`, and the registered checks run under it.
 
 ## Validation
