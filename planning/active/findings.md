@@ -70,3 +70,19 @@ Relates to #126, #147, #118.
 
 | Error | Resolution |
 |-------|------------|
+
+## Phase 2 runs, 2026-11-25 (m1, worktree wet-187)
+
+Logs: `data/logs/187/site_runs_20261125.log` and `{site,snow}_{swift,naver}_20261125.log` in the main checkout (14:31–14:44Z). Pre-run: cd's three ERA5-Land layers still CD_RUN_TIME 2026-10-10T22:36:36Z, CD_SHA 349f9d7 (as the BULK snow reports name); pcic.series rows md5 53c39c4e unchanged (every report prints it). All four `*_bulk_*` Swift and Naver reports rewrote byte-identical. Target complete migration years under the April-start windows: 08KA012 14 (1985–1998), 08KE014 18, as under BULK.
+
+| site, windows | section 6 verdict | carried spawning mean, 1951–1980 → 2016–2025 (90 %, cover) | carried migration mean | held-out carried NSE migration / spawning (section 3) |
+|---|---|---|---|---|
+| Swift, UFRA | distance (gain −0.021) | −15.5 % (−33.1..+5.5, 1.000) | −6.1 % | 0.55 / 0.42 |
+| Swift, BULK | distance | −15.3 % (−32.0..+5.1) | −4.8 % | (as tracked) |
+| Naver, COTR | covariance_pick (gain 0.139 / 0.159 leak-free) | covariance_pick −34.8 % (−59.4..+8.9, 0.952); distance −58.9 % (−77.6..−22.6) | covariance_pick −11.0 % | distance 0.63 / 0.41; covariance_pick 0.74 / 0.56 (section 6) |
+| Naver, BULK | covariance_pick | covariance_pick −35.2 % (−58.5..+2.0) | −13.0 % | |
+
+- Same verdicts as each stream's BULK run; the spawning-window change barely moves under its own windows at either stream (Swift −15 % both; Naver −35 % both), and neither range clears no change on the shipped route.
+- Swift's extended (filled-in) spawning mean: −31.7 % (−49.4..−6.1) under UFRA, against −27.5 % under BULK; ols scores stay poor there.
+- Swift UFRA's snow gauges are 08LB038 and 08KA007 (BULK's: 08LB038 and 08KA001): the header's rule (nearest two with long records) depends on the windows' complete years. Every migration-window SWE slope's range stays above zero (observed and carried, both new window sets).
+- Every new cover is ≥ 0.87 on mean and min7.
