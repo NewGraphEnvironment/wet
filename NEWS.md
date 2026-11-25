@@ -1,3 +1,11 @@
+# wet 0.5.0
+
+* `wet_runoff_monthly()` and `wet_pcic_monthly()` give a PCIC gridded run's mean monthly totals; `wet_pcic_fetch()` reads its HTTP status, waits when PCIC asks it to, and refuses a download whose days are not the ones asked for (#169, #5). `inst/cartography/wet_coverage.csv` records which product covers each watershed group.
+
+# wet 0.4.45
+
+* No change to the package's functions; `wet_station_list()` and `wet_station_select()` say what the test below found. The natural stations outside HYDAT (#211, #202) were tested as departure donors under a rule registered before any score (`scripts/departure_donors_rule.R`, report `data/checks/departure_donors_20260717_20261028.txt`). None holds the 10 years of 1981–2010 record a baseline needs, so the 33 with at least 3 complete window-years through 2024 were each given one estimated from HYDAT gauges; held out at HYDAT's gauges, they made the carried migration-window departure worse (median paired difference in RMSE +0.032 leave-one-gauge-out, +0.015 leak-free, against a bar of −0.01). Donor selection stays HYDAT-only, and no site report moves.
+
 # wet 0.4.44
 
 * `wet_station_list()`'s `regulation` is now each station's status from what sits upstream of it: natural, regulated or unknown (#196, #191). Of the 257 provincial and Water Tool stations, 75 are natural, 110 regulated and 72 unknown, from BC's dam register and water rights licences placed upstream on the Freshwater Atlas under a rule registered before it was applied (`scripts/station_regulation.R`, report `data/checks/station_regulation_20261028.txt`). A station is regulated where its name says so, an active dam in the register's regulated classes sits upstream, or licensed use or storage is at least 10 % of the segment's published mean annual flow; unknown where it cannot be placed, part of its basin is outside BC, or a power licence or one that states no volume draws upstream. The licence layer's terms allow only values wet computes to ship. `wet_station_select()` stays HYDAT-only; using the natural stations as donors is #202.

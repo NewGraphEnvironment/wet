@@ -1,0 +1,254 @@
+# Natural stations outside HYDAT as departure donors: the held-out test (#211, #202)
+
+HYDAT 20260717 (approved days); station snapshot 20261028 (provisional and unchecked days alike).
+Rule: the header of scripts/departure_donors_rule.R, registered at a7455e45; rule file md5 39cf1cd3462adf911eaef74bd9a2be9a.
+Windows: the Bulkley chinook migration (05-01..08-01) and spawning (08-01..09-15) windows; a complete window-year at min_frac 0.8; baseline 1981-2010.
+
+## 1. The population
+
+Natural stations outside HYDAT (wet_station_list(), regulation "natural"): 75 (provincial 52, Water Tool 23); 74 return days.
+Days returned: 69619. By source and status: bcenv provisional 29359; bcwatertool provisional 14778; bcenv unchecked 22996; bcwatertool unchecked 2486.
+Complete migration window-years (mean) per station: 0 at 16, 1 at 15, 2 at 8, 3 at 12, 4 at 16, 5 at 3, 6 at 1, 8 at 3, 9 at 1. At least 3: 36; at least 5: 8; at least 10: 0.
+Through 2024: at least 3: 33; at least 5: 5.
+In 1981-2010, per station: 0 at 71, 1 at 2, 3 at 1, 4 at 1. With at least 10 (a baseline): 0.
+In 1981-2010, over every statistic and window: the most usable window-years any station holds is 5; with at least 10: 0.
+Window-years: 185; by decade 1990s 1, 2000s 5, 2010s 89, 2020s 90. Every day unchecked in 58, every day provisional in 116, mixed in 11.
+With an upstream area at the placed segment (fwapg): 75 of 75.
+At a HYDAT site: 16; HYDAT's flag there natural at 12, regulated at 4, absent at 0.
+
+Against the rule header's counts as seen before registration (named where they differ, not corrected there):
+  stations       as seen   75, here   75
+  ge3            as seen   36, here   36
+  ge3_2024       as seen   33, here   33
+  base10         as seen    0, here    0
+  window_years   as seen  185, here  185
+  all_unchecked  as seen   58, here   58
+Held-out gauges (under any statistic and window) whose box holds at least one candidate: 225 of 392.
+  The header's proxy (44 of 274 HYDAT gauges with a station among their 5 nearest) is measured here on the migration mean: 75 of 390 held-out gauges have a station among the carry's donors.
+
+Site parity: the pools (box, extension, migration-mean departure) at 08KA012 are 30, 11, 13 and at 08KE014 58, 17, 24, the Swift and Naver site reports' counts lines.
+
+## 2. Held-out scores
+
+Per statistic and window and pool: gauges held out, scored, and not scored by reason; each carry's RMSE (log departure, days for cov_day) and the paired difference (with minus without; negative is better), quartiles; gauges better and worse; a 90 % interval on the median difference from 2,000 resamples of the gauges (set.seed(211)). max is reported, not scored.
+
+migration mean, leave-one-gauge-out: 390 held out, 50 scored; not scored: 0 scored years, under 3 337; 2 scored years, under 3 2; no HYDAT donor left 1.
+  RMSE without 0.140 0.275 0.343 | with 0.173 0.300 0.438 | difference -0.0020 0.0317 0.1014 (quartiles); better 16, worse 34, equal 0; median interval 0.0064..0.0629
+migration mean, leak-free: 390 held out, 53 scored; not scored: 0 scored years, under 3 334; 2 scored years, under 3 2; no HYDAT donor left 1.
+  RMSE without 0.146 0.274 0.339 | with 0.166 0.303 0.395 | difference -0.0021 0.0147 0.0922 (quartiles); better 17, worse 36, equal 0; median interval 0.0049..0.0523
+spawning mean, leave-one-gauge-out: 390 held out, 49 scored; not scored: 0 scored years, under 3 338; 2 scored years, under 3 2; no HYDAT donor left 1.
+  RMSE without 0.297 0.413 0.659 | with 0.365 0.582 0.872 | difference -0.0190 0.0975 0.2260 (quartiles); better 15, worse 34, equal 0; median interval 0.0541..0.1570
+spawning mean, leak-free: 390 held out, 52 scored; not scored: 0 scored years, under 3 335; 2 scored years, under 3 2; no HYDAT donor left 1.
+  RMSE without 0.263 0.412 0.601 | with 0.371 0.555 0.792 | difference -0.0082 0.0982 0.2486 (quartiles); better 15, worse 37, equal 0; median interval 0.0544..0.1778
+migration min7, leave-one-gauge-out: 388 held out, 46 scored; not scored: 0 scored years, under 3 339; 2 scored years, under 3 2; no HYDAT donor left 1.
+  RMSE without 0.242 0.405 0.624 | with 0.286 0.473 0.652 | difference -0.0785 0.0117 0.1036 (quartiles); better 20, worse 26, equal 0; median interval -0.0095..0.0401
+migration min7, leak-free: 388 held out, 49 scored; not scored: 0 scored years, under 3 336; 2 scored years, under 3 2; no HYDAT donor left 1.
+  RMSE without 0.243 0.408 0.592 | with 0.304 0.422 0.644 | difference -0.0579 0.0257 0.1047 (quartiles); better 19, worse 30, equal 0; median interval -0.0070..0.0498
+spawning min7, leave-one-gauge-out: 386 held out, 43 scored; not scored: 0 scored years, under 3 340; 2 scored years, under 3 2; no HYDAT donor left 1.
+  RMSE without 0.243 0.402 0.630 | with 0.320 0.521 0.918 | difference -0.0293 0.0257 0.2118 (quartiles); better 17, worse 26, equal 0; median interval -0.0116..0.0696
+spawning min7, leak-free: 386 held out, 45 scored; not scored: 0 scored years, under 3 338; 2 scored years, under 3 2; no HYDAT donor left 1.
+  RMSE without 0.262 0.389 0.587 | with 0.303 0.507 0.991 | difference -0.0228 0.0297 0.1448 (quartiles); better 18, worse 27, equal 0; median interval -0.0061..0.0696
+migration cov_day, leave-one-gauge-out: 389 held out, 36 scored; not scored: 0 scored years, under 3 350; 2 scored years, under 3 2; no HYDAT donor left 1.
+  RMSE without 3.230 4.810 7.245 | with 3.411 4.882 7.308 | difference -0.4492 -0.0824 0.4941 (quartiles); better 20, worse 16, equal 0; median interval -0.2742..0.1473
+migration cov_day, leak-free: 389 held out, 37 scored; not scored: 0 scored years, under 3 349; 2 scored years, under 3 2; no HYDAT donor left 1.
+  RMSE without 3.357 4.891 7.632 | with 3.339 4.799 7.743 | difference -0.5253 -0.0915 0.5245 (quartiles); better 21, worse 16, equal 0; median interval -0.3184..0.1055
+spawning cov_day, leave-one-gauge-out: 390 held out, 48 scored; not scored: 0 scored years, under 3 339; 2 scored years, under 3 2; no HYDAT donor left 1.
+  RMSE without 1.575 2.576 4.152 | with 1.841 3.138 4.446 | difference -0.1529 0.1761 0.7780 (quartiles); better 20, worse 28, equal 0; median interval -0.0425..0.2884
+spawning cov_day, leak-free: 390 held out, 51 scored; not scored: 0 scored years, under 3 336; 2 scored years, under 3 2; no HYDAT donor left 1.
+  RMSE without 1.648 2.507 4.251 | with 1.920 2.790 4.402 | difference -0.1940 0.1579 0.5192 (quartiles); better 23, worse 28, equal 0; median interval -0.0615..0.2450
+migration max, leave-one-gauge-out: 390 held out, 50 scored; not scored: 0 scored years, under 3 337; 2 scored years, under 3 2; no HYDAT donor left 1.
+  RMSE without 0.224 0.377 0.551 | with 0.258 0.397 0.694 | difference -0.0176 0.0229 0.1139 (quartiles); better 19, worse 31, equal 0; median interval 0.0066..0.0498
+migration max, leak-free: 390 held out, 53 scored; not scored: 0 scored years, under 3 334; 2 scored years, under 3 2; no HYDAT donor left 1.
+  RMSE without 0.224 0.378 0.521 | with 0.256 0.400 0.666 | difference -0.0179 0.0165 0.1052 (quartiles); better 23, worse 30, equal 0; median interval -0.0093..0.0487
+spawning max, leave-one-gauge-out: 390 held out, 49 scored; not scored: 0 scored years, under 3 338; 2 scored years, under 3 2; no HYDAT donor left 1.
+  RMSE without 0.349 0.565 0.819 | with 0.412 0.651 1.105 | difference -0.0301 0.0260 0.1905 (quartiles); better 20, worse 29, equal 0; median interval -0.0093..0.0618
+spawning max, leak-free: 390 held out, 52 scored; not scored: 0 scored years, under 3 335; 2 scored years, under 3 2; no HYDAT donor left 1.
+  RMSE without 0.338 0.529 0.789 | with 0.384 0.580 1.053 | difference -0.0223 0.0385 0.1905 (quartiles); better 18, worse 34, equal 0; median interval 0.0117..0.0917
+
+## 3. Verdict
+
+Migration-window mean: median paired difference 0.0317 leave-one-gauge-out (50 gauges), 0.0147 leak-free (53 gauges); the rule needs at most -0.01 in both, with at least 10 gauges each.
+VERDICT: the donor pool stays HYDAT-only (leave-one-out median difference 0.0317, not at most -0.01).
+
+## 4. Reported, deciding nothing
+
+Every 2011-2025 year both carries return (leave-one-gauge-out, migration mean), at the 75 gauges with a station among the donors: median difference 0.0186 over all years (n 52), 0.0317 in the years a station is among the donors (n 50), 0.0014 in the years none is (n 52).
+  Mean signed error (observed minus carried), median over scored gauges: without -0.0116, with -0.0211. Centred log NSE on the scored years, median: without 0.827, with 0.750.
+  Distinct stations behind the scored gauges: 25 (07FA0003, 07FC0002, 08HA0036, 08HB0007, 08HB0008, 08HB0010, 08HB0011, 08HB0019, 08HB0024, 08HB0031, 08HB0032, 08HD0003, 08JC0001, 08JC0005, 08JC0006, 08NH0001, 08NM0003, 08NM0004, 08NM0066, HRB2626, HRB2627, HRB2628, HRB2632, HRB2633, HRB2634).
+  Median difference by the station each gauge weighted most: 07FA0003 -0.1153 (n 2); 07FC0002 0.0079 (n 2); 08HA0036 0.3079 (n 4); 08HB0007 0.0458 (n 4); 08HB0008 -0.0882 (n 1); 08HB0010 0.0843 (n 1); 08HB0011 0.0262 (n 1); 08HB0019 0.0538 (n 2); 08HB0024 -0.0470 (n 2); 08HB0031 0.0064 (n 1); 08HD0003 0.3455 (n 4); 08JC0005 0.0640 (n 2); 08JC0006 -0.2243 (n 1); 08NH0001 0.0147 (n 7); 08NM0003 0.0113 (n 5); 08NM0004 0.0028 (n 5); 08NM0066 -0.0001 (n 1); HRB2626 0.1435 (n 1); HRB2633 0.0058 (n 3); HRB2634 -0.0015 (n 1).
+  Scored gauge-years whose HYDAT donors with the stations are not among those without: 0 of 263; with fewer HYDAT donors than without (a station took a place): 210 of 263.
+Every 2011-2025 year both carries return (leak-free, migration mean), at the 78 gauges with a station among the donors: median difference 0.0105 over all years (n 55), 0.0147 in the years a station is among the donors (n 53), 0.0006 in the years none is (n 55).
+  Mean signed error (observed minus carried), median over scored gauges: without 0.0041, with 0.0059. Centred log NSE on the scored years, median: without 0.821, with 0.745.
+  Distinct stations behind the scored gauges: 25 (07FA0003, 07FC0002, 08HA0036, 08HB0007, 08HB0008, 08HB0010, 08HB0011, 08HB0019, 08HB0024, 08HB0031, 08HB0032, 08HD0003, 08JC0001, 08JC0005, 08JC0006, 08NH0001, 08NM0003, 08NM0004, 08NM0066, HRB2626, HRB2627, HRB2628, HRB2632, HRB2633, HRB2634).
+  Median difference by the station each gauge weighted most: 07FA0003 -0.1153 (n 2); 07FC0002 0.0075 (n 3); 08HA0036 0.3079 (n 4); 08HB0007 0.0165 (n 4); 08HB0008 -0.0882 (n 1); 08HB0010 0.0843 (n 1); 08HB0011 0.0262 (n 1); 08HB0019 0.0538 (n 2); 08HB0024 -0.0470 (n 2); 08HB0031 0.0064 (n 1); 08HD0003 0.2925 (n 4); 08JC0005 0.0671 (n 2); 08JC0006 -0.2243 (n 1); 08NH0001 0.0083 (n 8); 08NM0003 0.0332 (n 6); 08NM0004 0.0028 (n 5); 08NM0066 -0.0001 (n 1); HRB2626 -0.0036 (n 1); HRB2633 0.0371 (n 3); HRB2634 0.0523 (n 1).
+  Scored gauge-years whose HYDAT donors with the stations are not among those without: 0 of 282; with fewer HYDAT donors than without (a station took a place): 217 of 282.
+
+Station eligibility over every held-out gauge, statistic and window (leave-one-gauge-out), gauge-station pairs by reason:
+  eligible 5720; fewer than 3 fit years 1383; no extension gauge covers its fit years 8
+
+Eligible stations on the migration mean (leave-one-gauge-out), one line each: fit years; held-out gauges it is eligible at; OLS slope on the nearest extension gauge, median (least..most); its most frequent extension chain (gauges using it):
+  07FA0003   2022 2023 2024                          21   1.25 (1.25..3.30)  07FB004 07FB008 07FB003 07FA005 07FB002 (3)
+  07FC0002   2021 2022 2023                          12   0.31 (0.31..1.37)  07FA005 07FA003 10CB001 07FB008 07FA006 (1)
+  08HA0036   2022 2023 2024                          38  -2.31 (-2.31..0.49)  08HA016 08HB048 08GA061 08GA047 08HB032 (12)
+  08HB0007   2017 2019 2020 2024                     41   0.91 (0.91..1.09)  08HB032 08HA001 08HA003 08GA047 08HA016 (18)
+  08HB0008   2013 2014 2015 2022                     38   0.76 (0.76..0.99)  08HB075 08HB025 08HB086 08HD023 08HB074 (7)
+  08HB0010   2017 2018 2019                          44   0.45 (0.45..0.80)  08GA047 08HA016 08GA077 08MH141 08HA001 (5)
+  08HB0011   2013 2014 2015 2022 2023 2024           42   1.26 (0.73..1.26)  08GA047 08HB048 08GA061 08HB086 08HB075 (5)
+  08HB0019   2019 2020 2021 2022 2023                38   1.49 (0.79..1.49)  08HB025 08HB075 08HB086 08HB032 08HB074 (4)
+  08HB0024   2022 2023 2024                          38   0.52 (0.52..0.93)  08HB075 08HB025 08HD023 08HB086 08HB048 (6)
+  08HB0031   2022 2023 2024                          43   1.22 (0.51..1.28)  08GA061 08GA047 08HA016 08HB032 08GA077 (6)
+  08HB0032   2022 2023 2024                          38   0.48 (0.48..1.30)  08HB075 08HB086 08GA047 08HB025 08HB032 (3)
+  08HD0003   2021 2022 2023 2024                     24  -0.46 (-2.50..-0.46)  08HD007 08HD011 08HD023 08HF004 08HB025 (6)
+  08JC0001   2017 2018 2019                          19   1.58 (1.58..4.41)  08JE004 07EE009 08JB002 08JB003 08KC001 (3)
+  08JC0002   2017 2018 2019                          19   0.73 (0.54..1.45)  08JE004 07EE009 08JB002 08JB003 08KC001 (2)
+  08JC0005   2017 2018 2019                          22   1.30 (0.69..3.33)  08JE004 08JB002 08JB003 07EE009 08KC001 (3)
+  08JC0006   2016 2017 2019                          21   0.73 (-1.53..1.67)  08JE004 08JB002 08JB003 07EE009 08KC001 (3)
+  08NH0001   2018 2019 2021 2022 2023 2024           48   1.39 (0.75..1.39)  08NJ026 08NJ061 08NE114 08NJ130 08NJ160 (11)
+  08NM0003   2018 2019 2020 2021 2022 2023 2024      39   1.55 (1.49..1.55)  08NM171 08NL050 08NL004 08NN015 08NL069 (13)
+  08NM0004   2015 2016 2018 2019 2020 2021 2022 2023  58   0.73 (0.73..1.03)  08NM174 08LG016 08LC040 08NN015 08NM173 (20)
+  08NM0066   2022 2023 2024                          40   0.72 (0.58..0.72)  08NM171 08NL050 08NL004 08NN015 08NL069 (10)
+  1AHA040    1999 2000 2001 2002                     27  -3.55 (-3.55..1.10)  08HA016 08HA003 08HA001 08HB032 08MH155 (5)
+  61003      2010 2011 2012                           9  -0.08 (-0.08..-0.01)  08DA005 08DB001 08CG001 (2)
+  61004      2008 2009 2010 2011                     11   2.20 (0.03..2.20)  08DA005 08CG001 08DB001 (2)
+  61012      2012 2013 2014                           3   0.67 (-0.60..0.67)  10CD001 10CD005 10CD004 10CA001 (1)
+  61013      2010 2011 2013 2014                      3  -0.02 (-0.04..-0.02)  10CA001 10CD005 (1)
+  HRB2626    2012 2014 2015 2016                      6   0.97 (0.97..1.02)  10CD001 10CD004 10CD005 10CA001 (1)
+  HRB2627    2012 2013 2014 2015                      4   1.47 (0.65..1.88)  10BE007 10BE004 10CD001 10BE001 (1)
+  HRB2628    2012 2013 2014 2015                      5   1.36 (0.83..1.61)  10CD001 10CD005 10CD004 10CA001 (2)
+  HRB2629    2013 2014 2015                           2   4.49 (2.21..6.76)  10CA001 10CD005 10CD004 (1)
+  HRB2632    2012 2013 2014 2015                      4   1.17 (1.17..1.17)  10CD005 10CD001 10CD004 10CA001 (1)
+  HRB2633    2012 2013 2014 2015                      8   0.48 (0.48..1.19)  10BE004 10BE007 10BE013 10BE001 (1)
+  HRB2634    2012 2013 2015 2016                      6   0.40 (0.05..0.40)  10CA001 10CD001 10CD005 10CD004 (1)
+  ogc_1002   2012 2014 2015                           3   1.13 (1.13..4.26)  10CD001 10CD005 10CD004 10CA001 (1)
+
+Stations at a HYDAT site (HYDAT's flag there: 0 natural, 1 regulated):
+  08EE0001   at 08EE022  flag 1  migration window-years 2
+  08HA0027   at 08HA019  flag 0  migration window-years 0
+  08HB0002   at 08HB042  flag 0  migration window-years 0
+  08HB0008   at 08HB037  flag 0  migration window-years 5
+  08HB0010   at 08HB039  flag 0  migration window-years 3
+  08JC0001   at 08JC007  flag 0  migration window-years 3
+  08JC0002   at 08JC017  flag 0  migration window-years 3
+  08JC0006   at 08JC013  flag 0  migration window-years 3
+  08NH0001   at 08NJ168  flag 0  migration window-years 8
+  08NJ0001   at 08NJ132  flag 0  migration window-years 1
+  08NM0003   at 08NM246  flag 0  migration window-years 9
+  08NM0004   at 08NM151  flag 1  migration window-years 8
+  08NM0033   at 08NM180  flag 1  migration window-years 1
+  08NM0065   at 08NM151  flag 1  migration window-years 2
+  08NM0077   at 08NM176  flag 0  migration window-years 3
+  ELA-water  at 08GA071  flag 0  migration window-years 0
+
+## 5. Sensitivities (each a rerun of the whole test on the migration mean, both pools; deciding nothing)
+
+stations with at least 5 fit years only: median difference 0.0130 leave-one-gauge-out (23 gauges), 0.0049 leak-free (25); would not ship (leave-one-out median difference 0.0130, not at most -0.01).
+window-years with no unchecked day only: median difference 0.0768 leave-one-gauge-out (23 gauges), 0.0446 leak-free (24); would not ship (leave-one-out median difference 0.0768, not at most -0.01).
+the carry's k = 3: median difference 0.0649 leave-one-gauge-out (32 gauges), 0.0812 leak-free (30); would not ship (leave-one-out median difference 0.0649, not at most -0.01).
+the carry's k = 8: median difference 0.0108 leave-one-gauge-out (61 gauges), 0.0148 leak-free (62); would not ship (leave-one-out median difference 0.0108, not at most -0.01).
+without the stations at a HYDAT site whose gauge is in the box pool or regulated: median difference 0.0373 leave-one-gauge-out (35 gauges), 0.0305 leak-free (38); would not ship (leave-one-out median difference 0.0373, not at most -0.01).
+
+## 6. Scored gauges, migration mean: gauge, pool, scored years, RMSE without, with, difference, stations among the donors in the scored years
+
+  07EF004  loo       4 0.198 0.395 0.1969  07FA0003
+  07FB004  loo       4 0.972 0.545 -0.4275  07FA0003
+  07FC003  loo       3 0.532 0.638 0.1059  07FC0002
+  08GA047  loo       3 0.407 0.491 0.0843  08HB0010
+  08GA061  loo       4 0.318 0.325 0.0064  08HB0031
+  08GE003  loo       4 0.339 0.799 0.4603  08HD0003
+  08HA001  loo       5 0.362 0.229 -0.1329  08HB0007
+  08HA003  loo       5 0.274 0.311 0.0372  08HB0007
+  08HA010  loo       4 0.114 0.169 0.0543  08HB0007
+  08HA016  loo       3 0.384 0.674 0.2900  08HA0036
+  08HA068  loo       3 0.284 1.157 0.8722  08HA0036
+  08HA069  loo       3 0.296 0.461 0.1649  08HA0036
+  08HA072  loo       3 0.439 0.765 0.3258  08HA0036
+  08HB014  loo       7 0.345 0.392 0.0471  08HB0007 08HB0019
+  08HB025  loo       4 0.489 0.401 -0.0882  08HB0008
+  08HB032  loo       7 0.244 0.346 0.1026  08HB0007 08HB0010 08HB0019
+  08HB048  loo       6 0.505 0.531 0.0262  08HB0011
+  08HB075  loo       7 0.392 0.354 -0.0380  08HB0008 08HB0024
+  08HB086  loo       9 0.206 0.267 0.0605  08HB0008 08HB0019 08HB0024 08HB0032
+  08HD007  loo       4 0.620 0.990 0.3700  08HD0003
+  08HD023  loo       3 0.521 0.465 -0.0560  08HB0024
+  08HF004  loo       4 0.304 0.568 0.2640  08HD0003
+  08HF005  loo       4 0.123 0.444 0.3211  08HD0003
+  08JB002  loo       4 0.138 0.182 0.0432  08JC0005 08JC0006
+  08JB003  loo       4 0.169 0.254 0.0848  08JC0005 08JC0006
+  08JE004  loo       4 0.339 0.115 -0.2243  08JC0001 08JC0005 08JC0006
+  08LC040  loo       8 0.290 0.293 0.0028  08NM0004
+  08NE039  loo       3 0.068 0.068 -0.0001  08NM0066
+  08NE087  loo       7 0.158 0.153 -0.0052  08NH0001
+  08NE114  loo       7 0.095 0.166 0.0714  08NH0001
+  08NH016  loo       7 0.109 0.111 0.0019  08NH0001
+  08NH084  loo       7 0.096 0.094 -0.0021  08NH0001
+  08NJ026  loo       7 0.065 0.187 0.1226  08NH0001
+  08NJ061  loo       6 0.124 0.217 0.0922  08NH0001
+  08NJ160  loo       7 0.125 0.139 0.0147  08NH0001
+  08NL050  loo       7 0.144 0.155 0.0113  08NM0003 08NM0066
+  08NL076  loo       7 0.183 0.174 -0.0091  08NM0003 08NM0066
+  08NM142  loo       5 0.226 0.206 -0.0202  08NM0004
+  08NM171  loo       7 0.227 0.173 -0.0539  08NM0003 08NM0066
+  08NM173  loo       8 0.291 0.290 -0.0009  08NM0004
+  08NM174  loo       8 0.295 0.308 0.0130  08NM0004
+  08NN002  loo       7 0.102 0.200 0.0976  08NM0003 08NM0066
+  08NN015  loo       8 0.133 0.158 0.0258  08NM0004
+  08NN019  loo       6 0.057 0.112 0.0551  08NM0003 08NM0066
+  10CA001  loo       5 0.270 0.268 -0.0015  HRB2632 HRB2634
+  10CB001  loo       3 0.182 0.092 -0.0902  07FC0002
+  10CD001  loo       5 0.277 0.420 0.1435  HRB2626 HRB2634
+  10CD003  loo       4 0.719 0.379 -0.3399  HRB2626 HRB2627 HRB2628 HRB2633
+  10CD004  loo       4 0.312 0.318 0.0058  HRB2633
+  10CD005  loo       5 0.308 0.385 0.0768  HRB2633 HRB2634
+  07EF004  leakfree  4 0.198 0.395 0.1969  07FA0003
+  07FA003  leakfree  4 0.278 0.285 0.0075  07FC0002
+  07FA005  leakfree  4 0.123 0.135 0.0118  07FC0002
+  07FB004  leakfree  4 0.972 0.545 -0.4275  07FA0003
+  08GA047  leakfree  3 0.407 0.491 0.0843  08HB0010
+  08GA061  leakfree  4 0.318 0.325 0.0064  08HB0031
+  08GE003  leakfree  4 0.339 0.799 0.4603  08HD0003
+  08HA001  leakfree  5 0.362 0.229 -0.1329  08HB0007
+  08HA003  leakfree  5 0.274 0.311 0.0372  08HB0007
+  08HA010  leakfree  4 0.159 0.155 -0.0043  08HB0007
+  08HA016  leakfree  3 0.384 0.674 0.2900  08HA0036
+  08HA068  leakfree  3 0.284 1.157 0.8722  08HA0036
+  08HA069  leakfree  3 0.296 0.461 0.1649  08HA0036
+  08HA072  leakfree  3 0.439 0.765 0.3258  08HA0036
+  08HB014  leakfree  7 0.345 0.392 0.0471  08HB0007 08HB0019
+  08HB025  leakfree  4 0.489 0.401 -0.0882  08HB0008
+  08HB032  leakfree  7 0.244 0.346 0.1026  08HB0007 08HB0010 08HB0019
+  08HB048  leakfree  6 0.505 0.531 0.0262  08HB0011
+  08HB075  leakfree  7 0.392 0.354 -0.0380  08HB0008 08HB0024
+  08HB086  leakfree  9 0.206 0.267 0.0605  08HB0008 08HB0019 08HB0024 08HB0032
+  08HD007  leakfree  4 0.620 0.853 0.2329  08HD0003
+  08HD023  leakfree  3 0.521 0.465 -0.0560  08HB0024
+  08HF004  leakfree  4 0.304 0.568 0.2640  08HD0003
+  08HF005  leakfree  4 0.123 0.444 0.3211  08HD0003
+  08JB002  leakfree  4 0.245 0.341 0.0956  08JC0005 08JC0006
+  08JB003  leakfree  4 0.328 0.366 0.0386  08JC0005 08JC0006
+  08JE004  leakfree  4 0.339 0.115 -0.2243  08JC0001 08JC0005 08JC0006
+  08LC040  leakfree  8 0.290 0.293 0.0028  08NM0004
+  08NE039  leakfree  3 0.068 0.068 -0.0001  08NM0066
+  08NE087  leakfree  7 0.158 0.153 -0.0052  08NH0001
+  08NE114  leakfree  7 0.095 0.166 0.0714  08NH0001
+  08NH016  leakfree  7 0.109 0.111 0.0019  08NH0001
+  08NH084  leakfree  7 0.096 0.094 -0.0021  08NH0001
+  08NH132  leakfree  7 0.110 0.108 -0.0014  08NH0001
+  08NJ026  leakfree  7 0.065 0.187 0.1226  08NH0001
+  08NJ061  leakfree  6 0.124 0.217 0.0922  08NH0001
+  08NJ160  leakfree  7 0.125 0.139 0.0147  08NH0001
+  08NL004  leakfree  7 0.220 0.213 -0.0076  08NM0003
+  08NL038  leakfree  7 0.150 0.228 0.0780  08NM0003
+  08NL050  leakfree  7 0.144 0.155 0.0113  08NM0003 08NM0066
+  08NL076  leakfree  7 0.174 0.174 0.0001  08NM0003 08NM0066
+  08NM142  leakfree  5 0.226 0.206 -0.0202  08NM0004
+  08NM173  leakfree  8 0.291 0.290 -0.0009  08NM0004
+  08NM174  leakfree  8 0.295 0.308 0.0130  08NM0004
+  08NN002  leakfree  7 0.102 0.200 0.0976  08NM0003 08NM0066
+  08NN015  leakfree  8 0.146 0.151 0.0049  08NM0004
+  08NN019  leakfree  6 0.057 0.112 0.0551  08NM0003 08NM0066
+  10CA001  leakfree  5 0.251 0.303 0.0523  HRB2632 HRB2634
+  10CB001  leakfree  3 0.182 0.092 -0.0902  07FC0002
+  10CD001  leakfree  5 0.358 0.354 -0.0036  HRB2626 HRB2628 HRB2634
+  10CD003  leakfree  4 0.812 0.377 -0.4344  HRB2626 HRB2627 HRB2628 HRB2633
+  10CD004  leakfree  4 0.282 0.319 0.0371  HRB2633
+  10CD005  leakfree  5 0.308 0.385 0.0764  HRB2633 HRB2634
