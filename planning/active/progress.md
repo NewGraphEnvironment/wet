@@ -75,3 +75,7 @@ mandate; the merge stays with me.
 ## Phase 6, 2026-11-25
 - Filed #225 (the unscored products, split from #5). #5 retitled to the coverage report and map, body edited; closes with the PR. #4 retitled and rescoped in place (answer (a): the checks wait on PCIC), stays open. #169's body gained the carried scope. Nothing filed in fwapg (rule 4 did not run).
 - Next: /code-check branch, archive, PR.
+
+## Code check and validation, 2026-11-25
+- /code-check branch: 4 rounds; ended by enumeration (22 copies); verdict file written. Full suite FAIL 0, PASS 3566. Reports and map regenerated on the reviewed code.
+- Next: archive, PR.
