@@ -422,11 +422,12 @@ DBI::dbDisconnect(conn)
 # ---- report ---------------------------------------------------------------------------------------
 log <- read_fetch_log(f_log)
 log_line <- if (is.null(log)) "requests logged: none" else {
-  sprintf("requests logged: %d, %.1f MiB, %.1f minutes (%s)", nrow(log), sum(as.numeric(log$bytes)) / 2^20,
-          sum(as.numeric(log$secs)) / 60, f_log)
+  sprintf("requests logged: %d, %.1f MiB, %.1f minutes (<data root>/logs/169/scenario_basis_fetch.tsv)", nrow(log),
+          sum(as.numeric(log$bytes)) / 2^20, sum(as.numeric(log$secs)) / 60)
 }
 fmt <- function(x, d = 3) ifelse(is.na(x), "-", formatC(x, format = "f", digits = d))
 pilot_dom <- grep("^Fraser ", pilot[grep("^## Domains", pilot):length(pilot)], value = TRUE)[1]
+pf <- strsplit(trimws(pilot_dom), " +")[[1]]   # Fraser, gauges, with outlet, GCMs, ..., |dQ|, dNSE, rule 2
 rep <- c(
   sprintf("# What scenarios can be built on (#169, #4), HYDAT %s", release),
   "",
@@ -447,7 +448,7 @@ rep <- c(
   sprintf("crosswalk outlets: %d; S (flag is not no_series): %d", nrow(xw), sum(xw$flag_txt != "no_series"))
 )
 if (is.null(r4)) {
-  rep <- c(rep, sprintf("not run: %s; the listings are not cached (%s)", access, listing_dir))
+  rep <- c(rep, sprintf("not run: %s; the listings are not cached (<data root>/scenario_basis/listing)", access))
 } else {
   rep <- c(rep,
     sprintf("listings: md5 of md5s %s", r4$listing_md5),
@@ -472,7 +473,8 @@ rep <- c(rep,
   "  its year is the twelve months' total, where the pilot takes the plain mean of twelve monthly mean flows;",
   "  its PNWNAmet side is the gridded run accumulated unrouted, where the pilot's is the routed outlet series;",
   "  its two sides are different models (VICGL against VICGL-RGM), so a fail can be model structure, not forcing.",
-  sprintf("the pilot's CMIP6 result in the Fraser, beside it: %s", trimws(sub("^Fraser +[0-9]+ +[0-9]+ +", "", pilot_dom))),
+  sprintf("the pilot's rule 2 in the Fraser, beside it (%s CMIP6 GCMs against routed PNWNAmet): |dQ|/Qobs %s, dNSE %s, %s",
+          pf[4], pf[8], pf[9], pf[10]),
   "",
   "PNWNAmet at each gauge (accumulated area over the bundle's area; glacier share of the accumulated area):",
   "station    area ratio  glacier   q_obs m3/s   q_pnw m3/s   share NSE",
