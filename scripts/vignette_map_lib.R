@@ -103,6 +103,54 @@ vm_streams <- function(conn, ext, blk, simplify_m, min_order = 5) {
   streams
 }
 
+# A basin's network as a model is handed it (#220): the main-flow tree's
+# segments under the main stem `blk` (its watershed code, and every code that
+# continues it), from fwapg's whse_basemapping.fwa_stream_networks_mainflow_tree.
+# Returns
+#   - `orders`: every tree segment of the basin by stream order (segments, km),
+#     with `drawn` for the orders of at least `min_order`;
+#   - `tree`: one MULTILINESTRING per drawn order, its segments taken in
+#     linear_feature_id order, merged and simplified in sf (vm_simplify()'s
+#     reason), so the drawing does not depend on the order PostgreSQL returns;
+#   - `basin`: the fundamental watershed polygons under the main stem's code,
+#     unioned in watershed_feature_id order, its area taken before the simplify
+#     (the Bulkley's watershed groups would not do: one tree segment each of
+#     KISP and ZYMO carries the Bulkley's code);
+#   - `wscode`, the main stem's code, and `ids`, the tree's linear_feature_ids
+#     (not bundled: for the caller to place stations on the tree).
+vm_tree <- function(conn, blk, simplify_m, min_order = 1) {
+  main <- DBI::dbGetQuery(conn, sprintf("
+    SELECT DISTINCT wscode_ltree::text AS wscode FROM whse_basemapping.fwa_stream_networks_sp
+    WHERE blue_line_key = %d AND blue_line_key = watershed_key", as.integer(blk)))$wscode
+  stopifnot(length(main) == 1)
+  seg <- sf::st_read(conn, quiet = TRUE, query = sprintf("
+    SELECT s.linear_feature_id, s.stream_order, s.length_metre,
+           ST_Force2D(s.geom) AS geom
+    FROM whse_basemapping.fwa_stream_networks_sp s
+    JOIN whse_basemapping.fwa_stream_networks_mainflow_tree t ON t.linear_feature_id = s.linear_feature_id
+    WHERE s.wscode_ltree <@ '%s'::ltree
+    ORDER BY s.linear_feature_id", main))
+  stopifnot(nrow(seg) > 0, !anyDuplicated(seg$linear_feature_id), !anyNA(seg$stream_order))
+  ord <- sort(unique(as.integer(seg$stream_order)))
+  orders <- data.frame(stream_order = ord,
+                       segments = vapply(ord, function(k) sum(seg$stream_order == k), 0L),
+                       km = vapply(ord, function(k) sum(seg$length_metre[seg$stream_order == k]) / 1000, 0),
+                       drawn = ord >= min_order)
+  geom <- sf::st_geometry(seg)
+  tree <- do.call(rbind, lapply(ord[ord >= min_order], function(k) {
+    u <- sf::st_cast(sf::st_union(geom[seg$stream_order == k]), "MULTILINESTRING")
+    g <- sf::st_simplify(sf::st_line_merge(u), preserveTopology = TRUE, dTolerance = simplify_m)
+    sf::st_sf(stream_order = k, geom = sf::st_cast(g, "MULTILINESTRING"))
+  }))
+  basin <- sf::st_read(conn, quiet = TRUE, query = sprintf("
+    SELECT ST_Area(u.geom) / 1e6 AS area_km2, ST_Normalize(ST_Force2D(u.geom)) AS geom
+    FROM (SELECT ST_Union(geom ORDER BY watershed_feature_id) AS geom
+          FROM whse_basemapping.fwa_watersheds_poly WHERE wscode_ltree <@ '%s'::ltree) u", main))
+  stopifnot(nrow(basin) == 1, basin$area_km2 > 0)
+  list(orders = orders, tree = tree, basin = vm_simplify(basin, simplify_m), wscode = main,
+       ids = as.numeric(seg$linear_feature_id))
+}
+
 # FWA lakes of at least `min_ha` in the extent (`ext`, from vm_extent()),
 # ordered on waterbody_poly_id by fresh and simplified here (vm_simplify())
 vm_lakes <- function(conn, ext, simplify_m, min_ha = 100) {
