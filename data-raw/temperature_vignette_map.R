@@ -9,7 +9,7 @@
 #   - basin: the basin of the main stem the values bundle names (the
 #     fundamental watershed polygons under its watershed code), with its area
 #   - tree: the basin's main-flow tree, the network with no splits a stream
-#     network model is handed, one MULTILINESTRING per stream order
+#     network model runs on, one MULTILINESTRING per stream order
 #     (scripts/vignette_map_lib.R, vm_tree())
 #   - streams: FWA streams of order 7 and up in the map extent, plus the whole
 #     of each river the basin's row of scripts/temperature_basins.csv names (by
@@ -22,6 +22,9 @@
 #   - extent: the rectangle the map draws, the basin with a margin
 #   - bc: the province outline for the keymap
 #
+# The list's "drawn" attribute holds the thresholds the layers were made with
+# (`lake_min_ha`, `context_min_order` for the streams outside the tree,
+# `simplify_m`), which the article's caption quotes and holds itself to.
 # The list's "network" attribute holds what the tree says in numbers: `orders`
 # (every tree segment of the basin by stream order, with the orders drawn),
 # `reaches`, `km`, `with_station` (segments holding a station) and `wscode`.
@@ -57,6 +60,8 @@ stopifnot(identical(format(as.Date(wet_hydat_release(hydat), "%Y%m%d")), values$
 out <- file.path("inst", "vignette-data", "temperature_map.rds")
 simplify_m <- 200
 min_order <- 1
+lake_min_ha <- 500
+context_min_order <- 7
 margin_m <- 12000
 rivers <- as.integer(strsplit(basin$rivers, ";")[[1]])
 towns <- strsplit(basin$towns, ";")[[1]]
@@ -67,8 +72,8 @@ tr <- vm_tree(conn, basin$blue_line_key, simplify_m, min_order)
 # every station of the basin sits on a tree segment
 stopifnot(all(values$stations$linear_feature_id %in% tr$ids))
 ext <- vm_extent(tr$basin, margin_m)
-streams <- vm_streams(conn, ext, rivers, simplify_m, min_order = 7)
-lakes <- vm_lakes(conn, ext, simplify_m, min_ha = 500)
+streams <- vm_streams(conn, ext, rivers, simplify_m, min_order = context_min_order)
+lakes <- vm_lakes(conn, ext, simplify_m, min_ha = lake_min_ha)
 bc <- vm_bc(conn)
 tree_rows <- as.numeric(DBI::dbGetQuery(conn, "
   SELECT count(*) AS n FROM whse_basemapping.fwa_stream_networks_mainflow_tree")$n)
@@ -109,6 +114,8 @@ layers <- vm_layers(list(basin = tr$basin, tree = tr$tree, streams = clip(stream
                     hydat, pg)
 attr(layers, "network") <- list(orders = tr$orders, reaches = sum(tr$orders$segments), km = sum(tr$orders$km),
                                 with_station = length(unique(st$linear_feature_id)), wscode = tr$wscode)
+attr(layers, "drawn") <- list(lake_min_ha = lake_min_ha, context_min_order = context_min_order,
+                              simplify_m = simplify_m)
 prov <- attr(layers, "provenance")
 f_ids <- tempfile()
 writeLines(sprintf("%.0f", tr$ids), f_ids)

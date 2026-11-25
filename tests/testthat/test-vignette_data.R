@@ -474,6 +474,11 @@ test_that("the temperature map draws the values bundle's stations on the whole o
   # the towns the basin's row names, each once
   expect_setequal(m$places$name, strsplit(v$basin$towns, ";")[[1]])
   expect_false(anyDuplicated(m$places$name) > 0)
+  # the thresholds the layers were made with, which the article's caption quotes
+  drawn <- attr(m, "drawn")
+  expect_named(drawn, c("lake_min_ha", "context_min_order", "simplify_m"))
+  expect_gte(min(m$lakes$area_ha), drawn$lake_min_ha)
+  expect_true(all(m$streams$stream_order[!m$streams$main] >= drawn$context_min_order))
   # which tree was drawn
   tree <- attr(m, "provenance")$tree
   expect_match(tree$basin_ids_md5, "^[0-9a-f]{32}$")

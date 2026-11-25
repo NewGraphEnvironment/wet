@@ -103,7 +103,7 @@ vm_streams <- function(conn, ext, blk, simplify_m, min_order = 5) {
   streams
 }
 
-# A basin's network as a model is handed it (#220): the main-flow tree's
+# A basin's network as a stream network model runs on it (#220): the main-flow tree's
 # segments under the main stem `blk` (its watershed code, and every code that
 # continues it), from fwapg's whse_basemapping.fwa_stream_networks_mainflow_tree.
 # Returns

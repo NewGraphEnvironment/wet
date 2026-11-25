@@ -48,7 +48,7 @@ classes <- function(layer, expect) {
 pal_year <- classes("temperature_year", c("observed", "filled", "interval", "open_loop", "season"))
 pal_map <- classes("temperature_map", c("basin", "network", "river", "station", "station_pick"))
 pal_chain <- classes("temperature_chain", c("in_place", "building", "network_model", "comparison"))
-pal_hold <- classes("temperature_holdout", c("hidden", "used", "unused", "stream"))
+pal_hold <- classes("temperature_holdout", c("hidden", "used", "unused", "stream", "lean"))
 lake_sty <- reg_main$layers$lake
 town_sty <- reg_main$layers$town
 ink <- "grey35"   # frames, arrows and outlines: not a data colour
@@ -160,12 +160,12 @@ alt_year <- sprintf(paste(
 ), pick$stream, year_text, num(gsdd))
 ```
 
-**`wet`, New Graph's R package for stream flow and water temperature, does not yet publish temperature
-for every stream reach.** This article shows where that work starts, what it has to produce, and how we
-will know whether it works. The target is growing-season degree days, a measure of how much warmth a
-stream gives young fish in a year, for every reach (a stretch of stream, usually between two confluences) in
-British Columbia. Today it can be computed at a few hundred stations across the province. Getting from
-those to every reach takes a model of the whole stream network, which is not built yet.
+**The R package [`wet`](https://newgraphenvironment.github.io/wet/) does not yet give stream temperature
+for every stream reach** [@wet]. This article shows where that work starts, what it aims for, and how we
+will know whether it works. The aim is growing-season degree days, a measure of how much warmth a
+stream gives young fish in a year, at every reach (a mapped stretch of stream) in British Columbia. Today
+they can be computed at a few hundred stations across the province. Getting from those to every reach
+takes a model on the stream network.
 [The roadmap](https://github.com/NewGraphEnvironment/wet/issues/214) says what is done and what is next.
 
 ## What are growing-season degree days, and why do they matter for fish?
@@ -180,12 +180,12 @@ the total is low, fish that hatch in summer can be too small to survive their fi
 The figure shows one year at one station: `r pick$stream` at its mouth, about `r town_km` km `r town_dir`
 of `r town_near`, where it joins `r pick$into1` on the way to the `r pick$into2`. The logger recorded every day from March through November
 of `r year_text` except `r pick$gap_days` days from `r day_text(pick$gap_start)`. A season with a
-missing day has no total, so the gap has to be filled first.
+missing day has no total, so the gap is filled first.
 [`wet_temp_fill()`](https://newgraphenvironment.github.io/wet/reference/wet_temp_fill.html) fills it with
 **air2stream**, a model of how water temperature follows air temperature [@toffolon_piccolroaz2015hybridmodel],
 corrected by the station's own readings on either side of the gap and by what nearby stations did on
 the same days. Run on air temperature alone, with no readings to correct it, the model is called
-**open-loop**. A reach with no station has no readings, so open-loop is where it has to start.
+**open-loop**. A reach with no station has no readings, so open-loop is where it starts.
 
 ```{r year, fig.height = 5.6, fig.cap = cap_year, fig.alt = alt_year}
 ggplot() +
@@ -231,12 +231,15 @@ n_reach <- net$reaches
 n_st <- nrow(map$stations)
 # every order of the network is drawn, and each station holds a reach of its own
 stopifnot(all(net$orders$drawn), net$with_station == n_st, n_reach == sum(net$orders$segments))
+# the prose gives sizes, not counts that move: "tens of thousands of reaches", "about a dozen" stations
+stopifnot(n_reach >= 2e4, n_reach < 1e5, n_st >= 9, n_st <= 15)
 # the count is of stations with a day of record in the fixed range the data script reads
 stopifnot(all(v$stations$days > 0), identical(substr(prov$to, 1, 4), "2025"))
 last_year <- substr(prov$to, 1, 4)
 # too short to fit a station model yet
+# "some only recently": more than one station began in the last year read, too short to model yet
 n_short <- sum(!map$stations$fitted)
-stopifnot(n_short > 0, n_short < n_st, all(format(v$stations$first[!v$stations$fitted], "%Y") == last_year))
+stopifnot(n_short >= 2, n_short < n_st, all(format(v$stations$first[!v$stations$fitted], "%Y") == last_year))
 
 # the rivers named, and the towns: the Bulkley runs from Houston to the Skeena at Hazelton
 rivers <- map$streams[map$streams$main, ]
@@ -294,32 +297,33 @@ stations <- stations[order(stations$picked), ]
 tree <- map$tree
 tree$part <- "network"
 rivers$part <- "river"
-lake_min <- 500   # data-raw/temperature_vignette_map.R; a lake cut by the frame keeps its whole area
-stopifnot(min(map$lakes$area_ha) >= lake_min)
+# what the map script drew, as the bundle records it; a lake cut by the frame keeps its whole area
+drawn <- attr(map, "drawn")
+lake_min <- drawn$lake_min_ha
+stopifnot(identical(lake_min, 500), identical(drawn$context_min_order, 7), min(map$lakes$area_ha) >= lake_min,
+          all(map$streams$stream_order[!map$streams$main] >= drawn$context_min_order))
 
 cap_map <- sprintf(paste(
-  "The %s basin: all %s reaches of its stream network (blue, heavier on larger streams) and the %s",
-  "federal hydrometric stations that have recorded water temperature (orange points; %s's, the first",
-  "figure's, is black).",
+  "The %s basin: every reach of its stream network (blue, heavier on larger streams) and the federal",
+  "hydrometric stations that have recorded water temperature (orange points; %s's, the first figure's,",
+  "is black).",
   "The %s are drawn heavy and named. Lakes of %s ha and up are pale blue; land outside the basin is",
   "dimmed, with its larger rivers thin and the Skeena named. %s are labelled (open squares), the bar is",
   "%s km, and the inset places the map in British Columbia."
-), v$basin$name, num(n_reach), n_st, pick$stream,
+), v$basin$name, pick$stream,
 and_text(sub(" River", "", c("Bulkley River", "Morice River", "Telkwa River"))) |> paste("rivers"),
 lake_min, and_text(c("Houston", "Smithers", "Hazelton")), sb_km)
 alt_map <- sprintf(paste(
   "Map of the %s basin in north-west British Columbia, densely covered by thin blue stream lines,",
-  "with %s orange and black points marking temperature stations on its rivers and creeks."
-), v$basin$name, n_st)
+  "with about a dozen orange and black points marking temperature stations on its rivers and creeks."
+), v$basin$name)
 ```
 
 One basin shows the gap. A **reach** here is one stream segment of the Freshwater Atlas, the province's
 map of its streams [@flnrord2021FreshwaterAtlasb], with its own identifier. The `r v$basin$name` runs `r flow_dir` from Houston past Smithers to meet the
-Skeena River at Hazelton, and the stream network of its basin has `r num(n_reach)` reaches.
-`r in_words(n_st, cap = TRUE)` of
-them hold a federal hydrometric station that recorded water temperature by `r last_year`, and
-`r in_words(n_short)` of those began too recently to model. Loggers run by others are not in `wet` yet, so
-the map shows only these.
+Skeena River at Hazelton, and the stream network of its basin has tens of thousands of reaches. About a
+dozen hold a federal hydrometric station that has recorded water temperature, some only recently.
+Small-stream loggers are not in `wet` yet, so the map shows only these stations.
 
 ```{r map, fig.width = map_w, fig.height = map_h, fig.cap = cap_map, fig.alt = alt_map}
 ggplot() +
@@ -356,9 +360,10 @@ ggplot() +
         panel.border = element_rect(fill = NA, colour = ink))
 ```
 
-The network drawn is the one a model is given: the Freshwater Atlas loaded by `fwapg`
-[@norris2024smnorrisfwapg], with side channels trimmed so that water never splits on its way
-downstream [@norris_irvine2026NewGraphEnvironmentfwapg].
+The network drawn stands on Simon Norris's [`fwapg`](https://smnorris.github.io/fwapg/)
+[@norris2024smnorrisfwapg], which loads the Freshwater Atlas into PostgreSQL. Side channels are trimmed
+from it so that water never splits on its way downstream, as a stream network model needs; that step
+runs from a fork of `fwapg` today [@norris_irvine2026NewGraphEnvironmentfwapg].
 
 ## How do we get from stations to every reach?
 
@@ -371,6 +376,11 @@ ends <- setdiff(nodes$id, edges$from)
 stopifnot(setequal(ends, c("gsdd_station", "gsdd_reach")),
           nodes$state[nodes$id == "gsdd_reach"] == "network_model",
           "model" %in% edges$from[edges$to == "gsdd_reach"])
+# what feeds what, as the prose and the figure's alt text say it
+feeds <- function(to) sort(edges$from[edges$to == to], method = "radix")
+stopifnot(identical(feeds("fills"), c("air_station", "readings")),
+          identical(feeds("baseline"), c("fills", "pcic", "traits")),
+          identical(feeds("model"), c("air_reach", "baseline", "network")))
 # the process model is the comparison, and only it is joined by dashed arrows
 comp <- nodes$id[nodes$state == "comparison"]
 stopifnot(identical(comp, "pcic"), identical(edges$style == "dashed", edges$from %in% comp))
@@ -427,25 +437,25 @@ ggplot() +
   theme(legend.position = "bottom", legend.margin = margin(4, 0, 0, 0))
 ```
 
-- **Catchment traits** describe the land above a point: its elevation, snow, lakes and glaciers. Two
-  reaches with like traits should warm alike.
-- **The baseline** is the simple answer a better model has to beat. air2stream has three settings
+- **Catchment traits** describe the land above a point: its position, elevation, snow, lakes and
+  glaciers. Two reaches with like traits should warm alike.
+- **The baseline** is the simple answer, the one to measure a fuller model against. air2stream has three settings
   that say how closely a stream's water follows the air, fitted at each station. The baseline predicts
   them where there is no station from catchment traits, two ways: by a relation fitted across
   stations, or from the stations most like it.
 - **A network model** fits every station at once and lets reaches on the same stream inform each
-  other. It returns temperature with its uncertainty at every reach, and degree days with the
+  other. It can draw on everything above it in the diagram: the network, the stations and their filled
+  records, the traits, air temperature at every reach, and how the baseline did. What the habitat work
+  needs from it is temperature at every reach with its uncertainty, and degree days with that
   uncertainty carried through. Two have been fitted in northern British Columbia, for the Nechako and
   Skeena watersheds [@hill_etal2024Spatialstream; @hill_etal2025Spatialstream], and this work follows
-  them; which method carries it to the whole province is left open. What goes to it is everything
-  above it in the diagram: the network, the stations and their filled records, the traits, air
-  temperature at every reach, and how well the baseline did.
+  them. The method is open.
 
 A **process model** works the other way, simulating water and heat moving down rivers from the weather.
 The Pacific Climate Impacts Consortium's model [@pacificclimateimpactsconsortium2026VICGLRavenMBCn]
-already gives daily water temperature at points on its own river network, on past weather and under climate
-models to 2100. It will be scored at the stations beside the baseline, and is one way to ask where
-streams are becoming warm enough for fish.
+gives daily water temperature at points on its own river network, on past weather and under climate
+models to 2100. Its temperatures can be compared with the same station records, and it is one way to
+ask where streams are becoming warm enough for fish.
 
 ## How will we know it works?
 
@@ -461,10 +471,15 @@ sites <- data.frame(id = c("h", "a", "f", "b", "c", "d", "e"),
                     x = c(3.4, 1.4, 2.25, 5, 4.7, 7.6, 8.2),
                     y = c(3.96, 6.33, 7.1, 2.2, 7.4, 7.8, 3.48))
 ways <- c(traits = "From catchment traits", like = "From the stations most like it",
-          network = "From the stream network")
-use <- list(traits = setdiff(sites$id, "h"), like = c("a", "d", "e"), network = c("a", "f", "b"))
-# each way draws on other stations only, and the three differ
-stopifnot(!"h" %in% unlist(use), length(unique(use)) == 3, all(unlist(use) %in% sites$id))
+          network = "From traits and the stream network")
+# the network's prediction keeps the traits, so it draws on every other station, and leans most
+# on the stream that runs up and down from the hidden one (drawn heavy)
+use <- list(traits = setdiff(sites$id, "h"), like = c("a", "d", "e"), network = setdiff(sites$id, "h"))
+lean <- rbind(toy[toy$id %in% c("west", "west_fork"), ], stream("main_below", c(5, 5), c(0, 3)))
+lean$way <- factor(ways[["network"]], ways)
+# each way draws on other stations only; the middle one on fewer than the others
+stopifnot(!"h" %in% unlist(use), all(unlist(use) %in% sites$id), length(use$like) < length(use$traits),
+          setequal(use$traits, use$network))
 hold <- do.call(rbind, lapply(names(ways), function(k) {
   s <- sites
   s$part <- ifelse(s$id == "h", "hidden", ifelse(s$id %in% use[[k]], "used", "unused"))
@@ -482,28 +497,33 @@ cap_hold <- paste(
   "The test, as a sketch on a made-up network (pale lines). One station is hidden (orange) and its",
   "air2stream settings are predicted three ways, each drawing on the stations in blue and leaving the",
   "grey ones out: from catchment traits, a relation fitted to every other station; from the few",
-  "stations whose catchments are most like it, wherever they are; and from the stream network, its",
-  "neighbours up and down the same stream. The first two are the baseline."
+  "stations whose catchments are most like it, wherever they are; and from traits and the stream",
+  "network together, leaning most on the stream that runs up and down from the hidden station (heavy",
+  "line). The first two are the baseline."
 )
 alt_hold <- paste(
   "Three copies of a small branching stream network with seven stations. One station is marked as",
-  "hidden in each; the stations used to predict it differ between the three copies."
+  "hidden in each; the stations used to predict it differ, and the third copy marks the stream",
+  "through the hidden station."
 )
 ```
 
 By hiding stations. A **holdout** takes a station's whole record away, predicts it as if the station
 had never been there, and compares the prediction with what the station recorded. Three predictions
-will be tested this way, on stations drawn from the `r val$truth_stations` across the province with a
-complete growing season: the baseline's two, and one from the stream network, scored beside them. A
-network model would be scored on the same hidden stations.
+are to be tested this way, at stations across the province with a complete growing season: the
+baseline's two, and one that adds the stream network. A network model can be checked against the same
+hidden stations.
 
 ```{r holdout, fig.height = 3, fig.cap = cap_hold, fig.alt = alt_hold}
 ggplot() +
   geom_path(data = toy_way, aes(x, y, group = id, colour = "stream"), linewidth = 1.3, lineend = "round",
             show.legend = FALSE) +
+  geom_path(data = lean, aes(x, y, group = id, colour = "lean"), linewidth = 2.6, lineend = "round",
+            key_glyph = "path") +
   geom_point(data = hold, aes(x, y, fill = part), shape = 21, colour = "white", size = 3.6, stroke = 0.6) +
   facet_wrap(~way, nrow = 1) +
-  scale_colour_manual(values = pal_hold$values["stream"]) +
+  scale_colour_manual(values = pal_hold$values[c("stream", "lean")], breaks = "lean",
+                      labels = pal_hold$labels["lean"], name = NULL) +
   scale_fill_manual(values = pal_hold$values[c("hidden", "used", "unused")],
                     labels = pal_hold$labels[c("hidden", "used", "unused")], name = NULL) +
   coord_equal(xlim = c(0.3, 9.7), ylim = c(-0.2, 9.9), expand = FALSE) +
@@ -512,28 +532,27 @@ ggplot() +
         panel.border = element_rect(fill = NA, colour = "grey80"), panel.spacing = unit(8, "pt"))
 ```
 
-The third way is **kriging**: estimating a value at an unmeasured place from measured places, weighting
+The third is **kriging**: estimating a value at an unmeasured place from measured places, weighting
 the near ones most. On a stream network, near is measured along the water and in the direction it
-flows. Each prediction is then run through air2stream on the hidden station's own air temperature and
-compared with two marks: the model fitted to that station's own record, which is the best any of them
-could do, and the average of all stations, which is what knowing nothing gives. Each is scored twice,
-with and without the hidden station's neighbours up and down its stream. For the network's prediction
-that difference is what the neighbours are worth, and its gain over the baseline is what the network
-adds beyond traits.
+flows. Here it starts from the same traits and adds the network, so its gain over the baseline is what
+the network adds. Each prediction is then run through air2stream on the hidden station's own air
+temperature and compared with two marks: the model fitted to that station's own record, which is the
+best any of them could do, and the average of all stations, which is what knowing nothing gives. Each
+is tried twice, with and without the hidden station's neighbours up and down its stream; for the
+network's prediction that difference is what the neighbours are worth.
 
 ## What is not known yet?
 
 - **The error with no station.** Even at a station, when a whole growing season is hidden, air2stream
   on air temperature alone misses that season's total by about `r num(season_mae)` degree days on
-  average (`r num(val$season_open$n)` seasons, hidden one at a time). A reach with no station can only
-  do worse, and how much worse is what the test measures.
+  average. A reach with no station can only do worse, and how much worse is what the test measures.
 - **Readings that are not water.** Nothing screens yet for one like the first figure's, which moved
   its year by `r num(edge_cost)` degree days.
 - **The thresholds.** Growing-season degree-day thresholds exist for cutthroat trout in high-elevation
   Colorado streams, where 900 to 1,200 degree days gave the best recruitment and under 800 was
   unsuitable [@coleman_fausch2007ColdSummera]. Reports on westslope cutthroat trout in the Elk Valley
   apply them [@thorley_branton2022SubjectMatter; @hocking_etal2022SubjectMatter]. None has been found
-  yet for the other species of British Columbia, salmon and steelhead among them.
+  yet for the other species of British Columbia.
 
 ## How were the numbers in the first figure made?
 
@@ -577,9 +596,8 @@ The software, each cited:
 - [`gsdd`](https://github.com/poissonconsulting/gsdd) [@gsdd] applies the growing-season rule, and
   [`tidyhydat`](https://docs.ropensci.org/tidyhydat/) [@tidyhydat] gives each station's time zone.
 - [`fwapg`](https://smnorris.github.io/fwapg/) [@norris2024smnorrisfwapg] loads the Freshwater Atlas into
-  PostgreSQL, and the network with no splits is built on it in New Graph's fork
-  [@norris_irvine2026NewGraphEnvironmentfwapg]. Kriging on the network will use
-  [`SSN2`](https://usepa.github.io/SSN2/) [@SSN2].
+  PostgreSQL, and the network with no splits is built on it [@norris_irvine2026NewGraphEnvironmentfwapg].
+  [`SSN2`](https://usepa.github.io/SSN2/) [@SSN2] is the software for kriging on a stream network.
 - [`ggplot2`](https://ggplot2.tidyverse.org/) [@ggplot2], [`ggrepel`](https://ggrepel.slowkow.com/)
   [@ggrepel], [`gq`](https://newgraphenvironment.github.io/gq/) [@gq] and
   [`sf`](https://r-spatial.github.io/sf/) [@sf] make the figures and the map;

@@ -17,3 +17,4 @@ temperature_holdout,point,,part,hidden,Station hidden,#d55e00,1,,,,,,,,,,,,,,,,"
 temperature_holdout,point,,part,used,Station the prediction draws on,#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue
 temperature_holdout,point,,part,unused,Station not used,#bdbdbd,1,,,,,,,,,,,,,,,,ColorBrewer Greys mid
 temperature_holdout,line,,part,stream,Stream,#9ecae1,1,,,,,,,,,,,,,,,,ColorBrewer Blues light: the toy network recedes
+temperature_holdout,line,,part,lean,Stream the prediction leans on most,#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue: as the stations the prediction draws on
