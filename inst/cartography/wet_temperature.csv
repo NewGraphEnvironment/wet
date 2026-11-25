@@ -11,7 +11,7 @@ temperature_map,point,,part,station,Temperature station,#d55e00,1,,,,,,,,,,,,,,,
 temperature_map,point,,part,station_pick,Simpson Creek station,#000000,1,,,,,,,,,,,,,,,,Okabe-Ito black: the station whose year the first figure shows
 temperature_chain,polygon,,state,in_place,In place,#009e73,1,,,,,,,,,,,,,,,,Okabe-Ito bluish green
 temperature_chain,polygon,,state,building,Being built,#e69f00,1,,,,,,,,,,,,,,,,Okabe-Ito orange
-temperature_chain,polygon,,state,network_model,A network model's,#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue
+temperature_chain,polygon,,state,network_model,From a network model,#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue
 temperature_chain,polygon,,state,comparison,An existing process model,#cc79a7,1,,,,,,,,,,,,,,,,Okabe-Ito reddish purple
 temperature_holdout,point,,part,hidden,Station hidden,#d55e00,1,,,,,,,,,,,,,,,,"Okabe-Ito vermillion: the subject, as the map's stations"
 temperature_holdout,point,,part,used,Station the prediction draws on,#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue

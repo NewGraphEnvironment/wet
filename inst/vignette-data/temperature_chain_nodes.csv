@@ -6,7 +6,7 @@ gsdd_station,Degree days|at the stations,8.55,7.9,in_place
 traits,Catchment traits|of every station and reach,1.45,6.3,building
 network,Stream network|with no splits,1.45,4.7,in_place
 baseline,Baseline|a station's model predicted|where there is no station,5,5.5,building
-pcic,PCIC's process model|daily water temperature|at its outlets to 2100,8.55,4.0,comparison
+pcic,PCIC's process model|daily water temperature|at its outlets to 2100,8.55,2.9,comparison
 air_reach,Air temperature|at every reach,1.45,2.9,building
 model,Network model|weekly temperature|at every reach,5,2.9,network_model
 gsdd_reach,Degree days at every reach|with their uncertainty,5,0.9,network_model

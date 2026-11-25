@@ -97,6 +97,7 @@ articles:
   navbar: ~
   contents:
   - segment-discharge
+  - articles/segment-temperature
   - articles/flow-change-sparse-gauges
   - flow-departure-normal
 # built and linked, but in neither the index nor the navbar: the Maxan article,

@@ -13,7 +13,8 @@ test_that("each vignette's bundled data stays under 500 KB", {
                  monthly = c("monthly_values.rds", "monthly_map.rds"),
                  short_record = c("short_record_values.rds", "short_record_map.rds"),
                  chinook_sites = c("life_history_morr.csv", "chinook_sites_values.rds", "chinook_sites_map.rds"),
-                 temperature = c("temperature_values.rds", "temperature_map.rds"))
+                 temperature = c("temperature_values.rds", "temperature_map.rds", "temperature_chain_nodes.csv",
+                                 "temperature_chain_edges.csv"))
   expect_setequal(files, unlist(budget))
   for (v in names(budget)) {
     expect_lt(sum(file.size(vignette_data(budget[[v]]))), 500 * 1024)
@@ -343,6 +344,8 @@ test_that("the temperature values hold plain types, the basin's stations and the
   v <- readRDS(vignette_data("temperature_values.rds"))
   expect_named(v, c("basin", "stations", "pool", "candidates", "pick", "year", "season", "gsdd", "edge", "fit",
                     "validation", "provenance"))
+  # the picked stream is placed by what it flows into
+  expect_true(all(nzchar(c(v$pick$stream, v$pick$into1, v$pick$into2))))
   for (x in list(v$stations, v$candidates, v$year, v$season)) {
     expect_false(any(vapply(x, inherits, NA, "integer64")))
   }
@@ -462,4 +465,23 @@ test_that("the temperature map draws the values bundle's stations on the whole o
   tree <- attr(m, "provenance")$tree
   expect_match(tree$basin_ids_md5, "^[0-9a-f]{32}$")
   expect_gt(tree$rows, net$reaches)
+})
+
+test_that("the temperature chain's arrows join its boxes, and its states are the registry's", {
+  nodes <- utils::read.csv(vignette_data("temperature_chain_nodes.csv"), stringsAsFactors = FALSE)
+  edges <- utils::read.csv(vignette_data("temperature_chain_edges.csv"), stringsAsFactors = FALSE,
+                           na.strings = character())
+  expect_named(nodes, c("id", "label", "x", "y", "state"))
+  expect_named(edges, c("from", "to", "label", "style"))
+  expect_false(anyDuplicated(nodes$id) > 0)
+  expect_true(all(c(edges$from, edges$to) %in% nodes$id))
+  expect_true(all(edges$from != edges$to))
+  expect_false(anyDuplicated(edges[c("from", "to")]) > 0)
+  expect_true(all(edges$style %in% c("solid", "dashed")))
+  # every box is joined to the chain
+  expect_setequal(unique(c(edges$from, edges$to)), nodes$id)
+  reg <- utils::read.csv(system.file("cartography", "wet_temperature.csv", package = "wet"), stringsAsFactors = FALSE)
+  expect_setequal(nodes$state, reg$class_value[reg$layer_key == "temperature_chain"])
+  # no two boxes sit on one spot
+  expect_false(anyDuplicated(nodes[c("x", "y")]) > 0)
 })
