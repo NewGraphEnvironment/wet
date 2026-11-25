@@ -39,9 +39,11 @@ if (length(want) != 1L || !identical(unname(tools::md5sum(f_table)), want)) {
 }
 tb <- utils::read.delim(f_table, quote = "", na.strings = "NA", comment.char = "", colClasses = "character")
 
-# ---- the layers, stored once, named for everything they are drawn from --------------------------
+# ---- the layers, stored once, named for the code they are drawn with -----------------------------
 # (the names asked for, the simplification, main flow, this script's queries and the map lib), so
-# an edit to any of them draws new layers rather than the stored ones
+# an edit to any of them draws new layers rather than the stored ones. The key does not cover the
+# data: a render against another fwapg, or after the BC Geographic Names data change, reuses the
+# stored layers until their file is removed
 layers_key <- substr(wet:::wet_md5_text(c(rivers, towns, simplify_m, main_flow,
                                            unname(tools::md5sum(c("scripts/pcic_coverage_map.R",
                                                                   "scripts/vignette_map_lib.R"))))), 1, 10)
@@ -95,7 +97,7 @@ pal_scen <- cls("coverage_scenarios", scen_lev)
 lines <- cls("coverage_lines", c("group", "bc", "river"))
 ln <- reg$layers$coverage_lines$classification$classes
 lb <- reg$layers$coverage_labels
-stopifnot(all(unique(grp$class_scen) %in% scen_lev))
+stopifnot(all(unique(grp$class_scen) %in% scen_lev), all(unique(grp$class_pub) %in% names(pal_pub$values)))
 
 # ---- the panels ----------------------------------------------------------------------------------
 bb <- sf::st_bbox(ly$bc)

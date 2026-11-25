@@ -310,11 +310,14 @@ fetch_run <- function(run, years) {
     options(old)
   }
 }
+# the cached files a run's years were read from, as wet_pcic_fetch() names them: asked of it with
+# PCIC's base pointed at an address that refuses, so a file not in the cache stops the script
+# rather than being fetched here, unlogged
 run_files <- function(run, years) {
+  old <- options(wet.pcic_base = "http://127.0.0.1:9")
+  on.exit(options(old))
   unlist(lapply(vars, function(v) vapply(years, function(y) {
-    ix <- wet_pcic_index(bbox, sprintf("%d-01-01", y), sprintf("%d-12-31", y))
-    file.path(pcic_dir, sprintf("%s_%s_t%d-%d_y%d-%d_x%d-%d.nc", run, v, ix$time[1], ix$time[2],
-                                ix$lat[1], ix$lat[2], ix$lon[1], ix$lon[2]))
+    wet_pcic_fetch(v, bbox, sprintf("%d-01-01", y), sprintf("%d-12-31", y), run = run, dir = pcic_dir)
   }, "")))
 }
 # twelve monthly depths (mm) of RUNOFF + BASEFLOW accumulated to each target watershed
@@ -336,7 +339,6 @@ depths <- function(run) {
     if (is.null(area)) area <- a else stopifnot(identical(area, a))
   }
   rf <- run_files(run, base_years)
-  if (!all(file.exists(rf))) stop(run, ": a one-year file the months were read from is not in the cache", call. = FALSE)
   list(mm = out, area_m2 = stats::setNames(area, want_ws), n_files = length(rf),
        files_md5 = md5_text(sort(unname(tools::md5sum(rf)))))
 }
@@ -385,7 +387,7 @@ score_set <- function(rcp) {
       d_nse = stats::median(vapply(seq_len(nrow(fr)), function(k) wet_nse(fr_share[k, ], shg[k, ]), 1) -
                               fr$nse_pnw))
   }))
-  list(s = s, per_gcm = per_gcm, md5 = vapply(d, `[[`, "", "files_md5"),
+  list(s = s, per_gcm = per_gcm, md5 = vapply(d, `[[`, "", "files_md5"), n_files = vapply(d, `[[`, 1L, "n_files"),
        pass = stats::median(s$stat_ann) <= r5_ann && stats::median(s$d_nse) >= -r5_nse)
 }
 r85_check <- function() {
@@ -398,6 +400,7 @@ r85_check <- function() {
       do.call(rbind, lapply(vars, function(v) {
         f45 <- run_files(run5(gm, "rcp45"), y)[match(v, vars)]
         f85 <- run_files(run5(gm, "rcp85"), y)[match(v, vars)]
+        r85_files <<- c(r85_files, f45, f85)
         sf <- vapply(c(f45, f85), function(f) {
           nc <- ncdf4::nc_open(f)
           on.exit(ncdf4::nc_close(nc))
@@ -410,6 +413,7 @@ r85_check <- function() {
   }))
 }
 r5 <- NULL
+r85_files <- character()
 if (fetch) {
   r5 <- list(r45 = score_set("rcp45"), r85chk = r85_check())
   chk <- r5$r85chk[r5$r85chk$year %in% r85_years, ]
@@ -493,6 +497,9 @@ if (is.null(r5)) {
   rep <- c(rep,
     sprintf("RCP 4.5, the six GCMs: median |dQ|/Qobs %s, median dNSE %s: %s", fmt(stats::median(r5$r45$s$stat_ann)),
             fmt(stats::median(r5$r45$s$d_nse)), if (r5$r45$pass) "pass" else "fail"),
+    sprintf("  %s: %d one-year files, md5 of md5s %s", vapply(names(cmip5), run5, "", rcp = "rcp45"),
+            r5$r45$n_files, r5$r45$md5),
+    sprintf("RCP 8.5 check files (%d): md5 of md5s %s", length(r85_files), md5_text(sort(unname(tools::md5sum(r85_files))))),
     "each GCM alone (deciding nothing): |dQ|/Qobs, dNSE",
     sprintf("  %-12s %s %s", rownames(r5$r45$per_gcm), fmt(r5$r45$per_gcm[, "stat_ann"]), fmt(r5$r45$per_gcm[, "d_nse"])),
     sprintf("median signed annual difference (deciding nothing): %s", fmt(stats::median(r5$r45$s$signed))),

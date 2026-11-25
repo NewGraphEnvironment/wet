@@ -137,7 +137,13 @@ basis <- readLines(f_basis)
 r4_ran <- !any(grepl("^not run: ", basis[grep("^## Rule 4", basis):grep("^## Rule 5", basis)]))
 r5_ran <- !any(grepl("^CMIP5 score: not run: ", basis))
 r5_verdict <- sub("^verdict: ", "", grep("^verdict: ", basis, value = TRUE))
-product <- c(Fraser = "CMIP5 gridded", Coast = "CMIP6 routed", Columbia = "CMIP6 routed", Peace = "CMIP6 routed")
+# rule 3's product for each domain, from the pilot's verdict column (the text before its first comma)
+product <- vapply(domains, function(d) {
+  row <- grep(paste0("^", d, " "), pilot[(h + 1L):(h + 6L)], value = TRUE)
+  v <- sub(",.*$", "", sub("^.* (pass|fail) +", "", row))
+  if (!v %in% c("CMIP5 gridded", "CMIP6 routed")) stop("the pilot's verdict for ", d, " is not a product: ", v, call. = FALSE)
+  v
+}, "")
 if (r5_ran && !identical(r5_verdict, "the Fraser builds on CMIP5 gridded")) product[["Fraser"]] <- "undecided"
 
 # ---- the calibration gauges ----------------------------------------------------------------------
