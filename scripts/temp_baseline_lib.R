@@ -1,6 +1,7 @@
 # Shared by the whole-station temperature baseline's scripts (#213): scripts/temp_baseline_traits.R,
-# scripts/temp_baseline_recover.R and scripts/temp_baseline.R. Sourced after devtools::load_all(),
-# not run on its own; tested by tests/testthat/test-temp_baseline_lib.R.
+# scripts/temp_baseline_recover.R and scripts/temp_baseline.R. It only defines: the functions that
+# call wet's internals need the package loaded by the time they run (tb_code_load() does it for
+# the two scripts that score). Not run on its own; tested by tests/testthat/test-temp_baseline_lib.R.
 
 # Evaluate, in `envir`, the top-level assignments to `what` in another script, in the order given:
 # a definition taken from the script that owns it, not copied. Each name must be assigned exactly
@@ -274,17 +275,38 @@ tb_statistic <- function(sc, runs = unique(sc$run)) {
 }
 
 # ---- the code a score depends on --------------------------------------------------------------------
-# One md5 over the files whose change could move a score: this lib, the rule, the scoring script,
-# and the package and script code they call. scripts/temp_baseline_recover.R writes it into its
-# report, and scripts/temp_baseline.R refuses to score under another. Both take it before they
-# load any of the code and stop if it has changed by the time they write.
-tb_code_files <- c("scripts/temp_baseline_lib.R", "scripts/temp_baseline_rule.R", "scripts/temp_baseline.R",
-                   "scripts/temp_fill_validate.R", "R/wet_temp_fill.R", "R/wet_temp_gsdd.R", "R/wet_donor_mean.R",
-                   "R/wet_cv_folds.R")
+# One md5 over the files whose change could move a score or the recovery's verdict: this lib,
+# the rule, the recovery and scoring scripts, and the package and script code they call.
+# scripts/temp_baseline_recover.R writes it into its report, and scripts/temp_baseline.R refuses
+# to score under another. Both get it from tb_code_load(), which holds the files still while it
+# loads them, and both stop if a file has changed by the time they write.
+tb_code_lib <- "scripts/temp_baseline_lib.R"
+tb_code_files <- c(tb_code_lib, "scripts/temp_baseline_rule.R", "scripts/temp_baseline_recover.R",
+                   "scripts/temp_baseline.R", "scripts/temp_fill_validate.R", "R/wet_temp_fill.R",
+                   "R/wet_temp_gsdd.R", "R/wet_donor_mean.R", "R/wet_cv_folds.R")
 tb_code_md5 <- function(root = ".") {
   f <- file.path(root, tb_code_files)
   if (!all(file.exists(f))) stop("missing: ", paste(f[!file.exists(f)], collapse = ", "), call. = FALSE)
   wet:::wet_md5_text(paste(tb_code_files, unname(tools::md5sum(f))))
+}
+# Load what a score runs, and return the md5 of exactly what was loaded. The caller hashes this
+# lib before sourcing it and passes that md5 in; here every file tb_code_md5() names is hashed,
+# then the package is loaded, the rule sourced and `gsdd_year` taken from
+# scripts/temp_fill_validate.R into `envir`, then every file is hashed again. A file that moved
+# in between stops the run, so the md5 returned is of the code in memory.
+tb_code_load <- function(lib_md5, envir = parent.frame()) {
+  pre <- tools::md5sum(tb_code_files)
+  if (anyNA(pre)) stop("missing: ", paste(tb_code_files[is.na(pre)], collapse = ", "), call. = FALSE)
+  if (!identical(unname(pre[[tb_code_lib]]), unname(lib_md5))) {
+    stop(tb_code_lib, " changed between its hash and its source(): run it again", call. = FALSE)
+  }
+  devtools::load_all(quiet = TRUE)
+  sys.source("scripts/temp_baseline_rule.R", envir = envir)
+  tb_take("scripts/temp_fill_validate.R", "gsdd_year", envir)
+  if (!identical(pre, tools::md5sum(tb_code_files))) {
+    stop("a file tb_code_md5() names changed while it was being loaded: run it again", call. = FALSE)
+  }
+  tb_code_md5()
 }
 tb_code_same <- function(md5) {
   if (!identical(tb_code_md5(), md5)) {

@@ -238,8 +238,8 @@ test_that("the code md5 covers the lib, the rule and the scoring script, and not
   l <- local_tb_lib()
   root <- testthat::test_path("..", "..")
   expect_true(all(file.exists(file.path(root, l$tb_code_files))))
-  expect_true(all(c("scripts/temp_baseline_lib.R", "scripts/temp_baseline_rule.R", "scripts/temp_baseline.R") %in%
-                    l$tb_code_files))
+  expect_true(all(c("scripts/temp_baseline_lib.R", "scripts/temp_baseline_rule.R", "scripts/temp_baseline.R",
+                    "scripts/temp_baseline_recover.R") %in% l$tb_code_files))
   expect_match(l$tb_code_md5(root), "^[0-9a-f]{32}$")
   expect_error(l$tb_code_md5(tempdir()), "missing")
   # a copy with one byte more in one file has another md5
@@ -251,4 +251,12 @@ test_that("the code md5 covers the lib, the rule and the scoring script, and not
   expect_identical(l$tb_code_md5(tmp), l$tb_code_md5(root))
   cat("\n", file = file.path(tmp, "scripts/temp_baseline.R"), append = TRUE)
   expect_false(identical(l$tb_code_md5(tmp), l$tb_code_md5(root)))
+})
+
+test_that("loading refuses a lib other than the one hashed, before it loads anything", {
+  l <- local_tb_lib()
+  withr::local_dir(testthat::test_path("..", ".."))
+  expect_error(l$tb_code_load("not the lib's md5"), "changed between its hash and its source")
+  withr::local_dir(withr::local_tempdir())
+  expect_error(l$tb_code_load("x"), "missing")
 })

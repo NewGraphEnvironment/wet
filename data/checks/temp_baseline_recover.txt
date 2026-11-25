@@ -1,6 +1,6 @@
 Recovery run of the whole-station temperature baseline (#213)
 frame: bd5db3bd6b
-code: 1be90a9feca2d42369ea2006dc52a014
+code: 9b2ebd59b94e4347ed3816e7e89be0e7
 stations 209; seed 213; 1600 parameter sets; 5 end-to-end sets
 theta's variance: traits 50 %, network 25 %, noise 25 %
 
@@ -34,7 +34,20 @@ cover is of the 90 % interval; leak_z is the leak in Monte Carlo standard errors
  leakfree      donor  rate -3.79e-02 6.32e-04 0.625 0.532 0.752 0.896 -0.7049
 
 Leak-free check (|leak_z| under 3 for every candidate and component in the leak-free pool): PASS
-The check can fail (the nearest-stations mean's leak_z below -3 on every component in blocked CV, where related stations of other folds stay in training): PASS
+
+## The same z for the nearest-stations mean under three pools known to leak
+                    pool theta leak_z
+              blocked CV   eq0  -7.84
+              blocked CV   eq1  -8.18
+              blocked CV  rate  -8.55
+   removes upstream only   eq0  -4.13
+   removes upstream only   eq1  -4.26
+   removes upstream only  rate  -4.71
+ removes downstream only   eq0  -5.00
+ removes downstream only   eq1  -5.56
+ removes downstream only  rate  -5.80
+
+The check can fail (leak_z below -3 on every component in each of the three): PASS
 
 ## The regression's coefficients on z-scored traits, fitted on every station, against the known ones
 z is the mean fitted coefficient's distance from the known one in Monte Carlo standard errors

@@ -67,8 +67,8 @@
 # candidate's interval holds the station's own theta.
 #
 # Recovery first. This script refuses to score unless data/checks/temp_baseline_recover.txt is
-# committed and names (A1) the md5 of the code a score depends on as it stands (tb_code_md5()
-# in scripts/temp_baseline_lib.R) and the holdout frame it ran on
+# committed and names (A1) the md5 of the code a score depends on as this run loaded it
+# (tb_code_load() in scripts/temp_baseline_lib.R) and the holdout frame it ran on
 # (scripts/temp_baseline_recover.R: every candidate on stations simulated from known
 # trait-to-parameter relationships with a part shared along the stream network).
 # ---------------------------------------------------------------------------------------------
@@ -77,10 +77,10 @@
 # data/checks/temp_baseline.txt (byte-identical on a rerun) and data/temp_baseline/scores_<frame>.rds,
 # which a later candidate is scored against.
 
-devtools::load_all(quiet = TRUE)
-source("scripts/temp_baseline_rule.R")
-source("scripts/temp_baseline_lib.R")
-code <- tb_code_md5()
+lib <- "scripts/temp_baseline_lib.R"
+lib_md5 <- tools::md5sum(lib)
+source(lib)
+code <- tb_code_load(lib_md5)  # the package, the rule and gsdd_year, and the md5 of what was loaded
 options(width = 200)
 stamp <- function(...) message(format(Sys.time(), "%H:%M:%S"), " ", ...)
 stopifnot(requireNamespace("gsdd", quietly = TRUE))
@@ -102,7 +102,9 @@ if (!identical(named("code"), code)) {
   stop("the code a score depends on changed since the recovery run: run scripts/temp_baseline_recover.R again",
        call. = FALSE)
 }
-if (!any(grepl("^Leak-free check .*: PASS$", rec))) stop("the recovery's leak-free check did not pass", call. = FALSE)
+if (!any(grepl("^Leak-free check .*: PASS$", rec)) || !any(grepl("^The check can fail .*: PASS$", rec))) {
+  stop("the recovery's leak-free check did not pass, or was not shown to be able to fail", call. = FALSE)
+}
 
 # ---- stations, their own fits and the held-out predictions -----------------------------------------
 st <- fr$stations
@@ -128,8 +130,6 @@ for (p in pools) for (m in tb_methods) runs[[paste(p, m)]] <- cv[[p]][[m]]$mean
 stamp(n, " stations; ", length(runs), " runs each")
 
 # ---- scores ---------------------------------------------------------------------------------------------
-v <- new.env()
-tb_take("scripts/temp_fill_validate.R", "gsdd_year", v)
 years <- split(fr$truth$year, factor(fr$truth$station_number, levels = st$station_number))
 sc <- do.call(rbind, lapply(seq_len(n), function(i) {
   z <- series[[i]]
@@ -138,10 +138,10 @@ sc <- do.call(rbind, lapply(seq_len(n), function(i) {
   o <- !is.na(z$y)
   stopifnot(isTRUE(all.equal(sqrt(mean((s_own[o] - z$y[o])^2)), prep$open[[i]]$rmse, tolerance = 1e-10)),
             identical(names(prep$open)[i], st$station_number[i]))
-  obs <- tb_gsdd_observed(z, years[[i]], v$gsdd_year)
+  obs <- tb_gsdd_observed(z, years[[i]], gsdd_year)
   do.call(rbind, lapply(names(runs), function(w) {
     p <- tb_theta_inv(runs[[w]][i, , drop = FALSE])[1, ]
-    cbind(station_number = st$station_number[i], run = w, tb_score(z, tb_run(z, p), years[[i]], v$gsdd_year),
+    cbind(station_number = st$station_number[i], run = w, tb_score(z, tb_run(z, p), years[[i]], gsdd_year),
           gsdd_obs = obs)
   }))
 }))

@@ -38,7 +38,7 @@
 
 devtools::load_all(quiet = TRUE)
 source("scripts/wb_fit_lib.R")
-source("scripts/temp_baseline_lib.R")
+source("scripts/temp_baseline_lib.R")  # its definitions; this script scores nothing, so no tb_code_load()
 options(width = 160)
 stamp <- function(...) message(format(Sys.time(), "%H:%M:%S"), " ", ...)
 release <- wb_release()

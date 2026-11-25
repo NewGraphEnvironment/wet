@@ -21,10 +21,13 @@
 #             leak-free pool removes those neighbours, and each candidate's weights depend on
 #             traits alone, so there the two are equal in distribution: |z| under 3 for every
 #             candidate and component is the check that the pool removes what it claims to.
-#             The check has to be able to fail: in blocked CV, where the related stations of
-#             other folds stay in training, the nearest-stations mean must read z below -3 on
-#             every component, or the run stops. The other two candidates use neighbours
-#             little or not at all, so their z says little about a pool.
+#             The check has to be able to fail, on a half-broken pool too. So the same z is
+#             taken for the nearest-stations mean under three pools known to leak: blocked CV
+#             (the related stations of other folds stay in training), a pool that removes only
+#             the stations upstream of the held-out one, and one that removes only those
+#             downstream. Each must read z below -3 on every component. The other two
+#             candidates use neighbours little or not at all, so their z says little about a
+#             pool. The report is written either way; a failing one says FAIL and the run stops.
 #   Also the regression's coefficients against the known ones, and one set with no network part
 #   and no noise, where the regression must return theta exactly.
 #
@@ -40,13 +43,14 @@
 # real run scores it, by the same tb_statistic().
 #
 # Writes data/checks/temp_baseline_recover.txt, which names the frame and the md5 of the code a
-# score depends on (tb_code_md5(), taken before the code is loaded and checked again before the
-# report is written); scripts/temp_baseline.R refuses to score unless it is committed and names
-# both as they stand. Byte-identical on a rerun.
+# score depends on (tb_code_load(): the md5 of the files as they were loaded, here and in every
+# worker, checked again before the report is written); scripts/temp_baseline.R refuses to score
+# unless it is committed, says PASS twice and names both as they stand. Byte-identical on a rerun.
 
-devtools::load_all(quiet = TRUE)
-source("scripts/temp_baseline_lib.R")
-code <- tb_code_md5()
+lib <- "scripts/temp_baseline_lib.R"
+lib_md5 <- tools::md5sum(lib)
+source(lib)
+code <- tb_code_load(lib_md5)
 options(width = 160)
 stamp <- function(...) message(format(Sys.time(), "%H:%M:%S"), " ", ...)
 n_sim <- 1600
@@ -86,6 +90,9 @@ floor_sd <- sqrt(sd_net^2 + sd_noise^2)
 pools <- c("blocked", "leakfree")
 cells <- expand.grid(theta = tb_theta_names, method = tb_methods, pool = pools, stringsAsFactors = FALSE)
 acc <- lapply(c(err = 1, sq = 2, cover = 3, leak = 4), function(i) matrix(NA_real_, n_sim, nrow(cells)))
+# pools planted with half the defect: `related` replaced by one direction of it
+planted <- list("removes upstream only" = up, "removes downstream only" = t(up))
+acc_planted <- lapply(planted, function(p) matrix(NA_real_, n_sim, 3))
 coef_hat <- array(NA_real_, c(n_sim, length(tb_traits), 3))
 stamp("part 1: ", n_sim, " simulated sets at ", n, " stations")
 for (r in seq_len(n_sim)) {
@@ -104,6 +111,10 @@ for (r in seq_len(n_sim)) {
       acc$leak[r, j] <- colMeans(e^2 - (cv[[m]]$mean - theta_alt)^2)
     }
   }
+  for (p in names(planted)) {
+    m_p <- tb_cv(x, sim$theta, fold, planted[[p]], "leakfree", "donor")$donor$mean
+    acc_planted[[p]][r, ] <- colMeans((m_p - sim$theta)^2 - (m_p - theta_alt)^2)
+  }
   coef_hat[r, , ] <- stats::coef(stats::lm(sim$theta ~ zx))[-1, ]
 }
 part1 <- cbind(cells[c("pool", "method", "theta")],
@@ -114,8 +125,17 @@ part1 <- cbind(cells[c("pool", "method", "theta")],
 part1 <- part1[order(match(part1$pool, pools), match(part1$method, tb_methods)), ]
 rownames(part1) <- NULL
 leak_ok <- all(abs(part1$leak_z[part1$pool == "leakfree"]) < z_max)
-# the check must be able to fail: the leak it looks for, where it is known to be
-fires <- all(part1$leak_z[part1$pool == "blocked" & part1$method == "donor"] < -z_max)
+# the check must be able to fail: the leak it looks for, in three pools known to hold it
+z_of <- function(m) colMeans(m) / (apply(m, 2, stats::sd) / sqrt(n_sim))
+leaky <- rbind(
+  data.frame(pool = "blocked CV", theta = tb_theta_names,
+             leak_z = part1$leak_z[part1$pool == "blocked" & part1$method == "donor"]),
+  do.call(rbind, lapply(names(planted), function(p) {
+    data.frame(pool = p, theta = tb_theta_names, leak_z = z_of(acc_planted[[p]]))
+  })))
+rownames(leaky) <- NULL
+stopifnot(identical(part1$theta[part1$pool == "blocked" & part1$method == "donor"], tb_theta_names))
+fires <- all(leaky$leak_z < -z_max)
 coefs <- data.frame(trait = rep(tb_traits, 3), theta = rep(tb_theta_names, each = length(tb_traits)),
                     known = as.vector(beta), mean_fitted = as.vector(apply(coef_hat, c(2, 3), mean)),
                     se = as.vector(apply(coef_hat, c(2, 3), stats::sd)) / sqrt(n_sim))
@@ -142,8 +162,6 @@ sigma <- fr$fit$rmse_open * sqrt(1 - rho^2)  # innovations that give the departu
 stopifnot(all(rho > 0 & rho < 1), all(sigma > 0))
 
 e2e_one <- function(k) {
-  v <- new.env()
-  tb_take("scripts/temp_fill_validate.R", "gsdd_year", v)
   set.seed(seed * 1000 + k)
   sim <- tb_simulate(x, up, st$area_km2, b0, beta, sd_net, sd_noise)
   par <- tb_theta_inv(sim$theta)
@@ -164,10 +182,10 @@ e2e_one <- function(k) {
   }
   sc <- do.call(rbind, lapply(seq_len(n), function(i) {
     z <- rec[[i]]$z
-    obs <- tb_gsdd_observed(z, years[[i]], v$gsdd_year)
+    obs <- tb_gsdd_observed(z, years[[i]], gsdd_year)
     do.call(rbind, lapply(names(runs), function(w) {
       p <- tb_theta_inv(runs[[w]][i, , drop = FALSE])[1, ]
-      cbind(station_number = st$station_number[i], run = w, tb_score(z, tb_run(z, p), years[[i]], v$gsdd_year),
+      cbind(station_number = st$station_number[i], run = w, tb_score(z, tb_run(z, p), years[[i]], gsdd_year),
             gsdd_obs = obs)
     }))
   }))
@@ -176,11 +194,18 @@ e2e_one <- function(k) {
 cl <- parallel::makeCluster(min(n_e2e, max(1, parallel::detectCores() - 2)))
 root <- normalizePath(".")
 parallel::clusterExport(cl, "root")
-invisible(parallel::clusterEvalQ(cl, {
+# every worker loads the same code, and says which
+worker_code <- parallel::clusterEvalQ(cl, {
   setwd(root)
-  pkgload::load_all(root, quiet = TRUE)
-  source("scripts/temp_baseline_lib.R")
-}))
+  lib <- "scripts/temp_baseline_lib.R"
+  lib_md5 <- tools::md5sum(lib)
+  source(lib)
+  tb_code_load(lib_md5)
+})
+if (!all(vapply(worker_code, identical, logical(1), code))) {
+  parallel::stopCluster(cl)
+  stop("a worker loaded other code than this run started on: run it again", call. = FALSE)
+}
 parallel::clusterExport(cl, c("x", "up", "st", "b0", "beta", "sd_net", "sd_noise", "series", "years", "rho",
                               "sigma", "fold", "related", "pools", "seed", "n"))
 e2e <- parallel::parLapply(cl, seq_len(n_e2e), e2e_one)
@@ -222,8 +247,10 @@ lines <- c(
   fmt(part1), "",
   sprintf("Leak-free check (|leak_z| under %d for every candidate and component in the leak-free pool): %s", z_max,
           if (leak_ok) "PASS" else "FAIL"),
-  sprintf(paste("The check can fail (the nearest-stations mean's leak_z below -%d on every component in blocked CV,",
-                "where related stations of other folds stay in training): %s"), z_max,
+  "",
+  "## The same z for the nearest-stations mean under three pools known to leak",
+  fmt(leaky), "",
+  sprintf("The check can fail (leak_z below -%d on every component in each of the three): %s", z_max,
           if (fires) "PASS" else "FAIL"),
   "",
   "## The regression's coefficients on z-scored traits, fitted on every station, against the known ones",
@@ -240,10 +267,10 @@ lines <- c(
   "## Refitted theta against the simulated theta, every station of every set",
   fmt(fit_tab))
 tb_code_same(code)
-if (!leak_ok || !fires) {
-  cat(lines, sep = "\n")
-  stop("the leak-free check ", if (!leak_ok) "failed" else "could not see the leak blocked CV holds",
-       ": no report written", call. = FALSE)
-}
+# written either way: a failing report replaces a passing one, so nothing scores on a stale PASS
 writeLines(lines, file.path("data", "checks", "temp_baseline_recover.txt"))
 cat(lines, sep = "\n")
+if (!leak_ok || !fires) {
+  stop("the leak-free check ", if (!leak_ok) "failed" else "could not see a leak it was shown",
+       ": see the report", call. = FALSE)
+}

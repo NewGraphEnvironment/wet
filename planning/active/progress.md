@@ -61,3 +61,16 @@
   threshold (gains 94 to 119, gaps 196 and 201), and a change would be an amendment for the
   owner.
 - Reruns: logs `data/logs/213/*_r1_*`.
+
+## Code-check round 2, 2026-11-25
+- Five findings, all `fragile`, four inside round 1's fixes (`review-round2.md`). All fixed:
+  the recovery plants two half-broken pools (upstream-only, downstream-only) and requires the
+  check to catch each as well as blocked CV (z −4.1 to −5.8, and −7.8 to −8.5); the code md5
+  comes from `tb_code_load()`, which hashes every file, loads the package, the rule and
+  `gsdd_year`, and hashes again, here and in each worker; `scripts/temp_baseline_recover.R` is
+  in the md5, a failing recovery writes its failing report, and the scorer needs both PASS
+  lines; two wordings (the donor's bias is 2 to 5 % in the leak-free pool only; "about a
+  tenth").
+- A defect inside a fix has now appeared, so the loop ends on an enumeration, not a quiet round.
+- Rerun: log `data/logs/213/recover_r2_*`; every number of the report but the code md5 and the
+  new table is unchanged.
