@@ -90,7 +90,8 @@ from <- as.Date("2021-01-01")
 to <- as.Date(snapshot, "%Y%m%d") - 1   # the last whole day before the provincial snapshot
 min_days <- 365
 host <- "https://bcmoe-prod.aquaticinformatics.net"
-agent <- "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
+agent <- paste("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko)",
+               "Chrome/130.0 Safari/537.36")
 
 # ---- the cached copies: the province's and the Tool's 24-hour UTC days -------------------------
 prov <- wet_bcenv_days_read(wet_bcenv_days(snapshot, cache, utc = TRUE), NULL)
@@ -202,13 +203,19 @@ for (s in picked$station_number) {
                                                                       list(term = s, limit = "21")))
   loc <- jsonlite::fromJSON(jsonlite::fromJSON(loc))
   loc <- if (is.data.frame(loc) && "Id" %in% names(loc)) loc[loc$Id %in% s, ] else NULL
-  if (!NROW(loc)) { fetched[[s]] <- list(why = "no portal location"); next }
+  if (!NROW(loc)) {
+    fetched[[s]] <- list(why = "no portal location")
+    next
+  }
   ds <- cached(sprintf("%s_datasets.json", s), function() portal_get("/Data/DataSets/",
                                                                      list(locationid = as.character(loc$IDNumber[1]))))
   ds <- jsonlite::fromJSON(ds)
   if (is.character(ds)) ds <- jsonlite::fromJSON(ds)
   want <- sprintf("Discharge.Working@%s", s)
-  if (!want %in% ds$DisplayText) { fetched[[s]] <- list(why = "no Discharge.Working data set"); next }
+  if (!want %in% ds$DisplayText) {
+    fetched[[s]] <- list(why = "no Discharge.Working data set")
+    next
+  }
   csv <- cached(sprintf("%s_discharge_working.csv", s), function() portal_get("/Export/BulkExport", c(
     DateRange = "Custom", StartTime = paste(format(from), "00:00"), EndTime = paste(format(to + 1), "00:00"),
     TimeZone = "0", Calendar = "CALENDARYEAR", Interval = "PointsAsRecorded", Step = "1", ExportFormat = "csv",

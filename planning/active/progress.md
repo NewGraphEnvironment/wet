@@ -13,6 +13,13 @@
 - The pinned files are current from water year 2022; water year 2021 has been revised since; the newer pin is filed as #232; #190's body edited.
 - Next: Phase 2 (#192, Hakai).
 
+## Phase 2, 2026-11-25 (#192)
+- Read the package (GitHub, Git LFS, CC-BY 4.0); downloaded the hourly discharge at commit 8318556d2baf; found the `Z` timestamps are PST hour ends (three checks); registered the rules before counting any day (a7a454fc).
+- Refactor commit with no output change (8aa96d36); tests written against a fixture, failing 12 before the pin; `R/wet_hakai.R`, the pin (`data-raw/station_sources_hakai.R`, backed up privately), wiring into `wet_station_daily()`/`wet_station_list()`; the report `data/checks/station_sources_hakai_8318556d2baf.txt` byte-identical on a rerun, registry held to the reader.
+- Plan corrected: the registry check covers the registries a call opens (a shipped test forbade opening the Tool registry without `"bcwatertool"`).
+- Filed #233 (the other four watersheds); draft ask to Hakai in findings, unsent.
+- Next: Phase 3 (#207).
+
 ### Resume
 
 ```

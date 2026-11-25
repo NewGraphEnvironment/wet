@@ -1,0 +1,46 @@
+Hakai's package as wet reads it: the Hakai report (#192), package 8318556d2baf, provincial snapshot 20261028
+Rules: research/station_sources.md, "The Hakai package in wet". No timestamp.
+
+The file: 2013-2019_Discharge_Hourly.csv, 31425750 bytes, md5 1353e7067afea4c98bafbf2293991814
+
+Per watershed: station, continues, hours read, SVD hours dropped, PST days, complete days, days the bound drops,
+  days kept before the provincial record begins, days kept on or after it, % of kept days approved
+    WTS626 H08KC0626  45252   0  1886  1885   0  1885   0  98.5
+    WTS703 H08KC0703  45207   0  1885  1883   0  1883   0  93.4
+    WTS844 H08KC0844  44312   0  1847  1846   0  1846   0  95.0
+
+The hours' first-tier codes and levels: station, codes, Qlevel, hours
+    WTS626 AV           2  45112
+    WTS626 EV           2     80
+    WTS626 AV+EV        2     36
+    WTS626 SVC          2     13
+    WTS626 AV+BR+EV     2      5
+    WTS626 AV+SVC       2      3
+    WTS626 AV           1      2
+    WTS626 BR+EV+SVC    2      1
+    WTS703 AV           2  43821
+    WTS703 SVC          2    851
+    WTS703 EV           2    413
+    WTS703 AV+EV        2     76
+    WTS703 AV+BR+EV     2     25
+    WTS703 AV+SVC       2     13
+    WTS703 EV+SVC       2      6
+    WTS703 AV           1      1
+    WTS703 AV+MV        1      1
+    WTS844 AV           2  43696
+    WTS844 EV           3    344
+    WTS844 AV+EV        2    131
+    WTS844 EV           2    101
+    WTS844 AV+BR+EV     2     37
+    WTS844 AV+BR+EV+SVC 2      1
+    WTS844 AV+SVC       2      1
+    WTS844 EV+SVC       2      1
+
+The station test (>= 3 complete Chinook-window years; no HYDAT station at these sites), shipped rules:
+  station, provincial migration and spawning window-years, most of either -> with Hakai, passes -> with Hakai,
+  first and last day with Hakai
+    H08KC0626    5    5   5 ->  10   TRUE -> TRUE   2014-08-03 to 2026-10-27
+    H08KC0703    1    2   2 ->   7   FALSE -> TRUE   2014-08-04 to 2026-10-27
+    H08KC0844    4    4   4 ->   9   TRUE -> TRUE   2014-09-11 to 2026-10-27
+
+The registry against the reader: first, last and continues_before equal for every watershed

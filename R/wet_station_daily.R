@@ -19,8 +19,11 @@
 #' station's site, its record continues the provincial one instead: its days
 #' before the provincial record begins (the first day the province's files hold
 #' any hour of the station) come back under the provincial number, with
-#' `source` `"bcwatertool"`, and none from that day on. Each provincial
-#' and Tool station's regulation, natural, regulated or unknown, is
+#' `source` `"bcwatertool"`, and none from that day on. Hakai Institute's
+#' published package does the same for three Calvert and Hecate island
+#' watersheds (H08KC0626, H08KC0703 and H08KC0844): its days from 2014 to
+#' 2019 come back under the provincial number with `source` `"hakai"`. Each
+#' provincial and Tool station's regulation, natural, regulated or unknown, is
 #' [wet_station_list()]'s `regulation`.
 #'
 #' Ported from `ngr::ngr_hyd_q_daily()`, which joined HYDAT with about 18
@@ -33,7 +36,7 @@
 #' @param from,to Optional first and last date (a `Date` or a string
 #'   `as.Date()` reads). `NULL` means no bound.
 #' @param sources Which sources to read, from `"hydat"`, `"provisional"`,
-#'   `"realtime"`, `"bcenv"` and `"bcwatertool"`. The first three read HYDAT-numbered stations
+#'   `"realtime"`, `"bcenv"`, `"bcwatertool"` and `"hakai"`. The first three read HYDAT-numbered stations
 #'   only, and each continues the one before it, per station, from
 #'   that source's last day over its whole record: provisional days are used
 #'   only after HYDAT's last day, and real-time days only after both, whatever
@@ -52,8 +55,15 @@
 #'   a day as the Tool gives it, a day above the same bound (its sub-drainage
 #'   taken from the nearest HYDAT station) dropped; and the days of a Tool gauge
 #'   at a provincial station's site before that station's record begins, under
-#'   the provincial number. A station's own source comes first, and a second
-#'   publisher's gauge at its site only for the days before it.
+#'   the provincial number. `"hakai"` reads Hakai Institute's published
+#'   discharge package (Korver et al., \doi{10.21966/J99C-9C14}, CC-BY 4.0)
+#'   for the days, 2014 to 2019, before three Calvert and Hecate island
+#'   stations' provincial records begin, under the provincial number: a day is
+#'   a Pacific Standard Time day with at least 20 of Hakai's hourly means, a
+#'   day above the same bound dropped. Its file is fetched once from the
+#'   package's pinned commit and kept in wet's cache. A station's own source
+#'   comes first, and a second publisher's gauge at its site only for the days
+#'   before it.
 #' @param snapshot The provincial snapshot to read, as `YYYYMMDD`; each pinned
 #'   snapshot's files are held to md5s tracked in the package. Read only for
 #'   stations that are not HYDAT-numbered. The Water Tool's snapshot is the one
@@ -68,9 +78,11 @@
 #'   carries a grade and `"unchecked"` when any hour is graded Undefined or
 #'   Unspecified: the province's files carry no approval, so none is
 #'   `"approved"`. A Water Tool day is `"provisional"` where the Tool marks it
-#'   quality checked and `"unchecked"` where it does not. Provisional,
-#'   provincial and Tool days carry no ice symbol, so their `NA` means "not
-#'   recorded", not "open water".
+#'   quality checked and `"unchecked"` where it does not. A Hakai day is
+#'   `"approved"` where Hakai accepted every hour of it after quality control
+#'   (Hakai's approval, not Water Survey of Canada's) and `"provisional"`
+#'   otherwise. Provisional, provincial, Tool and Hakai days carry no ice
+#'   symbol, so their `NA` means "not recorded", not "open water".
 #'
 #'   A gap between the end of one source and the start of the next (for
 #'   example an old HYDAT ending before the provisional archive begins) is
@@ -90,18 +102,23 @@
 #' # BC Conservation Foundation's 2012-2015 gauge at the site before them
 #' r <- wet_station_daily("08HB0008")
 #' table(format(r$date, "%Y"), r$source)
+#'
+#' # Calvert Island Watershed 626: Hakai's published years, 2014-2019, then the
+#' # province's from 2021
+#' k <- wet_station_daily("H08KC0626", sources = c("bcenv", "hakai"))
+#' table(format(k$date, "%Y"), k$source)
 #' }
 #' @export
 wet_station_daily <- function(stations, hydat = wet_hydat_path(), from = NULL, to = Sys.Date(),
-                              sources = c("hydat", "provisional", "realtime", "bcenv", "bcwatertool"),
+                              sources = c("hydat", "provisional", "realtime", "bcenv", "bcwatertool", "hakai"),
                               snapshot = wet_bcenv_snapshot) {
   if (!is.character(stations) || !length(stations) || anyNA(stations)) {
     stop("`stations` must be a non-empty character vector of station numbers", call. = FALSE)
   }
-  bad <- setdiff(sources, c("hydat", "provisional", "realtime", "bcenv", "bcwatertool"))
+  bad <- setdiff(sources, c("hydat", "provisional", "realtime", "bcenv", "bcwatertool", "hakai"))
   if (!length(sources) || length(bad)) {
-    stop("`sources` must be some of \"hydat\", \"provisional\", \"realtime\", \"bcenv\", \"bcwatertool\"",
-         call. = FALSE)
+    stop("`sources` must be some of \"hydat\", \"provisional\", \"realtime\", \"bcenv\", \"bcwatertool\", ",
+         "\"hakai\"", call. = FALSE)
   }
   # numeric as.Date() needs an origin before R 4.3
   from <- if (is.null(from)) as.Date(-Inf, origin = "1970-01-01") else as.Date(from)
@@ -149,7 +166,13 @@ wet_station_daily <- function(stations, hydat = wet_hydat_path(), from = NULL, t
     }))
   }
   if ("bcwatertool" %in% sources && length(other)) {
-    out <- rbind(out, wet_daily_try("bcwatertool", wet_bcwatertool_station_days(other, snapshot)))
+    out <- rbind(out, wet_daily_try("bcwatertool",
+                                    wet_bcwatertool_station_days(other, snapshot, with_hakai = "hakai" %in% sources)))
+  }
+  if ("hakai" %in% sources && length(other)) {
+    with_tool <- "bcwatertool" %in% sources
+    out <- rbind(out, wet_daily_try("hakai", wet_hakai_station_days(other, snapshot,
+                                                                    tool = if (with_tool) wet_bcwatertool_stations())))
   }
   # each source takes only days the ones before it lack; a station-day given twice means two of them disagree
   # about where a record ends, and a statistic over the series would count that day twice
@@ -176,10 +199,10 @@ wet_station_daily <- function(stations, hydat = wet_hydat_path(), from = NULL, t
 # of them where the files hold none), under the provincial number. The cut
 # comes from the registry, not from the rows read, so it is the same
 # whichever sources are asked.
-wet_bcwatertool_station_days <- function(stations, snapshot) {
+wet_bcwatertool_station_days <- function(stations, snapshot, with_hakai = FALSE) {
   tool <- wet_bcwatertool_against(wet_bcwatertool_stations(), snapshot)
   prov <- wet_bcenv_stations(snapshot)
-  wet_registry_check(tool, prov, snapshot)
+  wet_registry_check(tool, prov, snapshot, hakai = if (with_hakai) wet_hakai_stations())
   own <- tool$station_number[is.na(tool$continues) & tool$station_number %in% stations]
   cont <- wet_continuing(tool, stations, prov)
   if (!length(own) && !nrow(cont)) return(wet_daily_empty())
@@ -205,25 +228,25 @@ wet_continue_days <- function(d, cont) {
   d
 }
 
-# No number may be in two registries (provincial, Water Tool, and any other
-# continuing publisher's in `...`), and no provincial station may be continued
-# by two publishers.
-wet_registry_check <- function(tool, prov, snapshot, ...) {
-  regs <- c(list(tool = tool), Filter(Negate(is.null), list(...)))
-  names(regs)[names(regs) == "tool"] <- "the Water Tool's"
+# No number may be in two registries (the provincial one, the Water Tool's
+# `tool` and Hakai's `hakai`, each NULL when the call does not open it), and no
+# provincial station may be continued by two publishers.
+wet_registry_check <- function(tool, prov, snapshot, hakai = NULL) {
+  regs <- Filter(Negate(is.null), list("the Water Tool's" = tool, "Hakai's" = hakai))
+  if (length(regs) == 1L && !is.null(tool)) {
+    both <- intersect(tool$station_number, prov$station_number)
+    if (length(both)) {
+      wet_registry_conflict(paste0("the Water Tool's station registry and the provincial snapshot ", snapshot,
+                                   "'s both hold ", paste(both, collapse = ", ")))
+    }
+  }
   all <- c(list(provincial = prov), regs)
   num <- unlist(lapply(all, function(r) r$station_number), use.names = FALSE)
-  who <- rep(names(all), vapply(all, nrow, 0L))
+  who <- rep(names(all), vapply(all, function(r) length(r$station_number), 0L))
   dup <- unique(num[duplicated(num)])
   if (length(dup)) {
-    held <- unique(who[num %in% dup])
-    msg <- if (identical(held, c("provincial", "the Water Tool's"))) {
-      paste0("the Water Tool's station registry and the provincial snapshot ", snapshot, "'s both hold ",
-             paste(dup, collapse = ", "))
-    } else {
-      paste0("the ", paste(held, collapse = " and "), " station registries both hold ", paste(dup, collapse = ", "))
-    }
-    wet_registry_conflict(msg)
+    wet_registry_conflict(paste0("the ", paste(unique(who[num %in% dup]), collapse = " and "),
+                                 " station registries both hold ", paste(dup, collapse = ", ")))
   }
   cont <- unlist(lapply(regs, function(r) stats::na.omit(r$continues)), use.names = FALSE)
   twice <- unique(cont[duplicated(cont)])

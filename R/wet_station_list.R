@@ -19,7 +19,9 @@
 #' a provincial station's site is not listed: its days before the provincial
 #' record begins continue that station's record under the provincial number
 #' (see [wet_station_daily()]), and the provincial row's `first`, `licence` and
-#' `credit` say so when both sources are listed.
+#' `credit` say so when both sources are listed. Hakai Institute's published
+#' package (`"hakai"`) continues three Calvert and Hecate island stations the
+#' same way and lists no station of its own.
 #'
 #' `regulation` is each station's status from what sits upstream of it, one
 #' for the year as a whole, under a rule registered before it was applied:
@@ -39,7 +41,9 @@
 #' Province of British Columbia's water rights licences, whose terms are
 #' "Access Only": no licence record is reproduced.
 #'
-#' @param sources Which networks to list, from `"bcenv"` and `"bcwatertool"`.
+#' @param sources Which networks to list, from `"bcenv"`, `"bcwatertool"` and
+#'   `"hakai"`. `"hakai"` alone lists no station: its watersheds only continue
+#'   provincial ones, which it changes when `"bcenv"` is listed too.
 #' @param snapshot The provincial snapshot, as `YYYYMMDD`. The Water Tool's is
 #'   the one the package pins.
 #' @return `data.frame(station_number, name, lon, lat, source, network,
@@ -61,15 +65,18 @@
 #' # the Water Tool's networks
 #' table(s$network[s$source == "bcwatertool"])
 #' @export
-wet_station_list <- function(sources = c("bcenv", "bcwatertool"), snapshot = wet_bcenv_snapshot) {
-  if (!is.character(sources) || !length(sources) || anyNA(sources) ||
-      length(setdiff(sources, c("bcenv", "bcwatertool")))) {
-    stop("`sources` must be some of \"bcenv\" and \"bcwatertool\"", call. = FALSE)
+wet_station_list <- function(sources = c("bcenv", "bcwatertool", "hakai"), snapshot = wet_bcenv_snapshot) {
+  known <- c("bcenv", "bcwatertool", "hakai")
+  if (!is.character(sources) || !length(sources) || anyNA(sources) || length(setdiff(sources, known))) {
+    stop("`sources` must be some of \"bcenv\", \"bcwatertool\" and \"hakai\"", call. = FALSE)
   }
   out <- list()
   prov <- wet_bcenv_stations(snapshot)
   tool <- if ("bcwatertool" %in% sources) wet_bcwatertool_against(wet_bcwatertool_stations(), snapshot)
-  if (!is.null(tool)) wet_registry_check(tool, prov, snapshot)
+  hakai <- if ("hakai" %in% sources) {
+    wet_registry_against(wet_hakai_stations(), snapshot, "Hakai", "data-raw/station_sources_hakai.R")
+  }
+  if (!is.null(tool) || !is.null(hakai)) wet_registry_check(tool, prov, snapshot, hakai = hakai)
   status <- wet_station_regulation(snapshot)
   if ("bcenv" %in% sources) {
     p <- data.frame(station_number = prov$station_number, name = prov$name, lon = prov$lon, lat = prov$lat,
@@ -79,6 +86,7 @@ wet_station_list <- function(sources = c("bcenv", "bcwatertool"), snapshot = wet
                     hydat_km = prov$hydat_km, licence = "OGL-BC 2.0",
                     credit = "Contains information licensed under the Open Government Licence \u2013 British Columbia")
     if (!is.null(tool)) p <- wet_continue_list(p, tool, "none stated")
+    if (!is.null(hakai)) p <- wet_continue_list(p, hakai, hakai$licence)
     out$bcenv <- p
   }
   # data.frame() cannot recycle the scalar source onto zero rows
@@ -90,9 +98,17 @@ wet_station_list <- function(sources = c("bcenv", "bcwatertool"), snapshot = wet
                                   hydat_site = t$hydat_site, hydat_km = t$hydat_km,
                                   licence = NA_character_, credit = t$credit)
   }
-  out <- do.call(rbind, unname(out))
+  # Hakai's watersheds are continuations only, so "hakai" alone lists no station
+  out <- do.call(rbind, c(list(wet_station_list_empty()), unname(out)))
   rownames(out) <- NULL
   out
+}
+
+wet_station_list_empty <- function() {
+  data.frame(station_number = character(), name = character(), lon = numeric(), lat = numeric(),
+             source = character(), network = character(), first = as.Date(character()), last = as.Date(character()),
+             regulation = character(), hydat_site = character(), hydat_km = numeric(), licence = character(),
+             credit = character())
 }
 
 # Provincial rows `p` with the first and last days, licence and credit of each
