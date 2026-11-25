@@ -55,3 +55,7 @@ mandate; the merge stays with me.
 - Member re-check: FREE #4, #5, #205.
 - `research/pcic_hydrology.md` re-read from what robots.txt allows, revised in place, "Access and robots.txt" added; README row. PCIC note drafted for the owner, outside this repository. #205 body edited to what is left; open.
 - Next: Phase 2 (readers).
+
+## Phase 2, 2026-11-25
+- `wet_runoff_monthly()`, `wet_pcic_monthly()`; `wet_pcic_fetch()` through curl (`wet_http_disk()`, user agent `wet`), 429/503 waits, status and days checks. Each guard restored once and its test went red. `wet_pcic_annual()` on the cached Fraser year 1981, offline, `identical()` to origin/main's. Full suite: FAIL 0, PASS 3562 (one live-data warning, five fwapg-migration skips, all unrelated). Lints: none new.
+- Commits: 215b63e
