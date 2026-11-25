@@ -1,4 +1,4 @@
-# wet (development version)
+# wet 0.4.45
 
 * No change to the package's functions; `wet_station_list()` and `wet_station_select()` say what the test below found. The natural stations outside HYDAT (#211, #202) were tested as departure donors under a rule registered before any score (`scripts/departure_donors_rule.R`, report `data/checks/departure_donors_20260717_20261028.txt`). None holds the 10 years of 1981–2010 record a baseline needs, so the 33 with at least 3 complete window-years through 2024 were each given one estimated from HYDAT gauges; held out at HYDAT's gauges, they made the carried migration-window departure worse (median paired difference in RMSE +0.032 leave-one-gauge-out, +0.015 leak-free, against a bar of −0.01). Donor selection stays HYDAT-only, and no site report moves.
 
