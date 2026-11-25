@@ -9,5 +9,5 @@ coverage_scenarios,polygon,,class_scen,none,None,#bdbdbd,0.85,,,,,,,,,,,,,,,,"Co
 coverage_lines,line,,part,group,Watershed group,,,#ffffff,0.15,1,,,,,,,,,,,,,"White separators between groups"
 coverage_lines,line,,part,bc,BC boundary,,,#4d4d4d,0.3,1,,,,,,,,,,,,,ColorBrewer Greys dark
 coverage_lines,line,,part,river,"River (stream order 7 and up)",,,#08306b,0.35,1,,,,,,,,,,,,,ColorBrewer Blues darkest: stands off the fills
-coverage_labels,point,,part,river,River,,,,,,,,,,,#08306b,2.8,,#ffffff,0.15,,,"River names, italic, with a white halo"
-coverage_labels,point,,part,town,Town,,,,,,#2c3e50,circle,1,#ffffff,0.4,#2c3e50,2.8,,#ffffff,0.15,,,gq town's colours
+coverage_labels,point,,part,river,River,,,,,,,,,,,#08306b,3.3,,#ffffff,0.15,,,"River names, italic, with a white halo"
+coverage_labels,point,,part,town,Town,,,,,,#2c3e50,circle,1,#ffffff,0.4,#2c3e50,3.3,,#ffffff,0.15,,,gq town's colours

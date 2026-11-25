@@ -153,3 +153,12 @@ git -C fwapg show origin/{main,newgraph}:extras/discharge/discharge.sh   # curl 
 |-------|------------|
 | Runs 2 and 3 refused at once: `?? scripts/pcic_coverage.R` (the clean-tree guard counts untracked files) | Moved the Phase 4 draft out of `scripts/` for the runs. The refused attempt's copies were the old report, so the first "identical" would have meant nothing; rerun |
 | The report printed this machine's absolute paths | Replaced with `<data root>/...` before the tracked runs (public repo) |
+
+## Phase 4 (2026-11-25)
+
+- `scripts/pcic_coverage.R` (about 1 min; the month-0 read of the 43 historical segment_monthly parts over httpfs took 30 s): 246 groups, all with a segment value (4,532,843 segments). Published sources: both 154, routed on part 44, balance alone 48. What scenarios build on: CMIP5 gridded 67, CMIP6 routed 87, part or mixed 44, none 48. Groups with segments in each PCIC domain: Fraser 70, Coast 87, Columbia 18, Peace 27, none 47. On PCIC's gridded cells: 138 groups with any area, 110 with 0.95 or more. Calibration gauges: 315 in 147 groups, routed scored at 283.
+- Held: each source's month-0 rows × 13 equal the publish report's rows; picks equal the publish report's reader counts and every group's equal the segment report's; the parts verified against the manifest before and after.
+- Runs 3 and 4 differ only in the `wet commit` line, which must move: `vd_commit()` refuses an uncommitted report, so the report is committed between runs. The group table's md5 (02b7d366…) is the same in both.
+- Gridded cover reaches past the three basins at their edges (BABL 22 %, BABR 7 %): PNWNAmet's cells with values overlap the divide; measured, not corrected.
+- The map: two panels, ggplot2 as the articles draw maps, colours from `inst/cartography/wet_coverage.csv`. Self-review at 700 px: legends first sorted alphabetically and lacked the rivers (fixed: class order, a river key); type enlarged; the legends then overflowed and were stacked; an en dash. A second render from the stored layers gave the same pixels, and, once ImageMagick's date chunks were excluded, the same bytes. Fort Nelson is a GNS "Community", added to the populated-place types.
+- The BC outline is `vm_bc()` (fwapg, ordered, simplified to 5 km, pieces of 2,000 km² and up), not `wb_map.R`'s plain union: the shared map lib's form.

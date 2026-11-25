@@ -63,7 +63,7 @@ if (!file.exists(f_layers)) {
          paste(sprintf("%s %s", lab$name, lab$n_blk), collapse = ", "), call. = FALSE)
   }
   pl <- vm_places(bc, towns)
-  pl <- pl[grepl("City|Town|Municipality|Village", pl$feature_type), ]
+  pl <- pl[grepl("City|Town|Municipality|Village|Community", pl$feature_type), ]
   if (!setequal(pl$name, towns) || anyDuplicated(pl$name)) {
     stop("each town must give one populated place: ", paste(pl$name, pl$feature_type, collapse = "; "), call. = FALSE)
   }
@@ -104,8 +104,11 @@ tw <- xy(ly$towns)
 panel <- function(field, pal, title, scale_bar) {
   p <- ggplot() +
     geom_sf(data = grp, aes(fill = .data[[field]]), colour = lines$values[["group"]], linewidth = 0.1) +
-    scale_fill_manual(values = pal$values, labels = pal$labels, name = title, drop = FALSE) +
-    geom_sf(data = rv, colour = lines$values[["river"]], linewidth = 0.3) +
+    scale_fill_manual(values = pal$values, labels = pal$labels, breaks = names(pal$values), name = title,
+                      drop = FALSE, guide = guide_legend(order = 1)) +
+    geom_sf(data = rv, aes(colour = "river"), linewidth = 0.3) +
+    scale_colour_manual(values = lines$values["river"], labels = lines$labels["river"], name = NULL,
+                        guide = guide_legend(order = 2, override.aes = list(linewidth = 0.8))) +
     geom_sf(data = ly$bc, fill = NA, colour = lines$values[["bc"]], linewidth = 0.3) +
     geom_point(data = tw, aes(X, Y), colour = "#2c3e50", fill = "#2c3e50", size = 0.9, shape = 21, stroke = 0.3) +
     ggrepel::geom_text_repel(data = tw, aes(X, Y, label = name), size = lb$label$size, colour = "#2c3e50",
@@ -116,22 +119,25 @@ panel <- function(field, pal, title, scale_bar) {
                              min.segment.length = Inf, box.padding = 0.1) +
     coord_sf(xlim = bb[c("xmin", "xmax")], ylim = bb[c("ymin", "ymax")], expand = FALSE, datum = NA) +
     theme_void(base_size = 8) +
-    theme(legend.position = "bottom", legend.direction = "vertical", legend.title = element_text(size = 8),
-          legend.text = element_text(size = 7.5), legend.key.size = unit(9, "pt"),
+    theme(legend.position = "bottom", legend.direction = "vertical", legend.box = "vertical",
+          legend.box.just = "left", legend.spacing.y = unit(2, "pt"), legend.title = element_text(size = 9.5),
+          legend.text = element_text(size = 9), legend.key.size = unit(10, "pt"),
           plot.margin = margin(2, 2, 2, 2))
   if (scale_bar) {
     p <- p + geom_segment(data = sb, aes(x = x, xend = xend, y = y, yend = y), linewidth = 0.8) +
-      geom_text(data = sb, aes(x = (x + xend) / 2, y = y, label = paste(sb_km, "km")), vjust = -0.7, size = 2.6)
+      geom_text(data = sb, aes(x = (x + xend) / 2, y = y, label = paste(sb_km, "km")), vjust = -0.7, size = 3.2)
   }
   p
 }
-p1 <- panel("class_pub", pal_pub, "Published 1981-2010 flow", TRUE)
+p1 <- panel("class_pub", pal_pub, "Published 1981\u20132010 flow", TRUE)
 p2 <- panel("class_scen", pal_scen, "What scenarios build on", FALSE)
 w <- 3.5
-h <- w * asp + 1.0   # the map's own shape, plus the legend below it
+h <- w * asp + 1.45  # the map's own shape, plus the legend below it
 tmp <- c(tempfile(fileext = ".png"), tempfile(fileext = ".png"))
 ggsave(tmp[1], p1, width = w, height = h, dpi = 200, bg = "white")
 ggsave(tmp[2], p2, width = w, height = h, dpi = 200, bg = "white")
 img <- magick::image_append(c(magick::image_read(tmp[1]), magick::image_read(tmp[2])))
+# no date chunks, so a render of the same layers writes the same bytes
+img <- magick::image_set_defines(magick::image_strip(img), c("png:exclude-chunks" = "date,time"))
 magick::image_write(img, f_png, format = "png")
 message("wrote ", f_png)

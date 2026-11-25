@@ -1,7 +1,7 @@
 # Which product covers which watershed group (#169, #5), HYDAT 20260717
 
 ## Provenance
-wet commit 749ce6f0; live build a0318b7 (segment table 66cf795); 43 segment_monthly parts, historical
+wet commit e810b5b0; live build a0318b7 (segment table 66cf795); 43 segment_monthly parts, historical
 live parts md5 ef67728fe57c111ec05d3cc973c12fd8; verified against the manifest before and after the read
 routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 5d50cc1
 table: 40524444 rows, 3377037 segments, 0 null flows, total 179854603.510890 m3/s

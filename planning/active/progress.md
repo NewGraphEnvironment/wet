@@ -63,3 +63,7 @@ mandate; the merge stays with me.
 ## Phase 3, 2026-11-25
 - Rules registered (4ef1af5), coded (9bafb95, 3b6c16c); offline runs: parity holds, rule 4 and the CMIP5 score not run (PCIC asked first); byte-identical on a second run.
 - Next: Phase 4 (coverage report and map).
+
+## Phase 4, 2026-11-25
+- Coverage report (two runs, equal but for the commit line) and map (byte-identical on a second render); research/pcic_coverage.png.
+- Next: Phase 5 (research/pcic_scenarios.md, CLAUDE.md).
