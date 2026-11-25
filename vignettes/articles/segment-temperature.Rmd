@@ -531,6 +531,8 @@ ggplot() +
                       labels = pal_hold$labels["lean"], name = NULL) +
   scale_fill_manual(values = pal_hold$values[c("hidden", "used", "unused")],
                     labels = pal_hold$labels[c("hidden", "used", "unused")], name = NULL) +
+  # two legends: give each its place, or their order follows a hash that differs between sessions
+  guides(fill = guide_legend(order = 1), colour = guide_legend(order = 2)) +
   coord_equal(xlim = c(0.3, 9.7), ylim = c(-0.2, 9.9), expand = FALSE) +
   theme_void(base_size = 10) +
   theme(legend.position = "bottom", strip.text = element_text(size = 9.5, margin = margin(0, 0, 4, 0)),
