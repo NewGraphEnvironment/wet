@@ -11,6 +11,7 @@ Days returned: 69619. By source and status: bcenv provisional 29359; bcwatertool
 Complete migration window-years (mean) per station: 0 at 16, 1 at 15, 2 at 8, 3 at 12, 4 at 16, 5 at 3, 6 at 1, 8 at 3, 9 at 1. At least 3: 36; at least 5: 8; at least 10: 0.
 Through 2024: at least 3: 33; at least 5: 5.
 In 1981-2010, per station: 0 at 71, 1 at 2, 3 at 1, 4 at 1. With at least 10 (a baseline): 0.
+In 1981-2010, over every statistic and window: the most usable window-years any station holds is 5; with at least 10: 0.
 Window-years: 185; by decade 1990s 1, 2000s 5, 2010s 89, 2020s 90. Every day unchecked in 58, every day provisional in 116, mixed in 11.
 With an upstream area at the placed segment (fwapg): 75 of 75.
 At a HYDAT site: 16; HYDAT's flag there natural at 12, regulated at 4, absent at 0.
