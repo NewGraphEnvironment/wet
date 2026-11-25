@@ -305,7 +305,8 @@ if (!(is.data.frame(recipe) && nrow(recipe) == 1 &&
         identical(rf$filled[match(days, rf$date)], year$filled))) {
   stop("the article's recipe does not return the picked year as bundled", call. = FALSE)
 }
-message("recipe: returns ", pick$station_number, " ", pick$year, " as bundled (", round(recipe$value, 1), " degree days)")
+message("recipe: returns ", pick$station_number, " ", pick$year, " as bundled (", round(recipe$value, 1),
+        " degree days)")
 
 # ---- the same fill with the day before the gap hidden -----------------------------------------
 # A comparison, not the pick: the fill restarts from every observed day, so the last one before
@@ -371,7 +372,7 @@ values <- list(
 # read and the versions it ran on aside. "No value" is to all.equal()'s default tolerance
 # (1.5e-8, relative), not to the last bit: two reads of the same archive by wet_temp_daily()
 # differ in the last bits of about half the daily means (7e-15 at most, measured 2026-11-25:
-# duckdb averages in parallel, in no fixed order), and the fit carries that through.
+# duckdb averages in parallel, in no fixed order; #224), and the fit carries that through.
 same <- function(a, b) {
   drop <- function(x) {
     x$provenance[c("commit", "retrieved", "cd", "gsdd")] <- NULL
