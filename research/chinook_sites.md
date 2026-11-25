@@ -95,11 +95,11 @@ Change, Bulkley windows unless named, carried / extended, with the 90 % range:
 - **The stations beyond HYDAT** (#142, #144) add no donor at these sites (`research/station_sources.md`, "At the chinook sites' boxes"), and held out province-wide they make carried departures worse (below).
 - The short-record article stays on distance at Maxan, #120's record; the comparison article carries the shipped route.
 
-## Natural stations outside HYDAT as donors (#202, via #211)
+## Natural stations outside HYDAT as donors
 
 **Registered:** 2026-11-25, before any score existed. The rule is the header of `scripts/departure_donors_rule.R`; the scoring script, `scripts/departure_donors.R`, refuses to run when that file differs from its registering commit.
 
-The question: does adding the natural stations outside HYDAT (the province's non-integrated network, #142, and the BC Water Tool's gauges, #144, with `regulation == "natural"` from #196) bring a carried departure closer to the observed one?
+The question (#202, tested in #211): does adding the natural stations outside HYDAT (the province's non-integrated network, #142, and the BC Water Tool's gauges, #144, with `regulation == "natural"` from #196) bring a carried departure closer to the observed one?
 
 As seen before registration (2026-11-25, throwaway probes; the report's section 1 restates the province-wide counts from its own data, and the box counts below come from the same probes): of the 75 natural stations none has 10 complete migration window-years in 1981–2010, so none has the baseline `wet_departure_carry()` needs, and 71 have none at all. They hold 185 complete migration window-years, 179 of them in 2010 or later; 36 stations have at least 3, 33 through 2024. A third of those window-years are unchecked throughout. In the four chinook boxes, Maxan and Gosnell hold 2 such stations with 2 window-years each, Swift none and Naver 6, so no site report could move.
 
