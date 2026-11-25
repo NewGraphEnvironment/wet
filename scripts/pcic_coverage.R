@@ -218,7 +218,7 @@ rep <- c(
   sprintf("rules 4 and 5 (%s): rule 4 %s; rule 5's CMIP5 score %s", f_basis, if (r4_ran) "ran" else "not run",
           if (r5_ran) paste("ran:", r5_verdict) else "not run"),
   sprintf("gauges: %s md5 %s", f_bundle, unname(tools::md5sum(f_bundle))),
-  sprintf("group table: %s md5 %s", f_table, table_md5),
+  sprintf("group table: <data root>/pcic_coverage/%s md5 %s", basename(f_table), table_md5),
   "",
   "## Classes (breaks fixed before the table was read)",
   "a group's segments: those with a month-0 row from either source; routed share: those with a routed row over all",
