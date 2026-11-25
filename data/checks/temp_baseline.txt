@@ -1,6 +1,6 @@
 Whole-station temperature baseline (#213): air2stream parameters predicted from catchment traits
-frame: 1c62e46b83
-code: e302db7b1897c09b4ff74db3557c3156
+frame: 229ccbefe9
+code: d7285e9d875ad8213d6e45802e963544
 gsdd 0.3.0.9007
 stations 209; truth station-years 889; read by the statistic 889 at 209 stations; left out (no GSDD in some series) 0
 
