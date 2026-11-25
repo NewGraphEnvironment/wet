@@ -52,3 +52,9 @@ mandate; the merge stays with me.
 - Owner decisions recorded (task_plan.md, Decisions): adopt now, pinned at knowledge a475dfe7 (knowledge#256 closed; notes-only change to UFRA/COTR rows); move only life_history_data.R's pin; site scripts unchanged.
 - `data-raw/life_history_data.R` reads MORR, UFRA, COTR at a475dfe7; `lh_pin_guard()` holds MORR (every column), BULK (all but note) and BULK's chinook rows against c97c4d0 and life_history_bulk.csv; each group's chinook rows asserted with exact sources. `life_history_morr.csv` byte-identical; UFRA and COTR CSVs written (2 rows each).
 - `tests/testthat/test-life_history_pin.R`: 16 expectations pass; with the MORR check disabled 2 fail (restored defect).
+
+## Phase 2, 2026-11-25
+- Site table: Swift `BULK UFRA`, Naver `BULK COTR` (6a… see git log).
+- Pre-run checks passed (cd layers and pcic.series unchanged; 14 and 18 complete April-start migration years at the targets).
+- Four runs from frozen copies, 13 min; four new reports; the four BULK reports byte-identical; Maxan parity test 21 pass under NOT_CRAN=true. Results in findings.md, "Phase 2 runs".
+- Commit: 0472d3e.
