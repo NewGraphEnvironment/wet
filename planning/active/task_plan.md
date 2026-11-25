@@ -105,6 +105,12 @@ What exploration found, which shapes the phases:
   still asks for the holdout's three ways, so the sketch keeps them; the article's prose, the chain's
   arrows (the network feeds the network model, not the baseline) and `CLAUDE.md` follow the issues as they
   stand. Mine, as a correction the issues require.
+- **Wording, from the owner in chat on 2026-11-25, after the third review round.** The article is about the
+  method: it names no owner for any piece, gives sizes in place of counts that move, compares models with
+  station records, leaves the method and the time step open, and links and cites each package at its first
+  mention. The owner approved two changes put to him: the fourth section is headed "How will it be tested?"
+  (the issue's "How will we know it works?" promised more than a holdout at river gauges can show), and
+  "What is not known yet?" gains a line on small streams. The rendered page goes to him before any push.
 - **Release:** a NEWS bullet under the development heading and `Bump: patch` in the PR body; no function
   changes.
 
