@@ -181,9 +181,21 @@ wet_bcwatertool_station_days <- function(stations, snapshot) {
   prov <- wet_bcenv_stations(snapshot)
   wet_registry_check(tool, prov, snapshot)
   own <- tool$station_number[is.na(tool$continues) & tool$station_number %in% stations]
-  cont <- tool[!is.na(tool$continues) & tool$continues %in% intersect(stations, prov$station_number), ]
+  cont <- wet_continuing(tool, stations, prov)
   if (!length(own) && !nrow(cont)) return(wet_daily_empty())
-  d <- wet_bcwatertool_daily(c(own, cont$station_number))
+  wet_continue_days(wet_bcwatertool_daily(c(own, cont$station_number)), cont)
+}
+
+# The rows of a registry `reg` that continue a provincial station among `stations`.
+wet_continuing <- function(reg, stations, prov) {
+  reg[!is.na(reg$continues) & reg$continues %in% intersect(stations, prov$station_number), ]
+}
+
+# Days `d` read under registry numbers, with each continuing row of `cont`
+# (station_number, continues, continues_before) renamed to the provincial
+# number it continues and cut before that station's record begins (all its days
+# where `continues_before` is NA); rows of other numbers pass unchanged.
+wet_continue_days <- function(d, cont) {
   k <- match(d$station_number, cont$station_number)
   cut <- cont$continues_before[k]
   keep <- is.na(k) | is.na(cut) | d$date < cut
@@ -193,15 +205,37 @@ wet_bcwatertool_station_days <- function(stations, snapshot) {
   d
 }
 
-# No number may be both a Water Tool station and a provincial one.
-wet_registry_check <- function(tool, prov, snapshot) {
-  both <- intersect(tool$station_number, prov$station_number)
-  if (length(both)) {
-    stop(structure(class = c("wet_registry_conflict", "error", "condition"), list(
-      message = paste0("the Water Tool's station registry and the provincial snapshot ", snapshot,
-                       "'s both hold ", paste(both, collapse = ", ")), call = NULL)))
+# No number may be in two registries (provincial, Water Tool, and any other
+# continuing publisher's in `...`), and no provincial station may be continued
+# by two publishers.
+wet_registry_check <- function(tool, prov, snapshot, ...) {
+  regs <- c(list(tool = tool), Filter(Negate(is.null), list(...)))
+  names(regs)[names(regs) == "tool"] <- "the Water Tool's"
+  all <- c(list(provincial = prov), regs)
+  num <- unlist(lapply(all, function(r) r$station_number), use.names = FALSE)
+  who <- rep(names(all), vapply(all, nrow, 0L))
+  dup <- unique(num[duplicated(num)])
+  if (length(dup)) {
+    held <- unique(who[num %in% dup])
+    msg <- if (identical(held, c("provincial", "the Water Tool's"))) {
+      paste0("the Water Tool's station registry and the provincial snapshot ", snapshot, "'s both hold ",
+             paste(dup, collapse = ", "))
+    } else {
+      paste0("the ", paste(held, collapse = " and "), " station registries both hold ", paste(dup, collapse = ", "))
+    }
+    wet_registry_conflict(msg)
+  }
+  cont <- unlist(lapply(regs, function(r) stats::na.omit(r$continues)), use.names = FALSE)
+  twice <- unique(cont[duplicated(cont)])
+  if (length(twice)) {
+    wet_registry_conflict(paste0("two publishers' registries continue the provincial station ",
+                                 paste(twice, collapse = ", ")))
   }
   invisible()
+}
+
+wet_registry_conflict <- function(msg) {
+  stop(structure(class = c("wet_registry_conflict", "error", "condition"), list(message = msg, call = NULL)))
 }
 
 # A HYDAT station number: two digits, two letters, three digits.

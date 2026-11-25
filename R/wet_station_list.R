@@ -78,22 +78,7 @@ wet_station_list <- function(sources = c("bcenv", "bcwatertool"), snapshot = wet
                     hydat_site = prov$hydat_site,
                     hydat_km = prov$hydat_km, licence = "OGL-BC 2.0",
                     credit = "Contains information licensed under the Open Government Licence \u2013 British Columbia")
-    if (!is.null(tool)) {
-      cont <- tool[!is.na(tool$continues), ]
-      i <- match(cont$continues, p$station_number)
-      # a continuing listing's first and last are the days it adds, all before the provincial record
-      # begins (continues_before); NA where it adds none
-      added <- !is.na(i) & !is.na(cont$first)
-      cont <- cont[added, ]
-      i <- i[added]
-      before <- ifelse(is.na(cont$continues_before), "all days",
-                       paste("days before", format(cont$continues_before)))
-      p$licence[i] <- paste0(p$licence[i], "; ", before, ": none stated")
-      p$credit[i] <- paste0(p$credit[i], "; ", before, ": ", cont$credit)
-      p$first[i] <- cont$first
-      none <- is.na(p$last[i])  # a provincial station with no complete day: its days are the listing's
-      p$last[i[none]] <- cont$last[none]
-    }
+    if (!is.null(tool)) p <- wet_continue_list(p, tool, "none stated")
     out$bcenv <- p
   }
   # data.frame() cannot recycle the scalar source onto zero rows
@@ -108,6 +93,31 @@ wet_station_list <- function(sources = c("bcenv", "bcwatertool"), snapshot = wet
   out <- do.call(rbind, unname(out))
   rownames(out) <- NULL
   out
+}
+
+# Provincial rows `p` with the first and last days, licence and credit of each
+# continuing row of registry `reg` (station_number, continues,
+# continues_before, first, last, credit) spliced in: a continuing row's first
+# and last are the days it adds, all before the provincial record begins; a
+# row that adds none changes nothing. `licence` is what the publisher's data
+# state, one for all rows or one per row of `reg`.
+wet_continue_list <- function(p, reg, licence) {
+  licence <- rep_len(licence, nrow(reg))
+  keep <- !is.na(reg$continues)
+  cont <- reg[keep, ]
+  licence <- licence[keep]
+  i <- match(cont$continues, p$station_number)
+  added <- !is.na(i) & !is.na(cont$first)
+  cont <- cont[added, ]
+  licence <- licence[added]
+  i <- i[added]
+  before <- ifelse(is.na(cont$continues_before), "all days", paste("days before", format(cont$continues_before)))
+  p$licence[i] <- paste0(p$licence[i], "; ", before, ": ", licence)
+  p$credit[i] <- paste0(p$credit[i], "; ", before, ": ", cont$credit)
+  p$first[i] <- cont$first
+  none <- is.na(p$last[i])  # a provincial station with no complete day: its days are the listing's
+  p$last[i[none]] <- cont$last[none]
+  p
 }
 
 # Each station's regulation status, written by scripts/station_regulation.R
