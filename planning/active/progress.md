@@ -139,3 +139,15 @@
   listed as a finding: numbers entered the key at 6 significant digits, so a nine-digit FWA id
   plus 1 kept the key. Whole numbers now enter exactly. That is the last change to the lib; the
   frame, the recovery and the scores were rerun under it (logs `data/logs/213/*_r5_*`).
+
+## How the review ended, 2026-11-25
+- By enumeration at e7cb7140 (`review-enumeration.md`, `review-verdict.md`): 26 of 26 planted
+  defects stop the scoring guard, 20 of 20 turn a lib test red, 5 of 5 a rule test, 43 of 43
+  columns of the real frame move its key or are refused, and the control reproduces the
+  committed scores report byte for byte.
+- No score moved in any round: `data/checks/temp_baseline.txt` differs from its first commit
+  (767aac9f) in three lines, the frame key, the code md5 and the dropped package version, and
+  `scripts/temp_baseline_rule.R` is byte-identical to its registration (914259d6).
+- Tests on the final tree: 0 failed, 0 errors, 3,737 passed (log `data/logs/213/tests_final_*`).
+- Reviewer agents on this task: six (one plan review, five code rounds), one over the usual
+  five, because rounds 2 to 5 each found something inside the round before's fix.
