@@ -250,13 +250,45 @@ tb_gsdd_observed <- function(series, years, gsdd_year) {
   }, numeric(1))
 }
 
+# The rule's statistic, from long scores: one row per station, year and run, with the predicted
+# year's `gsdd` and the observed year's `gsdd_obs`. It reads the station-years in which the
+# observed year and every run have a GSDD, and returns `statistic`, per run the mean over stations
+# of the station's mean absolute GSDD error, with `by_station` (stations x runs), the `paired`
+# station-years, how many were `left_out`, and their `scores`. Both the recovery and the real run
+# take it from here.
+tb_statistic <- function(sc, runs = unique(sc$run)) {
+  need <- c("station_number", "year", "run", "gsdd", "gsdd_obs")
+  if (!is.data.frame(sc) || !all(need %in% names(sc))) stop("scores need ", paste(need, collapse = ", "), call. = FALSE)
+  if (!nrow(sc) || anyNA(sc[c("station_number", "year", "run")])) stop("scores are empty or unkeyed", call. = FALSE)
+  key <- paste(sc$station_number, sc$year)
+  if (anyDuplicated(data.frame(key, sc$run)) || !setequal(sc$run, runs) || any(table(key) != length(runs))) {
+    stop("every station-year needs each run exactly once", call. = FALSE)
+  }
+  ok <- tapply(!is.na(sc$gsdd) & !is.na(sc$gsdd_obs), key, all)
+  paired <- names(ok)[ok]
+  if (!length(paired)) stop("no station-year has a GSDD in every series", call. = FALSE)
+  d <- sc[key %in% paired, ]
+  by_station <- tapply(abs(d$gsdd - d$gsdd_obs), list(d$station_number, d$run), mean)[, runs, drop = FALSE]
+  list(statistic = colMeans(by_station), by_station = by_station, paired = paired,
+       left_out = length(ok) - length(paired), scores = d)
+}
+
 # ---- the code a score depends on --------------------------------------------------------------------
-# One md5 over the files whose change could move a score. scripts/temp_baseline_recover.R writes
-# it into its report, and scripts/temp_baseline.R refuses to score under another.
-tb_code_files <- c("scripts/temp_baseline_lib.R", "scripts/temp_baseline_rule.R", "scripts/temp_fill_validate.R",
-                   "R/wet_temp_fill.R", "R/wet_temp_gsdd.R", "R/wet_donor_mean.R", "R/wet_cv_folds.R")
+# One md5 over the files whose change could move a score: this lib, the rule, the scoring script,
+# and the package and script code they call. scripts/temp_baseline_recover.R writes it into its
+# report, and scripts/temp_baseline.R refuses to score under another. Both take it before they
+# load any of the code and stop if it has changed by the time they write.
+tb_code_files <- c("scripts/temp_baseline_lib.R", "scripts/temp_baseline_rule.R", "scripts/temp_baseline.R",
+                   "scripts/temp_fill_validate.R", "R/wet_temp_fill.R", "R/wet_temp_gsdd.R", "R/wet_donor_mean.R",
+                   "R/wet_cv_folds.R")
 tb_code_md5 <- function(root = ".") {
   f <- file.path(root, tb_code_files)
   if (!all(file.exists(f))) stop("missing: ", paste(f[!file.exists(f)], collapse = ", "), call. = FALSE)
   wet:::wet_md5_text(paste(tb_code_files, unname(tools::md5sum(f))))
+}
+tb_code_same <- function(md5) {
+  if (!identical(tb_code_md5(), md5)) {
+    stop("a file tb_code_md5() names changed while this ran: nothing was written, run it again", call. = FALSE)
+  }
+  invisible(md5)
 }

@@ -46,3 +46,18 @@
 - Completed: the section in `research/station_temperature_fill.md`, the research index row, the
   scripts in `CLAUDE.md`. `NEWS.md` is left to the release commit, as this repo does.
 - Next: `/code-check branch`, archive, PR
+
+## Code-check round 1, 2026-11-25
+- Eight findings, all `fragile`, none moving a number (`review-round1.md`). Seven fixed:
+  the leak-free check now runs 1,600 sets and must also fire in blocked CV (it reads z −7.8 to
+  −8.5 there for the donor mean); the code md5 is taken before the code loads and rechecked
+  before a report is written; `scripts/temp_baseline.R` is in the md5 and the statistic is one
+  function, `tb_statistic()`, used by both scripts; the end-to-end "no error" assertion, which
+  compared a series with itself, is removed; the frame report says 141 on the same segment and
+  5 rejected by both; the scores report no longer prints wet's version; two wordings in the
+  research section.
+- Accepted, not changed: the rule compares unrounded scores and prints one decimal, so a gain of
+  9.96 would print as 10.0 and not displace. It is the registered rule, no result is near a
+  threshold (gains 94 to 119, gaps 196 and 201), and a change would be an amendment for the
+  owner.
+- Reruns: logs `data/logs/213/*_r1_*`.

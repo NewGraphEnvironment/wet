@@ -5,7 +5,7 @@ lake cover reads 386025 FWA lakes (22479 km2) and 1812 manmade waterbodies (31 k
 
 truth: 999 station-years at 257 stations; kept: 889 station-years at 209 stations
 truth years dropped as a sensor reading one value (season sd under 0.1 degC): 1 (08LG048 2025)
-already snapped by the water balance (stations_20260717.rds), every one on the same segment: 146
+already snapped by the water balance (stations_20260717.rds): 146; accepted by both, every one on the same segment: 141; rejected by both: 5
 HYDAT regulation flag at the kept stations: natural 136, regulated 67, unflagged 6
 folds (WSC sub-sub-drainage): 71; stations per fold: median 2, largest 17; folds of one station: 25
 headwater 135, nested 74; lake outlets 32; with any glacier upstream 96; with any lake upstream 208

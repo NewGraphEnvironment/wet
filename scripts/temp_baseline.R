@@ -80,6 +80,7 @@
 devtools::load_all(quiet = TRUE)
 source("scripts/temp_baseline_rule.R")
 source("scripts/temp_baseline_lib.R")
+code <- tb_code_md5()
 options(width = 200)
 stamp <- function(...) message(format(Sys.time(), "%H:%M:%S"), " ", ...)
 stopifnot(requireNamespace("gsdd", quietly = TRUE))
@@ -97,7 +98,7 @@ if (!is.null(attr(tracked, "status")) || length(dirty)) {
 rec <- readLines(f_recover)
 named <- function(tag) sub(paste0("^", tag, ": "), "", grep(paste0("^", tag, ": "), rec, value = TRUE))
 if (!identical(named("frame"), fr$key)) stop("the recovery ran on another frame: ", named("frame"), call. = FALSE)
-if (!identical(named("code"), tb_code_md5())) {
+if (!identical(named("code"), code)) {
   stop("the code a score depends on changed since the recovery run: run scripts/temp_baseline_recover.R again",
        call. = FALSE)
 }
@@ -145,18 +146,18 @@ sc <- do.call(rbind, lapply(seq_len(n), function(i) {
   }))
 }))
 stamp(nrow(sc), " scores")
-sc$err <- sc$gsdd - sc$gsdd_obs
-key <- paste(sc$station_number, sc$year)
-paired <- names(which(tapply(!is.na(sc$err), key, all)))
-left_out <- length(unique(key)) - length(paired)
-d <- sc[key %in% paired, ]
+stat <- tb_statistic(sc, names(runs))
+paired <- stat$paired
+left_out <- stat$left_out
+d <- stat$scores
+d$err <- d$gsdd - d$gsdd_obs
 stopifnot(nrow(d) == length(paired) * length(runs))
 
 # per run: the statistic (by station), and what is printed beside it
-by_station <- tapply(abs(d$err), list(d$station_number, d$run), mean)[, names(runs), drop = FALSE]
+by_station <- stat$by_station
 summ <- data.frame(
   run = names(runs),
-  gsdd_mae = colMeans(by_station),
+  gsdd_mae = stat$statistic[names(runs)],
   gsdd_mae_median_station = apply(by_station, 2, stats::median),
   gsdd_mae_station_year = tapply(abs(d$err), d$run, mean)[names(runs)],
   gsdd_bias = tapply(d$err, d$run, mean)[names(runs)],
@@ -213,14 +214,15 @@ bd <- list(
 
 # ---- store and report -----------------------------------------------------------------------------------------
 f_scores <- file.path("data", "temp_baseline", sprintf("scores_%s.rds", fr$key))
-saveRDS(list(frame = fr$key, code = tb_code_md5(), scores = sc, paired = paired, summary = summ, theta = th,
+tb_code_same(code)
+saveRDS(list(frame = fr$key, code = code, scores = sc, paired = paired, summary = summ, theta = th,
              cv = cv, verdict = verdict, benchmark = benchmark), f_scores)
 fmt <- function(x, digits = 3) utils::capture.output(print(x, row.names = FALSE, digits = digits))
 lines <- c(
   "Whole-station temperature baseline (#213): air2stream parameters predicted from catchment traits",
   sprintf("frame: %s", fr$key),
-  sprintf("code: %s", tb_code_md5()),
-  sprintf("wet %s, gsdd %s", utils::packageVersion("wet"), utils::packageVersion("gsdd")),
+  sprintf("code: %s", code),
+  sprintf("gsdd %s", utils::packageVersion("gsdd")),
   sprintf("stations %d; truth station-years %d; read by the statistic %d at %d stations; left out (no GSDD in some series) %d",
           n, nrow(fr$truth), length(paired), nrow(by_station), left_out),
   "",

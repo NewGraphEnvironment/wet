@@ -120,6 +120,7 @@ j <- match(both, wb$station_number)
 same <- d$accepted[i] == wb$accepted[j] &
   (!d$accepted[i] | (d$linear_feature_id[i] == wb$linear_feature_id[j] &
                        d$watershed_feature_id[i] == wb$watershed_feature_id[j]))
+n_both <- c(accepted = sum(d$accepted[i]), rejected = sum(!d$accepted[i]))
 if (!all(same)) {
   stop("snapped differently from ", wb_stations_path(release), ": ", paste(both[!same], collapse = ", "),
        call. = FALSE)
@@ -294,8 +295,9 @@ lines <- c(
   sprintf("truth years dropped as a sensor reading one value (season sd under %.1f degC): %d%s",
           stuck_sd, nrow(stuck),
           if (nrow(stuck)) paste0(" (", paste(stuck$station_number, stuck$year, collapse = ", "), ")") else ""),
-  sprintf("already snapped by the water balance (%s), every one on the same segment: %d",
-          basename(wb_stations_path(release)), length(both)),
+  sprintf(paste("already snapped by the water balance (%s): %d; accepted by both, every one on the same",
+                "segment: %d; rejected by both: %d"),
+          basename(wb_stations_path(release)), length(both), n_both[["accepted"]], n_both[["rejected"]]),
   sprintf("HYDAT regulation flag at the kept stations: %s",
           paste(names(table(stations$regulated)), table(stations$regulated), collapse = ", ")),
   sprintf("folds (WSC sub-sub-drainage): %d; stations per fold: median %g, largest %d; folds of one station: %d",

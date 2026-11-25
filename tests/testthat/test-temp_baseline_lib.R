@@ -193,7 +193,8 @@ test_that("a series is scored on the observed season days of its truth years", {
   expect_true(is.na(l$tb_score(series, s, 2019L, function(...) numeric(0))$gsdd))
   expect_error(l$tb_score(series, s[-1], 2019L, g), "calendar")
   expect_error(l$tb_score(series, s, 2015L, g), "no observed day")
-  obs <- l$tb_gsdd_observed(series, c(2019L, 2020L), function(date, value, year) length(value[format(date, "%Y") == year]))
+  n_obs <- function(date, value, year) length(value[format(date, "%Y") == year])
+  obs <- l$tb_gsdd_observed(series, c(2019L, 2020L), n_obs)
   expect_equal(obs, c(364, 366))
 })
 
@@ -203,10 +204,51 @@ test_that("tb_run() is wet's open-loop air2stream", {
   expect_equal(l$tb_run(list(a = a), c(a1 = 0.5, a2 = 0.1, a3 = 0.2)), wet:::wet_a2s_run(0.5, 0.1, 0.2, a))
 })
 
-test_that("the code md5 names every file a score depends on", {
+test_that("the rule's statistic is the mean over stations of each station's mean absolute error", {
+  l <- local_tb_lib()
+  sc <- data.frame(station_number = rep(c("a", "a", "a", "b"), 2), year = rep(c(2001, 2002, 2003, 2001), 2),
+                   run = rep(c("x", "y"), each = 4), gsdd_obs = rep(c(1000, 1000, 1000, 2000), 2),
+                   gsdd = c(1010, 970, 1100, 2100, 1000, 1000, 1000, 1900))
+  s <- l$tb_statistic(sc)
+  # station a: (10 + 30 + 100) / 3; station b: 100; stations weigh the same, whatever their years
+  expect_equal(s$statistic, c(x = (140 / 3 + 100) / 2, y = 50))
+  expect_equal(dim(s$by_station), c(2L, 2L))
+  expect_equal(s$left_out, 0)
+  # a year with no GSDD in one run leaves every run's statistic
+  sc$gsdd[sc$station_number == "a" & sc$year == 2003 & sc$run == "y"] <- NA
+  s <- l$tb_statistic(sc)
+  expect_equal(s$statistic, c(x = (20 + 100) / 2, y = 50))
+  expect_equal(s$left_out, 1)
+  expect_setequal(s$paired, c("a 2001", "a 2002", "b 2001"))
+  expect_equal(nrow(s$scores), 6)
+  # so does an observed year with none
+  sc$gsdd_obs[sc$station_number == "b"] <- NA
+  expect_equal(l$tb_statistic(sc)$statistic, c(x = 20, y = 0))
+  # the runs come back in the order asked for
+  expect_named(l$tb_statistic(sc, c("y", "x"))$statistic, c("y", "x"))
+  expect_error(l$tb_statistic(sc[-1, ]), "each run exactly once")
+  expect_error(l$tb_statistic(rbind(sc, sc[1, ])), "each run exactly once")
+  expect_error(l$tb_statistic(sc, c("x", "y", "z")), "each run exactly once")
+  sc$gsdd <- NA
+  expect_error(l$tb_statistic(sc), "no station-year")
+  expect_error(l$tb_statistic(sc[c("station_number", "year")]), "scores need")
+})
+
+test_that("the code md5 covers the lib, the rule and the scoring script, and notices a change", {
   l <- local_tb_lib()
   root <- testthat::test_path("..", "..")
   expect_true(all(file.exists(file.path(root, l$tb_code_files))))
+  expect_true(all(c("scripts/temp_baseline_lib.R", "scripts/temp_baseline_rule.R", "scripts/temp_baseline.R") %in%
+                    l$tb_code_files))
   expect_match(l$tb_code_md5(root), "^[0-9a-f]{32}$")
   expect_error(l$tb_code_md5(tempdir()), "missing")
+  # a copy with one byte more in one file has another md5
+  tmp <- withr::local_tempdir()
+  for (f in l$tb_code_files) {
+    dir.create(dirname(file.path(tmp, f)), recursive = TRUE, showWarnings = FALSE)
+    file.copy(file.path(root, f), file.path(tmp, f))
+  }
+  expect_identical(l$tb_code_md5(tmp), l$tb_code_md5(root))
+  cat("\n", file = file.path(tmp, "scripts/temp_baseline.R"), append = TRUE)
+  expect_false(identical(l$tb_code_md5(tmp), l$tb_code_md5(root)))
 })

@@ -208,9 +208,12 @@ How each change is proved:
   before reading any water; restored, it runs.
 - **The leak-free pool does what it claims:** the recovery report's check, plus the lib test
   with a planted related station left in training going red.
-- **Scores are the model's:** on the end-to-end simulated sets GSDD error is 0 when the true θ
-  is given; on real data the benchmark's in-sample daily RMSE equals `rmse_open` from
-  `wet_fill_prepare()` when scored over the same days.
+- **Scores are the model's:** on real data the benchmark's in-sample daily RMSE equals
+  `rmse_open` from `wet_fill_prepare()` over every observed day (asserted per station in
+  `scripts/temp_baseline.R`); the end-to-end sets go through the same `tb_statistic()` and give
+  the candidates in the order the simulation built in. *Code-check round 1:* the planned
+  "error is 0 when the true θ is given" assertion compared a series with itself and could not
+  fail, so it is gone.
 - **Reports reproduce:** each of the three reports is byte-identical on a second run from cache
   (`cmp`).
 - `devtools::test()`, `lintr::lint_package()` compared per file against `origin/main`,

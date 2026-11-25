@@ -21,6 +21,10 @@
 #             leak-free pool removes those neighbours, and each candidate's weights depend on
 #             traits alone, so there the two are equal in distribution: |z| under 3 for every
 #             candidate and component is the check that the pool removes what it claims to.
+#             The check has to be able to fail: in blocked CV, where the related stations of
+#             other folds stay in training, the nearest-stations mean must read z below -3 on
+#             every component, or the run stops. The other two candidates use neighbours
+#             little or not at all, so their z says little about a pool.
 #   Also the regression's coefficients against the known ones, and one set with no network part
 #   and no noise, where the regression must return theta exactly.
 #
@@ -33,18 +37,19 @@
 # larger than real ones would be: this part tests the path, not the size. Each station is
 # refitted with
 # wet:::wet_a2s_fit(), the candidates predict from the refitted theta, and GSDD is scored as the
-# real run scores it. Asserted: a run on the simulated parameters scored against the
-# departure-free series has no error at all.
+# real run scores it, by the same tb_statistic().
 #
 # Writes data/checks/temp_baseline_recover.txt, which names the frame and the md5 of the code a
-# score depends on (tb_code_md5()); scripts/temp_baseline.R refuses to score unless it is
-# committed and names both as they stand. Byte-identical on a rerun.
+# score depends on (tb_code_md5(), taken before the code is loaded and checked again before the
+# report is written); scripts/temp_baseline.R refuses to score unless it is committed and names
+# both as they stand. Byte-identical on a rerun.
 
 devtools::load_all(quiet = TRUE)
 source("scripts/temp_baseline_lib.R")
+code <- tb_code_md5()
 options(width = 160)
 stamp <- function(...) message(format(Sys.time(), "%H:%M:%S"), " ", ...)
-n_sim <- 200
+n_sim <- 1600
 n_e2e <- 5
 seed <- 213
 share <- c(traits = 0.5, network = 0.25, noise = 0.25)  # of theta's variance
@@ -109,6 +114,8 @@ part1 <- cbind(cells[c("pool", "method", "theta")],
 part1 <- part1[order(match(part1$pool, pools), match(part1$method, tb_methods)), ]
 rownames(part1) <- NULL
 leak_ok <- all(abs(part1$leak_z[part1$pool == "leakfree"]) < z_max)
+# the check must be able to fail: the leak it looks for, where it is known to be
+fires <- all(part1$leak_z[part1$pool == "blocked" & part1$method == "donor"] < -z_max)
 coefs <- data.frame(trait = rep(tb_traits, 3), theta = rep(tb_theta_names, each = length(tb_traits)),
                     known = as.vector(beta), mean_fitted = as.vector(apply(coef_hat, c(2, 3), mean)),
                     se = as.vector(apply(coef_hat, c(2, 3), stats::sd)) / sqrt(n_sim))
@@ -146,11 +153,6 @@ e2e_one <- function(k) {
     s0 <- tb_run(z, par[i, ])
     u <- as.numeric(stats::arima.sim(list(ar = rho[i]), length(s0), sd = sigma[i]))
     z$y <- ifelse(is.na(z$y), NA_real_, pmax(s0 + u, 0))
-    clean <- z
-    clean$y <- s0
-    zero <- tb_score(clean, s0, years[[i]], v$gsdd_year)
-    stopifnot(all(zero$rmse == 0), all(zero$bias == 0),
-              identical(zero$gsdd, tb_gsdd_observed(clean, years[[i]], v$gsdd_year)))
     list(z = z, fit = wet:::wet_a2s_fit(z$y, z$a)$par)
   })
   fitted <- tb_theta(do.call(rbind, lapply(rec, `[[`, "fit")))
@@ -186,15 +188,10 @@ parallel::stopCluster(cl)
 
 run_names <- unique(e2e[[1]]$scores$run)
 part2 <- do.call(rbind, lapply(e2e, function(s) {
-  d <- s$scores
-  d$err <- abs(d$gsdd - d$gsdd_obs)
-  # the station-years where the simulated year and every run have a GSDD
-  key <- paste(d$station_number, d$year)
-  full <- names(which(tapply(!is.na(d$err), key, all)))
-  d <- d[key %in% full, ]
-  by_station <- tapply(d$err, list(d$station_number, d$run), mean)
-  data.frame(set = s$set, run = run_names, station_years = length(full),
-             gsdd_mae = unname(colMeans(by_station)[run_names]),
+  stat <- tb_statistic(s$scores, run_names)
+  d <- stat$scores
+  data.frame(set = s$set, run = run_names, station_years = length(stat$paired),
+             gsdd_mae = unname(stat$statistic[run_names]),
              rmse = unname(tapply(d$rmse, d$run, mean)[run_names]))
 }))
 part2_mean <- stats::aggregate(cbind(gsdd_mae, rmse) ~ run, part2, mean)
@@ -212,7 +209,7 @@ fmt <- function(d, digits = 3) utils::capture.output(print(d, row.names = FALSE,
 lines <- c(
   "Recovery run of the whole-station temperature baseline (#213)",
   sprintf("frame: %s", fr$key),
-  sprintf("code: %s", tb_code_md5()),
+  sprintf("code: %s", code),
   sprintf("stations %d; seed %d; %d parameter sets; %d end-to-end sets", n, seed, n_sim, n_e2e),
   sprintf("theta's variance: %s", paste(sprintf("%s %.0f %%", names(share), 100 * share), collapse = ", ")),
   "",
@@ -225,6 +222,9 @@ lines <- c(
   fmt(part1), "",
   sprintf("Leak-free check (|leak_z| under %d for every candidate and component in the leak-free pool): %s", z_max,
           if (leak_ok) "PASS" else "FAIL"),
+  sprintf(paste("The check can fail (the nearest-stations mean's leak_z below -%d on every component in blocked CV,",
+                "where related stations of other folds stay in training): %s"), z_max,
+          if (fires) "PASS" else "FAIL"),
   "",
   "## The regression's coefficients on z-scored traits, fitted on every station, against the known ones",
   "z is the mean fitted coefficient's distance from the known one in Monte Carlo standard errors",
@@ -238,8 +238,12 @@ lines <- c(
                                                      collapse = ", ")),
   "",
   "## Refitted theta against the simulated theta, every station of every set",
-  fmt(fit_tab), "",
-  "run on the simulated parameters against the departure-free series: no error at any station-year (asserted)")
+  fmt(fit_tab))
+tb_code_same(code)
+if (!leak_ok || !fires) {
+  cat(lines, sep = "\n")
+  stop("the leak-free check ", if (!leak_ok) "failed" else "could not see the leak blocked CV holds",
+       ": no report written", call. = FALSE)
+}
 writeLines(lines, file.path("data", "checks", "temp_baseline_recover.txt"))
 cat(lines, sep = "\n")
-if (!leak_ok) stop("the leak-free check failed: see the report", call. = FALSE)

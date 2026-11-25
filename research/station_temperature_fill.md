@@ -100,7 +100,7 @@ That leaves 209 stations and 889 station-years: 136 natural, 67 regulated and 6 
 **What is predicted.** Not `a1`, `a2`, `a3` themselves but the equilibrium intercept `a1 / a3`, the equilibrium slope `a2 / a3` and the response rate `a3` on the logit scale, turned back before the run. Three candidates:
 - the population mean, which is what a model with no covariates gives a new site;
 - a least-squares regression on eight traits: upstream means of elevation, easting, northing, the date half the snow has melted and peak snow water equivalent; log upstream area; and glacier cover and lake and reservoir cover as shares of upstream area;
-- the mean of the 5 nearest stations in trait space (`wet_donor_mean()`).
+- the inverse-distance mean of the 5 nearest stations in trait space (`wet_donor_mean()`), called the nearest-stations mean below.
 
 **Two pools.** In blocked cross-validation the stations of one WSC sub-sub-drainage are held out together. The leak-free pool also removes every station upstream or downstream of the held-out one, 461 pairs that blocked cross-validation leaves in training, at 97 of the stations.
 
@@ -111,7 +111,7 @@ That leaves 209 stations and 889 station-years: 136 natural, 67 regulated and 6 
 | own parameters (the benchmark) | 97.5 | | 1.25 | |
 | population mean | 412.8 | 414.1 | 2.38 | 2.39 |
 | regression on traits | **293.9** | **298.0** | 1.94 | 1.96 |
-| 5 nearest stations in trait space | 308.2 | 319.7 | 1.94 | 2.07 |
+| nearest-stations mean | 308.2 | 319.7 | 1.94 | 2.07 |
 
 GSDD error is the mean over stations of each station's mean absolute error, in °C-days; daily RMSE is the mean over station-years, in °C, on the observed days of 1 March to 30 November.
 
@@ -127,9 +127,9 @@ GSDD error is the mean over stations of each station's mean absolute error, in �
 
 **Beside the hidden-season score above.** On the 822 station-years both score, the station's own parameters miss GSDD by 119 °C-days when fitted to the whole record and by 130 when that season is hidden (means over station-years). So the benchmark here is in-sample by about 11 °C-days.
 
-**Recovery, run first** (`data/checks/temp_baseline_recover.txt`). On the real traits, folds and network, parameters were simulated from known trait relationships plus a part shared between flow-connected stations plus noise, 200 times.
-- Every candidate's error is unbiased; the regression's reaches the floor the simulation set (1.288 against 1.246 for the intercept); each candidate's 90 % interval holds the simulated value 89.5 to 90.3 % of the time.
-- Replacing only the held-out station's network part changes no candidate's leak-free error (largest |z| 1.4), and in blocked cross-validation it shows the nearest-stations mean using its neighbours (z −2.3 to −3.5). So the leak-free pool removes what it claims to.
+**Recovery, run first** (`data/checks/temp_baseline_recover.txt`). On the real traits, folds and network, parameters were simulated from known trait relationships plus a part shared between flow-connected stations plus noise, 1,600 times.
+- The regression is unbiased and its error reaches the floor the simulation set (1.286 against 1.246 for the intercept, leak-free). The nearest-stations mean is biased by 2 to 5 % of each parameter's spread, and the population mean by under 1 %. Each candidate's 90 % interval holds the simulated value 89.6 to 90.2 % of the time.
+- Replacing only the held-out station's network part changes no candidate's leak-free error (largest |z| 1.0, in Monte Carlo standard errors). The same test in blocked cross-validation, where the related stations of other folds stay in training, shows the nearest-stations mean using them (z −7.8 to −8.5) and the regression slightly (−1.5 to −3.0). So the check can fail, and in the leak-free pool it does not. It rests on the nearest-stations mean: the other two use neighbours too little to show a pool that removed only some of them.
 - End to end on five simulated sets, through the fit and the GSDD scoring, the refit returns the simulated parameters to within a tenth of their spread at the median station.
 - The first end-to-end run was wrong, and instructive. It drew each station's departure from its fitted `rho` and `sigma`, which at the 19 stations with `rho` at or above 0.99 implies a departure of up to 17.8 °C where the observed one is at most 3.1. Refitting such a series sends `a3` toward 0 and `a1 / a3` into the hundreds, and one such station ruins a mean or a regression. The simulation now gives the departure its observed spread. The real fits hold no such station (intercepts from −2.2 to 7.5 °C), but the ratio is fragile wherever `a3` is poorly identified, and any wider pool has to be checked for it.
 
