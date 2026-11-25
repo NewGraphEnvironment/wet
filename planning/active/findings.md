@@ -97,7 +97,7 @@ https://beehive.pacificclimate.org/robots.txt
 
 ### First-party packages
 
-soul's stale-package check on 2026-11-25: `gq` 0.25.0 and `crate` 0.21.0 current; `fresh` 0.56.0 behind 0.57.0 and `cd` 0.6.11 behind 0.6.13. This plan uses neither stale one: the map takes its polygons, outline and river labels by its own ordered queries and its rivers from the bundled layer, not through fresh's fetchers.
+The first-party stale-package check on 2026-11-25: `gq` 0.25.0 and `crate` 0.21.0 current; `fresh` 0.56.0 behind 0.57.0 and `cd` 0.6.11 behind 0.6.13. This plan uses neither stale one: the map takes its polygons, outline and river labels by its own ordered queries and its rivers from the bundled layer, not through fresh's fetchers.
 
 ## Errors Encountered
 
