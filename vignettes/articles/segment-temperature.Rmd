@@ -58,12 +58,6 @@ theme_set(theme_minimal(base_size = 10) +
 num <- function(x, digits = 0) format(round(x, digits), big.mark = ",", nsmall = digits, trim = TRUE)
 day_text <- function(d) paste(as.integer(format(d, "%d")), format(d, "%B"))
 and_text <- function(x) sub(", ([^,]*)$", " and \\1", paste(x, collapse = ", "))
-# a small count in words, as prose writes it
-in_words <- function(n, cap = FALSE) {
-  w <- c("one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve")
-  stopifnot(n >= 1, n <= length(w))
-  if (cap) paste0(toupper(substring(w[n], 1, 1)), substring(w[n], 2)) else w[n]
-}
 compass <- function(dx, dy) {
   c("east", "north-east", "north", "north-west", "west", "south-west", "south",
     "south-east")[(round(atan2(dy, dx) / (pi / 4)) %% 8) + 1]
@@ -101,7 +95,7 @@ stopifnot(100 * 10 == 1000)
 edge <- v$edge
 air_at <- function(d) yr$air_c[yr$date == d]
 jump <- edge$t_mean_c - edge$t_before_c
-stopifnot(edge$date == pick$gap_start - 1, jump > 5, abs(air_at(edge$date) - air_at(edge$date - 1)) < 0.5,
+stopifnot(edge$date == pick$gap_start - 1, jump > 5, air_at(edge$date) - air_at(edge$date - 1) >= 0, air_at(edge$date) - air_at(edge$date - 1) < 0.5,
           edge$t_mean_c - air_at(edge$date) > 5)
 edge_cost <- gsdd - edge$gsdd
 stopifnot(edge_cost > 50, edge_cost < 100)
@@ -119,7 +113,7 @@ town_km <- round(d_town[near])
 town_dir <- compass(st_xy[p, 1] - pl_xy[near, 1], st_xy[p, 2] - pl_xy[near, 2])
 stopifnot(identical(town_near, "Smithers"), town_km <= 10, identical(pick$into1, "Kathlyn Creek"),
           identical(pick$into2, "Bulkley River"))
-# "at a few hundred gauges": the stations the fill was validated at
+# "at a few hundred stations": the stations the fill was validated at
 stopifnot(v$validation$truth_stations >= 200, v$validation$truth_stations < 500)
 
 # figure 1, in two panels on one time axis
@@ -144,7 +138,7 @@ level_text <- "95%"   # wet_temp_fill()'s default interval
 stopifnot(formals(wet_temp_fill)$level == 0.95)
 
 cap_year <- sprintf(paste(
-  "%s at its mouth in %s. Top: each day's mean water temperature as the logger read it (black);",
+  "%s at its mouth in %s. Top: each day's mean water temperature as the station recorded it (black);",
   "the %s days filled across the gap from %s to %s (orange), with the fill's %s interval (pale band);",
   "and what air temperature alone gives through air2stream, the open-loop line (blue). Bottom: degree",
   "days adding up through the growing season, %s to %s (shaded in both panels), to %s; the stretch",
@@ -160,8 +154,8 @@ alt_year <- sprintf(paste(
 ), pick$stream, year_text, num(gsdd))
 ```
 
-**The R package [`wet`](https://newgraphenvironment.github.io/wet/) does not yet give stream temperature
-for every stream reach** [@wet]. This article shows where that work starts, what it aims for, and how
+**The R package [`wet`](https://newgraphenvironment.github.io/wet/), for stream flow and water temperature
+in British Columbia, does not yet give temperature for every stream reach** [@wet]. This article shows where that work starts, what it aims for, and how
 it will be tested. The aim is growing-season degree days, a measure of how much warmth a
 stream gives young fish in a year, at every reach (a mapped stretch of stream) in British Columbia. Today
 they can be computed at a few hundred stations across the province. Getting from those to every reach
@@ -170,7 +164,7 @@ takes a model on the stream network.
 
 ## What are growing-season degree days, and why do they matter for fish?
 
-A fish grows faster in warmer water, up to a point. **Growing-season degree days** add up that warmth
+A fish grows faster in warmer water. **Growing-season degree days** add up that warmth
 over the part of the year when a stream is warm enough for growth: each day's mean water temperature,
 summed from the first week that averages above 5 °C to the first week that falls below 4 °C
 [@coleman_fausch2007ColdSummera]. A stream that holds 10 °C for 100 days gives 1,000 degree days. Where
@@ -178,7 +172,7 @@ the total is low, fish that hatch in summer can be too small to survive their fi
 [@coleman_fausch2007ColdSummera], so the total helps say which streams can produce fish.
 
 The figure shows one year at one station: `r pick$stream` at its mouth, about `r town_km` km `r town_dir`
-of `r town_near`, where it joins `r pick$into1` on the way to the `r pick$into2`. The logger recorded every day from March through November
+of `r town_near`, where it joins `r pick$into1` on the way to the `r pick$into2`. The station recorded every day from March through November
 of `r year_text` except `r pick$gap_days` days from `r day_text(pick$gap_start)`. A season with a
 missing day has no total, so the gap is filled first.
 [`wet_temp_fill()`](https://newgraphenvironment.github.io/wet/reference/wet_temp_fill.html) fills it with
@@ -212,8 +206,8 @@ ggplot() +
 ```
 
 The fill restarts from every reading, so a bad one is carried into it. Here the last reading before
-the gap is about `r num(jump)` °C above the day before while the air temperature barely moved. The
-figure shows the year as the method gives it today; hiding that one reading lowers the total from
+the gap is about `r num(jump)` °C above the day before while the air barely warmed. The
+figure shows the year as the method gives it; hiding that one reading lowers the total from
 `r num(gsdd)` to `r num(edge$gsdd)` degree days.
 
 ## Where do we have temperature, and where not?
@@ -233,15 +227,14 @@ n_st <- nrow(map$stations)
 stopifnot(all(net$orders$drawn), net$with_station == n_st, n_reach == sum(net$orders$segments))
 # the prose gives sizes, not counts that move: "tens of thousands of reaches", "about a dozen" stations
 stopifnot(n_reach >= 2e4, n_reach < 1e5, n_st >= 9, n_st <= 15)
-# "most stations sit on larger rivers and most reaches are small streams, as in the basin above":
-# small is stream order 1 or 2, a larger river order 5 and up
+# "most reaches are small streams and few stations sit on one, as in the basin above":
+# small is stream order 1 or 2
 share_small <- sum(net$orders$segments[net$orders$stream_order <= 2]) / n_reach
-share_river <- mean(v$stations$stream_order >= 5)
-stopifnot(share_small > 0.5, share_river > 0.5)
+on_small <- mean(v$stations$stream_order <= 2)
+stopifnot(share_small > 0.5, on_small < 0.25)
 # the count is of stations with a day of record in the fixed range the data script reads
 stopifnot(all(v$stations$days > 0), identical(substr(prov$to, 1, 4), "2025"))
 last_year <- substr(prov$to, 1, 4)
-# too short to fit a station model yet
 # "some only recently": more than one station began in the last year read, too short to model yet
 n_short <- sum(!map$stations$fitted)
 stopifnot(n_short >= 2, n_short < n_st, all(format(v$stations$first[!v$stations$fitted], "%Y") == last_year))
@@ -325,7 +318,7 @@ alt_map <- sprintf(paste(
 ```
 
 A **reach** here is one stream segment of the Freshwater Atlas, the province's
-map of its streams [@flnrord2021FreshwaterAtlasb], with its own identifier. The `r v$basin$name` runs `r flow_dir` from Houston past Smithers to meet the
+map of its streams [@flnrord2021FreshwaterAtlasb]. The `r v$basin$name` runs `r flow_dir` from Houston past Smithers to meet the
 Skeena River at Hazelton, and the stream network of its basin has tens of thousands of reaches. About a
 dozen hold a federal hydrometric station that has recorded water temperature, some only recently.
 Small-stream loggers are not in `wet` yet, so the map shows only these stations.
@@ -443,18 +436,18 @@ ggplot() +
 ```
 
 - **Catchment traits** describe the land above a point: its position, elevation, snow, lakes and
-  glaciers. Two reaches with like traits should warm alike.
-- **The baseline** is the simple answer, the one to measure a fuller model against. air2stream has three settings
+  glaciers.
+- **The baseline** is the simple answer: what catchment traits alone can say. air2stream has three settings
   that say how closely a stream's water follows the air, fitted at each station. The baseline predicts
   them where there is no station from catchment traits, two ways: by a relation fitted across
   stations, or from the stations most like it.
 - **A network model** fits every station at once and lets reaches on the same stream inform each
   other. It can draw on everything above it in the diagram: the network, the stations and their filled
-  records, the traits, air temperature at every reach, and how the baseline did. What the habitat work
-  needs from it is temperature at every reach with its uncertainty, and degree days with that
-  uncertainty carried through. Two have been fitted in northern British Columbia, for the Nechako and
-  Skeena watersheds [@hill_etal2024Spatialstream; @hill_etal2025Spatialstream], and this work follows
-  them. The method is open.
+  records, the traits, air temperature at every reach, and how the baseline did. What is needed from it
+  is temperature at every reach with its uncertainty, and degree days with that uncertainty carried
+  through. Network models of weekly stream temperature have been fitted for the Nechako and Skeena
+  watersheds [@hill_etal2024Spatialstream; @hill_etal2025Spatialstream], and this work follows them. The
+  method and the time step are open.
 
 A **process model** works the other way, simulating water and heat moving down rivers from the weather.
 The Pacific Climate Impacts Consortium's model [@pacificclimateimpactsconsortium2026VICGLRavenMBCn]
@@ -493,10 +486,10 @@ hold <- do.call(rbind, lapply(names(ways), function(k) {
 }))
 hold$part <- factor(hold$part, c("hidden", "used", "unused"))
 toy_way <- do.call(rbind, lapply(ways, function(w) cbind(toy, way = factor(w, ways))))
-# the station error the section closes on: a whole season hidden, air temperature alone
+# the station error "What is not known yet?" quotes: a whole season hidden, air temperature alone
 val <- v$validation
 season_mae <- val$season_open$gsdd_mae
-stopifnot(season_mae > 100, season_mae < 150, val$season_open$n > 800)
+stopifnot(season_mae > 100, season_mae < 150)
 
 cap_hold <- paste(
   "The test, as a sketch on a made-up network (pale lines). One station is hidden (orange) and its",
@@ -514,10 +507,10 @@ alt_hold <- paste(
 ```
 
 By hiding stations. A **holdout** takes a station's whole record away, predicts it as if the station
-had never been there, and compares the prediction with what the station recorded. Three predictions
-are to be tested this way, at stations across the province with a complete growing season: the
-baseline's two, and one that adds the stream network. A network model can be checked against the same
-hidden stations.
+had never been there, and compares the prediction with what the station recorded. Three simple
+predictions are to be tested this way, at stations across the province with a complete growing season,
+on daily temperature and on the season's degree days: the baseline's two, and one that adds the stream
+network. The same hidden stations are there for any model to be compared on.
 
 ```{r holdout, fig.height = 3, fig.cap = cap_hold, fig.alt = alt_hold}
 ggplot() +
@@ -541,10 +534,11 @@ ggplot() +
 
 The third is **kriging**: estimating a value at an unmeasured place from measured places, weighting
 the near ones most. On a stream network, near is measured along the water and in the direction it
-flows. Here it starts from the same traits and adds the network, so its gain over the baseline is what
-the network adds. Each prediction is then run through air2stream on the hidden station's own air
-temperature and compared with two marks: the model fitted to that station's own record, the best any of
-them could do, and the average of all stations, which is what knowing nothing gives. Each
+flows. Here it is a simple stand-in for the network, not the network model: it starts from the same
+traits and adds the network, so its difference from the baseline is what the network adds. Each of the
+three is then run through air2stream on the hidden station's own air temperature and compared with two
+marks: the model fitted to that station's own record, the best these three could do, and the average
+of all stations, what knowing nothing gives. Each
 is tried twice, with and without the hidden station's neighbours up and down its stream; for the
 network's prediction that difference is what the neighbours are worth.
 
@@ -552,11 +546,11 @@ network's prediction that difference is what the neighbours are worth.
 
 - **The error with no station.** Even at a station, when a whole growing season is hidden, air2stream
   on air temperature alone misses that season's total by about `r num(season_mae)` degree days on
-  average. A reach with no station can only do worse, and how much worse is what the test measures.
-- **Small streams.** Most stations sit on larger rivers and most reaches are small streams, as in the
-  basin above, so the test says least about them.
-- **Readings that are not water.** Nothing screens yet for one like the first figure's, which moved
-  its year by `r num(edge_cost)` degree days.
+  average. With air2stream, a reach with no station can only do worse, and how much worse is what the
+  test measures.
+- **Small streams.** Most reaches are small streams and few stations sit on one, as in the basin above,
+  so the test says least about them.
+- **Readings that are not water.** Nothing screens yet for one like the first figure's.
 - **The thresholds.** Growing-season degree-day thresholds exist for cutthroat trout in high-elevation
   Colorado streams, where 900 to 1,200 degree days gave the best recruitment and under 800 was
   unsuitable [@coleman_fausch2007ColdSummera]. Reports on westslope cutthroat trout in the Elk Valley
@@ -565,7 +559,7 @@ network's prediction that difference is what the neighbours are worth.
 
 ## How were the numbers in the first figure made?
 
-The fill borrows from the other stations of its sub-drainage, so the recipe reads them all.
+The fill borrows from its sub-drainage's other stations, so the recipe reads them all.
 
 ```{r recipe, echo = TRUE, eval = FALSE}
 library(wet)

@@ -24,7 +24,8 @@
 #
 # The list's "drawn" attribute holds the thresholds the layers were made with
 # (`lake_min_ha`, `context_min_order` for the streams outside the tree,
-# `simplify_m`), which the article's caption quotes and holds itself to.
+# `simplify_m`): the article's caption quotes the lakes' and holds the layers
+# to the first two.
 # The list's "network" attribute holds what the tree says in numbers: `orders`
 # (every tree segment of the basin by stream order, with the orders drawn),
 # `reaches`, `km`, `with_station` (segments holding a station) and `wscode`.
