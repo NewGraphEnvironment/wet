@@ -1,6 +1,6 @@
 # What wet's scenarios can be built on, and which product covers which watershed group
 
-**Verified:** 2026-11-25 · **Issues:** #169 (backlog move 7), #4 (scenario period means), #5 (coverage); from #168 (`pcic_channel_scale.md`) · **Produced by:** `scripts/scenario_basis.R` → `data/checks/scenario_basis_20260717.txt` (rules registered at 4ef1af5); `scripts/pcic_coverage.R` → `data/checks/pcic_coverage_20260717.txt`; `scripts/pcic_coverage_map.R` → `pcic_coverage.png`. HYDAT 2026-07-17, fwapg 5d50cc1's `pcic` schema, the live published build a0318b7. Run logs: `data/logs/169/` (main checkout). **Status:** coverage measured; the two checks scenarios rest on are registered and coded, and their runs wait on PCIC.
+**Verified:** 2026-11-25 · **Issues:** #169 (backlog move 7), #4 (scenario period means), #5 (coverage); from #168 (`pcic_channel_scale.md`) · **Produced by:** `scripts/scenario_basis.R` → `data/checks/scenario_basis_20260717.txt` (rules registered at 4fd260e); `scripts/pcic_coverage.R` → `data/checks/pcic_coverage_20260717.txt`; `scripts/pcic_coverage_map.R` → `pcic_coverage.png`. HYDAT 2026-07-17, fwapg 5d50cc1's `pcic` schema, the live published build a0318b7. Run logs: `data/logs/169/` (main checkout). **Status:** coverage measured; the two checks scenarios rest on are registered and coded, and their runs wait on PCIC.
 
 ## Where things stand
 

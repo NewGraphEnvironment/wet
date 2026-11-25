@@ -1,9 +1,9 @@
 # What scenarios can be built on (#169, #4), HYDAT 20260717
 
 ## Provenance
-rules registered: 4ef1af5 (2026-11-25 18:52:21 UTC)
+rules registered: 4fd260e (2026-11-25 18:52:21 UTC)
 first fetch: none
-script commit: cb1936ec
+script commit: ff1fd2bd
 routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 5d50cc1
 table: 40524444 rows, 3377037 segments, 0 null flows, total 179854603.510890 m3/s
 bundle: inst/vignette-data/monthly_values.rds md5 a8093a1a76704e5365a0392ae4ac8c0e
