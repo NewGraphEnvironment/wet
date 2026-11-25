@@ -99,6 +99,12 @@ What exploration found, which shapes the phases:
   one station; Figure 1 draws the open-loop line and its caption states what the suspect day adds, from a
   second fill with that day hidden; the article closes on open-loop's whole-season error, named as such; the
   word cap is 1,200, set before drafting; a reader with none of the repo's context reads the built page.
+- **The baseline issue moved during the build** (#213 and #214 edited 2026-11-25 18:47 UTC; found by the
+  second review round). Kriging on the network was split out of the baseline into #223: the baseline is the
+  two predictions from catchment traits, and the network's prediction is scored beside it. #220's own body
+  still asks for the holdout's three ways, so the sketch keeps them; the article's prose, the chain's
+  arrows (the network feeds the network model, not the baseline) and `CLAUDE.md` follow the issues as they
+  stand. Mine, as a correction the issues require.
 - **Release:** a NEWS bullet under the development heading and `Bump: patch` in the PR body; no function
   changes.
 

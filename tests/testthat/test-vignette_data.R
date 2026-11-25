@@ -437,7 +437,15 @@ test_that("the fill with the day before the gap hidden is a comparison beside th
   expect_equal(sum(y$t_mean_c[in_gap]), v$edge$gap_filled)
   expect_equal(sum(y$t_edge_c[in_gap]), v$edge$gap_edge)
   expect_equal(sum(y$s_open_c[in_gap]), v$edge$gap_open)
-  expect_false(is.na(v$edge$gsdd))
+  # the reading hidden and the one before it are the year's own days
+  expect_equal(v$edge$t_mean_c, y$t_mean_c[y$date == v$edge$date])
+  expect_equal(v$edge$t_before_c, y$t_mean_c[y$date == v$edge$date - 1])
+  # with the reading hidden the season keeps its dates, and its degree days are the second
+  # fill's daily means summed over it
+  in_season <- y$date >= v$season$start & y$date <= v$season$end
+  expect_equal(nrow(v$season), 1L)
+  expect_equal(sum(y$t_edge_c[in_season]), v$edge$gsdd, tolerance = 1e-10)
+  expect_lt(v$edge$gsdd, v$gsdd$filled)
 })
 
 test_that("the temperature map draws the values bundle's stations on the whole of the basin's tree", {

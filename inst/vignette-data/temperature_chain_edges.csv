@@ -4,8 +4,8 @@ air_station,fills,,solid
 fills,gsdd_station,,solid
 fills,baseline,the fitted models,solid
 traits,baseline,,solid
-network,baseline,,solid
 baseline,model,all of the above|and the score to beat,solid
+network,model,,solid
 air_reach,model,,solid
 model,gsdd_reach,,solid
 pcic,baseline,scored beside it,dashed
