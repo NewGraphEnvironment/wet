@@ -99,7 +99,9 @@ if (sys.nframe() == 0L) {
     lh <- all_lh[all_lh$wsg_code == g, ]
     if (!nrow(lh)) stop("knowledge holds no rows for ", g)
     dup <- duplicated(lh)
-    if (any(dup)) message(g, ": dropped duplicate rows: ", paste(lh$species_code[dup], lh$life_stage[dup], collapse = ", "))
+    if (any(dup)) {
+      message(g, ": dropped duplicate rows: ", paste(lh$species_code[dup], lh$life_stage[dup], collapse = ", "))
+    }
     lh <- lh[!dup, ]
     incomplete <- is.na(lh$start) | is.na(lh$end)
     if (any(incomplete)) message(g, ": dropped rows without a start and an end: ",

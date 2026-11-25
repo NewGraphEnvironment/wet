@@ -317,11 +317,11 @@ region <- function(m) {
 }
 ```
 
-```{r skeena, fig.width = map_w, fig.height = map_h, fig.cap = "Maxan and Gosnell creeks in the Skeena system, with the gauges each borrows from. The inset locates the map in British Columbia."}
+```{r skeena, fig.width = map_w, fig.height = map_h, fig.cap = "Maxan and Gosnell creeks in the Skeena system, with the gauges each borrows from under any of its windows. The inset locates the map in British Columbia."}
 region("skeena")
 ```
 
-```{r fraser, fig.width = map_w, fig.height = map_h, fig.cap = "Swift and Naver creeks in the Fraser system, with the gauges each borrows from. The inset locates the map in British Columbia."}
+```{r fraser, fig.width = map_w, fig.height = map_h, fig.cap = "Swift and Naver creeks in the Fraser system, with the gauges each borrows from under any of its windows. The inset locates the map in British Columbia."}
 region("fraser")
 ```
 
@@ -660,7 +660,7 @@ stopifnot(all(v$normal$pick == "pcic_routed"), all(v$daily$source[v$daily$pick] 
   `r nerr$err_n` gauges in its box with ten or more baseline years, that
   published flow in the chinook salmon life history timing window for spawning runs a median `r pct(pct_of(nerr$err_median))` above
   measured, and about `r pct(pct_of(nerr$err_q75))` or more above at a quarter of them.
-- **The windows are the Bulkley's** at all four streams, and the figures show only those; Swift,
+- **The windows are the Bulkley's** at all four streams, and the flow figures show only those; Swift,
   Naver and Gosnell creeks also run under their own stocks'. The upper Fraser and Cottonwood
   spawning windows rest on survey dates that are estimates from a few visits, so their edges are
   uncertain.
