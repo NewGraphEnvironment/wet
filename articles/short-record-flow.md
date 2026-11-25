@@ -130,7 +130,7 @@ notes](https://github.com/NewGraphEnvironment/wet/blob/main/research/station_flo
   <https://github.com/NewGraphEnvironment/wet>.
 - `cd` 0.6.13,
   [doi:10.5281/zenodo.23264994](https://doi.org/10.5281/zenodo.23264994),
-  commit `20e6df2`. Irvine A (2026). *cd: How far any BC watershed’s
+  commit `1e44183`. Irvine A (2026). *cd: How far any BC watershed’s
   climate has shifted from your chosen baseline*. New Graph Environment
   Ltd. <doi:10.5281/zenodo.23264994>
   <https://doi.org/10.5281/zenodo.23264994>. Version 0.6.13,
@@ -140,7 +140,7 @@ notes](https://github.com/NewGraphEnvironment/wet/blob/main/research/station_flo
   <https://ggplot2.tidyverse.org>.
 - `gq` 0.25.0,
   [doi:10.5281/zenodo.23524719](https://doi.org/10.5281/zenodo.23524719),
-  commit `6cf0856`. Irvine A (2026). *gq: One Set of Map Styles for
+  commit `298b016`. Irvine A (2026). *gq: One Set of Map Styles for
   QGIS, Report Figures and Web Maps*. New Graph Environment
   Ltd. <doi:10.5281/zenodo.23524719>
   <https://doi.org/10.5281/zenodo.23524719>. Version 0.25.0,

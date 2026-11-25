@@ -227,6 +227,12 @@ held in PostgreSQL by `fwapg` ([Norris
 Names’. How each stream was chosen, and how the method is run and
 scored, is set out in [`wet`’s research
 notes](https://github.com/NewGraphEnvironment/wet/blob/main/research/chinook_sites.md).
+Maxan Creek alone is the subject of a separate article, [Chinook Flow at
+a Short-Record
+Stream](https://newgraphenvironment.github.io/wet/articles/short-record-flow.md).
+It compares other periods, and takes its borrowed departures from the
+five gauges nearest in place and size rather than those most alike in
+the model, so its changes for Maxan differ from these.
 
 The software, each cited:
 
@@ -246,8 +252,8 @@ The software, each cited:
   2025](#ref-base)).
 
 The data were bundled at `wet` commit `af968ab3`; this build ran on
-`wet` 0.4.44, `cd` 0.6.13, commit 20e6df2, `gq` 0.25.0 and commit
-6cf0856. To cite `wet`:
+`wet` 0.4.44, `cd` 0.6.13, commit 1e44183, `gq` 0.25.0 and commit
+298b016. To cite `wet`:
 
 Irvine A (2026). *wet: Stream Flow and Water Temperature for the BC
 Freshwater Atlas*. New Graph Environment Ltd.
