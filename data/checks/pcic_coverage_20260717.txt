@@ -1,7 +1,7 @@
 # Which product covers which watershed group (#169, #5), HYDAT 20260717
 
 ## Provenance
-wet commit 0d7426e7; live build a0318b7 (segment table 66cf795); 43 segment_monthly parts, historical
+wet commit 749ce6f0; live build a0318b7 (segment table 66cf795); 43 segment_monthly parts, historical
 live parts md5 ef67728fe57c111ec05d3cc973c12fd8; verified against the manifest before and after the read
 routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 5d50cc1
 table: 40524444 rows, 3377037 segments, 0 null flows, total 179854603.510890 m3/s
@@ -11,7 +11,7 @@ gridded cells: one day of 3 cached PNWNAmet subsets (Peace, Fraser, Columbia; no
 CMIP6 GCMs by domain: the pilot's listings at its scored gauges' outlets (data/checks/channel_scale_pilot_20260717.txt): Fraser 9, Coast 8, Columbia 9, Peace 9
 rules 4 and 5 (data/checks/scenario_basis_20260717.txt): rule 4 not run; rule 5's CMIP5 score not run
 gauges: inst/vignette-data/monthly_values.rds md5 a8093a1a76704e5365a0392ae4ac8c0e
-group table: /Users/airvine/Projects/repo/wet/data/pcic_coverage/coverage_20260717.tsv md5 02b7d366c33569afab4ffd688affe37a
+group table: <data root>/pcic_coverage/coverage_20260717.tsv md5 02b7d366c33569afab4ffd688affe37a
 
 ## Classes (breaks fixed before the table was read)
 a group's segments: those with a month-0 row from either source; routed share: those with a routed row over all
