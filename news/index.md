@@ -1,6 +1,6 @@
 # Changelog
 
-## wet (development version)
+## wet 0.4.45
 
 - No change to the package’s functions;
   [`wet_station_list()`](https://newgraphenvironment.github.io/wet/reference/wet_station_list.md)
