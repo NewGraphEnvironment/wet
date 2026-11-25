@@ -49,6 +49,9 @@ test_that("frac_filled and frac_provisional are shares of the season window", {
   window <- as.integer(as.Date("2020-11-30") - as.Date("2020-03-01")) + 1
   expect_equal(g$frac_filled, c(0, 30 / window))
   expect_equal(g$frac_provisional, c(0, 60 / window))
+  # any status but approved counts, so an unchecked season is all provisional
+  x$status <- "unchecked"
+  expect_equal(wet_temp_gsdd(x)$frac_provisional, c(1, 1))
 })
 
 test_that("rows with no date are dropped, and a window may end on 29 February", {

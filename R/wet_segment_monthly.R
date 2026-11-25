@@ -46,10 +46,16 @@
 #'   segment outside them reads as missing.
 #' @param catalog For parts read without `conn`: the output of
 #'   [wet_catalog()], which is read when `NULL`.
-#' @return `data.frame(linear_feature_id, month, q_m3s, source)`, ordered by
-#'   source as given, segment as given and month. A segment with no value for
-#'   a source has all 13 rows, with `q_m3s` `NA`, so missing coverage stays
-#'   visible after a join.
+#' @return `data.frame(linear_feature_id, month, q_m3s, source, pick)`, ordered by
+#'   source as given, segment as given and month. `pick` is logical: `TRUE`
+#'   where the source is the segment's default (`pick` in the published
+#'   product) and `FALSE` where it is not.
+#'   A segment with no value for a source has all 13 rows, with `q_m3s` and
+#'   `pick` `NA` (not `FALSE`: no row says nothing about the default), so
+#'   missing coverage stays visible after a join. With `from = "fwapg"`, whose
+#'   table has no `pick`, `pick` is `NA` on every row. A table loaded by
+#'   [wet_db_load()] with `pick_only` holds the picked rows alone, so its
+#'   other source reads as missing.
 #' @seealso [wet_flow_window()] for flow over a date window;
 #'   [wet_station_monthly()] for the gauge's side of a comparison.
 #' @examples
@@ -57,8 +63,9 @@
 #' # Buck Creek at its mouth, where gauge 08EE013 sits, from the published
 #' # parts over HTTPS (about 3 s)
 #' q <- wet_segment_monthly(NULL, 17094080, groups = "BULK")
-#' reshape(q[q$month > 0, ], idvar = c("linear_feature_id", "month"),
-#'         timevar = "source", direction = "wide")
+#' q[q$month == 0 & q$pick %in% TRUE, ]  # the default source's mean annual flow
+#' reshape(q[q$month > 0, c("linear_feature_id", "month", "q_m3s", "source")],
+#'         idvar = c("linear_feature_id", "month"), timevar = "source", direction = "wide")
 #'
 #' # the same from Postgres, after wet_db_load()
 #' conn <- DBI::dbConnect(RPostgres::Postgres(), dbname = "fwapg")
@@ -137,7 +144,9 @@ wet_segment_read <- function(conn, dataset, segments, source, from, scenario, gr
                       KEEP.OUT.ATTRS = FALSE)
   grid <- grid[c("linear_feature_id", "t", "source")]
   names(grid)[2] <- tb$col
-  if (!length(ids)) return(cbind(grid[c("linear_feature_id", tb$col)], q_m3s = numeric(), grid["source"]))
+  if (!length(ids)) {
+    return(cbind(grid[c("linear_feature_id", tb$col)], q_m3s = numeric(), grid["source"], pick = logical()))
+  }
 
   got <- if (from == "fwapg") {
     wet_segment_fwapg(conn, lk[match(source, lk$source), , drop = FALSE], ids, scenario, groups)
@@ -157,7 +166,8 @@ wet_segment_read <- function(conn, dataset, segments, source, from, scenario, gr
          tb$col, " ", d[[tb$col]], " in scenario ", scenario, call. = FALSE)
   }
   grid$q_m3s <- as.numeric(got$q_m3s[match(key(grid), k)])
-  out <- grid[c("linear_feature_id", tb$col, "q_m3s", "source")]
+  grid$pick <- as.logical(got$pick[match(key(grid), k)])
+  out <- grid[c("linear_feature_id", tb$col, "q_m3s", "source", "pick")]
   rownames(out) <- NULL
   out
 }
@@ -216,8 +226,12 @@ wet_segment_pg <- function(conn, dataset, ids, source, scenario, groups) {
          ": load it with wet_db_load(conn, wet_catalog(), \"", dataset, "\", scenario = \"", scenario, "\")",
          call. = FALSE)
   }
+  if (!"pick" %in% DBI::dbListFields(conn, id)) {
+    stop(name, " has no `pick` column: reload it with wet_db_load(conn, wet_catalog(), \"", dataset, "\")",
+         call. = FALSE)
+  }
   sql <- sprintf(
-    "SELECT linear_feature_id, %s, q_m3s, source FROM %s
+    "SELECT linear_feature_id, %s, q_m3s, source, pick FROM %s
      WHERE scenario = %s AND source IN (%s) AND linear_feature_id IN (%s)%s",
     wet_timebase(dataset)$col, qid, DBI::dbQuoteString(conn, scenario), wet_sql_in(conn, source),
     wet_sql_in(conn, ids), wet_sql_groups(conn, groups)
@@ -250,12 +264,12 @@ wet_segment_parts <- function(dataset, ids, source, scenario, groups, catalog) {
     href <- parts$href[parts$source == s]
     # a source whose groups hold no part has no rows there
     if (!length(href)) {
-      return(stats::setNames(data.frame(integer(), integer(), numeric(), character()),
-                             c("linear_feature_id", col, "q_m3s", "source")))
+      return(stats::setNames(data.frame(integer(), integer(), numeric(), character(), logical()),
+                             c("linear_feature_id", col, "q_m3s", "source", "pick")))
     }
     # the keys come from the catalog, as in wet_db_load()
     sql <- sprintf(
-      "SELECT linear_feature_id, %s, q_m3s FROM read_parquet([%s], hive_partitioning = false)
+      "SELECT linear_feature_id, %s, q_m3s, pick FROM read_parquet([%s], hive_partitioning = false)
        WHERE linear_feature_id IN (%s)%s",
       col, wet_sql_in(duck, href), wet_sql_in(duck, ids), wet_sql_groups(duck, groups)
     )
@@ -301,6 +315,8 @@ wet_segment_fwapg <- function(conn, lk, ids, scenario, groups) {
   d <- DBI::dbGetQuery(conn, sql)
   d <- rbind(d, wet_segment_annual(d))
   d$source <- rep("pcic_routed", nrow(d))
+  # fwapg's table has no pick: the pick is wet's rule, not fwapg's
+  d$pick <- rep(NA, nrow(d))
   d
 }
 

@@ -13,7 +13,8 @@ wet_temp_daily(
 )
 }
 \arguments{
-\item{stations}{Character vector of station numbers.}
+\item{stations}{Character vector of HYDAT station numbers (\code{"08EE013"}),
+as water-temp-bc archives them.}
 
 \item{from, to}{Optional first and last date (a \code{Date} or a string
 \code{as.Date()} reads). \code{NULL} means no bound.}

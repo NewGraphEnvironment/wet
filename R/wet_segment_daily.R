@@ -30,9 +30,11 @@
 #' @param groups Watershed group codes that hold the segments: required when
 #'   reading the parts (no `conn`), optional with `conn`. A segment outside
 #'   them reads as missing.
-#' @return `data.frame(linear_feature_id, doy, q_m3s, source)`, ordered by
-#'   source as given, segment as given and day. A segment with no value for a
-#'   source has all 365 rows, with `q_m3s` `NA`.
+#' @return `data.frame(linear_feature_id, doy, q_m3s, source, pick)`, ordered
+#'   by source as given, segment as given and day. `pick` is logical, `TRUE`
+#'   where the source is the segment's default, as in [wet_segment_monthly()].
+#'   A segment with no value for a source has all 365 rows, with `q_m3s` and
+#'   `pick` `NA`.
 #' @seealso [wet_flow_window()] for flow over month-day windows;
 #'   [wet_segment_monthly()] for monthly and annual flow.
 #' @examples

@@ -1,6 +1,6 @@
 # PCIC hydrologic model output: what exists, where, and on what terms
 
-**Verified:** 2026-09-25; channel-scale section 2026-09-26 · **Issues:** #1 (found), #3, #4, #5, #6, #7, #9 (use it) · **Produced by:** `curl` of the PCIC catalogs and OPeNDAP `.das`/`.dds` (commands in `planning/archive/2026-09-issue-1-scope-discharge/`), PCIC web pages and the PCIC Update of Feb 2026.
+**Verified:** 2026-09-25; channel-scale section 2026-11-23 · **Issues:** #1 (found), #3, #4, #5, #6, #7, #9 and #168 (the pilot) · **Produced by:** `curl` of the PCIC catalogs and OPeNDAP `.das`/`.dds` (commands in `planning/archive/2026-09-issue-1-scope-discharge/`), PCIC web pages and the PCIC Update of Feb 2026.
 
 ## Hosts
 
@@ -42,6 +42,7 @@
     - PCIC suggests piloting a few representative sites first, then possibly scaling up with their support (#9).
     - The Peace and Upper Columbia are to be added "in the next year or so". Current coverage is the coastal domain plus the Fraser (Feb 2026 Update).
   - Recommended use: compare PNWNAmet-driven runs with observations, and take climate impacts within one model-scenario combination.
+  - **The pilot (#168, 2026-11-23; `pcic_channel_scale.md`):** the portal's product is, as far as can be traced, hydromosaic's series, the run fwapg's crosswalk places on the FWA and wet publishes as routed PCIC; the crosswalk reproduces PCIC's PNWNAmet outlet series at every scored gauge with an outlet. At the scored gauges' outlets hydromosaic lists CMIP6 streamflow in the Peace and Columbia too, and has no TaiESM1 series at any coast outlet scored. The CMIP6 runs' 1981–2010 flow is close to PNWNAmet's except in the Fraser, so move 7 builds on CMIP6 routed outside the Fraser and CMIP5 gridded in it.
 - **`downscaled_cmip6`:** BCCAQv2 CMIP6 *climate* (not hydrology), Canada-wide.
 
 ## Per-year routed flow and the departure competition (#122)

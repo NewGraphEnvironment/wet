@@ -20,8 +20,9 @@ wet_window_stats(
 \arguments{
 \item{x}{A data frame with a \code{Date} column \code{date}, a numeric value column
 and the \code{by} id columns. Optional \code{symbol} (HYDAT \code{"B"} = ice) and
-\code{status} (\code{"provisional"}) columns give \code{frac_ice} and
-\code{frac_provisional}.}
+\code{status} columns give \code{frac_ice} and \code{frac_provisional}; every status
+other than \code{"approved"} (\code{"provisional"}, \code{"unchecked"}) counts as
+provisional.}
 
 \item{windows}{\code{data.frame(window, start, end)}, with \code{start} and \code{end} as
 \code{"MM-DD"}, both inclusive. An \code{end} of \code{"02-29"} is the last day of

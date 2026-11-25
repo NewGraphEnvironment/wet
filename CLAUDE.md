@@ -22,6 +22,7 @@ Scripts:
 - `scripts/upstream_area_check.R` checks topology against fwapg's upstream areas.
 - `scripts/segment_group_closure.R` (#157) records, per watershed group, the polygons its rows' upstream sums need (`wet_ws_reach()`: what `FWA_Upstream` reaches from them) and the closed set it is cut from (`wet_ws_closure()`: every polygon under the group's roots, `wet_ws_roots()`) in `data/checks/segment_group_closure.txt`. `scripts/segment_group.R <WSG>` rebuilds one group's balance rows and pick from the shipped fit over that reach alone (samples from the province run's `sample/`, or made under `<fit>/group/<WSG>/`; `WET_WB_RESAMPLE=1` resamples the group and compares), reads the group's published rows through the manifest, verified before and after, and compares every row (`data/checks/segment_group_<WSG>_<release>.txt`; `WET_GROUP_DROP` is the deliberate break, reported under `data/logs/157/`). Run it where the province run's inputs are, or anywhere with fwapg under `WET_GROUP_FROM=published` (#160: the fit and samples from the manifest's `fit` entry, in a checkout holding the build's commit with its scoring code unchanged; report `segment_group_<WSG>_published_<release>.txt`). Findings: `research/segment_group.md`.
 - `scripts/station_snap_sweep.R <migration.sql>` (#127) measures what a pending fwapg migration changes on wet's snap path (`wet_station_snap()`, then `fwa_locatealong()` and `fwa_watershedatmeasure()` at the pick) over the shipped release's stations, before and inside a rolled-back trial (`wet:::wet_pg_trial()`); report `data/checks/station_snap_sweep_<release>.txt`, findings in `research/station_snap.md`.
+- `scripts/channel_scale_pilot.R` (#168, #9) reads PCIC's hydromosaic outlet series (PNWNAmet and 9 CMIP6 GCMs, bulk NetCDF fetched once into `<WET_DATA_ROOT>/channel_scale/raw/`, each fetch logged to `<WET_DATA_ROOT>/logs/168/channel_scale_fetch.tsv`) and scores them under the rules registered in its header at 7d6c7b1: rule 1, routed PCIC as published against PCIC's own series at every scored gauge whose segment holds a placed outlet; rule 2, the CMIP6 runs' 1981–2010 flow against PNWNAmet's; rule 3, the verdict by PCIC domain for move 7. Six worked sites in the Fraser come from `scripts/channel_scale_sites.csv`, which the script refuses unless it holds the rules' picks. `WET_DATA_ROOT` names the main checkout's `data/` when it runs from a worktree. Report `data/checks/channel_scale_pilot_<release>.txt`; findings `research/pcic_channel_scale.md`.
 - `scripts/gauge_monthly_compare.R` (#166: #6, #67, #162) scores the published months at the calibration gauges by month, season, hydrologic zone, major basin and basin size; attributes routed PCIC's seasonal shape (#67's checks, rules registered in its header); and sets the Fraser gauges beside DFO's Table F1 (Iacarella et al. 2025) as context, routed year by year from fwapg#42's per-year files under `WET_PCIC_YEARS`, each held to `pcic.series` and to the run's `pcic.subbasin_daily` by `routed_years_check()` (`scripts/pcic_routed_lib.R`). Its gauge table must equal the segment-discharge article's bundle value by value. Report `data/checks/gauge_monthly_compare_<release>.txt`; findings `research/monthly_error.md`.
 
 The open water balance (#11), a second pipeline run in this order. Each script's outputs are keyed on its inputs and code, and later scripts refuse a run without `upstream/_complete`:
@@ -36,13 +37,15 @@ The open water balance (#11), a second pipeline run in this order. Each script's
 - `scripts/wb_term_diagnose.R` (#45): our P and AET against PCIC's PREC and EVAP at the calibration gauges, under a rule pre-registered in the #45 archive. Report: `data/checks/wb_term_diagnose_<release>.txt`. Runs from the reduced bundle; it needs climr.
 - `scripts/wb_plateau_p.R` (#50): climr, PNWNAmet and TerraClimate against the River Forecast Centre's plateau-elevation ASWS gauges and snow courses, under a rule pre-registered in the #50 archive. Report: `data/checks/wb_plateau_p.txt`. Needs no fit; raw snapshots are downloaded once into `data/plateau_p/raw/` and their md5s reported.
 - `scripts/wb_gauge_diversion.R` (#53): BC water rights licences placed upstream of the shipped fit's calibration gauges, and the dry-zone held-out error rescored with licensed use returned, under a rule pre-registered in the #53 archive. Report: `data/checks/wb_gauge_diversion_<release>.txt`. Reads HYDAT for each gauge's complete years; the WFS snapshot is paged into `data/gauge_div/raw/` once and its md5 reported.
+- `scripts/wb_small_basin.R` (#176): why the held-out balance runs high under 100 km², under a rule registered in its header at 9f5a0da before any check ran (thresholds the owner's, #188): where the bias enters (with the zone adjustment; its small-minus-larger contrast read by zone, elevation and aridity tercile), whether seven catchment traits explain it held out (OLS under the fit's blocked folds, a fold bootstrap; `scripts/wb_small_basin_rule.R` holds the verdicts), and #45's `verdict()` on the small basins PCIC covers, evaluated with #45's constants and derivations from `scripts/wb_term_diagnose.R` by `parse()` (not copied), its cache's rows and base columns held to this fit and to #45's content-keyed PCIC and ECCC caches, and its 21 stored zone verdicts reproduced. It refuses a fit whose medians or scoring md5 it does not reproduce; glacier cover comes from fwapg's FWA glaciers (cached under `data/wb_small_basin/`); `WET_SB_INSAMPLE=1` is the in-sample proof run. Report: `data/checks/wb_small_basin_<release>.txt`. Findings: `research/monthly_error.md`; the candidates are #199's.
+- `scripts/wally_compare.R` (#178): WALLY's per-zone regressions of mean annual runoff (`bcgov/WALLY`'s `modelling/` at a pinned commit, fetched once into `data/wally/raw/<sha>/`, each fetch logged to `data/logs/188/wally_fetch.tsv`; Table 1 of its PDF transcribed in `scripts/wally_zone_scores.csv` and held to the table's Count and Average rows) beside the held-out balance and routed PCIC by zone, in WALLY's metric, with both gauge filters and the station overlap. Needs no database; reads HYDAT for the regulation flag. Report: `data/checks/wally_compare_<release>.txt`. Findings: `research/wally.md`.
 - `scripts/pcic_routed_compare.R` (#58): PCIC's routed monthly flow (fwapg's `pcic.discharge_monthly`, one run, NewGraphEnvironment/fwapg#25) against the held-out balance at the shipped fit's calibration gauges, with the definitions in `scripts/pcic_routed_lib.R`. The run read (`PNWNAmet`, `historical`, `1981-2010` since #103) is named once, with the table, in `wet_segment_sources()`, and every read filters on it (#101). Report: `data/checks/pcic_routed_compare_<release>.txt`. `pcic.runs` records no build commit, so `WET_FWAPG_COMMIT` names it (5d50cc1 for both runs since #163, fwapg#24's rebuild that places the Nechako Reservoir; 7c30f58 before, which `data/checks/departure_pcic_20260717.txt` still names) and the report carries the run's fingerprint beside it, which must equal the run's row in `pcic.runs`.
 - `scripts/segment_output.R` (#57): both estimates on every FWA segment, per basin under `data/wb/<key>/fit_<release>/segment/`, as `linear_feature_id, month, runoff_mm, q_m3s, coverage, source, period, pick`. The balance reaches a segment through `fwa_streams_watersheds_lut`. `pick` is `wet_source_pick()`: routed PCIC unless its annual flow is under `routed_far_low` (0.2) of the balance's, except off a watershed's own line (`routed_own_line_sql`: side channels, and connectors sitting in another stream's watershed), where the lut gives a segment another line's balance and routed is kept (its `runoff_mm` is NA there). Report: `data/checks/segment_output_<release>.txt`. Run it on the machine with the full province run, with `WET_FWAPG_COMMIT` set as for `pcic_routed_compare.R`; it refuses a routed table other than the tracked routed report's.
 - `scripts/segment_daily_output.R` (#99): the same segments and sources on the 365 days of a common year (29 February folded into 28 February), per watershed group under `<fit>/segment_daily/`, as `linear_feature_id, doy, runoff_mm, q_m3s, coverage, source, period, pick`. The balance's days are its published months laid on the fit's daily shape (`wet_shape_daily()`, `shape_daily.rds`), so a month's days average to it; routed PCIC's are routed day by day from fwapg's `pcic.subbasin_daily` and `pcic.segment_weights` (`wet:::wet_routed_days()`, read by `routed_daily_inputs()`), clamped and rounded to 5 decimals as fwapg makes its months, so they need not average to the published month. It refuses unless the routed months rebuilt from the days are fwapg's (a rounding tie aside) and the balance's days average to its months. `pick`, `coverage` and `period` are the monthly rows'. Report: `data/checks/segment_daily_output_<release>.txt`. Run it after `segment_output.R`, with that report committed.
 
 Publishing (#7): `scripts/discharge_publish.R` turns the segment table and the balance output into `s3://fresh-bc/discharge/fwa/v1/`. It builds the local tree, its `manifest.json` and the report `data/checks/discharge_publish_<release>.txt` by default; `WET_PUBLISH=1` uploads the built tree, verifies it anonymously, and then rewrites the report's live-build line itself (#117), so no BUILD follows an upload: commit the report it leaves modified. Each part is conformed to its crate schema (`crate::crt_schema_conform(df, "nge", "discharge/fwa/v1/segment_monthly")`, crate#31; `segment_daily`, crate#33). Monthly parts hold one drainage; daily parts (`segment_daily`, #99) one watershed group (`part-<GROUP>.parquet`), each under S3's 5 GB single PUT. PUBLISH skips a part whose live object's ETag is already its md5. The build refuses a segment table whose code changed since its report's commit. It then reads every written part back and compares it, value by value, with what it was built from (#64, `wet_values_compare()`): routed months 1–12 with fwapg's table, routed month 0 with the mean of its twelve months, the routed total with the table's fingerprint, the balance with the fit's `output/` through the lut, `q_m3s`, `runoff_mm`, `coverage` and `pick` with the segment table, and the watershed parts' `q_m3s` with `output/`; the daily routed days routed again by another path (equal after rounding, a tie aside), the daily balance made again from `output/` and the shape, its months with the segment parts, and four daily columns with the daily table. The report gives compared, differing and largest difference for each, how many parts are byte-identical to the live manifest's, and the digest of its own tree's parts and of the live ones (`wet:::wet_catalog_digest()`, #94); PUBLISH uploads a tree only under a committed report naming that tree's digest. Beside the parts the build writes `receipt.json` (crate's provenance receipt, declared in `inst/receipt/discharge_fwa_v1.yaml`; beside the manifest, not in its place, #161) and `fit/` (`fits.rds` and each group's sample as parquet, #160), both listed in the manifest (`wet_catalog()` attributes `receipt` and `fit`) and given their own report lines; the parts' digest stays parts-only. Readers use `wet_catalog()` (the manifest; the bucket allows no listing) and `wet_db_load()`, which writes one scenario to Postgres `discharge.fwa_v1_segment_monthly` and records each loaded part in `discharge.wet_load` (#88; the table comment, which link parses, is unchanged); fresh joins `month = 0 AND pick` from it. `wet_segment_monthly()` (#59) reads flow per segment and source in `wet_station_monthly()`'s shape (`linear_feature_id, month, q_m3s, source`; a missing segment is 13 NA rows): from that table given `conn`, from the parts through duckdb without (`groups` keeps it to seconds), or with `from = "fwapg"` from fwapg's routed table, which `pcic_routed_compare.R` scores before a publish (`routed_annual()`). Its internal `wet_segment_sources()` is the one source → table lookup. `wet_segment_daily()` (#99) reads `segment_daily` the same way (`doy` 1–365, 365 NA rows for a missing segment; from the parts it needs `groups` and opens only those groups' parts), and `wet_db_load(doys =, groups =)` loads a subset of it. `wet_flow_window()` turns monthly or daily means into mean flow over month-day windows, with `basis` saying which. One dataset ID (`<variable>/<network>/<version>/<unit>_<timebase>`) names the S3 prefix, the crate schema and the table, and the Hive keys are `scenario` / `forcing` / `source`: `research/discharge_publish.md`.
 
-Station flow departure (#25): `wet_station_daily()` (HYDAT, then water-temp-bc provisional, then real-time, each continuing the one before per station) → `wet_window_stats()` (per-year statistics over month-day windows, in cd's long format) → cd's `cd_baseline()`/`cd_anomaly()`/`cd_trend()`, one station per call. `scripts/station_departure.R` runs it for real-time stations; limits (ice, provisional winters, seasonal-gauge baselines) are in `research/station_flow_departure.md`. At an ungauged or short-record site (#120, Maxan Creek), `wet_window_extend()` extends a short record's window statistics from the nearest covering donors (OLS ships under #120's rule, registered in the header of `scripts/departure_pilot.R`, retired in #146) and `wet_departure_carry()` carries donors' log departures from their own 1981–2010 means; the pilot's report is `data/checks/departure_pilot_20260717.txt`, and #122 inherits its usable threshold (median held-out NSE ≥ 0.5). #121 regressed the pilot's series on each year's ERA5-Land peak snow water equivalent and 50 % melt date over the gauge's watershed, from `wet_snow_annual()` (cd's annual snow layers over one watershed's dissolved polygons; its example reads Maxan's bundle in `inst/extdata/snow_pilot/`, built by `data-raw/snow_pilot_data.R`); report `data/checks/departure_snow_20260717.txt`. Both pilot scripts were retired in #146, once Maxan ran from the site table (below); their two reports stay as #120's and #121's record, and `scripts/departure_site.R maxan` and `scripts/departure_site_snow.R maxan` must reproduce them. `scripts/departure_pcic.R` (#122) scores, under the rule in its header, donors weighted by distance or by PCIC's modelled covariance (`wet_departure_carry(weights =, modelled =)`), PCIC's own per-year departures and a blend, held out at the calibration gauges PCIC covers, 1951–2012; it routes PCIC's per-year sub-basin days (fwapg#42's `pcic.subbasin_days.<model>_<scenario>.<year>.parquet` under `WET_PCIC_YEARS`, each file held to `pcic.series`) to each gauge's segment with `wet_routed_years()`, and names both fwapg commits (`WET_FWAPG_COMMIT` for the Postgres tables, `pcic.series.commit` for the files); report `data/checks/departure_pcic_20260717.txt`. It shipped `covariance_pick` donors (the 5 of the 15 nearest whose modelled years correlate best; median held-out NSE 0.72 against distance's 0.67), and donors over PCIC alone (0.48) and the blend (0.71), so PCIC's years choose donors and carry no departures themselves (`research/pcic_hydrology.md`). The vignette `vignettes/flow-departure-normal.Rmd` (#27; `station-flow.Rmd` until #145, its address redirected by `_pkgdown.yml`'s `redirects:`) shows the same path on 08EE013 and 08EE003 in the chinook migration and spawning windows (fry migration falls within them), 2016–2025 against 1981–2010 (#152; 1981–2010 cited as a WMO standard normal and the period wet's published flows are normals of), with the change in each window's mean flow (its resampled range covers 83–87 % at those years, under #152's 0.87 bar, `scripts/departure_interval_coverage.R` → `data/checks/departure_interval_coverage.txt`, so no count rests on it), from data that `data-raw/station_vignette_data.R` (daily series) and `data-raw/station_vignette_map.R` (map layers) bundle in `inst/vignette-data/`; colours come from the gq registry `inst/cartography/wet_station.csv`.
+Station flow departure (#25): `wet_station_daily()` (HYDAT, then water-temp-bc provisional, then real-time, each continuing the one before per station; a provincial non-integrated station number, `08EE0001`, is read from the province's hourly files instead, #142, and a Water Tool gauge's, `HRB3142`, from the Tool's daily files, #144, where a Tool gauge at a provincial site also continues that station's record before it begins) → `wet_window_stats()` (per-year statistics over month-day windows, in cd's long format) → cd's `cd_baseline()`/`cd_anomaly()`/`cd_trend()`, one station per call. `scripts/station_departure.R` runs it for real-time stations; limits (ice, provisional winters, seasonal-gauge baselines) are in `research/station_flow_departure.md`. At an ungauged or short-record site (#120, Maxan Creek), `wet_window_extend()` extends a short record's window statistics from the nearest covering donors (OLS ships under #120's rule, registered in the header of `scripts/departure_pilot.R`, retired in #146) and `wet_departure_carry()` carries donors' log departures from their own 1981–2010 means; the pilot's report is `data/checks/departure_pilot_20260717.txt`, and #122 inherits its usable threshold (median held-out NSE ≥ 0.5). #121 regressed the pilot's series on each year's ERA5-Land peak snow water equivalent and 50 % melt date over the gauge's watershed, from `wet_snow_annual()` (cd's annual snow layers over one watershed's dissolved polygons; its example reads Maxan's bundle in `inst/extdata/snow_pilot/`, built by `data-raw/snow_pilot_data.R`); report `data/checks/departure_snow_20260717.txt`. Both pilot scripts were retired in #146, once Maxan ran from the site table (below); their two reports stay as #120's and #121's record, and `scripts/departure_site.R maxan` and `scripts/departure_site_snow.R maxan` must reproduce them. `scripts/departure_pcic.R` (#122) scores, under the rule in its header, donors weighted by distance or by PCIC's modelled covariance (`wet_departure_carry(weights =, modelled =)`), PCIC's own per-year departures and a blend, held out at the calibration gauges PCIC covers, 1951–2012; it routes PCIC's per-year sub-basin days (fwapg#42's `pcic.subbasin_days.<model>_<scenario>.<year>.parquet` under `WET_PCIC_YEARS`, each file held to `pcic.series`) to each gauge's segment with `wet_routed_years()`, and names both fwapg commits (`WET_FWAPG_COMMIT` for the Postgres tables, `pcic.series.commit` for the files); report `data/checks/departure_pcic_20260717.txt`. It shipped `covariance_pick` donors (the 5 of the 15 nearest whose modelled years correlate best; median held-out NSE 0.72 against distance's 0.67), and donors over PCIC alone (0.48) and the blend (0.71), so PCIC's years choose donors and carry no departures themselves (`research/pcic_hydrology.md`). The vignette `vignettes/flow-departure-normal.Rmd` (#27; `station-flow.Rmd` until #145, its address redirected by `_pkgdown.yml`'s `redirects:`) shows the same path on 08EE013 and 08EE003 in the chinook migration and spawning windows (fry migration falls within them), 2016–2025 against 1981–2010 (#152; 1981–2010 cited as a WMO standard normal and the period wet's published flows are normals of), with the change in each window's mean flow (its resampled range covers 83–87 % at those years, under #152's 0.87 bar, `scripts/departure_interval_coverage.R` → `data/checks/departure_interval_coverage.txt`, so no count rests on it), from data that `data-raw/station_vignette_data.R` (daily series) and `data-raw/station_vignette_map.R` (map layers) bundle in `inst/vignette-data/`; colours come from the gq registry `inst/cartography/wet_station.csv`.
 
 Chinook pilots beyond Maxan (#126): `scripts/departure_sites.csv` holds one row per place (target station, or an ungauged stream's blue line and mouth; donor box; the watershed groups whose cited Chinook windows it runs under, from `inst/vignette-data/life_history_<group>.csv`, which `data-raw/life_history_data.R` writes beside the BULK file), read through `scripts/departure_site_lib.R` (`site_get()`, `site_windows()`). `scripts/departure_site.R <site>` is #120's pilot taken over per site, with the extension fixed at OLS and the carry at inverse distance (the race and #120's pick are reported, deciding nothing), plus a 90 % interval on the carried change; since #147 a section 6 scores #122's `covariance_pick` against distance at the box's PCIC-covered gauges and ships it where it wins under the rule in its header (Maxan, Naver and Gosnell; distance at Swift), the article carrying the shipped route; and since #152 a section 5: both routes' change from 1951–1980 to 2016–2025, each interval's coverage measured on simulated no-change series (the article calls a change interval a 90 % range only where every coverage it draws on is at least 0.87), and the gauges the 1951–1980 years rest on; the snow script adds snow over the same periods; at an ungauged site only carried departures run, on the published `segment_daily` normal at the mouth segment, with that normal's error at the box gauges. `scripts/departure_site_snow.R <site>` is #121's regression taken over the same way. Both refuse a `maxan` run under the BULK windows whose report does not reproduce the tracked pilot or snow report, table row by table row at the printed precision (`site_parity_pilot()`, `site_parity_snow()` in `scripts/departure_site_lib.R`; `tests/testthat/test-departure_site_parity.R` holds the tracked site reports to them, #146). Reports: `data/checks/departure_site[_snow]_<site>_<group>_20260717.txt`; the targets' Chinook use: `scripts/chinook_sites_use.R` → `data/checks/chinook_sites_use.txt` (NuSEDS, provincial observations). The comparison article `vignettes/articles/flow-change-sparse-gauges.Rmd` ("Rebuilding Stream Flow History Where Gauges Are Few" since #152, built for the site only; 1951–1980 against 2016–2025, with the lowest seven-day flow and snow at the measured snow gauges; the measured article's title is "Measured Stream Flow Against Its 1981–2010 Normal: Two Long-Record Gauges") is listed in the Articles menu in place of the Maxan article, which moved to `_pkgdown.yml`'s `internal` section (still built at its URL, in neither the index nor the navbar), from `data-raw/chinook_sites_data.R` (every number held to its report line) and `data-raw/chinook_sites_map.R`. Since #146 Maxan's short-record article, its data and map scripts and `scripts/departure_pcic.R`'s box also come from its row. Results: `research/chinook_sites.md`.
 
@@ -67,13 +70,16 @@ All functions use the `wet_*` prefix with `noun_verb` naming (`wet_pcic_fetch`, 
 ## Data Sources
 
 - **PCIC** `hydro_model_out` over OPeNDAP at `services.pacificclimate.org` (the old `data.pacificclimate.org` host answers 301, so follow redirects). Historical run `TPS_gridded_obs_init` (PNWNAmet, VICGL-RGM, 1945–2012). Twelve CMIP5 runs (6 GCMs × RCP 4.5/8.5, VICGL, 1945–2099). Coverage is Peace, Fraser and Columbia only.
-- **PCIC channel-scale** (VIC-GL-Raven CMIP6, May 2026) at `services.pacificclimate.org/chyp`: routed per reach on an FWA-derived network. Coast + Fraser now; Peace and Upper Columbia expected in about a year. Pilot before domain-wide use (#9).
+- **PCIC channel-scale** (VIC-GL-Raven CMIP6, May 2026) at `services.pacificclimate.org/chyp`: as far as can be traced, hydromosaic's outlet series, which fwapg's crosswalk places on the FWA (the PNWNAmet run is routed PCIC). The pilot (#168, `scripts/channel_scale_pilot.R`, `research/pcic_channel_scale.md`) found the crosswalk reproduces PCIC's outlet series at every scored gauge with an outlet; at the scored gauges' outlets hydromosaic lists CMIP6 in every domain (9 GCMs, 8 on the coast, no TaiESM1); the CMIP6 runs' 1981–2010 flow passes its rule against PNWNAmet on the coast, Columbia and Peace but not the Fraser, so move 7 (#169) builds on CMIP6 routed outside the Fraser and CMIP5 gridded in it, scoring CMIP5 first.
 - **PCIC routed flow, historical** (hydromosaic, Raven over VIC-GL, PNWNAmet daily 1951–2012) on PCIC's own outlets, which cover the Fraser, Peace, Columbia, Kettle, Okanagan and most of the coast (only some segments on the outer islands), but not the Liard, the Yukon and Alsek headwaters or the Hay, and almost none of the Skagit. NewGraphEnvironment/fwapg#6 places them on the FWA as monthly flow per segment; since fwapg#25 they are in `pcic.discharge_monthly`, one run per `(model, scenario, period)` (1951–2012 and 1981–2010 for PNWNAmet), listed in `pcic.runs`, loaded by fwapg's `load/pcic_schema.sql`, `load/pcic.sql` and `load/pcic_run.sql` (psql and PostgreSQL 15 or later). wet reads the 1981–2010 run (#103; the 1951–2012 run until then). The frozen `whse_basemapping.fwa_stream_networks_discharge_monthly` is fwapg#31's to drop. No build commit is recorded; `scripts/pcic_routed_compare.R` (#58) scores the run.
 - Time axis is "days since 1945-1-1", standard calendar: index = days since 1945-01-01. Grid is 0.0625°, lon −139.96875 + 0.0625·i, lat 41.09375 + 0.0625·j.
 - Units are mm/day (packed shorts, fill −32767). Annual mm/yr = sum over the days of each year, then mean over years. That is cdo's `yearsum` then `timmean`, which is what fwapg does.
 - **Station flow after HYDAT.** HYDAT's approved record lags by one to two years. ECCC real-time (`tidyhydat::realtime_ws()`) reaches back about 18 months, and GeoMet `hydrometric-realtime` only 30 days, so the two need not meet. water-temp-bc (`s3://water-temp-bc/data`, public) archives ECCC provisional data monthly: daily discharge (Parameter 6), sensor discharge (47) and water temperature (5). `canonical/` is now the one read path (water-temp-bc#19 closed): `canonical/Parameter=5/` alone reaches 2002-04-30, 306 stations, hourly readings (measured 2026-10-03, #36). Its `Date` is a TIMESTAMP WITH TIME ZONE, so duckdb's `year()` and friends on it need icu. `LOAD icu` explicitly before the first such query: in duckdb-r 1.5.2 and 1.5.6 the query that autoloads it can fail to bind, return a wrong value or abort R. `epoch_ms()` needs no icu (`research/station_water_temperature.md`, duckdb note).
 - **NuSEDS** (DFO's escapement database): New Graph publishes the All Areas file, release 2026-06-01, as one table at `s3://fresh-bc/knowledge/nuseds/v1/nuseds_records.parquet` (manifest beside it, anonymous GetObject), read with duckdb over httpfs; read that rather than downloading DFO's zip (`scripts/chinook_sites_use.R` still reads the zip).
-- **Station networks beyond HYDAT** (#123): two harvest candidates: the province's non-integrated hydrometric network (hourly CSVs, OGL-BC 2.0; wet#142) and the third-party gauge networks the BC Water Tool serves (ratings to confirm; wet#144); the Columbia Basin Water Hub waits on a scripted reader, and the rest are test-only, no, or leads not yet read. Inventory, counts and each host's robots.txt: `research/station_sources.md`, from `scripts/station_sources_probe.R`.
+- **Station networks beyond HYDAT** (#123): two harvest candidates: the province's non-integrated hydrometric network (hourly CSVs, OGL-BC 2.0; harvested by #142, below) and the third-party gauge networks the BC Water Tool serves (harvested by #144, below; ratings not stated); the Columbia Basin Water Hub waits on a scripted reader, and the rest are test-only, no, or leads not yet read. Inventory, counts and each host's robots.txt: `research/station_sources.md`, from `scripts/station_sources_probe.R`.
+- **The province's non-integrated discharge files** (#142): read from one pinned snapshot (`wet_bcenv_snapshot`, 20261028, the survey's), whose files' sizes and md5s are tracked in `inst/extdata/station_sources/bcenv_<snapshot>.csv`. `wet:::wet_bcenv()` reads them from wet's cache, `tools::R_user_dir("wet", "cache")/station_sources/bcenv/<snapshot>/`, and never downloads: the province rewrites `Discharge.csv` in place, so a missing file is copied in by hand from the private backup `s3://fresh-bc/station_sources/bcenv/<snapshot>/` (each file with its `.md5`). `data-raw/station_sources_snapshot.R` pins a snapshot, seeds the cache, backs it up (`WET_BACKUP=1`) and writes the station registry (`bcenv_<snapshot>_hydat.csv`: each station with the HYDAT station at its site, through `scripts/station_sources_lib.R`'s copy of the survey's match), which `wet_station_daily()` and `wet_station_list()` read. `wet:::wet_bcenv_daily()` turns the hours into local-standard-time days once per machine (`days_<manifest md5>_v<wet_bcenv_reader>.parquet` beside the snapshot; bump `wet_bcenv_reader` whenever the build changes what is stored) and applies the 20-hour rule, `status` (`"unchecked"` for a day with any ungraded hour) and the plausibility bound on read. The bound, `wet_bcenv_bound`, is per WSC sub-drainage, measured on HYDAT 20260717 under a rule registered in `research/station_sources.md` (`scripts/station_sources_bound.R`, which holds the constant to its report); `scripts/station_sources_harvest.R` reproduces the survey under its own rules, lists what the shipped rules move, and holds the registry's first and last days to the reader (rewrite the registry after a rule changes) (`data/checks/station_sources_harvest_<snapshot>.txt`). Each carries a regulation status (below, "Regulation per non-HYDAT station").
+- **The BC Water Tool's third-party gauges** (#144, #195): read from one pinned snapshot (`wet_bcwatertool_snapshot`, 20261028, the survey's), the station list and all 391 entries tracked in `inst/extdata/station_sources/bcwatertool_<snapshot>.csv`, read by `wet:::wet_bcwatertool()` from `tools::R_user_dir("wet", "cache")/station_sources/bcwatertool/<snapshot>/` and never downloaded: a missing file is copied in by hand from the private backup `s3://fresh-bc/station_sources/bcwatertool/<snapshot>/` (each file with its `.md5`). `data-raw/station_sources_bcwatertool.R` (run with `WET_BCWATERTOOL_RAW` naming, absolutely, the directory holding the survey's raw copy) holds the copy to the survey report's md5s, seeds the cache, backs it up (`WET_BACKUP=1`) and writes the registry `bcwatertool_<snapshot>_hydat.csv`: 46 stations under the Tool's `nid`, and 7 listings at provincial sites whose `continues` names the provincial number, whose days before `continues_before` (the first day the provincial files hold any usable hour of that station, complete or not) `wet_station_daily()` returns under the provincial number (the chain #192 extends; Tofino's four, the same gauges as 08HC0001–0004, add none). The bound is `wet_bcenv_bound` by the sub-drainage of the nearest HYDAT station (registered in `research/station_sources.md`); QA 1 is `"provisional"`, 0 `"unchecked"`. The harvest report carries the Tool's tier: the survey reproduced, the shipped rules' effects, and the registry held to the reader. A number in both registries is refused. Records and held-out tests, like the provincial stations, and each carries a regulation status.
+- **Regulation per non-HYDAT station** (#196, #191): `scripts/station_regulation.R` gives every station `wet_station_list()` lists (211 provincial, 46 Tool) a status, natural, regulated or unknown, under the rule registered in `scripts/station_regulation_rule.R` (registered at 2d93787f, Amendments 1 and 2 at 0c6d31ff, Amendment 3 at 6c9cb1e5; the script refuses another version): snapped with `fwa_indexpoint()` on the stream its name gives (area within 10 % where the Tool header or the HYDAT site states one; an area-only leg otherwise); regulated by name, an active dam of the register's regulated classes upstream, or licensed use or storage (licences "Current", surface points of diversion, a point on the station's own line within 100 m below it counting as upstream, #53's row rules, copied into `scripts/station_regulation_lib.R`) at least 10 % of the published `pick` mean annual flow; unknown when not snapped, part of the basin outside BC, a power licence or a licence stating no volume upstream, or no published flow. Both WFS layers are taken once into `data/station_regulation/raw/<YYYYMMDD>/` (`WET_REG_SNAPSHOT` names one), and the script writes `inst/extdata/station_sources/regulation_<bcenv snapshot>.csv`, which `wet_station_list()` reads through the internal `wet_station_regulation()` (refused unless built from the shipped registries' md5s), and `data/checks/station_regulation_<bcenv snapshot>.txt`, byte-identical on a rerun from cache. The licence layer is "Access Only": only values wet computes ship, never a licence record (the owner's decision, 2026-11-24). `wet_station_select()` stays HYDAT-only; a donor pool of the natural non-HYDAT stations is #202. Findings: `research/station_sources.md`, "Regulation per non-HYDAT station".
 - **Published by wet:** per-segment and per-watershed discharge at `s3://fresh-bc/discharge/fwa/v1/` (#7), anonymous GetObject only (no listing; read the manifest), overwritten in place within `v1`. Opening the `discharge/*` prefix to anonymous reads is a bucket-policy change made outside this repo.
 - The water balance holds one fit per HYDAT release (#43): `data/wb/stations_<release>.rds` and `data/wb/<key>/fit_<release>/`, from `scripts/wb_fit_lib.R`, which names the shipped release (`wb_shipped_release`, 20260717 since #43).
   - Every script, data script and live test that reads HYDAT names its release: `WET_HYDAT_RELEASE` (default `wb_shipped_release`) through `wb_hydat()`, or `local_hydat_pinned()` in tests. All go through `wet:::wet_hydat(release)` (#46), which reads `tools::R_user_dir("wet", "cache")/hydat/<release>/Hydat.sqlite3`, one copy per machine shared by every checkout. It downloads a missing release only while ECCC still serves it, and refuses a file whose `VERSION` is another release. `WET_HYDAT` is retired and refused.
@@ -189,8 +195,9 @@ waiting when it is not. Pick the instrument by how many answers you need:
 | a value you must have before the next step | a **foreground** call, so the blocking is explicit |
 | a long job that notifies when it exits | `Bash(run_in_background)` with the command as plain foreground text: no `&`, no `nohup` |
 
-A repeated `sleep N; grep` suits none of them. **Tell: if you are about to spawn a second
-waiter for the same thing, the first was the wrong shape.**
+A repeated `sleep N; grep` suits none of them. **Every background loop has a deadline**
+(`timeout 6h …`, or a count), never a `pgrep -f` gate. **Tell: if you are about to spawn a
+second waiter for the same thing, the first was the wrong shape.**
 
 **An `until` waiter over `ssh` to a Mac exits 0 whatever the remote command did:** gate on
 what it prints (`code-check-shell.md`, "Over Tailscale SSH to a Mac, `ssh` exits 0").
@@ -200,14 +207,12 @@ own state in a foreground call before reporting it done, against a marker only t
 can produce: clear it at launch, or check it is newer than a stamp touched at launch
 (`code-check.md`, "A wrapper's exit is not the work"), never a string grepped out of a log.
 
-A `Monitor` filter must match the failure states too: silence looks like "still running", so a
-happy-path-only grep stays quiet through a crash.
+A `Monitor` filter must match failure states too: silence reads as "still running".
 
-**Never end a backgrounded call's command with a trailing `&`.** With nothing in the same
-command waiting on it, a `run_in_background` call's wrapper exits at once, so the notification
-reports **exit 0** whatever the job then does. Pick one mechanism from the table, never two.
+**Never end a backgrounded call's command with a trailing `&`.** Nothing in it waits on the
+job, so the call's wrapper exits at once and notifies **exit 0** whatever the job then does. Pick one mechanism from the table, never two.
 
-*20 lines of evidence for this rule are in `conventions/agent-operations.md`.*
+*22 lines of evidence for this rule are in `conventions/agent-operations.md`.*
 
 ### Don't edit files a long-running suite is still reading
 
@@ -275,14 +280,13 @@ precondition. If a result must precede the next step, run it synchronously
 
 *8 lines of evidence for this rule are in `conventions/agent-operations.md`.*
 
-### When your own queue is empty, offer backlog work for the wait
+### When your own queue is empty, wait; a new move starts elsewhere
 
-With nothing of the task left while a review or a long run is in flight, offer 2 or 3 queued
-pieces (`planning/backlog.md`, `umbrella.sh next`) sized to the wait, in one phone-answerable
-question, safest first: read-only, issue work in our repos, a park in its own worktree. None
-edits the checkout the run reads. Each class is asked until the answer ledger promotes it (§4).
+With nothing of the task left while a review or a long run is in flight, wait or finish without
+asking, and name the free moves (`planning/backlog.md`, `umbrella.sh next`) in the report. A
+waiting session starts none; a move starts in a fresh session.
 
-*3 lines of evidence for this rule are in `conventions/agent-operations.md`.*
+*7 lines of evidence for this rule are in `conventions/agent-operations.md`.*
 
 ### Don't trust status
 
@@ -537,9 +541,9 @@ ends in a question mark, with no approved plan, gets an answer and a one-line of
 work, not the first commit toward it. To explain something, be short and concrete: a worked
 example beats a taxonomy. **The mandate starts at plan approval.**
 
-**When an answer settles a plan or moves an issue's scope, end with one offer** to write it into
-#N's body as `## Plan` / `## Decisions` (a fold names both issues), and edit the body once
-agreed: the next session reads the body, not this conversation.
+**When the owner agrees a plan or a scope change about an open issue, write it into #N's body**
+as `## Plan` / `## Decisions` (a fold names both issues) and say so in the reply: the next
+session reads the body, not this conversation.
 
 *6 lines of evidence for this rule are in `conventions/agent-operations.md`.*
 
@@ -548,26 +552,28 @@ agreed: the next session reads the body, not this conversation.
 A decision that permanently shapes stored data — a key, an identifier, a schema
 choice, a deprecation shim versus a hard rename — is the user's, and it goes to the
 **plan gate**, batched, as two or three concrete options with the recommended one
-first and the consequence stated, including a word or field an upstream contract lacks. Found mid-run, it is still not the agent's to decide:
-ask it the same way — options, recommendation first, phone-answerable — commit, and
-continue on the phases that do not depend on it while the answer is outstanding
-(`planning.md`, "When Something Keeps Failing" — escalating is not stopping).
+first and the consequence stated, including a word or field an upstream contract lacks. Found mid-run, it is still the user's:
+ask it the same way, commit, and continue on the phases that do not depend on it
+(`planning.md`, "When Something Keeps Failing": escalating is not stopping).
 
 In plan mode, ask the "this changes what I build" forks together before `ExitPlanMode`.
-Mechanism is never a question (§2), nor is anything with a conventional default: pick it, say
-so, move on.
+**Ask only a real fork** (stored data, a post outside our repos, a machine change, a merge, scope
+and priority); do anything else and report it. A question opens with what is happening (what
+started, where, what it does first) and a link to catch up from, then the options.
 
-*4 lines of evidence for this rule are in `conventions/agent-operations.md`.*
+*8 lines of evidence for this rule are in `conventions/agent-operations.md`.*
 
 ### Record the owner's answers; promote a class only on the record
 
 A hook (`settings/hooks/answers_log.py`) records each `AskUserQuestion`; record a question
-asked in prose with its `--manual` form. `/backlog-sweep` in soul proposes a class with a run
-of approvals and no refusal as a standing authorization. The classes this section reserves
-(stored data, posting outside our repos, machine changes, merges) are never proposed, and work
-under a promoted class is still reported. The coordinator's gated merge is not a promotion.
+asked in prose with its `--manual` form. `/backlog-sweep` in soul proposes a class after 5
+recommended answers in a row; an issue writes an accepted one here. The real forks above,
+scope included, are never proposed; work under a promoted class is still reported. The coordinator's gated merge is not a promotion.
 
-*2 lines of evidence for this rule are in `conventions/agent-operations.md`.*
+**Promoted 2026-11-22: mechanism** (decide it, name it in the report; one reaching upstream
+is still asked) **and idle-work** (§2).
+
+*4 lines of evidence for this rule are in `conventions/agent-operations.md`.*
 
 ### Never post outside our own repos without approval
 
@@ -585,33 +591,36 @@ our name, indexed at once, and cannot be unpublished.
 
 ### Upstream, we are guests: fork first, offer an issue, disclose AI
 
-We build on other people's work: gratitude and humility in every step that touches it.
-Maintainers may read anything we write about their code, so describe what we saw rather than
-diagnose their design, offer rather than propose (no imperative, a polite one included), and leave them every road to lead.
+We build on other people's work, with gratitude and humility. Maintainers may read anything
+we write about their code: describe what we saw rather than diagnose their design, offer
+rather than propose (no imperative, a polite one included), and leave them every road to lead.
 
-- **Fix on our fork the same day,** one concern per branch from upstream's default branch,
-  no planning files and no `#N` in its commits, the draft in a fork issue labelled
-  `upstream-draft`. Pin our packages to the fork's integration branch until upstream holds
-  every fix on it, their way.
+- **The finding session captures; a fork session fixes.** The finder files the reprex, versions,
+  exact lines and whether it blocks as an `upstream-draft` stub on our fork (in soul if none; the `upstream` track queues them),
+  never opens the fork, and files nothing that would not help their other users. The fork
+  session fixes, does the homework and drafts: one concern per branch from upstream's default
+  branch, no planning files, no `#N` in commits, no whitespace-only hunks (Edit drops trailing
+  spaces). Only a blocking defect is fixed the same day, the finder pinning the fork's
+  integration branch until upstream holds every fix.
 - **Upstream gets a short issue that offers:** thanks, a reprex, the options as we see them,
-  and a pull request if it helps. Send one when asked, or first only where outside pull
-  requests are routinely merged. One open item per maintainer, timed around their load.
-- **A fix of a few lines goes in the issue as its reviewed diff** (about 20 lines), introduced as what we tested, fork branch and test linked, pull request on offer. Only the version that survived `/code-check` goes inline. A larger fix is described, linked and offered. Where AI-assisted contributions are unwelcome, send no diff either.
-- **About 200 words besides an inline diff, no SRED line.** A design change goes in as a question.
-- **Say plainly that Claude Code helped,** in a sentence from the `upstream-draft` on, and offer
-  an `Assisted-by` reword in the pull request unless the maintainer has already merged a Claude
-  co-authored commit (check their log). Where AI-assisted contributions are unwelcome, send no code.
+  and a pull request if it helps; about 200 words besides an inline diff, no SRED line, a design
+  change as a question. Send one when asked, or first only where outside pull requests are
+  routinely merged. One open item per repo, timed around the maintainers' load.
+- **Smallest first, written their way.** When they ask for more, send the smallest fix alone
+  and offer the rest one at a time. Match their merged commits; leave their changelog to them
+  where their log shows they write it.
+- **A fix of a few lines (about 20) goes in the issue as its reviewed diff,** as what we tested, branch and test linked, pull request on offer; only the version that survived `/code-check`. A larger fix is described, linked and offered.
+- **Say plainly that Claude Code helped,** from the `upstream-draft` on, and offer an
+  `Assisted-by` reword in the pull request unless they have merged a Claude co-authored commit
+  (check their log). Where AI help is unwelcome, send no code.
 - **Never ping by accident:** in our repos' issues and pull requests an upstream item is
-  backticked, never a URL, link or bare `#N` (a fork's reached upstream's once), unless the user
-  wants the ping; commit messages name none, even backticked. An edit cannot take a ping
-  back. In a fork checkout `gh` targets upstream, so pass `--repo` for our fork.
-- **Homework before, notes after:** who contributes, stated policy, AI use, current load,
-  response pace, kept in soul's `research/upstream-projects.md`, revised after every reply,
-  merge or silence.
-- Raise upstream only what would help their other users. If a maintainer would rather not
-  hear from us, keep the fork or move on.
+  backticked, never a URL, link or bare `#N`, unless the user wants the ping; commit messages
+  name none. In a fork checkout `gh` targets upstream: pass
+  `--repo` for our fork.
+- **Homework before, notes after:** who contributes, policy, AI use, load, pace, kept in
+  soul's `research/upstream-projects.md`, revised after every reply.
 
-*33 lines of evidence for this rule are in `conventions/agent-operations.md`.*
+*37 lines of evidence for this rule are in `conventions/agent-operations.md`.*
 
 ### Credit Claude; a session link only on a cloud PR in a private repo
 
@@ -692,19 +701,15 @@ When a message to the user names an issue or a PR, make the number a link:
 When a dependency or an external API misbehaves, or its contract lacks a concept you need,
 surface it and ask rather than coding around it: a workaround hides the defect from whoever
 could fix it, and most such dependencies are **first-party**, so a local patch leaves the bug
-for every other consumer. Same instinct as `newgraph.md`'s "install missing packages, don't
-workaround", applied to a *broken* dependency.
+for every other consumer.
 
 **How to apply:** first check an installed package is current (`check_pkg_stale.sh`, then our
 package's tag and `main`, a CRAN package's CRAN) and state the versions beside the diagnosis.
 Then reproduce it minimally, file an issue in the owning repo with the
-repro and the exact lines (a third party's: a fork issue first, above), report it, and carry on if it is not blocking. The rule is
-*do not hide it*, not *do not continue*.
+repro and the exact lines (a third party's: a fork stub, above), report it, and carry on if it is not blocking: *do not hide it*, not *do not continue*.
 
 **A gap is a change request:** file it with the contract's owner before coining a name, and
 bring the choice to the plan gate. Tell: you are explaining why your names are not the contract's.
-
-At design time the same holds for scope: `newgraph.md`, "A first-party package's current scope is not a design constraint".
 
 *17 lines of evidence for this rule are in `conventions/agent-operations.md`.*
 
@@ -1470,6 +1475,12 @@ Write a JSON object with an empty key as text, not through `toJSON()`.
 ### Probing a TMB objective can break `vcov()` on the fit
 Compute `vcov()` and `SE()` before probing a TMB objective, or save and restore `env$last.par.best` and `env$value.best` around the probe.
 
+### Numeric routines that err at their edge, and `round()`
+`besselI(x, nu, expon.scaled = TRUE)` returns 0 with no warning for large `x`.
+
+### knitr and pandoc rewrite a caption: `fig.cap` is evaluated late, and `alt` copies it
+Set `fig.alt` from a call, not from the caption's value.
+
 # Code Check — Shell
 Tool-level traps in bash, sed, git and `gh`, and in the host toolchain those commands depend on.
 
@@ -1554,7 +1565,7 @@ Wait on the PIDs you started (`wait "$pid"`), because a bare `wait` also blocks 
 Inside the branch, `$?` is the status of the `!` compound — which is **0 by construction**, because the negation succeeded.
 
 ### A `pgrep -f` waiter matches a waiter's command line, so it never exits
-Wait on a PID with `while kill -0 "$PID"; do sleep 30; done`, never on `pgrep -f "job"`, whose pattern matches a waiting loop's command line so it never exits.
+Wait on a PID with `while ps -p "$PID" >/dev/null 2>&1; do sleep 30; done`, never on `pgrep -f "job"`, whose pattern matches a waiting loop's command line so it never exits.
 
 ### `timeout` is GNU coreutils — a portable deadline
 An assertion around something that might hang can only pass or hang, never fail (`code-check.md`, "Restore the bug and prove the guard fires").
@@ -1693,6 +1704,12 @@ Give each setup step its own `|| exit 1` and branch with `if`.
 
 ### An Actions `run:` step with no `shell:` has no `pipefail`
 Set `defaults: run: shell: bash` on the job, since a Linux step with no `shell:` runs `bash -e {0}`.
+
+### `git mv -k` on an untracked file exits 0 and moves nothing
+Rename an untracked file with `mv` and a tracked one with `git mv` without `-k`, then check the new path exists.
+
+### `pipefail` fails `cmd | head -N | grep -q` on SIGPIPE
+Capture the output first (`out=$(cmd 2>&1)`) and test the variable, or run the probe without `pipefail`.
 
 # Code Check — Spatial
 terra, sf, bcdata, GDAL/OGR CLIs.
@@ -1987,6 +2004,12 @@ Before calling two DEMs the same surface, regress their difference on the refere
 ### A nodata value written to PNG comes back from magick as alpha
 Read a PNG that terra or GDAL wrote with `magick::image_convert(magick::image_read(f), matte = FALSE)`: their nodata becomes a tRNS chunk, which magick reads as alpha.
 
+### An ogr2ogr load's column order depends on whether it was the database's first
+Set a loaded table's column order yourself when anything hashes its rows: the first load into a database puts the geometry last, every later one second.
+
+### Headless Chrome's `--screenshot` captures a MapLibre map before it draws
+Capture a mapgl or MapLibre page after a real wait (`chromote`, `Sys.sleep(15)`), never with Chrome's `--screenshot --virtual-time-budget`.
+
 # Code Check Conventions
 Structured checklist for reviewing diffs before commit.
 
@@ -2154,10 +2177,10 @@ Before opening a PR, and again before merging:
 ```bash
 git fetch -q origin
 git log --oneline HEAD..origin/main          # what landed while you worked
-git diff origin/main -- DESCRIPTION NEWS.md  # a version you did not bump
+git diff origin/main -- DESCRIPTION NEWS.md  # a NEWS bullet you did not write
 ```
 
-**A version bump you did not make is the tell**, and usually the only one — the tree is
+**A release you did not make is the tell**, and usually the only one — the tree is
 clean, the branch is healthy, and nothing in git hints that someone solved your problem
 an hour ago.
 
@@ -2601,7 +2624,8 @@ source showed it fine.
 Same family as the cross-reference gotcha already noted for vignettes (`\@ref(fig:…)` compiling
 to a literal): bookdown output formats do not carry all of bookdown's machinery through pkgdown,
 and each missing piece fails quietly in its own way. Verify anything structural — footnotes,
-cross-references, numbered captions — against the built page the first time you use it.
+cross-references — against the built page the first time you use it. Numbered captions
+are not on the site at all: `r-packages.md`, Vignettes, says why and what `as_is` costs.
 
 ## Tables in an article: a footnote goes through kableExtra on an HTML kable
 
@@ -3215,32 +3239,27 @@ At least one vignette showing the full pipeline on real data:
 
 What a vignette says, and in what order, is `writing.md`.
 
-**Output format:** Use `bookdown::html_vignette2` (not
-`rmarkdown::html_vignette`) for figure numbering. Requires `bookdown` in
-Suggests and chunks must have `fig.cap` / `caption =` for numbered
-figures and tables.
+**Output format:** Use `bookdown::html_vignette2`, with `bookdown` in Suggests and
+`fig.cap` / `caption =` on chunks. It numbers captions in the
+installed vignette (R CMD check, `rmarkdown::render()`), **not on the pkgdown site**, which
+renders articles through its own `html_document` and prints them unnumbered.
+`pkgdown: as_is: true` restores site numbering but drops every htmlwidget's scripts (DT,
+leaflet, mapgl, plotly), so an article with a widget does not use it.
 
-**Gotcha — cross-references don't resolve in vignettes.** `Table \@ref(tab:foo)`
-and `Figure \@ref(fig:foo)` markers compile to a literal `\@ref(...)` in
-the rendered HTML rather than a numbered link. Bookdown's cross-ref
-machinery isn't fully wired through `html_vignette2` under pkgdown.
-Use natural language instead — "the table below", "the floodplain map",
-"the parameter table" — and let the captions speak for themselves. If
-you need real numbered cross-refs, use `bookdown::html_document2`
-(matches the cd-style report-appendix pattern) and accept that the
-output is no longer a true package vignette.
+**Gotcha: `Table \@ref(tab:foo)` and `Figure \@ref(fig:foo)` compile to a literal `\@ref(...)`
+on the site.** Write prose that holds either way ("the table below") and let the captions speak. For real
+cross-refs use `bookdown::html_document2` and accept that it is no longer a true package vignette.
 
 **Vignettes that need external resources (DB, API, STAC):** Do NOT use
-the `.Rmd.orig` pre-knit pattern — it breaks `bookdown` figure numbering
-because knitr evaluates chunks during pre-knit and emits `![](path)`
-markdown that bookdown can't number.
+the `.Rmd.orig` pre-knit pattern: knitr evaluates the chunks during
+pre-knit and emits `![](path)` markdown that bookdown can't number in the installed vignette.
 
 Instead, separate data generation from presentation:
 1. `data-raw/vignette_data.R` — runs the queries, saves results as `.rds`
    to `inst/testdata/` (or `inst/vignette-data/`)
 2. Vignette loads `.rds` files, all chunks run live during pkgdown build
 3. A comment in the vignette's setup chunk names the script: `# data from data-raw/script.R`
-4. bookdown controls all chunks — figure numbers, cross-refs work
+4. bookdown controls all chunks, so the installed vignette's captions number
 
 Then keep the vignette and its bundle true as both move:
 
@@ -3251,7 +3270,8 @@ Then keep the vignette and its bundle true as both move:
 3. **Check every number the prose quotes** with a `stopifnot()` in the chunk that computes
    it, so the build fails when the data no longer supports the sentence.
 4. **Prove a refactor did not move the numbers:** render before and after, strip the HTML
-   to text, and diff. Only the prose you meant to change differs.
+   to text, and diff, then compare `alt`, `title`, `aria-label`, `id` and `href` as well: a
+   text diff is blind to attributes. Only the prose you meant to change differs.
 5. **The bundle carries provenance**, the commit and date it was built at, which the
    vignette prints. A regeneration forced by a script change asserts every other element
    `identical()` to the old bundle; rebuild where it was built when values pass through BLAS.
@@ -3260,7 +3280,7 @@ Then keep the vignette and its bundle true as both move:
    installed copy's bundle, while `rmarkdown::render()` after `pkgload::load_all()` reads
    the source tree's: the same article can pass one way and fail the other.
 
-*13 lines of evidence for this rule are in `conventions/r-packages.md`.*
+*14 lines of evidence for this rule are in `conventions/r-packages.md`.*
 
 ### Test data
 
@@ -3339,9 +3359,10 @@ exclusions: list(
      Link to the pkgdown reference page for details — don't duplicate it.
    - Don't list every function; the pkgdown reference page is the single
      source of truth for what's in the package.
-2. Bump version in `DESCRIPTION` (e.g., `0.0.0.9000` → `0.1.0`) — as the **final** commit of the branch, after verification numbers/tests are final. Mid-branch bumps are premature and churn: additional code changes end up bundled inside a "release" that already claimed the version.
-3. Commit as "Release vX.Y.Z"
-4. Tag: `git tag vX.Y.Z && git push && git push --tags`
+2. **Leave the version to the merge:** add the bullet under the development heading, change no
+   version, and put `Bump: major|minor|patch` on its own line in the PR body; `/gh-pr-merge`
+   releases (the first: `first-release=0.1.0`).
+3. With no merge: commit "Release vX.Y.Z", then `git tag vX.Y.Z && git push && git push --tags`.
 
 ## Repository Setup
 
@@ -3355,7 +3376,7 @@ exclusions: list(
 - `usethis::use_pkgdown()`, then the site URL in `_pkgdown.yml`'s `url:` and in DESCRIPTION's `URL` beside the repo (`URL: https://github.com/OWNER/PKG, https://owner.github.io/PKG/`): `pkgdown::check_pkgdown()` aborts without either
 - `usethis::use_directory("dev")` — reproducible setup script
 - `usethis::use_directory("data-raw")` — data generation scripts
-- Hex sticker: copy soul's `templates/make_hexsticker.R` to `data-raw/`
+- Hex sticker: copy soul's `templates/make_hexsticker.R` to `data-raw/` (a repo named `stac_<type>_bc` gets the catalogue layout, `stac` / icon / `<type> bc`, which `Rscript data-raw/make_hexsticker.R <type>` also draws)
 - CI: copy soul's `templates/R-CMD-check.yaml` and `templates/pkgdown.yaml` (callers of `NewGraphEnvironment/flows`) to `.github/workflows/`
 - Set GitHub Pages to serve from `gh-pages` branch
 - Bound for public: `/claude-md-init --pre-public` first

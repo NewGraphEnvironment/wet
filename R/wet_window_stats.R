@@ -28,8 +28,9 @@
 #'
 #' @param x A data frame with a `Date` column `date`, a numeric value column
 #'   and the `by` id columns. Optional `symbol` (HYDAT `"B"` = ice) and
-#'   `status` (`"provisional"`) columns give `frac_ice` and
-#'   `frac_provisional`.
+#'   `status` columns give `frac_ice` and `frac_provisional`; every status
+#'   other than `"approved"` (`"provisional"`, `"unchecked"`) counts as
+#'   provisional.
 #' @param windows `data.frame(window, start, end)`, with `start` and `end` as
 #'   `"MM-DD"`, both inclusive. An `end` of `"02-29"` is the last day of
 #'   February; a `start` of `"02-29"` is refused. See [wet_windows_calendar()].
@@ -165,7 +166,7 @@ wet_window_series <- function(s, value, w, stats, thr, min_frac) {
   v <- rep(NA_real_, n)
   v[pos] <- s[[value]]
   ice <- if ("symbol" %in% names(s)) replace(rep(NA, n), pos, s$symbol %in% "B") else NULL
-  prov <- if ("status" %in% names(s)) replace(rep(NA, n), pos, s$status %in% "provisional") else NULL
+  prov <- if ("status" %in% names(s)) replace(rep(NA, n), pos, !(s$status %in% "approved")) else NULL
   y0 <- as.integer(format(first, "%Y")) - 1L
   y1 <- as.integer(format(last, "%Y"))
   rows <- list()

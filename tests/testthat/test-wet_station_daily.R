@@ -292,3 +292,250 @@ test_that("live: Buck Creek runs from HYDAT through provisional to real-time", {
   expect_false(any(duplicated(d$date)))
   expect_gt(max(d$date), Sys.Date() - 10)
 })
+
+# The provincial reader and registry stood in for: 08ZZ0001 is a provincial station.
+local_bcenv_stub <- function(env = parent.frame()) {
+  calls <- new.env()
+  calls$daily <- list()
+  local_mocked_bindings(
+    wet_bcenv_stations = function(snapshot) data.frame(station_number = c("08ZZ0001", "08ZZ0002")),
+    wet_bcenv_daily = function(stations, snapshot) {
+      calls$daily[[length(calls$daily) + 1]] <- stations
+      data.frame(station_number = "08ZZ0001", date = as.Date("2020-06-02") + 0:2, q_m3s = c(2, 3, 4),
+                 symbol = NA_character_, source = "bcenv", status = c("provisional", "unchecked", "provisional"))
+    },
+    .env = env)
+  calls
+}
+
+test_that("a call with HYDAT numbers alone opens neither registry nor either reader", {
+  h <- local_hydat()
+  local_mocked_bindings(wet_bcenv_stations = function(...) stop("registry opened"),
+                        wet_bcenv_daily = function(...) stop("provincial reader called"),
+                        wet_bcwatertool_stations = function(...) stop("Tool registry opened"),
+                        wet_bcwatertool_daily = function(...) stop("Tool reader called"))
+  w <- capture_warnings(d <- wet_station_daily("08AA001", h, sources = c("hydat", "bcenv", "bcwatertool")))
+  expect_length(w, 0)
+  expect_true(all(d$source == "hydat"))
+})
+
+test_that("a provincial number is read from the provincial source, and never asked of the federal ones", {
+  h <- local_hydat()
+  calls <- local_bcenv_stub()
+  asked <- character()
+  local_mocked_bindings(wet_provisional_daily = function(stations) {
+    asked <<- c(asked, stations)
+    wet_daily_empty()
+  })
+  d <- wet_station_daily(c("08AA001", "08ZZ0001"), h, to = NULL, sources = c("hydat", "provisional", "bcenv"))
+  expect_equal(asked, "08AA001")
+  expect_equal(calls$daily, list("08ZZ0001"))
+  p <- d[d$station_number == "08ZZ0001", ]
+  expect_equal(p$q_m3s, c(2, 3, 4))
+  expect_true(all(p$source == "bcenv"))
+  expect_equal(p$status, c("provisional", "unchecked", "provisional"))
+  expect_equal(unique(d$station_number), c("08AA001", "08ZZ0001"))
+})
+
+test_that("from and to trim provincial days too; a number in neither source is warned about", {
+  h <- local_hydat()
+  calls <- local_bcenv_stub()
+  expect_warning(d <- wet_station_daily(c("08ZZ0001", "XX0001"), h, from = "2020-06-03", sources = "bcenv"),
+                 "no flow found for: XX0001")
+  expect_equal(d$date, as.Date(c("2020-06-03", "2020-06-04")))
+  # only numbers in the registry reach the reader
+  expect_equal(calls$daily, list("08ZZ0001"))
+})
+
+test_that("without \"bcenv\" a provincial number gets no flow, and the reader is not called", {
+  h <- local_hydat()
+  local_mocked_bindings(wet_bcenv_stations = function(...) stop("registry opened"),
+                        wet_bcenv_daily = function(...) stop("provincial reader called"))
+  expect_warning(d <- wet_station_daily("08ZZ0001", h, sources = "hydat"), "no flow found for: 08ZZ0001")
+  expect_equal(nrow(d), 0)
+})
+
+test_that("a failing provincial source is skipped with a warning", {
+  h <- local_hydat()
+  local_mocked_bindings(wet_bcenv_stations = function(...) stop("no registry here"))
+  w <- capture_warnings(d <- wet_station_daily(c("08AA001", "08ZZ0001"), h, sources = c("hydat", "bcenv")))
+  expect_match(w, "source \"bcenv\" skipped: no registry here", all = FALSE)
+  expect_true(all(d$source == "hydat"))
+})
+
+test_that("live: Deep Creek's provincial record is read from the pinned snapshot", {
+  skip_if_not_installed("duckdb")
+  tryCatch(wet_bcenv(), wet_bcenv_unavailable = function(e) skip(conditionMessage(e)))
+  d <- wet_station_daily("08EE0001", sources = "bcenv", to = NULL)
+  expect_gt(nrow(d), 500)
+  expect_true(all(d$source == "bcenv") && all(d$status %in% c("provisional", "unchecked")))
+  expect_false(anyDuplicated(d$date) > 0)
+  s <- wet_station_list()
+  expect_equal(range(d$date), c(s$first[s$station_number == "08EE0001"], s$last[s$station_number == "08EE0001"]))
+})
+
+# The Water Tool's registry and reader stood in for, beside a provincial
+# registry: TST1 is a Tool station of its own; 4601 continues provincial
+# 08ZZ0001 (whose record begins 2021-10-01) and 4602 continues 08ZZ0002 (no
+# hour in the provincial files).
+local_bcwatertool_stub <- function(env = parent.frame(), prov_first = as.Date(c("2021-10-02", NA))) {
+  calls <- new.env()
+  calls$daily <- list()
+  local_mocked_bindings(
+    wet_bcenv_stations = function(snapshot) data.frame(station_number = c("08ZZ0001", "08ZZ0002"), first = prov_first),
+    wet_bcenv_daily = function(stations, snapshot) {
+      data.frame(station_number = "08ZZ0001", date = as.Date("2021-10-01") + 0:1, q_m3s = c(7, 8),
+                 symbol = NA_character_, source = "bcenv", status = "provisional")
+    },
+    wet_bcwatertool_stations = function(snapshot = "20261028") {
+      data.frame(station_number = c("4601", "4602", "TST1"), continues = c("08ZZ0001", "08ZZ0002", NA),
+                 continues_before = as.Date(c("2021-10-01", NA, NA)), bcenv_snapshot = "20261028",
+                 bcenv_days = wet_bcenv_days_key("20261028"))
+    },
+    wet_bcwatertool_daily = function(stations, ...) {
+      calls$daily[[length(calls$daily) + 1]] <- stations
+      d <- data.frame(station_number = rep(c("4601", "4602", "TST1"), each = 3),
+                      date = as.Date(c("2015-11-09", "2015-11-10", "2021-10-01", "2015-01-01", "2015-01-02",
+                                       "2015-01-03", "2020-06-01", "2020-06-02", "2020-06-03")),
+                      q_m3s = 1:9, symbol = NA_character_, source = "bcwatertool", status = "provisional")
+      d[d$station_number %in% stations, ]
+    },
+    .env = env)
+  calls
+}
+
+test_that("a Water Tool number is read from the Tool's source under its own number", {
+  h <- local_hydat()
+  calls <- local_bcwatertool_stub()
+  d <- wet_station_daily(c("08AA001", "TST1"), h, to = NULL, sources = c("hydat", "bcwatertool"))
+  expect_equal(calls$daily, list("TST1"))
+  t <- d[d$station_number == "TST1", ]
+  expect_equal(t$q_m3s, 7:9)
+  expect_true(all(t$source == "bcwatertool"))
+})
+
+test_that("a provincial station's record is continued by the Tool gauge at its site, before it begins only", {
+  h <- local_hydat()
+  calls <- local_bcwatertool_stub()
+  w <- capture_warnings(d <- wet_station_daily("08ZZ0001", h, to = NULL, sources = c("bcenv", "bcwatertool")))
+  expect_equal(calls$daily, list("4601"))
+  expect_equal(d$date, as.Date(c("2015-11-09", "2015-11-10", "2021-10-01", "2021-10-02")))
+  expect_equal(d$source, c("bcwatertool", "bcwatertool", "bcenv", "bcenv"))
+  expect_equal(d$q_m3s, c(1, 2, 7, 8))
+  expect_true(all(d$station_number == "08ZZ0001"))
+  # the years between the two publishers are a gap between sources
+  expect_match(w, "gap between sources.*08ZZ0001 2015-11-11 to 2021-09-30 \\(bcwatertool -> bcenv\\)", all = FALSE)
+  # the cut is where the provincial record begins, from the registry, whichever sources are asked;
+  # not the provincial first complete day (2021-10-02 here), which would read the province's own partial day
+  d2 <- wet_station_daily("08ZZ0001", h, to = NULL, sources = "bcwatertool")
+  expect_equal(d2$date, as.Date(c("2015-11-09", "2015-11-10")))
+})
+
+test_that("a provincial station the province's files hold no hour of takes all its continuing gauge's days", {
+  h <- local_hydat()
+  calls <- local_bcwatertool_stub()
+  d <- wet_station_daily("08ZZ0002", h, to = NULL, sources = "bcwatertool")
+  expect_equal(d$q_m3s, 4:6)
+  expect_true(all(d$station_number == "08ZZ0002"))
+})
+
+test_that("a continuing gauge's own number gets nothing, and without \"bcwatertool\" there is no chain", {
+  h <- local_hydat()
+  calls <- local_bcwatertool_stub()
+  expect_warning(d <- wet_station_daily("4601", h, to = NULL, sources = "bcwatertool"), "no flow found for: 4601")
+  expect_equal(nrow(d), 0)
+  local_mocked_bindings(wet_bcwatertool_stations = function(...) stop("Tool registry opened"))
+  d <- wet_station_daily("08ZZ0001", h, to = NULL, sources = "bcenv")
+  expect_true(all(d$source == "bcenv"))
+})
+
+test_that("a provincial number no Tool gauge continues never calls the Tool's reader", {
+  h <- local_hydat()
+  local_bcwatertool_stub()
+  local_mocked_bindings(
+    wet_bcwatertool_stations = function(...) {
+      data.frame(station_number = "TST1", continues = NA_character_, continues_before = as.Date(NA),
+                 bcenv_snapshot = "20261028",
+                 bcenv_days = wet_bcenv_days_key("20261028"))
+    },
+    wet_bcwatertool_daily = function(...) stop("Tool reader called"))
+  w <- capture_warnings(d <- wet_station_daily("08ZZ0001", h, to = NULL))
+  expect_false(any(grepl("skipped", w)))
+  expect_true(all(d$source == "bcenv"))
+})
+
+test_that("a number held by both registries is refused, not skipped", {
+  h <- local_hydat()
+  local_bcwatertool_stub()
+  local_mocked_bindings(
+    wet_bcwatertool_stations = function(...) {
+      data.frame(station_number = "08ZZ0001", continues = NA_character_, bcenv_snapshot = "20261028",
+                 bcenv_days = wet_bcenv_days_key("20261028"))
+    })
+  expect_error(wet_station_daily("TST1", h, sources = "bcwatertool"), "both hold 08ZZ0001",
+               class = "wet_registry_conflict")
+  expect_error(wet_station_list(), "both hold 08ZZ0001")
+})
+
+test_that("the Tool registry is read only beside the provincial snapshot it was built against", {
+  h <- local_hydat()
+  local_bcwatertool_stub()
+  w <- capture_warnings(d <- wet_station_daily(c("08AA001", "TST1"), h, sources = c("hydat", "bcwatertool"),
+                                               snapshot = "20991231"))
+  expect_match(w, "built against the provincial snapshot 20261028, not 20991231", all = FALSE)
+  expect_true(all(d$source == "hydat"))
+  expect_error(wet_station_list("bcwatertool", snapshot = "20991231"), "built against the provincial snapshot")
+})
+
+test_that("a Tool registry built on other provincial days is refused", {
+  h <- local_hydat()
+  local_bcwatertool_stub()
+  key <- wet_bcenv_days_key("20261028")
+  local_mocked_bindings(
+    wet_bcwatertool_stations = function(...) {
+      data.frame(station_number = "TST1", continues = NA_character_, continues_before = as.Date(NA),
+                 bcenv_snapshot = "20261028", bcenv_days = key)
+    },
+    wet_bcenv_days_key = function(snapshot) "0000000000_v9")
+  w <- capture_warnings(d <- wet_station_daily("TST1", h, sources = "bcwatertool"))
+  expect_match(w, "built on the provincial days .* not 0000000000_v9", all = FALSE)
+  expect_equal(nrow(d), 0)
+})
+
+test_that("a station-day two sources both give is refused, not counted twice", {
+  h <- local_hydat()
+  local_bcwatertool_stub()
+  local_mocked_bindings(
+    wet_bcwatertool_stations = function(...) {
+      data.frame(station_number = "4601", continues = "08ZZ0001", continues_before = as.Date("2021-10-02"),
+                 bcenv_snapshot = "20261028", bcenv_days = wet_bcenv_days_key("20261028"))
+    })
+  expect_error(wet_station_daily("08ZZ0001", h, to = NULL, sources = c("bcenv", "bcwatertool")),
+               "two sources give one station-day, such as 08ZZ0001 on 2021-10-01 \\(bcenv, bcwatertool\\)")
+})
+
+test_that("a failing Tool source is skipped with a warning", {
+  h <- local_hydat()
+  local_bcwatertool_stub()
+  local_mocked_bindings(wet_bcwatertool_daily = function(...) stop("no Tool cache here"))
+  w <- capture_warnings(d <- wet_station_daily(c("08AA001", "TST1"), h, sources = c("hydat", "bcwatertool")))
+  expect_match(w, "source \"bcwatertool\" skipped: no Tool cache here", all = FALSE)
+  expect_true(all(d$source == "hydat"))
+})
+
+test_that("live: Rosewall Creek's provincial record is continued by BC Conservation Foundation's years", {
+  skip_if_not_installed("duckdb")
+  tryCatch({
+    wet_bcenv()
+    reg <- wet_bcwatertool_stations()
+    wet_bcwatertool(reg$id[reg$station_number == "4602"])
+  }, wet_snapshot_unavailable = function(e) skip(conditionMessage(e)))
+  d <- suppressWarnings(wet_station_daily("08HB0008", sources = c("bcenv", "bcwatertool"), to = NULL))
+  s <- wet_station_list()
+  r <- s[s$station_number == "08HB0008", ]
+  first <- min(d$date[d$source == "bcenv"])
+  expect_true(all(d$date[d$source == "bcwatertool"] < first))
+  expect_equal(format(range(d$date[d$source == "bcwatertool"]), "%Y"), c("2012", "2015"))
+  expect_equal(min(d$date), r$first)
+  expect_match(r$credit, "; days before 2021-09-30: Data from BC Conservation Foundation", fixed = TRUE)
+})

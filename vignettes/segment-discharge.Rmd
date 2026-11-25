@@ -319,11 +319,12 @@ stopifnot(identical(unique(bs$linear_feature_id[bs$station_number == "08EE013"])
           identical(vs$daily$window, data.frame(window = "spring", start = "04-15", end = "06-15")))
 ```
 
-`wet_segment_monthly()` returns `linear_feature_id, month, q_m3s, source`,
-the shape of `wet_station_monthly()`'s gauge record, so a comparison is a join
-on `month`. A segment a source lacks comes back with `NA` months, not missing
-rows. `wet_segment_daily()` reads a segment's days, and `wet_flow_window()` the
-mean flow over a timing window from days or months:
+`wet_segment_monthly()` returns `linear_feature_id, month, q_m3s, source, pick`,
+the shape of `wet_station_monthly()`'s gauge record with `pick` added, so a
+comparison is a join on `month`. A segment a source lacks comes back with `NA`
+months and `NA` `pick`, not missing rows. `wet_segment_daily()` reads a segment's
+days, and `wet_flow_window()` the mean flow over a timing window from days or
+months:
 
 ```{r read-daily, echo = TRUE, eval = FALSE}
 q <- wet_segment_daily(NULL, 17094080, groups = "BULK")

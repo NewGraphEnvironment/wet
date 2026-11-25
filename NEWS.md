@@ -1,3 +1,24 @@
+# wet 0.4.44
+
+* `wet_station_list()`'s `regulation` is now each station's status from what sits upstream of it: natural, regulated or unknown (#196, #191). Of the 257 provincial and Water Tool stations, 75 are natural, 110 regulated and 72 unknown, from BC's dam register and water rights licences placed upstream on the Freshwater Atlas under a rule registered before it was applied (`scripts/station_regulation.R`, report `data/checks/station_regulation_20261028.txt`). A station is regulated where its name says so, an active dam in the register's regulated classes sits upstream, or licensed use or storage is at least 10 % of the segment's published mean annual flow; unknown where it cannot be placed, part of its basin is outside BC, or a power licence or one that states no volume draws upstream. The licence layer's terms allow only values wet computes to ship. `wet_station_select()` stays HYDAT-only; using the natural stations as donors is #202.
+
+# wet 0.4.43
+
+* `wet_station_daily()` reads the BC Water Tool's third-party gauges (`sources = "bcwatertool"`, #144, #195): 46 stations from regional districts, industry, BC Hydro, the Regulator and research projects, from a pinned snapshot of the Tool's daily files, listed by `wet_station_list()` beside the provincial network. Where a Tool gauge sits at a provincial station's site, its days before the provincial record begins continue that record under the provincial number (BC Conservation Foundation's 2012–2015 years at three Vancouver Island stations). These stations are records and held-out tests, not donors, until their regulation is known.
+
+# wet 0.4.42
+
+* No change to the package's functions. The water balance's small-basin error is diagnosed under a rule registered before any check ran (`scripts/wb_small_basin.R`, #176, #188): its +14 % median at gauges under 100 km² comes in with the zone adjustment, where raw P − AET is +1.9 %. WALLY's zone regressions are compared desk-side at a pinned commit (`scripts/wally_compare.R`, `research/wally.md`, #178), and `research/monthly_error.md` is arranged by subject (#185). The candidate fixes are filed as #199.
+
+# wet 0.4.41
+
+* `wet_station_daily()` reads the province's non-integrated hydrometric stations (#179): given a provincial number (`"08EE0001"`), it returns that station's daily flow from a pinned snapshot of the province's hourly files (`sources = "bcenv"`). Days above a plausibility bound measured on HYDAT, per WSC sub-drainage, are dropped; a day with any ungraded hour is `"unchecked"`, and `frac_provisional` now counts every status but `"approved"`. Under the survey's own rules the reader reproduces it (#123, #142). These stations are records and held-out tests, not donors, until their regulation is known (#191).
+* duckdb 1.2.0 or later is required.
+
+# wet 0.4.40
+
+* `wet_segment_monthly()` and `wet_segment_daily()` return `pick`, a logical column last: `TRUE` where the source is the segment's default, `NA` on a missing segment's rows and, from fwapg's table, on every row (#177). The two guards that hold a publish to the code its tables were built from, in `scripts/discharge_publish.R` and `scripts/segment_daily_output.R`, now exclude one shared list of files no table reads, `scripts/discharge_publish_own.R`, which gains the readers and the chinook-site and departure code (#171).
+
 # wet 0.4.39
 
 * Departures at the chinook sites can be borrowed from the gauges whose years PCIC's model says move most like the stream's (#147, #167). Each site report gains a section 6 that scores `covariance_pick` against the five nearest gauges at the box's PCIC-covered gauges, under a rule registered before any run; it ships at Maxan, Naver and Gosnell creeks, and Swift Creek keeps the nearest. The comparison article carries each stream's shipped route, says in plain words how donors are chosen, and states Maxan's 10-year 1951–1980 base; `wet_departure_carry()`'s help page gains the step-by-step. PCIC's per-year files now come from a per-machine cache filled from the public bucket, each file kept only at its `pcic.series` size, with `WET_PCIC_YEARS` still naming any other directory (#135).

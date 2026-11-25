@@ -385,7 +385,7 @@ print(table(month = gauges$month, routed = !is.na(gauges$routed_mm))[1:2, ])
 lfid_recipe <- seg_bulk$linear_feature_id[seg_bulk$station_number == "08EE013"]
 recipe <- wet_segment_monthly(NULL, lfid_recipe, groups = "BULK", catalog = parts)
 vd_verify(parts)
-mine <- segments[segments$linear_feature_id == lfid_recipe, c("linear_feature_id", "month", "q_m3s", "source")]
+mine <- segments[segments$linear_feature_id == lfid_recipe, c("linear_feature_id", "month", "q_m3s", "source", "pick")]
 mine <- mine[order(match(mine$source, recipe$source), mine$month), ]
 rownames(mine) <- NULL
 if (!identical(recipe, mine)) stop("the recipe's read differs from the bundle")
