@@ -1,6 +1,6 @@
 # Gap-filled water temperature at stations, and GSDD
 
-**Verified:** 2026-10-07 · **Issues:** #40 (from #36; air from cd#116's `cd_extract_daily()`; the method's model is NewGraphEnvironment/knowledge `research/stream_temperature.md`) · **Produced by:** `scripts/temp_fill_validate.R` → `data/checks/temp_fill_validate.txt`, `scripts/temp_fill_parity.R` → `data/checks/temp_fill_skeena_parity.txt`; water from `wet_temp_daily()` 2002–2025 (water-temp-bc `canonical/Parameter=5/` as read 2026-10-07), air from cd 0.6.1's daily cube; gsdd 0.3.0.9007; design spikes and the pre-registered rule in `planning/archive/2026-10-issue-40-*/findings.md`
+**Verified:** 2026-10-07 (the fill and the Skeena parity), 2026-11-25 (stations with no record) · **Issues:** #40, #213 (from #36; air from cd#116's `cd_extract_daily()`; the method's model is NewGraphEnvironment/knowledge `research/stream_temperature.md`) · **Produced by:** `scripts/temp_fill_validate.R` → `data/checks/temp_fill_validate.txt`, `scripts/temp_fill_parity.R` → `data/checks/temp_fill_skeena_parity.txt`; water from `wet_temp_daily()` 2002–2025 (water-temp-bc `canonical/Parameter=5/` as read 2026-10-07), air from cd 0.6.1's daily cube; gsdd 0.3.0.9007; design spikes and the pre-registered rule in `planning/archive/2026-10-issue-40-*/findings.md`; the whole-station holdout from `scripts/temp_baseline_traits.R` → `data/checks/temp_baseline_frame.txt`, `scripts/temp_baseline_recover.R` → `data/checks/temp_baseline_recover.txt` and `scripts/temp_baseline.R` → `data/checks/temp_baseline.txt`, its rule in that script's header (registered at 914259d6) and its runs in `planning/archive/2026-11-issue-213-*/`
 
 ## The method
 
@@ -82,6 +82,64 @@ Of the days in the Mar–Nov windows, 36 % are filled.
   - **2019: +80; 2015: −77.** Both are inside their intervals. 2015 is 86 % filled at these stations, so it compares our fill with their model: **unresolved**.
   - C → D also carries their air (ERA5-Land hourly to weekly) and their observation snapshot (`realtime_raw_20250521`), which this does not separate.
 
+## A station with no record: a whole station held out
+
+**Verified:** 2026-11-25 · **Issue:** #213 · HYDAT 2026-07-17, province run `768876badf`, frame `edfbc29809`
+
+**The answer.** Hide a station's whole record, predict its three air2stream parameters from its catchment, and run the model on its own air temperature. The best of three predictions misses a growing season's degree days by about 295 °C-days. With the station's own parameters the miss is 97, and with every station given the population's mean parameters it is 413. Each figure is the mean, over 209 held-out stations, of the station's mean absolute GSDD error over its complete seasons. Catchment traits recover about a third of what a record gives, and the gap that is left, about 200 °C-days, is twice the width of the band the cutthroat thresholds turn on (800 to 900 degree days). A per-reach estimate from traits alone cannot place a reach on one side of that band.
+
+**What was held out.** The 257 stations and 999 station-years of the fill's validation, less 48 stations:
+- 18 with fewer than 365 observed days, which `wet_temp_fill()` does not fit;
+- 19 that do not snap to the Freshwater Atlas within 10 % of their gross drainage area, or have none (lake and reservoir level gauges, diversions, small creeks);
+- 9 with less than 95 % of the basin inside BC, where the trait grids end;
+- 08LG048, whose sensor reads 4.0 °C on all 586 days;
+- 07FA008, a 2024 station not in the pinned HYDAT release.
+
+That leaves 209 stations and 889 station-years: 136 natural, 67 regulated and 6 unflagged in HYDAT; 135 headwater and 74 nested; 32 lake outlets; 96 with a glacier upstream.
+
+**What is predicted.** Not `a1`, `a2`, `a3` themselves but the equilibrium intercept `a1 / a3`, the equilibrium slope `a2 / a3` and the response rate `a3` on the logit scale, turned back before the run. Three candidates:
+- the population mean, which is what a model with no covariates gives a new site;
+- a least-squares regression on eight traits: upstream means of elevation, easting, northing, the date half the snow has melted and peak snow water equivalent; log upstream area; and glacier cover and lake and reservoir cover as shares of upstream area;
+- the inverse-distance mean of the 5 nearest stations in trait space (`wet_donor_mean()`), called the nearest-stations mean below.
+
+**Two pools.** In blocked cross-validation the stations of one WSC sub-sub-drainage are held out together. The leak-free pool also removes every station upstream or downstream of the held-out one, 461 pairs that blocked cross-validation leaves in training, at 97 of the stations.
+
+**The rule, fixed before any score** (header of `scripts/temp_baseline.R`; thresholds the owner's). The population mean is the baseline unless a trait candidate beats it by at least 10 °C-days in both pools. The baseline is close to the own-parameter benchmark when within 50 °C-days of it in both pools, half the width of the cutthroat band.
+
+| | GSDD error, blocked | GSDD error, leak-free | daily RMSE, blocked | daily RMSE, leak-free |
+|---|---|---|---|---|
+| own parameters (the benchmark) | 97.5 | | 1.25 | |
+| population mean | 412.8 | 414.1 | 2.38 | 2.39 |
+| regression on traits | **293.9** | **298.0** | 1.94 | 1.96 |
+| nearest-stations mean | 308.2 | 319.7 | 1.94 | 2.07 |
+
+GSDD error is the mean over stations of each station's mean absolute error, in °C-days; daily RMSE is the mean over station-years, in °C, on the observed days of 1 March to 30 November.
+
+**The rule's outcome, as it wrote it.** Baseline: regression. It beats the population mean by 118.9 °C-days in blocked cross-validation and 116.2 leak-free, and the nearest-stations mean beats it by 104.6 and 94.4, so both displace it; the regression has the lower leak-free score. The gap from the regression to the benchmark is 196.4 °C-days blocked and 200.5 leak-free, about twice the benchmark's own error: **not close**.
+
+**What the scores show.**
+- **The traits carry about a third of the signal.** Held out, the regression explains 30 % of the variance in the equilibrium intercept, 33 % in the slope and 19 % in the response rate (leak-free). The population mean also runs cold, by 118 to 122 °C-days on average; the regression's mean error is within 8.
+- **Neighbours on the same stream help the nearest-stations mean more than the regression.** Removing them costs the nearest-stations mean 11.5 °C-days and the regression 4.1. That is what neighbours are worth to these two candidates. What a model built to use the network adds is #223's question.
+- **Lake outlets are where traits fail.** At the 32 lake outlets the regression misses by 408 °C-days leak-free, against 278 elsewhere; the benchmark is the same at both (102 and 97). Lake cover as a share of the basin does not capture a lake at the gauge.
+- **Regulated stations are worse** (376 against 260 at natural ones), with the same benchmark at both (96 and 99).
+- **Glacier-fed stations are not worse.** With a glacier upstream the regression misses by 267, and by 324 without. The benchmark is worse there (111 against 86).
+- **By sub-drainage** the regression's leak-free error runs from 159 (08O, 3 stations) to 398 (08J, 9). In 07F (7 stations) and 08G (16) it loses to the population mean: 344 against 145, and 326 against 291.
+
+**Beside the hidden-season score above.** On the 822 station-years both score, the station's own parameters miss GSDD by 119 °C-days when fitted to the whole record and by 130 when that season is hidden (means over station-years). So the benchmark here is in-sample by about 11 °C-days.
+
+**Recovery, run first** (`data/checks/temp_baseline_recover.txt`). On the real traits, folds and network, parameters were simulated from known trait relationships plus a part shared between flow-connected stations plus noise, 1,600 times.
+- The regression is unbiased and its error reaches the floor the simulation set (1.286 against 1.246 for the intercept, leak-free). In the leak-free pool the nearest-stations mean is biased by 2 to 5 % of each parameter's spread (0.5 to 4 % in blocked cross-validation), and the population mean by under 1 % in both. Each candidate's 90 % interval holds the simulated value 89.6 to 90.2 % of the time.
+- Replacing only the held-out station's network part changes no candidate's leak-free error (largest |z| 1.0, in Monte Carlo standard errors). The same test on three pools known to leak shows the nearest-stations mean using its neighbours: blocked cross-validation, where the related stations of other folds stay in training (z −7.8 to −8.5), a pool that removes only upstream neighbours (−4.1 to −4.7) and one that removes only downstream ones (−5.0 to −5.8). So the check can fail, on a half-broken pool too, and in the leak-free pool it does not. It rests on the nearest-stations mean: the regression shows the blocked leak only faintly (−1.5 to −3.0) and the population mean not at all.
+- End to end on five simulated sets, through the fit and the GSDD scoring, the refit returns the simulated parameters to about a tenth of their spread at the median station.
+- The first end-to-end run was wrong, and instructive. It drew each station's departure from its fitted `rho` and `sigma`, which at the 19 stations with `rho` at or above 0.99 implies a departure of up to 17.8 °C where the observed one is at most 3.1. Refitting such a series sends `a3` toward 0 and `a1 / a3` into the hundreds, and one such station ruins a mean or a regression. The simulation now gives the departure its observed spread. The real fits hold no such station (intercepts from −2.2 to 7.5 °C), but the ratio is fragile wherever `a3` is poorly identified, and any wider pool has to be checked for it.
+
+**On the real fits each candidate's interval holds the station's own parameters** 87 to 94 % of the time at a nominal 90 %. The intervals stop at the parameters: none is carried to daily temperature or GSDD.
+
+**Limits.**
+- The stations are gauges, mostly rivers, and the 48 dropped are not a random draw: lake-level gauges, small creeks and transboundary rivers are under-represented.
+- The simulation tests the path, not the size: it draws the three parameters independently, though at the real fits the intercept and slope offset each other (correlation −0.49).
+- Kriging on the stream network, the candidate that would use neighbours on purpose, is scored on this frame under this rule in #223. The scores it is set beside are in `data/temp_baseline/scores_edfbc29809.rds`.
+
 ## Using it
 
 - **Seasonal loggers** need `from` and `to` over the growing season, such as `from = "YYYY-03-01"`, `to = "YYYY-11-30"`. Shoulder fills are anchored on one side only. That is the `shoulders` holdout: 0.84 °C, with GSDD within 64 °C-days on average.
@@ -94,3 +152,5 @@ Of the days in the Mar–Nov windows, 36 % are filled.
 - No seasonal hysteresis term. The monthly bias above is small enough not to need one at the gauges.
 - Validation is at ECCC gauges only; no logger series was held out.
 - The interval has no parameter uncertainty.
+- No screen for a reading that is not water beside a gap. The fill restarts from every observed day, so the last reading before a gap sets where it begins: at 08EE012 on 24 August 2020 (15.5 °C after 9.6 °C, air at 9.8 °C, no neighbour moving more than 0.5 °C) it carried 67 °C-days into the year's 1,460 (measured 2026-11-25, #220; the screen is #222).
+- At a station with no record: no network model (#223), no interval on GSDD, and no small-stream loggers in the holdout (#215).

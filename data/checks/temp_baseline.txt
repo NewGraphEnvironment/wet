@@ -1,0 +1,90 @@
+Whole-station temperature baseline (#213): air2stream parameters predicted from catchment traits
+frame: edfbc29809
+code: 8f553ae291efdcd13a0044ae1e52aecf
+gsdd 0.3.0.9007
+stations 209; truth station-years 889; read by the statistic 889 at 209 stations; left out (no GSDD in some series) 0
+
+## Scores by run (GSDD in degC-days, daily RMSE and bias in degC)
+gsdd_mae is the rule's statistic: the mean over stations of each station's mean absolute GSDD error;
+gap is to the benchmark, the station's own parameters; b. is blocked CV, lf. the leak-free pool below
+                 run gsdd_mae gsdd_mae_median_station gsdd_mae_station_year gsdd_bias rmse     bias gap gap_pct
+           benchmark     97.5                    91.1                   114     -9.09 1.25 -0.04463   0       0
+        blocked mean    412.8                   351.4                   390   -117.67 2.38 -0.39989 315     324
+  blocked regression    293.9                   233.1                   277     -7.09 1.94 -0.03237 196     201
+       blocked donor    308.2                   249.5                   300    -26.73 1.94 -0.11664 211     216
+       leakfree mean    414.1                   352.2                   393   -122.48 2.39 -0.41542 317     325
+ leakfree regression    298.0                   233.4                   284      1.22 1.96 -0.00672 201     206
+      leakfree donor    319.7                   271.7                   308    -23.80 2.07 -0.10813 222     228
+
+## The rule's outcome
+Baseline: regression
+  regression beats the population mean by 118.9 (blocked) and 116.2 (leak-free) degC-days: displaces it
+  donor beats the population mean by 104.6 (blocked) and 94.4 (leak-free) degC-days: displaces it
+Gap from the baseline to the own-parameter benchmark (97.5 degC-days): 196.4 blocked (201 %), 200.5 leak-free (206 %)
+Close (within 50 degC-days in both pools): not close
+
+## Context, deciding nothing
+station-years the hidden-season holdout of scripts/temp_fill_validate.R also scored: 822; GSDD mean absolute error there: own parameters from the whole record 118.8, from the record without that season 130.3 degC-days
+
+## Held-out theta against the stations' own: error, share of variance explained, 90 % interval coverage
+     pool     method theta  rmse      r2 cover
+  blocked       mean   eq0 1.770 -0.0131 0.895
+  blocked       mean   eq1 0.196 -0.0184 0.895
+  blocked       mean  rate 0.756 -0.0141 0.885
+  blocked regression   eq0 1.438  0.3317 0.885
+  blocked regression   eq1 0.157  0.3456 0.885
+  blocked regression  rate 0.671  0.1996 0.871
+  blocked      donor   eq0 1.379  0.3846 0.943
+  blocked      donor   eq1 0.147  0.4303 0.900
+  blocked      donor  rate 0.657  0.2344 0.914
+ leakfree       mean   eq0 1.767 -0.0103 0.895
+ leakfree       mean   eq1 0.197 -0.0266 0.895
+ leakfree       mean  rate 0.757 -0.0162 0.885
+ leakfree regression   eq0 1.469  0.3018 0.880
+ leakfree regression   eq1 0.159  0.3319 0.890
+ leakfree regression  rate 0.677  0.1853 0.871
+ leakfree      donor   eq0 1.488  0.2842 0.928
+ leakfree      donor   eq1 0.161  0.3135 0.885
+ leakfree      donor  rate 0.725  0.0670 0.871
+
+## GSDD mean absolute error by station, by WSC sub-drainage (degC-days)
+ class stations benchmark b.mean b.regression b.donor lf.mean lf.regression lf.donor
+   07E       10     92.42  245.5        178.5  255.58   242.8         180.4   256.25
+   07F        7     95.01  143.6        340.3  188.10   145.0         343.6   203.56
+   08C        4    116.17  175.3        157.1  206.36   175.3         161.0   219.37
+   08D        3    137.32  320.4        258.8  375.55   321.4         262.9   375.62
+   08E       17    112.12  339.0        197.5  265.27   339.3         197.2   270.29
+   08F        9    106.05  481.4        318.3  452.19   481.4         318.3   452.19
+   08G       16     96.70  290.8        326.2  332.92   290.8         326.2   332.92
+   08H       23     81.32  547.0        321.1  398.80   547.3         319.6   398.76
+   08J        9     94.82  512.4        367.5  207.22   527.6         398.2   227.59
+   08K        8    128.79  305.3        224.1  217.83   301.6         232.2   231.55
+   08L       30    101.92  454.3        370.3  338.38   451.9         373.2   338.20
+   08M       23    108.30  353.0        283.5  275.49   363.8         301.0   353.28
+   08N       45     87.15  518.8        297.2  319.22   518.8         297.2   320.88
+   08O        3     62.01  394.9        159.4  230.47   394.9         159.4   230.47
+   10A        1     64.86  182.3        166.1   64.75   182.3         166.1    64.75
+   10C        1     21.36  309.8        268.6  302.25   309.8         268.6   302.25
+
+## GSDD mean absolute error by station, by lake outlet (a lake of 100 ha or more within 3 km upstream, draining most of the basin) (degC-days)
+             class stations benchmark b.mean b.regression b.donor lf.mean lf.regression lf.donor
+       lake outlet       32    101.81  622.5        405.8   471.9   625.6         407.5    479.3
+ not a lake outlet      177     96.68  374.9        273.6   278.7   375.9         278.2    290.9
+
+## GSDD mean absolute error by station, by lake and reservoir cover of the upstream area (degC-days)
+     class stations benchmark b.mean b.regression b.donor lf.mean lf.regression lf.donor
+  1 to 5 %       82    103.35  358.7        315.6   319.1   362.7         322.8    347.6
+  over 5 %       31     97.86  617.1        322.6   348.3   622.4         331.6    350.2
+ under 1 %       96     92.32  393.1        266.0   286.0   390.8         265.9    286.1
+
+## GSDD mean absolute error by station, by glacier cover of the upstream area (degC-days)
+ class stations benchmark b.mean b.regression b.donor lf.mean lf.regression lf.donor
+  none      113     86.12    467        324.4   345.9   465.7         324.2    347.0
+  some       96    110.83    349        257.9   263.9   353.4         267.2    287.7
+
+## GSDD mean absolute error by station, by HYDAT regulation flag (degC-days)
+     class stations benchmark b.mean b.regression b.donor lf.mean lf.regression lf.donor
+   natural      136     99.05  372.3        258.3   267.4   371.1         260.3    271.4
+ regulated       67     96.34  490.9        366.7   378.9   497.3         375.5    406.6
+ unflagged        6     74.14  459.6        286.0   445.2   461.7         285.9    445.5
+

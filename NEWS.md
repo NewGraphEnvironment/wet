@@ -3,6 +3,22 @@
 * `wet_station_daily()` reads Hakai Institute's published discharge package (`sources = "hakai"`, #192): at three Calvert and Hecate island watersheds (H08KC0626, H08KC0703, H08KC0844), its 2014–2019 days continue the provincial records that begin in October 2021, under the provincial number, as the Water Tool's gauges continue theirs. A day is a Pacific Standard Time day of at least 20 of Hakai's hourly means, `"approved"` where Hakai accepted every hour. The file is fetched once from the package's pinned commit (CC-BY 4.0). H08KC0703 now has 7 complete Chinook-window years instead of 2. `wet_station_list()` takes `"hakai"` too.
 * The province's Aquarius portal shows the pinned provincial files are current from October 2021 to May 2026; their January–September 2021 has since been revised (`scripts/station_sources_portal.R`, #190; the newer pin is #232).
 
+# wet 0.5.2
+
+* No change to the package's functions. Water temperature at a station with no record is scored under a rule registered before any score (`scripts/temp_baseline.R`, #213): with a whole station held out, air2stream parameters predicted from catchment traits miss growing-season degree days by about 295 °C-days at 209 stations, against 97 with a station's own parameters and 413 for the population mean, which is not close under the rule (`research/station_temperature_fill.md`). Network kriging on the same holdout is #223.
+
+# wet 0.5.1
+
+* A new article, Stream Temperature per Segment: How We Get There, shows in four figures what growing-season degree days are, where water temperature is measured in one basin, and the steps from stations to every stream reach (#220). No change to the package's functions.
+
+# wet 0.5.0
+
+* `wet_runoff_monthly()` and `wet_pcic_monthly()` give a PCIC gridded run's mean monthly totals; `wet_pcic_fetch()` reads its HTTP status, waits when PCIC asks it to, and refuses a download whose days are not the ones asked for (#169, #5). `inst/cartography/wet_coverage.csv` records which product covers each watershed group.
+
+# wet 0.4.45
+
+* No change to the package's functions; `wet_station_list()` and `wet_station_select()` say what the test below found. The natural stations outside HYDAT (#211, #202) were tested as departure donors under a rule registered before any score (`scripts/departure_donors_rule.R`, report `data/checks/departure_donors_20260717_20261028.txt`). None holds the 10 years of 1981–2010 record a baseline needs, so the 33 with at least 3 complete window-years through 2024 were each given one estimated from HYDAT gauges; held out at HYDAT's gauges, they made the carried migration-window departure worse (median paired difference in RMSE +0.032 leave-one-gauge-out, +0.015 leak-free, against a bar of −0.01). Donor selection stays HYDAT-only, and no site report moves.
+
 # wet 0.4.44
 
 * `wet_station_list()`'s `regulation` is now each station's status from what sits upstream of it: natural, regulated or unknown (#196, #191). Of the 257 provincial and Water Tool stations, 75 are natural, 110 regulated and 72 unknown, from BC's dam register and water rights licences placed upstream on the Freshwater Atlas under a rule registered before it was applied (`scripts/station_regulation.R`, report `data/checks/station_regulation_20261028.txt`). A station is regulated where its name says so, an active dam in the register's regulated classes sits upstream, or licensed use or storage is at least 10 % of the segment's published mean annual flow; unknown where it cannot be placed, part of its basin is outside BC, or a power licence or one that states no volume draws upstream. The licence layer's terms allow only values wet computes to ship. `wet_station_select()` stays HYDAT-only; using the natural stations as donors is #202.

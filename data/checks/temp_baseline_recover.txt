@@ -1,0 +1,104 @@
+Recovery run of the whole-station temperature baseline (#213)
+frame: edfbc29809
+code: 8f553ae291efdcd13a0044ae1e52aecf
+stations 209; seed 213; 1600 parameter sets; 5 end-to-end sets
+theta's variance: traits 50 %, network 25 %, noise 25 %
+
+## The known values: mean and spread of theta at the stations' own fits
+ theta     b0    sd sd_network sd_noise floor
+   eq0  3.337 1.763     0.8813   0.8813 1.246
+   eq1  0.701 0.195     0.0974   0.0974 0.138
+  rate -2.081 0.752     0.3761   0.3761 0.532
+
+## Part 1: held-out theta by pool, candidate and component
+bias and rmse in theta's units; floor is the network part and the noise together; null is theta's spread;
+cover is of the 90 % interval; leak_z is the leak in Monte Carlo standard errors (below 0: neighbours used)
+     pool     method theta      bias  bias_se  rmse floor  null cover  leak_z
+  blocked       mean   eq0 -9.03e-03 5.66e-05 1.780 1.246 1.763 0.896 -0.3140
+  blocked       mean   eq1 -1.52e-04 6.32e-06 0.196 0.138 0.195 0.899 -0.8515
+  blocked       mean  rate  2.98e-03 2.30e-05 0.758 0.532 0.752 0.900 -0.6766
+  blocked regression   eq0 -2.14e-05 2.67e-04 1.282 1.246 1.763 0.898 -1.4993
+  blocked regression   eq1 -8.65e-06 2.98e-05 0.141 0.138 0.195 0.898 -2.9862
+  blocked regression  rate -3.98e-05 1.13e-04 0.547 0.532 0.752 0.897 -2.0439
+  blocked      donor   eq0 -2.88e-02 1.40e-03 1.416 1.246 1.763 0.900 -7.8420
+  blocked      donor   eq1 -8.82e-04 1.50e-04 0.165 0.138 0.195 0.902 -8.1845
+  blocked      donor  rate -2.85e-02 5.93e-04 0.616 0.532 0.752 0.899 -8.5453
+ leakfree       mean   eq0  6.82e-03 1.93e-04 1.786 1.246 1.763 0.896 -0.1256
+ leakfree       mean   eq1 -1.78e-03 2.16e-05 0.195 0.138 0.195 0.900 -0.6813
+ leakfree       mean  rate -9.49e-04 8.37e-05 0.757 0.532 0.752 0.900 -0.4258
+ leakfree regression   eq0 -3.84e-04 4.74e-04 1.286 1.246 1.763 0.897  0.1997
+ leakfree regression   eq1  1.92e-05 5.17e-05 0.142 0.138 0.195 0.897 -0.9749
+ leakfree regression  rate  6.44e-05 2.01e-04 0.549 0.532 0.752 0.897 -0.0810
+ leakfree      donor   eq0 -3.50e-02 1.46e-03 1.431 1.246 1.763 0.898 -0.0526
+ leakfree      donor   eq1 -5.45e-03 1.61e-04 0.169 0.138 0.195 0.896 -0.4077
+ leakfree      donor  rate -3.79e-02 6.32e-04 0.625 0.532 0.752 0.896 -0.7049
+
+Leak-free check (|leak_z| under 3 for every candidate and component in the leak-free pool): PASS
+
+## The same z for the nearest-stations mean under three pools known to leak
+                    pool theta leak_z
+              blocked CV   eq0  -7.84
+              blocked CV   eq1  -8.18
+              blocked CV  rate  -8.55
+   removes upstream only   eq0  -4.13
+   removes upstream only   eq1  -4.26
+   removes upstream only  rate  -4.71
+ removes downstream only   eq0  -5.00
+ removes downstream only   eq1  -5.56
+ removes downstream only  rate  -5.80
+
+The check can fail (leak_z below -3 on every component in each of the three): PASS
+
+## The regression's coefficients on z-scored traits, fitted on every station, against the known ones
+z is the mean fitted coefficient's distance from the known one in Monte Carlo standard errors
+           trait theta    known mean_fitted       se       z
+            elev   eq0 -0.60187    -0.60798 0.005165 -1.1819
+            e_km   eq0  0.09880     0.10458 0.004869  1.1890
+            n_km   eq0 -0.05987    -0.05593 0.003804  1.0345
+ snowmelt_doy_50   eq0 -0.68577    -0.68033 0.006338  0.8596
+         swe_max   eq0  0.18106     0.17660 0.005594 -0.7972
+        log_area   eq0 -0.49935    -0.50234 0.003588 -0.8342
+         glacier   eq0  0.04997     0.05538 0.003401  1.5917
+      lake_cover   eq0  0.00763     0.00814 0.002786  0.1835
+            elev   eq1 -0.12210    -0.12253 0.000551 -0.7793
+            e_km   eq1  0.03800     0.03795 0.000528 -0.0862
+            n_km   eq1 -0.07292    -0.07356 0.000428 -1.4934
+ snowmelt_doy_50   eq1  0.00878     0.00994 0.000669  1.7397
+         swe_max   eq1  0.06001     0.05936 0.000606 -1.0725
+        log_area   eq1  0.11141     0.11175 0.000404  0.8322
+         glacier   eq1  0.01521     0.01492 0.000371 -0.7973
+      lake_cover   eq1 -0.00350    -0.00367 0.000313 -0.5404
+            elev  rate -0.25887    -0.25800 0.002182  0.4001
+            e_km  rate -0.07348    -0.07116 0.002030  1.1437
+            n_km  rate -0.16669    -0.16438 0.001649  1.4059
+ snowmelt_doy_50  rate  0.10549     0.10401 0.002664 -0.5560
+         swe_max  rate  0.24841     0.25225 0.002388  1.6053
+        log_area  rate  0.29124     0.29048 0.001536 -0.4937
+         glacier  rate  0.11761     0.11525 0.001408 -1.6705
+      lake_cover  rate  0.09229     0.09427 0.001204  1.6434
+
+## One set with no network part and no noise: largest held-out error, in units of theta's spread
+     method max_error
+       mean   2.7e+00
+ regression   6.6e-13
+      donor   1.3e+00
+
+## Part 2: end to end, GSDD mean absolute error by station (degC-days) and daily RMSE (degC)
+simulated: the run on the simulated parameters, so its error is the departure alone; own_fit: the benchmark
+                 run gsdd_mae rmse gsdd_mae_range
+           simulated    119.8 1.22 115.4 to 126.7
+             own_fit     93.4 1.18   90.8 to 95.9
+        blocked mean    598.0 2.94 564.1 to 636.5
+  blocked regression    412.9 2.17 368.7 to 443.1
+       blocked donor    471.3 2.39 429.9 to 520.6
+       leakfree mean    597.4 2.94 564.5 to 634.7
+ leakfree regression    414.0 2.18 369.9 to 445.9
+      leakfree donor    481.3 2.43 433.5 to 557.8
+
+station-years scored per set: 889, 889, 889, 889, 889
+
+## Refitted theta against the simulated theta, every station of every set
+ theta sd_simulated median_abs_error q95_abs_error largest
+   eq0        1.763           0.1795        0.8788   3.442
+   eq1        0.195           0.0159        0.0616   0.198
+  rate        0.752           0.0730        0.3421   1.051
