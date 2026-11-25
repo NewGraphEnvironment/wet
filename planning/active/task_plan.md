@@ -138,9 +138,9 @@ The review found the superseded sentences are several, not one, and asked that t
 
 ## Validation
 
-- [ ] Tests pass (`devtools::test()`; `NOT_CRAN=true` on any single-file rerun)
-- [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
+- [x] Tests pass (`devtools::test()`; `NOT_CRAN=true` on any single-file rerun)
+- [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
 How each change is proved:
