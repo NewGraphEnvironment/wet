@@ -67,3 +67,7 @@ mandate; the merge stays with me.
 ## Phase 4, 2026-11-25
 - Coverage report (two runs, equal but for the commit line) and map (byte-identical on a second render); research/pcic_coverage.png.
 - Next: Phase 5 (research/pcic_scenarios.md, CLAUDE.md).
+
+## Phase 5, 2026-11-25
+- research/pcic_scenarios.md (new), pcic_channel_scale.md's move-7 section revised in place, research/README.md row, CLAUDE.md (architecture, two script bullets, two data-source bullets). Every number traced to a report line or the coverage table; balance-alone groups and the coast's share of "routed on part" read from the table before writing them.
+- Next: Phase 6 (issues).

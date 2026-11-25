@@ -189,11 +189,11 @@ Changed by the plan review: the map's layers (the bundle holds no group polygons
 
 ## Phase 5: The findings, where the next reader looks
 
-- [ ] Before building: the member re-check, as Phase 1's first box.
-- [ ] `research/pcic_scenarios.md` (new; one header line with the date, issues #4, #5, #169 and both producing scripts): coverage by watershed group with the map; the rules as registered; and, where they ran, what each CMIP6 run lacks and the Fraser's CMIP5 score beside CMIP6's, with what each number is of. Where a rule did not run it says so, why, and what waits on it. Wrong turns kept.
-- [ ] `research/pcic_channel_scale.md`: "What move 7 builds on" revised in place to what was measured or what waits, pointing to the new file; `research/README.md`: the new row, and `pcic_hydrology.md`'s.
-- [ ] `CLAUDE.md` above the marker: one Scripts bullet each for `scripts/scenario_basis.R` and `scripts/pcic_coverage.R` (with the map), the two new functions in the Architecture line, and the Data Sources bullets for the gridded runs and the channel-scale product revised to what Phases 1 and 3 found (the calendar, robots.txt, the verdicts or what waits).
-- [ ] Verify: each number in the three files traced to a report line; a grep for the old "What move 7 builds on" sentences finds none left.
+- [x] Before building: the member re-check, as Phase 1's first box.
+- [x] `research/pcic_scenarios.md` (new; one header line with the date, issues #4, #5, #169 and both producing scripts): coverage by watershed group with the map; the rules as registered; and, where they ran, what each CMIP6 run lacks and the Fraser's CMIP5 score beside CMIP6's, with what each number is of. Where a rule did not run it says so, why, and what waits on it. Wrong turns kept.
+- [x] `research/pcic_channel_scale.md`: "What move 7 builds on" revised in place to what was measured or what waits, pointing to the new file; `research/README.md`: the new row, and `pcic_hydrology.md`'s.
+- [x] `CLAUDE.md` above the marker: one Scripts bullet each for `scripts/scenario_basis.R` and `scripts/pcic_coverage.R` (with the map), the two new functions in the Architecture line, and the Data Sources bullets for the gridded runs and the channel-scale product revised to what Phases 1 and 3 found (the calendar, robots.txt, the verdicts or what waits).
+- [x] Verify: each number in the three files traced to a report line; a grep for the old "What move 7 builds on" sentences finds none left.
 
 Changed by the plan review: what the file holds when a rule did not run.
 
