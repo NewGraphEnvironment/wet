@@ -125,12 +125,12 @@ The review replaced one invariant that real data would have broken, added the le
 
 The review found the superseded sentences are several, not one, and asked that the continuation piece be filed.
 
-- [ ] `research/chinook_sites.md`: the section gains the result: the verdict, the medians, the level error, what the sensitivities show, attribution of a loss (the estimated baseline, the day status or the short records), and what each chinook box holds; its counts are reconciled to the report's section 1 (the rule header's copy stays as seen). Revise line 95's sentence on the stations beyond HYDAT. `research/station_sources.md`: revise each sentence the result supersedes (lines 87–92, 137, 138, 152, 153 at the park's tree; grep "donor"). `research/README.md`: the row for `chinook_sites.md`.
-- [ ] Help text by the result: `R/wet_station_list.R` ("A natural station can serve as a donor where a natural record is needed") and `R/wet_station_select.R`'s pointer say what the test found: that these stations have no 1981–2010 baseline, and whether the estimated-baseline route ships. `devtools::document()`.
-- [ ] `NEWS.md`: one bullet under a development heading, no version change; the PR body carries `Bump: patch`, `Fixes #202` and `Fixes #211`.
-- [ ] `CLAUDE.md` above the marker: the script, its rule file, its report and the finding, in the "Chinook pilots" paragraph; the "Regulation per non-HYDAT station" paragraph's last sentence ("a donor pool of the natural non-HYDAT stations is #202") says what #202 found.
-- [ ] File the same-site continuation as its own issue naming move 18 (2 gauges, what it changes in `wet_station_daily()`), left out of `planning/backlog.md`. If the rule ships, file the follow-up too (the selector beside `wet_station_select()`, the shipped areas, a site-script section, observed years only). If it does not, no follow-up.
-- [ ] `planning/backlog.md`: nothing by hand (the sweep and the merge tick it).
+- [x] `research/chinook_sites.md`: the section gains the result: the verdict, the medians, the level error, what the sensitivities show, attribution of a loss (the estimated baseline, the day status or the short records), and what each chinook box holds; its counts are reconciled to the report's section 1 (the rule header's copy stays as seen). Revise line 95's sentence on the stations beyond HYDAT. `research/station_sources.md`: revise each sentence the result supersedes (lines 87–92, 137, 138, 152, 153 at the park's tree; grep "donor"). `research/README.md`: the row for `chinook_sites.md`.
+- [x] Help text by the result: `R/wet_station_list.R` ("A natural station can serve as a donor where a natural record is needed") and `R/wet_station_select.R`'s pointer say what the test found: that these stations have no 1981–2010 baseline, and whether the estimated-baseline route ships. `devtools::document()`.
+- [x] `NEWS.md`: one bullet under a development heading, no version change; the PR body carries `Bump: patch`, `Fixes #202` and `Fixes #211`.
+- [x] `CLAUDE.md` above the marker: the script, its rule file, its report and the finding, in the "Chinook pilots" paragraph; the "Regulation per non-HYDAT station" paragraph's last sentence ("a donor pool of the natural non-HYDAT stations is #202") says what #202 found.
+- [x] File the same-site continuation as its own issue naming move 18 (2 gauges, what it changes in `wet_station_daily()`), left out of `planning/backlog.md`. If the rule ships, file the follow-up too (the selector beside `wet_station_select()`, the shipped areas, a site-script section, observed years only). If it does not, no follow-up.
+- [x] `planning/backlog.md`: nothing by hand (the sweep and the merge tick it).
 
 ## Owed at the end (reported, done after merge)
 
