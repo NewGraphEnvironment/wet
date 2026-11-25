@@ -118,3 +118,24 @@ The review and each finding's verdict are in `review-plan.md`. Facts it added, e
 - `inst/vignette-data/segment_map.rds`'s rivers carry `class`, `order_band` and `segments`, no name and no `blue_line_key`; no bundle holds the watershed group polygons; `vm_places()` is a live WFS query.
 - The segment-discharge article's gauge error is a mean absolute percent error (`mae_of()`), not a median.
 - `NEWS.md` is touched only by release commits.
+
+## Phase 1 re-read (2026-11-25, answer (a): no request to a disallowed path)
+
+Commands, each `curl -s -L -A wet-research`, one at a time:
+
+```
+https://{services,data,beehive,www}.pacificclimate.org/robots.txt, https://www.uvic.ca/robots.txt
+https://services.pacificclimate.org/portal/hydro_model_out/catalog/catalog.json   # md5 3c9718ada10337e5fbbea76ecb859f0d
+https://www.uvic.ca/pcic/data-analysis-tools/data-portal/{,hydrology-gridded,hydrology-station-data,hydrology-vector,statistically-downscaled-scenarios}/index.php
+https://www.uvic.ca/pcic/data-analysis-tools/analysis-tools/index.php
+https://www.uvic.ca/pcic/about/terms-of-use/index.php
+curl -w '%{http_code} %{redirect_url}' https://data.pacificclimate.org/{robots.txt,portal/.../catalog.json}   # 301 to services.
+ncdump -h <main checkout>/data/pcic/TPS_gridded_obs_init_RUNOFF_t13149-13513_y120-242_x192-367.nc
+git -C fwapg show origin/{main,newgraph}:extras/discharge/discharge.sh   # curl -o without -L, old host
+```
+
+- Catalog: 169 datasets = 13 runs × 13 variables; scenario ids end `_columbia`, PNWNAmet's `_nwna`; PNWNAmet's model `VICGL-RGM-HydroConductor`, span 19450101-20121231; every file name `1945to2099`. No CMIP6 run.
+- `/portal/` and `/chyp` are not disallowed; `www.uvic.ca` disallows only search queries and two unrelated paths.
+- Data portals page: data "publicly available with an open license" (none named). Terms of use page covers the website only.
+- The PCIC note: drafted for the owner outside this repository, addressed to PCIC's hydrology lead as a new message, as the earlier correspondence advised. Not sent.
+- #205's body edited to the four claims still unread; it stays open.

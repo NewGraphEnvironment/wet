@@ -49,3 +49,9 @@ Start Phase 1 and run every phase to the PR (/code-check branch, /planning-archi
 /gh-pr-push). This message is the resume instruction that starts the run-to-PR
 mandate; the merge stays with me.
 ```
+
+## Phase 1, 2026-11-25
+- Resumed on m1 in worktree wet-169; merged origin/main (a CLAUDE.md convention heading only; the plan stands). Owner's decisions read from #169's body and moved into the plan: (a) ask PCIC first, split yes, rule 3 kept.
+- Member re-check: FREE #4, #5, #205.
+- `research/pcic_hydrology.md` re-read from what robots.txt allows, revised in place, "Access and robots.txt" added; README row. PCIC note drafted for the owner, outside this repository. #205 body edited to what is left; open.
+- Next: Phase 2 (readers).
