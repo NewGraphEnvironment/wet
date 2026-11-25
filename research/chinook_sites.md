@@ -1,6 +1,6 @@
 # Chinook pilot sites beyond Maxan: which streams, and what the method finds there
 
-**Verified:** 2026-10-28 (the 1951–1980 against 2016–2025 section 2026-10-30; covariance_pick 2026-11-19) · **Issues:** #126 (component of #118; after #120, #121), #152, #147 (via #167) · **Produced by:** `scripts/chinook_sites_use.R` → `data/checks/chinook_sites_use.txt` (NuSEDS All Areas 2026-06-01, md5 25bb43441645519f18eb4853dd1cf399; fwapg `bcfishobs.observations`; HYDAT 2026-07-17); `scripts/departure_site.R` and `scripts/departure_site_snow.R` per site of `scripts/departure_sites.csv` → `data/checks/departure_site[_snow]_<site>_<group>_20260717.txt`; article `vignettes/articles/flow-change-sparse-gauges.Rmd` (listed in place of the Maxan article)
+**Verified:** 2026-10-28 (the 1951–1980 against 2016–2025 section 2026-10-30; covariance_pick 2026-11-19) · **Issues:** #126 (component of #118; after #120, #121), #152, #147 (via #167), #202 (via #211) · **Produced by:** `scripts/chinook_sites_use.R` → `data/checks/chinook_sites_use.txt` (NuSEDS All Areas 2026-06-01, md5 25bb43441645519f18eb4853dd1cf399; fwapg `bcfishobs.observations`; HYDAT 2026-07-17); `scripts/departure_site.R` and `scripts/departure_site_snow.R` per site of `scripts/departure_sites.csv` → `data/checks/departure_site[_snow]_<site>_<group>_20260717.txt`; article `vignettes/articles/flow-change-sparse-gauges.Rmd` (listed in place of the Maxan article)
 
 ## Which streams, and why
 
@@ -95,3 +95,14 @@ Change, Bulkley windows unless named, carried / extended, with the 90 % range:
 - **The stations beyond HYDAT** (#142, #144) add no donor at these sites (`research/station_sources.md`, "At the chinook sites' boxes").
 - The short-record article stays on distance at Maxan, #120's record; the comparison article carries the shipped route.
 
+## Natural stations outside HYDAT as donors (#202, via #211)
+
+**Registered:** 2026-11-25, before any score existed. The rule is the header of `scripts/departure_donors_rule.R`; the scoring script, `scripts/departure_donors.R`, refuses to run when that file differs from its registering commit.
+
+The question: does adding the natural stations outside HYDAT (the province's non-integrated network, #142, and the BC Water Tool's gauges, #144, with `regulation == "natural"` from #196) bring a carried departure closer to the observed one?
+
+As seen before registration (2026-11-25, throwaway probes; the report's section 1 restates them from its own data): of the 75 natural stations none has 10 complete migration window-years in 1981–2010, so none has the baseline `wet_departure_carry()` needs, and 71 have none at all. They hold 185 complete migration window-years, 179 of them in 2010 or later; 36 stations have at least 3, 33 through 2024. A third of those window-years are unchecked throughout. In the four chinook boxes, Maxan and Gosnell hold 2 such stations with 2 window-years each, Swift none and Naver 6, so no site report could move.
+
+The only route open is an estimated baseline: each station is extended into 1981–2010 from HYDAT gauges by OLS, as #120 extends a short-record target, and its observed years then depart from that estimated mean. An OLS fit's residuals sum to zero over its fit years, so a station's level over those years is its extension gauge's; only its year-to-year variation is its own, with one or two degrees of freedom at 3 or 4 years. No gain is the likely result today.
+
+The test, held out province-wide: every natural HYDAT gauge in its own box's departure pool, with a box of #126's size centred on it, carried by #120's inverse-distance route (k = 5) with and without the stations, each station's fit years stopping at 2024 (the last year HYDAT 20260717's approved record is broadly complete) and its later years entering as observed. The score is the RMSE of the log departure from the gauge's own 1981–2010 mean over the 2011–2025 years a station is among the donors. The route ships if the median paired difference is at most −0.01 leave-one-gauge-out and leak-free, with at least 10 gauges scored under each (the owner's bar, 2026-11-25); everything else the rule lists is reported and decides nothing.

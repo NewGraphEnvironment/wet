@@ -21,7 +21,7 @@ So the only way these stations can be donors now is with an **estimated baseline
 
 ## Decided at the gate
 
-No plan gate ran in this pane (parked for the coordinator's plan gate). These are mechanism, decided in the plan on 2026-11-25, each with its reason; the scope fork and the bar are under **Open decisions**, where the owner can also overturn any of these.
+No plan gate ran in this pane (parked for the coordinator's plan gate). These are mechanism, decided in the plan on 2026-11-25, each with its reason; the scope and the bar the owner answered at the coordinator's gate, below.
 
 - **A registered rule comes before any shipped number.** Every departure route (#120, #122, #126, #147, #152) was registered before it ran; this one is too, in a commit of its own before the scoring script exists, as #196 registered its rule.
 - **Where they enter: nowhere in shipped code in this PR.** The test builds its combined pool in a new script from `wet_station_list()`'s `regulation`. `wet_window_extend()` and `wet_departure_carry()` take `stations` and `x` as plain data frames and need no change, given the fit years the rule now defines (the review's blocker); `wet_station_select()` and the site script's box query stay HYDAT-only. If the rule ships, the entry point (a selector beside `wet_station_select()`, the shipped drainage areas it needs, a site-script section) is a follow-up issue naming move 18, with its stored-data choices at that gate. Reason: at the four sites nothing would move, and a selector nobody calls is speculative until the test says the route works.
@@ -36,26 +36,20 @@ No plan gate ran in this pane (parked for the coordinator's plan gate). These ar
 - **The verdict's home is `research/chinook_sites.md`** (the file #211 names), in a section of its own, with the sentences in `research/station_sources.md` that it supersedes revised.
 - **#211's Touches list shrinks.** `R/wet_window_extend.R`, `scripts/departure_site.R`, `scripts/departure_site_lib.R` and `tests/testthat/test-wet_station_select.R` are read, not edited; `R/wet_station_select.R` and `R/wet_station_list.R` change in their help text only.
 - **No comment on #211 or #202 asks for anything** (the one comment on #211 is the claim notice).
-
-## Open decisions
-
-1. **Scope, now that no station has a baseline.** The plan as drafted builds (a). Answer before Step 1.
-   - (a, recommended) Test the stations as donors with an estimated baseline, held out at about 40 HYDAT gauges province-wide, under the rule drafted below. No site report and no article number moves in this PR either way; a pass files the follow-up that builds the selector. No gain is the likely result today (most stations hold 3 or 4 years); what the PR buys is a measured answer to #202 and a scoring script to rerun as the records lengthen.
-   - (b) Record the measurement and stop: the stations stay records and held-out tests until their records reach a baseline. No rule is registered; Step 2's script shrinks to the population record (the report's section 1), and Step 3's text says why they cannot be donors yet. A fraction of the build.
-   - (c) Build same-site continuation instead: 2 HYDAT gauges gain recent years. It changes what `wet_station_daily()` returns for those sites.
-2. **The bar, if (a).** As drafted the route ships only if the median paired change in the departure's error (RMSE of the log departure from the 1981–2010 normal, 2011–2025, in the years a station is among the donors) is at least 0.01 lower with the stations than without, leave-one-gauge-out and leak-free, with at least 10 gauges scored under each. The review asked whether three reported lines should join the verdict: the same difference over every 2011–2025 year (a station among the 5 nearest pushes out a HYDAT donor in the years it has no value too), a noise guard (a bootstrap interval on the median that excludes zero), and a floor on distinct stations behind the scored gauges. Recommended: keep the verdict as drafted and report all three. Name another bar here if you want one; it is registered before any score exists.
+- **Scope (the owner, 2026-11-25, at the coordinator's plan gate; recorded in #211's body): test the stations as donors** with an estimated baseline, held out province-wide under the rule registered before any score (option a).
+- **The bar (the owner, same gate): the verdict as drafted** (median paired difference at most −0.01 under leave-one-gauge-out and leak-free, at least 10 gauges scored under each), with the three extra lines (every 2011–2025 year, a bootstrap interval on the median, the distinct stations behind the scored gauges) reported beside it, deciding nothing.
 
 ## Phase 1 (batch 20): the rule, the test and the verdict
 
-- [ ] Before building: `bash "$T/skills/_shared/members_check.sh" "$(git remote get-url origin)" 211 211-backlog-move-18-natural-non-hydat-statio --batch 20` (T from `soul_published_tree`). On a non-zero exit, or any line but `FREE`, build nothing of this batch: write the line under **Open decisions** and stop.
-- [ ] Ask the owner Open decisions 1 and 2 and record the answers under "Decided at the gate"; on (b) or (c), or another bar, revise the steps below before any commit and say so in `progress.md`.
-- [ ] Re-read #211 and #202 (bodies and comments) and diff against `findings.md`'s copy.
+- [x] Before building: `bash "$T/skills/_shared/members_check.sh" "$(git remote get-url origin)" 211 211-backlog-move-18-natural-non-hydat-statio --batch 20` (T from `soul_published_tree`). On a non-zero exit, or any line but `FREE`, build nothing of this batch: write the line under **Open decisions** and stop.
+- [x] Ask the owner Open decisions 1 and 2 and record the answers under "Decided at the gate"; on (b) or (c), or another bar, revise the steps below before any commit and say so in `progress.md`.
+- [x] Re-read #211 and #202 (bodies and comments) and diff against `findings.md`'s copy.
 
 ### Step 1: register the rule, before any score exists
 
 The review moved the per-gauge computation into the rule file and added an end-to-end test, so the rule meets both real functions before it is registered; and it added the fit years, the tables, the reasons a station is not eligible and the amendment protocol to the rule's text.
 
-- [ ] Tests first, failing: `tests/testthat/test-departure_donors_rule.R`, sourcing `scripts/departure_donors_rule.R` as `tests/testthat/test-departure_site_rule.R` sources its library (skipped where `scripts/` is not installed). Cases:
+- [x] Tests first, failing: `tests/testthat/test-departure_donors_rule.R`, sourcing `scripts/departure_donors_rule.R` as `tests/testthat/test-departure_site_rule.R` sources its library (skipped where `scripts/` is not installed). Cases:
   - `dd_box()`: the centre rounded to 2 decimals, ±1.9° and ±1.1°; 08KA012's coordinates (−119.2667, 52.83833) give Swift's row of `scripts/departure_sites.csv` (−121.17, −117.37, 51.74, 53.94).
   - `dd_candidate()`: natural only; at least `dd_min_years` (3) migration-mean window-years; a positive finite area; inside the box; `hydat_site` not the held-out gauge; `NA` in any of them is not a candidate.
   - `dd_fit_years()`: a station's usable values (not `NA`; above 0 unless the statistic is `*_cov_day`) in years no later than `dd_fit_last` (2024); a 2025 or 2026 year is never a fit year.
@@ -64,8 +58,8 @@ The review moved the per-gauge computation into the rule file and added an end-t
   - `dd_rmse()`: root mean square of observed minus carried; fewer than `dd_min_scored_years` (3) years is `NA`.
   - `dd_ship()`: ships only when the median paired difference is at most `-dd_margin` (0.01, `1e-9` allowed) in both pools and each pool scores at least `dd_min_gauges` (10); checks in `site_carry_ship()`'s order (counts, an `NA` median, leave-one-out, leak-free) and returns the first that failed.
   - `dd_gauge()` end to end, through the real `wet_window_extend()` and `wet_departure_carry()`: three long gauges ending 2024 and one station with years 2016–2026 return both carries, with the station's 2025 value carried as observed; a box with no candidate returns identical carries; a station at the held-out gauge's own site is left out; a held-out gauge whose HYDAT donors are all removed is returned as not scored, with its reason, without an error; a station no gauge covers is not eligible, with its reason; any other error from either function propagates.
-- [ ] `scripts/departure_donors_rule.R`: the rule below as its header, then the constants and the functions the tests name. No database, no download.
-- [ ] `research/chinook_sites.md`: a section "Natural stations outside HYDAT as donors" stating the rule as registered and the counts as seen on 2026-11-25, dated and marked as seen before any score. Add #211 and #202 to the header's issues.
+- [x] `scripts/departure_donors_rule.R`: the rule below as its header, then the constants and the functions the tests name. No database, no download.
+- [x] `research/chinook_sites.md`: a section "Natural stations outside HYDAT as donors" stating the rule as registered and the counts as seen on 2026-11-25, dated and marked as seen before any score. Add #211 and #202 to the header's issues.
 - [ ] Commit the rule file, its tests and the research section alone, before `scripts/departure_donors.R` exists. Note the sha in `progress.md`.
 
 #### The rule to register (the header of `scripts/departure_donors_rule.R`)
