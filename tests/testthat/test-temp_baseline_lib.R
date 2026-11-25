@@ -1,0 +1,480 @@
+# The whole-station temperature baseline's shared code (#213, scripts/temp_baseline_lib.R).
+# scripts/ is not in the installed package, so these run from the source tree only.
+local_tb_lib <- function() {
+  scripts <- testthat::test_path("..", "..", "scripts")
+  testthat::skip_if_not(dir.exists(scripts), "scripts/ is not in the installed package")
+  e <- new.env()
+  sys.source(file.path(scripts, "temp_baseline_lib.R"), envir = e)
+  e
+}
+
+test_that("tb_take() evaluates one top-level assignment and refuses a name assigned twice or never", {
+  l <- local_tb_lib()
+  f <- withr::local_tempfile(fileext = ".R")
+  writeLines(c("stop('the script itself must not run')", "one <- function(x) x + 1", "two <- 2", "two <- 3",
+               "inner <- function() { hidden <- 1 }"), f)
+  e <- new.env()
+  l$tb_take(f, "one", e)
+  expect_equal(e$one(1), 2)
+  expect_error(l$tb_take(f, "two", e), "assigns two 2 times")
+  expect_error(l$tb_take(f, "hidden", e), "assigns hidden 0 times")
+})
+
+test_that("theta turns back into the parameters it came from", {
+  l <- local_tb_lib()
+  par <- cbind(a1 = c(0.5, 0.02, -0.1), a2 = c(0.1, 0.01, 0.3), a3 = c(0.15, 0.015, 0.61))
+  rownames(par) <- c("s1", "s2", "s3")
+  th <- l$tb_theta(par)
+  expect_identical(colnames(th), l$tb_theta_names)
+  expect_equal(th[, "eq1"], par[, "a2"] / par[, "a3"])
+  expect_equal(l$tb_theta_inv(th), par)
+  bad <- par
+  bad[2, "a3"] <- 1
+  expect_error(l$tb_theta(bad), "inside \\(0, 1\\)")
+  bad[2, "a3"] <- NA
+  expect_error(l$tb_theta(bad), "finite")
+  expect_error(l$tb_theta_inv(th[, c(2, 1, 3)]), "in that order")
+})
+
+tb_toy <- function(n = 40, seed = 1) {
+  set.seed(seed)
+  x <- cbind(elev = runif(n, 0, 2000), lake = runif(n), flat = 3)
+  th <- cbind(eq0 = 2 + x[, "elev"] / 1000, eq1 = 0.8 - 0.2 * x[, "lake"], rate = -2 + rnorm(n, 0, 0.3))
+  rownames(x) <- rownames(th) <- sprintf("s%02d", seq_len(n))
+  list(x = x, th = th)
+}
+
+test_that("the population mean predicts the training mean, with one new station's spread", {
+  l <- local_tb_lib()
+  d <- tb_toy()
+  p <- l$tb_predict("mean", d$x[1:30, ], d$th[1:30, ], d$x[31:40, ])
+  expect_equal(unname(p$mean[4, ]), unname(colMeans(d$th[1:30, ])))
+  expect_equal(unname(p$sd[1, ]), unname(apply(d$th[1:30, ], 2, sd) * sqrt(1 + 1 / 30)))
+  expect_equal(p$df, 29)
+  expect_identical(rownames(p$mean), rownames(d$x)[31:40])
+})
+
+test_that("the regression is lm's, prediction interval included, and drops a trait with no spread", {
+  l <- local_tb_lib()
+  d <- tb_toy()
+  tr <- 1:30
+  p <- l$tb_predict("regression", d$x[tr, ], d$th[tr, ], d$x[31:40, ])
+  # exact linear relationships come back exactly
+  expect_equal(unname(p$mean[, "eq0"]), unname(d$th[31:40, "eq0"]))
+  expect_equal(unname(p$mean[, "eq1"]), unname(d$th[31:40, "eq1"]))
+  expect_true(all(p$sd[, c("eq0", "eq1")] < 1e-8))
+  # the noisy one matches lm
+  df <- data.frame(d$x[, c("elev", "lake")], rate = d$th[, "rate"])
+  ref <- stats::predict(stats::lm(rate ~ elev + lake, df[tr, ]), df[31:40, ], interval = "prediction", level = 0.9)
+  iv <- l$tb_interval(p, 0.9)
+  expect_equal(unname(p$mean[, "rate"]), unname(ref[, "fit"]))
+  expect_equal(unname(iv$lo[, "rate"]), unname(ref[, "lwr"]))
+  expect_equal(unname(iv$hi[, "rate"]), unname(ref[, "upr"]))
+  expect_equal(p$df, 27)
+  expect_error(l$tb_predict("regression", d$x[1:3, ], d$th[1:3, ], d$x[31:40, ]), "more training stations")
+})
+
+test_that("the donor mean is the nearest training stations', and a station's own traits give its own theta", {
+  l <- local_tb_lib()
+  d <- tb_toy()
+  tr <- 1:30
+  p <- l$tb_predict("donor", d$x[tr, ], d$th[tr, ], d$x[c(7, 31), ])
+  # row 7 is a training row: zero distance takes the whole weight
+  expect_equal(unname(p$mean[1, ]), unname(d$th[7, ]))
+  expect_equal(unname(p$sd[1, ]), c(0, 0, 0))
+  # row 31: by hand, on the two traits with spread, z-scored on the training rows
+  z <- scale(d$x[tr, 1:2])
+  zn <- (d$x[31, 1:2] - attr(z, "scaled:center")) / attr(z, "scaled:scale")
+  dist <- sqrt(colSums((t(z) - zn)^2))
+  o <- order(dist)[1:5]
+  w <- 1 / (dist[o] + 1e-6 * median(dist))
+  expect_equal(unname(p$mean[2, ]), unname(colSums(d$th[tr, ][o, ] * w) / sum(w)))
+  expect_true(all(p$sd[2, ] > 0))
+  expect_equal(p$df, 4)
+})
+
+test_that("candidates refuse traits or theta that are not finite, and inputs that do not line up", {
+  l <- local_tb_lib()
+  d <- tb_toy()
+  x <- d$x
+  x[3, 1] <- NA
+  for (m in l$tb_methods) expect_error(l$tb_predict(m, x[1:30, ], d$th[1:30, ], d$x[31:40, ]), "finite")
+  expect_error(l$tb_predict("mean", d$x[1:30, ], d$th[1:29, ], d$x[31:40, ]), "line up")
+  expect_error(l$tb_predict("mean", d$x[1, , drop = FALSE], d$th[1, , drop = FALSE], d$x[31:40, ]), "at least 2")
+})
+
+test_that("blocked CV holds a fold out together, and the leak-free pool also drops related stations", {
+  l <- local_tb_lib()
+  d <- tb_toy(12)
+  fold <- rep(c("a", "b", "c"), each = 4)
+  related <- matrix(FALSE, 12, 12)
+  related[1, 5] <- related[5, 1] <- TRUE   # station 5 (fold b) is upstream of station 1 (fold a)
+  d$th[5, ] <- d$th[5, ] + 100
+  b <- l$tb_cv(d$x, d$th, fold, related, "blocked", "mean")$mean
+  expect_equal(unname(b$mean[1, ]), unname(colMeans(d$th[5:12, ])))
+  expect_equal(unname(b$mean[2, ]), unname(b$mean[1, ]))
+  f <- l$tb_cv(d$x, d$th, fold, related, "leakfree", "mean")$mean
+  # station 1 no longer sees station 5; station 2, unrelated to it, still does
+  expect_equal(unname(f$mean[1, ]), unname(colMeans(d$th[6:12, ])))
+  expect_equal(unname(f$mean[2, ]), unname(colMeans(d$th[5:12, ])))
+  # and station 5 does not see station 1
+  expect_equal(unname(f$mean[5, ]), unname(colMeans(d$th[c(2:4, 9:12), ])))
+  expect_equal(f$df[1], 6)
+  expect_false(anyNA(l$tb_cv(d$x, d$th, fold, related, "leakfree")$donor$mean))
+  expect_error(l$tb_cv(d$x, d$th, fold[-1], related), "line up")
+  bad <- related
+  bad[2, 3] <- NA
+  expect_error(l$tb_cv(d$x, d$th, fold, bad), "complete")
+})
+
+test_that("the simulated network part is shared only between flow-connected stations", {
+  l <- local_tb_lib()
+  # 1 is the mouth; 2 and 3 are on separate tributaries; 4 is above 2; 5 is in another basin
+  up <- matrix(FALSE, 5, 5)
+  up[1, c(2, 3, 4)] <- TRUE
+  up[2, 4] <- TRUE
+  area <- c(100, 40, 30, 10, 50)
+  w <- l$tb_net_weights(up, area)
+  expect_equal(rowSums(w^2), rep(1, 5))
+  expect_equal(w[1, 2] / w[1, 1], 0.4)
+  expect_equal(w[4, ], c(0, 0, 0, 1, 0))
+  cv <- w %*% t(w)
+  connected <- up | t(up) | diag(5) == 1
+  expect_true(all(cv[connected] > 0))
+  expect_equal(cv[!connected], rep(0, sum(!connected)))
+
+  x <- cbind(t1 = c(1, 2, 3, 4, 6), t2 = c(2, 1, 5, 3, 4))
+  rownames(x) <- paste0("s", 1:5)
+  b0 <- c(eq0 = 3, eq1 = 0.8, rate = -2)
+  beta <- matrix(c(1, 0, 0.1, 0, 0, 0.2), 2, 3)
+  set.seed(4)
+  s <- l$tb_simulate(x, up, area, b0, beta, sd_net = c(0.5, 0.05, 0.2), sd_noise = c(0.3, 0.03, 0.1))
+  expect_identical(dimnames(s$theta), list(rownames(x), names(b0)))
+  expect_equal(s$theta, s$fixed + sweep(s$net, 2, c(0.5, 0.05, 0.2), "*") + sweep(s$noise, 2, c(0.3, 0.03, 0.1), "*"))
+  expect_equal(unname(s$fixed[, "eq0"]), unname(3 + drop(scale(x) %*% beta[, 1])))
+  # over many draws: unit variance, correlated where connected, not otherwise
+  set.seed(5)
+  net <- t(replicate(4000, l$tb_simulate(x, up, area, b0, beta, c(1, 1, 1), c(0, 0, 0))$net[, 1]))
+  expect_equal(unname(apply(net, 2, sd)), rep(1, 5), tolerance = 0.05)
+  r <- cor(net)
+  expect_gt(r[1, 2], 0.2)
+  expect_gt(r[2, 4], 0.1)
+  expect_lt(abs(r[2, 3]), 0.06)
+  expect_lt(abs(r[1, 5]), 0.06)
+  expect_error(l$tb_simulate(x, up[-1, ], area, b0, beta, c(1, 1, 1), c(0, 0, 0)), "line up")
+})
+
+test_that("upstream is read from the FWA codes, never a station of itself", {
+  l <- local_tb_lib()
+  st <- data.frame(station_number = c("mouth", "trib", "other"),
+                   wscode = c("100", "100.500000", "200"), localcode = c("100", "100.500000", "200"))
+  up <- l$tb_upstream(st)
+  expect_true(up["mouth", "trib"])
+  expect_false(up["trib", "mouth"])
+  expect_false(any(diag(up)))
+  expect_false(any(up["other", ], up[, "other"]))
+})
+
+test_that("a series is scored on the observed season days of its truth years", {
+  l <- local_tb_lib()
+  date <- seq(as.Date("2019-01-01"), as.Date("2020-12-31"), by = "day")
+  y <- 8 + 6 * sin(2 * pi * (as.integer(format(date, "%j")) - 110) / 365)
+  series <- list(date = date, a = y, y = y)
+  series$y[date == as.Date("2019-07-04")] <- NA                  # an unobserved day is not scored
+  s <- y + ifelse(format(date, "%Y") == "2019", 1, -2)
+  s[date < as.Date("2019-03-01")] <- 99                          # outside the season: ignored
+  g <- function(date, value, year) sum(value[format(date, "%Y") == year])
+  sc <- l$tb_score(series, s, c(2019L, 2020L), g)
+  expect_equal(sc$n, c(274L, 275L))
+  expect_equal(sc$rmse, c(1, 2))
+  expect_equal(sc$bias, c(1, -2))
+  expect_equal(sc$gsdd, c(sum(s[format(date, "%Y") == "2019"]), sum(s[format(date, "%Y") == "2020"])))
+  # a year with no GSDD is NA, not an error
+  expect_true(is.na(l$tb_score(series, s, 2019L, function(...) numeric(0))$gsdd))
+  expect_error(l$tb_score(series, s[-1], 2019L, g), "calendar")
+  expect_error(l$tb_score(series, s, 2015L, g), "no observed day")
+  n_obs <- function(date, value, year) length(value[format(date, "%Y") == year])
+  obs <- l$tb_gsdd_observed(series, c(2019L, 2020L), n_obs)
+  expect_equal(obs, c(364, 366))
+})
+
+test_that("tb_run() is wet's open-loop air2stream", {
+  l <- local_tb_lib()
+  a <- c(5, 6, 7, -30, -30, 8)
+  expect_equal(l$tb_run(list(a = a), c(a1 = 0.5, a2 = 0.1, a3 = 0.2)), wet:::wet_a2s_run(0.5, 0.1, 0.2, a))
+})
+
+test_that("the rule's statistic is the mean over stations of each station's mean absolute error", {
+  l <- local_tb_lib()
+  sc <- data.frame(station_number = rep(c("a", "a", "a", "b"), 2), year = rep(c(2001, 2002, 2003, 2001), 2),
+                   run = rep(c("x", "y"), each = 4), gsdd_obs = rep(c(1000, 1000, 1000, 2000), 2),
+                   gsdd = c(1010, 970, 1100, 2100, 1000, 1000, 1000, 1900))
+  s <- l$tb_statistic(sc)
+  # station a: (10 + 30 + 100) / 3; station b: 100; stations weigh the same, whatever their years
+  expect_equal(s$statistic, c(x = (140 / 3 + 100) / 2, y = 50))
+  expect_equal(dim(s$by_station), c(2L, 2L))
+  expect_equal(s$left_out, 0)
+  # a year with no GSDD in one run leaves every run's statistic
+  sc$gsdd[sc$station_number == "a" & sc$year == 2003 & sc$run == "y"] <- NA
+  s <- l$tb_statistic(sc)
+  expect_equal(s$statistic, c(x = (20 + 100) / 2, y = 50))
+  expect_equal(s$left_out, 1)
+  expect_setequal(s$paired, c("a 2001", "a 2002", "b 2001"))
+  expect_equal(nrow(s$scores), 6)
+  # so does an observed year with none
+  sc$gsdd_obs[sc$station_number == "b"] <- NA
+  expect_equal(l$tb_statistic(sc)$statistic, c(x = 20, y = 0))
+  # the runs come back in the order asked for
+  expect_named(l$tb_statistic(sc, c("y", "x"))$statistic, c("y", "x"))
+  expect_error(l$tb_statistic(sc[-1, ]), "each run exactly once")
+  expect_error(l$tb_statistic(rbind(sc, sc[1, ])), "each run exactly once")
+  expect_error(l$tb_statistic(sc, c("x", "y", "z")), "each run exactly once")
+  sc$gsdd <- NA
+  expect_error(l$tb_statistic(sc), "no station-year")
+  expect_error(l$tb_statistic(sc[c("station_number", "year")]), "scores need")
+})
+
+test_that("the code md5 covers the lib, the rule and the scoring script, and notices a change", {
+  l <- local_tb_lib()
+  root <- testthat::test_path("..", "..")
+  expect_true(all(file.exists(file.path(root, l$tb_code_files))))
+  expect_true(all(c("scripts/temp_baseline_lib.R", "scripts/temp_baseline_rule.R", "scripts/temp_baseline.R",
+                    "scripts/temp_baseline_recover.R") %in% l$tb_code_files))
+  expect_match(l$tb_code_md5(root), "^[0-9a-f]{32}$")
+  expect_error(l$tb_code_md5(tempdir()), "missing")
+  # a copy with one byte more in one file has another md5
+  tmp <- withr::local_tempdir()
+  for (f in l$tb_code_files) {
+    dir.create(dirname(file.path(tmp, f)), recursive = TRUE, showWarnings = FALSE)
+    file.copy(file.path(root, f), file.path(tmp, f))
+  }
+  expect_identical(l$tb_code_md5(tmp), l$tb_code_md5(root))
+  cat("\n", file = file.path(tmp, "scripts/temp_baseline.R"), append = TRUE)
+  expect_false(identical(l$tb_code_md5(tmp), l$tb_code_md5(root)))
+})
+
+test_that("loading refuses a lib other than the one hashed, before it loads anything", {
+  l <- local_tb_lib()
+  withr::local_dir(testthat::test_path("..", ".."))
+  expect_error(l$tb_code_load("not the lib's md5"), "changed between its hash and its source")
+  withr::local_dir(withr::local_tempdir())
+  expect_error(l$tb_code_load("x"), "missing")
+})
+
+test_that("loading stops when a hashed file moves while it loads, and returns the md5 taken before", {
+  l <- local_tb_lib()
+  no_reread <- local_tb_lib()  # a second copy of the lib, sourced before the directory changes
+  root <- normalizePath(testthat::test_path("..", ".."))
+  tmp <- withr::local_tempdir()
+  for (f in l$tb_code_files) {
+    dir.create(dirname(file.path(tmp, f)), recursive = TRUE, showWarnings = FALSE)
+    file.copy(file.path(root, f), file.path(tmp, f))
+  }
+  withr::local_dir(tmp)
+  lib_md5 <- tools::md5sum(l$tb_code_lib)
+  loaded <- FALSE
+  expect_identical(l$tb_code_load(lib_md5, load = function(envir) loaded <<- TRUE), l$tb_code_md5())
+  expect_true(loaded)
+  # the md5 returned is of the hashes taken before the load: with tb_code_md5(), the read of the
+  # files a later md5 would come from, made to fail, loading still returns it
+  first <- l$tb_code_md5()
+  assign("tb_code_md5", function(...) stop("a read of the files after the load"), no_reread)
+  expect_identical(no_reread$tb_code_load(lib_md5, load = function(envir) NULL), first)
+  expect_silent(l$tb_code_same(l$tb_code_md5()))
+  before <- l$tb_code_md5()
+  # a file edited during the load: refused, whichever of the files it is
+  expect_error(l$tb_code_load(lib_md5, load = function(envir) cat("\n", file = "R/wet_donor_mean.R", append = TRUE)),
+               "changed while it was being loaded")
+  expect_error(l$tb_code_same(before), "changed while this ran")
+})
+
+test_that("the frame's key covers every field the frame holds, and the reader recomputes it", {
+  l <- local_tb_lib()
+  st <- data.frame(station_number = c("a", "b", "c"), fold = c("f1", "f1", "f2"), lake = c(TRUE, FALSE, NA),
+                   regulated = c("natural", "regulated", "unflagged"), area_km2 = c(10, 200, 3000),
+                   wscode = c("100", "100.500000", "200"), localcode = c("100", "100.500000", "200"),
+                   lon = c(-125, -124, -123))
+  for (t in l$tb_traits) st[[t]] <- c(1, 2, 3) * nchar(t)
+  related <- matrix(FALSE, 3, 3, dimnames = list(st$station_number, st$station_number))
+  related[1, 2] <- related[2, 1] <- TRUE
+  fr <- list(stations = st, related = related,
+             truth = data.frame(station_number = c("a", "a", "b", "c"), year = c(2011, 2012, 2011, 2013)),
+             fit = data.frame(station_number = st$station_number, a1 = c(0.5, 0.4, 0.3), a2 = c(0.1, 0.1, 0.2),
+                              a3 = c(0.15, 0.1, 0.3), rmse_open = c(1, 1.2, 0.9), rho = c(0.9, 0.95, 0.8),
+                              sigma = c(0.3, 0.4, 0.5), n_obs = c(400L, 900L, 2000L)),
+             dropped = data.frame(station_number = "d", reason = "too little record to fit"),
+             provenance = list(release = "20260717", run = "abc"))
+  key <- l$tb_frame_key(fr)
+  expect_match(key, "^[0-9a-f]{10}$")
+  # every column of every table, walked rather than listed: one value moved in each moves the key.
+  # Only the station numbers of `stations` and `fit` are left to the rename below, since one of
+  # them changed alone is refused as out of order.
+  another <- function(v) {
+    if (is.logical(v)) !(v %in% TRUE) else if (is.numeric(v)) v * 1.5 + 1 else paste0(v, "x")
+  }
+  tables <- names(fr)[vapply(fr, is.data.frame, logical(1))]
+  expect_setequal(tables, c("stations", "fit", "truth", "dropped"))
+  cells <- do.call(rbind, lapply(tables, function(part) {
+    data.frame(part = part, col = setdiff(names(fr[[part]]), if (part %in% c("stations", "fit")) "station_number"))
+  }))
+  expect_identical(nrow(cells), sum(lengths(fr[tables])) - 2L)
+  expect_true(all(c("truth station_number", "dropped station_number") %in% paste(cells$part, cells$col)))
+  for (r in seq_len(nrow(cells))) {
+    g <- fr
+    g[[cells$part[r]]][[cells$col[r]]][1] <- another(fr[[cells$part[r]]][[cells$col[r]]][1])
+    expect_false(identical(l$tb_frame_key(g), key), label = paste(cells$part[r], cells$col[r]))
+  }
+  g <- fr
+  g$related[1, 3] <- g$related[3, 1] <- TRUE
+  expect_false(identical(l$tb_frame_key(g), key))
+  # one station renamed wherever it is named, so the frame stays in one order
+  g <- fr
+  g$stations$station_number[2] <- g$fit$station_number[2] <- "z"
+  dimnames(g$related) <- list(g$stations$station_number, g$stations$station_number)
+  expect_false(identical(l$tb_frame_key(g), key))
+  g <- fr
+  g$provenance$run <- "abd"
+  expect_false(identical(l$tb_frame_key(g), key))
+  # a column added, renamed or moved between stations is another frame too
+  g <- fr
+  g$stations$extra <- 1
+  expect_false(identical(l$tb_frame_key(g), key))
+  g <- fr
+  g$stations[2:3, c("wscode", "localcode")] <- g$stations[3:2, c("wscode", "localcode")]
+  expect_false(identical(l$tb_frame_key(g), key))
+  g <- fr
+  names(g$stations)[names(g$stations) == "lon"] <- "lat"
+  expect_false(identical(l$tb_frame_key(g), key))
+  g <- fr
+  names(g$provenance) <- c("release", "province_run")
+  expect_false(identical(l$tb_frame_key(g), key))
+  g <- fr
+  names(g)[names(g) == "dropped"] <- "dropt"   # the same place in the order, another name
+  expect_false(identical(l$tb_frame_key(g), key))
+  # the key itself is not part of what it covers, and it survives a save and a read
+  expect_identical(l$tb_frame_key(c(fr, list(key = key))), key)
+  f_rt <- withr::local_tempfile(fileext = ".rds")
+  saveRDS(fr, f_rt)
+  expect_identical(l$tb_frame_key(readRDS(f_rt)), key)
+  # below 6 significant digits is the same frame
+  g <- fr
+  g$fit$a1[2] <- 0.4 + 1e-9
+  expect_identical(l$tb_frame_key(g), key)
+  # but a whole number enters exactly, however many digits it has
+  big <- fr
+  big$stations$linear_feature_id <- c(701234567, 701234568, 701234569)
+  g <- big
+  g$stations$linear_feature_id[1] <- 701234566
+  expect_false(identical(l$tb_frame_key(g), l$tb_frame_key(big)))
+  g <- big
+  g$stations$linear_feature_id <- as.integer(g$stations$linear_feature_id)   # the type is not the content
+  expect_identical(l$tb_frame_key(g), l$tb_frame_key(big))
+  g <- fr
+  g$fit$n_obs[1] <- NA
+  expect_false(identical(l$tb_frame_key(g), key))
+  expect_error(l$tb_frame_key(within(fr, fit <- fit[3:1, ])), "not in one order")
+  expect_error(l$tb_frame_key(fr[c("stations", "fit")]), "holds stations, fit, truth and related")
+  changed <- list(fit = fr)
+  changed$fit$fit$a1[2] <- 0.41
+
+  # the reader refuses a file whose content moved under its name
+  tmp <- withr::local_tempdir()
+  withr::local_dir(tmp)
+  dir.create("data/checks", recursive = TRUE)
+  dir.create("data/temp_baseline")
+  fr$key <- key
+  writeLines(c("a report", paste("frame:", key)), l$tb_frame_report)
+  f <- file.path("data", "temp_baseline", sprintf("frame_%s.rds", key))
+  saveRDS(fr, f)
+  expect_identical(l$tb_frame_read()$key, key)
+  saveRDS(c(changed$fit, list(key = key)), f)
+  expect_error(l$tb_frame_read(), "no longer holds the frame")
+  saveRDS(within(fr, key <- "0000000000"), f)
+  expect_error(l$tb_frame_read(), "holds frame 0000000000")
+  unlink(f)
+  expect_error(l$tb_frame_read(), "is not here")
+  writeLines("a report", l$tb_frame_report)
+  expect_error(l$tb_frame_read(), "names no frame")
+  unlink(l$tb_frame_report)
+  expect_error(l$tb_frame_read(), "is missing")
+})
+
+test_that("committed means the file is HEAD's blob, whatever git status would say", {
+  l <- local_tb_lib()
+  testthat::skip_if(Sys.which("git") == "", "no git")
+  tmp <- withr::local_tempdir()
+  withr::local_dir(tmp)
+  git <- function(...) {
+    system2("git", c("-c", "user.name=t", "-c", "user.email=t@example.invalid", ...), stdout = FALSE, stderr = FALSE)
+  }
+  testthat::skip_if(git("init", "-q") != 0, "git init failed")
+  dir.create("data/checks", recursive = TRUE)
+  f <- "data/checks/report.txt"
+  writeLines("Leak-free check: FAIL", f)
+  expect_false(l$tb_committed(f))                      # untracked
+  git("add", f)
+  expect_false(l$tb_committed(f))                      # staged, no commit yet
+  git("commit", "-q", "-m", "one")
+  expect_true(l$tb_committed(f))
+  writeLines("Leak-free check: PASS", f)
+  expect_false(l$tb_committed(f))                      # modified
+  # git status is blind to a flagged path; the blob comparison is not
+  git("update-index", "--assume-unchanged", f)
+  expect_identical(system2("git", c("status", "--porcelain", "--", f), stdout = TRUE), character(0))
+  expect_false(l$tb_committed(f))
+  git("update-index", "--no-assume-unchanged", f)
+  writeLines("Leak-free check: FAIL", f)
+  expect_true(l$tb_committed(f))
+  expect_false(l$tb_committed("data/checks/absent.txt"))
+  # outside a repository every answer is no
+  withr::local_dir(withr::local_tempdir())
+  writeLines("x", "report.txt")
+  expect_false(l$tb_committed("report.txt"))
+})
+
+test_that("every wet object the scoring path reaches is defined in a file the code md5 names", {
+  l <- local_tb_lib()
+  testthat::skip_if_not_installed("codetools")
+  find_globals <- utils::getFromNamespace("findGlobals", "codetools")
+  root <- testthat::test_path("..", "..")
+  ns <- asNamespace("wet")
+  # where each object of the package is defined: every top-level assignment in R/, read from
+  # the files, so a constant counts as much as a function and no source reference is needed
+  defs <- do.call(rbind, lapply(list.files(file.path(root, "R"), "[.]R$", full.names = TRUE), function(f) {
+    ex <- parse(f, keep.source = FALSE)
+    nm <- unlist(lapply(ex, function(e) {
+      if (is.call(e) && (identical(e[[1]], as.name("<-")) || identical(e[[1]], as.name("="))) && is.name(e[[2]])) {
+        as.character(e[[2]])
+      }
+    }))
+    if (length(nm)) data.frame(name = nm, file = basename(f))
+  }))
+  expect_false(anyDuplicated(defs$name) > 0)
+  file_of <- stats::setNames(defs$file, defs$name)
+  # entry points: every wet object named in the scoring path's own files; of
+  # scripts/temp_fill_validate.R only `gsdd_year` is taken, so only its definition is read
+  own <- setdiff(grep("^scripts/", l$tb_code_files, value = TRUE), "scripts/temp_fill_validate.R")
+  taken <- new.env()
+  l$tb_take(file.path(root, "scripts/temp_fill_validate.R"), "gsdd_year", taken)
+  src <- c(unlist(lapply(file.path(root, own), readLines)), deparse(taken$gsdd_year))
+  named <- unique(unlist(regmatches(src, gregexpr("\\bwet_[A-Za-z0-9_.]+", src, perl = TRUE))))
+  entry <- intersect(named, names(file_of))
+  expect_true(all(c("wet_fill_prepare", "wet_a2s_fit", "wet_a2s_run", "wet_donor_mean", "wet_fwa_upstream",
+                    "wet_temp_gsdd", "wet_md5_text") %in% entry))
+  reached <- character()
+  todo <- entry
+  while (length(todo)) {
+    n <- todo[1]
+    todo <- todo[-1]
+    if (n %in% reached) next
+    reached <- c(reached, n)
+    obj <- get(n, ns)
+    if (is.function(obj)) todo <- c(todo, intersect(find_globals(obj, merge = TRUE), names(file_of)))
+  }
+  # a constant the fill reads is reached, so the walk is not of functions alone
+  expect_true("wet_air_gap" %in% reached)
+  # wet_md5_text() builds the md5 itself, so a change to it moves every md5: it needs no entry
+  outside <- file_of[setdiff(reached, "wet_md5_text")]
+  outside <- outside[!outside %in% basename(l$tb_code_files)]
+  expect_identical(unname(outside), character(0), info = paste(names(outside), outside, collapse = "; "))
+})
