@@ -37,3 +37,13 @@
   to a tolerance; the empty-cache rerun then left it as it is
 - Commits: the draft with the recipe guard; the rebuilt values; the tolerance; the article as written
 - Next: Phase 4, proof and records
+
+## Phase 4, 2026-11-25
+
+- Completed: two identical pkgdown builds; four broken facts each stop the build; a cold read (the reader
+  could say what goes to a network model and what comes back) and the revision it prompted; the page sent
+  for a phone read; `CLAUDE.md`; the whole suite (541 tests, 0 failed, 9 skipped elsewhere)
+- Filed: #222 (a reading that is not water, beside a gap, is carried into the fill) and #224
+  (`wet_temp_daily()` differs in the last bits between reads)
+- Commits: the instructions; the cold-read revision; this record
+- Next: `/code-check branch`, then the archive and the pull request

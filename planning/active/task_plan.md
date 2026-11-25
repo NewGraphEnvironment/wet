@@ -191,18 +191,18 @@ What exploration found, which shapes the phases:
 
 - [x] Install the branch, `pkgdown::build_article("articles/segment-temperature")` twice; the four figure files'
       md5s and the page's text are the same both times.
-- [ ] Read each figure at 700 px wide against the cartography self-review (placement and "does it
+- [x] Read each figure at 700 px wide against the cartography self-review (placement and "does it
       communicate"); fix what fails.
 - [x] Break one bundled value and one caption-backed claim in a copy, rendered after `pkgload::load_all()` so
       the broken copy is the one read, and record each stop message.
-- [ ] A cold read of the built page's text by a reader with none of the repo's context, asked what goes to a
+- [x] A cold read of the built page's text by a reader with none of the repo's context, asked what goes to a
       network model and what comes back; every `<img>` has a non-empty `alt`.
-- [ ] Send the rendered page for a read on a phone before the pull request.
+- [x] Send the rendered page for a read on a phone before the pull request.
 - [x] `CLAUDE.md` (above the marker): the article, its two data scripts, the basin table and the rule, in the
       Architecture section's form. No `NEWS.md` edit on the branch: this repo's release step writes the bullet
       at the merge (every NEWS change in its history is a release commit), so the PR body carries the line
       and `Bump: patch`.
-- [ ] `lintr` compared per file against `origin/main`; `pkgdown::check_pkgdown()`; `devtools::document()`.
+- [x] `lintr` compared per file against `origin/main`; `pkgdown::check_pkgdown()`; `devtools::document()`.
 
 ## Owed at the end (reported, done after merge)
 
@@ -211,7 +211,7 @@ What exploration found, which shapes the phases:
 
 ## Validation
 
-- [ ] Tests pass (`NOT_CRAN=true`, the whole suite)
+- [x] Tests pass (`NOT_CRAN=true`, the whole suite)
 - [ ] `/code-check branch` clean
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion

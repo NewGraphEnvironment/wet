@@ -146,6 +146,49 @@ hidden: one reading is worth 67 °C-days, five times the 30-day holdout's mean d
   `pacificclimateimpactsconsortium2026VICGLRavenMBCn`. The `.bib` has 25 entries, each with a url or doi.
 - **Words:** 1,066 of body prose against the cap of 1,200 set before drafting.
 
+## Proof (Phase 4)
+
+- **Two builds, one page.** The branch installed to a scratch library, then
+  `pkgdown::build_article("articles/segment-temperature", lazy = FALSE)` twice: the four figures' md5s are
+  the same both times (chain a08cf584, holdout 7d49826c, map 4aa2197c, year 4567d27f) and the two HTML files
+  are byte-identical. No `footnote-ref`; no unresolved citation; each of the four figures has alt text.
+- **Each guard stops the build on a broken fact.** In a scratch worktree, rendered after
+  `pkgload::load_all()` so the broken copy is the one read:
+
+  | broken | stop message |
+  |---|---|
+  | the bundled degree-day total raised by 5 | `isTRUE(all.equal(max(yr$dd, na.rm = TRUE), gsdd)) is not TRUE` |
+  | the map's network says ten reaches hold a station | `net$with_station == n_st is not TRUE` |
+  | a dashed arrow leaves the baseline in the chain's table | `identical(edges$style == "dashed", edges$from %in% comp) is not TRUE` |
+  | the reading before the gap made an ordinary day | `jump > 5 is not TRUE` |
+
+  The intact control renders. (A first control failed in the `versions` chunk for a reason that is not the
+  article's: `utils::citation("wet")` under `load_all()` could not find the package in a worktree whose
+  directory was not named `wet`. In one named `wet` it renders, and the pkgdown builds read the installed
+  package.)
+- **A cold read.** A reader given only the built page's text (an agent with none of the repo's context, told
+  to open one file) answered the issue's question correctly: into a network model go the network, the
+  stations and their filled records, the traits, air temperature at every reach and the baseline's result;
+  back come temperature with its uncertainty at every reach, and degree days with the uncertainty carried
+  through. It also listed what it had to guess at. Fixed from its list: `wet` and "reach" explained in the
+  opening; "the most a reach with no station can have" (which read as contradicting the network model)
+  reworded; the two fitted network models set beside "not built yet" with what is left open; three baseline
+  versions named where the text had two; the province's stations told apart from the basin's eleven; the
+  process model defined; why the figure keeps the total with the suspect reading. Left: the season's 5 and
+  4 °C limits (cited, not explained), which score counts as success (the baseline's rule is not written
+  yet), and orange meaning "the subject" in three figures.
+- **Figures against the cartography self-review**, read from the built PNGs: the map fills its frame; the
+  legend, the keymap and the scale bar each have a corner over dimmed land outside the basin; the basin is
+  the only undimmed area; all eleven stations are countable once labels were made to keep clear of them;
+  every drawn mark is in the legend or the caption. Every stream order stays drawn: at this size the
+  first-order lines read as texture and the larger rivers stand out by weight.
+- **The rendered page was sent for a read on a phone** before the pull request.
+- **The whole suite** (`NOT_CRAN=true devtools::test()`, `data/logs/220/devtools_test_1.log`): 541 tests in 69
+  files, 0 failed, 3,606 expectations passed, 9 skipped. The skips are in `test-wet_bcenv.R` (1),
+  `test-wet_bcwatertool.R` (1), `test-wet_station_daily.R` (2) and `test-wet_station_snap.R` (5), none in
+  the file this branch changes. `lintr` on the two existing files the branch edits finds nothing new against
+  `origin/main`; `pkgdown::check_pkgdown()` reports no problems; `devtools::document()` changes nothing.
+
 ## Errors Encountered
 
 | Error | Resolution |
