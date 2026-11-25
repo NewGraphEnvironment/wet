@@ -1,3 +1,7 @@
+# wet 0.5.1
+
+* A new article, Stream Temperature per Segment: How We Get There, shows in four figures what growing-season degree days are, where water temperature is measured in one basin, and the steps from stations to every stream reach (#220). No change to the package's functions.
+
 # wet 0.5.0
 
 * `wet_runoff_monthly()` and `wet_pcic_monthly()` give a PCIC gridded run's mean monthly totals; `wet_pcic_fetch()` reads its HTTP status, waits when PCIC asks it to, and refuses a download whose days are not the ones asked for (#169, #5). `inst/cartography/wet_coverage.csv` records which product covers each watershed group.
