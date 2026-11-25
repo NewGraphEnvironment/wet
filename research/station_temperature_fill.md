@@ -84,7 +84,7 @@ Of the days in the Mar–Nov windows, 36 % are filled.
 
 ## A station with no record: a whole station held out
 
-**Verified:** 2026-11-25 · **Issue:** #213 · HYDAT 2026-07-17, province run `768876badf`, frame `229ccbefe9`
+**Verified:** 2026-11-25 · **Issue:** #213 · HYDAT 2026-07-17, province run `768876badf`, frame `edfbc29809`
 
 **The answer.** Hide a station's whole record, predict its three air2stream parameters from its catchment, and run the model on its own air temperature. The best of three predictions misses a growing season's degree days by about 295 °C-days. With the station's own parameters the miss is 97, and with every station given the population's mean parameters it is 413. Each figure is the mean, over 209 held-out stations, of the station's mean absolute GSDD error over its complete seasons. Catchment traits recover about a third of what a record gives, and the gap that is left, about 200 °C-days, is twice the width of the band the cutthroat thresholds turn on (800 to 900 degree days). A per-reach estimate from traits alone cannot place a reach on one side of that band.
 
@@ -138,7 +138,7 @@ GSDD error is the mean over stations of each station's mean absolute error, in �
 **Limits.**
 - The stations are gauges, mostly rivers, and the 48 dropped are not a random draw: lake-level gauges, small creeks and transboundary rivers are under-represented.
 - The simulation tests the path, not the size: it draws the three parameters independently, though at the real fits the intercept and slope offset each other (correlation −0.49).
-- Kriging on the stream network, the candidate that would use neighbours on purpose, is scored on this frame under this rule in #223. The scores it is set beside are in `data/temp_baseline/scores_229ccbefe9.rds`.
+- Kriging on the stream network, the candidate that would use neighbours on purpose, is scored on this frame under this rule in #223. The scores it is set beside are in `data/temp_baseline/scores_edfbc29809.rds`.
 
 ## Using it
 

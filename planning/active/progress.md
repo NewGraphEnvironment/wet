@@ -128,3 +128,14 @@
   this table and by round 4; column names, found by this table) and are why the tests changed.
 - Reviewer agents so far on this task: one plan review and four code rounds. Rounds 2, 3 and 4
   each found a defect inside the round before's fix, which is why it ran past three.
+
+## Code-check round 5, 2026-11-25
+- Narrow, on round 4's fixes. One finding, `fragile`, in a test (`review-round5.md`): the
+  frame-key test's walk of "every column" left `station_number` out of all four tables by a
+  hand-written `setdiff()`, so the key could have dropped it unnoticed. The shipped key was
+  right. The test now walks the station numbers of `truth` and `dropped` and renames one station
+  wherever it is named. Round 5's table found no instance of anything else on the scoring path.
+- The enumeration that followed (below, "How the review ended") found one gap no round had
+  listed as a finding: numbers entered the key at 6 significant digits, so a nine-digit FWA id
+  plus 1 kept the key. Whole numbers now enter exactly. That is the last change to the lib; the
+  frame, the recovery and the scores were rerun under it (logs `data/logs/213/*_r5_*`).

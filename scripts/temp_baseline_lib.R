@@ -31,8 +31,10 @@ tb_traits <- c("elev", "e_km", "n_km", "snowmelt_doy_50", "swe_max", "log_area",
 # The frame's key: 10 hex over everything the frame holds but the key itself. Every column of
 # every table (the stations, their own fits, the truth station-years, the dropped stations), the
 # related pairs and the provenance, each under its name. Nothing is picked by hand, so a field a
-# script reads cannot be outside it. Numbers enter at 6 significant digits. The writer names the
-# frame by it and the reader recomputes it, so a frame file whose content moved is refused.
+# script reads cannot be outside it. A whole number enters exactly (an FWA id is nine digits),
+# any other number at 6 significant digits, so a fit that differs in its last bits is the same
+# frame. The writer names the frame by it and the reader recomputes it, so a frame file whose
+# content moved is refused.
 tb_frame_key <- function(fr) {
   if (!is.list(fr) || !all(c("stations", "fit", "truth", "related") %in% names(fr))) {
     stop("a frame holds stations, fit, truth and related", call. = FALSE)
@@ -41,7 +43,13 @@ tb_frame_key <- function(fr) {
         !identical(rownames(fr$related), fr$stations$station_number)) {
     stop("the frame's stations, fits and related pairs are not in one order", call. = FALSE)
   }
-  txt <- function(v) if (is.numeric(v)) formatC(v, digits = 6, format = "g") else as.character(v)
+  txt <- function(v) {
+    if (!is.numeric(v)) return(as.character(v))
+    whole <- is.finite(v) & v == round(v) & abs(v) < 1e15
+    out <- formatC(v, digits = 6, format = "g")
+    out[whole] <- sprintf("%.0f", v[whole])
+    out
+  }
   part <- function(v) {
     if (is.data.frame(v)) {
       c(paste(names(v), collapse = "|"), do.call(paste, c(lapply(v, txt), sep = "|")))

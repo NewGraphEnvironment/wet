@@ -275,8 +275,8 @@ test_that("loading stops when a hashed file moves while it loads, and returns th
   loaded <- FALSE
   expect_identical(l$tb_code_load(lib_md5, load = function(envir) loaded <<- TRUE), l$tb_code_md5())
   expect_true(loaded)
-  # the md5 returned is of the hashes taken before the load: with every later read of the files
-  # made to fail, loading still returns it
+  # the md5 returned is of the hashes taken before the load: with tb_code_md5(), the read of the
+  # files a later md5 would come from, made to fail, loading still returns it
   first <- l$tb_code_md5()
   assign("tb_code_md5", function(...) stop("a read of the files after the load"), no_reread)
   expect_identical(no_reread$tb_code_load(lib_md5, load = function(envir) NULL), first)
@@ -306,14 +306,19 @@ test_that("the frame's key covers every field the frame holds, and the reader re
              provenance = list(release = "20260717", run = "abc"))
   key <- l$tb_frame_key(fr)
   expect_match(key, "^[0-9a-f]{10}$")
-  # every column of every table, walked rather than listed: one value moved in each moves the key
+  # every column of every table, walked rather than listed: one value moved in each moves the key.
+  # Only the station numbers of `stations` and `fit` are left to the rename below, since one of
+  # them changed alone is refused as out of order.
   another <- function(v) {
     if (is.logical(v)) !(v %in% TRUE) else if (is.numeric(v)) v * 1.5 + 1 else paste0(v, "x")
   }
-  cells <- do.call(rbind, lapply(c("stations", "fit", "truth", "dropped"), function(part) {
-    data.frame(part = part, col = setdiff(names(fr[[part]]), "station_number"))
+  tables <- names(fr)[vapply(fr, is.data.frame, logical(1))]
+  expect_setequal(tables, c("stations", "fit", "truth", "dropped"))
+  cells <- do.call(rbind, lapply(tables, function(part) {
+    data.frame(part = part, col = setdiff(names(fr[[part]]), if (part %in% c("stations", "fit")) "station_number"))
   }))
-  expect_gt(nrow(cells), 20)
+  expect_identical(nrow(cells), sum(lengths(fr[tables])) - 2L)
+  expect_true(all(c("truth station_number", "dropped station_number") %in% paste(cells$part, cells$col)))
   for (r in seq_len(nrow(cells))) {
     g <- fr
     g[[cells$part[r]]][[cells$col[r]]][1] <- another(fr[[cells$part[r]]][[cells$col[r]]][1])
@@ -321,6 +326,11 @@ test_that("the frame's key covers every field the frame holds, and the reader re
   }
   g <- fr
   g$related[1, 3] <- g$related[3, 1] <- TRUE
+  expect_false(identical(l$tb_frame_key(g), key))
+  # one station renamed wherever it is named, so the frame stays in one order
+  g <- fr
+  g$stations$station_number[2] <- g$fit$station_number[2] <- "z"
+  dimnames(g$related) <- list(g$stations$station_number, g$stations$station_number)
   expect_false(identical(l$tb_frame_key(g), key))
   g <- fr
   g$provenance$run <- "abd"
@@ -350,6 +360,18 @@ test_that("the frame's key covers every field the frame holds, and the reader re
   g <- fr
   g$fit$a1[2] <- 0.4 + 1e-9
   expect_identical(l$tb_frame_key(g), key)
+  # but a whole number enters exactly, however many digits it has
+  big <- fr
+  big$stations$linear_feature_id <- c(701234567, 701234568, 701234569)
+  g <- big
+  g$stations$linear_feature_id[1] <- 701234566
+  expect_false(identical(l$tb_frame_key(g), l$tb_frame_key(big)))
+  g <- big
+  g$stations$linear_feature_id <- as.integer(g$stations$linear_feature_id)   # the type is not the content
+  expect_identical(l$tb_frame_key(g), l$tb_frame_key(big))
+  g <- fr
+  g$fit$n_obs[1] <- NA
+  expect_false(identical(l$tb_frame_key(g), key))
   expect_error(l$tb_frame_key(within(fr, fit <- fit[3:1, ])), "not in one order")
   expect_error(l$tb_frame_key(fr[c("stations", "fit")]), "holds stations, fit, truth and related")
   changed <- list(fit = fr)
