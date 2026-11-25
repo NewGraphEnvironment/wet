@@ -20,10 +20,6 @@ No plan gate ran in this pane: the coordinator dispatched this `park review` (so
 2. **Move only `data-raw/life_history_data.R`'s pin**, with the guard that its BULK chinook rows equal `life_history_bulk.csv`; `data-raw/station_vignette_data.R` stays at `c97c4d0`.
 3. **Leave both site scripts unchanged**: swift and naver reruns only; the UFRA/COTR report headers name the migration row's source only, and the spawning sources and the caveat go in the article and the research note.
 
-## Open decisions
-
-None.
-
 ## Phase 1: the UFRA and COTR windows
 
 Review: the guard's set was corrected (MORR compared in every column, notes included, since `life_history_morr.csv` writes them; BULK's guard protects the cited table, not the parity gate, which reads `life_history_bulk.csv`), the source assertion made per row, and the restored-defect test given a way in.
