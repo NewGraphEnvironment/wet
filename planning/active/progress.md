@@ -46,3 +46,9 @@ Start Phase 1 and run every phase to the PR (/code-check branch, /planning-archi
 /gh-pr-push). This message is the resume instruction that starts the run-to-PR
 mandate; the merge stays with me.
 ```
+
+## Phase 1, 2026-11-25
+- Resumed on m1 in worktree wet-187; merged origin/main (only CLAUDE.md among the plan's files had moved: conventions sync and #142/#144 station text, no chinook-site sentence).
+- Owner decisions recorded (task_plan.md, Decisions): adopt now, pinned at knowledge a475dfe7 (knowledge#256 closed; notes-only change to UFRA/COTR rows); move only life_history_data.R's pin; site scripts unchanged.
+- `data-raw/life_history_data.R` reads MORR, UFRA, COTR at a475dfe7; `lh_pin_guard()` holds MORR (every column), BULK (all but note) and BULK's chinook rows against c97c4d0 and life_history_bulk.csv; each group's chinook rows asserted with exact sources. `life_history_morr.csv` byte-identical; UFRA and COTR CSVs written (2 rows each).
+- `tests/testthat/test-life_history_pin.R`: 16 expectations pass; with the MORR check disabled 2 fail (restored defect).
