@@ -361,6 +361,8 @@ test_that("the temperature values hold plain types, the basin's stations and the
   expect_match(main, "^[0-9]{3}(\\.[0-9]{6})*$")
   expect_true(all(v$stations$wscode == main | startsWith(v$stations$wscode, paste0(main, "."))))
   expect_equal(v$stations$linear_feature_id, round(v$stations$linear_feature_id))
+  expect_type(v$stations$stream_order, "integer")
+  expect_true(all(v$stations$stream_order >= 1))
   expect_true(v$pick$station_number %in% v$stations$station_number)
   expect_true(all(c("commit", "retrieved", "hydat", "cd", "gsdd") %in% names(v$provenance)))
   expect_gt(v$validation$season_open$gsdd_mae, 0)

@@ -8,7 +8,8 @@
 # days, the stations of its basin, and how the station-year was picked:
 #   - basin: the row of scripts/temperature_basins.csv, with the main stem's
 #     watershed code
-#   - stations: the basin's temperature stations, each with its segment
+#   - stations: the basin's temperature stations, each with its segment and that
+#     segment's stream order
 #   - pool: the stations the fill was fitted with (the row's sub-drainage)
 #   - candidates, pick: the rule's table (below) and the year it lands on,
 #     with the picked station's stream and the two streams it flows into;
@@ -251,6 +252,13 @@ DBI::dbDisconnect(conn)
 pick$stream <- blk$gnis_name
 pick$into1 <- into$into1
 pick$into2 <- into$into2
+# the stream order of each basin station's segment: how large a stream the stations sit on
+conn <- vd_connect()
+seg_order <- DBI::dbGetQuery(conn, sprintf("
+  SELECT linear_feature_id, stream_order FROM whse_basemapping.fwa_stream_networks_sp
+  WHERE linear_feature_id IN (%s) ORDER BY linear_feature_id",
+  paste(sprintf("%.0f", snap$linear_feature_id[snap$station_number %in% basin_st]), collapse = ", ")))
+DBI::dbDisconnect(conn)
 message("picked ", pick$station_number, " ", pick$year, ": ", pick$gap_days, " days from ", pick$gap_start)
 
 # ---- the picked year --------------------------------------------------------------------------
@@ -338,11 +346,13 @@ stations <- data.frame(
   station_number = basin_st, station_name = st$station_name[i], lon = st$lon[i], lat = st$lat[i],
   drainage_area_gross_km2 = st$drainage_area_gross_km2[i],
   linear_feature_id = as.numeric(snap$linear_feature_id[j]), wscode = snap$wscode[j],
+  stream_order = as.integer(seg_order$stream_order[match(as.numeric(snap$linear_feature_id[j]),
+                                                         as.numeric(seg_order$linear_feature_id))]),
   first = do.call(c, lapply(basin_st, function(b) min(water$date[water$station_number == b]))),
   last = do.call(c, lapply(basin_st, function(b) max(water$date[water$station_number == b]))),
   days = vapply(basin_st, function(b) sum(water$station_number == b), 0L, USE.NAMES = FALSE),
   fitted = basin_st %in% fit$station_number)
-stopifnot(!anyNA(stations$linear_feature_id), all(stations$linear_feature_id < 2^53))
+stopifnot(!anyNA(stations$linear_feature_id), all(stations$linear_feature_id < 2^53), !anyNA(stations$stream_order))
 
 # ---- the fill's held-out error, from its tracked report ----------------------------------------
 f_val <- file.path("data", "checks", "temp_fill_validate.txt")

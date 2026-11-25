@@ -161,8 +161,8 @@ alt_year <- sprintf(paste(
 ```
 
 **The R package [`wet`](https://newgraphenvironment.github.io/wet/) does not yet give stream temperature
-for every stream reach** [@wet]. This article shows where that work starts, what it aims for, and how we
-will know whether it works. The aim is growing-season degree days, a measure of how much warmth a
+for every stream reach** [@wet]. This article shows where that work starts, what it aims for, and how
+it will be tested. The aim is growing-season degree days, a measure of how much warmth a
 stream gives young fish in a year, at every reach (a mapped stretch of stream) in British Columbia. Today
 they can be computed at a few hundred stations across the province. Getting from those to every reach
 takes a model on the stream network.
@@ -233,6 +233,11 @@ n_st <- nrow(map$stations)
 stopifnot(all(net$orders$drawn), net$with_station == n_st, n_reach == sum(net$orders$segments))
 # the prose gives sizes, not counts that move: "tens of thousands of reaches", "about a dozen" stations
 stopifnot(n_reach >= 2e4, n_reach < 1e5, n_st >= 9, n_st <= 15)
+# "most stations sit on larger rivers and most reaches are small streams, as in the basin above":
+# small is stream order 1 or 2, a larger river order 5 and up
+share_small <- sum(net$orders$segments[net$orders$stream_order <= 2]) / n_reach
+share_river <- mean(v$stations$stream_order >= 5)
+stopifnot(share_small > 0.5, share_river > 0.5)
 # the count is of stations with a day of record in the fixed range the data script reads
 stopifnot(all(v$stations$days > 0), identical(substr(prov$to, 1, 4), "2025"))
 last_year <- substr(prov$to, 1, 4)
@@ -319,7 +324,7 @@ alt_map <- sprintf(paste(
 ), v$basin$name)
 ```
 
-One basin shows the gap. A **reach** here is one stream segment of the Freshwater Atlas, the province's
+A **reach** here is one stream segment of the Freshwater Atlas, the province's
 map of its streams [@flnrord2021FreshwaterAtlasb], with its own identifier. The `r v$basin$name` runs `r flow_dir` from Houston past Smithers to meet the
 Skeena River at Hazelton, and the stream network of its basin has tens of thousands of reaches. About a
 dozen hold a federal hydrometric station that has recorded water temperature, some only recently.
@@ -457,7 +462,7 @@ gives daily water temperature at points on its own river network, on past weathe
 models to 2100. Its temperatures can be compared with the same station records, and it is one way to
 ask where streams are becoming warm enough for fish.
 
-## How will we know it works?
+## How will it be tested?
 
 ```{r holdout-data}
 # a toy network: streams as lines, stations as points; `h` is the station hidden
@@ -536,8 +541,8 @@ The third is **kriging**: estimating a value at an unmeasured place from measure
 the near ones most. On a stream network, near is measured along the water and in the direction it
 flows. Here it starts from the same traits and adds the network, so its gain over the baseline is what
 the network adds. Each prediction is then run through air2stream on the hidden station's own air
-temperature and compared with two marks: the model fitted to that station's own record, which is the
-best any of them could do, and the average of all stations, which is what knowing nothing gives. Each
+temperature and compared with two marks: the model fitted to that station's own record, the best any of
+them could do, and the average of all stations, which is what knowing nothing gives. Each
 is tried twice, with and without the hidden station's neighbours up and down its stream; for the
 network's prediction that difference is what the neighbours are worth.
 
@@ -546,6 +551,8 @@ network's prediction that difference is what the neighbours are worth.
 - **The error with no station.** Even at a station, when a whole growing season is hidden, air2stream
   on air temperature alone misses that season's total by about `r num(season_mae)` degree days on
   average. A reach with no station can only do worse, and how much worse is what the test measures.
+- **Small streams.** Most stations sit on larger rivers and most reaches are small streams, as in the
+  basin above, so the test says least about them.
 - **Readings that are not water.** Nothing screens yet for one like the first figure's, which moved
   its year by `r num(edge_cost)` degree days.
 - **The thresholds.** Growing-season degree-day thresholds exist for cutthroat trout in high-elevation
