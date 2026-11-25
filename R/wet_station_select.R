@@ -8,7 +8,9 @@
 #'
 #' HYDAT's stations only. For natural stations outside HYDAT, the province's
 #' non-integrated network and the BC Water Tool's gauges, see
-#' [wet_station_list()]'s `regulation`.
+#' [wet_station_list()]'s `regulation`; they are not donors, since none holds
+#' 10 years of 1981–2010 record and on an estimated baseline they made carried
+#' departures worse.
 #'
 #' @param hydat Path to the HYDAT sqlite database. Defaults to tidyhydat's
 #'   download location.

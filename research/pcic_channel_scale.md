@@ -15,7 +15,7 @@ By the registered rules, move 7 builds:
 
 - **The crosswalk reproduces PCIC.** At all 244 scored gauges whose segment holds a placed outlet, routed PCIC as published matches PCIC's own PNWNAmet outlet series over 1981–2010. Annual flow agrees within 1e-4 at 242 of them; the largest difference is 0.12 % (08LE031, where the two networks disagree above the outlet). This settles what `monthly_error.md`'s check 1 rested on: at those 244 gauges, the scores of routed PCIC are scores of PCIC's own outflow (at the other 39 scored gauges the segment holds no outlet, and routed flow is the outflow of the outlets above plus an area share of the sub-basin's remaining runoff, the arithmetic rule 1 checks at the headwater).
 - **In the Fraser the CMIP6 runs' historical flow is not PNWNAmet's.** The median of the 9 GCMs' 1981–2010 annual flow runs a median 7.3 % of observed flow below PNWNAmet's at the Fraser gauges (the absolute difference's 90th percentile is 36 %), against 2.0 % on the coast, 3.3 % in the Columbia and 1.5 % above in the Peace. The seasonal shape holds better: share NSE drops 0.036 against PNWNAmet's in the Fraser, inside rule 2's 0.05.
-- **The Fraser's fallback is unscored.** Rule 3 sends the Fraser to CMIP5 gridded, which this pilot did not fetch (decision 3). Move 7 should score the CMIP5 runs by rule 2 before building on them, rather than take the fallback as better.
+- **The Fraser's fallback is unscored.** Rule 3 sends the Fraser to CMIP5 gridded, which this pilot did not fetch (decision 3). Move 7 (#169) registered that score as its rule 5 (`pcic_scenarios.md`), and its run waits on PCIC.
 
 ## What the product is
 
@@ -68,7 +68,9 @@ Almost all unplaced Columbia and Peace outlets are `no_candidate`: no usable FWA
 
 ## What move 7 builds on
 
-- **First check:** whether each CMIP6 run's outlets with series are PNWNAmet's. fwapg's crosswalk refuses a run whose crosswalk differs from the stored one, and on the coast TaiESM1 already lacks series at every outlet scored.
+**Verified:** 2026-11-25 (#169; `pcic_scenarios.md`).
+
+- **First check:** what each CMIP6 run lacks against the crosswalk fwapg stores, which its job needs (it refuses a run whose crosswalk differs from the stored one). Move 7 registered it as rule 4, read from each outlet's listing; on the coast TaiESM1 already lacks series at every outlet scored, and CNRM-ESM2-1 has series where PNWNAmet has none. The run waits on PCIC: robots.txt disallows `/hydromosaic` and the owner chose to ask first (`pcic_hydrology.md`, "Access and robots.txt").
 - **Cost:** 2,194 CMIP6 outlet series took 798 MiB and 35 minutes of transfer here, one request at a time. At that pace a whole CMIP6 run (48,688 outlets with series) is about 17 GiB and 13 hours. fwapg's job fetches three batches at once, and its research puts a CMIP6 run's fetch at about 1.5 h.
-- **The Fraser:** CMIP5 gridded by the rule, scored first by rule 2 against PNWNAmet at the same gauges.
+- **The Fraser:** CMIP5 gridded by the rule, scored first against PNWNAmet at the same gauges: move 7's rule 5, whose PNWNAmet side reproduces this pilot's accumulation at its four Fraser sites; the CMIP5 score waits on PCIC too.
 - Done by hand in this pilot: starting the database and writing the site table. Everything else ran from the script.

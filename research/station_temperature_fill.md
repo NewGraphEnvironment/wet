@@ -152,4 +152,5 @@ GSDD error is the mean over stations of each station's mean absolute error, in �
 - No seasonal hysteresis term. The monthly bias above is small enough not to need one at the gauges.
 - Validation is at ECCC gauges only; no logger series was held out.
 - The interval has no parameter uncertainty.
+- No screen for a reading that is not water beside a gap. The fill restarts from every observed day, so the last reading before a gap sets where it begins: at 08EE012 on 24 August 2020 (15.5 째C after 9.6 째C, air at 9.8 째C, no neighbour moving more than 0.5 째C) it carried 67 째C-days into the year's 1,460 (measured 2026-11-25, #220; the screen is #222).
 - At a station with no record: no network model (#223), no interval on GSDD, and no small-stream loggers in the holdout (#215).
