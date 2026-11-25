@@ -547,8 +547,8 @@ for (id in names(own)) {
 }
 ```
 
-Swift and Naver creeks have cited windows too. Fraser River chinook enter the river from
-April [@bradford_taylor2023Diversityfreshwater, p. 131; citing @cosewic2018COSEWICAssessment],
+Swift and Naver creeks have cited windows too. Spring and summer chinook bound for the Fraser
+above the Thompson enter the river from April [@bradford_taylor2023Diversityfreshwater, p. 131; citing @cosewic2018COSEWICAssessment],
 and Cottonwood River chinook pass the lower Fraser in April and May
 [@candy_etal2002discussionpaper, p. 22]. Spawner surveys
 [@fisheriesandoceanscanadaNuSEDSNewSalmon] set each spawning window from about August 10 to early
@@ -731,7 +731,7 @@ if (!is.null(f)) {
   y <- y[!grepl("^\\s*$", y)]
   n <- sum(lengths(strsplit(trimws(y), "\\s+")))
   message("body prose: ", n, " words")
-  cap <- 1245   # 1140 until #187 reported Swift and Naver creeks under their own windows and said the Fraser windows' edges are estimates; 1000 until #152 restated the window's full name per section; 1060 until #147 said how donors are chosen, in plain words, and gave Maxan's short reference period
+  cap <- 1253   # 1140 until #187 reported Swift and Naver creeks under their own windows and said the Fraser windows' edges are estimates; 1000 until #152 restated the window's full name per section; 1060 until #147 said how donors are chosen, in plain words, and gave Maxan's short reference period
   if (n > cap) stop("body prose is ", n, " words; the cap is ", cap)
 }
 ```

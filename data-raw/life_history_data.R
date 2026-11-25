@@ -15,7 +15,8 @@
 # - MORR: Bustard and Schell (2002) (migration 05-01..09-30, spawning
 #   09-01..10-07).
 # - UFRA: migration 04-01..08-10 (Bradford and Taylor 2023, citing COSEWIC
-#   2018, for Fraser entry from April; NuSEDS), spawning 08-11..09-05
+#   2018, for spring- and summer-run entry to the Fraser above the Thompson
+#   from April; NuSEDS), spawning 08-11..09-05
 #   (NuSEDS median start and end of spawning; Candy et al. 2002).
 # - COTR: migration 04-01..08-09 (Candy et al. 2002; NuSEDS), spawning
 #   08-10..09-06 (NuSEDS; Candy et al. 2002).
