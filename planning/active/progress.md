@@ -58,3 +58,6 @@
   wording changed after round 4, the verdict, the archive and the pull request
 - Commits: one per round's fixes, the wording pass, the heading and small-streams change, the legend order,
   the outside-modeller wording
+- Later the same day: the owner read the page, the basin was named as an example of a province-wide aim, a
+  fifth short round reviewed the last wording (2 items fixed), and the verdict was written (enumeration, 5
+  rounds). Next: the archive and the pull request

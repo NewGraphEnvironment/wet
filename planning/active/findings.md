@@ -200,6 +200,7 @@ Four review rounds, each by a reviewer with none of this session's context, find
 | 2 | 4 fragile | 4 | yes: the README line still made the claim round 1 had narrowed in the article |
 | 3 | 3 fragile, and the mechanism with a table of 163 claims | 3 | yes: the lake guard could fail one way only; a reworded aside had gained an unmeasured "usually" |
 | 4 | none: 189 claims re-walked, 169 ok, 20 weak, 0 wrong | leftovers cleared | no |
+| 5 | 2 fragile, on the 36 claims changed after round 4 | 2 | yes: three unrendered copies kept wording the pass had replaced |
 
 - **The mechanism (round 3):** the article's numbers have a producer and its sentences do not. A fact typed by
   hand sits in up to nine places (prose, caption, alt text, registry label, chain box or arrow, README,
@@ -224,8 +225,13 @@ Four review rounds, each by a reviewer with none of this session's context, find
   stations, so a hidden station's readings may sit inside its neighbours' filled records. That is for the
   baseline issue, put to the owner.
 - **Words:** 1,199 against the cap of 1,200.
-- **Still to do before the pull request:** the owner reads the rendered page; then one review round on what
-  changed after round 4 (the outside-modeller wording), and the verdict file.
+- **How the loop ended:** by enumeration. Round 4 walked 189 claims and found none wrong; round 5 walked the 36
+  changed after it, and its two findings were fixed with their copies swept by grep (`review-verdict.md`).
+  Eight reviewer and reader agents ran on this task: the plan review, two cold readers and five review rounds.
+- **After the last fix:** the whole suite again (`data/logs/220/devtools_test_2.log`: 541 tests, 0 failed, 3,618
+  passed, the same 9 skips), `pkgdown::check_pkgdown()` clean, three pkgdown builds byte-identical, 1,198 words.
+- **The owner read the rendered page** and asked for one more thing, that the basin be said to be an example of
+  a province-wide aim; he then asked for the pull request.
 
 ## Errors Encountered
 

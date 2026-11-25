@@ -224,8 +224,8 @@ What exploration found, which shapes the phases:
 ## Validation
 
 - [x] Tests pass (`NOT_CRAN=true`, the whole suite)
-- [ ] `/code-check branch` clean
-- [ ] PWF checkboxes match landed work
+- [x] `/code-check branch` clean
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
 How each change is proved:
