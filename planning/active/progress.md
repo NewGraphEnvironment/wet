@@ -7,6 +7,12 @@
 - Scaffolded PWF baseline from issue #210 with the drafted phases
 - Next: parked 2026-11-25; paste the block under ### Resume into a fresh session
 
+## Phase 1, 2026-11-25 (#190)
+- Resumed; main moved only CLAUDE.md (a convention heading) and a temperature research file, so the plan stands. The owner answered the six open decisions (all as recommended; the disclaimer accepted, publishing unrestricted).
+- Registered the portal script's rules and pick, committed before any portal read (a6a029f5); read 10 of 11 stations; the report is byte-identical on a rerun from cache.
+- The pinned files are current from water year 2022; water year 2021 has been revised since; the newer pin is filed as #232; #190's body edited.
+- Next: Phase 2 (#192, Hakai).
+
 ### Resume
 
 ```

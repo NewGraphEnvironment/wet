@@ -49,6 +49,11 @@
 #    or 0.0005 m^3/s, whichever is larger: hours, portal against province
 #    (reference the province); days, portal against province (reference the
 #    province) and portal against Tool (reference the Tool).
+#    Amendment 1 (after the first read, before any share was computed): the
+#    exports mark gaps as rows of grade -3 (GAP) with the value NaN; those
+#    rows are no value, and rows of grade -2 (UNUSABLE) are left out, as the
+#    province's Unusable hours are. Any other value that is not a finite
+#    number is still refused.
 # 5. The verdict per year, on the station-days where the portal, the province
 #    and the Tool all have a day: "province" when the portal agrees with the
 #    province on at least 90 % of them and on at least 5 points more than
@@ -223,6 +228,8 @@ portal_read <- function(path, s) {
   x <- utils::read.csv(text = lines[hdr:length(lines)], colClasses = "character", na.strings = character(),
                        check.names = FALSE)
   x <- x[nzchar(x[[2]]), ]
+  # amendment 1: grade -3 (GAP) rows carry NaN, and grade -2 (UNUSABLE) is left out as the province's Unusable
+  x <- x[!(x[[3]] == "-3" & x[[2]] == "NaN") & x[[3]] != "-2", ]
   v <- suppressWarnings(as.numeric(x[[2]]))
   if (any(!is.finite(v))) stop(path, ": a value that is not a finite number", call. = FALSE)
   t <- as.POSIXct(x[[1]], format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
@@ -284,6 +291,12 @@ st_year <- unlist(lapply(ok, function(s) {
             if (nrow(hy)) sprintf("%.1f", 100 * mean(hy$ok)) else "-")
   }, "")
 }))
+hh$month <- format(hh$t, "%Y-%m")
+mons <- sort(unique(hh$month), method = "radix")
+by_month <- vapply(mons, function(m) {
+  h <- hh[hh$month == m, ]
+  sprintf("    %s %6d %5.1f %3d", m, nrow(h), 100 * mean(h$ok), length(unique(h$station_number)))
+}, "")
 skipped <- names(fetched)[!names(fetched) %in% ok]
 
 out <- c(head_lines, pick_lines, "",
@@ -297,6 +310,9 @@ out <- c(head_lines, pick_lines, "",
   by_year,
   "",
   "By station and year: station, year, station-days, % with province, % with Tool; hours, % hours with province",
-  st_year)
+  st_year,
+  "",
+  "By month, every picked station's hours: month, hours compared, % portal hours agree with province, stations",
+  by_month)
 writeLines(out, report)
 message("wrote ", report)

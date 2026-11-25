@@ -53,8 +53,18 @@ When the plan finds that a batch, or one of its members, is more than one PR's w
   `wet_station_list()` splices a continued station's `first`, `licence` and `credit`. Both are
   Tool-specific and are generalised in Phase 2.
 
+## Phase 1: the Aquarius portal (#190), 2026-11-25
+
+- **Terms.** The portal's own disclaimer (above) and the page it links, `gov.bc.ca/disclaimer` (updated 2016-09-07): a warranty disclaimer and a limitation of liability, no restriction on use. The vendor's `us.aquaticinformatics.net/legal/terms-of-use` is a JavaScript app (a OneTrust notice) that renders nothing to a script; it covers Aquatic Informatics' own site. The owner accepted (decision 1) and said publishing is unrestricted.
+- **Request shape.** `POST /AcceptDisclaimer` with the page's `__RequestVerificationToken` sets the session cookie; `GET /Data/SearchLocations/?term=<id>&limit=21` gives the location's `IDNumber`; `GET /Data/DataSets/?locationid=<IDNumber>` lists its data sets (`Discharge.Working@<id>`, also `Discharge.Field Visits` and `Discharge.Logger`); `GET /Export/DatasetCalculations?datasetId=<n>` lists units (m^3/s instantaneous is UnitId 350); `GET /Export/BulkExport?DateRange=Custom&StartTime=...&EndTime=...&TimeZone=0&Interval=PointsAsRecorded&ExportFormat=csv&IncludeGradeCodes=True&IncludeApprovalLevels=True&Datasets[0].DatasetName=Discharge.Working@<id>&Datasets[0].Calculation=Instantaneous&Datasets[0].UnitId=350` returns 15-minute points in UTC with grade and approval codes (800 working, 900 in review, 950 reviewed, 1200 approved).
+- **The provincial files' hour is the portal's point at the hour, rounded** to 0.001 m^3/s (07FC0001, 2023-07-01 00:00: portal 0.6192893, files 0.619).
+- **Gaps** are rows of grade -3 with value `NaN` (amendment 1 in the script header).
+- **Result** (`data/checks/station_sources_portal_20261125.txt`): the files equal the portal from 2021-10 to 2026-05; January–September 2021 has been revised since both copies were taken; June–October 2026 is partly revised. An ad hoc read of three stations (not in the report) had the disagreeing 2021 hours all at approval 800 (working), with portal/file ratios drifting month to month, 0.72–1.30 at 08NM0002.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
 | curl to the Aquarius portal returns `/InvalidBrowser` HTTP 500 | Send a browser user-agent |
+| The Tool's listings 13511 and 27812 are missing from the manifest | The survey ordered Tool ids as numbers before dropping duplicate nids; order numerically |
+| A plan edit matched an inline mention of `## Open decisions` and truncated the plan (committed in a6a029f5) | Restored from the baseline; match the heading with its newlines |
