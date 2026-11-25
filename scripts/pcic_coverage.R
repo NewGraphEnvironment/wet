@@ -96,11 +96,11 @@ grp <- sf::st_read(conn, quiet = TRUE, query = "
   FROM whse_basemapping.fwa_watershed_groups_poly ORDER BY watershed_group_code")
 stopifnot(nrow(grp) == 246L, !anyDuplicated(grp$watershed_group_code))
 outlets <- DBI::dbGetQuery(conn, "
-  SELECT s.watershed_group_code, count(*)::double AS placed_outlets
+  SELECT s.watershed_group_code, count(*)::double precision AS placed_outlets
   FROM pcic.fwa_crosswalk x JOIN whse_basemapping.fwa_stream_networks_sp s ON s.linear_feature_id = x.linear_feature_id
   WHERE x.flag IS NULL GROUP BY s.watershed_group_code ORDER BY s.watershed_group_code")
 sw <- DBI::dbGetQuery(conn, "
-  SELECT watershed_group_code, subid / 1000000 AS prefix, count(*)::double AS n
+  SELECT watershed_group_code, subid / 1000000 AS prefix, count(*)::double precision AS n
   FROM pcic.segment_weights GROUP BY 1, 2 ORDER BY 1, 2")
 DBI::dbDisconnect(conn)
 sw$domain <- domain_of(sw$prefix * 1e6)
