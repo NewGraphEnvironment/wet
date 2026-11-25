@@ -60,7 +60,7 @@ The review moved the per-gauge computation into the rule file and added an end-t
   - `dd_gauge()` end to end, through the real `wet_window_extend()` and `wet_departure_carry()`: three long gauges ending 2024 and one station with years 2016–2026 return both carries, with the station's 2025 value carried as observed; a box with no candidate returns identical carries; a station at the held-out gauge's own site is left out; a held-out gauge whose HYDAT donors are all removed is returned as not scored, with its reason, without an error; a station no gauge covers is not eligible, with its reason; any other error from either function propagates.
 - [x] `scripts/departure_donors_rule.R`: the rule below as its header, then the constants and the functions the tests name. No database, no download.
 - [x] `research/chinook_sites.md`: a section "Natural stations outside HYDAT as donors" stating the rule as registered and the counts as seen on 2026-11-25, dated and marked as seen before any score. Add #211 and #202 to the header's issues.
-- [ ] Commit the rule file, its tests and the research section alone, before `scripts/departure_donors.R` exists. Note the sha in `progress.md`.
+- [x] Commit the rule file, its tests and the research section alone, before `scripts/departure_donors.R` exists. Note the sha in `progress.md`.
 
 #### The rule to register (the header of `scripts/departure_donors_rule.R`)
 
@@ -109,17 +109,17 @@ The review moved the per-gauge computation into the rule file and added an end-t
 
 The review replaced one invariant that real data would have broken, added the leak assertion and the parity gate against two site reports, and made the final run start from an empty cache.
 
-- [ ] `scripts/departure_donors.R`: sources the rule file and refuses to run when it differs from its registering commit (the guard at lines 30–43 of `scripts/station_regulation.R`, `rule_commit` and md5). Refuses a HYDAT release other than 20260717 and a station snapshot other than 20261028. Reads fwapg through the `WET_PG*` variables, as `scripts/station_regulation.R` does (the site script reads bare `PG*`), probing first with `connect_timeout = 10`; without fwapg it stops.
-- [ ] One process loops over the gauges, calling the rule file's `dd_gauge()`. Daily flows and window statistics for all natural BC HYDAT gauges and the natural stations outside HYDAT are read once and cached under `<WET_DATA_ROOT>/departure_donors/` (default `data/`), keyed on the release, the snapshot and the rule file's md5. Extensions are fitted per held-out gauge, never cached per station.
-- [ ] Asserted, the run stopping otherwise:
+- [x] `scripts/departure_donors.R`: sources the rule file and refuses to run when it differs from its registering commit (the guard at lines 30–43 of `scripts/station_regulation.R`, `rule_commit` and md5). Refuses a HYDAT release other than 20260717 and a station snapshot other than 20261028. Reads fwapg through the `WET_PG*` variables, as `scripts/station_regulation.R` does (the site script reads bare `PG*`), probing first with `connect_timeout = 10`; without fwapg it stops.
+- [x] One process loops over the gauges, calling the rule file's `dd_gauge()`. Daily flows and window statistics for all natural BC HYDAT gauges and the natural stations outside HYDAT are read once and cached under `<WET_DATA_ROOT>/departure_donors/` (default `data/`), keyed on the release, the snapshot and the rule file's md5. Extensions are fitted per held-out gauge, never cached per station.
+- [x] Asserted, the run stopping otherwise:
   - in every scored year each value of a station outside HYDAT is observed, never extended;
   - a gauge whose box holds no candidate gives identical departures from both carries;
   - neither g, nor in the leak-free pool any gauge or station related to g, appears in an extension chain (`attr(e, "donors")`) or in a `donors` string used for g;
   - the pools at Swift's and Naver's targets (08KA012, 08KE014) equal the counts line of `data/checks/departure_site_swift_bulk_20260717.txt` and `data/checks/departure_site_naver_bulk_20260717.txt` (box pool, extension pool, departure pool: 30, 11, 13 and 58, 17, 24), so the box and the pools are the site script's.
-- [ ] The report `data/checks/departure_donors_20260717_20261028.txt`: no timestamp; rows ordered on station number with `method = "radix"`; section 1 restates the population counts of "What exploration found" from the script's own data, naming any that differs from the rule header's; then the rule's commit and md5, the scores, the verdict with its reason, everything the rule lists under "Reported", the scored gauges with the stations each drew on.
-- [ ] Run it from a frozen copy (`cp scripts/departure_donors.R "$TMPDIR/d.R" && Rscript "$TMPDIR/d.R"`) with the cache directory removed first; log under `data/logs/211/`. Touch nothing it reads while it runs.
-- [ ] Prove the guards: in a `git worktree` copy, a one-character edit to the rule file makes the script refuse, and removing `dd_baseline_rows()`'s baseline filter fails its test. A second run, from the cache, writes the report byte for byte (`cmp`).
-- [ ] Commit the script and the tracked report.
+- [x] The report `data/checks/departure_donors_20260717_20261028.txt`: no timestamp; rows ordered on station number with `method = "radix"`; section 1 restates the population counts of "What exploration found" from the script's own data, naming any that differs from the rule header's; then the rule's commit and md5, the scores, the verdict with its reason, everything the rule lists under "Reported", the scored gauges with the stations each drew on.
+- [x] Run it from a frozen copy (`cp scripts/departure_donors.R "$TMPDIR/d.R" && Rscript "$TMPDIR/d.R"`) with the cache directory removed first; log under `data/logs/211/`. Touch nothing it reads while it runs.
+- [x] Prove the guards: in a `git worktree` copy, a one-character edit to the rule file makes the script refuse, and removing `dd_baseline_rows()`'s baseline filter fails its test. A second run, from the cache, writes the report byte for byte (`cmp`).
+- [x] Commit the script and the tracked report.
 
 ### Step 3: the verdict, in the text a reader meets
 

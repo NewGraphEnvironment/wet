@@ -45,3 +45,12 @@ Start Phase 1 and run every phase to the PR (/code-check branch, /planning-archi
 /gh-pr-push). This message is the resume instruction that starts the run-to-PR
 mandate; the merge stays with me.
 ```
+
+## Phase 1, 2026-11-25 (resumed)
+
+- Resume checks passed; main moved only by a CLAUDE.md sync (a convention heading), so the plan stood. Merged origin/main.
+- `members_check.sh --batch 20`: `FREE #202`.
+- Open decisions 1 and 2 were already answered in #211's body (the owner, at the coordinator's plan gate): scope (a), the bar as drafted with the three extra lines reported. Folded into "Decided at the gate"; the heading removed.
+- Step 1: rule registered at a7455e45 (`scripts/departure_donors_rule.R`, its tests, the research section), before `scripts/departure_donors.R` existed. 68 expectations pass; removing `dd_baseline_rows()`'s baseline filter turns two tests red (checked on a scratch copy).
+- Step 2: `scripts/departure_donors.R` and its report. A first full run scored nothing: the script's station table dropped `regulation`, so `dd_candidate()` saw `NULL`, returned a zero-length vector and every box looked empty (the no-candidate identity held vacuously). Fixed in the script (the column kept; a refusal when `dd_candidate()` is not given its columns or answers the wrong length), not in the registered rule file. The final run started from an empty cache (24 min, `data/logs/211/final_cold.log`); a second from the cache wrote the report byte for byte (`final_warm.log`, `cmp`). In a scratch worktree, a one-character edit to the rule file made the script refuse.
+- Result: the donor pool stays HYDAT-only. Median paired RMSE difference +0.0317 leave-one-gauge-out (50 gauges), +0.0147 leak-free (53); every sensitivity would not ship.
