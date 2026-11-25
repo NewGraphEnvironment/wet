@@ -56,7 +56,14 @@ if (wet_bcenv_snapshot != dd_snapshot || wet_bcwatertool_snapshot != dd_snapshot
 }
 hydat <- wb_hydat(release)
 report <- file.path("data", "checks", sprintf("departure_donors_%s_%s.txt", release, dd_snapshot))
-key <- substr(digest::digest(paste(release, dd_snapshot, rule_md5), algo = "md5", serialize = FALSE), 1, 10)
+# the key covers every input the cache holds: the release, the snapshot, the rule, the windows
+# file, the station registries and regulation file, the statistics, and wet's own R code
+key_files <- c(file.path("inst", "vignette-data", "life_history_bulk.csv"),
+               rsort(list.files(file.path("inst", "extdata", "station_sources"), full.names = TRUE)),
+               rsort(list.files("R", pattern = "[.]R$", full.names = TRUE)))
+key <- substr(digest::digest(paste(c(release, dd_snapshot, rule_md5, "mean min7 max cov_day",
+                                     unname(tools::md5sum(key_files))), collapse = " "),
+                             algo = "md5", serialize = FALSE), 1, 10)
 cache <- file.path(Sys.getenv("WET_DATA_ROOT", "data"), "departure_donors", key)
 dir.create(cache, recursive = TRUE, showWarnings = FALSE)
 cached <- function(name, expr) {
@@ -80,7 +87,7 @@ stats <- c("mean", "min7", "max", "cov_day")
 cols <- c("station_number", "variable", "period", "year", "value")
 
 # ---- HYDAT: natural BC gauges, approved days ----------------------------------------------------
-hy <- cached("hydat_stations", {
+hy <- cached("hydat_stations", local({   # local(): on.exit() needs a frame
   con <- wet:::wet_hydat_connect(hydat)
   on.exit(DBI::dbDisconnect(con))
   DBI::dbGetQuery(con, "
@@ -89,7 +96,7 @@ hy <- cached("hydat_stations", {
     FROM STATIONS s JOIN STN_REGULATION r USING (STATION_NUMBER)
     WHERE s.PROV_TERR_STATE_LOC = 'BC'
     ORDER BY s.STATION_NUMBER")
-})
+}))
 nat <- hy[hy$regulated == 0 & !is.na(hy$lon) & !is.na(hy$lat) & !is.na(hy$drainage_area_gross_km2), ]
 ws_h <- cached("hydat_window_stats", {
   stamp("reading HYDAT days for ", nrow(nat), " natural BC gauges")
@@ -143,7 +150,7 @@ connect <- function() {
                  password = Sys.getenv("WET_PGPASSWORD", "postgres"),
                  connect_timeout = 10)
 }
-fw <- cached("fwapg", {
+fw <- cached("fwapg", local({
   conn <- connect()
   on.exit(DBI::dbDisconnect(conn))
   ids <- st_o$linear_feature_id[!is.na(st_o$linear_feature_id)]
@@ -163,7 +170,7 @@ fw <- cached("fwapg", {
                                                                        "drainage_area_gross_km2")])
   list(lookup = lk, snap = sn[order(sn$station_number, method = "radix"),
                               c("station_number", "wscode", "localcode", "accepted")])
-})
+}))
 lk <- fw$lookup[match(st_o$linear_feature_id, fw$lookup$linear_feature_id), ]
 st_o$drainage_area_gross_km2 <- lk$upstream_area_km2
 st_o$wscode <- lk$wscode
@@ -514,8 +521,15 @@ for (pool in c("loo", "leakfree")) {
         !all(h1 %in% h0)
       }, TRUE))
     }, 0))
-    say(sprintf("  Scored gauge-years whose HYDAT donors with the stations are not among those without: %d of %d.",
-                swaps, sum(vapply(sc, function(r) length(r$years), 0L))))
+    fewer <- sum(vapply(sc, function(r) {
+      sum(vapply(r$years, function(y) {
+        length(setdiff(dd_donor_ids(r$with$donors[r$with$year == y]), st_o$station_number)) <
+          length(dd_donor_ids(r$without$donors[r$without$year == y]))
+      }, TRUE))
+    }, 0))
+    n_sy <- sum(vapply(sc, function(r) length(r$years), 0L))
+    say(sprintf("  Scored gauge-years whose HYDAT donors with the stations are not among those without: %d of %d; with fewer HYDAT donors than without (a station took a place): %d of %d.",
+                swaps, n_sy, fewer, n_sy))
   }
 }
 say("")
