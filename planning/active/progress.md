@@ -17,3 +17,14 @@
 - Corrected in the plan: season dates come from `gsdd::gss()`; no cube drop-and-retry
 - Commits: the script and table, then the bundle with its tests
 - Next: Phase 2, the basin map bundle
+
+## Phase 2, 2026-11-25
+
+- Completed: `vm_tree()`, the map script and bundle (393 KB, every stream order drawn), the colour registry,
+  the map's tests
+- The plan review returned (`review-220.md`: one blocker, the recipe; no owner fork) and was folded into the
+  plan and both scripts: the values bundle was rebuilt with the basin's code, the candidates' run lengths
+  and a second fill with the day before the gap hidden (that reading is worth 67 °C-days of the year's 1,460)
+- Commits: the helper, script and registry; the review's script changes; the rebuilt values; the map bundle
+  with the tests and this record
+- Next: Phase 3, the article

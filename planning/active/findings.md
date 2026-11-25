@@ -90,8 +90,42 @@ The first two weeks of the fill are too warm, and the year's degree days with th
 rule is not bent and the day is shown as read; the article says what it is. Ours: a limit of the fill (an
 unscreened reading beside a gap is carried into it), to be filed as its own issue.
 
+## The map bundle (Phase 2)
+
+`Rscript data-raw/temperature_vignette_map.R`, run logs `data/logs/220/temperature_vignette_map_*.log`.
+
+- **The basin is the watershed polygons under the Bulkley's code, not its watershed groups.** 52,293 tree
+  segments carry a code under 400.431358: 30,046 in BULK, 22,245 in MORR and one each in KISP and ZYMO, so
+  the groups' polygon is not the basin's (a first version that used it stopped on its own guard). The 35,191
+  fundamental watershed polygons under the code union to one part with no holes, 12,141 km², in 6.5 s.
+- **Every stream order fits.** The tree as one MULTILINESTRING per order, xz-compressed:
+
+  | simplified at | orders 1 and up | 2 and up | 3 and up |
+  |---|---|---|---|
+  | 100 m | 436 KB (55,541 vertices) | 144 KB | 61 KB |
+  | 200 m | 351 KB (44,544 vertices) | 104 KB | 39 KB |
+  | 300 m | 322 KB (40,697 vertices) | 90 KB | 31 KB |
+
+  At 200 m (about a pixel of a 7 in map of a 165 by 226 km window at 150 dpi) and every order, the map bundle
+  is 393 KB and the two temperature bundles 402 KB together, under the test's 500 KB. So the cut is order 1:
+  no reach is left undrawn. Whether that many lines read at the published width is Phase 4's figure review.
+- **The tree by order:** 27,858 / 11,401 / 5,926 / 3,659 / 1,663 / 989 / 253 / 544 segments at orders 1 to 8;
+  24,675 km in all. All eleven stations sit on a tree segment.
+- **Which tree:** the build database's table has four columns and no comment, 4,510,368 rows (the count of
+  the fork's 2026-10 build) and no upstream-area column, so the additive-function step of the network check
+  has not been run on this copy. The bundle records the row count and an md5 of the basin's ordered ids.
+- A rerun reports every layer identical and leaves the file as it is.
+
+## What the suspect day adds (from the review, A1)
+
+The values bundle carries a second fill with 24 August 2020 hidden (`year$t_edge_c`, `edge`), a comparison
+beside the pick. Across the 29 gap days the fill sums to 320.7 °C-days, the fill without that day to 259.7
+and open-loop air2stream to 245.0. The year's degree days are 1,460.4 as read and 1,393.4 with the day
+hidden: one reading is worth 67 °C-days, five times the 30-day holdout's mean degree-day error (12.8).
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
 | The plan took the season's dates from `gsdd::gsdd()`, which returns `year` and `gsdd` only | `gsdd::gss()` returns each season's `start_dayte` and `end_dayte`; its `gsdd` is held to `wet_temp_gsdd()`'s |
+| `vm_tree()` took the basin's polygon from its watershed groups and stopped on its own guard: BULK, KISP, MORR and ZYMO hold 94,575 tree segments, 52,293 under the Bulkley's code | The basin is the fundamental watershed polygons under the main stem's code |

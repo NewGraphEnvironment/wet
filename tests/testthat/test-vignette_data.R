@@ -13,7 +13,7 @@ test_that("each vignette's bundled data stays under 500 KB", {
                  monthly = c("monthly_values.rds", "monthly_map.rds"),
                  short_record = c("short_record_values.rds", "short_record_map.rds"),
                  chinook_sites = c("life_history_morr.csv", "chinook_sites_values.rds", "chinook_sites_map.rds"),
-                 temperature = c("temperature_values.rds"))
+                 temperature = c("temperature_values.rds", "temperature_map.rds"))
   expect_setequal(files, unlist(budget))
   for (v in names(budget)) {
     expect_lt(sum(file.size(vignette_data(budget[[v]]))), 500 * 1024)
@@ -341,7 +341,7 @@ test_that("the Chinook sites' map layers are sf in BC Albers, two regional maps 
 
 test_that("the temperature values hold plain types, the basin's stations and the fill's error", {
   v <- readRDS(vignette_data("temperature_values.rds"))
-  expect_named(v, c("basin", "stations", "pool", "candidates", "pick", "year", "season", "gsdd", "fit",
+  expect_named(v, c("basin", "stations", "pool", "candidates", "pick", "year", "season", "gsdd", "edge", "fit",
                     "validation", "provenance"))
   for (x in list(v$stations, v$candidates, v$year, v$season)) {
     expect_false(any(vapply(x, inherits, NA, "integer64")))
@@ -349,7 +349,8 @@ test_that("the temperature values hold plain types, the basin's stations and the
   expect_s3_class(v$year$date, "Date")
   expect_false(anyDuplicated(v$stations$station_number) > 0)
   # every station sits under the basin's main stem, on a whole-numbered segment
-  main <- v$stations$wscode[v$stations$station_number == "08EE003"]
+  main <- v$basin$wscode
+  expect_match(main, "^[0-9]{3}(\\.[0-9]{6})*$")
   expect_true(all(v$stations$wscode == main | startsWith(v$stations$wscode, paste0(main, "."))))
   expect_equal(v$stations$linear_feature_id, round(v$stations$linear_feature_id))
   expect_true(v$pick$station_number %in% v$stations$station_number)
@@ -371,6 +372,16 @@ test_that("the temperature pick follows the rule on the bundle's own candidate t
   expect_true(v$pick$gap_max %in% c(45, 60))
   if (v$pick$gap_max == 60) expect_false(any(rule(45)))
   expect_identical(cand$qualifies, rule(v$pick$gap_max))
+  # the gap is recomputed from each year's runs of missing days: one run longer than 2 days,
+  # touching neither end of 1 March to 30 November
+  one_gap <- vapply(seq_len(nrow(cand)), function(i) {
+    days <- as.integer(strsplit(cand$run_days[i], ",")[[1]])
+    edge <- as.integer(strsplit(cand$run_edge[i], ",")[[1]]) == 1
+    long <- which(days > 2)
+    if (length(long) == 1 && !edge[long]) days[long] else NA_integer_
+  }, 0L)
+  expect_identical(one_gap, cand$gap_days)
+  expect_identical(as.integer(cand$gap_end - cand$gap_start) + 1L, cand$gap_days)
   # closest to 30 days, then the later year, then the lower station number
   o <- order(abs(cand$gap_days - 30), -cand$year, cand$station_number, method = "radix")
   o <- o[cand$qualifies[o]]
@@ -407,4 +418,48 @@ test_that("the picked year is filled where the station has no day, and its degre
   expect_equal(sum(v$season$gsdd), v$gsdd$filled, tolerance = 1e-10)
   expect_true(is.na(v$gsdd$unfilled))
   expect_true(any(v$season$start <= v$pick$gap_start & v$season$end >= v$pick$gap_end))
+})
+
+test_that("the fill with the day before the gap hidden is a comparison beside the pick", {
+  v <- readRDS(vignette_data("temperature_values.rds"))
+  y <- v$year
+  in_gap <- y$date >= v$pick$gap_start & y$date <= v$pick$gap_end
+  expect_equal(v$edge$date, v$pick$gap_start - 1)
+  expect_false(y$filled[y$date == v$edge$date])
+  expect_equal(sum(y$t_mean_c[in_gap]), v$edge$gap_filled)
+  expect_equal(sum(y$t_edge_c[in_gap]), v$edge$gap_edge)
+  expect_equal(sum(y$s_open_c[in_gap]), v$edge$gap_open)
+  expect_false(is.na(v$edge$gsdd))
+})
+
+test_that("the temperature map draws the values bundle's stations on the whole of the basin's tree", {
+  skip_if_not_installed("sf")
+  v <- readRDS(vignette_data("temperature_values.rds"))
+  m <- readRDS(vignette_data("temperature_map.rds"))
+  expect_named(m, c("basin", "tree", "streams", "lakes", "places", "stations", "extent", "bc"))
+  for (nm in names(m)) {
+    expect_s3_class(m[[nm]], "sf")
+    expect_equal(sf::st_crs(m[[nm]])$epsg, 3005L, info = nm)
+    expect_gt(nrow(m[[nm]]), 0)
+  }
+  # one set of stations and segments in both bundles, and one pick
+  expect_identical(m$stations$station_number, v$stations$station_number)
+  expect_identical(m$stations$linear_feature_id, v$stations$linear_feature_id)
+  expect_identical(m$stations$station_number[m$stations$picked], v$pick$station_number)
+  expect_identical(m$stations$fitted, v$stations$fitted)
+  # the network's numbers are the per-order table's, and every order in it is drawn
+  net <- attr(m, "network")
+  expect_identical(net$wscode, v$basin$wscode)
+  expect_equal(net$reaches, sum(net$orders$segments))
+  expect_equal(net$km, sum(net$orders$km))
+  expect_identical(m$tree$stream_order, net$orders$stream_order[net$orders$drawn])
+  expect_equal(net$with_station, length(unique(v$stations$linear_feature_id)))
+  expect_lt(net$with_station, net$reaches)
+  # the towns the basin's row names, each once
+  expect_setequal(m$places$name, strsplit(v$basin$towns, ";")[[1]])
+  expect_false(anyDuplicated(m$places$name) > 0)
+  # which tree was drawn
+  tree <- attr(m, "provenance")$tree
+  expect_match(tree$basin_ids_md5, "^[0-9a-f]{32}$")
+  expect_gt(tree$rows, net$reaches)
 })

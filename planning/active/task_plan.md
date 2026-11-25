@@ -27,10 +27,10 @@ What exploration found, which shapes the phases:
 - `wet_temp_fill()` needs the station's whole record and its sub-drainage peers to fit, so the fill is run in
   `data-raw/` and its result bundled; `wet_temp_gsdd()` returns the value but not the season's dates, which
   `gsdd::gsdd()` gives.
-- This Mac's fwapg holds `whse_basemapping.fwa_stream_networks_mainflow_tree`. The Bulkley (BULK and MORR) has
-  57,371 network segments, 33,000 of them first order, so what the map can draw inside 500 KB is measured,
-  not assumed.
-- `gsdd` is not installed on this Mac; `fresh` (0.55.1, published 0.57.0) and `gq` (0.22.0, published 0.25.0)
+- The build database holds `whse_basemapping.fwa_stream_networks_mainflow_tree`. The Bulkley's tree is 52,293
+  segments, 27,858 of them first order (the 57,371 first written here counted every Freshwater Atlas segment
+  of the BULK and MORR groups), so what the map can draw inside 500 KB is measured, not assumed.
+- `gsdd` is not installed on the build machine; `fresh` (0.55.1, published 0.57.0) and `gq` (0.22.0, published 0.25.0)
   are stale. Zotero answers here, so the `.bib` can be written.
 - A read of the public archive (2002–2025, the eight `08EE` stations) found one year that has a single gap
   inside an otherwise observed March to November: 08EE012, Simpson Creek at the mouth, 2020, 25 August to
@@ -88,13 +88,17 @@ What exploration found, which shapes the phases:
 - **The article does not call `gsdd` at build.** The bundle carries the fill and the degree-day value; the
   article accumulates the bundled daily means over the bundled season and stops unless its total equals the
   bundled value.
-- **Package installs on this Mac, approved with this plan:** `gsdd` (in `Suggests`, missing), and `fresh` and
+- **Package installs on the build machine, approved with this plan:** `gsdd` (in `Suggests`, missing), and `fresh` and
   `gq` brought to their published releases before the data scripts run.
 - **The issue body moved during the plan gate** (edited 2026-11-25 18:11 UTC; re-read before this baseline).
   Its closing now says growing-season degree-day thresholds exist for cutthroat trout (from Colorado
   subspecies, applied to westslope cutthroat in the Elk Valley reports) and none has been found yet for the
   other BC species, where the copy the plan was approved on said no source gives one for a BC species. Phase
   3's closing section and its citations follow the body as it stands; nothing else in the plan moves.
+- **Folded in from the plan review** (`review-220.md`, 2026-11-25; mine): the recipe is the whole pool, not
+  one station; Figure 1 draws the open-loop line and its caption states what the suspect day adds, from a
+  second fill with that day hidden; the article closes on open-loop's whole-season error, named as such; the
+  word cap is 1,200, set before drafting; a reader with none of the repo's context reads the built page.
 - **Release:** a NEWS bullet under the development heading and `Bump: patch` in the PR body; no function
   changes.
 
@@ -124,21 +128,26 @@ What exploration found, which shapes the phases:
 
 ## Phase 2: The basin map bundle
 
-- [ ] `vm_tree()` in `scripts/vignette_map_lib.R`: the main-flow tree's segments under a main stem's watershed
+- [x] `vm_tree()` in `scripts/vignette_map_lib.R`: the main-flow tree's segments under a main stem's watershed
       code, ordered on `linear_feature_id`, merged per blue line and stream-order class and simplified in sf,
       with a per-order table of every segment (drawn or not), and the basin polygon with its area taken before
       the simplify.
-- [ ] `data-raw/temperature_vignette_map.R`: basin, tree, lakes (`vm_lakes()`), towns (`vm_places()`, from the
+- [x] `data-raw/temperature_vignette_map.R`: basin, tree, lakes (`vm_lakes()`), towns (`vm_places()`, from the
       basin row), the province outline (`vm_bc()`), the stations as points with the pick marked, the rivers the
       map names; `vm_layers()` provenance plus the tree's build as far as the database records it; written
       with `vm_write()`.
-- [ ] Measure the bundle at each minimum order and take the lowest that keeps both temperature bundles under
+- [x] Measure the bundle at each minimum order and take the lowest that keeps both temperature bundles under
       500 KB together; record the measurements in `findings.md`.
-- [ ] `inst/cartography/wet_temperature.csv`: the map's classes (basin, network, station, the picked station),
+- [x] `inst/cartography/wet_temperature.csv`: the map's classes (basin, network, station, the picked station),
       the station-year figure's (observed, filled, interval, air, season), the diagram's four states and the
       sketch's marks.
-- [ ] Tests: the layers are sf in EPSG:3005 and non-empty; every station point lies in the basin; the picked
-      station is among them; the per-order table sums to the basin's reach count.
+- [x] Tests: the layers are sf in EPSG:3005 and non-empty; the two bundles hold the same stations and
+      segments (the script holds each segment to the tree at build); the picked station is among them; the
+      per-order table sums to the basin's reach count.
+- [x] From the review: the values bundle gains the basin's watershed code, each candidate year's run lengths,
+      and a second fill with the day before the gap hidden; `same()` drops the read date; unaccepted snaps
+      are printed; the map script refuses an uncommitted values bundle and records the tree's row count and
+      an md5 of the basin's ordered segment ids.
 
 ## Phase 3: The article
 
@@ -160,12 +169,17 @@ What exploration found, which shapes the phases:
     degree-day thresholds exist for cutthroat trout (from Colorado subspecies, applied to westslope cutthroat
     in the Elk Valley reports), and none has been found yet for the other BC species; each claim read in its
     source before it is cited; a link to #214 for what is done and what is next;
-  - a recipe chunk (`eval = FALSE`) of the four calls behind Figure 1, which the data script runs as written
-    from the committed `.Rmd` and refuses to bundle unless it returns the bundled values;
+  - a recipe chunk (`eval = FALSE`) of the calls behind Figure 1 for the whole pool (the fill borrows from the
+    pool's other stations, so one station alone would not return it), which the data script runs as written
+    from the committed `.Rmd` and refuses to bundle unless it returns the picked year's bundled values;
   - "Software and citation" (wet, cd, gsdd, fwapg and our fork's main-flow tree, SSN2, ggplot2, gq, sf, knitr,
     bookdown, R; the Nechako and Skeena network models by their memos; air2stream; the degree-day rule; ERA5-Land;
     PCIC's channel-scale output; the Freshwater Atlas; ECCC's records through water-temp-bc), references, and
-    a `wordcount` chunk with the cap fixed at the first full draft's count rounded up to the next 50.
+    a `wordcount` chunk with a cap of 1,200 words, set before drafting.
+- [ ] `inst/vignette-data/temperature_chain_nodes.csv` and `temperature_chain_edges.csv`, with a test that every
+      edge joins two nodes and every state is one of the registry's four; the budget entry gains both.
+- [ ] In order: the article with its recipe committed, the data script rerun from an emptied cache with the
+      recipe guard, the bundle committed, the article built.
 - [ ] `stopifnot()` beside every number and every "each" or "every" the prose states; every caption names
       every mark its figure draws; alt text on each figure; no footnotes; no private repo named.
 - [ ] Add any missing reference to the Zotero group library, then
@@ -179,7 +193,10 @@ What exploration found, which shapes the phases:
       md5s and the page's text are the same both times.
 - [ ] Read each figure at 700 px wide against the cartography self-review (placement and "does it
       communicate"); fix what fails.
-- [ ] Break one bundled value and one caption-backed claim in a copy and confirm the build stops on each.
+- [ ] Break one bundled value and one caption-backed claim in a copy, rendered after `pkgload::load_all()` so
+      the broken copy is the one read, and record each stop message.
+- [ ] A cold read of the built page's text by a reader with none of the repo's context, asked what goes to a
+      network model and what comes back; every `<img>` has a non-empty `alt`.
 - [ ] Send the rendered page for a read on a phone before the pull request.
 - [ ] `CLAUDE.md` (above the marker): the article, its two data scripts, the basin table and the rule, in the
       Architecture section's form. `NEWS.md` bullet.
