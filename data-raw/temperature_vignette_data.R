@@ -205,6 +205,11 @@ seasons_of <- function(s, y) {
   date <- seq(min(x$date), max(x$date), by = "day")
   g <- as.data.frame(gsdd::gss(data.frame(date = date, temperature = x$t_mean_c[match(date, x$date)]), msgs = FALSE))
   g <- g[g$year == y, ]
+  # a year with no season: paste0() on its zero rows would make one malformed date
+  if (!nrow(g)) {
+    return(data.frame(start = as.Date(character()), end = as.Date(character()), gsdd = numeric(),
+                      truncation = character()))
+  }
   data.frame(start = as.Date(paste0(y, format(as.Date(g$start_dayte), "-%m-%d"))),
              end = as.Date(paste0(y, format(as.Date(g$end_dayte), "-%m-%d"))),
              gsdd = as.numeric(g$gsdd), truncation = as.character(g$truncation))

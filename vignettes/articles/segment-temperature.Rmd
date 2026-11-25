@@ -294,14 +294,15 @@ stations <- stations[order(stations$picked), ]
 tree <- map$tree
 tree$part <- "network"
 rivers$part <- "river"
-lake_min <- 500   # data-raw/temperature_vignette_map.R
-stopifnot(min(map$lakes$area_ha) >= 0)
+lake_min <- 500   # data-raw/temperature_vignette_map.R; a lake cut by the frame keeps its whole area
+stopifnot(min(map$lakes$area_ha) >= lake_min)
 
 cap_map <- sprintf(paste(
   "The %s basin: all %s reaches of its stream network (blue, heavier on larger streams) and the %s",
-  "stations that have recorded water temperature (orange points; %s's, the first figure's, is black).",
+  "federal hydrometric stations that have recorded water temperature (orange points; %s's, the first",
+  "figure's, is black).",
   "The %s are drawn heavy and named. Lakes of %s ha and up are pale blue; land outside the basin is",
-  "dimmed, with its larger rivers thin and the Skeena named. %s are labelled (squares), the bar is",
+  "dimmed, with its larger rivers thin and the Skeena named. %s are labelled (open squares), the bar is",
   "%s km, and the inset places the map in British Columbia."
 ), v$basin$name, num(n_reach), n_st, pick$stream,
 and_text(sub(" River", "", c("Bulkley River", "Morice River", "Telkwa River"))) |> paste("rivers"),
@@ -316,8 +317,9 @@ One basin shows the gap. A **reach** here is one stream segment of the Freshwate
 map of its streams [@flnrord2021FreshwaterAtlasb]: a stretch of stream with its own identifier, usually
 from one confluence to the next. The `r v$basin$name` runs `r flow_dir` from Houston past Smithers to meet the
 Skeena River at Hazelton, and its basin has `r num(n_reach)` reaches. `r in_words(n_st, cap = TRUE)` of
-them hold a station that recorded water temperature by `r last_year`, and `r in_words(n_short)` of those
-began too recently to model. Every other reach has no measurement at all.
+them hold a federal hydrometric station that recorded water temperature by `r last_year`, and
+`r in_words(n_short)` of those began too recently to model. Loggers run by others are not in `wet` yet, so
+the map shows only these.
 
 ```{r map, fig.width = map_w, fig.height = map_h, fig.cap = cap_map, fig.alt = alt_map}
 ggplot() +
@@ -327,8 +329,8 @@ ggplot() +
   geom_sf(data = map$lakes, fill = lake_sty$fill$color, colour = lake_sty$stroke$color, linewidth = 0.1) +
   geom_sf(data = map$streams[!map$streams$main, ], colour = pal_map$values[["river"]], linewidth = 0.3) +
   geom_sf(data = rivers, aes(colour = part), linewidth = 0.95, key_glyph = "path") +
-  geom_sf(data = map$places, shape = 22, fill = "white", colour = "black", size = 2.2, stroke = 0.5) +
   geom_sf(data = stations, aes(fill = part), shape = 21, colour = "white", size = 3, stroke = 0.5) +
+  geom_sf(data = map$places, shape = 0, colour = "black", size = 3.6, stroke = 0.7) +
   ggrepel::geom_text_repel(data = lab, aes(x, y, label = label, fontface = face, size = I(size), colour = I(col)),
                            bg.color = "white", bg.r = 0.18, seed = 1, point.padding = 3, box.padding = 0.5,
                            min.segment.length = Inf, max.overlaps = Inf, show.legend = FALSE) +
@@ -589,7 +591,7 @@ The software, each cited:
 # (a build from a checkout records none)
 ours <- vapply(c("wet", "cd", "gq"), function(p) {
   sha <- utils::packageDescription(p)$RemoteSha
-  sha <- if (!is.null(sha) && grepl("^[0-9a-f]{40}$", sha)) paste0(", commit ", substr(sha, 1, 7)) else ""
+  sha <- if (!is.null(sha) && grepl("^[0-9a-f]{40}$", sha)) paste0(" (commit ", substr(sha, 1, 7), ")") else ""
   sprintf("`%s` %s%s", p, utils::packageVersion(p), sha)
 }, "")
 cat("This build ran on ", and_text(ours), "; the data were built with `cd` ", prov$cd, " and `gsdd` ",

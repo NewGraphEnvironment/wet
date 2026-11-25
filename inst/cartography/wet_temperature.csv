@@ -5,9 +5,9 @@ temperature_year,polygon,,part,interval,Range the filled day most likely lies in
 temperature_year,line,,part,open_loop,Air temperature alone (air2stream),#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue: the model run with no observation
 temperature_year,polygon,,part,season,Growing season,#f0f0f0,1,,,,,,,,,,,,,,,,ColorBrewer Greys lightest: the season recedes behind the series
 temperature_map,polygon,,part,basin,Bulkley River basin,#f7f7f7,1,,,,,,,,,,,,,,,,ColorBrewer Greys near white: the basin stands off the dimmed surroundings
-temperature_map,line,,part,network,Stream reach with no temperature station,#6baed6,1,,,,,,,,,,,,,,,,ColorBrewer Blues mid: every reach of the network
+temperature_map,line,,part,network,Stream reach,#6baed6,1,,,,,,,,,,,,,,,,ColorBrewer Blues mid: every reach of the network
 temperature_map,line,,part,river,Named river,#1f78b4,1,,,,,,,,,,,,,,,,gq lake stroke blue: the rivers the map names
-temperature_map,point,,part,station,Temperature station,#d55e00,1,,,,,,,,,,,,,,,,"Okabe-Ito vermillion: the subject, so it outranks the blues"
+temperature_map,point,,part,station,Federal station with water temperature,#d55e00,1,,,,,,,,,,,,,,,,"Okabe-Ito vermillion: the subject, so it outranks the blues"
 temperature_map,point,,part,station_pick,Simpson Creek station,#000000,1,,,,,,,,,,,,,,,,Okabe-Ito black: the station whose year the first figure shows
 temperature_chain,polygon,,state,in_place,In place,#009e73,1,,,,,,,,,,,,,,,,Okabe-Ito bluish green
 temperature_chain,polygon,,state,building,Being built,#e69f00,1,,,,,,,,,,,,,,,,Okabe-Ito orange

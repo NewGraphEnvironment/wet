@@ -344,8 +344,13 @@ test_that("the temperature values hold plain types, the basin's stations and the
   v <- readRDS(vignette_data("temperature_values.rds"))
   expect_named(v, c("basin", "stations", "pool", "candidates", "pick", "year", "season", "gsdd", "edge", "fit",
                     "validation", "provenance"))
-  # the picked stream is placed by what it flows into
-  expect_true(all(nzchar(c(v$pick$stream, v$pick$into1, v$pick$into2))))
+  # the picked stream is placed by what it flows into; the second stream down is NA where the
+  # first runs to the sea (vm_into())
+  placed <- c(v$pick$stream, v$pick$into1)
+  expect_false(anyNA(placed))
+  expect_true(all(nzchar(placed)))
+  expect_type(v$pick$into2, "character")
+  expect_length(v$pick$into2, 1)
   for (x in list(v$stations, v$candidates, v$year, v$season)) {
     expect_false(any(vapply(x, inherits, NA, "integer64")))
   }
