@@ -95,7 +95,7 @@ Change, Bulkley windows unless named, carried / extended, with the 90 % range:
 - **The stations beyond HYDAT** (#142, #144) add no donor at these sites (`research/station_sources.md`, "At the chinook sites' boxes").
 - The short-record article stays on distance at Maxan, #120's record; the comparison article carries the shipped route.
 
-## Swift and Naver under their own windows (#187)
+## Swift and Naver under their own windows
 
 knowledge's life history table holds cited chinook windows for the upper Fraser and the Cottonwood since its #174 (rows added at 4e2d8a0c; their notes revised at a475dfe7 by knowledge#256, starts, ends and sources unchanged). `data-raw/life_history_data.R` reads the table at a475dfe7, while `data-raw/station_vignette_data.R` keeps BULK at c97c4d0; `lh_pin_guard()` stops the read unless every MORR row is unchanged in every column and every BULK row in every column but `note`, and unless BULK's chinook migration and spawning rows equal `life_history_bulk.csv`'s (`tests/testthat/test-life_history_pin.R`).
 
