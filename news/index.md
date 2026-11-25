@@ -1,5 +1,19 @@
 # Changelog
 
+## wet 0.5.2
+
+- No change to the package’s functions. Water temperature at a station
+  with no record is scored under a rule registered before any score
+  (`scripts/temp_baseline.R`,
+  [\#213](https://github.com/NewGraphEnvironment/wet/issues/213)): with
+  a whole station held out, air2stream parameters predicted from
+  catchment traits miss growing-season degree days by about 295 °C-days
+  at 209 stations, against 97 with a station’s own parameters and 413
+  for the population mean, which is not close under the rule
+  (`research/station_temperature_fill.md`). Network kriging on the same
+  holdout is
+  [\#223](https://github.com/NewGraphEnvironment/wet/issues/223).
+
 ## wet 0.5.1
 
 - A new article, Stream Temperature per Segment: How We Get There, shows
