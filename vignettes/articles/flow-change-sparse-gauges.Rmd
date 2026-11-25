@@ -648,6 +648,10 @@ and catchments are the Freshwater Atlas's [@flnrord2021FreshwaterAtlasb], held i
 `fwapg` [@norris2024smnorrisfwapg], and place names are BC Geographic Names'. How each stream was
 chosen, and how the method is run and scored, is set out in
 [`wet`'s research notes](https://github.com/NewGraphEnvironment/wet/blob/main/research/chinook_sites.md).
+Maxan Creek alone is the subject of a separate article,
+[Chinook Flow at a Short-Record Stream](short-record-flow.html). It compares other periods, and
+takes its borrowed departures from the five gauges nearest in place and size rather than those
+most alike in the model, so its changes for Maxan differ from these.
 
 The software, each cited:
 
