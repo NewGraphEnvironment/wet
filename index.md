@@ -73,6 +73,12 @@ xtabs(round(q_m3s) ~ source + month, q)
   summer flow rebuilt from nearby gauges at four streams chinook salmon
   use, gauged for a few summers or never, and how it has changed since
   1951–1980.
+- [Stream Temperature per Segment: How We Get
+  There](https://www.newgraphenvironment.com/wet/articles/segment-temperature.html):
+  what growing-season degree days are, how few stream reaches of one
+  river basin hold a federal station recording water temperature, and
+  the steps from stations to every stream reach, which are not all built
+  yet.
 - [Water temperature
   functions](https://www.newgraphenvironment.com/wet/reference/index.html#water-temperature):
   daily station temperature, gap filling and growing-season degree days.

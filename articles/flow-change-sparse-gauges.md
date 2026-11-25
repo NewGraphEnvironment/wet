@@ -252,8 +252,8 @@ The software, each cited:
   2025](#ref-base)).
 
 The data were bundled at `wet` commit `af968ab3`; this build ran on
-`wet` 0.5.0, `cd` 0.6.13, commit 1e44183, `gq` 0.25.0 and commit
-298b016. To cite `wet`:
+`wet` 0.5.0, `cd` 0.6.13 (commit 1e44183) and `gq` 0.25.0 (commit
+298b016). To cite `wet`:
 
 Irvine A (2026). *wet: Stream Flow and Water Temperature for the BC
 Freshwater Atlas*. New Graph Environment Ltd.

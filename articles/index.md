@@ -4,6 +4,8 @@
 
 - [Stream Discharge per
   Segment](https://newgraphenvironment.github.io/wet/articles/segment-discharge.md):
+- [Stream Temperature per Segment: How We Get
+  There](https://newgraphenvironment.github.io/wet/articles/segment-temperature.md):
 - [Rebuilding Stream Flow History Where Gauges Are
   Few](https://newgraphenvironment.github.io/wet/articles/flow-change-sparse-gauges.md):
 - [Measured Stream Flow Against Its 1981–2010 Normal: Two Long-Record
