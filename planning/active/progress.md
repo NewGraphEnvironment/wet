@@ -28,3 +28,12 @@
 - Commits: the helper, script and registry; the review's script changes; the rebuilt values; the map bundle
   with the tests and this record
 - Next: Phase 3, the article
+
+## Phase 3, 2026-11-25
+
+- Completed: the article (four figures, 1,066 words), the chain's two tables and their test, the `.bib`
+  (25 entries; one reference added to Zotero), the recipe guard in the data script, `_pkgdown.yml`, README
+- Found: `wet_temp_daily()` differs in the last bits between two reads of one archive, so the bundle is held
+  to a tolerance; the empty-cache rerun then left it as it is
+- Commits: the draft with the recipe guard; the rebuilt values; the tolerance; the article as written
+- Next: Phase 4, proof and records

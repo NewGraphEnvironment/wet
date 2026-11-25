@@ -151,7 +151,7 @@ What exploration found, which shapes the phases:
 
 ## Phase 3: The article
 
-- [ ] `vignettes/articles/segment-temperature.Rmd`, headings as the reader's questions, each term defined
+- [x] `vignettes/articles/segment-temperature.Rmd`, headings as the reader's questions, each term defined
       where it first appears (reach, growing-season degree days, air2stream, open-loop, holdout, kriging):
   - the opening: what the product will be and that it is not built yet;
   - **What are growing-season degree days, and why do they matter for fish?** Figure 1, the picked station's
@@ -176,15 +176,15 @@ What exploration found, which shapes the phases:
     bookdown, R; the Nechako and Skeena network models by their memos; air2stream; the degree-day rule; ERA5-Land;
     PCIC's channel-scale output; the Freshwater Atlas; ECCC's records through water-temp-bc), references, and
     a `wordcount` chunk with a cap of 1,200 words, set before drafting.
-- [ ] `inst/vignette-data/temperature_chain_nodes.csv` and `temperature_chain_edges.csv`, with a test that every
+- [x] `inst/vignette-data/temperature_chain_nodes.csv` and `temperature_chain_edges.csv`, with a test that every
       edge joins two nodes and every state is one of the registry's four; the budget entry gains both.
-- [ ] In order: the article with its recipe committed, the data script rerun from an emptied cache with the
+- [x] In order: the article with its recipe committed, the data script rerun from an emptied cache with the
       recipe guard, the bundle committed, the article built.
-- [ ] `stopifnot()` beside every number and every "each" or "every" the prose states; every caption names
+- [x] `stopifnot()` beside every number and every "each" or "every" the prose states; every caption names
       every mark its figure draws; alt text on each figure; no footnotes; no private repo named.
-- [ ] Add any missing reference to the Zotero group library, then
+- [x] Add any missing reference to the Zotero group library, then
       `Rscript data-raw/vignette_bib.R vignettes/articles/segment-temperature.Rmd` and commit the `.bib`.
-- [ ] `_pkgdown.yml`: `articles/segment-temperature` in the Articles menu. `README.md`: one line in its
+- [x] `_pkgdown.yml`: `articles/segment-temperature` in the Articles menu. `README.md`: one line in its
       articles list.
 
 ## Phase 4: Proof and records

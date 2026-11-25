@@ -123,9 +123,34 @@ beside the pick. Across the 29 gap days the fill sums to 320.7 °C-days, the fil
 and open-loop air2stream to 245.0. The year's degree days are 1,460.4 as read and 1,393.4 with the day
 hidden: one reading is worth 67 °C-days, five times the 30-day holdout's mean degree-day error (12.8).
 
+## The article (Phase 3)
+
+- **The recipe returns the bundle.** The article's `recipe` chunk, run as written by the data script (the
+  whole 08E pool read again from the archive, coordinates from `tidyhydat::allstations`, which differ from
+  HYDAT's by under 5e-6°), returns 08EE012's 2020 day for day and its 1,460.4 °C-days.
+- **`wet_temp_daily()` is not bit-reproducible.** Two reads of the same archive on 2026-11-25 differed in
+  `t_mean_c` on 22,201 of 47,430 station-days, by 7.1e-15 at most; air from `cd` was identical. The daily
+  mean is duckdb's `avg()` over the hourly means, taken in parallel in no fixed order. Ours, and the
+  function's to fix (filed as its own issue). So a rebuild from an emptied cache is equivalent, not identical:
+  the data script compares to `all.equal()`'s default tolerance and says so in its header. Proof:
+  `data/logs/220/temperature_vignette_data_6.log` (cache emptied, recipe returned the bundle, file left at
+  md5 940b6ec3). The run before it (`_5.log`) stopped on the script's own guard, because the article was
+  edited while it ran.
+- **The picked stream's placement:** Simpson Creek joins Kathlyn Creek, which joins the Bulkley River; the
+  station is 4 km north-west of Smithers (computed from the two bundles).
+- **Thresholds, read in their sources before citing:** Coleman & Fausch 2007 (the field study; abstract):
+  900–1,200 degree days best, 800–900 recruitment in some years, under 800 unsuitable, for greenback and
+  Colorado River cutthroat. The two Harmer Creek reports (Thorley & Branton 2022; Hocking et al. 2022) apply
+  Coleman & Fausch's relations to westslope cutthroat in the Elk Valley.
+- **One reference added to the Zotero group library:** PCIC's channel-scale output (dataset, May 2026), key
+  `pacificclimateimpactsconsortium2026VICGLRavenMBCn`. The `.bib` has 25 entries, each with a url or doi.
+- **Words:** 1,066 of body prose against the cap of 1,200 set before drafting.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
 | The plan took the season's dates from `gsdd::gsdd()`, which returns `year` and `gsdd` only | `gsdd::gss()` returns each season's `start_dayte` and `end_dayte`; its `gsdd` is held to `wet_temp_gsdd()`'s |
 | `vm_tree()` took the basin's polygon from its watershed groups and stopped on its own guard: BULK, KISP, MORR and ZYMO hold 94,575 tree segments, 52,293 under the Bulkley's code | The basin is the fundamental watershed polygons under the main stem's code |
+| A rebuild from an emptied cache rewrote the values bundle: every numeric element differed in the last bits | `wet_temp_daily()`'s parallel `avg()`; the script's `same()` compares with `all.equal()` |
+| The empty-cache rerun stopped with "commit vignettes/articles/segment-temperature.Rmd first" | The article was edited while the run was in flight; rerun after the commit, touching nothing |
