@@ -76,4 +76,4 @@ record".
 
 - Tick item 2 of #214's list by hand once the PR is merged.
 
-Closed by: the pull request from branch `213-water-temperature-at-stations-with-no-re`
+Closed by: PR #231
