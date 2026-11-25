@@ -157,31 +157,33 @@ Mechanism, decided in the plan (mine, one line of why each):
 
 ## Phase 4: The real scores
 
-- [ ] `scripts/temp_baseline.R` refuses unless the recovery report is committed, names the
+- [x] `scripts/temp_baseline.R` refuses unless the recovery report is committed, names the
       current `tb_code_md5()` and the frame, and says its leak-free check passed.
-- [ ] Own fits from `wet:::wet_fill_prepare()` on each station's whole record; θ per station;
+- [x] Own fits from `wet:::wet_fill_prepare()` on each station's whole record; θ per station;
       candidates in both pools; `wet:::wet_a2s_run()` on the predicted parameters over the
       station's own air; scores per station-year, for each candidate, the population mean and
       the own-parameter benchmark.
-- [ ] Report `data/checks/temp_baseline.txt`: scores by candidate and pool (daily RMSE, GSDD
+- [x] Report `data/checks/temp_baseline.txt`: scores by candidate and pool (daily RMSE, GSDD
       mean absolute error by station and by station-year, bias, the absolute and relative gap
       to the benchmark), coverage of the own-fit θ by each candidate's interval, breakdowns by
       WSC sub-drainage, by lake influence (outlet flag, lake cover classes) and by glacier cover
       (none, some) and by HYDAT's regulation flag (*review*), #40's hidden-season score on the
       station-years both scored as context, and the rule's outcome in the rule's
       own words from `tb_verdict()`. Byte-identical on a rerun.
-- [ ] Scores stored in `data/temp_baseline/scores_<key>.rds`, for the kriging issue to score
+- [x] Scores stored in `data/temp_baseline/scores_<key>.rds`, for the kriging issue to score
       against.
 
 ## Phase 5: Write it down
 
-- [ ] `research/station_temperature_fill.md`: a section on stations with no record (method, the
+- [x] `research/station_temperature_fill.md`: a section on stations with no record (method, the
       recovery result, scores by candidate and pool, the breakdowns, the rule's outcome, what
       is not done: kriging, GSDD intervals, loggers); header line updated (Verified, Issues,
       Produced by). `research/README.md` row revised if its description no longer fits.
-- [ ] `CLAUDE.md` (above the marker): the three scripts, the rule file and their reports in the
+- [x] `CLAUDE.md` (above the marker): the three scripts, the rule file and their reports in the
       gap-fill paragraph.
-- [ ] `NEWS.md` bullet under the development heading; `Bump: patch` in the PR body.
+- [x] `NEWS.md` bullet and `Bump: patch` in the PR body. This repo's `NEWS.md` has no development
+      heading: its last four releases wrote the bullet in the release commit, from the PR, so the
+      bullet is in the PR body and `NEWS.md` is not edited on the branch.
 - [ ] Archive README with `## Measurement` and `## Evidence` (the reports and
       `data/logs/213/` by prefix).
 

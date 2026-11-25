@@ -91,3 +91,30 @@ mean absolute error 120 °C-days for the run on the simulated parameters (the de
 93 for the refit, 413 for the regression, 471 to 481 for the donor mean and 598 for the
 population mean, in the order the simulation built in. Pools differ by 1 for the regression and
 10 for the donor mean.
+
+## The real scores (2026-11-25, `data/checks/temp_baseline.txt`, log `data/logs/213/baseline_*`)
+
+GSDD mean absolute error, the mean over 209 stations of each station's mean over its truth years
+(°C-days), blocked CV and leak-free:
+
+| run | blocked | leak-free |
+|---|---|---|
+| own parameters (benchmark) | 97.5 | |
+| population mean | 412.8 | 414.1 |
+| regression | 293.9 | 298.0 |
+| donor mean | 308.2 | 319.7 |
+
+- Rule: baseline regression (beats the mean by 118.9 and 116.2; the donor by 104.6 and 94.4);
+  gap to the benchmark 196.4 and 200.5: not close (bar 50).
+- All 889 station-years have a GSDD in every series; none left out.
+- Held-out theta, regression, leak-free: R² 0.30 (eq0), 0.33 (eq1), 0.19 (rate).
+- Lake outlets (32): regression 408 leak-free against 278 elsewhere. Regulated (67): 376 against
+  260 natural. Glacier upstream (96): 267 against 324 without.
+- In 07F and 08G the regression loses to the population mean.
+- Context: on the 822 station-years #40's hidden-season holdout also scored, own parameters miss
+  by 118.8 from the whole record and 130.3 with the season hidden.
+- The run took 4 minutes; all three reports were byte-identical on a second run from cache
+  (logs `*_rerun_20261125T193148Z.log`).
+- Guards proven before the first score: with a line appended to the lib the script exits 1
+  ("the code a score depends on changed"); with the recovery report modified and uncommitted it
+  exits 1 ("is not committed as it stands"). No `temp_baseline.txt` existed at either.

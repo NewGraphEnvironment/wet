@@ -34,3 +34,15 @@
   the regression exact on the noise-free set. The first run's end-to-end part was mis-simulated
   (findings, "The recovery run"); the committed report is the second run.
 - Next: the real scores (Phase 4), which refuse without this commit
+
+## Phase 4, 2026-11-25
+- Completed: the real scores. Baseline: regression, 293.9 (blocked) and 298.0 (leak-free)
+  °C-days against 97.5 for the benchmark and 412.8 / 414.1 for the population mean; not close.
+  Scores in `data/temp_baseline/scores_bd5db3bd6b.rds`.
+- Commits: 4deaabc1 (recovery, before any score), then this phase's commit
+- Next: write-up
+
+## Phase 5, 2026-11-25
+- Completed: the section in `research/station_temperature_fill.md`, the research index row, the
+  scripts in `CLAUDE.md`. `NEWS.md` is left to the release commit, as this repo does.
+- Next: `/code-check branch`, archive, PR
