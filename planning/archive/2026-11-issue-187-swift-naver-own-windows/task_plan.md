@@ -6,7 +6,7 @@ Carries #182 (one issue, one PR). `planning/backlog.md` batch 12, move 10; move 
 
 ## Decided at the gate
 
-No plan gate ran in this pane: the coordinator dispatched this `park review` (soul#928), so the plan gate is the coordinator's at the resume, on the pushed review. What exploration settled (2026-11-22):
+No plan gate ran in this pane: the coordinator dispatched this `park review`, so the plan gate is the coordinator's at the resume, on the pushed review. What exploration settled (2026-11-22):
 
 - **The knowledge commit to pin was `4e2d8a0c473c73fafa367ba09794f98e98798db8`** (superseded at the resume by decision 1; 2026-11-18, "#174: UFRA and COTR chinook timing from NuSEDS and the literature"), the commit that added the rows. `data/life_history_timing.csv` at knowledge `main` (b07ce5a, 2026-11-21) is byte-identical to it, so pinning main would read the same table under a sha that names unrelated work.
 - **At that commit the BULK and MORR rows differ from `c97c4d0`'s in one note only** (BULK CO migration, a row every reader drops for having no end). Every BULK and MORR start, end and source is unchanged, so `life_history_morr.csv` rebuilds byte-identical and the Maxan parity gate (BULK windows) cannot move. The guard below holds that by code, not by this reading.
