@@ -36,8 +36,11 @@ Path to the NetCDF file.
 }
 \description{
 Requests \code{VAR[t0:t1][lat0:lat1][lon0:lon1]} as NetCDF and caches it. The
-file is checked for a NetCDF signature before it is kept: an HTTP error or
-redirect page saved under a \code{.nc} name is exactly how a download goes wrong
-silently (PCIC moved hosts in 2026 and \code{curl} without \code{-L} saves the 301
-body).
+download reads its HTTP status: a 429 or 503 (the server asking for less)
+waits for \code{Retry-After}, or 60 s doubling when none is given, and tries
+again, five tries in all; any other status but 200 stops. A 200 is checked
+for a NetCDF signature, and its days must be exactly \code{start} to \code{end}, before
+it is kept: an HTML page saved under a \code{.nc} name, or a file on another
+calendar, is exactly how a download goes wrong silently. A file already in
+the cache is returned as it is, unread. Requests carry the user agent \code{wet}.
 }

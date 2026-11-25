@@ -41,7 +41,9 @@ reference:
   - wet_pcic_index
   - wet_pcic_fetch
   - wet_pcic_annual
+  - wet_pcic_monthly
   - wet_runoff_annual
+  - wet_runoff_monthly
 - title: Watersheds and upstream accumulation
   desc: Sample a grid to FWA fundamental watersheds, average it over each upstream area, and convert the result to discharge.
   contents:

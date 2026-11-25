@@ -26,5 +26,8 @@ publish_own <- c(
   "scripts/departure_pcic.R", "scripts/departure_site.R", "scripts/departure_site_lib.R",
   "scripts/departure_site_snow.R", "scripts/gauge_monthly_compare.R", "scripts/vignette_map_lib.R",
   # the channel-scale pilot (#168) and its site table: a script of its own, called by none
-  "scripts/channel_scale_pilot.R", "scripts/channel_scale_sites.csv"
+  "scripts/channel_scale_pilot.R", "scripts/channel_scale_sites.csv",
+  # PCIC's gridded readers and what scenarios and coverage build on (#169): R/wet_pcic_fetch.R is
+  # called by the MAD and term scripts, not by the three table scripts or what they source
+  "R/wet_pcic_fetch.R", "R/wet_pcic_monthly.R", "R/wet_runoff_monthly.R"
 )
