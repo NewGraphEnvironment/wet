@@ -43,7 +43,55 @@ How it is built:
 
 Relates to #214, #213
 
+## Packages on the machine that built the bundles (2026-11-25)
+
+Installed before Phase 1: gsdd 0.3.0.9009 (was missing), gq 0.25.0 (was 0.22.0), fresh 0.57.0 (was 0.55.1).
+Already there: cd 0.6.13, sf 1.1.2, ggplot2 4.0.3, ggrepel 0.9.7, duckdb 1.5.6, tidyhydat 1.0.1, R 4.5.2.
+
+## The pick (Phase 1)
+
+`Rscript data-raw/temperature_vignette_data.R`, run log `data/logs/220/temperature_vignette_data_1.log`
+(71 s from an empty cache; a second run left `temperature_values.rds` at md5 2a43ca3b, unchanged).
+
+- **The pool is 25 stations, the basin 11.** The archive lists 27 stations whose number starts `08E`; two
+  (08EC003, 08EF006) have no day in 2002–2025 that passes `wet_temp_daily()`'s rules. Eleven snap under the
+  Bulkley's main stem (watershed code 400.431358): three on the Morice side (08ED001, 08ED002, 08ED004) and
+  eight `08EE`. The plan's probe had read only the eight `08EE` stations; the rule, run on all eleven, lands
+  on the same year.
+- **Three basin stations are not fitted** (08ED004, 08EE008, 08EE025: each began in January 2025 and has
+  under 365 observed days), so they can be drawn but not filled.
+- **Eleven station-years have one interior gap longer than 2 days; one qualifies.** Ten of the gaps are 3 to
+  5 days, under the rule's 7. The eleventh is 08EE012 (Simpson Creek at the mouth), 2020: 25 August to
+  22 September, 29 days, inside the season `gsdd::gss()` finds (28 April to 22 October). Filled, the year
+  gives 1,460.4 °C-days; unfilled, `NA`. The rule did not need its 60-day widening.
+- **`gsdd::gsdd()` returns no season dates** (the plan said it would); `gsdd::gss()` does, and the script holds
+  the sum of its seasons to `wet_temp_gsdd()`'s value and to the daily means summed over each season.
+- **The open-loop series** is rebuilt with the fit's own `wet_a2s_run()` over the station's record and held
+  to the fit's `rmse_open` (0.958 °C), so the bundled `s_open_c` is the fit's `S`.
+
+### The day before the gap is not a water temperature
+
+| day (2020) | 08EE012 mean | min | max | hours | air (ERA5-Land) |
+|---|---|---|---|---|---|
+| 22 Aug | 9.36 | 8.80 | 10.04 | 24 | 9.90 |
+| 23 Aug | 9.56 | 8.86 | 13.77 | 24 | 9.75 |
+| 24 Aug | 15.54 | 12.37 | 17.43 | 21 | 9.78 |
+| 25 Aug | (gap begins) | | | | 8.87 |
+
+Over 22 to 24 August none of the five neighbours observed that week moved by more than 0.5 °C (08ED001
+12.2 to 12.3, 08ED002 12.7 to 12.8, 08EE004 14.6 to 14.8, 08EE013 13.4 to 13.1, 08EE020 7.75 to 7.73), and
+air fell. The creek's daily minimum rose 3.5 °C in a day, to above the day's mean air. The last hours of
+23 August and the 21 hours of 24 August read as a sensor leaving the water before the record stops:
+`wet_temp_daily()`'s range cannot catch that in summer, as its documentation says.
+
+What it does to the figure: the fill starts from every observed day, so it enters the gap at 14.6 °C and
+decays to meet 8.76 °C on 23 September, where open-loop air2stream reads 8.8 to 8.1 °C across the same days.
+The first two weeks of the fill are too warm, and the year's degree days with them. As the plan decided, the
+rule is not bent and the day is shown as read; the article says what it is. Ours: a limit of the fill (an
+unscreened reading beside a gap is carried into it), to be filed as its own issue.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
+| The plan took the season's dates from `gsdd::gsdd()`, which returns `year` and `gsdd` only | `gsdd::gss()` returns each season's `start_dayte` and `end_dayte`; its `gsdd` is held to `wet_temp_gsdd()`'s |

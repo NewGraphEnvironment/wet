@@ -100,23 +100,25 @@ What exploration found, which shapes the phases:
 
 ## Phase 1: The rule, the pick and the values bundle
 
-- [ ] Install `gsdd`; upgrade `fresh` and `gq`; state the versions in `findings.md`.
-- [ ] `scripts/temperature_basins.csv` with the Bulkley's row.
-- [ ] `data-raw/temperature_vignette_data.R`: the two rules in its header; `vd_commit()` first; reads the basin
+- [x] Install `gsdd`; upgrade `fresh` and `gq`; state the versions in `findings.md`.
+- [x] `scripts/temperature_basins.csv` with the Bulkley's row.
+- [x] `data-raw/temperature_vignette_data.R`: the two rules in its header; `vd_commit()` first; reads the basin
       row; snaps the temperature stations (`wet_station_snap()`, HYDAT release from `wb_hydat(wb_release())`);
       reads water for the sub-drainage pool (`wet_temp_daily()`) and air (`cd::cd_extract_daily()`, dropping
       the stations cd names as outside its cube, as `scripts/temp_fill_validate.R` does); builds the candidate
       table and the pick; runs `wet_temp_fill()` and `wet_temp_gsdd()`; takes the season's first and last day
-      from `gsdd::gsdd()` and stops unless its value equals `wet_temp_gsdd()`'s.
-- [ ] The bundle `inst/vignette-data/temperature_values.rds`: the picked station's year (observed days, filled
+      from `gsdd::gss()` (`gsdd::gsdd()` returns none; corrected in Phase 1) and stops unless its value equals
+      `wet_temp_gsdd()`'s. No station of this pool lies outside cd's cube, so the drop-and-retry was left out:
+      a point cd cannot place stops the script with cd's message.
+- [x] The bundle `inst/vignette-data/temperature_values.rds`: the picked station's year (observed days, filled
       days with their interval, air, open-loop `S`), the season dates and the degree-day value filled and
       unfilled, the fit row, the candidate table and the pick, the stations in the basin with their segment,
       the validation line read from `data/checks/temp_fill_validate.txt`, and provenance (commit, archive read
       date, HYDAT release, `cd` and `gsdd` versions). Plain types, no `integer64`.
-- [ ] A rerun that changes no value leaves the file's bytes as they are (compare before writing, as
+- [x] A rerun that changes no value leaves the file's bytes as they are (compare before writing, as
       `vm_write()` does).
-- [ ] Check the day before the gap against air and the neighbours; record the finding in `findings.md`.
-- [ ] Tests in `tests/testthat/test-vignette_data.R`: the budget list gains a `temperature` entry; the bundle's
+- [x] Check the day before the gap against air and the neighbours; record the finding in `findings.md`.
+- [x] Tests in `tests/testthat/test-vignette_data.R`: the budget list gains a `temperature` entry; the bundle's
       names and types; the pick satisfies the rule on the bundle's own candidate table; filled days lie only in
       the gap; the accumulated degree days equal the bundled value.
 

@@ -1,7 +1,7 @@
 # The vignettes run on data bundled by data-raw/station_vignette_*.R (#27),
 # data-raw/segment_vignette_*.R (#28, #64, #71), data-raw/monthly_vignette_data.R
-# (#65), data-raw/short_record_vignette_*.R (#130) and data-raw/life_history_data.R (#126), never on
-# HYDAT, fwapg or the network.
+# (#65), data-raw/short_record_vignette_*.R (#130), data-raw/life_history_data.R (#126) and
+# data-raw/temperature_vignette_*.R (#220), never on HYDAT, fwapg or the network.
 
 vignette_data <- function(f) system.file("vignette-data", f, package = "wet")
 
@@ -12,7 +12,8 @@ test_that("each vignette's bundled data stays under 500 KB", {
                  segment = c("segment_values.rds", "segment_map.rds"),
                  monthly = c("monthly_values.rds", "monthly_map.rds"),
                  short_record = c("short_record_values.rds", "short_record_map.rds"),
-                 chinook_sites = c("life_history_morr.csv", "chinook_sites_values.rds", "chinook_sites_map.rds"))
+                 chinook_sites = c("life_history_morr.csv", "chinook_sites_values.rds", "chinook_sites_map.rds"),
+                 temperature = c("temperature_values.rds"))
   expect_setequal(files, unlist(budget))
   for (v in names(budget)) {
     expect_lt(sum(file.size(vignette_data(budget[[v]]))), 500 * 1024)
@@ -336,4 +337,74 @@ test_that("the Chinook sites' map layers are sf in BC Albers, two regional maps 
   don <- v$gauges[v$gauges$role %in% c("extension donor", "carried donor"), ]
   expect_setequal(paste(m$gauges$site_id, m$gauges$station_number, m$gauges$role),
                   paste(don$site_id, don$station_number, don$role))
+})
+
+test_that("the temperature values hold plain types, the basin's stations and the fill's error", {
+  v <- readRDS(vignette_data("temperature_values.rds"))
+  expect_named(v, c("basin", "stations", "pool", "candidates", "pick", "year", "season", "gsdd", "fit",
+                    "validation", "provenance"))
+  for (x in list(v$stations, v$candidates, v$year, v$season)) {
+    expect_false(any(vapply(x, inherits, NA, "integer64")))
+  }
+  expect_s3_class(v$year$date, "Date")
+  expect_false(anyDuplicated(v$stations$station_number) > 0)
+  # every station sits under the basin's main stem, on a whole-numbered segment
+  main <- v$stations$wscode[v$stations$station_number == "08EE003"]
+  expect_true(all(v$stations$wscode == main | startsWith(v$stations$wscode, paste0(main, "."))))
+  expect_equal(v$stations$linear_feature_id, round(v$stations$linear_feature_id))
+  expect_true(v$pick$station_number %in% v$stations$station_number)
+  expect_true(all(c("commit", "retrieved", "hydat", "cd", "gsdd") %in% names(v$provenance)))
+  expect_gt(v$validation$season_open$gsdd_mae, 0)
+  expect_gt(v$validation$truth_station_years, v$validation$truth_stations)
+})
+
+test_that("the temperature pick follows the rule on the bundle's own candidate table", {
+  v <- readRDS(vignette_data("temperature_values.rds"))
+  cand <- v$candidates
+  # the rule in the header of data-raw/temperature_vignette_data.R: one interior gap of 7 to 45
+  # days (60 only when none qualifies at 45), a fitted station, a degree-day value only once
+  # filled, and the gap inside a growing season
+  rule <- function(max_days) {
+    !is.na(cand$gap_days) & cand$gap_days >= 7 & cand$gap_days <= max_days & cand$fitted &
+      is.na(cand$gsdd_unfilled) & !is.na(cand$gsdd_filled) & cand$in_season %in% TRUE
+  }
+  expect_true(v$pick$gap_max %in% c(45, 60))
+  if (v$pick$gap_max == 60) expect_false(any(rule(45)))
+  expect_identical(cand$qualifies, rule(v$pick$gap_max))
+  # closest to 30 days, then the later year, then the lower station number
+  o <- order(abs(cand$gap_days - 30), -cand$year, cand$station_number, method = "radix")
+  o <- o[cand$qualifies[o]]
+  expect_gt(length(o), 0)
+  expect_identical(which(cand$picked), o[1])
+  expect_identical(cand$station_number[o[1]], v$pick$station_number)
+  expect_identical(cand$year[o[1]], v$pick$year)
+  expect_identical(cand$gap_days[o[1]], v$pick$gap_days)
+})
+
+test_that("the picked year is filled where the station has no day, and its degree days add up", {
+  v <- readRDS(vignette_data("temperature_values.rds"))
+  y <- v$year
+  yr <- v$pick$year
+  expect_identical(unique(as.integer(format(y$date, "%Y"))), yr)
+  in_win <- y$date >= as.Date(paste0(yr, "-03-01")) & y$date <= as.Date(paste0(yr, "-11-30"))
+  in_gap <- y$date >= v$pick$gap_start & y$date <= v$pick$gap_end
+  expect_equal(sum(in_gap), v$pick$gap_days)
+  expect_false(anyNA(y$t_mean_c[in_win]))
+  expect_true(all(y$filled[in_gap]))
+  # the days filled in the window are the days the candidate table counts as not observed
+  row <- v$candidates[v$candidates$picked, ]
+  expect_equal(sum(y$filled[in_win]), sum(in_win) - row$observed)
+  # an observed day is its own interval; a filled day lies inside one
+  obs <- in_win & !y$filled
+  expect_equal(y$t_lo_c[obs], y$t_mean_c[obs])
+  expect_equal(y$t_hi_c[obs], y$t_mean_c[obs])
+  expect_true(all(y$t_lo_c[in_gap] <= y$t_mean_c[in_gap] & y$t_mean_c[in_gap] <= y$t_hi_c[in_gap]))
+  # the season's degree days are the daily means summed over it, filled; none without the fill
+  acc <- vapply(seq_len(nrow(v$season)), function(i) {
+    sum(y$t_mean_c[y$date >= v$season$start[i] & y$date <= v$season$end[i]])
+  }, 0)
+  expect_equal(acc, v$season$gsdd, tolerance = 1e-10)
+  expect_equal(sum(v$season$gsdd), v$gsdd$filled, tolerance = 1e-10)
+  expect_true(is.na(v$gsdd$unfilled))
+  expect_true(any(v$season$start <= v$pick$gap_start & v$season$end >= v$pick$gap_end))
 })
