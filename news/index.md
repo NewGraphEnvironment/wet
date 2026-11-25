@@ -1,5 +1,14 @@
 # Changelog
 
+## wet 0.5.1
+
+- A new article, Stream Temperature per Segment: How We Get There, shows
+  in four figures what growing-season degree days are, where water
+  temperature is measured in one basin, and the steps from stations to
+  every stream reach
+  ([\#220](https://github.com/NewGraphEnvironment/wet/issues/220)). No
+  change to the package’s functions.
+
 ## wet 0.5.0
 
 - [`wet_runoff_monthly()`](https://newgraphenvironment.github.io/wet/reference/wet_runoff_monthly.md)
