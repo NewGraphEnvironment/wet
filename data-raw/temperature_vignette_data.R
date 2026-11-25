@@ -367,17 +367,20 @@ values <- list(
                     cd = as.character(utils::packageVersion("cd")),
                     gsdd = as.character(utils::packageVersion("gsdd")))
 )
-# a rerun that changes no value keeps the committed file: the commit, the day the archive was
-# read and the versions it ran on aside
+# A rerun that changes no value keeps the committed file: the commit, the day the archive was
+# read and the versions it ran on aside. "No value" is to all.equal()'s default tolerance
+# (1.5e-8, relative), not to the last bit: two reads of the same archive by wet_temp_daily()
+# differ in the last bits of about half the daily means (7e-15 at most, measured 2026-11-25:
+# duckdb averages in parallel, in no fixed order), and the fit carries that through.
 same <- function(a, b) {
   drop <- function(x) {
     x$provenance[c("commit", "retrieved", "cd", "gsdd")] <- NULL
     x
   }
-  identical(drop(a), drop(b))
+  isTRUE(all.equal(drop(a), drop(b)))
 }
 if (file.exists(out) && same(values, readRDS(out))) {
-  message(basename(out), ": unchanged, left as it is")
+  message(basename(out), ": no value changed, left as it is")
 } else {
   saveRDS(values, out, compress = "xz")
   message(basename(out), ": wrote ", out, " (", round(file.size(out) / 1024), " KB)")
