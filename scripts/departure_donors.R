@@ -91,6 +91,16 @@ lh <- lh[lh$species_code == "CH" & lh$life_stage %in% c("migration", "spawning")
 stopifnot(identical(lh$life_stage, c("migration", "spawning")))
 windows <- data.frame(window = lh$life_stage, start = lh$start, end = lh$end)
 stats <- c("mean", "min7", "max", "cov_day")
+# wet_station_daily() turns a failing source into a warning and no rows: stop on that, so a
+# missing or altered cache file cannot drop a network silently; its other warnings are muffled
+daily_or_stop <- function(...) {
+  withCallingHandlers(wet_station_daily(...), warning = function(w) {
+    if (grepl("^source \".*\" skipped", conditionMessage(w))) {
+      stop("a source failed: ", conditionMessage(w), call. = FALSE)
+    }
+    invokeRestart("muffleWarning")
+  })
+}
 cols <- c("station_number", "variable", "period", "year", "value")
 
 # ---- HYDAT: natural BC gauges, approved days ----------------------------------------------------
@@ -107,7 +117,7 @@ hy <- cached("hydat_stations", local({   # local(): on.exit() needs a frame
 nat <- hy[hy$regulated == 0 & !is.na(hy$lon) & !is.na(hy$lat) & !is.na(hy$drainage_area_gross_km2), ]
 ws_h <- cached("hydat_window_stats", {
   stamp("reading HYDAT days for ", nrow(nat), " natural BC gauges")
-  d <- suppressWarnings(wet_station_daily(nat$station_number, hydat, to = NULL, sources = "hydat"))
+  d <- daily_or_stop(nat$station_number, hydat, to = NULL, sources = "hydat")
   w <- wet_window_stats(d, windows, stats = stats)
   w[order(w$station_number, w$variable, w$period, w$year, method = "radix"), cols]
 })
@@ -124,8 +134,7 @@ st_o <- st_o[order(st_o$station_number, method = "radix"), ]
 rownames(st_o) <- NULL
 o_data <- cached("outside_window_stats", {
   stamp("reading days for ", nrow(st_o), " natural stations outside HYDAT")
-  d <- suppressWarnings(wet_station_daily(st_o$station_number, hydat, to = NULL,
-                                          sources = c("bcenv", "bcwatertool")))
+  d <- daily_or_stop(st_o$station_number, hydat, to = NULL, sources = c("bcenv", "bcwatertool"))
   w <- wet_window_stats(d, windows, stats = stats)
   # a window-year's day status: any and every day with a value inside the window unchecked
   d$unchk <- ifelse(is.na(d$q_m3s), NA_real_, as.numeric(d$status %in% "unchecked"))
@@ -398,6 +407,9 @@ seen <- c(stations = 75, ge3 = 36, ge3_2024 = 33, base10 = 0, window_years = 185
 here <- c(stations = nrow(st_o), ge3 = sum(n_by >= 3), ge3_2024 = sum(n_by24 >= 3), base10 = sum(n_base >= 10),
           window_years = nrow(mw), all_unchecked = sum(mw$all_unchecked))
 dec <- table(paste0(floor(mw$year / 10) * 10, "s"))
+wb <- ws_o[ws_o$year %in% dd_baseline & dd_usable(ws_o$value, ws_o$variable), ]
+base_all <- if (nrow(wb)) as.vector(table(paste(wb$station_number, wb$variable, wb$period))) else 0L
+max_base_all <- max(c(0L, base_all))
 say("## 1. The population", "",
     sprintf("Natural stations outside HYDAT (wet_station_list(), regulation \"natural\"): %d (provincial %d, Water Tool %d); %d return days.",
             nrow(st_o), sum(st_o$source == "bcenv"), sum(st_o$source == "bcwatertool"), returns_days),
@@ -408,6 +420,8 @@ say("## 1. The population", "",
             hist_line(n_by), sum(n_by >= 3), sum(n_by >= 5), sum(n_by >= 10)),
     sprintf("Through %d: at least 3: %d; at least 5: %d.", dd_fit_last, sum(n_by24 >= 3), sum(n_by24 >= 5)),
     sprintf("In 1981-2010, per station: %s. With at least 10 (a baseline): %d.", hist_line(n_base), sum(n_base >= 10)),
+    sprintf("In 1981-2010, over every statistic and window: the most usable window-years any station holds is %d; with at least 10: %d.",
+            max_base_all, sum(base_all >= 10)),
     sprintf("Window-years: %d; by decade %s. Every day unchecked in %d, every day provisional in %d, mixed in %d.",
             nrow(mw), paste(sprintf("%s %d", names(dec), as.integer(dec)), collapse = ", "), sum(mw$all_unchecked),
             sum(!mw$any_unchecked), sum(mw$any_unchecked & !mw$all_unchecked)),
