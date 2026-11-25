@@ -59,8 +59,8 @@ report <- file.path("data", "checks", sprintf("departure_donors_%s_%s.txt", rele
 # the key covers every input the cache holds: the release, the snapshot, the rule, the windows
 # file, the station registries and regulation file, the statistics, and wet's own R code
 key_files <- c(file.path("inst", "vignette-data", "life_history_bulk.csv"),
-               rsort(list.files(file.path("inst", "extdata", "station_sources"), full.names = TRUE)),
-               rsort(list.files("R", pattern = "[.]R$", full.names = TRUE)))
+               sort(list.files(file.path("inst", "extdata", "station_sources"), full.names = TRUE), method = "radix"),
+               sort(list.files("R", pattern = "[.]R$", full.names = TRUE), method = "radix"))
 key <- substr(digest::digest(paste(c(release, dd_snapshot, rule_md5, "mean min7 max cov_day",
                                      unname(tools::md5sum(key_files))), collapse = " "),
                              algo = "md5", serialize = FALSE), 1, 10)
