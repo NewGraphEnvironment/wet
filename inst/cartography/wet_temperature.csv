@@ -3,7 +3,6 @@ temperature_year,point,,part,observed,Measured day,#000000,1,,,,,,,,,,,,,,,,Okab
 temperature_year,line,,part,filled,Filled day,#d55e00,1,,,,,,,,,,,,,,,,"Okabe-Ito vermillion: the subject, the days the fill adds"
 temperature_year,polygon,,part,interval,Range the filled day most likely lies in,#fdd0a2,1,,,,,,,,,,,,,,,,ColorBrewer Oranges light: the fill's interval in the fill's hue
 temperature_year,line,,part,open_loop,Air temperature alone (air2stream),#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue: the model run with no observation
-temperature_year,line,,part,air,Air temperature,#bdbdbd,1,,,,,,,,,,,,,,,,ColorBrewer Greys mid: context behind the water
 temperature_year,polygon,,part,season,Growing season,#f0f0f0,1,,,,,,,,,,,,,,,,ColorBrewer Greys lightest: the season recedes behind the series
 temperature_map,polygon,,part,basin,Bulkley River basin,#f7f7f7,1,,,,,,,,,,,,,,,,ColorBrewer Greys near white: the basin stands off the dimmed surroundings
 temperature_map,line,,part,network,Stream reach with no temperature station,#6baed6,1,,,,,,,,,,,,,,,,ColorBrewer Blues mid: every reach of the network

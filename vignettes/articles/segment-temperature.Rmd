@@ -1,0 +1,617 @@
+---
+title: "Stream Temperature per Segment: How We Get There"
+output: bookdown::html_document2
+bibliography: segment-temperature.bib
+link-citations: true
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 7,
+  out.width = "100%",
+  dpi = 150
+)
+```
+
+```{r load}
+# data from data-raw/temperature_vignette_data.R and data-raw/temperature_vignette_map.R
+library(wet)
+library(ggplot2)
+sf::sf_use_s2(FALSE)
+
+vd <- function(f) system.file("vignette-data", f, package = "wet")
+v <- readRDS(vd("temperature_values.rds"))
+map <- readRDS(vd("temperature_map.rds"))
+net <- attr(map, "network")
+nodes <- utils::read.csv(vd("temperature_chain_nodes.csv"), stringsAsFactors = FALSE)
+edges <- utils::read.csv(vd("temperature_chain_edges.csv"), stringsAsFactors = FALSE, na.strings = character())
+prov <- v$provenance
+pick <- v$pick
+# the two bundles were built from one set of stations
+stopifnot(identical(map$stations$station_number, v$stations$station_number),
+          identical(map$stations$station_number[map$stations$picked], pick$station_number))
+
+# colours come from the gq registries, so no hex literal appears in this article;
+# assert each class set, because a malformed CSV row adds a layer silently
+reg <- gq::gq_reg_custom(system.file("cartography", "wet_temperature.csv", package = "wet"))
+reg_main <- gq::gq_reg_main()
+classes <- function(layer, expect) {
+  x <- gq::gq_tmap_classes(reg$layers[[layer]])
+  stopifnot(identical(names(x$values), expect))
+  list(values = x$values, labels = stats::setNames(x$labels, names(x$values)))
+}
+pal_year <- classes("temperature_year", c("observed", "filled", "interval", "open_loop", "season"))
+pal_map <- classes("temperature_map", c("basin", "network", "river", "station", "station_pick"))
+pal_chain <- classes("temperature_chain", c("in_place", "building", "network_model", "comparison"))
+pal_hold <- classes("temperature_holdout", c("hidden", "used", "unused", "stream"))
+lake_sty <- reg_main$layers$lake
+town_sty <- reg_main$layers$town
+ink <- "grey35"   # frames, arrows and outlines: not a data colour
+
+theme_set(theme_minimal(base_size = 10) +
+            theme(legend.position = "bottom", panel.grid.minor = element_blank()))
+num <- function(x, digits = 0) format(round(x, digits), big.mark = ",", nsmall = digits, trim = TRUE)
+day_text <- function(d) paste(as.integer(format(d, "%d")), format(d, "%B"))
+and_text <- function(x) sub(", ([^,]*)$", " and \\1", paste(x, collapse = ", "))
+compass <- function(dx, dy) {
+  c("east", "north-east", "north", "north-west", "west", "south-west", "south",
+    "south-east")[(round(atan2(dy, dx) / (pi / 4)) %% 8) + 1]
+}
+to_title <- function(x) {
+  vapply(strsplit(tolower(x), " "), function(w) {
+    big <- !w %in% c("at", "the", "near", "of", "in", "below")
+    w[big] <- paste0(toupper(substring(w[big], 1, 1)), substring(w[big], 2))
+    paste(w, collapse = " ")
+  }, "")
+}
+```
+
+```{r year-data}
+yr <- v$year
+season <- v$season
+# the prose says "the season" and the recipe types the station and the year
+stopifnot(nrow(season) == 1, identical(pick$station_number, "08EE012"), pick$year == 2020L,
+          identical(pick$stream, "Simpson Creek"))
+year_text <- pick$year
+in_win <- yr$date >= as.Date(paste0(pick$year, "-03-01")) & yr$date <= as.Date(paste0(pick$year, "-11-30"))
+in_gap <- yr$date >= pick$gap_start & yr$date <= pick$gap_end
+in_season <- yr$date >= season$start & yr$date <= season$end
+# "every day from March through November except the gap": the filled days of the window are the gap
+stopifnot(identical(yr$filled[in_win], in_gap[in_win]), sum(in_gap) == pick$gap_days)
+# degree days add up over the season to the bundled total; without the fill there is none
+yr$dd <- NA_real_
+yr$dd[in_season] <- cumsum(yr$t_mean_c[in_season])
+gsdd <- v$gsdd$filled
+stopifnot(isTRUE(all.equal(max(yr$dd, na.rm = TRUE), gsdd)), is.na(v$gsdd$unfilled),
+          season$start <= pick$gap_start, season$end >= pick$gap_end)
+# the worked example in the prose: 100 days at 10 degrees
+stopifnot(100 * 10 == 1000)
+# the last reading before the gap: warmer than the day before although the air was not
+edge <- v$edge
+air_at <- function(d) yr$air_c[yr$date == d]
+jump <- edge$t_mean_c - edge$t_before_c
+stopifnot(edge$date == pick$gap_start - 1, jump > 5, air_at(edge$date) - air_at(edge$date - 1) < 0.5,
+          edge$t_mean_c - air_at(edge$date) > 5)
+edge_cost <- gsdd - edge$gsdd
+stopifnot(edge_cost > 50, edge_cost < 100)
+# open-loop runs cooler than the fill across the gap
+stopifnot(edge$gap_open < edge$gap_edge, edge$gap_edge < edge$gap_filled)
+
+# where the stream is: what it flows into, and the town it is nearest
+st_xy <- sf::st_coordinates(map$stations)
+pl_xy <- sf::st_coordinates(map$places)
+p <- which(map$stations$picked)
+d_town <- sqrt((pl_xy[, 1] - st_xy[p, 1])^2 + (pl_xy[, 2] - st_xy[p, 2])^2) / 1000
+near <- which.min(d_town)
+town_near <- map$places$name[near]
+town_km <- round(d_town[near])
+town_dir <- compass(st_xy[p, 1] - pl_xy[near, 1], st_xy[p, 2] - pl_xy[near, 2])
+stopifnot(identical(town_near, "Smithers"), town_km <= 10, identical(pick$into2, "Bulkley River"))
+
+# figure 1, in two panels on one time axis
+panels <- c(temp = "Water temperature (°C)", dd = "Degree days so far")
+runs <- function(keep) {
+  x <- yr[keep & !is.na(yr$t_mean_c), ]
+  x$run <- cumsum(c(TRUE, diff(as.integer(x$date)) > 1))
+  x
+}
+panel <- function(x, k) {
+  x$panel <- factor(panels[[k]], panels)
+  x
+}
+obs <- panel(runs(!yr$filled %in% TRUE), "temp")
+fil <- panel(runs(yr$filled %in% TRUE), "temp")
+open <- panel(yr[!is.na(yr$s_open_c), ], "temp")
+band <- rbind(panel(season, "temp"), panel(season, "dd"))
+dd <- panel(yr[in_season, ], "dd")
+dd_fill <- panel(yr[in_season & (in_gap | yr$date == pick$gap_start - 1), ], "dd")
+total <- panel(data.frame(date = season$end, dd = gsdd, label = paste(num(gsdd), "degree days")), "dd")
+level_text <- "95%"   # wet_temp_fill()'s default interval
+stopifnot(formals(wet_temp_fill)$level == 0.95)
+
+cap_year <- sprintf(paste(
+  "%s at its mouth in %s. Top: each day's mean water temperature as the logger read it (black);",
+  "the %s days filled across the gap from %s to %s (orange), with the fill's %s interval (pale band);",
+  "and what air temperature alone gives through air2stream, the open-loop line (blue). Bottom: degree",
+  "days adding up through the growing season, %s to %s (shaded in both panels), to %s; the stretch",
+  "that rests on filled days is orange. The last reading before the gap, %s °C after %s °C the day",
+  "before, is most likely a sensor leaving the water, and the fill starts from it."
+), pick$stream, year_text, pick$gap_days, day_text(pick$gap_start), day_text(pick$gap_end), level_text,
+day_text(season$start), day_text(season$end), num(gsdd), num(edge$t_mean_c, 1), num(edge$t_before_c, 1))
+alt_year <- sprintf(paste(
+  "Two stacked charts of %s in %s. The top chart shows daily water temperature rising from near zero",
+  "in winter to a summer peak, with a gap in late August and September filled by a modelled line.",
+  "The bottom chart shows degree days climbing to %s by the end of the growing season."
+), pick$stream, year_text, num(gsdd))
+```
+
+**wet does not yet publish stream temperature for every reach.** This article shows where that work
+starts, what it has to produce, and how we will know whether it works. The target is growing-season
+degree days, a measure of how much warmth a stream gives young fish in a year, for every stream reach in
+British Columbia. Today it can be computed at a few hundred gauges. Getting from those gauges to every
+reach takes a model of the stream network, which is not built yet.
+[The roadmap](https://github.com/NewGraphEnvironment/wet/issues/214) says what is done and what is next.
+
+## What are growing-season degree days, and why do they matter for fish?
+
+A fish grows faster in warmer water, up to a point. **Growing-season degree days** add up that warmth
+over the part of the year when a stream is warm enough for growth: each day's mean water temperature,
+summed from the first week that averages above 5 °C to the first week that falls below 4 °C
+[@coleman_fausch2007ColdSummera]. A stream that holds 10 °C for 100 days gives 1,000 degree days. Where
+the total is low, fish that hatch in summer can be too small to survive their first winter, so the
+total helps say which streams can produce fish.
+
+The figure shows one year at one gauge: `r pick$stream`, which reaches the `r pick$into2` about
+`r town_km` km `r town_dir` of `r town_near`. The logger recorded every day from March through November
+of `r year_text` except `r pick$gap_days` days from `r day_text(pick$gap_start)`. A season with a
+missing day has no total, so the gap has to be filled first.
+[`wet_temp_fill()`](https://newgraphenvironment.github.io/wet/reference/wet_temp_fill.html) fills it with
+**air2stream**, a model of how water temperature follows air temperature [@toffolon_piccolroaz2015hybridmodel],
+corrected by the station's own readings on either side of the gap and by what nearby stations did on
+the same days. Run on air temperature alone, with no readings to correct it, the model is called
+**open-loop**. That is the most a reach with no station can have.
+
+```{r year, fig.height = 5.6, fig.cap = cap_year, fig.alt = alt_year}
+ggplot() +
+  geom_rect(data = band, aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf, fill = "season")) +
+  geom_ribbon(data = fil, aes(date, ymin = t_lo_c, ymax = t_hi_c, group = run, fill = "interval")) +
+  geom_line(data = open, aes(date, s_open_c, colour = "open_loop"), linewidth = 0.45) +
+  geom_line(data = obs, aes(date, t_mean_c, group = run, colour = "observed"), linewidth = 0.45) +
+  geom_line(data = fil, aes(date, t_mean_c, group = run, colour = "filled"), linewidth = 0.8) +
+  geom_line(data = dd, aes(date, dd, colour = "observed"), linewidth = 0.6) +
+  geom_line(data = dd_fill, aes(date, dd, colour = "filled"), linewidth = 0.9) +
+  geom_text(data = total, aes(date, dd, label = label), hjust = -0.08, vjust = 0.5, size = 3.2) +
+  facet_grid(panel ~ ., scales = "free_y", switch = "y") +
+  scale_colour_manual(values = pal_year$values[c("observed", "filled", "open_loop")],
+                      labels = pal_year$labels[c("observed", "filled", "open_loop")],
+                      breaks = c("observed", "filled", "open_loop"), name = NULL) +
+  scale_fill_manual(values = pal_year$values[c("interval", "season")],
+                    labels = pal_year$labels[c("interval", "season")], breaks = c("interval", "season"),
+                    name = NULL) +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b", expand = c(0.01, 0)) +
+  guides(colour = guide_legend(order = 1), fill = guide_legend(order = 2)) +
+  labs(x = NULL, y = NULL) +
+  theme(strip.placement = "outside", strip.text.y.left = element_text(size = 9.5),
+        legend.box = "vertical", legend.spacing.y = unit(0, "pt"), legend.margin = margin(0, 0, 0, 0))
+```
+
+The fill restarts from every reading, so a bad one is carried into it. Here the last reading before
+the gap is `r num(jump, 1)` °C above the day before while the air was no warmer. Hiding that one
+reading lowers the year's total from `r num(gsdd)` to `r num(edge$gsdd)` degree days.
+
+## Where do we have temperature, and where not?
+
+```{r map-data}
+bb <- sf::st_bbox(map$extent)
+lim_x <- c(bb[["xmin"]], bb[["xmax"]])
+lim_y <- c(bb[["ymin"]], bb[["ymax"]])
+dx <- diff(lim_x)
+dy <- diff(lim_y)
+map_w <- 7
+map_h <- map_w * dy / dx
+
+n_reach <- net$reaches
+n_st <- nrow(map$stations)
+# every order of the network is drawn, and each station holds a reach of its own
+stopifnot(all(net$orders$drawn), net$with_station == n_st, n_reach == sum(net$orders$segments))
+# the count is of stations with a day of record in the fixed range the data script reads
+stopifnot(all(v$stations$days > 0), identical(substr(prov$to, 1, 4), "2025"))
+last_year <- substr(prov$to, 1, 4)
+# too short to fit a station model yet
+n_short <- sum(!map$stations$fitted)
+stopifnot(n_short > 0, n_short < n_st)
+
+# the rivers named, and the towns: the Bulkley runs from Houston to the Skeena at Hazelton
+rivers <- map$streams[map$streams$main, ]
+stopifnot(setequal(rivers$gnis_name, c("Bulkley River", "Morice River", "Telkwa River")))
+skeena <- map$streams[map$streams$gnis_name %in% "Skeena River", ]
+bulkley <- rivers[rivers$gnis_name == "Bulkley River", ]
+town <- function(n) pl_xy[map$places$name == n, ]
+stopifnot(nrow(skeena) == 1, as.numeric(sf::st_distance(bulkley, skeena)) < 500,
+          setequal(map$places$name, c("Houston", "Smithers", "Hazelton")))
+# Hazelton is where the two rivers meet: the town lies within 5 km of the Skeena and of the Bulkley
+hz <- map$places[map$places$name == "Hazelton", ]
+stopifnot(as.numeric(sf::st_distance(hz, skeena)) < 5000, as.numeric(sf::st_distance(hz, bulkley)) < 5000)
+flow_dir <- compass(town("Hazelton")[1] - town("Houston")[1], town("Hazelton")[2] - town("Houston")[2])
+# Smithers lies between them along the river: nearer each than they are to one another
+gap_km <- function(a, b) sqrt(sum((town(a) - town(b))^2)) / 1000
+stopifnot(gap_km("Houston", "Smithers") < gap_km("Houston", "Hazelton"),
+          gap_km("Smithers", "Hazelton") < gap_km("Houston", "Hazelton"))
+
+# two stations sit together at Houston, so the map shows one point fewer than it has stations
+d_st <- as.matrix(stats::dist(st_xy)) / 1000
+close_pairs <- sum(d_st[upper.tri(d_st)] < 6)
+stopifnot(close_pairs == 1)
+
+# labels: towns, rivers (at a point on each line inside the frame) and the first figure's station
+frame <- sf::st_as_sfc(bb)
+on_line <- function(x) {
+  inside <- suppressWarnings(sf::st_intersection(sf::st_geometry(x), frame))
+  xy <- sf::st_coordinates(sf::st_cast(inside, "POINT"))
+  xy[ceiling(nrow(xy) / 2), 1:2]
+}
+named <- rbind(rivers[c("gnis_name")], skeena[c("gnis_name")])
+riv_xy <- t(vapply(seq_len(nrow(named)), function(i) on_line(named[i, ]), c(0, 0)))
+lab <- rbind(
+  data.frame(x = pl_xy[, 1], y = pl_xy[, 2], label = map$places$name, face = "bold", size = 3.4,
+             col = town_sty$label$color),
+  data.frame(x = riv_xy[, 1], y = riv_xy[, 2], label = named$gnis_name, face = "italic", size = 3.1,
+             col = lake_sty$label$color),
+  data.frame(x = st_xy[p, 1], y = st_xy[p, 2], label = pick$stream, face = "plain", size = 3.1, col = "black")
+)
+
+# scale bar in the lower left, its length from gq
+sb_km <- max(gq::gq_scale_breaks(bb))
+sb <- data.frame(x = lim_x[1] + 0.05 * dx, y = lim_y[1] + 0.035 * dy)
+sb$xend <- sb$x + sb_km * 1000
+
+# keymap: BC with the map extent, in the lower right
+key <- ggplot() +
+  geom_sf(data = map$bc, fill = "white", colour = ink, linewidth = 0.2) +
+  geom_sf(data = frame, fill = NA, colour = pal_map$values[["station"]], linewidth = 0.6) +
+  theme_void() +
+  theme(panel.background = element_rect(fill = "white", colour = ink, linewidth = 0.3))
+key_w <- 0.27 * dx
+key_h <- key_w * 1.05
+
+stations <- map$stations
+stations$part <- ifelse(stations$picked, "station_pick", "station")
+stations <- stations[order(stations$picked), ]
+tree <- map$tree
+tree$part <- "network"
+rivers$part <- "river"
+lake_min <- 500   # data-raw/temperature_vignette_map.R
+stopifnot(min(map$lakes$area_ha) >= 0)
+
+cap_map <- sprintf(paste(
+  "The %s basin: all %s reaches of its stream network (blue, heavier on larger streams) and the %s",
+  "stations that have recorded water temperature (orange points; %s's, the first figure's, is black,",
+  "and two sit together at Houston). The %s are drawn heavy and named. Lakes of %s ha and up are pale",
+  "blue; land outside the basin is dimmed, with its larger rivers thin. Three towns are labelled, the",
+  "bar is %s km, and the inset places the map in British Columbia."
+), v$basin$name, num(n_reach), n_st, pick$stream,
+and_text(sub(" River", "", c("Bulkley River", "Morice River", "Telkwa River"))) |> paste("rivers"),
+lake_min, sb_km)
+alt_map <- sprintf(paste(
+  "Map of the %s basin in north-west British Columbia, densely covered by thin blue stream lines,",
+  "with %s orange and black points marking temperature stations along its larger rivers."
+), v$basin$name, n_st)
+```
+
+A **reach** here is one stream segment of the Freshwater Atlas, the province's map of its streams
+[@flnrord2021FreshwaterAtlasb]: a stretch of stream with its own identifier, usually from one
+confluence to the next. The `r v$basin$name` runs `r flow_dir` from Houston past Smithers to meet the
+Skeena River at Hazelton, and its basin has `r num(n_reach)` reaches. `r n_st` of them hold a station
+that recorded water temperature by `r last_year`, and `r n_short` of those began too recently to model.
+Every other reach has no measurement at all.
+
+```{r map, fig.width = map_w, fig.height = map_h, fig.cap = cap_map, fig.alt = alt_map}
+ggplot() +
+  geom_sf(data = map$extent, fill = "grey88", colour = NA) +
+  geom_sf(data = map$basin, fill = pal_map$values[["basin"]], colour = ink, linewidth = 0.3) +
+  geom_sf(data = tree, aes(linewidth = stream_order, colour = part), key_glyph = "path") +
+  geom_sf(data = map$lakes, fill = lake_sty$fill$color, colour = lake_sty$stroke$color, linewidth = 0.1) +
+  geom_sf(data = map$streams[!map$streams$main, ], colour = pal_map$values[["river"]], linewidth = 0.3) +
+  geom_sf(data = rivers, aes(colour = part), linewidth = 0.95, key_glyph = "path") +
+  geom_sf(data = map$places, shape = 22, fill = "white", colour = "black", size = 2.2, stroke = 0.5) +
+  geom_sf(data = stations, aes(fill = part), shape = 21, colour = "white", size = 3, stroke = 0.5) +
+  ggrepel::geom_text_repel(data = lab, aes(x, y, label = label, fontface = face, size = I(size), colour = I(col)),
+                           bg.color = "white", bg.r = 0.18, seed = 1, point.padding = 3, box.padding = 0.5,
+                           min.segment.length = Inf) +
+  geom_segment(data = sb, aes(x = x, xend = xend, y = y, yend = y), linewidth = 1) +
+  geom_text(data = sb, aes(x = (x + xend) / 2, y = y, label = paste(sb_km, "km")), vjust = -0.7, size = 3.4) +
+  annotation_custom(ggplotGrob(key), xmin = lim_x[2] - key_w - 0.02 * dx, xmax = lim_x[2] - 0.02 * dx,
+                    ymin = lim_y[1] + 0.015 * dy, ymax = lim_y[1] + 0.015 * dy + key_h) +
+  scale_linewidth(range = c(0.06, 0.75), guide = "none") +
+  scale_colour_manual(values = pal_map$values[c("network", "river")], labels = pal_map$labels[c("network", "river")],
+                      breaks = c("network", "river"), name = NULL) +
+  scale_fill_manual(values = pal_map$values[c("station", "station_pick")],
+                    labels = pal_map$labels[c("station", "station_pick")], breaks = c("station", "station_pick"),
+                    name = NULL) +
+  guides(fill = guide_legend(order = 1, override.aes = list(size = 3)),
+         colour = guide_legend(order = 2, override.aes = list(linewidth = c(0.4, 0.95)))) +
+  coord_sf(xlim = lim_x, ylim = lim_y, expand = FALSE, datum = NA) +
+  theme_void(base_size = 11) +
+  theme(legend.position = "inside", legend.position.inside = c(0.98, 0.985),
+        legend.justification = c(1, 1), legend.box.just = "left", legend.box = "vertical",
+        legend.box.background = element_rect(fill = "white", colour = NA),
+        legend.background = element_rect(fill = "white", colour = NA),
+        legend.margin = margin(3, 6, 3, 6), legend.spacing.y = unit(0, "pt"),
+        panel.border = element_rect(fill = NA, colour = ink))
+```
+
+The network drawn is the one a model is given: the Freshwater Atlas loaded by `fwapg`
+[@norris2024smnorrisfwapg], with side channels trimmed so that water never splits on its way
+downstream [@norris_irvine2026NewGraphEnvironmentfwapg].
+
+## How do we get from stations to every reach?
+
+```{r chain-data}
+states <- names(pal_chain$values)
+stopifnot(!anyDuplicated(nodes$id), all(nodes$state %in% states), all(states %in% nodes$state),
+          all(edges$from %in% nodes$id), all(edges$to %in% nodes$id), all(edges$style %in% c("solid", "dashed")))
+# the chain ends where the article's title points: degree days at every reach, from a network model
+ends <- setdiff(nodes$id, edges$from)
+stopifnot(setequal(ends, c("gsdd_station", "gsdd_reach")),
+          nodes$state[nodes$id == "gsdd_reach"] == "network_model",
+          "model" %in% edges$from[edges$to == "gsdd_reach"])
+# the process model is the comparison, and only it is joined by dashed arrows
+comp <- nodes$id[nodes$state == "comparison"]
+stopifnot(identical(comp, "pcic"), identical(edges$style == "dashed", edges$from %in% comp))
+nodes$label <- gsub("|", "\n", nodes$label, fixed = TRUE)
+edges$label <- gsub("|", "\n", edges$label, fixed = TRUE)
+nodes$hw <- 1.55                                                    # half a box's width
+nodes$hh <- 0.2 + 0.2 * lengths(strsplit(nodes$label, "\n"))        # and of its height
+nodes$state <- factor(nodes$state, states)
+# each arrow runs between the two boxes' edges, along the line that joins their centres
+a <- nodes[match(edges$from, nodes$id), ]
+b <- nodes[match(edges$to, nodes$id), ]
+ux <- b$x - a$x
+uy <- b$y - a$y
+out <- pmin(a$hw / abs(ux), a$hh / abs(uy))
+into <- pmin(b$hw / abs(ux), b$hh / abs(uy))
+arrows <- data.frame(x = a$x + out * ux, y = a$y + out * uy, xend = b$x - into * ux * 1.04,
+                     yend = b$y - into * uy * 1.04, style = edges$style, label = edges$label)
+arrows$mx <- (arrows$x + arrows$xend) / 2
+arrows$my <- (arrows$y + arrows$yend) / 2
+n_state <- table(nodes$state)
+
+cap_chain <- paste(
+  "From station readings to degree days at every reach. Each box is one piece and each arrow says what",
+  "feeds what. The box's colour says where the piece stands: in place (green), being built (orange),",
+  "what a network model would add (blue), and a process model that already exists (purple), joined by",
+  "dashed arrows because it is a comparison and a source of future change, not a step in the chain."
+)
+alt_chain <- paste(
+  "Flow diagram of eleven boxes. Station readings and air temperature feed gap filling; filled records,",
+  "catchment traits and the stream network feed a baseline; the baseline and air temperature at every",
+  "reach feed a network model, which gives degree days at every reach. A process model sits to one side."
+)
+stopifnot(nrow(nodes) == 11)
+```
+
+Stations give temperature at a few places. The diagram shows how those become a value everywhere, and
+which parts exist.
+
+```{r chain, fig.height = 6.6, fig.cap = cap_chain, fig.alt = alt_chain}
+ggplot() +
+  geom_segment(data = arrows, aes(x = x, y = y, xend = xend, yend = yend, linetype = style), colour = ink,
+               linewidth = 0.45, arrow = arrow(length = unit(5, "pt"), type = "closed"), show.legend = FALSE) +
+  geom_rect(data = nodes, aes(xmin = x - hw, xmax = x + hw, ymin = y - hh, ymax = y + hh, colour = state,
+                              fill = state), linewidth = 0.9, key_glyph = "rect") +
+  geom_text(data = nodes, aes(x, y, label = label), size = 2.95, lineheight = 0.95) +
+  geom_label(data = arrows[nzchar(arrows$label), ], aes(mx, my, label = label), size = 2.6, colour = ink,
+             fill = "white", linewidth = 0, label.padding = unit(1.5, "pt"), lineheight = 0.9,
+             fontface = "italic") +
+  scale_colour_manual(values = pal_chain$values, labels = pal_chain$labels, name = NULL, drop = FALSE) +
+  scale_fill_manual(values = alpha(pal_chain$values, 0.14), labels = pal_chain$labels, name = NULL,
+                    drop = FALSE) +
+  scale_linetype_manual(values = c(solid = "solid", dashed = "22")) +
+  coord_cartesian(xlim = c(-0.2, 10.2), ylim = c(0.2, 10.2), expand = FALSE) +
+  theme_void(base_size = 10) +
+  theme(legend.position = "bottom", legend.margin = margin(4, 0, 0, 0))
+```
+
+Three pieces carry the weight.
+
+- **Catchment traits** describe the land above a point: its elevation, snow, lakes and glaciers. Two
+  reaches with like traits should warm alike.
+- **The baseline** is the simple answer a better model has to beat. It takes the air2stream model
+  fitted at each station and predicts its settings where there is no station, from traits alone or
+  from the stream network.
+- **A network model** fits every station at once and lets reaches on the same stream inform each
+  other, week by week. It returns temperature with its uncertainty at every reach, and degree days
+  with the uncertainty carried through. Two have been fitted in northern British Columbia, for the
+  Nechako and the Skeena [@hill_etal2024Spatialstream; @hill_etal2025Spatialstream]. Its method here is
+  left open.
+
+The Pacific Climate Impacts Consortium's process model [@pcic_channel_scale] already gives daily water
+temperature at the outlets of its own reaches, on past weather and under climate models to 2100. It
+is scored at the gauges beside the baseline, and is one way to ask where streams are becoming warm
+enough.
+
+## How will we know it works?
+
+```{r holdout-data}
+# a toy network: streams as lines, stations as points; `h` is the station hidden
+stream <- function(id, x, y) data.frame(id = id, x = x, y = y)
+toy <- rbind(stream("main", c(5, 5, 4.5, 5), c(0, 3, 6, 9.6)),
+             stream("west", c(5, 2.5, 1), c(3, 4.5, 7)),
+             stream("west_fork", c(2.5, 2.2), c(4.5, 7.6)),
+             stream("east_upper", c(4.5, 7, 8.5), c(6, 7, 9)),
+             stream("east_lower", c(5, 7.5, 9), c(1.5, 2.5, 4.6)))
+sites <- data.frame(id = c("h", "a", "f", "b", "c", "d", "e"),
+                    x = c(3.4, 1.4, 2.25, 5, 4.7, 7.6, 8.2),
+                    y = c(3.96, 6.33, 7.1, 2.2, 7.4, 7.8, 3.48))
+ways <- c(traits = "From catchment traits", like = "From the stations most like it",
+          network = "From the stream network")
+use <- list(traits = setdiff(sites$id, "h"), like = c("a", "d", "e"), network = c("a", "f", "b"))
+# each way draws on other stations only, and the three differ
+stopifnot(!"h" %in% unlist(use), length(unique(use)) == 3, all(unlist(use) %in% sites$id))
+hold <- do.call(rbind, lapply(names(ways), function(k) {
+  s <- sites
+  s$part <- ifelse(s$id == "h", "hidden", ifelse(s$id %in% use[[k]], "used", "unused"))
+  s$way <- factor(ways[[k]], ways)
+  s
+}))
+hold$part <- factor(hold$part, c("hidden", "used", "unused"))
+toy_way <- do.call(rbind, lapply(ways, function(w) cbind(toy, way = factor(w, ways))))
+# the station error the section closes on: a whole season hidden, air temperature alone
+val <- v$validation
+season_mae <- val$season_open$gsdd_mae
+stopifnot(season_mae > 100, season_mae < 150, val$season_open$n > 800)
+
+cap_hold <- paste(
+  "The test, as a sketch on a made-up network (pale lines). One station is hidden (orange) and its",
+  "air2stream settings are predicted three ways, each drawing on the stations in blue and leaving the",
+  "grey ones out: from catchment traits, a relation fitted to every other station; from the few",
+  "stations whose catchments are most like it, wherever they are; and from the stream network, its",
+  "neighbours up and down the same stream."
+)
+alt_hold <- paste(
+  "Three copies of a small branching stream network with seven stations. One station is marked as",
+  "hidden in each; the stations used to predict it differ between the three copies."
+)
+```
+
+By hiding stations. A **holdout** takes a station's whole record away, predicts it as if the station
+had never been there, and compares the prediction with what the station recorded. The baseline is
+tested this way three times over, and a network model would be scored on the same hidden stations.
+
+```{r holdout, fig.height = 3, fig.cap = cap_hold, fig.alt = alt_hold}
+ggplot() +
+  geom_path(data = toy_way, aes(x, y, group = id, colour = "stream"), linewidth = 1.3, lineend = "round",
+            show.legend = FALSE) +
+  geom_point(data = hold, aes(x, y, fill = part), shape = 21, colour = "white", size = 3.6, stroke = 0.6) +
+  facet_wrap(~way, nrow = 1) +
+  scale_colour_manual(values = pal_hold$values["stream"]) +
+  scale_fill_manual(values = pal_hold$values[c("hidden", "used", "unused")],
+                    labels = pal_hold$labels[c("hidden", "used", "unused")], name = NULL) +
+  coord_equal(xlim = c(0.3, 9.7), ylim = c(-0.2, 9.9), expand = FALSE) +
+  theme_void(base_size = 10) +
+  theme(legend.position = "bottom", strip.text = element_text(size = 9.5, margin = margin(0, 0, 4, 0)),
+        panel.border = element_rect(fill = NA, colour = "grey80"), panel.spacing = unit(8, "pt"))
+```
+
+The third way is **kriging**: estimating a value at an unmeasured place from measured places, weighting
+the near ones most. On a stream network, near is measured along the water and in the direction it
+flows. Each prediction is then run through air2stream on the hidden station's own air temperature and
+compared with two marks: the model fitted to that station's own record, which is the best any of them
+could do, and the average of all stations, which is what knowing nothing gives. Where the network
+beats traits, the difference is what neighbours on the same stream are worth.
+
+## What is not known yet?
+
+- **The error with no station.** Even at a gauge, when a whole growing season is hidden, air2stream on
+  air temperature alone misses that season's total by about `r num(season_mae)` degree days on
+  average. A reach with no station can only do worse, and how much worse is what the test measures.
+- **Readings that are not water.** One reading from a sensor out of the stream moved the year in the
+  first figure by `r num(edge_cost)` degree days, and nothing screens for it yet.
+- **The thresholds.** Growing-season degree-day thresholds exist for cutthroat trout in high-elevation
+  Colorado streams, where 900 to 1,200 degree days gave the best recruitment and under 800 was
+  unsuitable [@coleman_fausch2007ColdSummera]. Reports on westslope cutthroat trout in the Elk Valley
+  apply them [@thorley_branton2022SubjectMatter; @hocking_etal2022SubjectMatter]. None has been found
+  yet for the other species of British Columbia.
+
+## How were the numbers in the first figure made?
+
+The fill borrows from the other stations of its sub-drainage, so the recipe reads them all.
+
+```{r recipe, echo = TRUE, eval = FALSE}
+library(wet)
+
+# the gauges of WSC sub-drainage 08E; most record no water temperature, and
+# wet_temp_daily() warns of those and returns the ones that do
+st <- tidyhydat::allstations
+st <- st[startsWith(st$STATION_NUMBER, "08E"), ]
+water <- wet_temp_daily(st$STATION_NUMBER, from = "2002-01-01", to = "2025-12-31")
+st <- st[st$STATION_NUMBER %in% water$station_number, ]
+
+# daily air temperature at each, then the fill and the degree days
+air <- cd::cd_extract_daily(data.frame(id = st$STATION_NUMBER, lon = st$LONGITUDE, lat = st$LATITUDE),
+                            "2002-01-01", "2025-12-31", variables = "tmean")
+pool <- stats::setNames(substr(st$STATION_NUMBER, 1, 3), st$STATION_NUMBER)
+filled <- wet_temp_fill(water, air, pool = pool)
+gsdd <- wet_temp_gsdd(filled)
+gsdd[gsdd$station_number == "08EE012" & gsdd$year == 2020, ]
+```
+
+```{r recipe-check}
+# the recipe types the pool, the range and the pick; fail here if the bundle moves under it
+stopifnot(identical(v$pool$prefix, "08E"), identical(prov$from, "2002-01-01"), identical(prov$to, "2025-12-31"))
+```
+
+## Software and citation
+
+Water temperature was read from the archive on `r day_text(as.Date(prov$retrieved))`
+`r format(as.Date(prov$retrieved), "%Y")`, for `r prov$from` to `r prov$to`; station coordinates and
+areas are HYDAT's, release `r prov$hydat`; and the data were built at commit `r prov$commit`.
+
+The software, each cited:
+
+- [`wet`](https://newgraphenvironment.github.io/wet/) [@wet] reads the station records, fills them and
+  sums the degree days.
+- [`cd`](https://newgraphenvironment.github.io/cd/) [@cd] serves daily air temperature at the stations.
+- [`gsdd`](https://github.com/poissonconsulting/gsdd) [@gsdd] applies the growing-season rule, and
+  [`tidyhydat`](https://docs.ropensci.org/tidyhydat/) [@tidyhydat] gives each station's time zone.
+- [`fwapg`](https://smnorris.github.io/fwapg/) [@norris2024smnorrisfwapg] loads the Freshwater Atlas into
+  PostgreSQL, and the network with no splits is built on it in New Graph's fork
+  [@norris_irvine2026NewGraphEnvironmentfwapg]. The baseline's kriging will use
+  [`SSN2`](https://usepa.github.io/SSN2/) [@SSN2].
+- [`ggplot2`](https://ggplot2.tidyverse.org/) [@ggplot2], [`ggrepel`](https://ggrepel.slowkow.com/)
+  [@ggrepel], [`gq`](https://newgraphenvironment.github.io/gq/) [@gq] and
+  [`sf`](https://r-spatial.github.io/sf/) [@sf] make the figures and the map;
+  [`knitr`](https://yihui.org/knitr/) [@knitr] and [`bookdown`](https://pkgs.rstudio.com/bookdown/)
+  [@bookdown] render the article, all in R [@base].
+
+```{r versions, results = "asis"}
+# our packages' version, and the commit where the install recorded a full git hash
+# (a build from a checkout records none)
+ours <- vapply(c("wet", "cd", "gq"), function(p) {
+  sha <- utils::packageDescription(p)$RemoteSha
+  sha <- if (!is.null(sha) && grepl("^[0-9a-f]{40}$", sha)) paste0(", commit ", substr(sha, 1, 7)) else ""
+  sprintf("`%s` %s%s", p, utils::packageVersion(p), sha)
+}, "")
+cat("This build ran on ", and_text(ours), "; the data were built with `cd` ", prov$cd, " and `gsdd` ",
+    prov$gsdd, ". To cite `wet`:\n\n", sep = "")
+cat(format(utils::citation("wet"), style = "text"), sep = "\n\n")
+```
+
+### Data
+
+- Water temperature: Environment and Climate Change Canada's hydrometric stations
+  [@environmentandclimatechangecanada2021NationalWater], as archived by
+  [water-temp-bc](https://github.com/NewGraphEnvironment/water-temp-bc)
+  [@irvine2025NewGraphEnvironmentwatertempbc].
+- Air temperature: ERA5-Land [@munoz-sabater_etal2021ERA5Landstateoftheart].
+- Streams, lakes, the basin and place names: the Province of British Columbia's Freshwater Atlas
+  [@flnrord2021FreshwaterAtlasb] and BC Geographic Names, through DataBC.
+
+## References
+
+::: {#refs}
+:::
+
+```{r wordcount, include = FALSE}
+f <- knitr::current_input()
+if (!is.null(f)) {
+  x <- readLines(f, warn = FALSE)
+  y <- utils::tail(x, -utils::head(which(x == "---"), 2)[2])   # drop the YAML header
+  cite <- which(y == "## Software and citation")
+  stopifnot(length(cite) == 1)
+  y <- utils::head(y, cite - 1)   # the closing citation section is not body prose
+  fence <- cumsum(grepl("^```", y)) %% 2 == 1
+  y <- y[!fence & !grepl("^```", y)]
+  y <- gsub("`r [^`]*`", "", y)          # inline code is not body prose
+  y <- y[!grepl("^\\s*$", y)]
+  n <- sum(lengths(strsplit(trimws(y), "\\s+")))
+  message("body prose: ", n, " words")
+  cap <- 1200   # set before the first draft was written
+  if (n > cap) stop("body prose is ", n, " words; the cap is ", cap)
+}
+```
