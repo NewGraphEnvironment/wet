@@ -44,3 +44,19 @@ Relates to #214
 
 | Error | Resolution |
 |-------|------------|
+| `not in HYDAT 20260717: 07FA008` stopped the first traits run | A station newer than the pinned release has no gross area to snap against: dropped with that reason, not a stop |
+| `tb_verdict()$text` carried names from `vapply()`, so `expect_equal()` failed | `USE.NAMES = FALSE` |
+
+## The frame (2026-11-25)
+
+- 257 truth stations, 999 station-years; kept 209 and 889 (frame `bd5db3bd6b`).
+- Dropped 48: 18 with too little record to fit (under 365 observed days), 19 not snapped (14
+  outside the 10 % area test, among them lake and reservoir level gauges, diversions and small
+  creeks; 5 with no gross area in HYDAT), 9 with under 95 % of the basin inside BC, the stuck
+  sensor (08LG048) and one station outside the pinned HYDAT (07FA008). The report lists each.
+- Kept stations: 136 natural, 67 regulated, 6 unflagged; 135 headwater, 74 nested; 32 lake
+  outlets; 96 with a glacier upstream.
+- 640 related pairs, 461 of them across folds: blocked CV by sub-sub-drainage leaves those in
+  training, and only the leak-free pool removes them. 97 stations have at least one.
+- The lake query (386,025 lakes and 1,812 manmade waterbodies against the fundamental
+  watersheds) took about 4 minutes on the local database; cached as `lake_ws_37795e2f7b.rds`.

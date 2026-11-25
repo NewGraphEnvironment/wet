@@ -102,53 +102,63 @@ Mechanism, decided in the plan (mine, one line of why each):
 
 ## Phase 2: Traits and the holdout frame
 
-- [ ] `scripts/temp_baseline_traits.R`, run where the full province run's `upstream/` is
-      (`WET_DATA_ROOT` from a worktree): snap the 257 truth stations with `wet_station_snap()`
-      (the truth set by `truth_years()` taken from `scripts/temp_fill_validate.R` by `parse()`
-      and held to `truth_years.rds`: 999 station-years, 257 stations), and hold the 132 already
-      in `stations_<release>.rds` to their rows there.
-- [ ] Upstream means for each accepted station from `upstream/*.rds`; glacier cover from
+- [x] `scripts/temp_baseline_traits.R`, run where the full province run's `upstream/` is, or
+      on a bundle cut to the watersheds it lists when it stops: snap the truth stations with
+      `wet_station_snap()` (the truth set by `truth_years()` taken from
+      `scripts/temp_fill_validate.R` by `parse()`, on the cached water after its air filter: 999
+      station-years, 257 stations), and hold those the water balance snapped, test stations
+      included, to their rows in `stations_<release>.rds` (146, all on the same segment).
+      *Review:* `truth_years.rds` holds 1,006 at 259, before the air filter, so nothing is held
+      to it; a stuck sensor (08LG048) and a station outside the pinned HYDAT (07FA008) are
+      dropped by rules now in the registered header (Amendment 1).
+- [x] Upstream means for each accepted station from `upstream/*.rds`; glacier cover from
       `q_glacier` and its cache key, taken from `scripts/wb_small_basin.R` by `parse()`; lake
       cover from the same query shape on `fwa_lakes_poly` and `fwa_manmade_waterbodies_poly`
       (area computed before any simplify, `ORDER BY` on a unique key), cached under
       `data/temp_baseline/` and keyed on the query and the tables' row counts and areas.
-- [ ] Folds from `wet_cv_folds()`, the related matrix as `share_related()` builds it, the snap's
-      lake-outlet flag. Written to `data/temp_baseline/frame_<key>.rds`.
-- [ ] Report `data/checks/temp_baseline_frame.txt`: stations kept and each one dropped with its
+- [x] Folds from `wet_cv_folds()`, the related matrix as `share_related()` builds it, the snap's
+      lake-outlet flag. Written to `data/temp_baseline/frame_<key>.rds`. *Review:* the frame also
+      carries HYDAT's regulation flag and each station's own fit (the simulation's scale; fitting
+      is not a score).
+- [x] Report `data/checks/temp_baseline_frame.txt`: stations kept and each one dropped with its
       reason, station-years left, trait ranges, folds, headwater and nested counts, pairs the
       leak-free pool removes. Byte-identical on a rerun from cache.
 
 ## Phase 3: Candidates and the recovery run
 
-- [ ] `scripts/temp_baseline_lib.R`: the θ transform and its inverse; `tb_predict()` for
+- [x] `scripts/temp_baseline_lib.R`: the θ transform and its inverse; `tb_predict()` for
       `mean`, `regression` (`lm` per θ) and `donor` (`wet:::wet_donor_mean()`), each returning a
       mean and predictive sd; `tb_cv()` for the blocked folds and the leak-free pool (each
       held-out station predicted from its fold's training stations less those upstream or
       downstream of it, every candidate refitted); `tb_score()` for daily RMSE on observed
       Mar-Nov days of the truth years and GSDD error (`gsdd_year()` taken from
       `scripts/temp_fill_validate.R` by `parse()`).
-- [ ] `tb_simulate()`: on the real frame's traits and topology, θ from known coefficients, plus
+- [x] `tb_simulate()`: on the real frame's traits and topology, θ from known coefficients, plus
       a network part built as a weighted mean of each station's own and its upstream stations'
       independent draws (so only flow-connected stations are correlated), plus noise.
-- [ ] `tests/testthat/test-temp_baseline_lib.R`: the transform round trip; each candidate on a
+- [x] `tests/testthat/test-temp_baseline_lib.R`: the transform round trip; each candidate on a
       toy frame with known answers; the leak-free pool leaves no related station in training;
       the simulated network part is correlated only between connected pairs; empty and NA
       inputs.
 - [ ] `scripts/temp_baseline_recover.R`, fixed seed, 200 simulated parameter sets: bias, RMSE and
-      90 % interval coverage per candidate, θ component and pool; the leak-free check (with the
-      network part on, each candidate's leak-free error equals, within Monte Carlo error, its
-      error when that part is replaced by independent noise of the same variance); and the gap
-      between blocked CV and leak-free. Then 5 end-to-end sets: daily water simulated from the
-      true θ on the stations' real air with an AR(1) departure, refitted with
-      `wet:::wet_a2s_fit()`, candidates run on the fitted θ, GSDD error against the simulated
-      truth (0 when θ is given, by assertion).
-- [ ] Report `data/checks/temp_baseline_recover.txt` (naming the md5s of the lib and rule
-      files), log under `data/logs/213/`, committed before Phase 4 runs.
+      90 % interval coverage per candidate, θ component and pool; the leak-free check (each
+      candidate's leak-free error equals, within Monte Carlo error, its error when the held-out
+      station's network part alone is replaced by an independent draw of the same variance);
+      and the same difference in blocked CV, which is the leak. Then 5 end-to-end sets: daily
+      water simulated from the true θ on the stations' real air with an AR(1) departure,
+      refitted with `wet:::wet_a2s_fit()`, candidates run on the fitted θ, GSDD error against
+      the simulated truth (a run on the true θ has no error against the departure-free series,
+      by assertion). *Review:* replacing the network part everywhere, as first planned, also
+      removes the correlation among training stations and is wrong for the donor mean; and the
+      assertion cannot be against a truth that carries the departure.
+- [ ] Report `data/checks/temp_baseline_recover.txt` (naming the frame and `tb_code_md5()`, one
+      md5 over every file a score depends on; *review:* not the lib and rule alone), log under
+      `data/logs/213/`, committed before Phase 4 runs.
 
 ## Phase 4: The real scores
 
-- [ ] `scripts/temp_baseline.R` refuses unless the recovery report is committed and names the
-      current lib and rule md5s, and unless the frame's key is the one the recovery ran on.
+- [ ] `scripts/temp_baseline.R` refuses unless the recovery report is committed, names the
+      current `tb_code_md5()` and the frame, and says its leak-free check passed.
 - [ ] Own fits from `wet:::wet_fill_prepare()` on each station's whole record; θ per station;
       candidates in both pools; `wet:::wet_a2s_run()` on the predicted parameters over the
       station's own air; scores per station-year, for each candidate, the population mean and
@@ -157,7 +167,8 @@ Mechanism, decided in the plan (mine, one line of why each):
       mean absolute error by station and by station-year, bias, the absolute and relative gap
       to the benchmark), coverage of the own-fit θ by each candidate's interval, breakdowns by
       WSC sub-drainage, by lake influence (outlet flag, lake cover classes) and by glacier cover
-      (none, some), #40's hidden-season score as context, and the rule's outcome in the rule's
+      (none, some) and by HYDAT's regulation flag (*review*), #40's hidden-season score on the
+      station-years both scored as context, and the rule's outcome in the rule's
       own words from `tb_verdict()`. Byte-identical on a rerun.
 - [ ] Scores stored in `data/temp_baseline/scores_<key>.rds`, for the kriging issue to score
       against.
