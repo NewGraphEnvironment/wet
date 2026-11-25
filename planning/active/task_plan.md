@@ -68,7 +68,7 @@ Tests first; no request is made in this phase (the network is mocked). Not built
 - [x] `devtools::document()`; the two exports in `_pkgdown.yml`'s reference index beside `wet_pcic_annual`; `pkgdown::check_pkgdown()`; lints compared per file against `origin/main` in a worktree.
 - [x] Verify: `devtools::test()` in one call with the failure grep; the branch's `wet_pcic_annual()` on the same cached year, offline as above, is `identical()` to the saved "before".
 
-Known consequence, stated and not acted on: `scripts/wb_term_diagnose.R` hashes `R/wet_pcic_fetch.R` into its cache key, and its tracked report prints the key, so its next run recomputes its tables from the cached daily files under a new key. It is not rerun here.
+Known consequence, stated and not acted on: `scripts/wb_term_diagnose.R` hashes `R/wet_pcic_fetch.R` into its cache key, and its tracked report prints the key, so its next run recomputes its tables from the cached daily files under a new key. It is not rerun here. Code check round 2 found a second consumer: `scripts/wb_small_basin.R` re-derives that key and refuses until #45 is rerun under it. Filed as #226 (rerun #45, expect only its `cache` line to move, then confirm the small-basin report unchanged).
 
 Changed by the plan review: the days check applies to a download, never to a cached file; a user agent; the publish guards' list; a recorded "before" for the cached-year check; the offline guard; the `wb_term` cache key.
 
