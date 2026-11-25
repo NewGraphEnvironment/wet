@@ -47,3 +47,14 @@
   (`wet_temp_daily()` differs in the last bits between reads)
 - Commits: the instructions; the cold-read revision; this record
 - Next: `/code-check branch`, then the archive and the pull request
+
+## Review and wording, 2026-11-25
+
+- Completed: four review rounds (14 findings fixed; round 4's table of 189 claims found none wrong); the
+  owner's wording rules applied; two wording changes he approved; a second cold read as an outside modeller
+  and the wording it prompted; three identical pkgdown builds
+- Also: the logger issue's body (#215) gained the Skeena temperature sources, at the owner's request
+- Held: nothing is pushed. The owner reads the rendered page first (his rule); then one review round on the
+  wording changed after round 4, the verdict, the archive and the pull request
+- Commits: one per round's fixes, the wording pass, the heading and small-streams change, the legend order,
+  the outside-modeller wording

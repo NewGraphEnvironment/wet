@@ -189,6 +189,44 @@ hidden: one reading is worth 67 °C-days, five times the 30-day holdout's mean d
   the file this branch changes. `lintr` on the two existing files the branch edits finds nothing new against
   `origin/main`; `pkgdown::check_pkgdown()` reports no problems; `devtools::document()` changes nothing.
 
+## The branch review and the wording pass (2026-11-25)
+
+Four review rounds, each by a reviewer with none of this session's context, findings in `review-round1.md` to
+`review-round4.md`.
+
+| Round | Findings | Fixed | Inside the previous fix? |
+|---|---|---|---|
+| 1 | 7 (1 bug, 6 fragile) | 7 | — |
+| 2 | 4 fragile | 4 | yes: the README line still made the claim round 1 had narrowed in the article |
+| 3 | 3 fragile, and the mechanism with a table of 163 claims | 3 | yes: the lake guard could fail one way only; a reworded aside had gained an unmeasured "usually" |
+| 4 | none: 189 claims re-walked, 169 ok, 20 weak, 0 wrong | leftovers cleared | no |
+
+- **The mechanism (round 3):** the article's numbers have a producer and its sentences do not. A fact typed by
+  hand sits in up to nine places (prose, caption, alt text, registry label, chain box or arrow, README,
+  `CLAUDE.md`, script header, comment) and a correction reaches the copies the fixer remembers. What closed it:
+  the map bundle records the thresholds its caption quotes, the chain's arrows are asserted where the prose
+  restates them, and for the sentences that restate #213, #223 and #219 the claim table is the control, to be
+  walked again whenever one of those bodies is edited.
+- **The baseline issue moved during the build.** #213 was edited at 18:47 UTC to split kriging out to #223; round
+  2 caught the article still calling it one of the baseline's versions.
+- **One build in three drew the holdout sketch differently** once it had two legends: with no `order`, ggplot2
+  places guides by a hash that differs between sessions. A two-build comparison had passed by luck; the proof is
+  now three builds, and round 4 restored the defect (1 in 4 differed) and the fix (0 in 4).
+- **The owner's wording rules** (given in chat after round 3) were applied in one pass: the prose is about the
+  method, assigns no piece to anyone, gives sizes in place of counts that move ("tens of thousands of reaches",
+  "about a dozen" stations), compares models with station records, and leaves the method and the time step open.
+  He approved the heading "How will it be tested?" and a line on small streams.
+- **A second cold read, as an outside modeller** deciding whether to reply: it would, cautiously. From its list:
+  kriging read as the method already chosen (the article now calls it a simple stand-in for the network in the
+  test); the test read as built around air2stream (any model is now said to be compared on the same hidden
+  stations' daily temperature and degree days); "the logger" for a federal station; "two have been fitted"
+  reading as the only two. One point is the test's and not the article's: the fill borrows from neighbouring
+  stations, so a hidden station's readings may sit inside its neighbours' filled records. That is for the
+  baseline issue, put to the owner.
+- **Words:** 1,199 against the cap of 1,200.
+- **Still to do before the pull request:** the owner reads the rendered page; then one review round on what
+  changed after round 4 (the outside-modeller wording), and the verdict file.
+
 ## Errors Encountered
 
 | Error | Resolution |
@@ -197,3 +235,4 @@ hidden: one reading is worth 67 °C-days, five times the 30-day holdout's mean d
 | `vm_tree()` took the basin's polygon from its watershed groups and stopped on its own guard: BULK, KISP, MORR and ZYMO hold 94,575 tree segments, 52,293 under the Bulkley's code | The basin is the fundamental watershed polygons under the main stem's code |
 | A rebuild from an emptied cache rewrote the values bundle: every numeric element differed in the last bits | `wet_temp_daily()`'s parallel `avg()`; the script's `same()` compares with `all.equal()` |
 | The empty-cache rerun stopped with "commit vignettes/articles/segment-temperature.Rmd first" | The article was edited while the run was in flight; rerun after the commit, touching nothing |
+| Two pkgdown builds gave different md5s for `holdout-1.png` after a second legend was added | `guides(fill = guide_legend(order = 1), colour = guide_legend(order = 2))`; three builds compared from then on |
