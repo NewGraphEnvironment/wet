@@ -302,7 +302,7 @@ stopifnot(identical(lake_min, 500), identical(drawn$context_min_order, 7), min(m
           all(map$streams$stream_order[!map$streams$main] >= drawn$context_min_order))
 
 cap_map <- sprintf(paste(
-  "The %s basin: every reach of its stream network (blue, heavier on larger streams) and the federal",
+  "One basin as an example, the %s: every reach of its stream network (blue, heavier on larger streams) and the federal",
   "hydrometric stations that have recorded water temperature (orange points; %s's, the first figure's,",
   "is black).",
   "The %s are drawn heavy and named. Lakes of %s ha and up are pale blue; land outside the basin is",
@@ -317,11 +317,11 @@ alt_map <- sprintf(paste(
 ), v$basin$name)
 ```
 
-A **reach** here is one stream segment of the Freshwater Atlas, the province's
+The aim is the whole province; the `r v$basin$name` basin is used here only as an example. A **reach** here is one stream segment of the Freshwater Atlas, the province's
 map of its streams [@flnrord2021FreshwaterAtlasb]. The `r v$basin$name` runs `r flow_dir` from Houston past Smithers to meet the
 Skeena River at Hazelton, and the stream network of its basin has tens of thousands of reaches. About a
 dozen hold a federal hydrometric station that has recorded water temperature, some only recently.
-Small-stream loggers are not in `wet` yet, so the map shows only these stations.
+Small-stream loggers are not in `wet` yet.
 
 ```{r map, fig.width = map_w, fig.height = map_h, fig.cap = cap_map, fig.alt = alt_map}
 ggplot() +
@@ -509,7 +509,7 @@ alt_hold <- paste(
 By hiding stations. A **holdout** takes a station's whole record away, predicts it as if the station
 had never been there, and compares the prediction with what the station recorded. Three simple
 predictions are to be tested this way, at stations across the province with a complete growing season,
-on daily temperature and on the season's degree days: the baseline's two, and one that adds the stream
+on daily temperature and the season's degree days: the baseline's two, and one that adds the stream
 network. The same hidden stations are there for any model to be compared on.
 
 ```{r holdout, fig.height = 3, fig.cap = cap_hold, fig.alt = alt_hold}
@@ -534,8 +534,8 @@ ggplot() +
 
 The third is **kriging**: estimating a value at an unmeasured place from measured places, weighting
 the near ones most. On a stream network, near is measured along the water and in the direction it
-flows. Here it is a simple stand-in for the network, not the network model: it starts from the same
-traits and adds the network, so its difference from the baseline is what the network adds. Each of the
+flows. Here it is a simple stand-in for the network, not the network model: it adds the network to the
+same traits, so its difference from the baseline is what the network adds. Each of the
 three is then run through air2stream on the hidden station's own air temperature and compared with two
 marks: the model fitted to that station's own record, the best these three could do, and the average
 of all stations, what knowing nothing gives. Each
@@ -546,16 +546,16 @@ network's prediction that difference is what the neighbours are worth.
 
 - **The error with no station.** Even at a station, when a whole growing season is hidden, air2stream
   on air temperature alone misses that season's total by about `r num(season_mae)` degree days on
-  average. With air2stream, a reach with no station can only do worse, and how much worse is what the
-  test measures.
+  average. With air2stream, a reach with no station can only do worse; how much worse is what the test
+  measures.
 - **Small streams.** Most reaches are small streams and few stations sit on one, as in the basin above,
   so the test says least about them.
 - **Readings that are not water.** Nothing screens yet for one like the first figure's.
-- **The thresholds.** Growing-season degree-day thresholds exist for cutthroat trout in high-elevation
+- **The thresholds.** They exist for cutthroat trout in high-elevation
   Colorado streams, where 900 to 1,200 degree days gave the best recruitment and under 800 was
   unsuitable [@coleman_fausch2007ColdSummera]. Reports on westslope cutthroat trout in the Elk Valley
   apply them [@thorley_branton2022SubjectMatter; @hocking_etal2022SubjectMatter]. None has been found
-  yet for the other species of British Columbia.
+  yet for other British Columbia species.
 
 ## How were the numbers in the first figure made?
 
