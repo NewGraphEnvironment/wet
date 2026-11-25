@@ -151,3 +151,12 @@
 - Tests on the final tree: 0 failed, 0 errors, 3,737 passed (log `data/logs/213/tests_final_*`).
 - Reviewer agents on this task: six (one plan review, five code rounds), one over the usual
   five, because rounds 2 to 5 each found something inside the round before's fix.
+
+## Merge of main, 2026-11-25
+- `origin/main` had moved 91 commits (three other branches merged, releases to 0.5.1). Merged,
+  not rebased (2f738417). One conflict, in the "Not done" list of
+  `research/station_temperature_fill.md`: both additions kept. No file `tb_code_md5()` names
+  changed on main, so the code md5 is the recovery report's still (8f553ae2), the scorer ran on
+  the merged tree and left all three reports unchanged, and the suite passes there (0 failed,
+  3,947 passed; log `data/logs/213/tests_merged_*`). The verdict names the merged head; the
+  enumeration ran at e7cb7140, whose hashed files the merge did not touch.

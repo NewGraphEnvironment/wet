@@ -189,15 +189,16 @@ Mechanism, decided in the plan (mine, one line of why each):
 
 ## Owed at the end (reported, done after merge)
 
-- [ ] Move `data/logs/213/` and `data/temp_baseline/` from the worktree into the main checkout
-      before the worktree is removed.
+- [x] Move `data/logs/213/` and `data/temp_baseline/` from the worktree into the main checkout
+      before the worktree is removed. Copied 2026-11-25, before the PR: the logs, the frame, the
+      scores, the lake cache, and the cut bundle of upstream means the frame script reads.
 - [ ] Tick item 2 of #214's list by hand once the PR is merged.
 
 ## Validation
 
-- [ ] Tests pass
-- [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
+- [x] Tests pass
+- [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
 How each change is proved:
