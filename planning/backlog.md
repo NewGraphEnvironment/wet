@@ -71,7 +71,7 @@ counts them): run `/backlog-sweep` again, the backlog is not finished.
 | - [ ] 15 | #208 | 17: re-run the segment chain and a publish BUILD after 0.4.40 (1 issue) | open | F | — | sonnet |
 | - [ ] 16 | #209 | 18: zone adjustment candidates (3 issues) | open | F | 15 | fable then opus |
 | - [ ] 17 | #210 | 19: provincial station records, current copy and Hakai's early years (3 issues) | open | B | — | opus |
-| - [ ] 18 | #211 | 20: natural non-HYDAT stations as donors (1 issue) | open | D | — | fable then opus |
+| - [x] 18 | #211 | 20: natural non-HYDAT stations as donors (1 issue) | done: https://github.com/NewGraphEnvironment/wet/pull/229 | D | — | fable then opus |
 
 Tracks are separate efforts, not moves: the cross-repo provenance track, whose wet member is #161
 (labelled `track:provenance`), batched here in batch 3 because #88 and #160 take its names.
@@ -381,7 +381,7 @@ a scripted read, which is outward contact through the owner (#192).
 
 ### 20. Natural non-HYDAT stations as donors
 
-- [ ] Carried by move 18, #211
+- [x] Carried by move 18, #211 (merged in https://github.com/NewGraphEnvironment/wet/pull/229)
 
 #202 lets departures at an ungauged or short-record site borrow from the natural stations outside HYDAT, the donor pool move
 14's gate left HYDAT-only.
