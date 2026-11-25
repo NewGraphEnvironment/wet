@@ -335,8 +335,10 @@ depths <- function(run) {
     a <- acc$upstream_area_m2[i]
     if (is.null(area)) area <- a else stopifnot(identical(area, a))
   }
-  list(mm = out, area_m2 = stats::setNames(area, want_ws),
-       files_md5 = md5_text(sort(unname(tools::md5sum(run_files(run, base_years))))))
+  rf <- run_files(run, base_years)
+  if (!all(file.exists(rf))) stop(run, ": a one-year file the months were read from is not in the cache", call. = FALSE)
+  list(mm = out, area_m2 = stats::setNames(area, want_ws), n_files = length(rf),
+       files_md5 = md5_text(sort(unname(tools::md5sum(rf)))))
 }
 shares <- function(mm) mm / rowSums(mm)
 ann_q <- function(d, ws_id) {
@@ -422,6 +424,7 @@ DBI::dbDisconnect(conn)
 
 # ---- report ---------------------------------------------------------------------------------------
 log <- read_fetch_log(f_log)
+first_fetch <- fetch_guard(log, reg$utc)   # again at the end, so a run that fetched names its own first request
 log_line <- if (is.null(log)) "requests logged: none" else {
   sprintf("requests logged: %d, %.1f MiB, %.1f minutes (<data root>/logs/169/scenario_basis_fetch.tsv)", nrow(log),
           sum(as.numeric(log$bytes)) / 2^20, sum(as.numeric(log$secs)) / 60)
@@ -440,8 +443,7 @@ rep <- c(
   paste("table:", routed_fp),
   sprintf("bundle: %s md5 %s", f_bundle, unname(tools::md5sum(f_bundle))),
   sprintf("pilot report: %s md5 %s", f_pilot, unname(tools::md5sum(f_pilot))),
-  sprintf("PNWNAmet gridded files (%s, %d one-year files): md5 of md5s %s", pnw_run,
-          length(base_years) * length(vars), pnw$files_md5),
+  sprintf("PNWNAmet gridded files (%s, %d one-year files): md5 of md5s %s", pnw_run, pnw$n_files, pnw$files_md5),
   log_line,
   sprintf("PCIC access: %s", if (fetch) "WET_SCENARIO_FETCH=1, requests made one at a time" else access),
   "",

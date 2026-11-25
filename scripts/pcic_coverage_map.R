@@ -7,7 +7,8 @@
 # Reads the group table scripts/pcic_coverage.R wrote under <data root>/pcic_coverage/,
 # refused unless its md5 is the one the tracked report names. The drawn layers (group
 # polygons, BC's outline and river labels from fwapg; towns from the BC Data Catalogue)
-# are stored once in <data root>/pcic_coverage/map_layers.rds, so a second render asks
+# are stored once in <data root>/pcic_coverage/map_layers_<key>.rds, keyed on what they are drawn
+# from, so a second render asks
 # nothing; rivers of stream order 7 and up come from inst/vignette-data/segment_map.rds.
 # Colours from inst/cartography/wet_coverage.csv (gq). Writes research/pcic_coverage.png,
 # a research figure (not on the site).
@@ -24,7 +25,6 @@ data_root <- Sys.getenv("WET_DATA_ROOT", "data")
 out_dir <- file.path(data_root, "pcic_coverage")
 f_report <- file.path("data", "checks", sprintf("pcic_coverage_%s.txt", release))
 f_table <- file.path(out_dir, sprintf("coverage_%s.tsv", release))
-f_layers <- file.path(out_dir, "map_layers.rds")
 f_png <- file.path("research", "pcic_coverage.png")
 simplify_m <- 1500
 rivers <- c("Fraser River", "Peace River", "Columbia River", "Skeena River", "Liard River")
@@ -39,7 +39,13 @@ if (length(want) != 1L || !identical(unname(tools::md5sum(f_table)), want)) {
 }
 tb <- utils::read.delim(f_table, quote = "", na.strings = "NA", comment.char = "", colClasses = "character")
 
-# ---- the layers, stored once ---------------------------------------------------------------------
+# ---- the layers, stored once, named for everything they are drawn from --------------------------
+# (the names asked for, the simplification, main flow, this script's queries and the map lib), so
+# an edit to any of them draws new layers rather than the stored ones
+layers_key <- substr(wet:::wet_md5_text(c(rivers, towns, simplify_m, main_flow,
+                                           unname(tools::md5sum(c("scripts/pcic_coverage_map.R",
+                                                                  "scripts/vignette_map_lib.R"))))), 1, 10)
+f_layers <- file.path(out_dir, sprintf("map_layers_%s.rds", layers_key))
 if (!file.exists(f_layers)) {
   conn <- vd_connect()
   grp <- vm_simplify(sf::st_read(conn, quiet = TRUE, query = "
@@ -138,6 +144,7 @@ ggsave(tmp[1], p1, width = w, height = h, dpi = 200, bg = "white")
 ggsave(tmp[2], p2, width = w, height = h, dpi = 200, bg = "white")
 img <- magick::image_append(c(magick::image_read(tmp[1]), magick::image_read(tmp[2])))
 # no date chunks, so a render of the same layers writes the same bytes
-img <- magick::image_set_defines(magick::image_strip(img), c("png:exclude-chunks" = "date,time"))
+img <- magick::image_strip(img)
+magick::image_set_defines(img, c("png:exclude-chunks" = "date,time"))   # in place; returns NULL
 magick::image_write(img, f_png, format = "png")
 message("wrote ", f_png)

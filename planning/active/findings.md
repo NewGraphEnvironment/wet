@@ -162,3 +162,15 @@ git -C fwapg show origin/{main,newgraph}:extras/discharge/discharge.sh   # curl 
 - Gridded cover reaches past the three basins at their edges (BABL 22 %, BABR 7 %): PNWNAmet's cells with values overlap the divide; measured, not corrected.
 - The map: two panels, ggplot2 as the articles draw maps, colours from `inst/cartography/wet_coverage.csv`. Self-review at 700 px: legends first sorted alphabetically and lacked the rivers (fixed: class order, a river key); type enlarged; the legends then overflowed and were stacked; an en dash. A second render from the stored layers gave the same pixels, and, once ImageMagick's date chunks were excluded, the same bytes. Fort Nelson is a GNS "Community", added to the populated-place types.
 - The BC outline is `vm_bc()` (fwapg, ordered, simplified to 5 km, pieces of 2,000 km² and up), not `wb_map.R`'s plain union: the shared map lib's form.
+
+## Code check (branch), rounds 1–3
+
+- Round 1: gridded requests logged only on success (fixed with a request-log hook in `wet_pcic_fetch()`); no map class for rule 5's failing verdict; `listing()` cached a 200 before parsing it.
+- Round 2: the fetch edit moves #45's cache key, which `scripts/wb_small_basin.R` re-derives: filed as #226.
+- Round 3 named the mechanism: hand-written copies of a set another piece of code defines (statuses, verdicts, response bodies, key consumers), each written from the path that had run. Fixed: the report's "first fetch" now read from the log at the end of the run; the map's stored layers keyed on their inputs; `run_files()`'s copy of the cache name now refuses a missing file instead of dropping it from the md5. The nested retries of #45's and #50's own loops around `wet_pcic_fetch()` are left (those scripts are other issues' records); #226's body now runs #45 with the refusing base.
+
+## Errors Encountered (code check)
+
+| Error | Resolution |
+|-------|------------|
+| `magick::image_set_defines()` returns NULL (it sets in place), so `img <- image_set_defines(...)` made the write fail. Phase 4's "byte-identical second render" ran both renders into `/dev/null`: they had failed, and the PNG compared was the committed one, untouched | Fixed the call; two renders with their output read: byte-identical, no `tIME` chunk, pixels identical to the committed map (0 differing). A wrapper's exit is not the work: read the run's own last line |
