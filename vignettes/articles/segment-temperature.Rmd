@@ -62,13 +62,6 @@ compass <- function(dx, dy) {
   c("east", "north-east", "north", "north-west", "west", "south-west", "south",
     "south-east")[(round(atan2(dy, dx) / (pi / 4)) %% 8) + 1]
 }
-to_title <- function(x) {
-  vapply(strsplit(tolower(x), " "), function(w) {
-    big <- !w %in% c("at", "the", "near", "of", "in", "below")
-    w[big] <- paste0(toupper(substring(w[big], 1, 1)), substring(w[big], 2))
-    paste(w, collapse = " ")
-  }, "")
-}
 ```
 
 ```{r year-data}
@@ -91,11 +84,12 @@ stopifnot(isTRUE(all.equal(max(yr$dd, na.rm = TRUE), gsdd)), is.na(v$gsdd$unfill
           season$start <= pick$gap_start, season$end >= pick$gap_end)
 # the worked example in the prose: 100 days at 10 degrees
 stopifnot(100 * 10 == 1000)
-# the last reading before the gap: warmer than the day before although the air was not
+# the last reading before the gap: far warmer than the day before while the air barely warmed
 edge <- v$edge
 air_at <- function(d) yr$air_c[yr$date == d]
 jump <- edge$t_mean_c - edge$t_before_c
-stopifnot(edge$date == pick$gap_start - 1, jump > 5, air_at(edge$date) - air_at(edge$date - 1) >= 0, air_at(edge$date) - air_at(edge$date - 1) < 0.5,
+air_step <- air_at(edge$date) - air_at(edge$date - 1)
+stopifnot(edge$date == pick$gap_start - 1, jump > 5, air_step >= 0, air_step < 0.5,
           edge$t_mean_c - air_at(edge$date) > 5)
 edge_cost <- gsdd - edge$gsdd
 stopifnot(edge_cost > 50, edge_cost < 100)
@@ -164,7 +158,7 @@ takes a model on the stream network.
 
 ## What are growing-season degree days, and why do they matter for fish?
 
-A fish grows faster in warmer water. **Growing-season degree days** add up that warmth
+A fish grows faster in warmer water, up to a point. **Growing-season degree days** add up that warmth
 over the part of the year when a stream is warm enough for growth: each day's mean water temperature,
 summed from the first week that averages above 5 °C to the first week that falls below 4 °C
 [@coleman_fausch2007ColdSummera]. A stream that holds 10 °C for 100 days gives 1,000 degree days. Where
@@ -178,7 +172,7 @@ missing day has no total, so the gap is filled first.
 [`wet_temp_fill()`](https://newgraphenvironment.github.io/wet/reference/wet_temp_fill.html) fills it with
 **air2stream**, a model of how water temperature follows air temperature [@toffolon_piccolroaz2015hybridmodel],
 corrected by the station's own readings on either side of the gap and by what nearby stations did on
-the same days. Run on air temperature alone, with no readings to correct it, the model is called
+the same days. Run on air temperature alone, uncorrected, the model is called
 **open-loop**. A reach with no station has no readings, so open-loop is where it starts.
 
 ```{r year, fig.height = 5.6, fig.cap = cap_year, fig.alt = alt_year}
@@ -231,7 +225,7 @@ stopifnot(n_reach >= 2e4, n_reach < 1e5, n_st >= 9, n_st <= 15)
 # small is stream order 1 or 2
 share_small <- sum(net$orders$segments[net$orders$stream_order <= 2]) / n_reach
 on_small <- mean(v$stations$stream_order <= 2)
-stopifnot(share_small > 0.5, on_small < 0.25)
+stopifnot(share_small > 0.5, on_small > 0, on_small < 0.25)
 # the count is of stations with a day of record in the fixed range the data script reads
 stopifnot(all(v$stations$days > 0), identical(substr(prov$to, 1, 4), "2025"))
 last_year <- substr(prov$to, 1, 4)
@@ -302,9 +296,9 @@ stopifnot(identical(lake_min, 500), identical(drawn$context_min_order, 7), min(m
           all(map$streams$stream_order[!map$streams$main] >= drawn$context_min_order))
 
 cap_map <- sprintf(paste(
-  "One basin as an example, the %s: every reach of its stream network (blue, heavier on larger streams) and the federal",
-  "hydrometric stations that have recorded water temperature (orange points; %s's, the first figure's,",
-  "is black).",
+  "One basin as an example, the %s: every reach of its stream network (blue, heavier on larger streams)",
+  "and the federal hydrometric stations that have recorded water temperature (orange points; %s's, the",
+  "first figure's, is black).",
   "The %s are drawn heavy and named. Lakes of %s ha and up are pale blue; land outside the basin is",
   "dimmed, with its larger rivers thin and the Skeena named. %s are labelled (open squares), the bar is",
   "%s km, and the inset places the map in British Columbia."
@@ -398,7 +392,6 @@ arrows <- data.frame(x = a$x + out * ux, y = a$y + out * uy, xend = b$x - into *
                      yend = b$y - into * uy * 1.04, style = edges$style, label = edges$label)
 arrows$mx <- (arrows$x + arrows$xend) / 2
 arrows$my <- (arrows$y + arrows$yend) / 2
-n_state <- table(nodes$state)
 
 cap_chain <- paste(
   "From station readings to degree days at every reach. Each box is one piece and each arrow says what",

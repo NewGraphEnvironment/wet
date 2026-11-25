@@ -1,5 +1,5 @@
 layer_key,type,source_layer,class_field,class_value,class_label,fill_color,fill_opacity,stroke_color,stroke_width,stroke_opacity,mark_color,mark_shape,mark_radius,mark_stroke_color,mark_stroke_width,label_color,label_size,label_font,label_halo_color,label_halo_width,label_offset_x,label_offset_y,note
-temperature_year,point,,part,observed,Measured day,#000000,1,,,,,,,,,,,,,,,,Okabe-Ito black: what the logger read
+temperature_year,point,,part,observed,Measured day,#000000,1,,,,,,,,,,,,,,,,Okabe-Ito black: what the station recorded
 temperature_year,line,,part,filled,Filled day,#d55e00,1,,,,,,,,,,,,,,,,"Okabe-Ito vermillion: the subject, the days the fill adds"
 temperature_year,polygon,,part,interval,Range the filled day most likely lies in,#fdd0a2,1,,,,,,,,,,,,,,,,ColorBrewer Oranges light: the fill's interval in the fill's hue
 temperature_year,line,,part,open_loop,Air temperature alone (air2stream),#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue: the model run with no observation
