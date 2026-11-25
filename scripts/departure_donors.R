@@ -13,7 +13,10 @@
 # watershed codes at the segment the regulation run placed it on, and the
 # HYDAT gauges' snaps behind the leak-free pool. Inputs are cached under
 # <WET_DATA_ROOT>/departure_donors/<key>/ (WET_DATA_ROOT defaults to data/),
-# the key the md5 of the release, the snapshot and the rule file; extensions
+# the key the md5 of the release, the snapshot, the rule file, the running
+# script, the windows file, the station registries and regulation file, and
+# wet's R code. It does not cover the fwapg database or the installed
+# packages: after either changes, remove the cache before a rerun. Extensions
 # are fitted per held-out gauge and never cached.
 #
 # Writes the tracked report data/checks/departure_donors_20260717_20261028.txt
@@ -56,13 +59,17 @@ if (wet_bcenv_snapshot != dd_snapshot || wet_bcwatertool_snapshot != dd_snapshot
 }
 hydat <- wb_hydat(release)
 report <- file.path("data", "checks", sprintf("departure_donors_%s_%s.txt", release, dd_snapshot))
-# the key covers every input the cache holds: the release, the snapshot, the rule, the windows
-# file, the station registries and regulation file, the statistics, and wet's own R code
-key_files <- c(file.path("inst", "vignette-data", "life_history_bulk.csv"),
+# the key: the release (HYDAT's file, whose VERSION wb_hydat() checks), the snapshot, the rule,
+# the running script (its SQL, day status and gauge selection), the windows file, the station
+# registries and regulation file, and wet's R code (the readers, window statistics and snap).
+# Not fwapg or the installed packages (the header says so). Rscript writes a space as ~+~.
+self <- gsub("~+~", " ", sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)), fixed = TRUE)
+if (length(self) != 1 || !file.exists(self)) stop("run with Rscript, so the running script can be hashed", call. = FALSE)
+key_files <- c(self, file.path("inst", "vignette-data", "life_history_bulk.csv"),
                sort(list.files(file.path("inst", "extdata", "station_sources"), full.names = TRUE), method = "radix"),
                sort(list.files("R", pattern = "[.]R$", full.names = TRUE), method = "radix"))
-key <- substr(digest::digest(paste(c(release, dd_snapshot, rule_md5, "mean min7 max cov_day",
-                                     unname(tools::md5sum(key_files))), collapse = " "),
+key <- substr(digest::digest(paste(c(release, dd_snapshot, rule_md5, unname(tools::md5sum(key_files))),
+                                   collapse = " "),
                              algo = "md5", serialize = FALSE), 1, 10)
 cache <- file.path(Sys.getenv("WET_DATA_ROOT", "data"), "departure_donors", key)
 dir.create(cache, recursive = TRUE, showWarnings = FALSE)
