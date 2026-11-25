@@ -184,7 +184,7 @@ Mechanism, decided in the plan (mine, one line of why each):
 - [x] `NEWS.md` bullet and `Bump: patch` in the PR body. This repo's `NEWS.md` has no development
       heading: its last four releases wrote the bullet in the release commit, from the PR, so the
       bullet is in the PR body and `NEWS.md` is not edited on the branch.
-- [ ] Archive README with `## Measurement` and `## Evidence` (the reports and
+- [x] Archive README with `## Measurement` and `## Evidence` (the reports and
       `data/logs/213/` by prefix).
 
 ## Owed at the end (reported, done after merge)
@@ -199,7 +199,7 @@ Mechanism, decided in the plan (mine, one line of why each):
 - [x] Tests pass
 - [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
 - [x] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] `/planning-archive` on completion
 
 How each change is proved:
 
