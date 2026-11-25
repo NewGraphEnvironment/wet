@@ -59,3 +59,7 @@ mandate; the merge stays with me.
 ## Phase 2, 2026-11-25
 - `wet_runoff_monthly()`, `wet_pcic_monthly()`; `wet_pcic_fetch()` through curl (`wet_http_disk()`, user agent `wet`), 429/503 waits, status and days checks. Each guard restored once and its test went red. `wet_pcic_annual()` on the cached Fraser year 1981, offline, `identical()` to origin/main's. Full suite: FAIL 0, PASS 3562 (one live-data warning, five fwapg-migration skips, all unrelated). Lints: none new.
 - Commits: 215b63e
+
+## Phase 3, 2026-11-25
+- Rules registered (4ef1af5), coded (9bafb95, 3b6c16c); offline runs: parity holds, rule 4 and the CMIP5 score not run (PCIC asked first); byte-identical on a second run.
+- Next: Phase 4 (coverage report and map).

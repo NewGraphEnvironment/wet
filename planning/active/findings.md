@@ -139,3 +139,17 @@ git -C fwapg show origin/{main,newgraph}:extras/discharge/discharge.sh   # curl 
 - Data portals page: data "publicly available with an open license" (none named). Terms of use page covers the website only.
 - The PCIC note: drafted for the owner outside this repository, addressed to PCIC's hydrology lead as a new message, as the earlier correspondence advised. Not sent.
 - #205's body edited to the four claims still unread; it stays open.
+
+## Phase 3 (2026-11-25, answer (a): no request)
+
+- Rules 4 and 5 registered at 4ef1af5 (18:52:21 UTC), in a commit holding the header and rule block only; the fetching and scoring code followed at 9bafb95.
+- `scripts/scenario_basis.R` offline (`WET_FWAPG_COMMIT=5d50cc1 WET_DATA_ROOT=<main checkout>/data WET_PGHOST=127.0.0.1`), about 2.5 min a run: 73 Fraser gauges with an outlet, equal to the pilot's Domains line; PNWNAmet's twelve accumulated monthly depths summed to the pilot's "wet acc" at all four parity sites (salmon 20.45, quesnel 134.18, hope 2476.28, lillooet 99.58); every gauge's accumulated area over the bundle's is 1.000; PNWNAmet's median share NSE at the 73 is 0.904. Rule 4 and the CMIP5 score report "not run". No fetch log was created; the PCIC cache still holds its 500 files.
+- Guards: a fetch log row dated a second before the registration refuses; a pilot value moved in its last printed digit refuses, as does a value 0.006 off; runs 2 and 3 gave a byte-identical report (`data/logs/169/scenario_basis_run{1,2,3}.log`, main checkout).
+- Rule 4's code, run in a scratch harness on the pilot's 247 cached listings (not a rule 4 result): 16 runs "runs as the job stands", TaiESM1 under both SSPs "lacks series the crosswalk places" (74 coast outlets), listings and the pilot's bulk cache agreeing at every outlet. The harness exercised the bulk-marker matching (`batch_name()`) without error.
+
+## Errors Encountered (Phase 3)
+
+| Error | Resolution |
+|-------|------------|
+| Runs 2 and 3 refused at once: `?? scripts/pcic_coverage.R` (the clean-tree guard counts untracked files) | Moved the Phase 4 draft out of `scripts/` for the runs. The refused attempt's copies were the old report, so the first "identical" would have meant nothing; rerun |
+| The report printed this machine's absolute paths | Replaced with `<data root>/...` before the tracked runs (public repo) |
