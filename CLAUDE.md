@@ -1175,7 +1175,7 @@ A column fetched through DBI does not arrive as the base type its SQL type sugge
 ### A value compared as `::text` in SQL has PostgreSQL's spelling, not R's
 Write native types from R and cast once in SQL.
 
-### arrow dplyr backend: no grouped slice — bridge to duckdb
+### arrow in R: grouped slice needs the duckdb bridge, and `col_select` is tidy-evaluated
 - arrow's dplyr backend errors on grouped `slice_max`/`slice_min` (`arrow_not_supported("Slicing grouped data")`).
 
 ### as.POSIXct on a Date pins UTC midnight; on a character it uses the machine zone

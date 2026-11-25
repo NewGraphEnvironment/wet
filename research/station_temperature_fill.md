@@ -77,8 +77,8 @@ Of the days in the Mar–Nov windows, 36 % are filled.
   - The GSDD rule moves the values +10 (A → B) and the weekly step −0.3 (B → C).
   - Neither the window nor the time step explains a difference; what is left is the models.
 - **By year:** within ±40 °C-days in 2016–2018 and 2020–2022. Larger in four years:
-  - **2024: +191, above their interval.** 95 % of our 2024 days are observed. Their GSDD comes from model estimates even on observed weeks (`predict()` in `predict-air2stream-gsdd.R`), so this one is **theirs**: their model runs below the 2024 observations.
-  - **2023: −93, below their interval.** 79 % observed, so mostly theirs again, but **unresolved** for the filled fifth.
+  - **2024: +191, above their interval.** 95 % of our 2024 days are observed. Their GSDD comes from model estimates on every week, observed ones included (`predict()` in `predict-air2stream-gsdd.R`), so the difference is between those estimates and the 2024 observations, not between the two fills.
+  - **2023: −93, below their interval.** 79 % observed, so mostly the same comparison of estimates with observations, and **unresolved** for the filled fifth.
   - **2019: +80; 2015: −77.** Both are inside their intervals. 2015 is 86 % filled at these stations, so it compares our fill with their model: **unresolved**.
   - C → D also carries their air (ERA5-Land hourly to weekly) and their observation snapshot (`realtime_raw_20250521`), which this does not separate.
 
