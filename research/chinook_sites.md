@@ -1,6 +1,6 @@
 # Chinook pilot sites beyond Maxan: which streams, and what the method finds there
 
-**Verified:** 2026-10-28 (the 1951–1980 against 2016–2025 section 2026-10-30; covariance_pick 2026-11-19) · **Issues:** #126 (component of #118; after #120, #121), #152, #147 (via #167) · **Produced by:** `scripts/chinook_sites_use.R` → `data/checks/chinook_sites_use.txt` (NuSEDS All Areas 2026-06-01, md5 25bb43441645519f18eb4853dd1cf399; fwapg `bcfishobs.observations`; HYDAT 2026-07-17); `scripts/departure_site.R` and `scripts/departure_site_snow.R` per site of `scripts/departure_sites.csv` → `data/checks/departure_site[_snow]_<site>_<group>_20260717.txt`; article `vignettes/articles/flow-change-sparse-gauges.Rmd` (listed in place of the Maxan article)
+**Verified:** 2026-10-28 (the 1951–1980 against 2016–2025 section 2026-10-30; covariance_pick 2026-11-19; own windows 2026-11-25) · **Issues:** #126 (component of #118; after #120, #121), #152, #147 (via #167), #182 (via #187) · **Produced by:** `scripts/chinook_sites_use.R` → `data/checks/chinook_sites_use.txt` (NuSEDS All Areas 2026-06-01, md5 25bb43441645519f18eb4853dd1cf399; fwapg `bcfishobs.observations`; HYDAT 2026-07-17); `scripts/departure_site.R` and `scripts/departure_site_snow.R` per site of `scripts/departure_sites.csv` → `data/checks/departure_site[_snow]_<site>_<group>_20260717.txt`; article `vignettes/articles/flow-change-sparse-gauges.Rmd` (listed in place of the Maxan article)
 
 ## Which streams, and why
 
@@ -18,7 +18,7 @@
 - **Naver Creek: 08KE014, at Hixon,** with 18 windows (1956–1975), all before the baseline. This is the Maxan-like case, at 651 km² gauged out of 908 km² at the mouth.
 - **The ungauged Morice stream: Gosnell Creek.** Owen Creek, the issue's first choice, has no provincial Chinook record, and its 11 NuSEDS rows are all uninspected or empty. The user's rule (2026-10-28) took whichever of Gosnell and Lamprey has more use records and no gauge. They tie at 4. Gosnell's one NuSEDS adult-presence record (2001) is the only spawning record of either, so Gosnell is the target. That tie-break is by definition: a NuSEDS adult-presence record counts as a spawning record, and neither creek has a provincial spawning record. Its provincial records are inventories from 1981 to 1999.
 
-The Chinook windows are the Bulkley's (Gottesfeld and Rabnett 2007) at every site. Gosnell also runs under the Morice's (Bustard and Schell 2002: migration 05-01 to 09-30, spawning 09-01 to 10-07). No cited windows exist yet for the upper Fraser or the Cottonwood.
+The Chinook windows are the Bulkley's (Gottesfeld and Rabnett 2007) at every site, and each site but Maxan also runs under its own group's: Gosnell under the Morice's (Bustard and Schell 2002: migration 05-01 to 09-30, spawning 09-01 to 10-07), Swift under the upper Fraser's (UFRA) and Naver under the Cottonwood's (COTR), below.
 
 ## What the method finds at each
 
@@ -95,3 +95,27 @@ Change, Bulkley windows unless named, carried / extended, with the 90 % range:
 - **The stations beyond HYDAT** (#142, #144) add no donor at these sites (`research/station_sources.md`, "At the chinook sites' boxes").
 - The short-record article stays on distance at Maxan, #120's record; the comparison article carries the shipped route.
 
+## Swift and Naver under their own windows (#187)
+
+knowledge's life history table holds cited chinook windows for the upper Fraser and the Cottonwood since its #174 (rows added at 4e2d8a0c; their notes revised at a475dfe7 by knowledge#256, starts, ends and sources unchanged). `data-raw/life_history_data.R` reads the table at a475dfe7, while `data-raw/station_vignette_data.R` keeps BULK at c97c4d0; `lh_pin_guard()` stops the read unless every MORR row is unchanged in every column and every BULK row in every column but `note`, and unless BULK's chinook rows equal `life_history_bulk.csv`'s (`tests/testthat/test-life_history_pin.R`).
+
+| group | migration (sources) | spawning (sources) |
+|---|---|---|
+| UFRA (Swift) | 04-01 to 08-10 (Bradford and Taylor 2023, p. 131, citing COSEWIC 2018, for Fraser entry from April; NuSEDS) | 08-11 to 09-05 (NuSEDS median start and end of spawning; Candy et al. 2002 for 2001 peak weeks) |
+| COTR (Naver) | 04-01 to 08-09 (Candy et al. 2002, p. 22: the Cottonwood passes the lower Fraser in April and May; NuSEDS) | 08-10 to 09-06 (NuSEDS; Candy et al. 2002) |
+
+Both start migration a month before the Bulkley's (05-01 to 08-01) and spawn in a shorter window, opening about ten days after the Bulkley's (08-01) and closing about ten days before it (09-15). The spawning edges are medians of NuSEDS start and end dates, which are estimates from a few visits rather than the first and last spawners seen (knowledge#256; the rows' notes say so), so they support the middle of each window, not its edges. The site scripts were not changed (an edit would stale every site's saved series), so each new report's header names the migration row's sources only; the spawning rows' are above.
+
+1951–1980 to 2016–2025, the shipped borrowed route (#147's rule gives the same verdict as under the Bulkley windows), with the 90 % range:
+
+| site, windows | ships | spawning mean | migration mean | held-out carried NSE, migration / spawning |
+|---|---|---|---|---|
+| Swift, UFRA | distance (gain −0.021) | −15 % (−33..+6) | −6 % | 0.55 / 0.42 |
+| Swift, BULK | distance | −15 % (−32..+5) | −5 % | 0.51 / 0.43 |
+| Naver, COTR | covariance_pick (gain 0.139, leak-free 0.159) | −35 % (−59..+9) | −11 % | 0.74 / 0.56 |
+| Naver, BULK | covariance_pick | −35 % (−59..+2) | −13 % | 0.75 / 0.60 |
+
+- **Own windows barely move the drop.** At both streams the spawning-window change is within a point of its value under the Bulkley windows, and neither range clears no change. Swift's filled-in route falls 32 % (−49..−6) under UFRA against 27 % under BULK; its OLS scores stay poor.
+- **Every interval's coverage** is 0.93 or more on mean and min7, both routes.
+- **Snow:** migration-window flow rises with peak SWE under both new window sets, carried and at both measured snow gauges, with ranges above zero. Swift's snow gauges under UFRA are 08LB038 and 08KA007 (under BULK, 08LB038 and 08KA001): the header's rule takes the nearest two with long records, and the complete years depend on the windows.
+- **The bundle** gains the two window sets' rows and two donor gauges used only under COTR (08JE001, 08KF001), which widen the article's Fraser map. The article reports the second window sets in one paragraph and keeps its figures on the Bulkley windows, as it did for the Morice.

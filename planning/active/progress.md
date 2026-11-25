@@ -58,3 +58,15 @@ mandate; the merge stays with me.
 - Pre-run checks passed (cd layers and pcic.series unchanged; 14 and 18 complete April-start migration years at the targets).
 - Four runs from frozen copies, 13 min; four new reports; the four BULK reports byte-identical; Maxan parity test 21 pass under NOT_CRAN=true. Results in findings.md, "Phase 2 runs".
 - Commit: 0472d3e.
+
+## Phase 3, 2026-11-25
+- Bundle rebuilt on m1 (log `data/logs/187/chinook_sites_data_20261125.log`): every element `identical()` to the old after dropping the UFRA/COTR rows, but `sites$windows` (swift, naver), five new `gauges` rows (swift 08KA007 snow; naver 08JE001 extension donor, 08KC001, 08KF001, 08KG001 carried donors; new stations 08JE001 and 08KF001) and `provenance` (commit, date, four new report md5s; the eleven old ones unchanged).
+- Map rebuilt through `vm_write()`: bc, targets, places identical; the Fraser extent widened (Hausdorff 63.9 km) to take in 08JE001, so its streams, lakes and gauges changed; the keymap moved to the upper left; the rendered map checked.
+- Article: one paragraph on Swift and Naver under their own windows (each number under `stopifnot()`), the limit rewritten, `:158` assertion rewritten, two comments say "every window set"; the other assertions over every window set hold unchanged. Citations checked in Zotero's full text: Bradford and Taylor (2023) p. 131 (PDF p. 3), Candy et al. (2002) p. 22 (PDF p. 23). `.bib` regenerated (three new entries; gq's own citation() now carries a new title and DOI). Body prose 1139 -> 1244, cap 1140 -> 1245.
+- Merged origin/main again (PR #204 linked the Maxan article; clean).
+- Rendered main and the branch from temp libraries; text diff shows only the new paragraph, the limit and the bundle commit line; no `citation ... not found`.
+
+## Phase 4, 2026-11-25
+- `research/chinook_sites.md`: verified line, the windows sentence (`:21`), and a section "Swift and Naver under their own windows (#187)" (windows and sources, estimate caveat, header-source note, change and scores, snow gauges, bundle).
+- `CLAUDE.md`: the chinook-sites paragraph names each site's window sets and the separate pin with `lh_pin_guard()`; the shipped route holds under every window set; the article's cap 1,245.
+- Follow-up issue drafted in `followup-issue.md`; `gh issue create` refused by the auto-mode classifier ("Sensitive Information Leakage"), left for the owner.
