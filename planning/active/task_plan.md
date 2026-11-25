@@ -49,7 +49,7 @@ no comments.
 
 - **Kriging is split out** (the owner, 2026-11-25). #213 keeps the truth set, traits, the
   recovery harness (with its network-correlated part and the leak-free check), the registered
-  rule and candidates 1-3. A new issue carries candidate 4, scored on this issue's stored holdout
+  rule and candidates 1-3. #223 carries candidate 4, scored on this issue's stored holdout
   frame under the rule registered here. #213's and #214's bodies are edited to name it.
 - **Rule thresholds** (the owner, 2026-11-25): *close* means the baseline's mean GSDD absolute
   error is within 50 °C-days of the own-parameter benchmark's, half the width of the cutthroat
@@ -84,19 +84,19 @@ Mechanism, decided in the plan (mine, one line of why each):
 
 ## Phase 1: The rule, registered before anything is scored
 
-- [ ] File the kriging issue (candidate 4 on SSN2: what it waits on, that it is scored on this
+- [x] File the kriging issue (candidate 4 on SSN2: what it waits on, that it is scored on this
       issue's frame under this rule, its recovery step), then edit #213's body (candidates 1-3,
       the split named) and #214's item 2.
-- [ ] Upgrade cd to 0.6.13 (`pak::pak("NewGraphEnvironment/cd")`).
-- [ ] `scripts/temp_baseline_rule.R`: the constants (close 50 °C-days, displace 10 °C-days,
+- [x] Upgrade cd to 0.6.13 (`pak::pak("NewGraphEnvironment/cd")`).
+- [x] `scripts/temp_baseline_rule.R`: the constants (close 50 °C-days, displace 10 °C-days,
       both pools, regression on a tie), the statistic, and `tb_verdict()` returning the baseline
       candidate and close / not close from a table of scores by candidate and pool. It also
       covers a fourth candidate arriving later: kriging is scored in both pools and reported
       beside the baseline, never displacing it under this rule.
-- [ ] `tests/testthat/test-temp_baseline_rule.R`: every arm (displaces in both pools; in one
+- [x] `tests/testthat/test-temp_baseline_rule.R`: every arm (displaces in both pools; in one
       pool only; regression and donor tied; at, just inside and just outside 50; a missing pool
       refused), skipped when `scripts/` is absent.
-- [ ] `scripts/temp_baseline.R` header: the rule in words, the θ transform, the pools, the
+- [x] `scripts/temp_baseline.R` header: the rule in words, the θ transform, the pools, the
       benchmark, what is printed as context. Committed with the rule file; the commit is the
       registration, and its sha is written into the header by the next commit.
 
