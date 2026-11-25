@@ -12,7 +12,8 @@ test_that("each vignette's bundled data stays under 500 KB", {
                  segment = c("segment_values.rds", "segment_map.rds"),
                  monthly = c("monthly_values.rds", "monthly_map.rds"),
                  short_record = c("short_record_values.rds", "short_record_map.rds"),
-                 chinook_sites = c("life_history_morr.csv", "chinook_sites_values.rds", "chinook_sites_map.rds"))
+                 chinook_sites = c("life_history_morr.csv", "life_history_ufra.csv", "life_history_cotr.csv",
+                                   "chinook_sites_values.rds", "chinook_sites_map.rds"))
   expect_setequal(files, unlist(budget))
   for (v in names(budget)) {
     expect_lt(sum(file.size(vignette_data(budget[[v]]))), 500 * 1024)
