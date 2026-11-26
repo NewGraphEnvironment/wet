@@ -1,7 +1,7 @@
 # wet (development version)
 
-* `wet_station_daily()` reads Hakai Institute's published discharge package (`sources = "hakai"`, #192): at three Calvert and Hecate island watersheds (H08KC0626, H08KC0703, H08KC0844), its 2014–2019 days continue the provincial records that begin in October 2021, under the provincial number, as the Water Tool's gauges continue theirs. A day is a Pacific Standard Time day of at least 20 of Hakai's hourly means, `"approved"` where Hakai accepted every hour. The file is fetched once from the package's pinned commit (CC-BY 4.0). H08KC0703 now has 7 complete Chinook-window years instead of 2. `wet_station_list()` takes `"hakai"` too.
-* The province's Aquarius portal shows the pinned provincial files are current from October 2021 to May 2026; their January–September 2021 has since been revised (`scripts/station_sources_portal.R`, #190; the newer pin is #232).
+* `wet_station_daily()` reads Hakai Institute's published discharge package (`sources = "hakai"`, #192): at three Calvert and Hecate island watersheds (H08KC0626, H08KC0703, H08KC0844), its 2014–2019 days continue the provincial records that begin in October 2021, under the provincial number, as the Water Tool's gauges continue theirs. A day is a Pacific Standard Time day of at least 20 of Hakai's hourly means, `"approved"` where Hakai accepted every hour after quality control (its level 2). The file is fetched once from the package's pinned commit (CC-BY 4.0). H08KC0703 now has 7 complete Chinook-window years instead of 2. `wet_station_list()` takes `"hakai"` too.
+* The province's Aquarius portal shows the pinned provincial files are current from October 2021 to May 2026; at four of the five stations read for January–September 2021, those months have since been revised (`scripts/station_sources_portal.R`, #190; the newer pin is #232).
 
 # wet 0.5.2
 
