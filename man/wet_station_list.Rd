@@ -5,12 +5,14 @@
 \title{Hydrometric stations beyond HYDAT that wet reads}
 \usage{
 wet_station_list(
-  sources = c("bcenv", "bcwatertool"),
+  sources = c("bcenv", "bcwatertool", "hakai"),
   snapshot = wet_bcenv_snapshot
 )
 }
 \arguments{
-\item{sources}{Which networks to list, from \code{"bcenv"} and \code{"bcwatertool"}.}
+\item{sources}{Which networks to list, from \code{"bcenv"}, \code{"bcwatertool"} and
+\code{"hakai"}. \code{"hakai"} alone lists no station: its watersheds only continue
+provincial ones, which it changes when \code{"bcenv"} is listed too.}
 
 \item{snapshot}{The provincial snapshot, as \code{YYYYMMDD}. The Water Tool's is
 the one the package pins.}
@@ -48,7 +50,9 @@ stream name within 1 km) so a caller can join the two. A Water Tool gauge at
 a provincial station's site is not listed: its days before the provincial
 record begins continue that station's record under the provincial number
 (see \code{\link[=wet_station_daily]{wet_station_daily()}}), and the provincial row's \code{first}, \code{licence} and
-\code{credit} say so when both sources are listed.
+\code{credit} say so when both sources are listed. Hakai Institute's published
+package (\code{"hakai"}) continues three Calvert and Hecate island stations the
+same way and lists no station of its own.
 
 \code{regulation} is each station's status from what sits upstream of it, one
 for the year as a whole, under a rule registered before it was applied:
@@ -60,8 +64,10 @@ at least 10 \% of the segment's published mean annual flow;
 stream its name or drainage area gives, part of its basin lies outside BC,
 a power licence or a licence that states no volume draws upstream, or its
 segment has no published flow; and
-\code{"natural"} otherwise. A natural station can serve as a donor where a
-natural record is needed. The status, its reasons and the shares are in
+\code{"natural"} otherwise. No natural station holds the 10 years of 1981–2010
+record a baseline needs, and on a baseline estimated from HYDAT gauges they made departures
+carried from donors worse at held-out HYDAT gauges, so they serve as records
+and held-out tests, not donors. The status, its reasons and the shares are in
 the package's \verb{extdata/station_sources/regulation_<snapshot>.csv}. They
 use BC's dam register (contains information licensed under the Open
 Government Licence - British Columbia) and are computed from the

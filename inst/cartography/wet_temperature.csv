@@ -1,0 +1,20 @@
+layer_key,type,source_layer,class_field,class_value,class_label,fill_color,fill_opacity,stroke_color,stroke_width,stroke_opacity,mark_color,mark_shape,mark_radius,mark_stroke_color,mark_stroke_width,label_color,label_size,label_font,label_halo_color,label_halo_width,label_offset_x,label_offset_y,note
+temperature_year,point,,part,observed,Measured day,#000000,1,,,,,,,,,,,,,,,,Okabe-Ito black: what the station recorded
+temperature_year,line,,part,filled,Filled day,#d55e00,1,,,,,,,,,,,,,,,,"Okabe-Ito vermillion: the subject, the days the fill adds"
+temperature_year,polygon,,part,interval,Range the filled day most likely lies in,#fdd0a2,1,,,,,,,,,,,,,,,,ColorBrewer Oranges light: the fill's interval in the fill's hue
+temperature_year,line,,part,open_loop,Air temperature alone (air2stream),#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue: the model run with no observation
+temperature_year,polygon,,part,season,Growing season,#f0f0f0,1,,,,,,,,,,,,,,,,ColorBrewer Greys lightest: the season recedes behind the series
+temperature_map,polygon,,part,basin,Bulkley River basin,#f7f7f7,1,,,,,,,,,,,,,,,,ColorBrewer Greys near white: the basin stands off the dimmed surroundings
+temperature_map,line,,part,network,Stream reach,#6baed6,1,,,,,,,,,,,,,,,,ColorBrewer Blues mid: every reach of the network
+temperature_map,line,,part,river,Named river,#1f78b4,1,,,,,,,,,,,,,,,,gq lake stroke blue: the rivers the map names
+temperature_map,point,,part,station,Federal station with water temperature,#d55e00,1,,,,,,,,,,,,,,,,"Okabe-Ito vermillion: the subject, so it outranks the blues"
+temperature_map,point,,part,station_pick,Simpson Creek station,#000000,1,,,,,,,,,,,,,,,,Okabe-Ito black: the station whose year the first figure shows
+temperature_chain,polygon,,state,in_place,In place,#009e73,1,,,,,,,,,,,,,,,,Okabe-Ito bluish green
+temperature_chain,polygon,,state,building,Being built,#e69f00,1,,,,,,,,,,,,,,,,Okabe-Ito orange
+temperature_chain,polygon,,state,network_model,From a network model,#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue
+temperature_chain,polygon,,state,comparison,An existing process model,#cc79a7,1,,,,,,,,,,,,,,,,Okabe-Ito reddish purple
+temperature_holdout,point,,part,hidden,Station hidden,#d55e00,1,,,,,,,,,,,,,,,,"Okabe-Ito vermillion: the subject, as the map's stations"
+temperature_holdout,point,,part,used,Station the prediction draws on,#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue
+temperature_holdout,point,,part,unused,Station not used,#bdbdbd,1,,,,,,,,,,,,,,,,ColorBrewer Greys mid
+temperature_holdout,line,,part,stream,Stream,#9ecae1,1,,,,,,,,,,,,,,,,ColorBrewer Blues light: the toy network recedes
+temperature_holdout,line,,part,lean,Stream the prediction leans on most,#0072b2,1,,,,,,,,,,,,,,,,Okabe-Ito blue: as the stations the prediction draws on

@@ -1,0 +1,294 @@
+# Which product covers which watershed group (#169, #5), HYDAT 20260717
+
+## Provenance
+wet commit c51750a8; live build a0318b7 (segment table 66cf795); 43 segment_monthly parts, historical
+live parts md5 ef67728fe57c111ec05d3cc973c12fd8; verified against the manifest before and after the read
+routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 5d50cc1
+table: 40524444 rows, 3377037 segments, 0 null flows, total 179854603.510890 m3/s
+held to data/checks/discharge_publish_20260717.txt (rows over 13, picks) and data/checks/segment_output_20260717.txt (each group's picks)
+gridded cells: one day of 3 cached PNWNAmet subsets (Peace, Fraser, Columbia; no request): 7b6b615e7f78e5edf5612ebdc478b37d
+  the CMIP5 runs' domain is PCIC's statement (the same three basins), not measured here
+CMIP6 GCMs by domain: the pilot's listings at its scored gauges' outlets (data/checks/channel_scale_pilot_20260717.txt): Fraser 9, Coast 8, Columbia 9, Peace 9
+rules 4 and 5 (data/checks/scenario_basis_20260717.txt): rule 4 not run; rule 5's CMIP5 score not run
+gauges: inst/vignette-data/monthly_values.rds md5 a8093a1a76704e5365a0392ae4ac8c0e
+group table: <data root>/pcic_coverage/coverage_20260717.tsv md5 02b7d366c33569afab4ffd688affe37a
+
+## Classes (breaks fixed before the table was read)
+a group's segments: those with a month-0 row from either source; routed share: those with a routed row over all
+published sources: both (routed share >= 0.95), routed on part (0.05 to 0.95), balance alone (< 0.05)
+what scenarios build on (rule 3's product by PCIC domain, over the group's segments in pcic.segment_weights): one product where the routed share is >= 0.95 and >= 0.95 of those segments lie in its domains; part or mixed where the routed share is 0.05 to 0.95 or two products each hold >= 0.05; none where the routed share is < 0.05
+rule 3's product: Fraser CMIP5 gridded; Coast CMIP6 routed; Columbia CMIP6 routed; Peace CMIP6 routed
+  CMIP5 gridded in the Fraser waits on rule 5 (scripts/scenario_basis.R), not run
+  CMIP6 routed waits on rule 4 (what each run lacks), not run
+
+## Summary
+groups: 246; with a segment value: 246; segments with a value: 4532843
+published sources: both 154; routed on part 44; balance alone 48
+what scenarios build on: CMIP5 gridded 67; CMIP6 routed 87; part or mixed 44; none 48
+groups with segments in each PCIC domain: Fraser 70, Coast 87, Columbia 18, Peace 27; in none: 47
+groups with any area on PCIC's gridded cells: 138 (>= 0.95 of their area: 110)
+calibration gauges: 315 in 147 groups; routed scored at 283 (carries >= 0.2 of observed flow)
+
+products #5 names that are not in this table, and why:
+  GEOGLOWS v2: no report scores it yet
+  TerraClimate runoff: no report scores it yet
+  the 1961-1990 runoff isolines: no report scores them yet
+  the BC Water Tool's modelled estimates: not released (the Province's; contact goes through the owner)
+products in this table and the tracked reports that score them:
+  routed PCIC: pcic_routed_compare, gauge_monthly_compare
+  the balance: the shipped fit's held-out scores (wb_validate), gauge_monthly_compare
+  PCIC's gridded PNWNAmet run through fwapg: research/water_balance_method.md section 0 (no report of its own)
+  WALLY's zone regressions (beside the balance, not by group): wally_compare
+
+## By watershed group
+group  segments  routed%  outlets  Fraser% Coast% Columbia% Peace%  gridded%  CMIP6  builds on                        published         scenarios       gauges scored  MAE rt  MAE wb
+ADMS      10449   99.9      140  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          1      1    6.9   23.1
+ALBN      15865   87.2      160    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          2      2   12.5   10.8
+ATLL      27448    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+ATNA      16929   99.9      122    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           1      1   10.8  199.9
+BABL      24172  100.0      267    0.0 100.0   0.0   0.0   22.1      8  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+BABR      24180  100.0      234    0.0 100.0   0.0   0.0    6.7      8  CMIP6 routed               both              CMIP6 routed           1      1    4.0   12.0
+BARR      15192   98.2      247    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+BBAR      18387   99.9      223  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          0      0      -      -
+BEAV      22408    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   1      0      -    9.7
+BELA      13209   97.4      137    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           4      4   18.6   31.3
+BIGC       7302   99.8      136  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          2      2   25.0   33.5
+BLAR      13741  100.0      247  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          2      1   10.6   22.7
+BLUR      12104    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   1      0      -   11.9
+BONP      17765  100.0      248  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          2      2   92.2   52.0
+BOWR      14453  100.0      182  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          1      1   11.2    1.4
+BRID       6067  100.0       72  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          1      1   39.3    5.9
+BRKS      12504   76.2       69    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          1      1   20.9   14.3
+BULK      30037  100.0      479    0.0 100.0   0.0   0.0    5.3      8  CMIP6 routed               both              CMIP6 routed           7      6   52.2   36.5
+BULL      12717   97.6      186    0.0   0.0 100.0   0.0  100.0      9  CMIP6 routed               both              CMIP6 routed           1      1   27.7   33.6
+CAMB       8486   99.9       72    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           1      1   45.7   42.2
+CANO       9352  100.0      123    0.0   0.0 100.0   0.0  100.0      9  CMIP6 routed               both              CMIP6 routed           1      1    9.9   10.6
+CARP      13877  100.0       77    0.0   0.0   0.0 100.0  100.0      9  CMIP6 routed               both              CMIP6 routed           1      1   13.1   16.1
+CARR      13389  100.0      157  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          1      1   12.1   20.5
+CHES       7677  100.0       95  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          0      0      -      -
+CHIL       7815  100.0       79  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          0      0      -      -
+CHIR      13210  100.0      155  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          3      3   11.7   15.6
+CHUK      12437  100.0       74    0.0 100.0   0.0   0.0   21.1      8  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+CHWK       5734   97.5      102  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          0      0      -      -
+CLAY      16408   78.8      106    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          1      1   22.0   12.9
+CLRH      24268  100.0      337    0.0   0.0 100.0   0.0   98.3      9  CMIP6 routed               both              CMIP6 routed           3      3   11.8    6.8
+CLWR      21313  100.0      152  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          2      2   10.6   12.8
+COAL      34389    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   2      0      -   31.6
+COLR      26895  100.0      264    0.0   0.0 100.0   0.0  100.0      9  CMIP6 routed               both              CMIP6 routed           1      1    4.5   29.1
+COMX       8299   85.0       94    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          5      5    9.5   13.6
+COTR      20480  100.0      267  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          2      2    8.8   25.1
+COWN       9734   96.2      167    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           3      3    5.2   23.1
+CRKD      16791  100.0      115    0.0   0.0   0.0 100.0  100.0      9  CMIP6 routed               both              CMIP6 routed           1      1    0.7   28.9
+CRYL       8921    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+DEAD       9558  100.0       75  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          0      0      -      -
+DEAL      21932    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   1      0      -   37.6
+DEAR      14395    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   1      0      -   21.9
+DOGC      10221  100.0      194  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          0      0      -      -
+DRIR       9442  100.0      101  100.0   0.0   0.0   0.0   99.9      9  CMIP5 gridded              both              CMIP5 gridded          1      1   10.6   37.5
+DUNC      21975  100.0      226    0.0   0.0 100.0   0.0  100.0      9  CMIP6 routed               both              CMIP6 routed           3      3    7.3   11.8
+DUNE      21739    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+ELKR      23617   76.2      287    0.0   0.0 100.0   0.0   96.8      9  CMIP6 routed               routed on part    part or mixed         10      8   20.0   25.8
+EUCH       6457  100.0       84  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          0      0      -      -
+EUCL      11974  100.0      143  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          0      0      -      -
+FINA      22645   99.9      252    0.0   0.0   0.0 100.0  100.0      9  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+FINL      34052  100.0      319    0.0   0.0   0.0 100.0  100.0      9  CMIP6 routed               both              CMIP6 routed           2      2    9.3   10.3
+FIRE      27246   99.7      196    0.0   0.0   0.0 100.0  100.0      9  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+FONT      17194    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+FOXR      25686  100.0      180    0.0   0.0   0.0 100.0  100.0      9  CMIP6 routed               both              CMIP6 routed           1      1   19.9   24.0
+FRAN      30121  100.0      283  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          2      2    5.8   42.6
+FRCN      19973  100.0      286  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded+CMIP6 routed both              CMIP5 gridded          3      3   39.5   30.0
+FROG      27927    0.0        0    0.0   0.0   0.0   0.0    8.5      -  -                          balance alone     none                   0      0      -      -
+GATA      21654    0.0        0    0.0   0.0   0.0   0.0    8.1      -  -                          balance alone     none                   0      0      -      -
+GLAR      13200    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+GOLD      12674   85.6      100    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          3      3   16.6   40.7
+GRAI      31872   65.2      223    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          1      1    5.7   11.9
+GRNL       7676   99.2       69  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          0      0      -      -
+GUIC       6262  100.0       84  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          1      1   64.8   30.2
+HARR      11064  100.0      156  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          2      2   14.5    6.1
+HAYR       5661    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+HERR      14216   99.8      117  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          1      1   32.1   35.0
+HOLB       6712   60.7       38    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          2      2   18.9   18.5
+HOMA      37235   99.3      442    0.0 100.0   0.0   0.0   10.8      8  CMIP6 routed               both              CMIP6 routed           3      3    8.3    5.1
+HORS      11043  100.0      134  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          2      2   68.6   20.0
+INGR      22709  100.0      304    0.0   0.0   0.0 100.0  100.0      9  CMIP6 routed               both              CMIP6 routed           1      1   25.0   17.0
+INKR      35228   98.5      280    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+ISKR      21872   99.7      176    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           2      2   10.6   25.3
+JENR      10691    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+JERV      17508   74.1      141    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          2      2   27.5   40.3
+KAHN      11210    0.0        0    0.0   0.0   0.0   0.0    3.6      -  -                          balance alone     none                   0      0      -      -
+KAKC      10138  100.0      102    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+KCHL      14774    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+KEEC      10968   34.4        8    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          0      0      -      -
+KETL      26289   99.8      492    0.0   0.0 100.0   0.0  100.0      9  CMIP6 routed               both              CMIP6 routed           6      6   21.7   24.8
+KHOR      25496  100.0      343    0.0   0.0 100.0   0.0   98.5      9  CMIP6 routed               both              CMIP6 routed           6      6    9.3   16.2
+KHTZ      21088   60.6       99    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          0      0      -      -
+KINR      13821  100.0      105    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           1      1   13.4   31.8
+KISK      12727  100.0      235    0.0   0.0   0.0 100.0  100.0      9  CMIP6 routed               both              CMIP6 routed           1      1   11.3   37.9
+KISP      23470  100.0      306    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           1      1    6.7   47.4
+KITL      29007   94.4      197    0.0 100.0   0.0   0.0    7.0      8  CMIP6 routed               routed on part    part or mixed          0      0      -      -
+KITR      24513   90.9      177    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          4      4   14.8   11.9
+KLAR      22297  100.0      204    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           1      1    4.8   26.6
+KLIN      33588   98.0      340    0.0 100.0   0.0   0.0    2.8      8  CMIP6 routed               both              CMIP6 routed           2      2   32.4   20.9
+KLUM      24718  100.0      265    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           3      3   10.4   16.8
+KNIG      31143   73.2      187    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          1      1   23.5    6.5
+KOTL      24764   79.4      349    0.0   0.0 100.0   0.0  100.0      9  CMIP6 routed               routed on part    part or mixed         14     13   47.0   38.4
+KOTR      28730  100.0      305    0.0   0.0 100.0   0.0   98.3      9  CMIP6 routed               both              CMIP6 routed           3      3   18.9   22.8
+KSHR      21849   78.8      151    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          3      3   24.9   32.4
+KTSU      13132   16.3        8    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          0      0      -      -
+KUMR      22138   39.2       49    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          0      0      -      -
+KUSR      18570    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+LARL      22611   98.4      383    0.0   0.0 100.0   0.0  100.0      9  CMIP6 routed               both              CMIP6 routed           5      4   31.9   32.1
+LBIR      19725  100.0      187    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+LBTN      22364  100.0      449    0.0   0.0   0.0 100.0  100.0      9  CMIP6 routed               both              CMIP6 routed           1      1   25.0   10.2
+LCHL      14622  100.0      189  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          0      0      -      -
+LCHR      16431  100.0      356  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          1      1   10.3   25.3
+LDEN      21848  100.0      224    0.0 100.0   0.0   0.0   12.3      8  CMIP6 routed               both              CMIP6 routed           1      1   43.7    2.8
+LEUT       6955  100.0       72  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          0      0      -      -
+LFRA      18154   88.1      234  100.0   0.0   0.0   0.0   90.8      9  CMIP5 gridded              routed on part    part or mixed          7      4   16.2   13.1
+LFRT      13656    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+LHAF      24146  100.0      304    0.0   0.0   0.0 100.0  100.0      9  CMIP6 routed               both              CMIP6 routed           2      2    8.8    8.2
+LIAR      51321    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   2      0      -   33.0
+LILL      26959  100.0      327  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          2      2   50.1   35.9
+LISR      17214   98.9      139    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           2      2    3.4   13.4
+LKEC      25432    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+LKEL       2218   99.8       25    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+LMUS      20578    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   2      0      -   13.1
+LNAR      28018  100.0      338    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           3      1    5.6   59.8
+LNIC      14993  100.0      241  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          3      3   44.6   59.2
+LNRS       9610  100.0      102  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          0      0      -      -
+LNTH      22788   99.8      308  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          6      6   12.4   19.2
+LOMI      15717  100.0      226    0.0   0.0   0.0 100.0  100.0      9  CMIP6 routed               both              CMIP6 routed           2      2    7.7   28.2
+LPCE       8534   96.1      202    0.0   0.0   0.0 100.0  100.0      9  CMIP6 routed               both              CMIP6 routed           1      1  104.5   28.0
+LPET       8681    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+LPRO       6377    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+LRAN      16791    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+LRDO      17183   40.5       46    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          0      0      -      -
+LSAL       9286  100.0      108  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          1      1   12.0   25.8
+LSIK      16480    0.0        0    0.0   0.0   0.0   0.0    5.7      -  -                          balance alone     none                   0      0      -      -
+LSKE      29234  100.0      272    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           1      1   15.0   23.2
+LSTR      19159   91.7      237    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          0      0      -      -
+LTRE       8480   98.0       91  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          0      0      -      -
+MAHD      18712  100.0      151  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          1      1   17.6   16.9
+MBNK       3780   82.2        9    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          0      0      -      -
+MCGR      19201  100.0      194  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          1      1    9.5   27.5
+MDEA      19265    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   1      0      -   29.8
+MESC      13595  100.0      131    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+MESI      14067  100.0      184    0.0   0.0   0.0 100.0  100.0      9  CMIP6 routed               both              CMIP6 routed           1      1    4.9    0.4
+MFRA       7042  100.0      129  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          0      0      -      -
+MFRT      10336    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   1      0      -   32.9
+MIDR       7523  100.0       94  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          0      0      -      -
+MILL       7329   67.6       95    0.0   0.0   0.0 100.0   76.4      9  CMIP6 routed               routed on part    part or mixed          0      0      -      -
+MMUS      37000    0.0        0    0.0   0.0   0.0   0.0    0.8      -  -                          balance alone     none                   0      0      -      -
+MORI      18990   23.0       36    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          1      1   20.6   23.4
+MORK      40509  100.0      456  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          5      5   12.9   16.6
+MORR      22218  100.0      236    0.0 100.0   0.0   0.0   11.2      8  CMIP6 routed               both              CMIP6 routed           2      2    9.8    6.8
+MPRO      10846    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   2      0      -   40.9
+MSKE      25491  100.0      250    0.0 100.0   0.0   0.0    1.4      8  CMIP6 routed               both              CMIP6 routed           1      1    2.3   38.1
+MSTR      31261  100.0      386    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           1      1    8.3    7.3
+MURR      27459  100.0      376    0.0   0.0   0.0 100.0   99.6      9  CMIP6 routed               both              CMIP6 routed           4      4   15.0   14.5
+MURT      14372  100.0       97  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          0      0      -      -
+MUSK       6667   99.9       51  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          1      1   23.9   24.3
+NAHR      20571  100.0      219    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+NAKR      24143  100.0      234    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+NARC      14470  100.0      269  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          1      1    1.4   32.9
+NASC      27231   47.9       89    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          0      0      -      -
+NASR      18129  100.0      145    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+NATR      27777  100.0      365    0.0   0.0   0.0 100.0  100.0      9  CMIP5 gridded+CMIP6 routed both              CMIP6 routed           2      2   15.9    4.5
+NAZR      18202  100.0      223  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          1      1   22.8   93.4
+NBNK       3808   24.3        5    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          0      0      -      -
+NECL      22714   31.8       63    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          0      0      -      -
+NECR      21198  100.0      260  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          1      1    3.0   60.4
+NEVI       8233   61.0       39    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          1      1   28.2   54.5
+NICL      10630  100.0      126  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          2      2   36.6   56.5
+NIEL      23888   63.1       96    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          0      0      -      -
+NIMP      11739   93.5       94    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          1      1    4.3   21.8
+OKAN      18848   98.6      518    0.0   0.0 100.0   0.0  100.0      9  CMIP6 routed               both              CMIP6 routed           7      7   29.5   92.8
+OSPK      20919  100.0      158    0.0   0.0   0.0 100.0  100.0      9  CMIP6 routed               both              CMIP6 routed           1      1    7.5   15.4
+OWIK      46867   92.0      323    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          1      1    0.3   46.2
+PARA      13489   99.9      132    0.0   0.0   0.0 100.0  100.0      9  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+PARK       3931   90.3       90    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          2      2   22.5   21.3
+PARS      35290  100.0      315    0.0   0.0   0.0 100.0  100.0      9  CMIP6 routed               both              CMIP6 routed           1      1    2.4   29.0
+PCEA      31249  100.0      260    0.0   0.0   0.0 100.0  100.0      9  CMIP6 routed               both              CMIP6 routed           1      1   84.0   70.2
+PINE      36728  100.0      408    0.0   0.0   0.0 100.0  100.0      9  CMIP6 routed               both              CMIP6 routed           3      3   22.3   15.9
+PITR      13201  100.0      132    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           1      1   16.2   12.4
+PORI       5047   11.1        4    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          0      0      -      -
+QUES      23643  100.0      271  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          3      2   15.6   19.4
+REVL      22024  100.0      218    0.0   0.0 100.0   0.0  100.0      9  CMIP6 routed               both              CMIP6 routed           3      3    7.8   10.6
+SAHD       5931    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+SAHT      14423    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+SAJR       7363  100.0      152  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          0      0      -      -
+SALM       8062   84.7      104    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          2      2   18.8   39.4
+SALR       9000  100.0       92  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          0      0      -      -
+SANJ      15608   92.8      150    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          3      3   16.3   23.4
+SETN      65295  100.0      461  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          4      4   67.4   39.1
+SEYM      19806   56.1       94    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          1      1    5.6   12.1
+SHEK       7011    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+SHER      23644  100.0      207    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+SHUL      12123  100.0      233  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          4      4   21.6   58.3
+SIML      29111   99.2      521    0.0   0.0 100.0   0.0   97.3      9  CMIP6 routed               both              CMIP6 routed           4      4   32.9   82.6
+SKGT       6914    0.0        0  100.0   0.0   0.0   0.0   26.2      9  CMIP5 gridded              balance alone     none                   0      0      -      -
+SLOC      15185  100.0      179    0.0   0.0 100.0   0.0  100.0      9  CMIP6 routed               both              CMIP6 routed           2      2    9.5    9.6
+SMAR      24116  100.0      427    0.0   0.0 100.0   0.0  100.0      9  CMIP6 routed               both              CMIP6 routed           7      7   21.2   27.0
+SMOK      30290   94.9      262    0.0   0.0   0.0 100.0  100.0      9  CMIP6 routed               routed on part    part or mixed          0      0      -      -
+SPAT      18404  100.0      203    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           1      1    1.6   13.3
+SQAM      23672   90.5      315    0.0 100.0   0.0   0.0   16.4      8  CMIP6 routed               routed on part    part or mixed          5      5   16.3    9.2
+STHM      13494  100.0      272  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          2      2   56.4   10.6
+STIR      14977   99.9      152    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           2      2   11.3    7.1
+STUL      13079  100.0      130  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          1      1    0.4   18.0
+STUR      11212  100.0      109  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          1      1    2.5    2.7
+SUST      16908  100.0      190    0.0 100.0   0.0   0.0   20.6      8  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+SWIR      16025    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+TABR       9219  100.0      125  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          2      2   20.9   47.6
+TAHR       9307   99.7      101    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+TAHS       7224   66.1       39    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          1      1   29.2    4.6
+TAKL      12546  100.0      126  100.0   0.0   0.0   0.0  100.0      8  CMIP5 gridded+CMIP6 routed both              CMIP5 gridded          0      0      -      -
+TASR      13177  100.0      143  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          0      0      -      -
+TATR      30648    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+TAYR      10417  100.0       69    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+TESR      17838    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+THOM      16188  100.0      221  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          1      1    5.5   12.5
+TOAD      55587    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   2      0      -   22.1
+TOBA      32005   80.0      264    0.0 100.0   0.0   0.0    1.6      8  CMIP6 routed               routed on part    part or mixed          0      0      -      -
+TOOD      37001   99.9      257    0.0   0.0   0.0 100.0   99.9      9  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+TSAY      20274   85.8      149    0.0 100.0   0.0   0.0    4.5      8  CMIP6 routed               routed on part    part or mixed          1      1   22.9   12.5
+TSEA       9378    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+TSIT       9764   89.4       76    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          1      1    1.5   76.4
+TURN      30098    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   1      0      -   15.1
+TUTR      30274    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   1      0      -   27.6
+TUYR      22261  100.0      195    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           1      1    8.4    9.9
+TWAC       9372  100.0      123  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          1      1   15.6   12.6
+UARL      23603  100.0      295    0.0   0.0 100.0   0.0   99.5      9  CMIP6 routed               both              CMIP6 routed           5      5   14.0   13.4
+UBIR      13888  100.0      104    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+UBTN      19149  100.0      309    0.0   0.0   0.0 100.0   99.9      9  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+UCHR      15296   99.9      219  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          0      0      -      -
+UDEN      18541  100.0      208    0.0 100.0   0.0   0.0   15.1      8  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+UEUT      20324  100.0      199  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          2      2   19.1   35.1
+UFRA      30522  100.0      352  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          3      3   21.6   16.7
+UFRT      16161    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+UHAF      28391  100.0      220    0.0   0.0   0.0 100.0  100.0      9  CMIP6 routed               both              CMIP6 routed           1      1    3.6   17.4
+UISR      25872  100.0      200    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+UJER      13738    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+UKEC      13787    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   1      0      -   24.0
+ULRD      34628    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+UMUS      27540    0.0        0    0.0   0.0   0.0   0.0    3.7      -  -                          balance alone     none                   0      0      -      -
+UNAR      25297  100.0      222    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+UNRS      23978  100.0      110  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          2      2   23.6   14.8
+UNTH      22810  100.0      301  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          2      2   14.6   34.8
+UNUR      12582   95.6      106    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           1      1    4.1    9.0
+UOMI      14914  100.0      220    0.0   0.0   0.0 100.0   99.6      9  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+UPCE      17888  100.0      333    0.0   0.0   0.0 100.0  100.0      9  CMIP6 routed               both              CMIP6 routed           1      1   19.5   33.7
+UPET       4744    0.0        0    0.0   0.0   0.0   0.0    0.0      -  -                          balance alone     none                   0      0      -      -
+UPRO      21231    0.0        0    0.0   0.0   0.0   0.0    3.1      -  -                          balance alone     none                   0      0      -      -
+USHU      13438  100.0      288  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          1      1   16.9   50.1
+USIK      32142    0.0        0    0.0   0.0   0.0   0.0   12.0      -  -                          balance alone     none                   1      0      -   21.2
+USKE      21649  100.0      219    0.0 100.0   0.0   0.0    7.6      8  CMIP6 routed               both              CMIP6 routed           0      0      -      -
+USTK      20078  100.0      180    0.0 100.0   0.0   0.0    5.0      8  CMIP6 routed               both              CMIP6 routed           1      1    0.0    2.6
+UTRE       5532  100.0       65  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          0      0      -      -
+VICT       1797   54.7       44    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          0      0      -      -
+WILL      13279  100.0      171  100.0   0.0   0.0   0.0  100.0      9  CMIP5 gridded              both              CMIP5 gridded          1      1    2.7   18.1
+WORC      19552   50.1       68    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               routed on part    part or mixed          0      0      -      -
+ZYMO      18799  100.0      184    0.0 100.0   0.0   0.0    0.0      8  CMIP6 routed               both              CMIP6 routed           1      1    0.9   25.2
+routed%: segments with a routed row over segments with a value; Fraser% ... Peace%: the group's segments in
+pcic.segment_weights by their sub-basin's domain; gridded%: area on PCIC's gridded cells; CMIP6: GCMs listed in
+every domain the group lies in; MAE: mean absolute percent error of month-0 runoff at the group's gauges (routed
+at the scored gauges, the balance held out at all)

@@ -1,0 +1,93 @@
+Holdout frame of the whole-station temperature baseline (#213)
+frame: edfbc29809
+HYDAT 20260717; province run 768876badf; glacier cache glacier_ws_a2874d628d.rds; lake cache lake_ws_37795e2f7b.rds
+lake cover reads 386025 FWA lakes (22479 km2) and 1812 manmade waterbodies (31 km2)
+
+truth: 999 station-years at 257 stations; kept: 889 station-years at 209 stations
+truth years dropped as a sensor reading one value (season sd under 0.1 degC): 1 (08LG048 2025)
+already snapped by the water balance (stations_20260717.rds): 146; accepted by both, every one on the same segment: 141; rejected by both: 5
+HYDAT regulation flag at the kept stations: natural 136, regulated 67, unflagged 6
+folds (WSC sub-sub-drainage): 71; stations per fold: median 2, largest 17; folds of one station: 25
+headwater 135, nested 74; lake outlets 32; with any glacier upstream 96; with any lake upstream 208
+related pairs (one upstream of the other): 640; in different folds, so removed only by the leak-free pool: 461; stations with at least one such neighbour: 97
+
+## Traits at the kept stations
+           trait      min       q25    median       q75       max n_zero
+            elev 220.7931 1.002e+03 1.221e+03 1.405e+03 2127.7735      0
+            e_km 586.7750 1.028e+03 1.211e+03 1.439e+03 1793.3874      0
+            n_km 404.7748 5.601e+02 6.878e+02 9.879e+02 1584.7500      0
+ snowmelt_doy_50  78.9983 1.173e+02 1.326e+02 1.497e+02  184.4341      0
+         swe_max  24.1649 2.526e+02 3.680e+02 6.185e+02 2685.4877      0
+        log_area   0.7281 2.253e+00 2.886e+00 3.610e+00    5.3541      0
+         glacier   0.0000 0.000e+00 0.000e+00 9.547e-03    0.6345    113
+      lake_cover   0.0000 2.619e-03 1.179e-02 3.223e-02    0.1069      1
+
+## Kept stations by WSC sub-drainage
+ sub_drainage stations station_years
+          07E       10            61
+          07F        7            36
+          08C        4            13
+          08D        3            12
+          08E       17            73
+          08F        9            59
+          08G       16            61
+          08H       23           128
+          08J        9            60
+          08K        8            43
+          08L       30           115
+          08M       23            70
+          08N       45           135
+          08O        3            15
+          10A        1             7
+          10C        1             1
+
+## Dropped stations (48, 109 truth station-years)
+ station_number                             station_name n_years                                                    reason
+        07FA008                                     <NA>       1                                     not in HYDAT 20260717
+        07FD007  POUCE COUPE RIVER BELOW HENDERSON CREEK       1                               40 % of the basin inside BC
+        08EC014   TWAIN CREEK TRIBUTARY NEAR BABINE LAKE       1           not snapped: area ratio 1.27 outside 1 +/- 0.10
+        08ED004    THAUTIL CORNER CREEK NEAR MORICE LAKE       1                                  too little record to fit
+        08EE008               GOATHORN CREEK NEAR TELKWA       1                                  too little record to fit
+        08EE025      TWO MILE CREEK IN DISTRICT LOT 4834       1                                  too little record to fit
+        08HA009         COWICHAN LAKE NEAR LAKE COWICHAN       1                                  too little record to fit
+        08HA016               BINGS CREEK NEAR THE MOUTH      10           not snapped: area ratio 1.11 outside 1 +/- 0.10
+        08HA068             GARBAGE CREEK NEAR THE MOUTH       5           not snapped: area ratio 1.33 outside 1 +/- 0.10
+        08HB025              BROWNS RIVER NEAR COURTENAY       1                                  too little record to fit
+        08HB074         CRUICKSHANK RIVER NEAR THE MOUTH       1                                  too little record to fit
+        08HB092        SOUTH NANAIMO RIVER NEAR JUNCTION       1                                  too little record to fit
+        08HD007         SALMON RIVER ABOVE MEMEKAY RIVER       1                                  too little record to fit
+        08HD024         CAMPBELL RIVER AT ARGONAUT WHARF       1                       not snapped: no gross drainage area
+        08HD026    QUINSAM DIVERSION NEAR CAMPBELL RIVER       1           not snapped: area ratio 0.79 outside 1 +/- 0.10
+        08HD027   QUINSAM RIVER BELOW LOWER QUINSAM LAKE       1                                  too little record to fit
+        08HE008              ZEBALLOS RIVER AT MOOK PEAK       1                                  too little record to fit
+        08HF015             EVE RIVER BELOW KUNNUM CREEK       1                                  too little record to fit
+        08JA018               CHESLATTA LAKE AT WEST END       1           not snapped: area ratio 0.02 outside 1 +/- 0.10
+        08JA023 NECHAKO RESERVOIR AT SKINS LAKE SPILLWAY       1           not snapped: area ratio 0.00 outside 1 +/- 0.10
+        08LF023               THOMPSON RIVER AT KAMLOOPS       1                                  too little record to fit
+        08LG046               NICOLA LAKE NEAR QUILCHENA       6           not snapped: area ratio 0.72 outside 1 +/- 0.10
+        08LG048           COLDWATER RIVER NEAR BROOKMERE       0 no truth year left: the sensor reads one value all season
+        08MA003   TASEKO RIVER AT OUTLET OF TASEKO LAKES       1           not snapped: area ratio 1.15 outside 1 +/- 0.10
+        08ME003                SETON RIVER NEAR LILLOOET       1           not snapped: area ratio 1.88 outside 1 +/- 0.10
+        08ME030           GUN CREEK ABOVE CARPENTER LAKE       2                       not snapped: no gross drainage area
+        08MH001      CHILLIWACK RIVER AT VEDDER CROSSING       7                               64 % of the basin inside BC
+        08MH029              SUMAS RIVER NEAR HUNTINGDON       1           not snapped: area ratio 1.19 outside 1 +/- 0.10
+        08MH032      NORTH ARM FRASER RIVER AT VANCOUVER       1                       not snapped: no gross drainage area
+        08MH056        SLESSE CREEK NEAR VEDDER CROSSING       1                               33 % of the basin inside BC
+        08ND021            GREELEY CREEK ABOVE DIVERSION       1                                  too little record to fit
+        08ND026     REVELSTOKE RESERVOIR AT MARTHA CREEK       1                                  too little record to fit
+        08NE049              COLUMBIA RIVER AT BIRCHBANK      11                               86 % of the basin inside BC
+        08NE074                   SALMO RIVER NEAR SALMO      10                               94 % of the basin inside BC
+        08NK016                     ELK RIVER NEAR NATAL       1                                  too little record to fit
+        08NK018               FORDING RIVER AT THE MOUTH       1                                  too little record to fit
+        08NK022                  LINE CREEK AT THE MOUTH       1                                  too little record to fit
+        08NK026            HOSMER CREEK ABOVE DIVERSIONS       1                                  too little record to fit
+        08NK031            ELK RIVER AT ELKO DAM FOREBAY       1                       not snapped: no gross drainage area
+        08NL007           SIMILKAMEEN RIVER AT PRINCETON       1                               70 % of the basin inside BC
+        08NL038            SIMILKAMEEN RIVER NEAR HEDLEY       1                               90 % of the basin inside BC
+        08NL076          EWART CREEK NEAR CATHEDRAL PARK       2                               87 % of the basin inside BC
+        08NM083                 OKANAGAN LAKE AT KELOWNA       6           not snapped: area ratio 0.41 outside 1 +/- 0.10
+        08NM242     DENNIS CREEK NEAR 1780 METRE CONTOUR       1           not snapped: area ratio 0.56 outside 1 +/- 0.10
+        08NM249            B.X. CREEK AT B.X. RANCH PARK       1                       not snapped: no gross drainage area
+        08NN029       BOUNDARY CREEK NEAR BOUNDARY FALLS       1           not snapped: area ratio 0.39 outside 1 +/- 0.10
+        08OA003         PREMIER CREEK NEAR DAAJING GIIDS       5                               90 % of the basin inside BC
+        09AA001                      ATLIN LAKE AT ATLIN       9           not snapped: area ratio 0.00 outside 1 +/- 0.10

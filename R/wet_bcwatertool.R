@@ -233,19 +233,25 @@ wet_bcwatertool_credit <- function(meta) {
 # the registry was built against, read by the same provincial reader, since
 # its exclusions, continuations and cuts were measured on those days.
 wet_bcwatertool_against <- function(tool, snapshot) {
-  built <- unique(tool$bcenv_snapshot)
+  wet_registry_against(tool, snapshot, "Water Tool's", "data-raw/station_sources_bcwatertool.R")
+}
+
+# A continuing registry `reg` beside a provincial snapshot: refused unless it
+# was built against that snapshot and its days (`bcenv_snapshot`,
+# `bcenv_days`), since its continuations and cuts were measured on them.
+wet_registry_against <- function(reg, snapshot, what, script) {
+  built <- unique(reg$bcenv_snapshot)
   if (!identical(built, snapshot)) {
-    stop("the Water Tool's station registry was built against the provincial snapshot ",
-         paste(built, collapse = ", "), ", not ", snapshot,
-         "; rewrite it with data-raw/station_sources_bcwatertool.R", call. = FALSE)
+    stop("the ", what, " station registry was built against the provincial snapshot ",
+         paste(built, collapse = ", "), ", not ", snapshot, "; rewrite it with ", script, call. = FALSE)
   }
-  days <- unique(tool$bcenv_days)
+  days <- unique(reg$bcenv_days)
   if (!identical(days, wet_bcenv_days_key(snapshot))) {
-    stop("the Water Tool's station registry was built on the provincial days ", paste(days, collapse = ", "),
+    stop("the ", what, " station registry was built on the provincial days ", paste(days, collapse = ", "),
          ", not ", wet_bcenv_days_key(snapshot), " (another manifest or reader version)",
-         "; rewrite it with data-raw/station_sources_bcwatertool.R", call. = FALSE)
+         "; rewrite it with ", script, call. = FALSE)
   }
-  invisible(tool)
+  invisible(reg)
 }
 
 wet_bcwatertool_unavailable <- function(...) wet_snapshot_unavailable("wet_bcwatertool_unavailable", ...)

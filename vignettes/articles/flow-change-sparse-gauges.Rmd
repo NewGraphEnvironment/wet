@@ -704,7 +704,7 @@ The software, each cited:
 # (a build from a checkout records none); the data were bundled at prov$wet_commit
 ours <- vapply(c("wet", "cd", "gq"), function(p) {
   sha <- utils::packageDescription(p)$RemoteSha
-  sha <- if (!is.null(sha) && grepl("^[0-9a-f]{40}$", sha)) paste0(", commit ", substr(sha, 1, 7)) else ""
+  sha <- if (!is.null(sha) && grepl("^[0-9a-f]{40}$", sha)) paste0(" (commit ", substr(sha, 1, 7), ")") else ""
   sprintf("`%s` %s%s", p, utils::packageVersion(p), sha)
 }, "")
 cat("The data were bundled at `wet` commit `", prov$wet_commit, "`; this build ran on ", and_text(ours),
