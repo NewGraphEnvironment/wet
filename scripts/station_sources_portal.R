@@ -62,10 +62,12 @@
 #    with the Tool; "Tool" the same way round; "both" when it agrees with
 #    each on at least 99 %; otherwise "unresolved".
 #
-# Beside the shares, which rule 4 takes on the hours both copies hold, the
-# report counts per station and year the hours only one copy holds (added
-# 2026-11-26 at code review: the shares alone cannot show an hour one copy
-# lacks; it decides no verdict).
+# Beside the shares, which rule 4 takes only on portal points at the top of an
+# hour that a pinned hour matches, the report counts per station and year the
+# hours only the portal holds a point in, the pinned hours with no portal point
+# in the hour, and the pinned hours the portal holds points in but none at
+# minute 0, which the comparison does not reach (added 2026-11-26 at code
+# review; it decides no verdict).
 #
 # The report holds counts and shares only, never a portal value. It carries
 # no timestamp and is byte-identical on a rerun from the cached copy:
@@ -268,14 +270,20 @@ ph <- portal[format(portal$t, "%M:%S") == "00:00" & as.Date(portal$t) >= from & 
 hh <- merge(setNames(ph, c("station_number", "t", "portal")), setNames(hours, c("station_number", "t", "prov")))
 hh$year <- format(hh$t, "%Y")
 hh$ok <- agree(hh$portal, hh$prov)
-# hours only one copy holds (reported beside the agreement shares, which are taken on the hours both hold)
-key_p <- paste(ph$station_number, format(ph$t, "%Y-%m-%d %H"))
+# coverage, beside the agreement shares (which rule 4 takes on the portal points at the top of an hour that a
+# pinned hour matches): per station and year, the hours only the portal holds a point in, the pinned hours with no
+# portal point in that hour, and the pinned hours the portal holds points in but none at minute 0, which the
+# comparison does not reach (a logger that records off the hour)
+pa <- portal[as.Date(portal$t) >= from & as.Date(portal$t) <= to, ]
+key_a <- unique(paste(pa$station_number, format(pa$t, "%Y-%m-%d %H")))
+key_0 <- paste(ph$station_number, format(ph$t, "%Y-%m-%d %H"))
 key_h <- paste(hours$station_number, format(hours$t, "%Y-%m-%d %H"))
-p_only <- !key_p %in% key_h
-only <- rbind(data.frame(station_number = ph$station_number[p_only], year = format(ph$t[p_only], "%Y"),
-                         side = "portal"),
-              data.frame(station_number = hours$station_number[!key_h %in% key_p],
-                         year = format(hours$t[!key_h %in% key_p], "%Y"), side = "pinned files"))
+cov_of <- function(keys, what) {
+  data.frame(station = sub(" .*$", "", keys), year = substr(sub("^[^ ]+ ", "", keys), 1, 4),
+             what = rep(what, length(keys)))
+}
+cov <- rbind(cov_of(setdiff(key_a, key_h), "portal only"), cov_of(setdiff(key_h, key_a), "pinned only"),
+             cov_of(setdiff(intersect(key_h, key_a), key_0), "not compared"))
 
 ph$date <- as.Date(ph$t)
 pday <- stats::aggregate(cbind(portal = value, n = 1) ~ station_number + date, data = ph, FUN = sum)
@@ -319,10 +327,12 @@ by_month <- vapply(mons, function(m) {
   h <- hh[hh$month == m, ]
   sprintf("    %s %6d %5.1f %3d", m, nrow(h), 100 * mean(h$ok), length(unique(h$station_number)))
 }, "")
-only_tab <- if (nrow(only)) as.data.frame(table(station = only$station_number, year = only$year, side = only$side)) else
-  data.frame(station = character(), year = character(), side = character(), Freq = integer())
-only_tab <- only_tab[only_tab$Freq > 0, ]
-only_tab <- only_tab[order(only_tab$station, only_tab$year, only_tab$side, method = "radix"), ]
+cov_tab <- as.data.frame(table(station = cov$station, year = cov$year, what = factor(cov$what,
+  c("portal only", "pinned only", "not compared"))))
+cov_tab <- stats::reshape(cov_tab, idvar = c("station", "year"), timevar = "what", direction = "wide")
+names(cov_tab) <- c("station", "year", "portal_only", "pinned_only", "not_compared")
+cov_tab <- cov_tab[rowSums(cov_tab[, 3:5]) > 0, ]
+cov_tab <- cov_tab[order(as.character(cov_tab$station), as.character(cov_tab$year), method = "radix"), ]
 skipped <- names(fetched)[!names(fetched) %in% ok]
 
 out <- c(head_lines, pick_lines, "",
@@ -332,7 +342,8 @@ out <- c(head_lines, pick_lines, "",
     vapply(fetched[skipped], function(f) f$why, "")), collapse = ", ")) else "  every picked station read",
   "",
   "By year (rules 4 and 5), on the station-days where the portal, the province and the Tool all have a day:",
-  "  year, station-days, % portal agrees with province, % with Tool, verdict; hours compared, % portal hours agree with province",
+  paste("  year, station-days, % portal agrees with province, % with Tool, verdict; hours compared,",
+        "% portal hours agree with province"),
   by_year,
   "",
   "By station and year: station, year, station-days, % with province, % with Tool; hours, % hours with province",
@@ -341,8 +352,12 @@ out <- c(head_lines, pick_lines, "",
   "By month, every picked station's hours: month, hours compared, % portal hours agree with province, stations",
   by_month,
   "",
-  "Hours only one copy holds (the shares above are taken on the hours both hold): station, year, copy, hours",
-  if (nrow(only_tab)) sprintf("    %s %s %-12s %6d", only_tab$station, only_tab$year, only_tab$side, only_tab$Freq) else
-    "    none")
+  "Coverage (the shares above are taken only on portal points at the top of an hour that a pinned hour matches):",
+  "  station, year, hours only the portal holds a point in, pinned hours with no portal point in the hour,",
+  "  pinned hours the portal holds points in but none at minute 0 (not compared)",
+  if (nrow(cov_tab)) {
+    sprintf("    %s %s %6d %6d %6d", cov_tab$station, cov_tab$year, cov_tab$portal_only, cov_tab$pinned_only,
+            cov_tab$not_compared)
+  } else "    none")
 writeLines(out, report)
 message("wrote ", report)
