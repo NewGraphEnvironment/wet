@@ -1,6 +1,6 @@
 # Changelog
 
-## wet (development version)
+## wet 0.6.0
 
 - [`wet_station_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_station_daily.md)
   reads Hakai Institute’s published discharge package
