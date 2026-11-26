@@ -11,7 +11,7 @@ one. For HYDAT's own stations, use
 
 ``` r
 wet_station_list(
-  sources = c("bcenv", "bcwatertool"),
+  sources = c("bcenv", "bcwatertool", "hakai"),
   snapshot = wet_bcenv_snapshot
 )
 ```
@@ -20,7 +20,9 @@ wet_station_list(
 
 - sources:
 
-  Which networks to list, from `"bcenv"` and `"bcwatertool"`.
+  Which networks to list, from `"bcenv"`, `"bcwatertool"` and `"hakai"`.
+  `"hakai"` alone lists no station: its watersheds only continue
+  provincial ones, which it changes when `"bcenv"` is listed too.
 
 - snapshot:
 
@@ -59,7 +61,9 @@ provincial record begins continue that station's record under the
 provincial number (see
 [`wet_station_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_station_daily.md)),
 and the provincial row's `first`, `licence` and `credit` say so when
-both sources are listed.
+both sources are listed. Hakai Institute's published package (`"hakai"`)
+continues three Calvert and Hecate island stations the same way and
+lists no station of its own.
 
 `regulation` is each station's status from what sits upstream of it, one
 for the year as a whole, under a rule registered before it was applied:

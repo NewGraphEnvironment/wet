@@ -37,9 +37,15 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/v0.5.2/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/NewGraphEnvironment/wet/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="development version" id="wet-development-version">wet (development version)<a class="anchor" aria-label="anchor" href="#wet-development-version"></a></h2>
+<ul><li>
+<code><a href="../reference/wet_station_daily.html">wet_station_daily()</a></code> reads Hakai Institute’s published discharge package (<code>sources = "hakai"</code>, <a href="https://github.com/NewGraphEnvironment/wet/issues/192" class="external-link">#192</a>): at three Calvert and Hecate island watersheds (H08KC0626, H08KC0703, H08KC0844), its 2014–2019 days continue the provincial records that begin in October 2021, under the provincial number, as the Water Tool’s gauges continue theirs. A day is a Pacific Standard Time day of at least 20 of Hakai’s hourly means, <code>"approved"</code> where Hakai accepted every hour after quality control (its level 2). The file is fetched once from the package’s pinned commit (CC-BY 4.0). H08KC0703 now has 7 complete Chinook-window years instead of 2. <code><a href="../reference/wet_station_list.html">wet_station_list()</a></code> takes <code>"hakai"</code> too.</li>
+<li>The province’s Aquarius portal shows the pinned provincial files equal its series from October 2021 to May 2026 wherever the portal logs on the hour; January–September 2021 has since been revised at four of five stations, the portal holds months the pin lacks at four stations, and spans where a logger records off the hour were not compared (<code>scripts/station_sources_portal.R</code>, <a href="https://github.com/NewGraphEnvironment/wet/issues/190" class="external-link">#190</a>; the newer pin is <a href="https://github.com/NewGraphEnvironment/wet/issues/232" class="external-link">#232</a>).</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.5.2" id="wet-052">wet 0.5.2<a class="anchor" aria-label="anchor" href="#wet-052"></a></h2>
 <ul><li>No change to the package’s functions. Water temperature at a station with no record is scored under a rule registered before any score (<code>scripts/temp_baseline.R</code>, <a href="https://github.com/NewGraphEnvironment/wet/issues/213" class="external-link">#213</a>): with a whole station held out, air2stream parameters predicted from catchment traits miss growing-season degree days by about 295 °C-days at 209 stations, against 97 with a station’s own parameters and 413 for the population mean, which is not close under the rule (<code>research/station_temperature_fill.md</code>). Network kriging on the same holdout is <a href="https://github.com/NewGraphEnvironment/wet/issues/223" class="external-link">#223</a>.</li>
