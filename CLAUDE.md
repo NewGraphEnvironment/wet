@@ -1092,6 +1092,38 @@ Both fail quietly in a waiter: an empty list reads as "no runs yet", so the loop
 
 *1 line of evidence for this rule is in `conventions/ci-monitoring.md`.*
 
+# Code Check — Python
+Traps in Python: the interpreter, pytest, the HTTP stack under pystac, and MkDocs.
+
+*Index only: each rule's heading and first sentence. The full text is soul's `conventions/code-check-python.md`; read it before writing or reviewing code in its area. `/code-check` loads it in full.*
+
+### A script named after a stdlib module shadows that module when run by path
+Name a script so it cannot collide with the standard library (`enum_sites.py`, not `enum.py`).
+
+### Proxy variables do not take a pystac test offline: block at the socket
+To make Python tests network-proof, patch the socket layer to refuse every non-loopback lookup and connection, in `pytest_configure`, and clear the proxy variables with `NO_PROXY=*`.
+
+### A conftest guard covers only the invocations that load it
+Put a session-wide guard in the repository's root `conftest.py`, and pin it by behaviour in a child process.
+
+### `mkdocs build --strict -q` passes a dead link
+Run `mkdocs build --strict` without `-q`, and set all seven `validation:` keys to `warn` in `mkdocs.yml`.
+
+### `tempfile.mkstemp` then `os.replace` leaves the target at mode 0600
+Set the temp file's mode before the rename: the target's own (`os.stat(path).st_mode & 0o7777`) when it exists, `0o666 & ~umask` when it does not.
+
+### A line break inside an f-string's braces parses only on Python 3.12+
+Parse or test a script under its declared `requires-python` floor (`uv run --python 3.11 --script …`).
+
+### Drive LibreOffice over UNO as an `soffice` macro, not with its bundled Python
+Put the script in the private profile's `user/Scripts/python/` and start it as a macro, since on macOS LibreOffice's bundled interpreter run directly is killed at once.
+
+### `re.match` with `$` accepts a trailing newline
+Validate a whole string with `re.fullmatch()`, and write `[0-9]` for an ASCII digit.
+
+### `urllib.parse` normalises differently on different routes
+Remove dot segments yourself (RFC 3986 §5.2.4) and merge by hand before comparing a path from a URL with a key: `urljoin`, `urlsplit`, `urldefrag` and `posixpath.normpath` each normalise more, on some routes only.
+
 # Code Check — R
 Traps in R: the language and base/utils behaviour, package internals (`R CMD build`, `.Rbuildignore`, roxygen, lintr, `data-raw/`, testthat, pak), and the DBI/duckdb/arrow data layer.
 
@@ -3083,6 +3115,23 @@ Keep a register, one row per record field, saying whether a difference refuses, 
 
 ### Map existing names to the shared keys and to STAC's; converge forward-only
 Map each existing field name to its key in the receipt and, on a catalogue, to STAC's own (`file:checksum`, `file:size`, `processing:software`, `processing:datetime`), and rename only when the writer moves to a receipt (rule 1).
+
+# Python Conventions
+How New Graph Environment repos declare and run Python, the sibling of `r-packages.md`.
+
+*Index only: each rule's heading and first sentence. The full text is soul's `conventions/python.md`; read it before writing or reviewing code in its area.*
+
+### Declare dependencies in `pyproject.toml` and commit `uv.lock`
+A repo whose Python is a package, or whose scripts import a shared module of the repo's own, declares its dependencies in `pyproject.toml`, commits the `uv.lock` that `uv lock` writes, runs through `uv run`, and adds no `environment.yml`.
+
+### A loose script carries its dependencies inline
+A standalone script that imports no module of the repo's own declares its third-party imports in PEP 723 inline metadata and runs with `uv run --script`; one that imports only the standard library needs none.
+
+### Two exceptions, each named in the repo's `CLAUDE.md`
+Conda stays where a conda-forge binary that has no wheel is load-bearing, and PyQGIS scripts declare nothing, because QGIS's own interpreter runs them.
+
+### Never `conda run -n` an environment the repo does not declare
+A script that runs `conda run -n <env>` against an environment declared in no file of its own repo cannot run from a fresh clone, so declare the dependencies here instead.
 
 
 # R Package Development Conventions
