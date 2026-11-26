@@ -327,11 +327,15 @@ by_month <- vapply(mons, function(m) {
   h <- hh[hh$month == m, ]
   sprintf("    %s %6d %5.1f %3d", m, nrow(h), 100 * mean(h$ok), length(unique(h$station_number)))
 }, "")
-cov_tab <- as.data.frame(table(station = cov$station, year = cov$year, what = factor(cov$what,
-  c("portal only", "pinned only", "not compared"))))
-cov_tab <- stats::reshape(cov_tab, idvar = c("station", "year"), timevar = "what", direction = "wide")
-names(cov_tab) <- c("station", "year", "portal_only", "pinned_only", "not_compared")
-cov_tab <- cov_tab[rowSums(cov_tab[, 3:5]) > 0, ]
+cov_tab <- data.frame(station = character(), year = character(), portal_only = integer(), pinned_only = integer(),
+                      not_compared = integer())
+if (nrow(cov)) {  # reshape() of an empty table stops, and a copy that matches everywhere has none
+  cov_tab <- as.data.frame(table(station = cov$station, year = cov$year, what = factor(cov$what,
+    c("portal only", "pinned only", "not compared"))))
+  cov_tab <- stats::reshape(cov_tab, idvar = c("station", "year"), timevar = "what", direction = "wide")
+  names(cov_tab) <- c("station", "year", "portal_only", "pinned_only", "not_compared")
+  cov_tab <- cov_tab[rowSums(cov_tab[, 3:5]) > 0, ]
+}
 cov_tab <- cov_tab[order(as.character(cov_tab$station), as.character(cov_tab$year), method = "radix"), ]
 skipped <- names(fetched)[!names(fetched) %in% ok]
 
