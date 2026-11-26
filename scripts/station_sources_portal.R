@@ -7,12 +7,14 @@
 # From 2021 the province's pinned non-integrated files (wet_bcenv_snapshot) and
 # the BC Water Tool's copy of the same stations (wet_bcwatertool_snapshot) part:
 # the survey report (data/checks/station_sources_20260717.txt, "The BC Water
-# Tool against the province") has 99.8-100 % of their common 24-hour UTC days
-# within 0.1 % to 2020, and 61-92 % per year from 2021. This script reads a few
-# stations from the province's own Aquarius WebPortal (the Real-time Water Data
-# Tool, aqrt.nrs.gov.bc.ca, served at bcmoe-prod.aquaticinformatics.net) and
-# says, per year, which copy the portal agrees with. The owner accepted the
-# portal's disclaimer on 2026-11-25 (#210; it restricts no use).
+# Tool against the province") has 99.7-100 % of their common 24-hour UTC days
+# within 0.1 % to 2020 (corrected 2026-11-26 from "99.8-100", a misreading of
+# that table, at code review; it decides nothing below), and 61-92 % per year
+# from 2021. This script reads a few stations from the province's own
+# Aquarius WebPortal (the Real-time Water Data Tool, aqrt.nrs.gov.bc.ca,
+# served at bcmoe-prod.aquaticinformatics.net) and says, per year, which copy
+# the portal agrees with. The owner accepted the portal's disclaimer on
+# 2026-11-25 (#210; it restricts no use).
 #
 # Rules, registered here before any portal value was read (the pick-only run's
 # report is committed first):

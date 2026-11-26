@@ -8,7 +8,7 @@ Tags: **[S]** the linked source says it · **[M]** measured (the report or comma
 
 wet reads three sources beyond HYDAT, all through `wet_station_daily()` and `wet_station_list()`:
 - **the province's non-integrated network** (OGL-BC): 211 stations, 110 passing the station test below [M];
-- **the BC Water Tool's third-party gauges**: 46 stations (35 passing), and seven listings continuing provincial records [M];
+- **the BC Water Tool's third-party gauges**: 46 stations of their own (29 passing), and seven listings continuing provincial records (six more passing on their own years) [M];
 - **Hakai Institute's published package**, continuing three Calvert and Hecate island provincial records with 2014–2019 [M].
 
 The **Columbia Basin Water Hub** is a lead (29 stations pass on listed periods; a scripted reader needs Living Lakes Canada's consent). Two **USGS** gauges are test-only. The rest are **no** or unread **leads** (the inventory).
