@@ -105,9 +105,9 @@ Raw copies sit under the gitignored `data/station_sources/raw/`; each report car
 ## Data notes: the provincial files and the Water Tool
 
 Reported as found, not filtered [M, the survey report unless noted]:
-- **Units and NaN.** Six Vancouver Island stations report 2016–2019 in `l/s`, divided by 1000. 800,830 hourly values at 121 stations are `NaN` and dropped.
+- **Units and NaN.** Six Vancouver Island stations report 2016–2019 in `l/s`; 800,830 hourly values at 121 stations are `NaN` and dropped.
 - **Impossible values, graded.** Oliver Creek in Lake Cowichan (08HA0036) reaches 2.1 million m³/s on RISC C and U hours (2021–2024), Amor De Cosmos Creek (08HD0003) about 7,000 m³/s (2021–2025); hence the plausibility bound (below). The Fraser at the Big Bar slide (08MD0002, 08MD0003, up to 9,887 m³/s) is plausible.
-- **Two copies that part in 2021.** The Water Tool's copy of the provincial stations matches the files within 0.1 % on at least 99.7 % of days a year to 2020, and on 61–92 % from 2021. The province's Aquarius portal settles it [M, `data/checks/station_sources_portal_20261125.txt`, stations picked before any portal value was read]: from October 2021 to May 2026 the portal's hours equal the pinned files' (99.9–100 % a month), and the Tool's copy matches the portal on 38–83 % of days a year from 2022. For January–September 2021 (the portal was read from 2021) it departs from both copies at four of the five stations with hours then (0.1–24 % of all hours a month agree), its series revised since both were taken [I]; at 07FC0001 it equals both. From June 2026, 80–91 % (provisional revisions) [I]. A newer pin would bring both in (#232).
+- **Two copies that part in 2021.** The Water Tool's copy of the provincial stations matches the files within 0.1 % on at least 99.7 % of days a year to 2020, and on 61–92 % from 2021. The province's Aquarius portal settles it [M, `data/checks/station_sources_portal_20261125.txt`, stations picked before any portal value was read]. On the hours both hold, the files equal the portal from October 2021 to May 2026 (99.9–100 % a month), and the Tool's copy matches the portal on 38–83 % of days a year from 2022. For January–September 2021 (read from 2021) the portal departs from both copies at four of the five stations both hold then (0.1–24 % of hours agree), revised since [I], and equals both at 07FC0001; from June 2026, 80–91 % (provisional revisions) [I]. Each copy also holds hours the other lacks (the report's last table): the portal holds January–September 2021 at three stations whose pinned record begins on 2021-10-01 (08HB0031, 08NM0057, 08NM0054) and 07FC0001's 2026 season; the pinned files hold runs the portal's working series lacks (08NM0050 in 2025–2026, 08NM0054 in 2026, 08HB0031 in 2023, 08MH0056 in 2025). A newer pin would bring in the revised and added months (#232).
 - **Coordinates and owners.** The Tool places 08JC0002 and 08JC0006 a degree of latitude from the province's coordinates, and files 17 provincial stations under the Regulator, many not the regulator's by name or place [M; I for ownership]; the provincial files are the source for both.
 
 ## The provincial files in wet
@@ -119,9 +119,9 @@ What `wet_station_daily(sources = "bcenv")` reads [M, `data/checks/station_sourc
 - **Status.** A day with any `Undefined`, `Unspecified` or `Unverified` hour is `"unchecked"` (66.3 % of days), a fully graded day `"provisional"`; none is `"approved"`. A grade outside the 16 the files carry is refused.
 - **Once-a-day stations.** 15 stations (the Elk Valley gauges among them) hold one value per day, so the 20-hour rule gives them no day; reading a daily value as a day is open.
 - **Identity.** A provincial station keeps its own number; `wet_station_list()` names the HYDAT station at its site (1 km, same stream name: 58 stations). Ten have a second publisher's listing continuing them (seven Tool, three Hakai); six of those add earlier days (below).
-- **Against the survey.** Under its rules (UTC days, no bound) the reader returns its 215,300 station-days, 211 station rows and 110 passing stations. Under the shipped rules, 215,168 complete days, 208 dropped by the bound; 110 still pass.
+- **Against the survey.** Under its rules the reader returns its 215,300 station-days and 110 passing stations; under the shipped rules, 215,168 days, 208 dropped by the bound, 110 passing.
 - **Donors.** 52 natural, 101 regulated, 58 unknown (below). `wet_station_select()` stays HYDAT-only: none holds 10 years of 1981–2010, and on an estimated baseline they made carried departures worse (#211; `research/chinook_sites.md`).
-- **Still open.** The revised January–September 2021 and the months after the snapshot (#232); the once-a-day stations; the four passing stations 1.4–1.9 km from a same-stream HYDAT gauge, which the 1 km match keeps as new sites.
+- **Still open.** The portal's revised and added 2021 months and the months after the snapshot (#232); the once-a-day stations; the four passing stations 1.4–1.9 km from a same-stream HYDAT gauge, which the 1 km match keeps as new sites.
 
 ## The Water Tool's gauges in wet
 
@@ -156,7 +156,7 @@ Registered on 2026-11-23, before it was applied or measured on any Tool series (
 
 ## The Hakai package in wet
 
-Registered on 2026-11-25, before any Hakai day was counted (#192). Hakai Institute's package (Korver, Haughton, Floyd and Giesbrecht, DOI 10.21966/J99C-9C14; CC-BY 4.0; GitHub `HakaiInstitute/essd2021-hydromet-datapackage`, commit 8318556d2baf) holds hourly discharge at seven watersheds for water years 2014–2019 [S]; 626, 703 and 844 are provincial stations H08KC0626, H08KC0703 and H08KC0844. 2019-10-01 to 2021-09-30 waits on Hakai, whose ERDDAP robots.txt disallows queries (a draft ask, unsent, is in #210's archive).
+Registered on 2026-11-25, before any Hakai day was counted (#192). Hakai Institute's package (Korver, Haughton, Floyd and Giesbrecht, DOI 10.21966/J99C-9C14; CC-BY 4.0; GitHub `HakaiInstitute/essd2021-hydromet-datapackage`, commit 8318556d2baf) holds hourly discharge at seven watersheds, October 2013 to September 2019 [S] (watershed 708 from September 2013 [M]); 626, 703 and 844 are provincial stations H08KC0626, H08KC0703 and H08KC0844. 2019-10-01 to 2021-09-30 waits on Hakai, whose ERDDAP robots.txt disallows queries (a draft ask, unsent, is in #210's archive).
 
 - **What is read.** `2013-2019_Discharge_Hourly.csv` (sha256 the LFS pointer's), rows `WTS626`, `WTS703`, `WTS844`, column `Qrate` (m³/s, the mean of an hour's twelve five-minute values) [S], kept only at the tracked md5.
 - **Time.** `Datetime` is the end of its hour in Pacific Standard Time, as the README and data dictionary state [S]; the trailing `Z` the file writes is not read as UTC. Three checks agree [M, the package's raw files under the gitignored `data/station_sources/raw/hakai/<commit>/`]: rain at `SSN626` raises discharge at `WTS626` fastest two hours later (correlation 0.37), not ten; the package's hourly radiation peaks at the hour ending 13:00 (solar noon at 128° W is about 12:30 PST); every watershed's last row is `2019-10-01T00:00`, the end of water year 2019 in PST.
@@ -182,4 +182,4 @@ Registered on 2026-11-24, before any station was snapped or placed (#196, carryi
 
 ## Already fetched by a New Graph package?
 
-No (2026-10-28). The installed NewGraphEnvironment packages export only federal fetchers (`ngr::ngr_hyd_q_daily()`, `ngr::ngr_hyd_realtime()`, wet's `wet_station_*()`); a code search of the organisation finds these sources only cited, never fetched.
+No (2026-10-28): the organisation's packages fetch only federal data (`ngr::ngr_hyd_q_daily()`, `ngr::ngr_hyd_realtime()`, wet's `wet_station_*()`); a code search finds these sources cited, never fetched.

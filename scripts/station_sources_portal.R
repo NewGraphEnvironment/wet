@@ -62,6 +62,11 @@
 #    with the Tool; "Tool" the same way round; "both" when it agrees with
 #    each on at least 99 %; otherwise "unresolved".
 #
+# Beside the shares, which rule 4 takes on the hours both copies hold, the
+# report counts per station and year the hours only one copy holds (added
+# 2026-11-26 at code review: the shares alone cannot show an hour one copy
+# lacks; it decides no verdict).
+#
 # The report holds counts and shares only, never a portal value. It carries
 # no timestamp and is byte-identical on a rerun from the cached copy:
 # data/checks/station_sources_portal_<WET_PORTAL_SNAPSHOT>.txt (the pick-only
@@ -263,6 +268,14 @@ ph <- portal[format(portal$t, "%M:%S") == "00:00" & as.Date(portal$t) >= from & 
 hh <- merge(setNames(ph, c("station_number", "t", "portal")), setNames(hours, c("station_number", "t", "prov")))
 hh$year <- format(hh$t, "%Y")
 hh$ok <- agree(hh$portal, hh$prov)
+# hours only one copy holds (reported beside the agreement shares, which are taken on the hours both hold)
+key_p <- paste(ph$station_number, format(ph$t, "%Y-%m-%d %H"))
+key_h <- paste(hours$station_number, format(hours$t, "%Y-%m-%d %H"))
+p_only <- !key_p %in% key_h
+only <- rbind(data.frame(station_number = ph$station_number[p_only], year = format(ph$t[p_only], "%Y"),
+                         side = "portal"),
+              data.frame(station_number = hours$station_number[!key_h %in% key_p],
+                         year = format(hours$t[!key_h %in% key_p], "%Y"), side = "pinned files"))
 
 ph$date <- as.Date(ph$t)
 pday <- stats::aggregate(cbind(portal = value, n = 1) ~ station_number + date, data = ph, FUN = sum)
@@ -306,6 +319,10 @@ by_month <- vapply(mons, function(m) {
   h <- hh[hh$month == m, ]
   sprintf("    %s %6d %5.1f %3d", m, nrow(h), 100 * mean(h$ok), length(unique(h$station_number)))
 }, "")
+only_tab <- if (nrow(only)) as.data.frame(table(station = only$station_number, year = only$year, side = only$side)) else
+  data.frame(station = character(), year = character(), side = character(), Freq = integer())
+only_tab <- only_tab[only_tab$Freq > 0, ]
+only_tab <- only_tab[order(only_tab$station, only_tab$year, only_tab$side, method = "radix"), ]
 skipped <- names(fetched)[!names(fetched) %in% ok]
 
 out <- c(head_lines, pick_lines, "",
@@ -322,6 +339,10 @@ out <- c(head_lines, pick_lines, "",
   st_year,
   "",
   "By month, every picked station's hours: month, hours compared, % portal hours agree with province, stations",
-  by_month)
+  by_month,
+  "",
+  "Hours only one copy holds (the shares above are taken on the hours both hold): station, year, copy, hours",
+  if (nrow(only_tab)) sprintf("    %s %s %-12s %6d", only_tab$station, only_tab$year, only_tab$side, only_tab$Freq) else
+    "    none")
 writeLines(out, report)
 message("wrote ", report)

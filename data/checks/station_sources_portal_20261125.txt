@@ -184,3 +184,48 @@ By month, every picked station's hours: month, hours compared, % portal hours ag
     2026-08   3594  80.5   6
     2026-09   3641  89.9   6
     2026-10   2812  86.0   6
+
+Hours only one copy holds (the shares above are taken on the hours both hold): station, year, copy, hours
+    07FC0001 2021 pinned files      1
+    07FC0001 2022 pinned files      1
+    07FC0001 2023 pinned files      1
+    07FC0001 2024 pinned files      1
+    07FC0001 2025 pinned files      1
+    07FC0001 2026 portal         3718
+    08HB0031 2021 portal         6551
+    08HB0031 2022 pinned files      1
+    08HB0031 2023 pinned files   4252
+    08HB0031 2024 pinned files      3
+    08HB0031 2025 pinned files      1
+    08MH0054 2021 portal          107
+    08MH0054 2022 pinned files      2
+    08MH0054 2023 pinned files      2
+    08MH0054 2024 pinned files     12
+    08MH0054 2025 pinned files     12
+    08MH0054 2026 pinned files     41
+    08MH0056 2021 pinned files      2
+    08MH0056 2022 pinned files      4
+    08MH0056 2023 pinned files      3
+    08MH0056 2025 pinned files    985
+    08MH0056 2026 pinned files      1
+    08MH0056 2026 portal            7
+    08NE0001 2024 pinned files      3
+    08NE0001 2025 pinned files      5
+    08NE0001 2026 pinned files     15
+    08NM0002 2022 pinned files      1
+    08NM0002 2023 pinned files      2
+    08NM0002 2024 pinned files      3
+    08NM0002 2025 pinned files      1
+    08NM0002 2026 pinned files      1
+    08NM0004 2022 pinned files      1
+    08NM0050 2022 pinned files      3
+    08NM0050 2024 portal          190
+    08NM0050 2025 pinned files   4857
+    08NM0050 2026 pinned files   7198
+    08NM0054 2021 portal         4443
+    08NM0054 2022 pinned files      1
+    08NM0054 2025 pinned files      4
+    08NM0054 2026 pinned files   3192
+    08NM0057 2021 pinned files      1
+    08NM0057 2021 portal         6552
+    08NM0057 2023 pinned files      5
