@@ -59,7 +59,7 @@ No plan gate ran in this pane: a coordinator dispatched this session, and the co
 
 ## Owed at the end (reported, done after merge)
 
-- [ ] #217's issue title and body reworded, as the owner decided on 2026-11-26 (title as decided, body in the file's terms once it exists), and a comment on #217 saying what remains (the outside read) and that nothing is left to build
+- [ ] #217's body reworded in the file's terms once it exists (its title and a `## Decisions` line were written on 2026-11-26, on the owner's word), and a comment on #217 saying what remains (the outside read) and that nothing is left to build
 - [ ] Mark #217 done by hand once a reader outside has read the file and its open points are settled or listed (open decision 3)
 - [ ] #214's checklist: tick item 5 (#218) and propose to the owner the wording for the #217 line, edited on his word
 - [ ] A comment on #236: its build reruns `scripts/temperature_bayesian_alignment_check.R` and updates the rows it moves
