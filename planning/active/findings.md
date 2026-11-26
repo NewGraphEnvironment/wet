@@ -68,7 +68,7 @@ The issue's one comment is the claim notice (a report, nothing asked). #216 has 
 - **Anonymous reads** are open on the bucket for `discharge/*` and a few other prefixes (`research/discharge_publish.md`, "Evidence"); `air_temperature/*` is not among them.
 - **`wet_temp_fill()`** requires `air` to carry `id`, `date`, `variable`, `value` with `date` a Date, and reads the `tmean` rows. `wet_air_daily()` returns that shape, so a later move can hand it a reach's series.
 - **A stale note found, not this move's**: `scripts/temp_fill_validate.R` says the cube stops at 59.95° N and that one point outside it aborts the call; cd now reaches 60.05° N and warns.
-- **Installed packages** (soul's stale check, read-only): wet 0.4.44 installed against 0.6.0 in the tree. Scripts load the tree, but lintr resolves names against the installed copy.
+- **Installed packages** (the organisation's stale-install check, read-only): wet 0.4.44 installed against 0.6.0 in the tree. Scripts load the tree, but lintr resolves names against the installed copy.
 
 ## Errors Encountered
 
