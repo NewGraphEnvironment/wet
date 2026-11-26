@@ -1,0 +1,56 @@
+# Code-check round 4 (branch 210-backlog-move-17-provincial-station-recor, HEAD a51b37a7)
+
+## Checklist read
+
+- `code-check.md`: of the 14 H3s under `## Mechanisms`, I read the prose (tables skipped) of six: A guard that fails toward pass; A fixture that cannot reach the failure mode; A proxy is not the property (in full); Verification that reads its own output; A guard's scope, escape hatches, and remedies; One fact derived twice. For the other eight I read only the heading and the index line: A fix lands in one of two callers that share a harness; Restore the bug and prove the guard fires; A shared working tree, and what generators leave in it; A wrapper's exit is not the work; Zero-length, empty, and unset are three different things; The probe is broken before the world is; Written data outlives the fix; Serialization loses meaning silently. I read none of the 24 other H3s.
+- `code-check-r.md`, `code-check-shell.md`, `code-check-spatial.md`: index lines only. Round 3's fixes are prose only; no code changed after round 3.
+- index, diff and changed files read from file.
+
+## How the checks were made
+
+- The portal report's tables: `data/checks/station_sources_portal_20261125.txt`.
+- Counts of rows, never values, from the portal's raw copy in the main checkout's `data/station_sources/raw/portal/20261125/` and the pinned provincial files in wet's cache, `station_sources/bcenv/20261028/`. The script's merge rule was applied by hand: a value at the top of a UTC hour, with grade -3 NaN rows and grade -2 rows dropped, up to 2026-10-28 00:00.
+- The Hakai package's raw files under `.../raw/hakai/8318556d2baf.../`.
+- The bodies of #190 and #232, read with `gh issue view`.
+
+## Mechanism
+
+Round 3 named the mechanism: a summary in prose (a count, a range, a set word) placed over a nearby set. Every round-3 fix keeps the report's denominator. The trouble is that the report's denominator is itself a narrower set than the prose names. `scripts/station_sources_portal.R` compares hours by an inner `merge()` of portal hours with pinned-file hours, `hh <- merge(...)`. So the report's "hours compared", its "stations" column and every "% agree" are measured only on hours **both** copies hold. A portal hour the pin lacks is invisible to the report. The prose turns that into claims about the stations read and about whether the pin "is current" or "equals the portal". That overstates two things: how many stations differ in January–September 2021, and how well the pin matches the portal from October 2021 to May 2026. Round 3's own overreach, "water year 2021", was fixed in research L124 but survives in the two issue bodies and in the PWF files.
+
+## Enumeration (extends round 3's table; rows round 3 marked OK and nothing has touched since are not repeated)
+
+| claim | where | source | verdict |
+|---|---|---|---|
+| Jan–Sep 2021: portal departs from both copies "at four of the five stations with hours then" | research L110; #190 body; #232 body; findings.md L62 | report "By month" (4–5 stations) counts stations with hours in **both** copies. The raw portal copy holds Jan–Sep 2021 hours at **eight** stations: 08HB0031 6,551, 08NM0057 6,552, 08NM0054 4,443 (Mar–Sep) beside the five. The pinned 2019Oct–2021Oct archive holds no row of those three, and the registry's `first` is 2021-10-01 for each | **disagrees (finding 1)**: "with hours then" is the compared set, not the stations with portal hours |
+| "four of the five stations read for January–September 2021" | NEWS L4; CLAUDE.md L93 | all ten stations were read from 2021-01-01 (script rule 3, `from <- as.Date("2021-01-01")`); eight hold portal hours then | **disagrees (finding 1)** |
+| the four depart; 07FC0001 equals both | research L110; NEWS; CLAUDE.md; #190; #232 | worked out from "By station and year" and "By month". 08MH0056, 08NM0002 and 08MH0054 agree only on their Oct–Dec hours (2,208, 2,208 and about 1,287 of their 2021 agreeing hours). 08NM0004 agrees on 3.7 %. 07FC0001 agrees on 100 %. The June–September residues over 07FC0001's maximum are small (26–141 h a month) | OK |
+| 0.1–24 % of all hours a month agree | research L110; #190; #232 | By month 2021-01..09: 0.1–23.8 | OK |
+| pinned files equal / are current "from October 2021 to May 2026 (99.9–100 % a month)" | research L110; README row; NEWS L4; CLAUDE.md L93; #190; #232 | true on common hours. Inside that span the portal holds hours the pin lacks: 07FC0001 Apr–May 2026, 790 h (the pin holds 41 hours of 07FC0001 in all of 2026, all in October); 08NM0050 Jul–Aug 2024, 190 h (portal 744 + 744, pin 685 + 613). After May there are 2,928 more at 07FC0001 (Jun–Sep 2026) | **overreach (finding 2)** |
+| "the revised water year 2021" | #190 body ("A newer provincial pin would bring in the revised water year 2021"); #232 title and first to-do ("check ... that its water year 2021 is the portal's"); planning/active/progress.md L13, task_plan.md L40 ("water year 2021 has been revised since") | portal read from 2021-01-01; Oct–Dec 2020 never compared; round 3 fixed only research L124 | **uncorrected (finding 3)** |
+| #190 to-do "(Current from water year 2022 ...)" | #190 body | open-ended; the body above it gives "to May 2026" | covered by finding 3 |
+| "approved" where Hakai accepted every hour after quality control (its level 2) | NEWS L3 | `wet_hakai_days()`: `codes == "AV" & level == "2"` for every hour. WTS844's 344 level-3 hours are all EV, so no all-AV day is lost to level 3 | OK |
+| Package 2013–2019 (the three wet reads, 2014–2019) | research L41 | file: WTS708 2013-09-08T16:00 → 2019-10-01T00:00; WTS626/703/844 first 2014-08-02/08-03/09-10; README title "between 2013 and 2019" | OK |
+| "seven watersheds for water years 2014–2019 [S]" | research L159 | README: "between 2013 and 2019", "installed in the fall of 2013 at watershed 708"; the file holds WTS708 from 2013-09-08, water year 2013; `R/wet_hakai.R` header quotes the package title "... 2013-2019" | **disagrees with the [S] it cites (finding 4)**, unless the ESSD paper itself says water years 2014–2019 (not checkable offline) |
+| SSN626 rain lag, radiation peak, last rows: "[M, the package's raw files ...]" | research L162 | raw dir holds `2013-2019_Rain_Hourly.csv` and `_Rad_Hourly.csv`; every watershed's last row is 2019-10-01T00:00:00Z (checked) | OK (the source is now one that holds the files) |
+| "the revised January–September 2021" | research L124 | as finding 1: also three stations' missing months | OK as worded; a newer pin also adds Jan–Sep 2021 at 08HB0031, 08NM0057 and 08NM0054 (finding 1) |
+| README row "the pinned files, October 2021 to May 2026" | research/README.md | finding 2 | as finding 2 |
+| Hakai 2014–2019 | research L12; README row; CLAUDE.md L92; NEWS L3; R/wet_hakai.R L2; R/wet_station_daily.R L106 | the three watersheds read: 2014-08 to 2019-09-30 | OK |
+| roxygen "approved where Hakai accepted every hour of it after quality control" | R/wet_station_daily.R L82 | as NEWS | OK |
+
+## Findings
+
+- **[severity: fragile]** NEWS.md:4, CLAUDE.md:93 (and research/station_sources.md:110, issue bodies #190 and #232, planning/active/findings.md:62, as "the five stations with hours then"): Round 3's fix gives January–September 2021 as "four of the five stations read for January–September 2021". All ten stations were read over that range (rule 3 exports from 2021-01-01), and the portal's raw copy holds January–September 2021 hours at eight of them. The five are the stations with hours in **both** the portal and the pinned files, because the report's `merge()` drops portal-only hours. At the other three, 08HB0031 (6,551 hours, January–September), 08NM0057 (6,552) and 08NM0054 (4,443, March–September), the portal holds months the pin lacks: the pinned 2019Oct–2021Oct archive has no row of any of them, and their registry `first` is 2021-10-01. So "four of five revised" undercounts what differs between the pin and the portal in those months (four with other values, three with months the pin lacks, one equal). #232's scope ("the revised January to September 2021 ... at the stations the revision touched") does not name the added months. A newer pin would also move these stations' first days, and with them any `continues_before` cut that depends on them.
+  - **Rule:** code-check.md "A guard's scope, escape hatches, and remedies" (a guard that reads a coarser grain than its property passes on the grain)
+
+- **[severity: fragile]** research/station_sources.md:110, research/README.md:19, NEWS.md:4, CLAUDE.md:93, #190 body ("100 % of the portal's hours equal theirs in every month"), #232 body: "the pinned files are current / the portal's hours equal the pinned files' from October 2021 to May 2026 (99.9–100 % a month)" is measured only on hours both copies hold. Inside that span the portal holds hours the pin lacks. At 07FC0001 that is 790 hours in April–May 2026: the pinned files hold 41 hours of 07FC0001 in all of 2026, all in October, while the portal holds April–October, a seasonal gauge's whole 2026 season. At 08NM0050 it is 190 hours in July–August 2024 (portal 744 + 744, pin 685 + 613). The shares are true of what they measure. The claim of equality, or of "current", is not: a station missing its season from the pin reads 100 %. No script reports portal-only hours.
+  - **Rule:** code-check.md "A proxy is not the property" (common-hour agreement standing in for "the pin holds what the portal holds")
+
+- **[severity: fragile]** GitHub #190 body ("A newer provincial pin would bring in the revised water year 2021"), #232 title ("the province's revised water year 2021") and its first to-do ("check ... that its water year 2021 is the portal's"), planning/active/progress.md:13 and task_plan.md:40: round 3 found "the revised water year 2021" overreaches, because the portal was read from 2021-01-01 and October–December 2020 was never compared. Only research L124 was corrected. The prompt says both issue bodies were corrected, but these phrases remain in them. The PWF lines will be copied into the archive README at `/planning-archive`.
+  - **Rule:** code-check.md "A guard's scope, escape hatches, and remedies" (the fix applied to one instance; the sentence, not the file, needed the grep)
+
+- **[severity: fragile]** research/station_sources.md:159: "holds hourly discharge at seven watersheds for water years 2014–2019 [S]". The package's README, the source the [S] points to, says "between 2013 and 2019" and that watershed 708 was instrumented in the fall of 2013. The file holds WTS708 from 2013-09-08, water year 2013. The package title quoted in `R/wet_hakai.R`'s header ends "2013-2019". Round 3's fix corrected the same span at L41 ("Package 2013–2019") and left L159 saying otherwise. It holds only if Korver et al. 2022 itself scopes the dataset to water years 2014–2019, which I could not check offline.
+  - **Rule:** code-check.md "A guard's scope, escape hatches, and remedies"
+
+## Code
+
+No code defect. Round 3's fixes touch prose only. A read of `R/wet_hakai.R` (hours, days, shape, station days) found nothing new: the flag-head `regmatches()` is shorter than `x` when a row has no code, but the `has` check stops before it is used. The portal script's inner `merge()` matches its registered rule 4 and is not a bug in the code. It is why findings 1 and 2 are invisible in the report.

@@ -47,8 +47,10 @@ test_that("a provincial station a Tool gauge continues says so when both sources
   # every other provincial row is as the provincial list gives it
   moved <- both$station_number[both$source == "bcenv"][
     both$first[both$source == "bcenv"] != prov$first | both$credit[both$source == "bcenv"] != prov$credit]
-  # Tofino's four listings are the same gauges as 08HC0001-0004 and add no day
-  expect_setequal(stats::na.omit(moved), c("08HB0008", "08HB0011", "08HB0012"))
+  # Tofino's four listings are the same gauges as 08HC0001-0004 and add no day; Hakai's package continues
+  # its three Calvert and Hecate island watersheds
+  expect_setequal(stats::na.omit(moved), c("08HB0008", "08HB0011", "08HB0012", "H08KC0626", "H08KC0703",
+                                           "H08KC0844"))
 })
 
 test_that("a continued provincial station with no complete day takes the listing's first and last days", {
@@ -130,7 +132,8 @@ test_that("the status file is refused when it does not match the registries or t
   local_status <- function(x) {
     dir <- withr::local_tempdir(.local_envir = parent.frame())
     dir.create(file.path(dir, "extdata", "station_sources"), recursive = TRUE)
-    for (f in c("bcenv_20261028_hydat.csv", "bcwatertool_20261028_hydat.csv")) {
+    for (f in c("bcenv_20261028_hydat.csv", "bcwatertool_20261028_hydat.csv", "hakai_8318556d2baf.csv",
+                "hakai_8318556d2baf_hydat.csv")) {
       file.copy(system.file("extdata", "station_sources", f, package = "wet"),
                 file.path(dir, "extdata", "station_sources", f))
     }
@@ -165,4 +168,30 @@ test_that("the status file is refused when it does not match the registries or t
   # no status file for the snapshot
   local_mocked_bindings(wet_station_sources_path = function(f) "")
   expect_error(wet_station_regulation("20261028"), "write it with scripts/station_regulation.R")
+})
+
+test_that("Hakai's package lists no station of its own, and a continued station says so", {
+  local_mocked_bindings(
+    wet_station_regulation = function(snapshot) {
+      data.frame(station_number = "08ZZ0001", source = "bcenv", regulation = "unknown")
+    },
+    wet_bcenv_stations = function(snapshot) {
+      data.frame(station_number = "08ZZ0001", name = "Alpha", lon = -128, lat = 51.6,
+                 first = as.Date("2021-10-01"), last = as.Date("2026-10-27"), regulation = "unknown",
+                 hydat_site = NA_character_, hydat_km = NA_real_)
+    },
+    wet_hakai_stations = function(version = "8318556d2baf") {
+      data.frame(station_number = "WTS9001", watershed = "9001", name = "Test", lon = -128, lat = 51.6,
+                 continues = "08ZZ0001", continues_before = as.Date("2021-10-01"), first = as.Date("2014-08-02"),
+                 last = as.Date("2019-09-30"), licence = "CC-BY 4.0", credit = "Hakai Institute et al.",
+                 bcenv_snapshot = "20261028", bcenv_days = wet_bcenv_days_key("20261028"))
+    })
+  s <- wet_station_list("hakai")
+  expect_equal(nrow(s), 0)
+  expect_named(s, names(wet_station_list("bcenv")))
+  expect_s3_class(s$first, "Date")
+  p <- wet_station_list(c("bcenv", "hakai"))
+  expect_equal(c(p$first, p$last), as.Date(c("2014-08-02", "2026-10-27")))
+  expect_equal(p$licence, "OGL-BC 2.0; days before 2021-10-01: CC-BY 4.0")
+  expect_match(p$credit, "; days before 2021-10-01: Hakai Institute et al.", fixed = TRUE)
 })

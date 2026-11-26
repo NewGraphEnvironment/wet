@@ -539,3 +539,178 @@ test_that("live: Rosewall Creek's provincial record is continued by BC Conservat
   expect_equal(min(d$date), r$first)
   expect_match(r$credit, "; days before 2021-09-30: Data from BC Conservation Foundation", fixed = TRUE)
 })
+
+# Hakai's package and registry stood in for, beside a provincial registry:
+# WTS9001 continues provincial 08ZZ0001, whose record begins 2021-10-01; the
+# Tool's registry holds TST1 alone. The fixture's hours end at their label,
+# in PST: 2015-01-01 is 24 accepted hours of 1 m^3/s; 2015-01-02 has one
+# estimated hour, one SVD hour (dropped) and 22 more, so 23 hours of 2;
+# 2015-01-03 has 19 hours; 2015-01-04 is far above the 08K bound; and
+# 2021-10-01 to 2021-10-02 fall on and after the cut.
+hakai_fixture <- function(flag_extra = NULL) {
+  hrs <- function(day, n = 24) format(as.POSIXct(paste(day, "00:00"), tz = "UTC") + 3600 * seq_len(n),
+                                      "%Y-%m-%dT%H:%M:%SZ")
+  t <- c(hrs("2015-01-01"), hrs("2015-01-02"), hrs("2015-01-03", 19), hrs("2015-01-04"), hrs("2021-10-01"),
+         hrs("2021-10-02"))
+  q <- rep(c(1, 2, 3, 1000, 3, 3), c(24, 24, 19, 24, 24, 24))
+  flag <- rep("AV", length(t))
+  flag[25] <- "EV: noisy data corrected"
+  flag[26] <- "SVD: sensor out of water"
+  flag[30] <- "AV:EV:10/12 AV:2/12 EV"
+  if (!is.null(flag_extra)) flag[1] <- flag_extra
+  f <- tempfile(fileext = ".csv")
+  utils::write.csv(data.frame(Watershed = "WTS9001", Datetime = t, Qlevel = "2", Qflag = flag, Qrate = q,
+                              Qrate_min = q, Qrate_max = q), f, row.names = FALSE)
+  f
+}
+
+hakai_registry <- function(continues = "08ZZ0001", days = wet_bcenv_days_key("20261028")) {
+  data.frame(station_number = "WTS9001", watershed = "9001", name = "Test Watershed 9001", lon = -128, lat = 51.6,
+             continues = continues, continues_before = as.Date("2021-10-01"), first = as.Date("2015-01-01"),
+             last = as.Date("2015-01-02"), licence = "CC-BY 4.0", credit = "Hakai test credit",
+             bcenv_snapshot = "20261028", bcenv_days = days)
+}
+
+local_hakai_stub <- function(env = parent.frame(), file = hakai_fixture(), registry = hakai_registry()) {
+  calls <- new.env()
+  calls$daily <- list()
+  local_mocked_bindings(
+    wet_bcenv_stations = function(snapshot) data.frame(station_number = c("08ZZ0001", "08ZZ0002")),
+    wet_bcenv_daily = function(stations, snapshot) {
+      data.frame(station_number = "08ZZ0001", date = as.Date("2021-10-01") + 0:1, q_m3s = c(7, 8),
+                 symbol = NA_character_, source = "bcenv", status = "provisional")
+    },
+    wet_bcwatertool_stations = function(snapshot = "20261028") {
+      data.frame(station_number = "TST1", continues = NA_character_, continues_before = as.Date(NA),
+                 bcenv_snapshot = "20261028", bcenv_days = wet_bcenv_days_key("20261028"))
+    },
+    wet_bcwatertool_daily = function(stations, ...) wet_daily_empty(),
+    wet_hakai_stations = function(version = "8318556d2baf") registry,
+    wet_hakai = function(...) {
+      calls$daily[[length(calls$daily) + 1]] <- "read"
+      file
+    },
+    .env = env)
+  calls
+}
+
+test_that("a provincial station's record is continued by Hakai's days before it begins, under its number", {
+  h <- local_hydat()
+  local_hakai_stub()
+  w <- capture_warnings(d <- wet_station_daily("08ZZ0001", h, to = NULL))
+  expect_equal(d$date, as.Date(c("2015-01-01", "2015-01-02", "2021-10-01", "2021-10-02")))
+  expect_equal(d$source, c("hakai", "hakai", "bcenv", "bcenv"))
+  expect_true(all(d$station_number == "08ZZ0001"))
+  # the PST day of the hours labelled 01:00 to the next 00:00; the SVD hour left out
+  expect_equal(d$q_m3s[1:2], c(1, 2))
+  # every hour accepted at level 2 is approved; an estimated or mixed hour makes the day provisional
+  expect_equal(d$status[1:2], c("approved", "provisional"))
+  # the years between the package and the provincial record are a gap between sources
+  expect_match(w, "gap between sources.*08ZZ0001 2015-01-03 to 2021-09-30 \\(hakai -> bcenv\\)", all = FALSE)
+})
+
+test_that("Hakai's days follow the hours rule and the 08K bound", {
+  local_hakai_stub()
+  d <- wet_hakai_daily("WTS9001")
+  # 2015-01-03 has 19 hours; 2015-01-04 sits far above 205.26 times the median complete day
+  expect_false(any(d$date %in% as.Date(c("2015-01-03", "2015-01-04"))))
+  expect_true(all(as.Date(c("2015-01-01", "2015-01-02", "2021-10-01")) %in% d$date))
+  h <- wet_hakai_hours(hakai_fixture(), "WTS9001")
+  expect_equal(sum(as.Date(h$label - 3600, tz = "UTC") == as.Date("2015-01-02")), 23)
+  expect_true(as.Date("2015-01-04") %in% wet_hakai_shape(wet_hakai_days(h), bound = Inf)$date)
+})
+
+test_that("a Hakai quality code wet does not know is refused, not read", {
+  expect_error(wet_hakai_hours(hakai_fixture("XQ: unknown"), "WTS9001"), "a quality code wet does not know")
+  expect_error(wet_hakai_hours(hakai_fixture("no code here"), "WTS9001"), "carries no quality code")
+})
+
+test_that("a provincial station two publishers continue is refused, not skipped", {
+  h <- local_hydat()
+  local_hakai_stub()
+  local_mocked_bindings(
+    wet_bcwatertool_stations = function(snapshot = "20261028") {
+      data.frame(station_number = "4601", continues = "08ZZ0001", continues_before = as.Date("2021-10-01"),
+                 bcenv_snapshot = "20261028", bcenv_days = wet_bcenv_days_key("20261028"))
+    })
+  expect_error(wet_station_daily("08ZZ0001", h, to = NULL), "continue the provincial station 08ZZ0001",
+               class = "wet_registry_conflict")
+  # a number Hakai's registry and the provincial one both hold
+  local_hakai_stub(registry = transform(hakai_registry(), station_number = "08ZZ0002"))
+  expect_error(wet_station_daily("08ZZ0001", h, sources = "hakai"), "both hold 08ZZ0002",
+               class = "wet_registry_conflict")
+})
+
+test_that("a Hakai registry row that continues no provincial station is refused", {
+  f <- tempfile(fileext = ".csv")
+  utils::write.csv(transform(hakai_registry(), continues = NA_character_), f, row.names = FALSE, na = "")
+  local_mocked_bindings(wet_station_sources_path = function(x) if (grepl("_hydat", x)) f else "m",
+                        wet_hakai_manifest = function(version) NULL)
+  expect_error(wet_hakai_stations(), "each continuing a provincial station")
+})
+
+test_that("a Hakai registry built on other provincial days is refused", {
+  h <- local_hydat()
+  local_hakai_stub(registry = hakai_registry(days = "0000000000_v9"))
+  w <- capture_warnings(d <- wet_station_daily("08ZZ0001", h, to = NULL, sources = c("bcenv", "hakai")))
+  expect_match(w, "Hakai station registry was built on the provincial days 0000000000_v9", all = FALSE)
+  expect_true(all(d$source == "bcenv"))
+  expect_error(wet_station_list("hakai"), "built on the provincial days 0000000000_v9")
+})
+
+test_that("a cached Hakai file whose md5 is not the manifest's is refused, and a missing one fetched", {
+  cache <- withr::local_tempdir()
+  good <- hakai_fixture()
+  man <- data.frame(file = "2013-2019_Discharge_Hourly.csv", bytes = file.size(good),
+                    md5 = unname(tools::md5sum(good)), url = "https://example.invalid/x/8318556d2baf/f.csv")
+  local_mocked_bindings(wet_hakai_manifest = function(version) man)
+  dir <- file.path(cache, "station_sources", "hakai", "8318556d2baf")
+  dir.create(dir, recursive = TRUE)
+  writeLines("not the package", file.path(dir, man$file))
+  expect_error(wet_hakai("8318556d2baf", cache))
+  unlink(file.path(dir, man$file))
+  local_mocked_bindings(curl_download = function(url, destfile, ...) file.copy(good, destfile, overwrite = TRUE),
+                        .package = "curl")
+  expect_message(p <- wet_hakai("8318556d2baf", cache), "fetching Hakai's discharge package")
+  expect_equal(unname(tools::md5sum(p)), man$md5)
+})
+
+test_that("a provincial number Hakai does not continue never calls the Hakai reader", {
+  h <- local_hydat()
+  calls <- local_hakai_stub()
+  w <- capture_warnings(d <- wet_station_daily("08ZZ0002", h, to = NULL))
+  expect_length(calls$daily, 0)
+  expect_false(any(grepl("skipped", w)))
+  # and without "hakai" there is no chain
+  d <- wet_station_daily("08ZZ0001", h, to = NULL, sources = c("bcenv", "bcwatertool"))
+  expect_true(all(d$source == "bcenv"))
+  expect_length(calls$daily, 0)
+})
+
+test_that("the shipped registries hold no number twice and continue no provincial station twice", {
+  snapshot <- wet_bcenv_snapshot
+  expect_no_error(wet_registry_check(wet_bcwatertool_stations(), wet_bcenv_stations(snapshot), snapshot,
+                                     hakai = wet_hakai_stations()))
+  h <- wet_hakai_stations()
+  expect_setequal(h$continues, c("H08KC0626", "H08KC0703", "H08KC0844"))
+  expect_true(all(h$continues %in% wet_bcenv_stations(snapshot)$station_number))
+})
+
+test_that("live: Calvert Island Watershed 626's provincial record is continued by Hakai's package", {
+  skip_if_not_installed("duckdb")
+  tryCatch({
+    wet_bcenv()
+    wet_hakai()
+  }, wet_snapshot_unavailable = function(e) skip(conditionMessage(e)))
+  w <- capture_warnings(d <- wet_station_daily("H08KC0626", sources = c("bcenv", "hakai"), to = NULL))
+  k <- d[d$source == "hakai", ]
+  expect_equal(format(range(k$date), "%Y"), c("2014", "2019"))
+  expect_true(all(k$date < min(d$date[d$source == "bcenv"])))
+  expect_true(all(k$status %in% c("approved", "provisional")) && any(k$status == "approved"))
+  expect_match(w, "H08KC0626 2019-10-01 to 2021-09-30 \\(hakai -> bcenv\\)", all = FALSE)
+  s <- wet_station_list()
+  r <- s[s$station_number == "H08KC0626", ]
+  expect_equal(r$first, min(d$date))
+  expect_match(r$licence, "; days before 2021-09-30: CC-BY 4.0", fixed = TRUE)
+  expect_match(r$credit, "https://doi.org/10.21966/J99C-9C14", fixed = TRUE)
+})
