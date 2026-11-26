@@ -18,3 +18,18 @@
 - Tick move 8 in `planning/backlog.md` (`/gh-pr-merge` step 9c); under decision 1(a), #144 stays open for the next `/backlog-sweep` to place
 
 Closed by: PR (this branch), closing #142 and #179
+
+## History moved from research/station_sources.md (#207, 2026-11-25)
+
+The research file now states only the current rule and counts; the passages below, as they stood there on 2026-11-25, record how they were reached.
+
+Registered on 2026-11-22, before the bound was measured (#179, decision 3). The provincial files hold flows no stream could carry (above), so `wet_station_daily()` drops a provincial day whose flow exceeds a bound measured on HYDAT:
+
+- **Population.** Every BC station in HYDAT 20260717 (`STATIONS.PROV_TERR_STATE_LOC = 'BC'`) with at least 3,650 daily flows in `DLY_FLOWS`, regulated or not. The bound is set on all of them; the same statistic over the natural stations alone (no `STN_REGULATION` row with `REGULATED = 1`) is reported beside it and decides nothing.
+- **Statistic.** For each station, the ratio of its largest daily flow to the median of its positive daily flows. The bound is the largest such ratio in the population: no provincial day may sit further above its station's typical flow than any day Water Survey of Canada has published in BC. The report lists the ten stations with the largest ratios, so a single station that sets the bound is visible.
+- **Applied.** A provincial day (a complete day as `wet_bcenv_daily()` reads it) is dropped when its flow exceeds the bound times the median of that station's positive complete-day flows over the whole snapshot. A negative daily flow is dropped. A station with no positive flow has no bound.
+- **Expected catches**, stated before measuring: the bound must drop every day above 1,000 m³/s at Oliver Creek in Lake Cowichan (08HA0036) and Amor De Cosmos Creek at Hwy 19 (08HD0003), and must drop no day of the Fraser upstream of and below the Big Bar slide (08MD0002, 08MD0003). If it fails any of these, the rule fails: no bound ships, and the choice goes back to the owner.
+
+Produced by `scripts/station_sources_bound.R` → `data/checks/station_sources_bound_20260717.txt`.
+
+**Measured on 2026-11-22: the rule failed one expected catch** [M, first run of the report]. The bound came out at 2,490.71, set by the Pouce Coupe River below Henderson Creek (07FD007) alone; the next largest ratio is 1,346.56 (07FC003). It drops Oliver Creek's 24 impossible days and 4 days at 08HB0022, and no Big Bar day, but none of Amor De Cosmos Creek's 51 days above 1,000 m³/s: on a median of 2.5 m³/s their ratios start at 402. That record is not a few spikes: its 90th percentile is 101 m³/s. As registered, no bound shipped, and the choice went to the owner.

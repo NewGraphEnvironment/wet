@@ -61,13 +61,13 @@ The owner chose the recommended answer to every decision, so the checkboxes stan
 
 ## Phase 3: Consolidate research/station_sources.md (#207)
 
-- [ ] `git fetch` and check what move 14 (#181, the first consolidation, still open) and move 18 (#202, live in its own worktree) have landed on `main` or opened as PRs touching `research/station_sources.md` or `R/wet_station_list.R`; merge `origin/main` before rewriting, and follow #181's merged shape if it has landed
-- [ ] Rewrite `research/station_sources.md` around the current state, one section per source or question, with Phases 1 and 2's findings folded into the statements they change; history (how each count moved, superseded registrations and their measured failures) moves to the archive READMEs it came from (`planning/archive/*issue-123*`, `*issue-179*`, `*issue-195*`, `*issue-196*`), which this file then cites by path
-- [ ] Every number kept still has its producer; registered rules keep their registration text and date (they are the rule's authority); a superseded registration keeps one line naming where its full text now lives
-- [ ] Keep the heading "The plausibility bound for the provincial files" word for word: `scripts/station_sources_bound.R:98` writes it into the tracked `data/checks/station_sources_bound_20260717.txt:4`
-- [ ] `research_check.sh research/station_sources.md` reads `OK` (under 3,000 prose words); report word counts before and after
-- [ ] Grep `CLAUDE.md`, `R/`, `scripts/`, `data-raw/`, `data/checks/` and `research/` for every section name of the old file that is cited ("Two copies that part in 2021", "Also found", "The provincial files in wet", "A provincial record continued", "Regulation per non-HYDAT station", …) and keep or update each citation
-- [ ] `research/README.md`'s row for the file says what it now covers
+- [x] `git fetch` and check what move 14 (#181, the first consolidation, still open) and move 18 (#202, live in its own worktree) have landed on `main` or opened as PRs touching `research/station_sources.md` or `R/wet_station_list.R`; merge `origin/main` before rewriting, and follow #181's merged shape if it has landed
+- [x] Rewrite `research/station_sources.md` around the current state, one section per source or question, with Phases 1 and 2's findings folded into the statements they change; history (how each count moved, superseded registrations and their measured failures) moves to the archive READMEs it came from (`planning/archive/*issue-123*`, `*issue-179*`, `*issue-195*`, `*issue-196*`), which this file then cites by path
+- [x] Every number kept still has its producer; registered rules keep their registration text and date (they are the rule's authority); a superseded registration keeps one line naming where its full text now lives
+- [x] Keep the heading "The plausibility bound for the provincial files" word for word: `scripts/station_sources_bound.R:98` writes it into the tracked `data/checks/station_sources_bound_20260717.txt:4`
+- [x] `research_check.sh research/station_sources.md` reads `OK` (under 3,000 prose words); report word counts before and after
+- [x] Grep `CLAUDE.md`, `R/`, `scripts/`, `data-raw/`, `data/checks/` and `research/` for every section name of the old file that is cited ("Two copies that part in 2021", "Also found", "The provincial files in wet", "A provincial record continued", "Regulation per non-HYDAT station", …) and keep or update each citation
+- [x] `research/README.md`'s row for the file says what it now covers
 
 ## Validation
 

@@ -20,6 +20,12 @@
 - Filed #233 (the other four watersheds); draft ask to Hakai in findings, unsent.
 - Next: Phase 3 (#207).
 
+## Phase 3, 2026-11-25 (#207)
+- Fetched and merged origin/main (106e6c7a): #211 had landed, touching `R/wet_station_list.R` docs and this research file; conflicts in CLAUDE.md, NEWS.md and the research file resolved by keeping both sides. #181 (still open) consolidates other files, so no shape to follow.
+- Rewrote `research/station_sources.md` around the current state: 6,035 prose words before, 2,916 after (research_check OK; total words 7,565 before). The floor was set by the three registrations kept in full (the provincial and Tool bounds, Hakai's), which are their rules' authority; the regulation rule's authority is its script header, so it is summarised. History (the bar's revision, the failed first bound, the Tool section as it stood, the amendments' counts) moved verbatim into the #123, #179, #195 and #196 archive READMEs under "History moved from research/station_sources.md".
+- Every cited section name kept; the bound report's heading unchanged; `research/README.md` row rewritten.
+- Next: validation (/code-check branch), archive, PR.
+
 ### Resume
 
 ```
