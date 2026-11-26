@@ -36,6 +36,17 @@ and #206 `fwapg_mad_method.md` by age, #207 `station_sources.md` by size) · ope
 organisation on Hakai, the Aquarius portal, the zone adjustment, non-HYDAT donors and the publish chain (none outside this
 repository)
 
+**Verified:** 2026-11-26 against 43 open issues · **Produced by:** a read of every open issue the file did
+not place (#4 and #205, left open in batch 10 when move 7 merged; #213 to #219 and #222 to #227; #232 and #233, split
+from move 17 while the pass was open) and its comments · each premise read against the tree at faf26fd (#224:
+`R/wet_temp_daily.R` takes `avg()` twice with no order; #226: `data/checks/wb_term_diagnose_20260717.txt` names the old
+cache key; #227: `R/wet_station_list.R` documents `hydat_site` and no join) · #213 closed by its own pull request (PR
+#231) before the file was written, so the two moves that read what it built are open · soul's `research_check.sh` (five
+files flagged, each already carried by #181, #183, #184, #206 or #207) · open issues and pull requests across the
+organisation on water temperature, the stream network check, daily air temperature and the station registries: the
+network check on every watershed group is still open on the fwapg fork, which move 23 waits on, and cd has an open
+defect on areas over sea cells, which batch 23's edges will meet
+
 How to use this file: `/backlog-sweep` writes it. Take the first move in **Moves** that is not
 ticked and not **waiting**; `/planning-init <umbrella>` plans it, one phase per batch, one PR.
 A move that waits only on other moves is `open`, with them in `waits on`; `**waiting**` is for
@@ -69,9 +80,18 @@ counts them): run `/backlog-sweep` again, the backlog is not finished.
 | - [x] 13 | #195 | 15: second sources for the provincial stations (1 issue) | done: https://github.com/NewGraphEnvironment/wet/pull/201 | B | 8, 9 | opus |
 | - [x] 14 | #196 | 16: regulation per non-HYDAT station (1 issue) | done: https://github.com/NewGraphEnvironment/wet/pull/203 | B | 13 | fable then opus |
 | - [ ] 15 | #208 | 17: re-run the segment chain and a publish BUILD after 0.4.40 (1 issue) | open | F | — | sonnet |
-| - [ ] 16 | #209 | 18: zone adjustment candidates (3 issues) | open | F | 15 | fable then opus |
+| - [ ] 16 | #209 | 18, 28: zone adjustment candidates, the term check rerun (4 issues) | open | F | 15 | fable then opus |
 | - [ ] 17 | #210 | 19: provincial station records, current copy and Hakai's early years (3 issues) | open | B | — | opus |
 | - [x] 18 | #211 | 20: natural non-HYDAT stations as donors (1 issue) | done: https://github.com/NewGraphEnvironment/wet/pull/229 | D | — | fable then opus |
+| - [ ] 19 | #235 | 21: small-stream logger records (1 issue) | open | G | — | opus |
+| - [ ] 20 | #236 | 22: the temperature reader and the fill (2 issues) | open | G | 19 | opus |
+| - [ ] 21 | #237 | 23: daily air temperature at every segment (1 issue) | open | H | — | fable then opus |
+| - [ ] 22 | #238 | 24: what we can bring, written down, and the baseline read against Bayesian practice (2 issues) | open | I | — | opus |
+| - [ ] 23 | #239 | 25: kriging on the stream network (1 issue) | **waiting** on the network check on every watershed group that holds a temperature station (the fwapg fork's issue 19) | G | 20 | fable then opus |
+| - [ ] 24 | #240 | 26: PCIC's water temperature at the stations (1 issue) | **waiting** on PCIC's answer on how it would like bulk reads done, or mid-December 2026 with none (the owner, 2026-11-25) | J | — | opus |
+| - [ ] 25 | #241 | 27: the registered scenario checks, and the research file re-read (2 issues) | **waiting** on PCIC's answer on how it would like bulk reads done, or mid-December 2026 with none (the owner, 2026-11-25) | J | 24 | sonnet |
+| - [ ] 26 | #242 | 29, 30: a newer provincial pin and Hakai's other watersheds, a HYDAT gauge continued at its site (3 issues) | open | B | 17 | opus |
+| - [ ] 27 | #243 | 31: the runoff products no report covers yet (1 issue) | open | K | — | opus |
 
 Tracks are separate efforts, not moves: the cross-repo provenance track, whose wet member is #161
 (labelled `track:provenance`), batched here in batch 3 because #88 and #160 take its names.
@@ -100,6 +120,17 @@ Tracks are separate efforts, not moves: the cross-repo provenance track, whose w
 | 18 | #209 | zone adjustment candidates: #199, #44, #178 | 3 | band widths and trait set fixed before scoring; the ship rule, registered before its numbers; WALLY's hosted tool only where its terms allow | one oracle and one rescore and refit chain under one registered rule serve both candidates |
 | 19 | #210 | provincial station records, current copy and Hakai's early years: #190, #192, #207 | 3 | accept the Aquarius portal's click-through disclaimer or not; Hakai's published data package or a request to Hakai (outward contact, through the owner) | both continue provincial records through `wet_station_daily()`'s chaining rule, rebuild one registry and edit `research/station_sources.md` |
 | 20 | #211 | natural non-HYDAT stations as donors: #202 | 1 | where they enter a donor pool; usable years for seasonal records; weighing provisional days; a registered rule first or not | the donor pool move 14's gate deferred |
+| 21 | #235 | small-stream logger records: #215 | 1 | a source of `wet_temp_daily()` or a sibling reader; which series first; a held series only with its holder's agreement, asked through the owner | one inventory, one reader shape, one placement and one logger QA serve every series |
+| 22 | #236 | the temperature reader and the fill: #224, #222 | 2 | an ordered aggregate or a single-threaded read; the screening rule for days beside a gap, registered before it is applied; whether the whole-station baseline is rerun here | both change what the fill is fitted on; one validation rerun and one rebuild of the article's bundle |
+| 23 | #237 | daily air temperature at every segment: #216 | 1 | stored data, the owner's: the dataset's ID, keys and schema; which point of a segment takes the cell | one lookup and one published copy of each cell's series serve every reach |
+| 24 | #238 | what we can bring, written down, and the baseline read against Bayesian practice: #217, #218 | 2 | the first file's name and wording, proposed to the owner before it is written; where the books are read from | one reading of the baseline's scripts and scores serves both files |
+| 25 | #239 | kriging on the stream network: #223 | 1 | where the SSN build lives; a basin with more than one outlet; the tail-down part of the simulation first | reuses the baseline's frame, statistic and registered rule |
+| 26 | #240 | PCIC's water temperature at the stations: #219 | 1 | the rule, registered before any number; whether the pilot's cache already holds the temperature series | reuses the channel-scale pilot's fetcher and the baseline's truth set |
+| 27 | #241 | the registered scenario checks, and the research file re-read: #4, #205 | 2 | a failed Fraser check returns to the owner; the scenario build is filed as its own issue | both read paths PCIC's robots.txt disallows, so one logged session under PCIC's answer serves both |
+| 28 | #209 | the term check under the current PCIC fetch: #226 | 1 | none beyond #226's order | the small-basin check the candidates are read beside cannot run until this cache is rekeyed; same machine, same fit |
+| 29 | #242 | a newer provincial pin, and Hakai's other four watersheds: #232, #233 | 2 | the snapshot date; the check that the new copy's early 2021 is the portal's | one registry rebuild and one regulation rerun; both split from move 17 |
+| 30 | #242 | a HYDAT gauge continued by the provincial station at its site: #227 | 1 | the owner's: provincial days under the HYDAT number, or a helper; a same-flow check first | extends the chaining rule moves 13 and 17 settle; the newer pin adds the years it carries |
+| 31 | #243 | the runoff products no report covers yet: #225 | 1 | the metric and gauge set, registered before any number; questions for the Province go through the owner | one gauge set, one metric and one disagreement log serve three products |
 
 ### 1. Province inputs and run comparison
 
@@ -391,6 +422,145 @@ a scripted read, which is outward contact through the owner (#192).
 Gate: where these stations enter a donor pool; what counts as a usable year for short and seasonal records; how provisional
 days are weighed against HYDAT's approved ones; whether a registered rule comes before any shipped number.
 
+### 21. Small-stream logger records
+
+- [ ] Carried by move 19, #235
+
+#215 inventories the small-stream water temperature records that are known and not in wet, reads each that may be read into
+the `wet_temp_*` shape, places each site on the network and screens it as loggers need. Later series are then data edits.
+
+**Touches:** `research/station_water_temperature.md`, and a new reader with its tests, a registry and a check report (named at the plan gate)
+
+Gate: a source of `wet_temp_daily()` or a sibling reader; which series first, starting from records already public under an
+open licence; a series someone else holds comes in only with its holder's agreement, asked through the owner; whether a
+catalogue that refuses automated clients is read at all.
+
+### 22. The temperature reader and the fill
+
+- [ ] Carried by move 20, #236
+
+#224 makes two reads of the archive identical; #222 screens the days beside a gap before the fit and the fill, under a rule
+registered before it is applied. #224 goes first, so the validation rerun compares exactly. Waits on move 19, which edits
+the same research file.
+The lanes check reads a clash with move 10 on the bundle folder; this batch writes `temperature_values.rds` alone, which
+move 10 does not, so it does not wait on it.
+
+**Touches:** `R/wet_temp_daily.R`, `R/wet_temp_fill.R`, `tests/testthat/test-wet_temp_daily.R`, `tests/testthat/test-wet_temp_fill.R`, `scripts/temp_fill_validate.R`, `data/checks/temp_fill_validate.txt`, `data-raw/temperature_vignette_data.R`, `inst/vignette-data/temperature_values.rds`, `vignettes/articles/segment-temperature.Rmd`, `research/station_temperature_fill.md`, `research/station_water_temperature.md`
+
+Gate: an ordered aggregate or a single-threaded read, from a timing on the whole archive; the screening rule; whether the
+whole-station baseline is rerun on the new fits in this move or in its own.
+
+### 23. Daily air temperature at every segment
+
+- [ ] Carried by move 21, #237
+
+#216 gives every segment of the main-flow tree its ERA5-Land cell and publishes each cell's daily series once, so a
+temperature prediction can run at a reach with no station.
+
+**Touches:** `inst/receipt/`, and a new function with its tests, a build script and a check report (named at the plan gate)
+
+Gate (stored data, the owner's): the dataset's ID, keys and schema; which point of a segment takes the cell; how segments
+with no cell are listed. A capability cd lacks becomes an issue there that this move waits on.
+
+### 24. What we can bring, written down, and the baseline read against Bayesian practice
+
+- [ ] Carried by move 22, #238
+
+#217 writes down, in one file, what we can bring to a network model and what we are hoping for from one; #218 reads the
+baseline and the fill against the standard Bayesian texts and says what each shortcut costs. Both read what #213 built.
+
+**Touches:** `research/README.md`, and two new research files and a check script with its dated log (named at the plan gate)
+
+Gate: the first file's name and wording, proposed to the owner before it is written, since #217's title and body predate
+the wording settled for the roadmap (#214); where the books' local copies are read from; who outside reads the first file,
+through the owner.
+
+### 25. Kriging on the stream network
+
+- [ ] Carried by move 23, #239
+
+#223 runs kriging on the stream network on #213's holdout under #213's registered rule, which says what the network adds
+beyond catchment traits. It builds the two things nothing builds yet: stations placed on the network, and an SSN object per
+basin. Waits on the network check on every watershed group that holds a temperature station, and on move 20, which changes
+the fits it reads.
+
+**Touches:** `scripts/temp_baseline.R`, `research/station_temperature_fill.md`, and a new build script and a check report (named at the plan gate)
+
+Gate: where the SSN build lives; how a basin with more than one outlet is handled; the tail-down part of the simulation,
+before any real score.
+
+### 26. PCIC's water temperature at the stations
+
+- [ ] Carried by move 24, #240
+
+#219 compares PCIC's channel-scale water temperature with station records wherever a station's segment holds a placed
+outlet, in daily error and in degree days, with the baseline's truth set and breakdowns. Waits on PCIC's answer on bulk
+reads.
+
+**Touches:** `scripts/channel_scale_pilot.R`, `research/pcic_channel_scale.md`, and a new comparison script with its report (named at the plan gate)
+
+Gate: the rule, registered in the script's header before any number; whether the pilot's cache already holds the
+temperature series; one reader at PCIC at a time, each request logged.
+
+### 27. The registered scenario checks, and the research file re-read
+
+- [ ] Carried by move 25, #241
+
+#4's two registered checks (what each CMIP6 run lacks against the stored crosswalk; the CMIP5 runs against PNWNAmet at the
+Fraser gauges) are run, and #205's four claims still dated September are re-read. The scenario build is more than one PR:
+the plan files it as its own issue. Waits on PCIC's answer, and on move 24, so one session reads from PCIC at a time.
+
+**Touches:** `scripts/scenario_basis.R`, `data/checks/scenario_basis_20260717.txt`, `research/pcic_scenarios.md`, `research/pcic_hydrology.md`
+
+Gate: under rule 5's fail, the choice in the Fraser returns to the owner with both generations' scores.
+
+### 28. The term check under the current PCIC fetch
+
+- [ ] Carried by move 16, #209
+
+#226 reruns the dry-interior term check, whose cache key moved when the PCIC fetch changed, so the small-basin check runs
+again. Expected to change one line of one report.
+
+**Touches:** `data/checks/wb_term_diagnose_20260717.txt`, `data/checks/wb_small_basin_20260717.txt`
+
+Gate: none beyond #226's order.
+
+### 29. A newer provincial pin, and Hakai's other four watersheds
+
+- [ ] Carried by move 26, #242
+
+#232 pins a newer copy of the province's files and rebuilds what it feeds; #233 adds Hakai's other four Calvert and Hecate
+watersheds as stations of their own. Both rebuild the registries and rerun the regulation status once. Both were split from
+move 17, which this move waits on.
+
+**Touches:** `data-raw/station_sources_snapshot.R`, `inst/extdata/station_sources/`, `scripts/station_regulation.R`, `scripts/station_sources_hakai.R`, `scripts/station_sources_harvest.R`, `research/station_sources.md`
+
+Gate: the snapshot date; the check on the picked stations that the new copy's January to September 2021 is the portal's;
+whether the regulation rule's version moves when a third registry is hashed.
+
+### 30. A HYDAT gauge continued by the provincial station at its site
+
+- [ ] Carried by move 26, #242
+
+#227: at two sites a natural HYDAT gauge with a 1981–2010 baseline gains recent years from the provincial station there.
+
+**Touches:** `R/wet_station_daily.R`, `R/wet_station_list.R`, `inst/extdata/station_sources/`, `tests/testthat/test-wet_station_daily.R`, `research/station_sources.md`
+
+Gate (the owner's, since it changes what a caller reads): provincial days under the HYDAT number, or a helper that joins
+them; a same-flow check before any join; how provisional days are labelled beside HYDAT's.
+
+### 31. The runoff products no report covers yet
+
+- [ ] Carried by move 27, #243
+
+#225 compares GEOGLOWS v2, TerraClimate runoff and the 1961–1990 runoff isolines with the balance and HYDAT at the same
+gauges, with a disagreement log. The BC Water Tool's modelled estimates wait on the Province's release, so the plan files
+them as their own issue.
+
+**Touches:** `research/runoff_prior_art.md`, and a new comparison script with its report and a disagreement log (named at the plan gate)
+
+Gate: the metric and gauge set, registered before any number; the questions for the Province go through the owner.
+
 ## Singles
 
 - #14: transboundary flow; no shared cost with any batch.
@@ -402,8 +572,10 @@ days are weighed against HYDAT's approved ones; whether a registered rule comes 
 - #124: CABIN; stands alone.
 - #137: the chinook section in the Maxan article; waits on knowledge's per-stream salmon records table. The article is no longer listed on the site, so this may close instead.
 - #140: BC Hydro data, by request only.
+- #214: the stream temperature roadmap; open while its items are, and worked through moves 19 to 24.
 
 ## Closed and transferred
 
+- #213: closed by its own pull request (PR #231), the whole-station baseline; #223 carries the kriging split from it.
 - #3: superseded by #57 and #99, which publish monthly and daily flow per segment; its remaining caveat is carried by #162 in batch 6.
 - #37: done: the repo is public. The remaining deprecation of the ngr copy of the daily flow reader belongs in ngr.
