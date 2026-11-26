@@ -32,18 +32,22 @@ and Swift Creek into the McLennan River, a Fraser tributary, at
 Valemount. Each borrows from gauges in a same-sized box around it.
 
 ![Maxan and Gosnell creeks in the Skeena system, with the gauges each
-borrows from. The inset locates the map in British
+borrows from under any of its windows. The inset locates the map in
+British
 Columbia.](flow-change-sparse-gauges_files/figure-html/skeena-1.png)
 
 Maxan and Gosnell creeks in the Skeena system, with the gauges each
-borrows from. The inset locates the map in British Columbia.
+borrows from under any of its windows. The inset locates the map in
+British Columbia.
 
 ![Swift and Naver creeks in the Fraser system, with the gauges each
-borrows from. The inset locates the map in British
+borrows from under any of its windows. The inset locates the map in
+British
 Columbia.](flow-change-sparse-gauges_files/figure-html/fraser-1.png)
 
 Swift and Naver creeks in the Fraser system, with the gauges each
-borrows from. The inset locates the map in British Columbia.
+borrows from under any of its windows. The inset locates the map in
+British Columbia.
 
 Fisheries and Oceans Canada’s spawner surveys find chinook in Swift
 Creek in most years since 1970, with a major spawning site within five
@@ -142,6 +146,19 @@ window, September 1 to October 7, falls a month later than the
 Bulkley’s. Under it Gosnell Creek’s spawning-window drop is smaller,
 16%, and its range reaches no change.
 
+Swift and Naver creeks have cited windows too. Spring and summer chinook
+bound for the Fraser above the Thompson enter the river from April
+([Bradford and Taylor 2023,
+131](#ref-bradford_taylor2023Diversityfreshwater); citing [COSEWIC
+2018](#ref-cosewic2018COSEWICAssessment)), and Cottonwood River chinook
+pass the lower Fraser in April and May ([Candy et al. 2002,
+22](#ref-candy_etal2002discussionpaper)). Spawner surveys ([Fisheries
+and Oceans Canada, n.d.](#ref-fisheriesandoceanscanadaNuSEDSNewSalmon))
+set each spawning window from about August 10 to early September,
+shorter than the Bulkley’s. Under them the borrowed spawning-window drop
+barely moves: 15% at Swift and 35% at Naver, neither range clear of no
+change.
+
 ## How well does the method score?
 
 | Stream | Filled-in record | Gauges tested | Borrowed, migration | Borrowed, spawning | Gauges scored | Donors chosen by |
@@ -196,8 +213,11 @@ Morice. ERA5-Land’s 0.1° cells are coarse here.
   more baseline years, that published flow in the chinook salmon life
   history timing window for spawning runs a median 21% above measured,
   and about 47% or more above at a quarter of them.
-- **The windows are the Bulkley’s** at all four streams. Only the Morice
-  has its own cited windows.
+- **The windows are the Bulkley’s** at all four streams, and the flow
+  figures show only those; Swift, Naver and Gosnell creeks also run
+  under their own stocks’. The upper Fraser and Cottonwood spawning
+  windows rest on survey estimates, not the first and last spawners
+  seen, so their edges are uncertain.
 - **Each filled-in year rests on one neighbouring gauge**, and the
   earliest years on whichever single gauge reaches back that far.
 - **Maxan Creek’s borrowed 1951–1980 mean rests on 10 years**: its
@@ -251,7 +271,7 @@ The software, each cited:
   2026a](#ref-bookdown)) render the article, all in R ([R Core Team
   2025](#ref-base)).
 
-The data were bundled at `wet` commit `af968ab3`; this build ran on
+The data were bundled at `wet` commit `f9ddd319`; this build ran on
 `wet` 0.6.0, `cd` 0.6.13 (commit 1e44183) and `gq` 0.25.0 (commit
 298b016). To cite `wet`:
 
@@ -262,10 +282,26 @@ Version 0.6.0, <https://github.com/NewGraphEnvironment/wet>.
 
 ## References
 
+Bradford, Michael J., and Garth C. Taylor. 2023. “Diversity in
+Freshwater Life History in Spring and Summer Chinook Salmon from the
+Fraser River, Canada.” *Transactions of the American Fisheries Society*
+152 (2): 129–44. <https://doi.org/10.1002/tafs.10396>.
+
 Bustard, D, and C Schell. 2002. *Conserving Morice Watershed Fish
 Populations and Their Habitat*. Community Futures Development
 Corporation of Nadina.
 <https://waves-vagues.dfo-mpo.gc.ca/Library/315091.pdf>.
+
+Candy, J R, J R Irvine, C K Parken, et al. 2002. *A Discussion Paper on
+Possible New Stock Groupings (Conservation Units) for Fraser River
+Chinook Salmon - Document de Travail Sur Les Nouveaux Agrégats Possibles
+de Stocks (Unités de Conservation) Pour Le Saumon Quinnat Du Fraser*.
+<https://publications.gc.ca/collections/collection_2015/mpo-dfo/Fs70-5-2002-085-eng.pdf>.
+
+COSEWIC. 2018. “COSEWIC Assessment and Status Report on the Chinook
+Salmon (Oncorhynchus Tshawytscha) in Canada 2018.” Program
+results;research.
+<https://www.canada.ca/en/environment-climate-change/services/species-risk-public-registry/cosewic-assessments-status-reports/chinook-salmon-2018.html>.
 
 Environment and Climate Change Canada. 2021. “National Water Data
 Archive: HYDAT.” Service description. Environment and Climate Change
@@ -293,8 +329,9 @@ Irvine, Allan. 2026a. *cd: Climate Departure Analysis from ERA5-Land
 Reanalysis*. New Graph Environment Ltd.
 <https://github.com/NewGraphEnvironment/cd>.
 
-Irvine, Allan. 2026b. *gq: Cartographic Style Management Across
-Rendering Targets*. <https://github.com/NewGraphEnvironment/gq>.
+Irvine, Allan. 2026b. *gq: One Set of Map Styles for QGIS, Report
+Figures and Web Maps*. New Graph Environment Ltd.
+<https://doi.org/10.5281/zenodo.23524719>.
 
 Irvine, Allan. 2026c. *wet: Stream Flow and Water Temperature for the BC
 Freshwater Atlas*. New Graph Environment Ltd.
