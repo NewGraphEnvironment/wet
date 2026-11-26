@@ -74,7 +74,7 @@ The owner chose the recommended answer to every decision, so the checkboxes stan
 - [x] Tests pass
 - [x] `/code-check` clean (once over the branch with `/code-check branch`): six rounds, ended on round 6's enumeration (`review-verdict.md`)
 - [x] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] `/planning-archive` on completion
 
 How each change is proved:
 - #190: the portal report, rerun from its cache byte for byte, its station pick written before any portal value, and the research statement held to its lines.
