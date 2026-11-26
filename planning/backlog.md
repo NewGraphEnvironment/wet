@@ -81,7 +81,7 @@ counts them): run `/backlog-sweep` again, the backlog is not finished.
 | - [x] 14 | #196 | 16: regulation per non-HYDAT station (1 issue) | done: https://github.com/NewGraphEnvironment/wet/pull/203 | B | 13 | fable then opus |
 | - [ ] 15 | #208 | 17: re-run the segment chain and a publish BUILD after 0.4.40 (1 issue) | open | F | — | sonnet |
 | - [ ] 16 | #209 | 18, 28: zone adjustment candidates, the term check rerun (4 issues) | open | F | 15 | fable then opus |
-| - [ ] 17 | #210 | 19: provincial station records, current copy and Hakai's early years (3 issues) | open | B | — | opus |
+| - [x] 17 | #210 | 19: provincial station records, current copy and Hakai's early years (3 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/234 | B | — | opus |
 | - [x] 18 | #211 | 20: natural non-HYDAT stations as donors (1 issue) | done: https://github.com/NewGraphEnvironment/wet/pull/229 | D | — | fable then opus |
 | - [ ] 19 | #235 | 21: small-stream logger records (1 issue) | open | G | — | opus |
 | - [ ] 20 | #236 | 22: the temperature reader and the fill (2 issues) | open | G | 19 | opus |
@@ -399,7 +399,7 @@ headwater MAE under blocked CV, and the candidate does what it is for); the host
 
 ### 19. Provincial station records, current copy and Hakai's early years
 
-- [ ] Carried by move 17, #210
+- [x] Carried by move 17, #210 (merged in https://github.com/NewGraphEnvironment/wet/pull/234)
 
 #190 says which copy of the province's 2021–2026 discharge is current, from its Aquarius portal; #192 adds Hakai's 2013–2020
 record at its three Calvert and Hecate stations under the chaining rule move 13 landed; #207 consolidates
