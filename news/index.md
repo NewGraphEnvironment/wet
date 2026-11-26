@@ -1,5 +1,19 @@
 # Changelog
 
+## wet 0.7.0
+
+- Swift Creek and Naver Creek now also run under their own stocks’ cited
+  chinook windows, the upper Fraser’s (UFRA) and the Cottonwood’s
+  (COTR), beside the Bulkley’s
+  ([\#182](https://github.com/NewGraphEnvironment/wet/issues/182)). Four
+  new site and snow reports were added, and the comparison article
+  reports both streams under their own windows: each stream’s
+  spawning-window drop barely moves (Swift −15 %, Naver −35 %), and
+  neither range clears no change. `data-raw/life_history_data.R` reads
+  knowledge’s life history table at a475dfe7, and `lh_pin_guard()` stops
+  the read if any Bulkley or Morice window would move. The article’s
+  limits now say the Fraser windows’ edges are survey estimates.
+
 ## wet 0.6.0
 
 - [`wet_station_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_station_daily.md)
