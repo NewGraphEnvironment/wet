@@ -52,7 +52,7 @@ test_that("an unexpected cd warning is not muffled", {
   expect_warning(wet:::wet_air_cells(p, day = "2002-01-01", source = cube), "unexpected")
 })
 
-test_that("the cell id is ERA5-Land's own grid, not cd's box", {
+test_that("the cell id is the regular 0.1-degree ERA5-Land grid, not cd's box", {
   expect_identical(wet:::wet_air_cell_id(-126.2, 54.5), as.integer(355 * 3600 + 2338))
   expect_identical(wet:::wet_air_cell_id(0, 90), 0L)
   expect_identical(wet:::wet_air_cell_id(-0.1, -90), as.integer(1800 * 3600 + 3599))

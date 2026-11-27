@@ -31,8 +31,8 @@
 #' @return `data.frame(id, date, variable, value, cell_id, cell_x, cell_y,
 #'   cell_moved, cell_status)`, one row per segment, variable and day, ordered
 #'   by segment as given, variable as given and date. `id` is the
-#'   `linear_feature_id`; `cell_id` numbers the cell on ERA5-Land's own 0.1°
-#'   grid (not cd's cell number); `cell_moved` is `TRUE` for a `"moved"`
+#'   `linear_feature_id`; `cell_id` numbers the cell on the regular 0.1° grid
+#'   ERA5-Land is distributed on (not cd's cell number); `cell_moved` is `TRUE` for a `"moved"`
 #'   segment. A segment with no cell, or one the lookup does not hold
 #'   (`cell_status` `NA`), has its days with `value` `NA`.
 #' @seealso [wet_temp_fill()], which takes this as `air`.
@@ -159,7 +159,7 @@ wet_air_date <- function(x, what) {
   stop("`", what, "` must be one Date or \"YYYY-MM-DD\"", call. = FALSE)
 }
 
-# ERA5-Land's native 0.1-degree grid, numbered from the cell centre: row 0 at
+# The regular 0.1-degree grid ERA5-Land is distributed on, numbered from the cell centre: row 0 at
 # 90 N, column 0 at 0 E (the formula crate's segment_cell schema states). It
 # does not depend on cd's box.
 wet_air_cell_id <- function(x, y) {

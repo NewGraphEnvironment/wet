@@ -28,6 +28,7 @@ air_grid <- list(xmin = -140.05, xmax = -113.95, ymin = 47.95, ymax = 60.05, nro
 # upload's guard.
 air_code_files <- c(
   "scripts/air_publish.R", "scripts/air_publish_lib.R", "R/wet_air_daily.R", "R/wet_catalog.R",
+  "R/wet_db_load.R",  # wet's %||%, which the build and wet_catalog_verify() use
   "inst/receipt/air_temperature_fwa_v1.yaml"
 )
 
@@ -133,4 +134,114 @@ air_daily_frame <- function(x, cells) {
                   tmax_c = w[[2]]$value, tmin_c = w[[3]]$value)
   stopifnot(setequal(unique(y$cell_id), cells))
   y
+}
+
+# ---- the source's description and citation (read from cd's NOTICE.md and README, and the
+# publisher's pages: the ESSD article and the Copernicus dataset page, 2026-11-27) -----------
+air_source_description <- paste(
+  "Daily mean, maximum and minimum 2 m air temperature (degrees C) on BC's local standard day (UTC-8),",
+  "from cd's daily ERA5-Land cube (cd::cd_extract_daily()), copied unchanged for the cells Freshwater",
+  "Atlas segments read: no downscaling, no lapse-rate or elevation adjustment. ERA5-Land is produced by",
+  "ECMWF for the Copernicus Climate Change Service; cd reads it from the DestinE Earth Data Hub and",
+  "aggregates the hourly data to local days. Contains modified Copernicus Climate Change Service",
+  "information, under CC BY 4.0."
+)
+air_source_citation <- paste(
+  "Munoz-Sabater, J., Dutra, E., Agusti-Panareda, A., et al. (2021). ERA5-Land: a state-of-the-art global",
+  "reanalysis dataset for land applications. Earth System Science Data, 13, 4349-4383.",
+  "https://doi.org/10.5194/essd-13-4349-2021. Dataset: ERA5-Land hourly data from 1950 to present,",
+  "Copernicus Climate Change Service, https://doi.org/10.24381/cds.e2161bac (CC BY 4.0). Daily cube:",
+  "%s"
+)
+
+# ---- the grid and the checks that do not pass through the code that made the tree --------------
+# A template on the cube's grid, from its definition alone.
+air_template <- function() {
+  terra::rast(xmin = air_grid$xmin, xmax = air_grid$xmax, ymin = air_grid$ymin, ymax = air_grid$ymax,
+              nrows = air_grid$nrow, ncols = air_grid$ncol, crs = air_grid$crs)
+}
+
+# A cell_id's centre, the inverse of wet_air_cell_id().
+air_cell_centre <- function(id) {
+  row <- id %/% 3600L
+  col <- id %% 3600L
+  x <- col / 10
+  data.frame(x = ifelse(x > 180, x - 360, x), y = 90 - row / 10)
+}
+
+# Compared, differing and the largest difference, as each check reports them.
+air_check_line <- function(name, compared, differing, largest = NA) {
+  sprintf("%s: compared %d, differing %d, largest difference %s -> %s", name, compared, differing,
+          if (is.na(largest)) "-" else format(signif(largest, 6)), if (differing == 0L) "pass" else "FAIL")
+}
+
+# Every own row's cell from its point and the grid alone (terra's cellFromXY on the grid's
+# definition: a point exactly on a cell edge is where plain floor() arithmetic disagrees),
+# and every moved, no_data and outside row by cd's stated rule on the mask: a moved row's
+# own cell has no data and its cell is the nearest of the eight around with data
+# (geodesic distance from the point to the cell centre, ties to the lower cell number); a
+# no_data row has none of the nine with data; an outside row's point is off the grid.
+# `mask` is TRUE where the mask day's band holds data, by cell of the template.
+air_check_cells <- function(lk, template, mask) {
+  cell <- terra::cellFromXY(template, as.matrix(lk[c("point_x", "point_y")]))
+  centre_id <- function(cl) {
+    xy <- terra::xyFromCell(template, cl)
+    wet:::wet_air_cell_id(xy[, 1], xy[, 2])
+  }
+  own <- lk$cell_status == "own"
+  own_bad <- is.na(cell[own]) | !mask[cell[own]] | centre_id(cell[own]) != lk$cell_id[own]
+  out <- lk$cell_status == "outside"
+  out_bad <- !is.na(cell[out])
+  rest <- which(lk$cell_status %in% c("moved", "no_data"))
+  rest_bad <- vapply(rest, function(i) {
+    c0 <- cell[i]
+    if (is.na(c0) || mask[c0]) return(TRUE)
+    nb <- terra::adjacent(template, c0, directions = "queen")
+    nb <- nb[!is.na(nb)]
+    nb <- nb[mask[nb]]
+    if (lk$cell_status[i] == "no_data") return(length(nb) > 0L || !is.na(lk$cell_id[i]))
+    if (!length(nb)) return(TRUE)
+    d <- terra::distance(as.matrix(lk[i, c("point_x", "point_y")]), terra::xyFromCell(template, nb), lonlat = TRUE)
+    centre_id(nb[order(as.vector(d), nb)[1]]) != lk$cell_id[i]
+  }, logical(1))
+  mv <- lk$cell_status[rest] == "moved"
+  c(
+    air_check_line("own rows: cell from the point and the grid", sum(own), sum(own_bad)),
+    air_check_line("moved rows: cd's rule from the point and the mask", sum(mv), sum(rest_bad[mv])),
+    air_check_line("no_data rows: none of the nine cells has data", sum(!mv), sum(rest_bad[!mv])),
+    air_check_line("outside rows: the point is off the grid", sum(out), sum(out_bad))
+  )
+}
+
+# Every used cell has every day of the year in a year's part, and no other cell is there.
+air_check_complete <- function(y, used, year) {
+  days <- seq(as.Date(sprintf("%d-01-01", year)), as.Date(sprintf("%d-12-31", year)), by = "day")
+  have <- paste(y$cell_id, as.integer(y$date))
+  want <- paste(rep(used, each = length(days)), rep(as.integer(days), times = length(used)))
+  missing <- sum(!want %in% have)
+  extra <- sum(!have %in% want)
+  list(compared = length(want), differing = missing + extra)
+}
+
+# A year part's values against the cube's files read directly with terra (not through cd):
+# `files` the local cube files by variable. Returns compared, differing, largest difference.
+air_check_values <- function(y, files) {
+  ids <- sort(unique(y$cell_id))
+  ctr <- air_cell_centre(ids)
+  out <- list(compared = 0L, differing = 0L, largest = 0)
+  for (v in air_vars) {
+    r <- terra::rast(files[[v]])
+    cells <- terra::cellFromXY(r, as.matrix(ctr))
+    if (anyNA(cells)) stop("a used cell is off the cube's ", v, " file")
+    m <- as.matrix(terra::extract(r, cells))
+    dates <- as.Date(names(r))
+    got <- y[[paste0(v, "_c")]][match(paste(rep(ids, times = length(dates)), rep(as.integer(dates), each = length(ids))),
+                                      paste(y$cell_id, as.integer(y$date)))]
+    ref <- as.vector(m)
+    d <- abs(got - ref)
+    out$compared <- out$compared + length(ref)
+    out$differing <- out$differing + sum(is.na(d) | d != 0)
+    out$largest <- max(out$largest, d, na.rm = TRUE)
+  }
+  out
 }
