@@ -96,7 +96,8 @@ quiet_cd <- function(p) {
                       warning = function(w) if (grepl(expected, conditionMessage(w))) invokeRestart("muffleWarning"))
 }
 at_seg <- quiet_cd(data.frame(id = segs, lon = pt$point_x, lat = pt$point_y))
-key <- function(x) paste(x$id, x$variable, as.integer(x$date))
+# integer ids on both sides: paste() writes a whole double such as 701000000 as 7.01e+08
+key <- function(x) paste(as.integer(x$id), x$variable, as.integer(x$date))
 m <- match(key(at_seg), key(a))
 seg_diff <- sum(is.na(m)) + sum(!(is.na(at_seg$value) & is.na(a$value[m])) &
                                   (is.na(at_seg$value) | is.na(a$value[m]) | at_seg$value != a$value[m]), na.rm = TRUE)
@@ -112,7 +113,7 @@ d$same <- !is.na(d$station_cell) & !is.na(d$segment_cell) & d$station_cell == d$
 same_st <- d$station_number[d$same]
 xs <- at_st[at_st$id %in% same_st, ]
 xs$seg <- d$linear_feature_id[match(xs$id, d$station_number)]
-ms <- match(paste(xs$seg, xs$variable, as.integer(xs$date)), key(a))
+ms <- match(paste(as.integer(xs$seg), xs$variable, as.integer(xs$date)), key(a))
 st_diff <- sum(is.na(ms)) + sum(is.na(xs$value) != is.na(a$value[ms]) | xs$value != a$value[ms], na.rm = TRUE)
 p_seg <- pt[match(d$linear_feature_id, pt$linear_feature_id), ]
 d$distance_m <- round(as.vector(terra::distance(as.matrix(d[c("lon", "lat")]), as.matrix(p_seg[c("point_x", "point_y")]),

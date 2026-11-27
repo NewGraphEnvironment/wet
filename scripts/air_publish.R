@@ -219,6 +219,14 @@ for (i in seq_len(nrow(grp))) {
   if (i %% 25L == 0L) stamp("lookup: ", i, " of ", nrow(grp), " groups")
 }
 lookup <- do.call(rbind, lookup)
+# every check from here reads the parts as written, not the frames handed to the writer
+lk_files <- file.path(root, vapply(unique(lookup$watershed_group_code), function(g) air_part_key("segment_cell", g), ""))
+back <- do.call(rbind, lapply(lk_files, function(f) as.data.frame(arrow::read_parquet(f))))
+back$linear_feature_id <- as.integer(back$linear_feature_id)
+back$cell_id <- as.integer(back$cell_id)
+if (!isTRUE(all.equal(back, lookup, check.attributes = FALSE))) stop("the segment_cell parts do not read back as written")
+lookup <- back
+rm(back)
 if (nrow(lookup) != n_table || anyDuplicated(lookup$linear_feature_id)) {
   stop("read ", nrow(lookup), " segments, the table holds ", n_table)
 }
@@ -251,7 +259,11 @@ for (k in seq_along(years)) {
   }))
   y <- air_conform(air_daily_frame(x, used), "cell_daily")
   rm(x)
-  air_part_write(y, root, "cell_daily", yr)
+  f_year <- air_part_write(y, root, "cell_daily", yr)
+  y <- as.data.frame(arrow::read_parquet(f_year))
+  y$tmean_c <- as.numeric(y$tmean_c)
+  y$tmax_c <- as.numeric(y$tmax_c)
+  y$tmin_c <- as.numeric(y$tmin_c)
   cc <- air_check_complete(y, used, yr)
   vv <- air_check_values(y, stats::setNames(lapply(air_vars, cube_file, yr = yr), air_vars))
   checks$complete <- checks$complete + c(cc$compared, cc$differing)

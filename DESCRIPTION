@@ -27,6 +27,7 @@ Imports:
     jsonlite,
     terra
 Suggests:
+    arrow,
     bookdown,
     cd (>= 0.6.13),
     crate (>= 0.16.0),
