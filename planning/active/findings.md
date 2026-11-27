@@ -70,8 +70,41 @@ The issue's one comment is the claim notice (a report, nothing asked). #216 has 
 - **A stale note found, not this move's**: `scripts/temp_fill_validate.R` says the cube stops at 59.95° N and that one point outside it aborts the call; cd now reaches 60.05° N and warns.
 - **Installed packages** (the organisation's stale-install check, read-only): wet 0.4.44 installed against 0.6.0 in the tree. Scripts load the tree, but lintr resolves names against the installed copy.
 
+## Phase 1 measurements (2026-11-27, m1, cd 0.6.13, the cube's 2025 files cached)
+
+Script kept out of the repo (a scratch probe); every number below is its printed output.
+
+- **The lookup's time.** One day of `tmean` from `cd::cd_extract_daily()` at every segment midpoint of a group:
+
+  | group | points | `moved` | no data (NA value) | elapsed |
+  |---|---|---|---|---|
+  | BULK (interior) | 32,472 | 0 | 0 | 0.3 s |
+  | GRAI (Haida Gwaii, coast) | 36,937 | 4,088 | 16 | 34.4 s |
+  | VICT (coast) | 2,147 | 289 | 125 | 3.5 s |
+  | CLAY (coast) | 17,112 | 467 | 0 | 3.8 s |
+
+  The time is cd's neighbour search: about 8.4 ms per point in a no-data cell (34.4 s / 4,104; 3.5 s / 414), and a
+  point in a data cell costs next to nothing. With about 42,700 such points in the province (sizing probe above), the
+  lookup projects to about 6 minutes: far under the 6-hour stop rule, so no cd issue on speed.
+  cd warns once per call with "No ERA5-Land data in or around the cell for: <ids>" for `no_data` points.
+- **The cells.** All 4,907,441 midpoints streamed (no sort in the database) fall in 13,940 cells; 13,613 of them hold
+  data on 2025-01-01 (the rest are the no-data cells whose segments move or stay `no_data`). The `moved` targets add
+  a few cells beyond those, so `cell_daily` holds about 13,620 cells.
+- **One year of the series.** `cd_extract_daily()` at the 13,613 data-cell centres for all of 2025, three variables:
+  7.6 s, 4,968,745 cell-days, no cell moved, no NA value. Written as parquet (zstd; `cell_id` int32, `date` date32,
+  values float32, sorted by cell then date): 26,189,939 bytes with three variables, 11,756,863 with `tmean` alone;
+  projected to 76 years, **1.99 GB and 0.89 GB**: under the 10 GB stop rule. The cube's 4-byte floats round-trip
+  exactly through float32 parquet.
+- **Stations and cells.** The temperature archive's stations as cached for #40 (303), with a gross drainage area in
+  HYDAT 20260717 (294), placed by `wet_station_snap()` and accepted (279): the station's own coordinates fall in a
+  different cell than its segment's midpoint at **13** stations, than its downstream end at **27**. The midpoint
+  (decision 5) halves the stations decision 9 lists.
+- A probe slip worth keeping: `terra::rast()` on the SpatRaster cd returns an empty template, so the first try read
+  every cell as no data; the probe then used cd's raster as returned.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
+| `terra::rast(r)` on cd's SpatRaster gave all-NA extracts in the size probe | It returns an empty template (code-check-spatial); use the raster cd returns |
 | The first sizing probe counted distinct cells in the database and failed: `could not write to file "base/pgsql_tmp/…": No space left on device` | A sort or `count(distinct)` over 4.9 million rows needs temporary space in the database. The probe was rerun as a streaming select with the counting done in R (19 s). The build's segment query is written the same way (Phase 3). |
