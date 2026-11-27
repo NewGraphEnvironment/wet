@@ -138,15 +138,15 @@ Review: Morice, the dashboard and the follow-up rule for Weigert added (G10).
 Review: both records pinned, `fetch` column, version validation, zip members, pool columns (B2, G6, G7, G2); waits on
 Decisions 2 and 4 (O3).
 
-- [ ] `data-raw/temp_loggers_nhg.R`:
+- [x] `data-raw/temp_loggers_nhg.R`:
   - fetch both records' pinned files at Zenodo's checksums into the cache;
   - write the manifests `inst/extdata/temp_loggers/nhg_15053907.csv` and `nhg_6426024.csv`, with zip members listed;
   - write the registry `nhg_15053907_sites.csv`: id, holder's code, record, name, lon, lat, `utc_offset`, `dst`, `tz`,
     `subdrainage`, `nearest_eccc`, `nearest_km`, first, last, credit;
   - refuse HYDAT-shaped ids and ids in the ECCC archive;
   - back up both records with `WET_BACKUP=1`.
-- [ ] Internal `wet_logger(series, version)` gives cache paths checked against the manifest; it fetches a missing file only where `fetch` is `TRUE`, and otherwise calls `wet_snapshot_unavailable()`. Add `wet_logger_versions`
-- [ ] `tests/testthat/helper-temp-loggers.R` and `tests/testthat/test-wet_logger_daily.R` (pin part), with the network made to fail as `test-wet_bcenv.R` does: manifest refusals, a URL without `/records/<version>/`, md5 mismatch, a missing file with `fetch = FALSE`, the registry's shape
+- [x] Internal `wet_logger(series, version)` gives cache paths checked against the manifest; it fetches a missing file only where `fetch` is `TRUE`, and otherwise calls `wet_snapshot_unavailable()`. Add `wet_logger_versions`
+- [x] `tests/testthat/helper-temp-loggers.R` and `tests/testthat/test-wet_logger_daily.R` (pin part), with the network made to fail as `test-wet_bcenv.R` does: manifest refusals, a URL without `/records/<version>/`, md5 mismatch, a missing file with `fetch = FALSE`, the registry's shape
 
 ## Phase 3: The reader and the logger QA
 

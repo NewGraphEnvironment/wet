@@ -124,7 +124,27 @@ catalogue (Decision 1).
 - **Consequence for the reader:** every earlier site is in the later record, so every site's days come from the later
   record; the earlier record enters only the check report's comparison.
 
+## Plan corrections (Phase 2, 2026-11-27)
+
+- **Clock and day offsets replace `utc_offset`, `dst`, `tz`.** Both Nechako records stamp readings in UTC, so the
+  registry carries `clock_offset` (hours the timestamps run ahead of UTC; 0) and `day_offset` (the local standard
+  time of the days, the nearest HYDAT station's `standard_offset` in `tidyhydat::allstations`; −8 at every site).
+  No series read keeps daylight saving, so `dst` and `tz` are not built; a series that needs them adds them.
+- **Sub-drainage from the nearest HYDAT station** (the Water Tool registry's rule) puts three sites in 08K though
+  they drain to the Nechako or lie beside it: Nechako River at Pulpmill Road (01FW025), McMillan Creek above Nechako
+  River (01FW024) and Ness Lake (02FW002), whose nearest gauges are on the Fraser at Prince George. They pool with 08K
+  in `wet_temp_fill()`; the report lists each site's sub-drainage.
+- **The ECCC archive lists 342 stations** on 2026-11-27 (306 in `data/checks/temp_coverage_report.txt`, 2026-10-06);
+  no Nechako id is in it.
+- **The earlier record's coordinates** are parsed from its ReadMe's DMS; every site lies within 0.01 km of its later
+  match except Stellako (6.76 km, the earlier record giving Endako's position), allowed by name in the script.
+- **Registry columns added:** `elevation_m`, `nearest_hydat`, and `prior_record`, `prior_code`, `prior_member` (the
+  earlier record's file for the same site, for the comparison); `eccc_km` names the distance to `nearest_eccc`.
+- **Backup:** both records' files and `.md5`s at `s3://fresh-bc/temp_loggers/nhg/<record>/` (2026-11-27, each
+  object's size and ETag checked). A second run of the script wrote the three tracked files byte for byte.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
+| `aws: Unknown options` on `NHG Data ReadMe.txt` | `system2()` passes arguments unquoted: `shQuote()` them |
