@@ -19,11 +19,11 @@ A dataset ID is `<variable>/<network>/<version>/<unit>_<timebase>`. The first is
 
 Each level means one thing:
 
-- **`<variable>`:** what is measured. `discharge` now. Later `water_temperature` and `oxygen_saturation`, which are hydromosaic's `water_temp` and `DO_sat`. Not `temperature`, because cd publishes air temperature.
-- **`<network>`:** the hydrographic network the rows are keyed to. `fwa` (BC Freshwater Atlas: `linear_feature_id`, `watershed_feature_id`). A national product would be `chn` (NRCan's Canadian Hydrospatial Network). The network decides the ID columns and the coverage, so two networks can never share a dataset.
+- **`<variable>`:** what is measured. `discharge`, and `air_temperature` (#216: a copy of cd's daily ERA5-Land air temperature for the cells Freshwater Atlas segments read, keyed for the FWA so it is read with this tree's tooling; cd still publishes the cube itself, see `research/air_temperature_segments.md`). Later `water_temperature` and `oxygen_saturation`, which are hydromosaic's `water_temp` and `DO_sat`. Never a bare `temperature`, which would not say which.
+- **`<network>`:** the hydrographic network the rows are keyed to. `fwa` (BC Freshwater Atlas: `linear_feature_id`, `watershed_feature_id`). A national product would be `chn` (NRCan's Canadian Hydrospatial Network). The network decides the ID columns and the coverage, so two networks can never share a dataset. One exception, decided for #216 (crate's `decisions/nge/20261127_air_temperature_fwa.md`): `air_temperature/fwa/v1/cell_daily` is keyed by ERA5-Land grid cell, because it holds only the cells FWA segments read, is reached only through `segment_cell` under the same manifest, and is rebuilt with it.
 - **`<version>`:** the schema version. Data are rebuilt and overwritten in place within a version. It bumps only when a column is renamed or changes meaning, and then v2 lands beside v1.
   - **Decided for v2 (#71, 2026-10-14):** `pick` is renamed `is_default` when a v2 is cut for another reason, not on its own, since a rename alone would move the S3 prefix, the crate schema, the Postgres table and fresh's query. `is_default` follows fresh's `is_`/`has_` pattern; `q_pick` was set aside because under the product's `<quantity>_<unit>` pattern (`q_m3s`, `runoff_mm`) it reads as a flow.
-- **`<unit>_<timebase>`:** the feature a row describes and the time step of its values.
+- **`<unit>_<timebase>`:** the feature a row describes and the time step of its values. A dataset with no time step names what a row maps to in the second word: `air_temperature/fwa/v1/segment_cell`, a segment's cell (#216).
   - `segment_monthly`: one row per FWA segment and calendar month, a mean over a period, with month 0 the annual.
   - `watershed_monthly`: the same per fundamental watershed.
   - Monthly is the finest step both sources share; seasons are averages of months.
