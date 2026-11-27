@@ -4,7 +4,9 @@
 #   WET_HYDAT_RELEASE=20260717 Rscript data-raw/chinook_sites_data.R
 #
 # Reads, for every site of scripts/departure_sites.csv and every window set it
-# names, the series that scripts/departure_site.R and
+# names (the Bulkley's, BULK, at every site; Swift Creek also its own upper
+# Fraser windows, UFRA, Naver Creek the Cottonwood's, COTR, and Gosnell Creek
+# the Morice's, MORR), the series that scripts/departure_site.R and
 # scripts/departure_site_snow.R save after their reports (gitignored):
 #   data/departure/departure_site_<site>_<group>_20260717.rds
 #   data/departure/departure_site_snow_<site>_<group>_20260717.rds
