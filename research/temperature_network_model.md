@@ -8,18 +8,18 @@ Growing-season degree days for every stream reach in BC, with their uncertainty,
 
 ## What we can bring
 
-Each input as a file, with its columns. *In place* means it is built and named here by the function or file that holds it; most of these files are on our machines and not yet published, so formats are open. *Being built* names the issue that builds it. *Not yet anyone's work* names an input no issue builds.
+Each input as a file, with its columns. *In place* means it is built and named here by the function or file that holds it; most of these files are on our machines and not yet published, so formats are open. *Being built* names the issue that builds it. *Filed, not started* names the issue that will build it.
 
 | input | the file and its columns | where it stands |
 |---|---|---|
 | The network as tables | the main-flow tree, a stream network with no splits computed from the Freshwater Atlas for the province (main flow, plus the stretches of side channel that keep tributaries attached to it), so every segment has one downstream parent: `linear_feature_id`, `watershed_group_code`, `blue_line_key`, `source`, `upstream_area_ha` (`whse_basemapping.fwa_stream_networks_mainflow_tree`) | in place for the province, computed from [`fwapg`](https://github.com/smnorris/fwapg) (Simon Norris) on the [`newgraph` branch of a fork](https://github.com/NewGraphEnvironment/fwapg/tree/newgraph/extras/mainflow_tree); being checked on every watershed group (NewGraphEnvironment/fwapg#19) |
 | The network as an SSN object per region | an SSNbler build of that tree: edges with additive function values from upstream area, observation sites and prediction sites; the SSNbler build that made it named beside it | being built (#223) |
 | Stations placed on the network | `wet_station_snap()`: `station_number`, `linear_feature_id`, `watershed_feature_id`, `wscode`, `localcode`, `distance_m`, `upstream_area_km2`, `area_ratio`, `accepted`, `reason`, `lake` | in place for the stations; as observation sites in an SSN object, being built (#223) |
-| One prediction site per segment | a point on every segment of the main-flow tree, with its segment id | not yet anyone's work |
+| One prediction site per segment | a point on every segment of the main-flow tree, with its segment id | filed, not started (#249) |
 | Daily observations at stations | `wet_temp_daily()`: `station_number`, `date`, `t_mean_c`, `t_min_c`, `t_max_c`, `n_hours`, `source`, `status` | in place for the hydrometric stations; small-stream logger records being built (#215) |
 | Filled series and the fits behind them | `wet_temp_fill()`: the daily columns plus `filled`, `t_lo_c`, `t_hi_c` (the fill's interval), and per station air2stream's three parameters `a1`, `a2`, `a3` (daily water changes by a1 + a2 × air − a3 × water), `rmse_open` (its error run on air alone), and the departure from it carried across a gap, an AR(1) with persistence `rho`, peer weight `b` and noise `sigma`; `n_obs`, `loglik` | in place; a screen for readings beside a gap (#222) and reads that repeat exactly (#224) being built |
 | Catchment traits per station | the holdout frame's stations: upstream means of elevation, easting, northing, the date half the snow has melted and peak snow water equivalent; log upstream area; glacier cover and lake and reservoir cover (`scripts/temp_baseline_traits.R`) | in place |
-| Catchment traits per segment | the same traits for every segment | not yet anyone's work |
+| Catchment traits per segment | the same traits for every segment | filed, not started (#249) |
 | Daily air temperature per station | `cd::cd_extract_daily()`: `id`, `date`, `variable`, `value` (ERA5-Land) | in place |
 | Daily air temperature per segment | a lookup from every segment to its ERA5-Land cell, and each cell's daily series | being built (#216) |
 | The holdout frame | the stations the baseline held out, each predicted from the others: their folds, whether another station is upstream, and the neighbours removed in the leak-free pool (below); the complete growing seasons they are scored on; dropped stations with reasons; each station's own fit (`tb_frame_read()`) | in place |

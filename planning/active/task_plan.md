@@ -32,9 +32,8 @@ No plan gate ran in this pane: a coordinator dispatched this session, and the co
 - **Catchment traits per segment (owner, 2026-11-26, reconfirmed 2026-11-27):** an issue is filed for it, in public wording proposed with the file, placed by the next `/backlog-sweep`; the file's table names it.
 - **Who outside reads #217's file, and when (owner, 2026-11-27):** decided later, after the PR. #217 stays open with the outside read owed.
 
-## Open decisions
-
-1. **One prediction site per segment** has no issue either (#223 builds observation sites only). Recommended: the traits-per-segment issue covers both, one row per segment with the traits and the point a prediction is made at (draft in `planning/active/issue-draft-segment-traits.md`, proposed with the files). Or a second issue for the prediction sites. Asked with the wording review, before anything is filed.
+- **One prediction site per segment (owner, 2026-11-27):** one issue with traits per segment, filed as drafted: #249, which #217's file names for both rows.
+- **Both files' wording (owner, 2026-11-27):** approved as written after the cold read's fold. How an outside modeller gets the files, and who to contact, stay out for now (his call, revisited when he picks the outside reader).
 
 ## Phase 1: The baseline read against Bayesian practice (#218)
 
@@ -57,7 +56,7 @@ No plan gate ran in this pane: a coordinator dispatched this session, and the co
 - [x] Run the check over it (anchors none; the unlisted-numeral guard); the log is #218's file's only
 - [x] Add its row to `research/README.md`
 - [x] Cold read: a Plan or Explore reader given only the two files, reading as an outside modeller; fold what it finds, recorded as `planning/active/review-coldread.md`
-- [ ] Send both files to the owner and wait for his word before any push past the park; fold his edits
+- [x] Send both files to the owner and wait for his word before any push past the park; fold his edits
 
 ## Owed at the end (reported, done after merge)
 
@@ -66,7 +65,7 @@ No plan gate ran in this pane: a coordinator dispatched this session, and the co
 - [ ] #214's checklist: tick item 5 (#218) and propose to the owner the wording for the #217 line, edited on his word
 - [ ] A comment on #236: its build reruns `scripts/temperature_bayesian_alignment_check.R` and updates the rows it moves
 - [ ] The cred issue offering a shared page-anchored quote check, linked from wet's check header once filed (proposed in knowledge's, not edited there)
-- [ ] #223's line on multiple outlets edited, and the issue for traits per segment filed
+- [ ] #223's line on multiple outlets edited (the issue for traits per segment is filed: #249)
 
 ## Validation
 
