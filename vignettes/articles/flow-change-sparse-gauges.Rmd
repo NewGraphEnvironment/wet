@@ -77,7 +77,7 @@ span <- function(y) paste0(min(y), "–", max(y))
 ref_text <- span(per_ref)
 rec_text <- span(per_rec)
 ch <- v$change
-# every range this article draws on (mean and min7, both routes, both window sets) covers at least 0.87
+# every range this article draws on (mean and min7, both routes, every window set) covers at least 0.87
 # of simulated no-change series, the bar registered in scripts/departure_site.R's header, so it is
 # called a 90% range (the change intervals only; the years figure's band is not called one)
 drawn <- ch[ch$statistic %in% c("mean", "min7"), ]
@@ -132,7 +132,7 @@ ssc <- v$score_settings[v$score_settings$group == "BULK", ]
 ss_mig <- ssc[ssc$setting == "migration mean, k = 5", ]
 ss_spw <- ssc[ssc$setting == "spawning mean", ]
 stopifnot(setequal(ss_mig$site_id, ids), setequal(ss_spw$site_id, ids))
-# the migration window at or over the bar in both window sets; under the Bulkley windows the spawning
+# the migration window at or over the bar in every window set; under the Bulkley windows the spawning
 # window below it only at Swift Creek
 stopifnot(all(ss_mig$carried >= 0.5),
           all(v$score_settings$carried[v$score_settings$setting == "migration mean, k = 5"] >= 0.5))
@@ -154,8 +154,9 @@ ss_of <- function(id, setting, col) ssc[[col]][ssc$site_id == id & ssc$setting =
 for (st in c("migration mean, k = 5", "spawning mean", "migration min7", "spawning min7")) {
   stopifnot(ss_of("swift", st, "ols") < 0.5, ss_of("swift", st, "ols") < ss_of("swift", st, "carried"))
 }
-# "the windows are the Bulkley's at all four; only the Morice has its own"
-stopifnot(all(grepl("^BULK", sites$windows)), identical(sites$windows != "BULK", sites$site_id == "gosnell"))
+# the limits' "the Bulkley's windows at all four streams, and each but Maxan Creek also under its own
+# stock's": the Bulkley's first everywhere, then the upper Fraser's, the Cottonwood's and the Morice's
+stopifnot(identical(sites$windows, c("BULK", "BULK UFRA", "BULK COTR", "BULK MORR")))
 ```
 
 Many streams that matter to salmon were gauged for only a few summers, or never. This
@@ -316,11 +317,11 @@ region <- function(m) {
 }
 ```
 
-```{r skeena, fig.width = map_w, fig.height = map_h, fig.cap = "Maxan and Gosnell creeks in the Skeena system, with the gauges each borrows from. The inset locates the map in British Columbia."}
+```{r skeena, fig.width = map_w, fig.height = map_h, fig.cap = "Maxan and Gosnell creeks in the Skeena system, with the gauges each borrows from under any of its windows. The inset locates the map in British Columbia."}
 region("skeena")
 ```
 
-```{r fraser, fig.width = map_w, fig.height = map_h, fig.cap = "Swift and Naver creeks in the Fraser system, with the gauges each borrows from. The inset locates the map in British Columbia."}
+```{r fraser, fig.width = map_w, fig.height = map_h, fig.cap = "Swift and Naver creeks in the Fraser system, with the gauges each borrows from under any of its windows. The inset locates the map in British Columbia."}
 region("fraser")
 ```
 
@@ -522,6 +523,39 @@ the first week of October [@bustard_schell2002ConservingMorice, p. 27], so its s
 Under it Gosnell Creek's spawning-window drop is smaller, `r pct(morr$pct)`, and its range
 reaches no change.
 
+```{r own-windows}
+# Swift and Naver creeks under their own stocks' windows (UFRA, COTR): each borrowed route's spawning-window
+# change, on the weighting #147's rule ships under those windows, beside the Bulkley's
+own <- c(swift = "UFRA", naver = "COTR")
+own_w <- function(id, w) v$windows[v$windows$site_id == id & v$windows$group == own[[id]] & v$windows$window == w, ]
+# "from April": both migration windows open on April 1, a month before the Bulkley's
+stopifnot(own_w("swift", "migration")$start == "04-01", own_w("naver", "migration")$start == "04-01",
+          wb$start[1] == "05-01")
+# "a spawning window from about August 10 to early September, shorter than the Bulkley's": each opens 8-12 days
+# after the Bulkley's and closes 8-12 days before it
+for (id in names(own)) {
+  ws <- own_w(id, "spawning")
+  stopifnot(as.numeric(as.Date(paste0("2001-", ws$start)) - as.Date(paste0("2001-", wb$start[2]))) %in% 8:12,
+            as.numeric(as.Date(paste0("2001-", wb$end[2])) - as.Date(paste0("2001-", ws$end))) %in% 8:12)
+}
+own_c <- lapply(names(own), function(id) row_of(id, "spawning", "carried", group = own[[id]]))
+names(own_c) <- names(own)
+# "barely moves": within two points of the drop under the Bulkley's windows; "neither range clears no change"
+for (id in names(own)) {
+  stopifnot(own_c[[id]]$pct < 0, own_c[[id]]$pct_hi > 0,
+            abs(own_c[[id]]$pct - row_of(id, "spawning", "carried")$pct) < 2)
+}
+```
+
+Swift and Naver creeks have cited windows too. Spring and summer chinook bound for the Fraser
+above the Thompson enter the river from April [@bradford_taylor2023Diversityfreshwater, p. 131; citing @cosewic2018COSEWICAssessment],
+and Cottonwood River chinook pass the lower Fraser in April and May
+[@candy_etal2002discussionpaper, p. 22]. Spawner surveys
+[@fisheriesandoceanscanadaNuSEDSNewSalmon] set each spawning window from about August 10 to early
+September, shorter than the Bulkley's. Under them the borrowed spawning-window drop barely moves:
+`r pct(own_c$swift$pct)` at Swift and `r pct(own_c$naver$pct)` at Naver, neither range clear of
+no change.
+
 ## How well does the method score?
 
 ```{r scores}
@@ -626,8 +660,10 @@ stopifnot(all(v$normal$pick == "pcic_routed"), all(v$daily$source[v$daily$pick] 
   `r nerr$err_n` gauges in its box with ten or more baseline years, that
   published flow in the chinook salmon life history timing window for spawning runs a median `r pct(pct_of(nerr$err_median))` above
   measured, and about `r pct(pct_of(nerr$err_q75))` or more above at a quarter of them.
-- **The windows are the Bulkley's** at all four streams. Only the Morice has its own cited
-  windows.
+- **The windows are the Bulkley's** at all four streams, and the flow figures show only those; Swift,
+  Naver and Gosnell creeks also run under their own stocks'. The upper Fraser and Cottonwood
+  spawning windows rest on survey estimates, not the first and last spawners seen, so their edges
+  are uncertain.
 - **Each filled-in year rests on one neighbouring gauge**, and the earliest years on
   whichever single gauge reaches back that far.
 - **Maxan Creek's borrowed `r ref_text` mean rests on `r few_ref$n_pre[1]` years**: its
@@ -695,7 +731,7 @@ if (!is.null(f)) {
   y <- y[!grepl("^\\s*$", y)]
   n <- sum(lengths(strsplit(trimws(y), "\\s+")))
   message("body prose: ", n, " words")
-  cap <- 1140   # 1000 until #152 restated the window's full name per section; 1060 until #147 said how donors are chosen, in plain words, and gave Maxan's short reference period
+  cap <- 1253   # 1140 until #187 reported Swift and Naver creeks under their own windows and said the Fraser windows' edges are estimates; 1000 until #152 restated the window's full name per section; 1060 until #147 said how donors are chosen, in plain words, and gave Maxan's short reference period
   if (n > cap) stop("body prose is ", n, " words; the cap is ", cap)
 }
 ```
