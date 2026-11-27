@@ -63,13 +63,13 @@ Rescoped by answer 6: #233 against the 20261028 pin. The pin's tasks (download, 
   - the existing duplicate check gets a test for an own Hakai number another registry holds;
   - the headers of `R/wet_hakai.R` and `data-raw/station_sources_hakai.R`, and both functions' roxygen, describe own stations; `man/` is regenerated.
 - [x] `data-raw/station_sources_hakai.R`: classify the seven watersheds against the 20261028 provincial registry by the identity rule (number `H08KC%04d`, the watershed named, 0.5 km); a match continues, none is a station of its own under `WTS<n>` (answer 3), named as the continued rows are, positioned from README Table 1 (WTS708 from Table A1), `first` and `last` from the reader. Rerun it; the three continued rows must come back unchanged.
-- [ ] Rerun the regulation status:
+- [x] Rerun the regulation status:
   - `scripts/station_regulation.R`: Hakai's own rows join the population (`registry = regulation_of(name)`, `hydat_site` NA), the Hakai registry is added to `reg_path`/`reg_md5`, and the call becomes `wet_registry_check(..., hakai = )`;
   - fix the report's source label, which calls Hakai "tool";
   - write `hakai_version` and `hakai_registry_md5`, and move `rule_commit` to Amendment 4's commit (82aa3f24);
   - `wet_station_regulation()` holds all three registries, with a test that a mismatched `hakai_registry_md5` refuses;
   - rerun with `WET_REG_SNAPSHOT=20261124`, rewriting `regulation_20261028.csv` and `data/checks/station_regulation_20261028.txt`; assert the 257 earlier statuses unchanged (or attribute each that moved) and print the four Hakai statuses.
-- [ ] Reports: `scripts/station_sources_hakai.R` extended to the own stations (days, status shares, window-years, the station test); the harvest's registry holds rerun if they read the Hakai registry. A rerun reproduces each byte for byte.
+- [x] Reports: `scripts/station_sources_hakai.R` extended to the own stations (days, status shares, window-years, the station test); the harvest's registry holds rerun if they read the Hakai registry. A rerun reproduces each byte for byte.
 - [ ] Update `research/station_sources.md` ("The answer", "The Hakai package in wet", "Regulation per non-HYDAT station", "Two copies that part in 2021" with the unchanged archive), `CLAUDE.md`'s Hakai and regulation lines, `NEWS.md`; #232's body records why it waits.
 
 ## Phase 2: Batch 30: a HYDAT gauge continued by the provincial station at its site (#227)

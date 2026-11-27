@@ -1,25 +1,27 @@
-# Hakai's package as wet reads it: the Hakai report (#192)
+# Hakai's package as wet reads it: the Hakai report (#192, #233)
 #
 # Usage: Rscript scripts/station_sources_hakai.R
 #
 # On the pinned package (wet_hakai_version) and the pinned provincial snapshot
 # (wet_bcenv_snapshot), under the rules registered in research/station_sources.md
 # ("The Hakai package in wet"):
-# - per watershed: hours read, hours dropped as SVD, the hours' code sets and
-#   levels; complete days (>= 20 hours, not negative), days the 08K bound
-#   drops, days kept before the provincial record begins (`continues_before`)
-#   and on or after it, and the share of kept days "approved";
+# - per watershed: hours read, hours dropped as SVD or for having no Qrate,
+#   the hours' code sets and levels; complete days (>= 20 hours, not
+#   negative), days the 08K bound drops, days kept (for a continued watershed,
+#   those before the provincial record begins, `continues_before`, and those
+#   on or after it), and the share of kept days "approved";
 # - per continued provincial station, the complete Chinook-window years
 #   (migration 05-01 to 08-01, spawning 08-01 to 09-15, the survey's windows,
 #   inst/vignette-data/life_history_bulk.csv; wet_window_stats() means, its
 #   default completeness) of the provincial record alone and with Hakai's days,
 #   under the shipped rules (wet_station_daily(sources = c("bcenv", "hakai"))),
 #   and whether each meets the survey's station test (>= 3 window-years outside
-#   HYDAT; no HYDAT station sits at these sites);
+#   HYDAT; no HYDAT station sits at these sites); and for each station of its
+#   own (#233), the same from Hakai's days alone;
 # - the registry (inst/extdata/station_sources/hakai_<version>_hydat.csv) held
-#   to the reader: `first` and `last` to the kept days before the cut,
-#   `continues_before` to the first day the provincial files hold any usable
-#   hour of the station. A difference fails the run (exit 1); rewrite the
+#   to the reader: `first` and `last` to the kept days before the cut (an own
+#   station's whole record), `continues_before` to the first day the provincial
+#   files hold any usable hour of the station (none for an own station). A difference fails the run (exit 1); rewrite the
 #   registry with data-raw/station_sources_hakai.R.
 #
 # Report: data/checks/station_sources_hakai_<version>.txt (no timestamp; a rerun
@@ -48,11 +50,13 @@ d <- wet_hakai_days(h)
 complete <- d[d$hours >= 20 & d$q_m3s >= 0, ]
 kept <- wet_hakai_shape(d)
 cut <- reg$continues_before[match(kept$station_number, reg$station_number)]
-before <- kept[kept$date < cut, ]
+before <- kept[is.na(cut) | kept$date < cut, ]  # an own station's days are all kept
 
 per <- lapply(reg$station_number, function(s) {
-  c(station = s, continues = reg$continues[reg$station_number == s],
-    hours = sum(x$Watershed == s), svd = sum(x$Watershed == s) - sum(h$station_number == s),
+  na <- sum(x$Watershed == s & x$Qrate == "NA")
+  cont <- reg$continues[reg$station_number == s]
+  c(station = s, continues = if (is.na(cont)) "-" else cont,
+    hours = sum(x$Watershed == s), svd = sum(x$Watershed == s) - sum(h$station_number == s) - na, na = na,
     days = sum(d$station_number == s), complete = sum(complete$station_number == s),
     bound = sum(complete$station_number == s) - sum(kept$station_number == s),
     before = sum(before$station_number == s), after = sum(kept$station_number == s) - sum(before$station_number == s),
@@ -70,7 +74,7 @@ wy <- function(q) {
   ws <- ws[!is.na(ws$value), ]
   vapply(windows$window, function(w) length(unique(ws$year[ws$period == w])), 0L)
 }
-test <- lapply(reg$continues, function(p) {
+test <- lapply(stats::na.omit(reg$continues), function(p) {
   both <- suppressWarnings(wet_station_daily(p, sources = c("bcenv", "hakai"), to = NULL))
   prov <- both[both$source == "bcenv", ]
   a <- wy(prov)
@@ -79,9 +83,17 @@ test <- lapply(reg$continues, function(p) {
           max(a) >= min_years, max(b) >= min_years, format(min(both$date)), format(max(both$date)))
 })
 
+own <- reg$station_number[is.na(reg$continues)]
+test_own <- lapply(own, function(s) {
+  q <- wet_station_daily(s, sources = "hakai", to = NULL)
+  a <- wy(q)
+  sprintf("    %-9s %4d %4d %3d   %s   %s to %s", s, a[["migration"]], a[["spawning"]], max(a), max(a) >= min_years,
+          format(min(q$date)), format(max(q$date)))
+})
+
 # ---- the registry held to the reader ----------------------------------------------------------
 rng <- lapply(split(before$date, before$station_number), range)
-pdays <- wet_bcenv_days_read(wet_bcenv_days(snapshot, cache), reg$continues)
+pdays <- wet_bcenv_days_read(wet_bcenv_days(snapshot, cache), stats::na.omit(reg$continues))
 pstart <- vapply(split(as.numeric(pdays$date), pdays$station_number), min, 0)
 diffs <- character()
 for (i in seq_len(nrow(reg))) {
@@ -96,16 +108,17 @@ for (i in seq_len(nrow(reg))) {
 }
 
 out <- c(
-  sprintf("Hakai's package as wet reads it: the Hakai report (#192), package %s, provincial snapshot %s", version,
+  sprintf("Hakai's package as wet reads it: the Hakai report (#192, #233), package %s, provincial snapshot %s", version,
           snapshot),
   "Rules: research/station_sources.md, \"The Hakai package in wet\". No timestamp.",
   "",
   sprintf("The file: %s, %d bytes, md5 %s", basename(path), file.size(path), unname(tools::md5sum(path))),
   "",
-  "Per watershed: station, continues, hours read, SVD hours dropped, PST days, complete days, days the bound drops,",
-  "  days kept before the provincial record begins, days kept on or after it, % of kept days approved",
-  sprintf("    %s %s %6s %3s %5s %5s %3s %5s %3s %5s", per$station, per$continues, per$hours, per$svd, per$days,
-          per$complete, per$bound, per$before, per$after, per$approved),
+  "Per watershed: station, continues, hours read, SVD hours dropped, hours dropped for no Qrate, PST days,",
+  "  complete days, days the bound drops, days kept (a continued watershed's before the provincial record begins),",
+  "  days kept on or after it, % of kept days approved",
+  sprintf("    %-7s %-9s %6s %3s %2s %5s %5s %3s %5s %3s %5s", per$station, per$continues, per$hours, per$svd, per$na,
+          per$days, per$complete, per$bound, per$before, per$after, per$approved),
   "",
   "The hours' first-tier codes and levels: station, codes, Qlevel, hours",
   sprintf("    %s %-12s %s %6d", codes$station, codes$codes, codes$level, codes$Freq),
@@ -115,6 +128,10 @@ out <- c(
   "  station, provincial migration and spawning window-years, most of either -> with Hakai, passes -> with Hakai,",
   "  first and last day with Hakai",
   unlist(test),
+  "",
+  "The stations of their own (#233), Hakai's days alone: station, migration and spawning window-years, most of",
+  "  either, passes, first and last day",
+  unlist(test_own),
   "",
   if (length(diffs)) c("The registry against the reader: DIFFERS (rewrite it with data-raw/station_sources_hakai.R)",
                        diffs) else

@@ -69,7 +69,7 @@ test_that("a continued provincial station with no complete day takes the listing
                  continues = "08ZZ0001", continues_before = as.Date("2021-09-30"), bcenv_snapshot = "20261028",
                  bcenv_days = wet_bcenv_days_key("20261028"))
     })
-  s <- wet_station_list()
+  s <- wet_station_list(c("bcenv", "bcwatertool"))
   expect_equal(nrow(s), 1)
   expect_equal(c(s$first, s$last), as.Date(c("2012-08-17", "2015-11-10")))
   expect_s3_class(s$last, "Date")
