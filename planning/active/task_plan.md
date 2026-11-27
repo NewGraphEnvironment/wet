@@ -7,12 +7,9 @@ One batch (batch 23), one member (#216): one lookup from segment to ERA5-Land ce
 cell's daily series serve every reach. `wet_temp_fill()` takes its air from `cd::cd_extract_daily()` at station points;
 nothing in wet gives air temperature on stream segments.
 
-## Open decisions
+## Decided at the gate
 
-Stored data and scope, the owner's. Nobody was at this pane, so each is asked here, recommended option first; "all as
-recommended" answers the ten. Phase 1 writes the answers into "Decided at the gate" and into #216's body before
-anything is built. Every number is from `findings.md` (probes of 2026-11-26). Decisions 3, 4, 9 and 10 came from the
-Plan review (`review-plan.md`); it also changed what 1, 6 and 8 say.
+**The owner's answers, 2026-11-27: all ten as recommended** (one question at the resume, "all as recommended"). The options not chosen are kept below each item for the record; the phases are written for the chosen ones.
 
 1. **The dataset's ID and layout.**
    (a) *Recommended.* One tree, `air_temperature/fwa/v1`, at `s3://fresh-bc/air_temperature/fwa/v1/`, holding two
@@ -96,11 +93,7 @@ Plan review (`review-plan.md`); it also changed what 1, 6 and 8 say.
    (b) `wet_db_load()` also writes `air_temperature.fwa_v1_segment_cell` and `air_temperature.fwa_v1_cell_daily`: its
    own issue naming move 21, not this pull request.
 
-## Decided at the gate
-
-No plan gate ran in this pane: the phases below were drafted by the plan session on 2026-11-26, reviewed by a Plan
-review the same day, and parked for the coordinator's plan gate. Mechanism, decided by the plan session (each with its
-reason); the stored-data and scope forks are above. The phases are written for the recommended options.
+**Mechanism**, decided by the plan session (each with its reason):
 
 - **The lookup is made by `cd::cd_extract_daily()` itself**, called for one day at each segment's point, never by a
   copy of cd's cell rule in wet: the lookup then is cd's own answer for that point (under decision 6(a) or (b)).
@@ -139,8 +132,8 @@ reason); the stored-data and scope forks are above. The phases are written for t
 
 ## Phase 1: The measurements, the decisions, and what cd and crate must hold
 
-- [ ] Before building: `bash "$T/skills/_shared/members_check.sh" <origin> 237 237-backlog-move-21-daily-air-temperature-at --batch 23` (T from `soul_published_tree`). On a non-zero exit or any line but `FREE`, build nothing: write the line under `## Open decisions` and stop.
-- [ ] Ask every item under `## Open decisions` that is still open; move each answer to "Decided at the gate" and write the decided ID, schema, key, date, point, listing and station condition into #216's body under `## Decisions`, with the stale edge premise corrected there. Where an answer is not the recommended one, revise everything that assumed it before going on, and say so in `progress.md`: the phase it changes, the bullets of "Decided at the gate" (the first and the Names bullet assume 1(a) and 6(a)), the count of crate schemas (6(b) adds one, 1(c) leaves one), the publish phase and "Owed at the end" (8, 7), and the Validation paragraph.
+- [x] Before building: `bash "$T/skills/_shared/members_check.sh" <origin> 237 237-backlog-move-21-daily-air-temperature-at --batch 23` (T from `soul_published_tree`). On a non-zero exit or any line but `FREE`, build nothing: write the line under `## Open decisions` and stop.
+- [x] Ask every item under `## Open decisions` that is still open; move each answer to "Decided at the gate" and write the decided ID, schema, key, date, point, listing and station condition into #216's body under `## Decisions`, with the stale edge premise corrected there. Where an answer is not the recommended one, revise everything that assumed it before going on, and say so in `progress.md`: the phase it changes, the bullets of "Decided at the gate" (the first and the Names bullet assume 1(a) and 6(a)), the count of crate schemas (6(b) adds one, 1(c) leaves one), the publish phase and "Owed at the end" (8, 7), and the Validation paragraph.
 - [ ] Measure, from streaming queries (no sort or aggregate in the database) and the cube, and record in `findings.md`: the time of `cd::cd_extract_daily()` for one day of `tmean` at the points of one coastal watershed group and one interior group, projected to the province; one year of `cell_daily` written both ways (three variables, `tmean` alone), its bytes projected to 76 years; and, for the stations the station check will use, how many sit in another cell than their segment's midpoint and than its downstream end.
 - [ ] Stop rules on those numbers, each written under `## Open decisions` with its measurement when it fires: the lookup projected above 6 hours (the per-point neighbour search is then a capability cd lacks: file it with cd, its own inputs and timings, no workaround here); three variables projected above 10 GB.
 - [ ] File the cell-elevation capability with cd: ERA5-Land's model elevation on the cube's grid, as a published layer or a column of `cd_extract_daily()`. Link it from #216's body. Under decision 7(a), file the wet issue that adds `cell_elev_m`, naming move 21, and leave it out of `planning/backlog.md`.
