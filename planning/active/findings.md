@@ -57,3 +57,9 @@ Not yet decided: the snapshot date (the day the files are downloaded, in the gat
 - The regulation rule header (`scripts/station_regulation_rule.R`) names the population as the provincial registry (211) and the Tool's own listings (46); `scripts/station_regulation.R` refuses a rule file that differs from `rule_commit` 6c9cb1e5.
 - The rule takes a drainage area only from a Tool header or a HYDAT site, so Hakai's own stations will come out unknown, as the three continued ones did.
 - Hakai's raw files and README PDF are on m1 at `data/station_sources/raw/hakai/<commit>/` in the main checkout.
+
+## The province has not republished its 2019-2021 archive (2026-11-27)
+
+- The directory listing (read 2026-11-27 ~23:00 UTC) names the same eight `Discharge*.csv` files as the survey. Last-Modified: `Discharge.csv` 2026-11-27, `Discharge_Archive_Post_20251001.csv` 2026-11-22 (68,338,530 bytes; the old pin's 67,708,536), `Discharge_Archive_2021Oct_2023Oct.csv` and `_2023Oct_2025Oct.csv` 2026-09-22 (the old pin's sizes), the other three 2023-06-09.
+- `Discharge_Archive_2019Oct_2021Oct.csv` downloaded 2026-11-27T23:07:55Z: md5 `d48e04430a139b4e8a2a4f83011fa933`, the 20261028 manifest's. So a newer provincial pin carries the old pin's January–September 2021 exactly, and the registered bar fails at four stations (the old pin's shares, `research/station_sources.md`, "The bar a newer pin must pass").
+- The bar's arithmetic on the old pin (cached copies): all pinned values from 2021 print 3 decimals (`nan` aside); strict 3-decimal equality and #190's tolerance agree on 99.996 % of 277,485 on-the-hour hours from January 2022 to May 2026; in the five off-hour spans (20,484 hours) the pinned hour equals the portal's first point in that clock hour on 100 %.

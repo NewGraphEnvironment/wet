@@ -44,6 +44,10 @@ Order: `planning/backlog.md`, move 26: one phase per batch. Batch 29 carries #23
 4. **The off-the-hour spans** are checked against a fresh portal export of the four off-hour stations (08HB0031, 08MH0056, 08NM0050, 08NM0054) taken on the pin's own day: four requests, under the disclaimer accepted for #190. The other six stations use the cached 2026-11-25 export, with no request.
 5. **Batch 30 (#227) goes in a second PR** from main after this one merges, under this plan and owner decisions 1 and 2. This PR carries batch 29; Phase 2 is not built here.
 
+## Open decisions
+
+6. **The newer pin fails the registered bar before it is built** (owner decision 4: a failing station stops the pin and goes back to the owner). Measured 2026-11-27 23:07 UTC: the province's `Discharge_Archive_2019Oct_2021Oct.csv`, which holds January–September 2021, is byte-identical to the 20261028 pin's (md5 `d48e0443…`, 101,705,412 bytes, Last-Modified 2023-06-09). Under the bar registered at 82aa3f24 its January–September 2021 equals the portal's at 07FC0001 (100 %) and on 3.2 % (08MH0054), 1.6 % (08NM0004), 0.03 % (08MH0056) and 0.0 % (08NM0002) of compared hours. Of the eight files only `Discharge.csv` and `Discharge_Archive_Post_20251001.csv` changed (Post: 22 Nov 2026, 68,338,530 bytes against 67,708,536), so a new pin brings only October–November 2026 and the province's revisions within October 2025 to October 2026, not the revised or added 2021 months #232 names.
+
 ## Phase 1: Batch 29: a newer provincial pin, and Hakai's other four watersheds (#232, #233)
 
 - [x] Before building: `bash "$T/skills/_shared/members_check.sh" "$(git remote get-url origin)" 242 242-backlog-move-26-a-newer-provincial-pin-h --batch 29` (T from `soul_published_tree`). On a non-zero exit or any line but `FREE`, build nothing of this batch: write the line under `## Open decisions` and stop.
