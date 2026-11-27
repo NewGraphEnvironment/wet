@@ -28,7 +28,7 @@ Imports:
     terra
 Suggests:
     bookdown,
-    cd (>= 0.5.0),
+    cd (>= 0.6.13),
     crate (>= 0.16.0),
     climr,
     duckdb (>= 1.2.0),

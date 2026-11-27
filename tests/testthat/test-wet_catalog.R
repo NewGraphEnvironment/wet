@@ -278,3 +278,13 @@ test_that("a manifest's receipt and fit entries are checked (#160, #161)", {
     m
   })), "twice")
 })
+
+test_that("the bundled air temperature tree reads as a catalog of its two datasets (#216)", {
+  cat <- wet_catalog(system.file("extdata", "air_example", "manifest.json", package = "wet"))
+  expect_identical(attr(cat, "id"), "air_temperature/fwa/v1")
+  expect_setequal(unique(cat$dataset), c("air_temperature/fwa/v1/segment_cell", "air_temperature/fwa/v1/cell_daily"))
+  expect_setequal(cat$code, c("AAAA", "BBBB", "2002"))
+  expect_identical(unique(cat$forcing), "ERA5-Land")
+  expect_identical(unique(cat$source), "cd_daily")
+  expect_true(all(wet_catalog_verify(cat)$ok))
+})

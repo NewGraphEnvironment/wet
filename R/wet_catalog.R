@@ -1,9 +1,11 @@
-#' Published discharge: the parts a manifest lists
+#' Published discharge and air temperature: the parts a manifest lists
 #'
-#' Reads the `manifest.json` of a published discharge tree and returns one row
-#' per parquet part, with where to fetch it and how to check it. The tree is
-#' `s3://fresh-bc/discharge/fwa/v1/`, read anonymously over HTTPS. The bucket
-#' allows no listing, so the manifest is how a reader finds the keys.
+#' Reads the `manifest.json` of a published tree and returns one row per
+#' parquet part, with where to fetch it and how to check it. wet publishes two
+#' trees, read anonymously over HTTPS: discharge,
+#' `s3://fresh-bc/discharge/fwa/v1/` (the default), and daily air temperature,
+#' `s3://fresh-bc/air_temperature/fwa/v1/` ([wet_air_daily()] reads it). The
+#' bucket allows no listing, so the manifest is how a reader finds the keys.
 #'
 #' @section Layout:
 #' A dataset ID is `<variable>/<network>/<version>/<unit>_<timebase>`, e.g.
@@ -367,12 +369,13 @@ wet_catalog_digest <- function(catalog) {
 # Write receipt.json beside the manifest under `root` through crate's writer
 # (#161, crate#43), for a published build: `commit` the full 40-character wet
 # commit the tree was built at, `inputs` a named list of version ids and
-# `settings` the run settings the declaration names
-# (inst/receipt/discharge_fwa_v1.yaml), `files` every part and fit file below
+# `settings` the run settings the declaration names (inst/receipt/<id with / as _>.yaml,
+# discharge_fwa_v1.yaml or air_temperature_fwa_v1.yaml), `files` every part and fit file below
 # `root`, each hashed by crate. `built` is the receipt's time, the manifest's.
 # Returns list(key, recipe_id) for wet_manifest_write(receipt =).
 wet_receipt_write <- function(root, id, commit, version, inputs, settings, files, built = Sys.time(),
-                              keys = system.file("receipt", "discharge_fwa_v1.yaml", package = "wet")) {
+                              keys = system.file("receipt", paste0(gsub("/", "_", id), ".yaml"),
+                                                 package = "wet")) {
   if (!requireNamespace("crate", quietly = TRUE)) {
     stop("install crate (0.16.0 or later) to write a receipt", call. = FALSE)
   }
@@ -390,6 +393,13 @@ wet_receipt_write <- function(root, id, commit, version, inputs, settings, files
       DBI::dbGetQuery(con, "SELECT sum(num_rows)::DOUBLE AS n FROM parquet_file_metadata(?)", params = list(x))$n
     }, 0))
   }
+  # the summary the declaration names: `parts`, and `rows_<unit>` for datasets of the tree
+  unknown <- k$summary[k$summary != "parts" & !grepl("^rows_[a-z]+_[a-z]+$", k$summary)]
+  if (length(unknown)) stop(keys, " declares a summary wet does not compute: ", paste(unknown, collapse = ", "),
+                            call. = FALSE)
+  summary <- stats::setNames(lapply(k$summary, function(nm) {
+    if (nm == "parts") length(parts) else rows(sub("^rows_", "", nm))
+  }), k$summary)
   crate::crt_receipt_write(
     root,
     output = list(name = id),
@@ -400,8 +410,7 @@ wet_receipt_write <- function(root, id, commit, version, inputs, settings, files
     ),
     result = list(
       parts = sort(files, method = "radix"),
-      summary = list(parts = length(parts), rows_segment_monthly = rows("segment_monthly"),
-                     rows_watershed_monthly = rows("watershed_monthly"), rows_segment_daily = rows("segment_daily"))
+      summary = summary
     ),
     context = list(time = format(built, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")),
     keys = k, lockfile = NULL, publish = TRUE

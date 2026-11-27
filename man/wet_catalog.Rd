@@ -2,7 +2,7 @@
 % Please edit documentation in R/wet_catalog.R
 \name{wet_catalog}
 \alias{wet_catalog}
-\title{Published discharge: the parts a manifest lists}
+\title{Published discharge and air temperature: the parts a manifest lists}
 \usage{
 wet_catalog(manifest = getOption("wet.catalog_url", wet_catalog_url))
 }
@@ -27,10 +27,12 @@ frame of \code{key}, \code{role}, \code{bytes}, \code{md5} and \code{href}). \co
 are \code{NULL} for a build published without them.
 }
 \description{
-Reads the \code{manifest.json} of a published discharge tree and returns one row
-per parquet part, with where to fetch it and how to check it. The tree is
-\verb{s3://fresh-bc/discharge/fwa/v1/}, read anonymously over HTTPS. The bucket
-allows no listing, so the manifest is how a reader finds the keys.
+Reads the \code{manifest.json} of a published tree and returns one row per
+parquet part, with where to fetch it and how to check it. wet publishes two
+trees, read anonymously over HTTPS: discharge,
+\verb{s3://fresh-bc/discharge/fwa/v1/} (the default), and daily air temperature,
+\verb{s3://fresh-bc/air_temperature/fwa/v1/} (\code{\link[=wet_air_daily]{wet_air_daily()}} reads it). The
+bucket allows no listing, so the manifest is how a reader finds the keys.
 }
 \section{Layout}{
 

@@ -45,3 +45,19 @@ Start Phase 1 and run every phase to the PR (/code-check branch, /planning-archi
 /gh-pr-push). This message is the resume instruction that starts the run-to-PR
 mandate; the merge stays with me.
 ```
+
+## Session 2026-11-27 (resume)
+
+- Resumed at 3e89bbd8; merged origin/main (v0.7.0; only CLAUDE.md, DESCRIPTION and NEWS.md among the plan's files moved, none in a way that changes a phase). Member check FREE at every phase start so far.
+- Owner answered the ten open decisions: all as recommended. Written into "Decided at the gate" and #216's body (`## Decisions`, edge premise corrected, station condition reworded).
+
+## Phase 1, 2026-11-27
+- Measurements in `findings.md`: the lookup about 6 min for the province (no cd speed issue), the series about 1.99 GB over 76 years (0.89 GB `tmean` alone), 13 of 279 stations in another cell than their segment's midpoint (27 for the downstream end). No stop rule fired.
+- Filed NewGraphEnvironment/cd#161 (cell elevation), wet#246 (`cell_elev_m`, waits on cd#161), wet#247 (stale 59.95° N edge in the gap-fill notes), crate#81 (schemas and `date` type).
+- crate branch `air-temperature-fwa-v1` in worktree `~/Projects/repo/crate-air`: `date` type, the two schemas, registry rows, decision record `decisions/nge/20261127_air_temperature_fwa.md`, tests (2,878 pass). Code-check round 1 found two doc claims and a fixture id, fixed; round 2 running. **Phase 4 needs the crate pull request merged, released and installed**; DESCRIPTION's crate floor and the bundled example manifest's crate version (`data-raw/air_example_data.R`, rerun) follow that release.
+- Commits: 32717954, a761745d
+
+## Phase 2, 2026-11-27
+- `R/wet_air_daily.R`: `wet_air_daily()` (exported) and internal `wet_air_cells()`, `wet_air_cell_id()`. One change from the plan's wording: the result carries `cell_id` (ERA5-Land's own grid, decision 3) and `cell_status` in place of cd's `cell`, since the published key is not cd's cell number; the values, dates, centres and `cell_moved` are compared `identical()` with `cd_extract_daily()` at the stored points.
+- `tests/testthat/helper-air.R` masks cd's example cube (cells 1, 2, 6, 7, 19), giving every status; `data-raw/air_example_data.R` writes `inst/extdata/air_example/` (about 22 KB) through `scripts/air_publish_lib.R`'s writer, byte-identical on a rerun.
+- `wet_receipt_write()` takes its summary from the declaration and its file from the tree ID: the discharge fixture's receipt and manifest are byte-identical before and after (md5 6e12167e… and fc2b3501…). `wet_db_load()` refuses the air tree before any fetch. cd floor 0.6.13; `wet_air_daily` in the reference index.
