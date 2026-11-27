@@ -5,7 +5,7 @@
 - Explored and drafted the phases; no plan gate in this pane: parked for the coordinator's plan gate
 - Created branch `208-backlog-move-15-re-run-the-segment-chain` off origin/main
 - Scaffolded PWF baseline from issue #208 with the drafted phases
-- Next: parked 2026-11-25; paste the block under ### Resume into a fresh session on m4
+- Next: parked 2026-11-25; paste the block under ### Resume into a fresh session on the full-run machine
 
 ### Resume
 
@@ -41,3 +41,8 @@ Start Phase 1 and run every phase to the PR (/code-check branch, /planning-archi
 /gh-pr-push). This message is the resume instruction that starts the run-to-PR
 mandate; the merge stays with me.
 ```
+
+## Session 2026-11-27 (resume)
+
+- Merged origin/main (f943096d, v0.7.0). Of the plan's files only `scripts/discharge_publish_own.R` moved: #169 added non-inputs. Plan corrected.
+- `members_check.sh` batch 17: `FREE #198`. #208's body is unchanged since the plan.

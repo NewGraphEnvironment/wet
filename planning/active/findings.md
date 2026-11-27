@@ -6,7 +6,7 @@ Batch 17 of move 15: re-run the segment chain and a publish BUILD after 0.4.40 (
 
 ## Measured 2026-11-25
 
-- m1's `data/wb/768876badf` is 31 MB: `fit_20260717/` (output, shape files) and `upstream/`; no `segment/` or `segment_daily/`. The chain needs m4.
+- A reduced bundle's `data/wb/768876badf` is 31 MB: `fit_20260717/` (output, shape files) and `upstream/`; no `segment/` or `segment_daily/`. The chain needs the full province run.
 - `scripts/discharge_publish_own.R` is the one list of non-inputs both code guards read (#171); #186 moved `R/wet_segment_daily.R`, `R/wet_segment_monthly.R` and the departure/pilot scripts onto it.
 
 ## Errors Encountered
