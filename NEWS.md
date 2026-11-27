@@ -1,4 +1,8 @@
-# wet (development version)
+# wet 0.7.0
+
+* Swift Creek and Naver Creek now also run under their own stocks' cited chinook windows, the upper Fraser's (UFRA) and the Cottonwood's (COTR), beside the Bulkley's (#182). Four new site and snow reports were added, and the comparison article reports both streams under their own windows: each stream's spawning-window drop barely moves (Swift −15 %, Naver −35 %), and neither range clears no change. `data-raw/life_history_data.R` reads knowledge's life history table at a475dfe7, and `lh_pin_guard()` stops the read if any Bulkley or Morice window would move. The article's limits now say the Fraser windows' edges are survey estimates.
+
+# wet 0.6.0
 
 * `wet_station_daily()` reads Hakai Institute's published discharge package (`sources = "hakai"`, #192): at three Calvert and Hecate island watersheds (H08KC0626, H08KC0703, H08KC0844), its 2014–2019 days continue the provincial records that begin in October 2021, under the provincial number, as the Water Tool's gauges continue theirs. A day is a Pacific Standard Time day of at least 20 of Hakai's hourly means, `"approved"` where Hakai accepted every hour after quality control (its level 2). The file is fetched once from the package's pinned commit (CC-BY 4.0). H08KC0703 now has 7 complete Chinook-window years instead of 2. `wet_station_list()` takes `"hakai"` too.
 * The province's Aquarius portal shows the pinned provincial files equal its series from October 2021 to May 2026 wherever the portal logs on the hour; January–September 2021 has since been revised at four of five stations, the portal holds months the pin lacks at four stations, and spans where a logger records off the hour were not compared (`scripts/station_sources_portal.R`, #190; the newer pin is #232).
