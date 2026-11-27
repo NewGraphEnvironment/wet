@@ -24,3 +24,6 @@ docs/
 vignettes/*.html
 vignettes/*_files/
 data-raw/nge-icon_white.png
+
+tests/testthat/_problems/
+tests/testthat/testthat-problems.rds
