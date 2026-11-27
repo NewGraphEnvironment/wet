@@ -2,7 +2,7 @@
 
 **If we do it:** the provincial record is read from a current copy, Hakai's other four watersheds are stations of their own, and a HYDAT gauge whose record stopped, at a site a provincial station now measures, carries its record into recent years, so a departure there is read from the gauge's own baseline. **If we never do:** the province's revised 2021 months and the months since the pinned copy stay unread, four central-coast records stay unread, and the two records at a shared site stay separate.
 
-Order: `planning/backlog.md`, move 26: one phase per batch. Batch 29 carries #232 and #233; batch 30 carries #227. Whether batch 30 shares this PR is Open decision 5.
+Order: `planning/backlog.md`, move 26: one phase per batch. Batch 29 carries #232 and #233; batch 30 carries #227. Batch 30 goes in a second PR (answer 5).
 
 ## Decided at the gate
 
@@ -23,7 +23,7 @@ Order: `planning/backlog.md`, move 26: one phase per batch. Batch 29 carries #23
   - a missing cached portal file stops the run (no fetch);
   - the report is named `station_sources_portal_20261125_<date>.txt`, so #190's record is never overwritten.
 
-  The one exception is Open decision 4.
+  The one exception is answer 4: the four off-hour stations are exported afresh on the pin's day.
 - **The bar's arithmetic is registered with the bar**, in `research/station_sources.md` under "Two copies that part in 2021", committed before any new file is read. These are the definitions owner decision 4 leaves open:
   - A **compared hour** is one where the pinned copy and the portal both hold a point on the hour at that timestamp. A month that one copy holds and the other lacks is "not held" (owner decision 4's "both copies hold"), reported, and not counted.
   - **Equal** is equal at the files' printed precision.
@@ -36,57 +36,18 @@ Order: `planning/backlog.md`, move 26: one phase per batch. Batch 29 carries #23
   2. Run `data-raw/station_sources_snapshot.R` with `WET_STATION_SOURCES_RAW` set to the new directory and no `WET_BACKUP`. This writes the manifest, seeds the cache and writes the registry, all uncommitted. Under `load_all`, `system.file()` reads the source tree.
   3. Run the portal check.
   4. On a pass, rerun with `WET_BACKUP=1`, then commit and move `wet_bcenv_snapshot`.
-  5. On a fail, delete the uncommitted manifest and registry, stop, and write the failing stations under `## Open decisions` (owner decision 4).
-- **The pin script refuses a snapshot whose files are already pinned:** one whose md5 set equals any tracked `bcenv_*.csv` manifest's. It also requires `WET_STATION_SOURCES_RAW` for any snapshot other than the survey's, so a new date can never pin the survey's copy.
-- **The fetch is recorded:** the directory listing's URL, its md5, each file's URL and the UTC download time, in `data/station_sources/raw/bcenv_<date>/fetch.tsv` and in the harvest report.
-- **Amendment 4 names the population by rule only:** the provincial registry, the Tool's own listings, and Hakai's rows with no `continues`. It carries no counts, so it can be registered before the new registry exists. The counts go in the regulation report.
-- **The regulation rerun reuses the WFS snapshot 20261124** (`WET_REG_SNAPSHOT=20261124`, cached on m1), so it makes no WFS request.
-  - The report attributes each status that moves from the 20261028 run to one cause: a new or dropped station, a moved point or changed name in the registry, the published-flow catalog digest (printed beside the 20261028 run's), or a snap that moved under the same inputs.
-  - The four Hakai stations are expected to be `unknown`, as the three continued ones are: their names carry no stream, and the rule takes an area only from a Tool header or a HYDAT site. The report asserts and prints their statuses. It does not assume them.
-- **The regulation file records the Hakai registry** as two more columns, `hakai_version` and `hakai_registry_md5`, and `wet_station_regulation()` holds the file to all three registries.
-- **Hakai identity is classified against the new pin:** each of the seven watersheds, by the existing rule (number `H08KC%04d`, the watershed named, 0.5 km). A match is a continuation. A watershed with no match is a station of its own, numbered as Open decision 3 says. The names for own rows come from the package README's Table 1, since there is no provincial name to take.
-- **The new helpers go in their own lib files.** Portal helpers move to a new `scripts/station_sources_portal_lib.R`, which a test sources. They do not go in `scripts/station_sources_lib.R`, which the regulation script hashes against its rule commit.
-- **The harvest splits by snapshot:**
-  - Tier (i), provincial and Tool, reproduces the survey on an explicit `survey_snapshot <- "20261028"`.
-  - The Tool "shared sites" check recomputes the survey's same-site rule on 20261028 instead of comparing it with the shipped registry.
-  - Tier (ii) and the registry holds run on `wet_bcenv_snapshot`.
-  - A new section lists what the new pin moves: stations, days, window-years and passing stations, per station.
-  - The report is `station_sources_harvest_<date>.txt`.
-- **The bound report is renamed** `station_sources_bound_20260717_<date>.txt`, so the 20260717 record stays. A registered expected catch that fails on the new pin stops the run and goes to the owner.
-- **Batch 30's table is per snapshot:** `inst/extdata/station_sources/hydat_continue_<date>.csv`. It carries `bcenv_snapshot`, `bcenv_days` and the HYDAT release, and is held to them as `wet_registry_against()` holds a registry. An internal `wet_hydat_continue(snapshot)` returns zero rows where no table exists, so an older snapshot does not error.
-- **Where the work runs: m1.** m1 holds the provincial, Tool, portal, Hakai and WFS caches, fwapg and HYDAT 20260717.
+  5. On a fail, delete the uncommitted manifest and registry, stop, and write the failing stations under `### The owner's answers to the plan's open decisions (2026-11-27, at the resume)
 
-### Stop-and-ask conditions (each goes under `## Open decisions`, and nothing that depends on it runs)
-
-- The new pin holds a grade outside `wet_bcenv_grades`, or an archive name `wet_bcenv_order()` cannot place. A new grade decides day status and means bumping `wet_bcenv_reader`, which also moves 20261028's days key.
-- Hakai's four own watersheds carry a quality code outside `wet_hakai_codes`.
-- A portal station fails the bar (owner decision 4), or a bound catch fails.
-
-## Open decisions
-
-1. **The snapshot date** (the owner left it undecided). *Recommended:* the UTC date the province's files are downloaded, `YYYYMMDD`, the convention 20261028 already follows. Any other date would name a copy by a day it was not taken.
-2. **What happens to the 20261028 pin** once a newer one ships (stored data: what the package reads and keeps). The Tool and Hakai registries and the regulation status are each built against one provincial snapshot.
-   - (a) *Recommended:* the new pin becomes `wet_bcenv_snapshot`; its manifest, registry and regulation file ship, and the Tool and Hakai registries are rebuilt against it.
-     - The 20261028 manifest and provincial registry stay shipped. The harvest can then still reproduce the survey (tier i) and say what the new pin moves. `regulation_20261028.csv` is removed.
-     - Cost: `wet_station_list(snapshot = "20261028")` refuses. New code makes its message name the shipped pin, and a test covers it. `wet_station_daily(snapshot = "20261028")` still reads `"bcenv"` but skips `"bcwatertool"` and `"hakai"` with a warning.
-     - `scripts/departure_donors.R`, which refuses any other snapshot and reads `regulation_20261028.csv` by path, stays as #211's record, reproducible at its commit.
-   - (b) Drop 20261028 entirely. The harvest's survey tier then runs only from that commit.
-   - (c) Keep both fully readable, by renaming the Tool and Hakai registries per provincial snapshot. That changes their file names and every reader.
-3. **The number Hakai's own stations go by** (a stored identifier). This covers whichever of 693, 708, 819 and 1015 the new pin does not hold as an `H08KC` station.
-   - (a) *Recommended:* the package's own `WTS693`, `WTS708`, `WTS819` and `WTS1015`, the registry key the continued rows already use.
-   - (b) The province's pattern, `H08KC0693` and so on. The Water Tool already lists `H08KC1015` as a BC ENV station, so a later provincial pin could put one number in two registries, which the registry check refuses.
-4. **The off-the-hour spans against a portal export taken 2026-11-25.** Owner decision 4 holds them to 99.9 %. But the province was still revising 2026 at the export (80–91 % agreement a month from June 2026, `data/checks/station_sources_portal_20261125.txt`), so a 2026 span can fail because the province revised it after the export, not because the pin is wrong.
-   - (a) *Recommended:* a fresh portal export of the four off-hour stations on the pin's own day. That is four requests to a host whose robots.txt is empty, under the disclaimer the owner accepted for #190.
-   - (b) Hold only the months through May 2026 to the bar, and report the later ones.
-   - (c) Report the off-hour spans without letting them decide.
-5. **Batch 30 in its own PR** (scope).
-   - (a) *Recommended:* this PR carries batch 29. Batch 30 (#227) builds in a second PR from main after this one merges, under the same plan and owner decisions 1 and 2. Batch 29 alone is a download, an S3 backup, a go/no-go stop, a regulation rerun, a rewrite of the 555-line harvest, schema changes in three readers, a sweep of five test files and six tracked reports. Batch 30 adds a registered rule, a new script, a new column and a change to an exported function. The new pin adds little to #227's pairs: 08JC0002 ends in 2020, and 08NH0001 gains about a month.
-   - (b) One PR for both, as the backlog says.
+1. **The snapshot date** is the UTC date the province's files are downloaded, `YYYYMMDD`.
+2. **The 20261028 pin:** the new pin becomes `wet_bcenv_snapshot`; its manifest, registry and regulation file ship, and the Tool and Hakai registries are rebuilt against it. The 20261028 manifest and provincial registry stay shipped, so the harvest still reproduces the survey (tier i); `regulation_20261028.csv` is removed. `wet_station_list(snapshot = "20261028")` refuses with a message naming the shipped pin (tested); `wet_station_daily(snapshot = "20261028")` reads `"bcenv"` and skips `"bcwatertool"` and `"hakai"` with a warning. `scripts/departure_donors.R` stays #211's record, reproducible at its commit.
+3. **Hakai's own stations** go by the package's keys: `WTS693`, `WTS708`, `WTS819`, `WTS1015` (whichever the new pin does not hold as an `H08KC` station).
+4. **The off-the-hour spans** are checked against a fresh portal export of the four off-hour stations (08HB0031, 08MH0056, 08NM0050, 08NM0054) taken on the pin's own day: four requests, under the disclaimer accepted for #190. The other six stations use the cached 2026-11-25 export, with no request.
+5. **Batch 30 (#227) goes in a second PR** from main after this one merges, under this plan and owner decisions 1 and 2. This PR carries batch 29; Phase 2 is not built here.
 
 ## Phase 1: Batch 29: a newer provincial pin, and Hakai's other four watersheds (#232, #233)
 
-- [ ] Before building: `bash "$T/skills/_shared/members_check.sh" "$(git remote get-url origin)" 242 242-backlog-move-26-a-newer-provincial-pin-h --batch 29` (T from `soul_published_tree`). On a non-zero exit or any line but `FREE`, build nothing of this batch: write the line under `## Open decisions` and stop.
-- [ ] Registered first, in one commit before any new file is read:
+- [x] Before building: `bash "$T/skills/_shared/members_check.sh" "$(git remote get-url origin)" 242 242-backlog-move-26-a-newer-provincial-pin-h --batch 29` (T from `soul_published_tree`). On a non-zero exit or any line but `FREE`, build nothing of this batch: write the line under `## Open decisions` and stop.
+- [x] Registered first, in one commit before any new file is read:
   - the bar and its arithmetic, in `research/station_sources.md`, with the old pin's per-station January–September 2021 shares quoted;
   - Amendment 4, dated, in `scripts/station_regulation_rule.R` (population only, no counts).
 - [ ] Download every `Discharge*.csv` the province's directory lists into `data/station_sources/raw/bcenv_<date>/` (m1, main checkout), and write `fetch.tsv` there. Run the grade and archive-name stops first: `wet_bcenv_order()` on the names, and the distinct grades against `wet_bcenv_grades`.
@@ -117,13 +78,13 @@ Order: `planning/backlog.md`, move 26: one phase per batch. Batch 29 carries #23
   - `wet_station_list()` lists own Hakai rows: source `"hakai"`, `hydat_site`/`hydat_km` NA, `licence` "CC-BY 4.0", regulation via `wet_regulation_of(status, ..., "hakai")`, ordered by source and number;
   - the existing duplicate check gets a test for an own Hakai number another registry holds;
   - the headers of `R/wet_hakai.R` and `data-raw/station_sources_hakai.R`, and both functions' roxygen, describe own stations; `man/` is regenerated.
-- [ ] `data-raw/station_sources_hakai.R`: classify the seven watersheds against the new registry by the identity rule. Write own rows (numbers per Open decision 3, names and coordinates from README Table 1) with `first` and `last` from the reader. Rerun it.
+- [ ] `data-raw/station_sources_hakai.R`: classify the seven watersheds against the new registry by the identity rule. Write own rows (numbers per answer 3, names and coordinates from README Table 1) with `first` and `last` from the reader. Rerun it.
 - [ ] Rerun the regulation status:
   - `scripts/station_regulation.R`: Hakai's own rows join the population (`registry = regulation_of(name)`, `hydat_site` NA), the third registry is added to `reg_path`/`reg_md5`, and the call becomes `wet_registry_check(..., hakai = )`;
   - fix the report's source label, which calls Hakai "tool" at `:329` and `~:407`;
   - write `hakai_version` and `hakai_registry_md5`, and move `rule_commit` to Amendment 4's commit;
   - `wet_station_regulation()` holds all three registries, with a test that a mismatched `hakai_registry_md5` refuses;
-  - add the Open decision 2 refusal message and its test;
+  - add the answer 2 refusal message and its test;
   - rerun with `WET_REG_SNAPSHOT=20261124` and write `regulation_<date>.csv` and `data/checks/station_regulation_<date>.txt`, with each moved status attributed.
 - [ ] Reports:
   - `scripts/station_sources_bound.R`, renamed report, catches held;
@@ -138,7 +99,7 @@ Order: `planning/backlog.md`, move 26: one phase per batch. Batch 29 carries #23
 
 ## Phase 2: Batch 30: a HYDAT gauge continued by the provincial station at its site (#227)
 
-This PR, or a second one from main after this one merges, as Open decision 5 settles.
+Not built in this PR: a second PR from main after this one merges (answer 5).
 
 - [ ] Before building: `bash "$T/skills/_shared/members_check.sh" "$(git remote get-url origin)" 242 <branch> --batch 30`. On a non-zero exit or any line but `FREE`, build nothing of this batch: write the line under `## Open decisions` and stop.
 - [ ] Register owner decision 2's rule in the header of a new `scripts/station_hydat_continue.R`, committed before the script reads any value, with its mechanics:
