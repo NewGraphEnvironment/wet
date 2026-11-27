@@ -73,7 +73,8 @@ st <- rbind(
   data.frame(station_number = tool$station_number, source = "bcwatertool", name = tool$name, lon = tool$lon,
              lat = tool$lat, id = tool$id, hydat_site = tool$hydat_site, registry = tool$regulation),
   data.frame(station_number = hakai$station_number, source = rep("hakai", nrow(hakai)), name = hakai$name,
-             lon = hakai$lon, lat = hakai$lat, id = NA_character_, hydat_site = NA_character_,
+             lon = hakai$lon, lat = hakai$lat, id = rep(NA_character_, nrow(hakai)),
+             hydat_site = rep(NA_character_, nrow(hakai)),
              registry = ifelse(regulation_of(hakai$name) == "unknown", "unknown", "regulated by name"))
 )
 st <- st[order(st$source, st$station_number, method = "radix"), ]
