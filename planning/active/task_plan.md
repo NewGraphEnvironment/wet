@@ -32,6 +32,10 @@ No plan gate ran in this pane: a coordinator dispatched this session, and the co
 - **Catchment traits per segment (owner, 2026-11-26, reconfirmed 2026-11-27):** an issue is filed for it, in public wording proposed with the file, placed by the next `/backlog-sweep`; the file's table names it.
 - **Who outside reads #217's file, and when (owner, 2026-11-27):** decided later, after the PR. #217 stays open with the outside read owed.
 
+## Open decisions
+
+1. **One prediction site per segment** has no issue either (#223 builds observation sites only). Recommended: the traits-per-segment issue covers both, one row per segment with the traits and the point a prediction is made at (draft in `planning/active/issue-draft-segment-traits.md`, proposed with the files). Or a second issue for the prediction sites. Asked with the wording review, before anything is filed.
+
 ## Phase 1: The baseline read against Bayesian practice (#218)
 
 - [x] Before building: `bash "$T/skills/_shared/members_check.sh" "$(git remote get-url origin)" 238 238-backlog-move-22-what-we-can-bring-writte --batch 24` (T from `soul_published_tree`); on a non-zero exit or any line but `FREE`, build nothing: write the line under `## Open decisions` and stop
@@ -46,12 +50,12 @@ No plan gate ran in this pane: a coordinator dispatched this session, and the co
 
 ## Phase 2: What we can bring, and what we are hoping for (#217)
 
-- [ ] Before building: the same members re-check (`--batch 24`), (the file's name, title and outline were decided by the owner on 2026-11-26)
-- [ ] For each input, find where it stands before writing it down: in place (function or path, its columns read from the code or the file), being built (the issue that builds it: #216 air per segment, #215 loggers, #223 stations on the network and the SSN object per basin, #222 and #224 the fill, the fwapg fork's network check), or not yet anyone's work (catchment traits per segment: the issue filed for it)
-- [ ] Read how SSN2 and SSNbler hold a region with more than one outlet, and describe the options for move 23's gate
-- [ ] Write the file under the approved name and outline, its header line naming #217, #214, #213 and #218; no score quoted (the research files linked for numbers)
-- [ ] Run the check over it (anchors none; the unlisted-numeral guard); the log is #218's file's only
-- [ ] Add its row to `research/README.md`
+- [x] Before building: the same members re-check (`--batch 24`), (the file's name, title and outline were decided by the owner on 2026-11-26)
+- [x] For each input, find where it stands before writing it down: in place (function or path, its columns read from the code or the file), being built (the issue that builds it: #216 air per segment, #215 loggers, #223 stations on the network and the SSN object per basin, #222 and #224 the fill, the fwapg fork's network check), or not yet anyone's work (catchment traits per segment: the issue filed for it)
+- [x] Read how SSN2 and SSNbler hold a region with more than one outlet, and describe the options for move 23's gate
+- [x] Write the file under the approved name and outline, its header line naming #217, #214, #213 and #218; no score quoted (the research files linked for numbers)
+- [x] Run the check over it (anchors none; the unlisted-numeral guard); the log is #218's file's only
+- [x] Add its row to `research/README.md`
 - [ ] Cold read: a Plan or Explore reader given only the two files, reading as an outside modeller; fold what it finds, recorded as `planning/active/review-coldread.md`
 - [ ] Send both files to the owner and wait for his word before any push past the park; fold his edits
 
