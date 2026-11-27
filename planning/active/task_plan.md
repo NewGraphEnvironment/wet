@@ -56,7 +56,7 @@ No plan gate ran in this pane: a coordinator dispatched this session, and the co
 - [x] Write the file under the approved name and outline, its header line naming #217, #214, #213 and #218; no score quoted (the research files linked for numbers)
 - [x] Run the check over it (anchors none; the unlisted-numeral guard); the log is #218's file's only
 - [x] Add its row to `research/README.md`
-- [ ] Cold read: a Plan or Explore reader given only the two files, reading as an outside modeller; fold what it finds, recorded as `planning/active/review-coldread.md`
+- [x] Cold read: a Plan or Explore reader given only the two files, reading as an outside modeller; fold what it finds, recorded as `planning/active/review-coldread.md`
 - [ ] Send both files to the owner and wait for his word before any push past the park; fold his edits
 
 ## Owed at the end (reported, done after merge)
