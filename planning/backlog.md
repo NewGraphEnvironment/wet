@@ -74,7 +74,7 @@ counts them): run `/backlog-sweep` again, the backlog is not finished.
 | - [x] 7 | #169 | 10: scenarios and coverage (3 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/228 | A | 6 | fable then opus |
 | - [x] 8 | #179 | 7: stations beyond HYDAT (1 issue) | done: https://github.com/NewGraphEnvironment/wet/pull/194 | B | — | opus |
 | - [x] 9 | #186 | 11: the readers return pick, one list of non-inputs (2 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/197 | C | — | sonnet |
-| - [ ] 10 | #187 | 12: Swift and Naver creeks under their own windows (1 issue) | **waiting** on knowledge#256 (the owner, 2026-11-23: adopt the UFRA and COTR windows only once knowledge reads NuSEDS dates) | D | 18 | opus |
+| - [x] 10 | #187 | 12: Swift and Naver creeks under their own windows (1 issue) | done: https://github.com/NewGraphEnvironment/wet/pull/212 | D | 18 | opus |
 | - [x] 11 | #188 | 13: small-basin error and the zone adjustment (4 issues) | done: https://github.com/NewGraphEnvironment/wet/pull/200 | E | — | fable then opus |
 | - [ ] 12 | #189 | 14: research files around the current state (4 issues) | open | D | 10, 18 | sonnet |
 | - [x] 13 | #195 | 15: second sources for the provincial stations (1 issue) | done: https://github.com/NewGraphEnvironment/wet/pull/201 | B | 8, 9 | opus |
@@ -291,7 +291,7 @@ table; where `pick` sits in both readers' columns.
 
 ### 12. Swift and Naver creeks under their own windows
 
-- [ ] Carried by move 10, #187
+- [x] Carried by move 10, #187 (merged in https://github.com/NewGraphEnvironment/wet/pull/212)
 
 #182 scores Swift (UFRA) and Naver (COTR) creeks under their own cited chinook windows beside the Bulkley's. It moves wet's
 one pin on the knowledge life history table (`c97c4d0`), which every Bulkley and Morice reader follows.
