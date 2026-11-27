@@ -339,29 +339,28 @@ git_show <- function(path) {
   tmp
 }
 prior <- utils::read.csv(git_show(f_status), na.strings = "", colClasses = "character", encoding = "UTF-8")
-prior_digest <- sub("^.*catalog digest ([0-9a-f]+);.*$", "\\1",
-                    grep("catalog digest", readLines(git_show(sprintf("data/checks/station_regulation_%s.txt",
-                                                                        snapshot))), value = TRUE))
+prior_report <- readLines(git_show(sprintf("data/checks/station_regulation_%s.txt", snapshot)))
+prior_digest <- sub("^.*catalog digest ([0-9a-f]+);.*$", "\\1", grep("catalog digest", prior_report, value = TRUE))
+at <- function(x, n, col) x[[col]][match(n, x$station_number)]
 both <- intersect(prior$station_number, out$station_number)
-moved <- both[prior$regulation[match(both, prior$station_number)] != out$regulation[match(both, out$station_number)]]
-why_moved <- setdiff(both[prior$why[match(both, prior$station_number)] != out$why[match(both, out$station_number)]],
-                     moved)
+moved <- both[at(prior, both, "regulation") != at(out, both, "regulation")]
+why_moved <- setdiff(both[at(prior, both, "why") != at(out, both, "why")], moved)
 added <- setdiff(out$station_number, prior$station_number)
 dropped <- setdiff(prior$station_number, out$station_number)
+listed <- function(x) if (length(x)) ":" else ""
+added_lines <- sprintf("    %s %s %s: %s", added, at(out, added, "source"), at(out, added, "regulation"),
+                       at(out, added, "why"))
+moved_lines <- sprintf("    %s %s -> %s (%s -> %s)", moved, at(prior, moved, "regulation"),
+                       at(out, moved, "regulation"), at(prior, moved, "why"), at(out, moved, "why"))
+why_lines <- sprintf("    %s: %s -> %s", why_moved, at(prior, why_moved, "why"), at(out, why_moved, "why"))
 against <- c(
   sprintf("  status file at %s: %d stations; this run: %d", substr(prior_commit, 1, 8), nrow(prior), nrow(out)),
   sprintf("  published build: catalog digest %s then, %s now", prior_digest, digest),
-  sprintf("  added: %d%s", length(added), if (length(added)) ":" else ""),
-  if (length(added)) sprintf("    %s %s %s: %s", added, out$source[match(added, out$station_number)],
-                             out$regulation[match(added, out$station_number)], out$why[match(added, out$station_number)]),
+  sprintf("  added: %d%s", length(added), listed(added)), added_lines,
   sprintf("  dropped: %d%s", length(dropped), if (length(dropped)) paste(":", paste(dropped, collapse = ", ")) else ""),
-  sprintf("  status moved: %d%s", length(moved), if (length(moved)) ":" else ""),
-  if (length(moved)) sprintf("    %s %s -> %s (%s -> %s)", moved, prior$regulation[match(moved, prior$station_number)],
-                             out$regulation[match(moved, out$station_number)],
-                             prior$why[match(moved, prior$station_number)], out$why[match(moved, out$station_number)]),
-  sprintf("  same status, reasons reworded or reshared: %d%s", length(why_moved), if (length(why_moved)) ":" else ""),
-  if (length(why_moved)) sprintf("    %s: %s -> %s", why_moved, prior$why[match(why_moved, prior$station_number)],
-                                 out$why[match(why_moved, out$station_number)]))
+  sprintf("  status moved: %d%s", length(moved), listed(moved)), moved_lines,
+  sprintf("  same status, reasons reworded or reshared: %d%s", length(why_moved), listed(why_moved)), why_lines
+)
 
 # ---- the report ---------------------------------------------------------------------------------
 f_rep <- file.path("data", "checks", sprintf("station_regulation_%s.txt", snapshot))
@@ -369,9 +368,9 @@ pct <- function(x) ifelse(is.na(x), "", sprintf("%.1f", 100 * x))
 tab <- function(x) paste(sprintf("%s %d", names(x), as.integer(x)), collapse = ", ")
 fmt_tbl <- function(d) paste0("  ", utils::capture.output(print(d, row.names = FALSE, right = FALSE)))
 fmt_mat <- function(m) paste0("  ", utils::capture.output(print(m)))
+src_label <- c(bcenv = "prov", bcwatertool = "tool", hakai = "hakai")
 every <- data.frame(
-  station = st$station_number, src = c(bcenv = "prov", bcwatertool = "tool", hakai = "hakai")[st$source],
-  status = st$regulation,
+  station = st$station_number, src = unname(src_label[st$source]), status = st$regulation,
   leg = ifelse(st$accepted, st$leg, "-"), snap_m = ifelse(st$accepted, sprintf("%.0f", st$distance_m), ""),
   area = ifelse(is.na(st$area_km2), "", sprintf("%.1f", st$area_km2)),
   ratio = ifelse(st$accepted & !is.na(st$area_ratio), sprintf("%.2f", st$area_ratio), ""),

@@ -192,8 +192,9 @@ test_that("Hakai's own watersheds are listed as stations, and a continued statio
       data.frame(station_number = c("WTS9001", "WTS9002"), watershed = c("9001", "9002"), name = c("Test", "Own"),
                  lon = c(-128, -128.1), lat = c(51.6, 51.7), continues = c("08ZZ0001", NA),
                  continues_before = as.Date(c("2021-10-01", NA)), first = as.Date(c("2014-08-02", "2014-09-01")),
-                 last = as.Date(c("2019-09-30", "2019-09-29")), licence = "CC-BY 4.0", credit = "Hakai Institute et al.",
-                 bcenv_snapshot = "20261028", bcenv_days = wet_bcenv_days_key("20261028"))
+                 last = as.Date(c("2019-09-30", "2019-09-29")), licence = "CC-BY 4.0",
+                 credit = "Hakai Institute et al.", bcenv_snapshot = "20261028",
+                 bcenv_days = wet_bcenv_days_key("20261028"))
     })
   s <- wet_station_list("hakai")
   expect_equal(s$station_number, "WTS9002")
@@ -213,8 +214,9 @@ test_that("Hakai's own watersheds are listed as stations, and a continued statio
   expect_equal(p$licence[1], "OGL-BC 2.0; days before 2021-10-01: CC-BY 4.0")
   expect_match(p$credit[1], "; days before 2021-10-01: Hakai Institute et al.", fixed = TRUE)
   # an own station the status file does not hold under "hakai" is refused
-  local_mocked_bindings(wet_station_regulation = function(snapshot) {
+  wrong_source <- function(snapshot) {
     data.frame(station_number = c("08ZZ0001", "WTS9002"), source = "bcenv", regulation = "unknown")
-  })
+  }
+  local_mocked_bindings(wet_station_regulation = wrong_source)
   expect_error(wet_station_list("hakai"), "no hakai row for WTS9002")
 })

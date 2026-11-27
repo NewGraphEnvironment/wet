@@ -96,9 +96,9 @@ Not built in this PR: a second PR from main after this one merges (answer 5).
 
 ## Validation
 
-- [ ] Tests pass (`devtools::test()`; `NOT_CRAN=true` on any single-file rerun)
+- [x] Tests pass (`devtools::test()`; `NOT_CRAN=true` on any single-file rerun)
 - [ ] `/code-check` clean (once over the branch with `/code-check branch`)
-- [ ] `lintr::lint_package()` adds no lint per file against `origin/main`; `pkgdown::check_pkgdown()` passes
+- [x] `lintr::lint_package()` adds no lint per file against `origin/main`; `pkgdown::check_pkgdown()` passes
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 

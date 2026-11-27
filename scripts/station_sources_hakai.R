@@ -21,8 +21,9 @@
 # - the registry (inst/extdata/station_sources/hakai_<version>_hydat.csv) held
 #   to the reader: `first` and `last` to the kept days before the cut (an own
 #   station's whole record), `continues_before` to the first day the provincial
-#   files hold any usable hour of the station (none for an own station). A difference fails the run (exit 1); rewrite the
-#   registry with data-raw/station_sources_hakai.R.
+#   files hold any usable hour of the station (none for an own station). A
+#   difference fails the run (exit 1); rewrite the registry with
+#   data-raw/station_sources_hakai.R.
 #
 # Report: data/checks/station_sources_hakai_<version>.txt (no timestamp; a rerun
 # on the same package and snapshot reproduces it byte for byte).
