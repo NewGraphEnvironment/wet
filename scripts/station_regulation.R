@@ -27,7 +27,7 @@ source("scripts/station_regulation_lib.R")
 stamp <- function(...) message(format(Sys.time(), "%H:%M:%S "), ...)
 
 # ---- the rule as registered ---------------------------------------------------------------------
-rule_commit <- "6c9cb1e5f0ff2e667777449c697a403cb11f64aa"
+rule_commit <- "82aa3f24bbe03d409c7ba922cf575151ace0dd4b"
 rule_files <- c("scripts/station_regulation_rule.R", "scripts/station_sources_lib.R")
 rule_md5 <- vapply(rule_files, function(f) {
   tmp <- tempfile()
@@ -54,26 +54,34 @@ save_atomic <- function(x, path) {
 }
 key_of <- function(...) substr(wet:::wet_md5_text(paste(c(...), collapse = "|")), 1, 10)
 
-# ---- population: both registries, folded as wet_station_list() folds them ---------------------------
+# ---- population: the three registries, folded as wet_station_list() folds them --------------------
 reg_path <- c(bcenv = sprintf("bcenv_%s_hydat.csv", snapshot),
-              bcwatertool = sprintf("bcwatertool_%s_hydat.csv", tool_snapshot))
+              bcwatertool = sprintf("bcwatertool_%s_hydat.csv", tool_snapshot),
+              hakai = sprintf("hakai_%s_hydat.csv", wet_hakai_version))
 reg_path <- vapply(reg_path, function(f) system.file("extdata", "station_sources", f, package = "wet"), "")
 reg_md5 <- vapply(reg_path, function(f) unname(tools::md5sum(f)), "")
 prov <- wet:::wet_bcenv_stations(snapshot)
 tool_all <- wet:::wet_bcwatertool_against(wet:::wet_bcwatertool_stations(tool_snapshot), snapshot)
-wet:::wet_registry_check(tool_all, prov, snapshot)
+hakai_all <- wet:::wet_registry_against(wet:::wet_hakai_stations(), snapshot, "Hakai",
+                                        "data-raw/station_sources_hakai.R")
+wet:::wet_registry_check(tool_all, prov, snapshot, hakai = hakai_all)
 tool <- tool_all[is.na(tool_all$continues), ]
+hakai <- hakai_all[is.na(hakai_all$continues), ]  # Amendment 4: Hakai's stations of their own
 st <- rbind(
   data.frame(station_number = prov$station_number, source = "bcenv", name = prov$name, lon = prov$lon,
              lat = prov$lat, id = NA_character_, hydat_site = prov$hydat_site, registry = prov$regulation),
   data.frame(station_number = tool$station_number, source = "bcwatertool", name = tool$name, lon = tool$lon,
-             lat = tool$lat, id = tool$id, hydat_site = tool$hydat_site, registry = tool$regulation)
+             lat = tool$lat, id = tool$id, hydat_site = tool$hydat_site, registry = tool$regulation),
+  data.frame(station_number = hakai$station_number, source = rep("hakai", nrow(hakai)), name = hakai$name,
+             lon = hakai$lon, lat = hakai$lat, id = NA_character_, hydat_site = NA_character_,
+             registry = ifelse(regulation_of(hakai$name) == "unknown", "unknown", "regulated by name"))
 )
 st <- st[order(st$source, st$station_number, method = "radix"), ]
 rownames(st) <- NULL
 stopifnot(!anyDuplicated(st$station_number), !anyNA(st$lon), !anyNA(st$lat))
 st$name_regulated <- regulation_of(st$name) != "unknown"
-stamp(nrow(st), " stations: ", sum(st$source == "bcenv"), " provincial, ", sum(st$source == "bcwatertool"), " Tool")
+stamp(nrow(st), " stations: ", sum(st$source == "bcenv"), " provincial, ", sum(st$source == "bcwatertool"), " Tool, ",
+      sum(st$source == "hakai"), " Hakai")
 
 # ---- drainage areas: the Tool's header, else HYDAT's gross area at the station's site ---------------
 paths <- wet:::wet_bcwatertool(tool$id, tool_snapshot)
@@ -306,8 +314,8 @@ out <- data.frame(
   power_up = st$power_up, novol_up = st$novol_up, outside_bc = st$outside_bc, manmade_up = st$manmade_up,
   linear_feature_id = st$linear_feature_id, snap_stream = st$snap_stream, snap_leg = st$leg,
   snap_m = round(st$distance_m, 1), wfs_snapshot = wfs_date, bcenv_snapshot = snapshot,
-  bcwatertool_snapshot = tool_snapshot, bcenv_registry_md5 = reg_md5[["bcenv"]],
-  bcwatertool_registry_md5 = reg_md5[["bcwatertool"]], credit = credit
+  bcwatertool_snapshot = tool_snapshot, hakai_version = wet_hakai_version, bcenv_registry_md5 = reg_md5[["bcenv"]],
+  bcwatertool_registry_md5 = reg_md5[["bcwatertool"]], hakai_registry_md5 = reg_md5[["hakai"]], credit = credit
 )
 out$linear_feature_id[!st$accepted] <- NA
 out$snap_leg[!st$accepted] <- NA
@@ -319,6 +327,42 @@ local({
   utils::write.csv(out, f_status, row.names = FALSE, na = "", fileEncoding = "UTF-8")
 })
 
+# ---- the status file before Amendment 4 ----------------------------------------------------------
+# #196's shipped file and report, at the commit this branch left main from: every status that
+# moved, with its reasons, and the published build each read, so a move is attributed to the
+# population, the build or the snap rather than assumed away
+prior_commit <- "a08f3207a9b996b5634768238e6a4def66fe5a1f"
+git_show <- function(path) {
+  tmp <- tempfile()
+  st <- system2("git", c("show", paste0(prior_commit, ":", path)), stdout = tmp, stderr = FALSE)
+  if (!identical(st, 0L)) stop("cannot read ", path, " at ", prior_commit, call. = FALSE)
+  tmp
+}
+prior <- utils::read.csv(git_show(f_status), na.strings = "", colClasses = "character", encoding = "UTF-8")
+prior_digest <- sub("^.*catalog digest ([0-9a-f]+);.*$", "\\1",
+                    grep("catalog digest", readLines(git_show(sprintf("data/checks/station_regulation_%s.txt",
+                                                                        snapshot))), value = TRUE))
+both <- intersect(prior$station_number, out$station_number)
+moved <- both[prior$regulation[match(both, prior$station_number)] != out$regulation[match(both, out$station_number)]]
+why_moved <- setdiff(both[prior$why[match(both, prior$station_number)] != out$why[match(both, out$station_number)]],
+                     moved)
+added <- setdiff(out$station_number, prior$station_number)
+dropped <- setdiff(prior$station_number, out$station_number)
+against <- c(
+  sprintf("  status file at %s: %d stations; this run: %d", substr(prior_commit, 1, 8), nrow(prior), nrow(out)),
+  sprintf("  published build: catalog digest %s then, %s now", prior_digest, digest),
+  sprintf("  added: %d%s", length(added), if (length(added)) ":" else ""),
+  if (length(added)) sprintf("    %s %s %s: %s", added, out$source[match(added, out$station_number)],
+                             out$regulation[match(added, out$station_number)], out$why[match(added, out$station_number)]),
+  sprintf("  dropped: %d%s", length(dropped), if (length(dropped)) paste(":", paste(dropped, collapse = ", ")) else ""),
+  sprintf("  status moved: %d%s", length(moved), if (length(moved)) ":" else ""),
+  if (length(moved)) sprintf("    %s %s -> %s (%s -> %s)", moved, prior$regulation[match(moved, prior$station_number)],
+                             out$regulation[match(moved, out$station_number)],
+                             prior$why[match(moved, prior$station_number)], out$why[match(moved, out$station_number)]),
+  sprintf("  same status, reasons reworded or reshared: %d%s", length(why_moved), if (length(why_moved)) ":" else ""),
+  if (length(why_moved)) sprintf("    %s: %s -> %s", why_moved, prior$why[match(why_moved, prior$station_number)],
+                                 out$why[match(why_moved, out$station_number)]))
+
 # ---- the report ---------------------------------------------------------------------------------
 f_rep <- file.path("data", "checks", sprintf("station_regulation_%s.txt", snapshot))
 pct <- function(x) ifelse(is.na(x), "", sprintf("%.1f", 100 * x))
@@ -326,7 +370,8 @@ tab <- function(x) paste(sprintf("%s %d", names(x), as.integer(x)), collapse = "
 fmt_tbl <- function(d) paste0("  ", utils::capture.output(print(d, row.names = FALSE, right = FALSE)))
 fmt_mat <- function(m) paste0("  ", utils::capture.output(print(m)))
 every <- data.frame(
-  station = st$station_number, src = ifelse(st$source == "bcenv", "prov", "tool"), status = st$regulation,
+  station = st$station_number, src = c(bcenv = "prov", bcwatertool = "tool", hakai = "hakai")[st$source],
+  status = st$regulation,
   leg = ifelse(st$accepted, st$leg, "-"), snap_m = ifelse(st$accepted, sprintf("%.0f", st$distance_m), ""),
   area = ifelse(is.na(st$area_km2), "", sprintf("%.1f", st$area_km2)),
   ratio = ifelse(st$accepted & !is.na(st$area_ratio), sprintf("%.2f", st$area_ratio), ""),
@@ -341,8 +386,16 @@ lines <- c(
   "== The rule as registered",
   "  registered at 2d93787fb631ccd3b231827c2484c0f58029cb3d, before any station was snapped or placed;",
   sprintf("  run under %s, with the amendments its header dates:", rule_commit),
-  paste0("    ", sub("^# ---- (Amendment [0-9]+, [0-9-]+ \\(.*\\)) -*$", "\\1",
-                     grep("^# ---- Amendment [0-9]+, ", readLines(rule_files[1]), value = TRUE))),
+  local({
+    # an amendment's heading, its parenthesis closed on the next line where it wraps
+    l <- readLines(rule_files[1])
+    i <- grep("^# ---- Amendment [0-9]+, ", l)
+    paste0("    ", vapply(i, function(k) {
+      x <- sub(" -*$", "", sub("^# ---- ", "", l[k]))
+      if (!grepl(")", x, fixed = TRUE)) x <- paste(x, sub("^# ", "", sub(")[^)]*$", ")", l[k + 1])))
+      x
+    }, ""))
+  }),
   "  the registered version stopped at a shared licence before placing any station, so no status exists under it",
   sprintf("  %s md5 %s", names(rule_md5), rule_md5),
   "",
@@ -403,9 +456,15 @@ lines <- c(
                            o$below_m))
   }),
   "",
+  "== Against the status file shipped before Amendment 4",
+  against,
+  "",
   "== Population",
   sprintf(paste("  %d stations: %d provincial, %d Water Tool listings of their own (%d continuing listings",
-                "folded into their provincial station)"), nrow(st), sum(st$source == "bcenv"), sum(st$source == "bcwatertool"), sum(!is.na(tool_all$continues))),
+                "folded into their provincial station)"), nrow(st), sum(st$source == "bcenv"),
+          sum(st$source == "bcwatertool"), sum(!is.na(tool_all$continues))),
+  sprintf(paste("  and, under Amendment 4, %d Hakai watersheds of their own (%d continuing rows folded into",
+                "their provincial station)"), sum(st$source == "hakai"), sum(!is.na(hakai_all$continues))),
   sprintf("  drainage area known: %d (%s)", sum(!is.na(st$area_km2)),
           tab(table(ifelse(grepl("^HYDAT", st$area_from), "HYDAT site", st$area_from)))),
   "",

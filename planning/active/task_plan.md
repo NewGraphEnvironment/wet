@@ -55,14 +55,14 @@ Order: `planning/backlog.md`, move 26: one phase per batch. Batch 29 carries #23
 Rescoped by answer 6: #233 against the 20261028 pin. The pin's tasks (download, pin guards, portal gate, backup, constant move and test sweep, Tool rebuild, harvest split, bound rename, the 20261028 refusal message) are not built; they stay #232's.
 
 - [x] Hakai's four other watersheds, registered before any of their days is counted (`research/station_sources.md`, "The Hakai package in wet"): an hour whose `Qrate` is `NA` is no value and is dropped (one hour, WTS708 2013-09-08T16:00, `SVC` at sensor installation; the reader refused it); WTS708's position from Korver et al. (2022) Table A1 (SSN708), since README Table 1 repeats WTS693's for it.
-- [ ] #233 in code, tests first, in `test-wet_station_list.R` and `test-wet_station_daily.R`, with fixtures for an own Hakai row:
+- [x] #233 in code, tests first, in `test-wet_station_list.R` and `test-wet_station_daily.R`, with fixtures for an own Hakai row:
   - `wet_hakai_hours()` drops an `NA` `Qrate` hour;
   - `wet_hakai_stations()` accepts rows with no `continues`, and requires `continues_before` to be NA exactly there;
   - `wet_hakai_station_days()` returns an own station's days under its own number;
   - `wet_station_list()` lists own Hakai rows: source `"hakai"`, `hydat_site`/`hydat_km` NA, `licence` "CC-BY 4.0", regulation via the regulation file, ordered by source and number;
   - the existing duplicate check gets a test for an own Hakai number another registry holds;
   - the headers of `R/wet_hakai.R` and `data-raw/station_sources_hakai.R`, and both functions' roxygen, describe own stations; `man/` is regenerated.
-- [ ] `data-raw/station_sources_hakai.R`: classify the seven watersheds against the 20261028 provincial registry by the identity rule (number `H08KC%04d`, the watershed named, 0.5 km); a match continues, none is a station of its own under `WTS<n>` (answer 3), named as the continued rows are, positioned from README Table 1 (WTS708 from Table A1), `first` and `last` from the reader. Rerun it; the three continued rows must come back unchanged.
+- [x] `data-raw/station_sources_hakai.R`: classify the seven watersheds against the 20261028 provincial registry by the identity rule (number `H08KC%04d`, the watershed named, 0.5 km); a match continues, none is a station of its own under `WTS<n>` (answer 3), named as the continued rows are, positioned from README Table 1 (WTS708 from Table A1), `first` and `last` from the reader. Rerun it; the three continued rows must come back unchanged.
 - [ ] Rerun the regulation status:
   - `scripts/station_regulation.R`: Hakai's own rows join the population (`registry = regulation_of(name)`, `hydat_site` NA), the Hakai registry is added to `reg_path`/`reg_md5`, and the call becomes `wet_registry_check(..., hakai = )`;
   - fix the report's source label, which calls Hakai "tool";
