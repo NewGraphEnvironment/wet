@@ -13,9 +13,9 @@ on these records is out of scope (#215) and gets its own issue once they are in.
 No plan gate in this pane: the session was dispatched for the coordinator's plan gate, which reads this plan and
 `review-plan.md`. The Plan review ran before the baseline and its corrections are folded in below; each phase says what
 it changed. What follows is mechanism, decided in the plan. The two questions the backlog lists for this gate (reader
-shape and first series) are answered here as recommendations and put to the owner as Open decision 4.
+shape and first series) are answered here as recommendations and put to the owner as Decision 4, since answered (below).
 
-- **One entry point, `wet_temp_daily()`** (recommended, Open decision 4). Ids are split **by registry membership
+- **One entry point, `wet_temp_daily()`** (Decision 4). Ids are split **by registry membership
   only**: an id in a logger registry goes to an internal reader, `wet_logger_daily()` (`R/wet_logger_daily.R`); every
   other id goes to the ECCC query unchanged, keeping its "no water temperature found" warning. Nothing new is refused
   by shape: the ECCC archive holds `08NHX18`, which is not HYDAT-shaped, and `scripts/temp_coverage.R` and
@@ -32,7 +32,7 @@ shape and first series) are answered here as recommendations and put to the owne
   - Logger days are computed in R, deterministically, not by duckdb's parallel `avg()` (#224).
   - The ECCC query and its days are untouched; move 20 (#236) rewrites that query in the same file and waits on this
     move.
-- **Nechako first** (recommended, Open decision 4): UNBC's Northern Hydrometeorology Group publishes it on Zenodo under
+- **Nechako first** (Decision 4): UNBC's Northern Hydrometeorology Group publishes it on Zenodo under
   CC BY 4.0 (reading and republishing with credit), Zenodo records are immutable with published checksums, and it is
   the only named series readable without an owner answer.
   - **Both records are pinned** (review G7, A1): 10.5281/zenodo.15053907 (2019–2024, `01_Data.zip`, 13.8 MB) and
@@ -66,7 +66,7 @@ shape and first series) are answered here as recommendations and put to the owne
   - **Air day:** a day whose diurnal range of hourly means exceeds the month's air threshold.
   - The thresholds are measured by `scripts/temp_logger_thresholds.R` → `data/checks/temp_logger_thresholds.txt` on
     the ECCC archive's open-water days (May–September, diurnal range ≥ 1 °C, as `scripts/temp_day_boundary.R`), under
-    the percentiles and station subset Open decision 5 sets. They are then hard-coded as constants in
+    the percentiles and station subset Decision 5 sets. They are then hard-coded as constants in
     `R/wet_logger_daily.R`, a test holds the constants to the report, and they are registered in
     `research/station_water_temperature.md` in a commit of their own before any logger day is screened.
   - Where a series ships QA flags of its own, they are read and reported beside ours, not used in their place.
@@ -99,71 +99,44 @@ shape and first series) are answered here as recommendations and put to the owne
   computed in R (review AC2). `data-raw/temp_loggers_nhg.R` writes the manifests and the registry
   `inst/extdata/temp_loggers/nhg_<version>_sites.csv`, and refuses any id shaped like a HYDAT number or present in
   the ECCC archive.
-- **Other series go to issues of their own** (review S1): Upper Bulkley, under either answer to Open decision 1, and
+- **Other series go to issues of their own** (review S1): Upper Bulkley, under either answer to Decision 1, and
   Weigert Creek or Morice if one turns out readable. Each is filed naming move 19, so this PR stays one reviewable
-  piece. The PR says "Closes #215" only if every series that may be read has loaded (Open decision 1 answered (b) and
+  piece. The PR says "Closes #215" only if every series that may be read has loaded (Decision 1 answered (b) and
   nothing else readable); otherwise "Relates to #215".
 - **A series held by someone else** is inventoried from what is public only; no request goes to its holder from this
   move (any ask goes through the owner).
 
-## Open decisions
+## Decided by the owner (2026-11-27, at the resume)
 
-1. **The Skeena Salmon Data Catalogue (`data.skeenasalmon.info`, CKAN).**
-   - What it holds: `upper-bulkley-water-temperature-monitoring-data` (DFO Pacific Region, Open Data Commons PDDL;
-     hourly logger temperatures from 2016 as CSV, site coordinates), and `morice-temperature-monitoring` (Morice Water
-     Monitoring Trust, CC non-commercial, seven loggers, 2023).
-   - Its robots.txt allows `User-agent: *` under `Content-Signal: search=yes,ai-train=no,use=reference` and disallows by
-     name `ClaudeBot`, `anthropic-ai` and `Claude-Web`, among other AI crawlers.
-   - Five metadata reads were made from this planning session (robots.txt, one `package_search`, three
-     `package_show`) before the robots file was read; none since.
-   - Options:
-     - (a, recommended) **The owner fetches once by hand** with a script written in the Upper Bulkley issue (user agent
-       `wet`, each request logged). An agent session then reads and processes only the cached copy, pinned with
-       `fetch = FALSE` and backed up. The data are public domain; the refusal names AI agents, so no agent sends a
-       request, but an agent does process what was fetched.
-     - (b) **Not read.** Upper Bulkley and Morice get inventory rows from what planning read.
-   - Either way, Upper Bulkley's load is its own issue (Phase 6).
-2. **The logger site identifier**, which becomes `station_number` in every day the reader returns and in anything
-   built on it. Options:
-   - (a, recommended) `<SERIES>_<holder's site code>`, upper case, e.g. `NHG_<code>`: readable, stable across the
-     holder's versions, never a HYDAT, provincial or Tool number shape.
-   - (b) a wet-assigned sequence per series (`NHG0001`), with the holder's code in the registry: shorter, and a holder's
-     renumbering moves no id, but a site is known only through the registry.
-   Phase 2 does not start until this is answered.
-3. **Which held series the public research file names.** #215's body names the Skeena networks run through the Pacific
-   Salmon Commission, the Skeena Fisheries Commission and the Gitksan Watershed Authorities. Options:
-   - (a, recommended) one neutral row, "Skeena logger networks: not published; not read", naming them as #215 does;
-   - (b) leave them out of `research/station_water_temperature.md`, inventorying only published series.
-   Needed before Phase 5 writes the research file.
-4. **The backlog's two gate questions for this move**, answered above as recommendations:
-   - the reader shape: one entry point through `wet_temp_daily()`, or a sibling exported reader;
-   - the first series: Nechako, both records.
-   Confirm or change before Phase 3 (the reader) and Phase 2 (the pin).
-5. **The QA thresholds** (thresholds are the owner's in this repo). ECCC gauges are mostly rivers, whose diurnal
-   ranges are smaller than small streams', so a threshold measured on them can drop real logger days. Proposed:
-   - (a, recommended) the air-day threshold at the 99.9th percentile, by month, of the diurnal range of hourly means
-     on open-water days at ECCC stations with a gross drainage area under 1,000 km² (all stations where a month holds
-     fewer than 1,000 station-days); the stuck threshold at the 99.9th percentile of the longest open-water run of
-     identical hourly means per station-year above 0.5 °C;
-   - (b) the same at the 99.5th percentile and over all ECCC stations.
-   `scripts/temp_logger_thresholds.R` reports both before either is applied. Phase 3's screening waits on this answer.
+1. **Skeena Salmon Data Catalogue:** (a) the owner fetches once by hand with a script written in the Upper Bulkley
+   issue (user agent `wet`, each request logged); agent sessions process only the cached copy, pinned with
+   `fetch = FALSE` and backed up. No agent sends a request to the catalogue.
+2. **Logger site id:** (a) `<SERIES>_<holder's site code>`, upper case, e.g. `NHG_<code>`.
+3. **Held series in the research file:** (a) one neutral row, "Skeena logger networks: not published; not read",
+   naming them as #215 does.
+4. **Reader shape and first series:** one entry point through `wet_temp_daily()`, routed by registry membership;
+   Nechako first, both Zenodo records pinned.
+5. **QA thresholds:** (a) air days at the 99.9th percentile, by month, of the diurnal range of hourly means on
+   open-water days at ECCC stations under 1,000 km² gross drainage area (all stations where a month holds fewer than
+   1,000 station-days); stuck runs at the 99.9th percentile of the longest open-water run of identical hourly means
+   per station-year above 0.5 °C. `scripts/temp_logger_thresholds.R` reports option (b) beside it.
 
 ## Phase 1: Inventory from what is public
 
 Review: Morice, the dashboard and the follow-up rule for Weigert added (G10).
 
-- [ ] Before building: `bash "$T/skills/_shared/members_check.sh" <origin> 235 235-backlog-move-19-small-stream-logger-reco --batch 21` (T from `soul_published_tree`); on a non-zero exit or any line but `FREE`, build nothing, write the line under `## Open decisions` and stop
-- [ ] Zenodo's robots.txt read and recorded before the first file fetch
-- [ ] Nechako: read both records' ReadMe files and data archives. For each record: holder, licence, sites, years, time step, time zone and daylight saving, units, QA flags shipped, which file carries coordinates and site names (`02_SupplementaryMaterials.zip` or the earlier record's PNG), and file formats (if .xlsx, readxl goes to Suggests). Also which sites and days the two records share
-- [ ] Weigert Creek (Elk River): its holder and whether it is published, from public sources only; licence, sites, years
-- [ ] The Skeena Knowledge Trust's Upper Bulkley dashboard (public.tableau.com): read its robots.txt first, then inventory only what it serves (sites, years, whether data can be pulled), or record why not
-- [ ] Upper Bulkley and Morice: rows from what planning read, and nothing more from the catalogue
-- [ ] The inventory table drafted in `planning/active/findings.md` (it moves to the research file in Phase 5)
+- [x] Before building: `bash "$T/skills/_shared/members_check.sh" <origin> 235 235-backlog-move-19-small-stream-logger-reco --batch 21` (T from `soul_published_tree`); on a non-zero exit or any line but `FREE`, build nothing, write the line under an `## Open decisions` heading and stop
+- [x] Zenodo's robots.txt read and recorded before the first file fetch
+- [x] Nechako: read both records' ReadMe files and data archives. For each record: holder, licence, sites, years, time step, time zone and daylight saving, units, QA flags shipped, which file carries coordinates and site names (`02_SupplementaryMaterials.zip` or the earlier record's PNG), and file formats (if .xlsx, readxl goes to Suggests). Also which sites and days the two records share
+- [x] Weigert Creek (Elk River): its holder and whether it is published, from public sources only; licence, sites, years
+- [x] The Skeena Knowledge Trust's Upper Bulkley dashboard (public.tableau.com): read its robots.txt first, then inventory only what it serves (sites, years, whether data can be pulled), or record why not
+- [x] Upper Bulkley and Morice: rows from what planning read, and nothing more from the catalogue
+- [x] The inventory table drafted in `planning/active/findings.md` (it moves to the research file in Phase 5)
 
 ## Phase 2: Nechako pinned, and its registry
 
 Review: both records pinned, `fetch` column, version validation, zip members, pool columns (B2, G6, G7, G2); waits on
-Open decisions 2 and 4 (O3).
+Decisions 2 and 4 (O3).
 
 - [ ] `data-raw/temp_loggers_nhg.R`:
   - fetch both records' pinned files at Zenodo's checksums into the cache;
@@ -178,9 +151,9 @@ Open decisions 2 and 4 (O3).
 ## Phase 3: The reader and the logger QA
 
 Review: rules ordered and made concrete, thresholds measured by a named script, registered in a commit of their own,
-routing by registry, tests named (B1, G3, G8, O1, O4, AC3); screening waits on Open decision 5.
+routing by registry, tests named (B1, G3, G8, O1, O4, AC3); screening waits on Decision 5.
 
-- [ ] `scripts/temp_logger_thresholds.R` → `data/checks/temp_logger_thresholds.txt`: both options of Open decision 5, measured on the ECCC archive
+- [ ] `scripts/temp_logger_thresholds.R` → `data/checks/temp_logger_thresholds.txt`: both options of Decision 5, measured on the ECCC archive
 - [ ] Register the rules and the chosen thresholds in `research/station_water_temperature.md` (a new section that stands alone, since move 20 edits the same file), in a commit of their own, before any logger day is screened
 - [ ] `wet_logger_daily()`: readings to days by the rules above, QA in the stated order; returns the `wet_temp_daily()` shape with `source` the series code, and `status` from the series' approval where it states one, else `"provisional"`; constants for the thresholds
 - [ ] `wet_temp_daily()`: registry routing, `sources`, duckdb and tidyhydat checks inside the ECCC branch, radix sort; roxygen documents the registry path (`system.file("extdata", "temp_loggers", ...)`) and logger days; `@examples` updated; `devtools::document()`
@@ -213,7 +186,7 @@ Review: counts redefined, overlap with ECCC sites, reproducibility conditions, r
   - placement, from the tracked file, and sites within 0.5 km of an ECCC station;
   - per site: complete growing seasons, seasons needing only their shoulders, observed days against `min_days = 365`.
   It must be byte-identical on a second run from cache (`cmp`)
-- [ ] `research/station_water_temperature.md`: one row per series, with holder, licence, sites, years, time step, counts, and read or not and why. Rows for Nechako, Upper Bulkley, Morice, Weigert Creek and the dashboard; the held series as Open decision 3 says. Update the header's Verified line and issues
+- [ ] `research/station_water_temperature.md`: one row per series, with holder, licence, sites, years, time step, counts, and read or not and why. Rows for Nechako, Upper Bulkley, Morice, Weigert Creek and the dashboard; the held series as Decision 3 says. Update the header's Verified line and issues
 - [ ] `CLAUDE.md`: the logger reader, its registry, placement and pool in the water temperature paragraphs; `NEWS.md` bullet under the development heading
 - [ ] File the follow-up issue: the baseline (#213) scored on the logger pool, naming move 19
 
@@ -221,7 +194,7 @@ Review: counts redefined, overlap with ECCC sites, reproducibility conditions, r
 
 Review: Upper Bulkley split out under both options (S1, O5).
 
-- [ ] Upper Bulkley: its own issue naming move 19, with the inventory row and Open decision 1's answer (under (a), the hand-fetch script and `fetch = FALSE` pin are its work)
+- [ ] Upper Bulkley: its own issue naming move 19, with the inventory row and Decision 1's answer (under (a), the hand-fetch script and `fetch = FALSE` pin are its work)
 - [ ] Weigert Creek and Morice: an issue each, naming move 19, where Phase 1 found it readable; otherwise their rows say why not
 
 ## Validation

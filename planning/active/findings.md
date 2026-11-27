@@ -79,6 +79,51 @@ Relates to #214, #213
 - `R/wet_hakai.R` (#192, merged while this plan was drafted) is the pattern for a published package: manifest with url,
   fetch at md5, private backup.
 
+## Inventory (Phase 1, 2026-11-27)
+
+Requests from this session: Zenodo's robots.txt (`/search`, `/api`, `/records/*/preview` disallowed;
+`/api/records/*/files` allowed; crawl-delay 10), both records' `/api/records/<id>/files` listings, and the five files
+below from `/records/<id>/files/<name>?download=1`, 10 s apart, user agent `wet`; every md5 equals Zenodo's
+`checksum`. Tableau Public's robots.txt (crawl-delay 10, nothing relevant disallowed) and one read of the workbook's
+public metadata (`/profile/api/workbook/<name>`). Two web searches for Weigert Creek. No request to the Skeena
+catalogue (Decision 1).
+
+| series | holder | licence | sites | years | step | read? |
+|---|---|---|---|---|---|---|
+| Nechako 2019–2024, 10.5281/zenodo.15053907 | UNBC Northern Hydrometeorology Group (PI S. J. Déry) | CC BY 4.0 | 32 | 2019-06-27 to 2024-12-15 | 15 min | yes |
+| Nechako 2019–2021, 10.5281/zenodo.6426024 | same | CC BY 4.0 | 24, all also in the later record | 2019–2021 | 15 min | yes, compared only |
+| Upper Bulkley River monitoring | DFO Pacific Region (Skeena Salmon Data Catalogue) | ODC PDDL | not counted (catalogue not read) | from 2016 | hourly | own issue, owner's hand fetch (Decision 1) |
+| Upper Bulkley dashboard (Tableau Public) | Skeena Knowledge Trust | none stated | not counted | not counted | — | no: a view of the DFO program (sheets include "Full Dataset" and "Site Info DB"; updated 2026-09-29); read the program's catalogue files instead |
+| Morice temperature monitoring | Morice Water Monitoring Trust (catalogue) | CC non-commercial | 7 | Jul–Sep 2023 | — | with the Upper Bulkley issue (same catalogue, same hand fetch); not republishable commercially |
+| Weigert Creek (Elk River) | not found | — | — | — | — | no published record found; the Elk River Alliance's tributary loggers are published on the Columbia Basin Water Hub (CanWIN), with no Weigert site among the results read |
+| Skeena logger networks (Pacific Salmon Commission, Skeena Fisheries Commission, Gitksan Watershed Authorities) | as named | — | — | — | — | not published; not read (Decision 3) |
+
+### Nechako, read from the files
+
+- **Later record (15053907).** `01_Data.zip` holds 32 CSVs, `01_Data/<code>_<CamelName>.csv`, columns
+  `station_code`, `timestamp (UTC)` (`yyyy-mm-dd HH:MM`), `wtmp (°C)` (2 decimals), `wtmp_flag`. 3,850,424 rows,
+  no duplicate code-time, every timestamp on :00/:15/:30/:45. Flags: P 3,083,266; M 488,595 (temperature `NA`);
+  B 239,843 (x ≤ 0, icing); A 28,970 and C 90 (averaged from several sensors; 01FW002, 01FW005, 01FW013, 01FW024,
+  01NE004); S 9,298 (spike or dewatering); V 270 (site visit); E 92 (outside sensor limits; minimum −22.74 °C).
+  Temperatures −22.74 to 30.76 °C.
+- **Coordinates and names:** `02_SupplementaryMaterials.zip/02_SupplementaryMaterials/Site_Metadata.txt`, tab
+  delimited, CRLF, Latin-1, each site name followed by a stray byte (0xA0); columns code, name, lat, lon (WGS84, 4
+  decimals), elevation, record start, end. `01FW017` carries an asterisk in its name, which neither the ReadMe nor its site PDF explains.
+- **Codes:** `01FWnnn` (25), `01NEnnn` (6), `02FW002` (Ness Lake). Lake sites: Nadina Lake (01FW009) and Ness Lake
+  (02FW002), and Cheslatta Lake above Sather Creek (01FW003) and Skins Lake Spillway (01FW010) sit at lake outlets.
+- **Earlier record (6426024).** `Data.zip` holds 24 CSVs named by site (`Data/<Site Name>.csv`), columns
+  `DateTime (UTC)` (`yyyy-mm-dd HH:MM:SS`), `Temperature (C)`, `Flag`. Coordinates are in `NHG Data ReadMe.txt` (DMS)
+  with site visits; three-letter codes (CNR, CSC, ...). Every site matches a later site by name and coordinates
+  (Kuzkwa "Terrezon"/"Tezzeron", Whitesail Creek/Whitesail Middle Creek). Disagreements: Stellako (SFL) is given at
+  54.0822, −125.0053, Endako's position, where the later record puts it at 54.0441, −124.9247; elevations differ at
+  Chilako above Nechako (618/700 m) and Necoslie (586/685 m). The ReadMe also records dewatered spans and a logger
+  floating in air at Rhine Creek before 2021-07-21.
+- **Time zone:** UTC in both, so `utc_offset = 0`, `dst = FALSE` for every Nechako site; local standard time days
+  take −8 h (Pacific).
+- **Formats:** CSV only, so no readxl.
+- **Consequence for the reader:** every earlier site is in the later record, so every site's days come from the later
+  record; the earlier record enters only the check report's comparison.
+
 ## Errors Encountered
 
 | Error | Resolution |
