@@ -44,3 +44,10 @@ Start Phase 1 and run every phase to the PR (/code-check branch, /planning-archi
 /gh-pr-push). This message is the resume instruction that starts the run-to-PR
 mandate; the merge stays with me.
 ```
+
+## Phase 1, 2026-11-27
+
+- Resumed in worktree wet-238; merged origin/main (only CLAUDE.md and planning/backlog.md had moved, neither changing the plan). The owner answered the three open decisions (outlets: options listed, move 23 settles; traits per segment: an issue; outside reader: after the PR), moved into the plan's decisions and #238's body.
+- Members re-check: FREE #217, FREE #218. Preflight: pdftotext, both PDFs, the `statistics` store (from knowledge's `data/rag`).
+- Wrote `research/temperature_bayesian_alignment.md` (20 quotes, 64 choices, the brief) and `scripts/temperature_bayesian_alignment_check.R`; PASS, log `data/checks/temperature_bayesian_alignment_20261127.txt`; mutation table in findings; README row and CLAUDE.md line.
+- Next: Phase 2, #217's file.

@@ -32,7 +32,38 @@ When the plan finds that a batch, or one of its members, is more than one PR's w
 - Inputs with no issue that builds them yet: catchment traits per segment (#213 builds them per station). Stations on the network and the SSN object per basin: #223 (move 23, waiting on the fwapg fork's network check).
 - Move 20 (#236: #222, #224) changes the fill and may land before this; the anchors are code text, so a moved choice fails the check rather than passing silently.
 
+## Phase 1 (2026-11-27)
+
+- **Inventory.** 64 choices, held in `scripts/temperature_bayesian_alignment_check.R`'s `choices` list (id, file, anchor), not drafted here first: the script is where it has to live, and the table in the research file cites each `file:line`. Coverage: 24 names (the 10 formals with defaults of `wet_temp_fill()` and `wet_temp_gsdd()`, and 14 top-level numeric constants across the scope) each mapped to a row in `registry`. `wb_cv_lib.R` is in `choices` (`share_related()`'s `up | t(up)`) but not in the constants sweep: only that function is in scope.
+- **Correction to the plan: gsdd has no `complete` argument.** gsdd 0.3.0.9007's `gsdd()` takes `ignore_truncation = FALSE`, `start_temp = 5`, `end_temp = 4`, `window_width = 7`, `pick = "all"`; `complete = TRUE` is internal to `gsdd_vctr()` (as `research/station_temperature_fill.md` says). The inherited choices are anchored at the `gsdd::gsdd()` call as planned (`gsdd_season`).
+- **Books.** Passages located with `cred::crd_search()` on the `statistics` store (opened from knowledge's `data/rag`, the store source being unset in wet) and by grep over each book split into printed pages (Rethinking offset 16, BDA3 offset 10), then read on the page. 20 quotes, all one sentence or less; the check reads each on its printed page.
+- **Log.** Written only for the research file with no `MD=` and the books present (Phase 2's line, "the log is #218's file's only", is the one followed; #217's file is checked with `MD=` and writes none). Rerunning gives a byte-identical log.
+- **Lint.** After splitting knowledge's semicolon lines, double-quoting its regex and escaping non-ASCII in code (the Write tool had stored the `\u` escapes as literal, partly invisible, characters), the script carries only `indentation_linter` and `line_length_linter`, classes `scripts/temp_baseline*.R` already carry.
+
+### The check can fail (mutation table)
+
+Each break planted on copies in a detached worktree of HEAD plus the new files, run with `MD=` set so no log is written; the committed log and the scope's files were md5-identical before and after.
+
+| planted break | exit | first failure |
+|---|---|---|
+| a quote's wording | 1 | passage not on the page (p. 408) |
+| a quote's page (413 → 412) | 1 | passage not on the page |
+| an anchor in `choices` | 1 | anchor occurs 0 times in R/wet_temp_fill.R |
+| a row's `file:line` | 1 | cites :275 but its anchor is at :274 |
+| a verdict | 1 | last cell is not one verdict |
+| a figure (298.0 → 298.1) | 1 | not in `figures` |
+| an unlisted figure (42 °C-days) | 1 | not in `figures` |
+| a new top-level constant appended to a scope script | 1 | `tb_extra` has no entry in `registry` |
+| a registry entry for a name the scope does not set | 1 | registry names `gone`, which the scope no longer sets |
+| a row dropped | 1 | no row for `rule_tie` |
+| a stray quote mark near a citation | 1 | quote mark within 200 characters of a page citation |
+| no PDFs (`ZOTERO_DIR=/nonexistent`) | 0 | QUOTES NOT CHECKED; no log written in default mode |
+
+A constant inserted mid-file fails first on the moved anchors, which is the check working too; appended at the end it isolates the coverage failure.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
+| Write tool stored `\\u` escapes as literal (some invisible) characters in the check script | Escaped every non-ASCII character in code lines back to `\\uXXXX` with a script |
+| `cred::crd_store_connect("statistics")` from wet: no store source configured | Ran the search from knowledge, whose `.Rprofile` sets it and whose `data/rag` holds the store |
