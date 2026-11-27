@@ -19,3 +19,11 @@ From `scripts/station_sources_probe.R` against HYDAT 2026-07-17; report `data/ch
 - Tick #123 in #118's component list (`/gh-pr-merge` step 3b).
 
 Closed by: PR (this branch, `123-station-source-survey-which-networks-bey`)
+
+## History moved from research/station_sources.md (#207, 2026-11-25)
+
+The research file now states only the current rule and counts; the passages below, as they stood there on 2026-11-25, record how they were reached.
+
+  The terms test first read "a licence that allows use and redistribution of derived values". It was revised on 2026-10-29, once the survey had read the Water Tool's headers (389 of 391 stations; 2 answer HTTP 500: 08HB0020, a BC ENV listing, and 08NM0072, a provincial-file station): the passing networks' headers name their source and disclaim liability for the data and derived information, and none restricts use. That moved those networks from test-only to harvest, with each operator's rating to confirm. Whatever terms come with a dataset carry over to what is published from it: attribution always, and ShareAlike or non-commercial terms where a licence carries them.
+
+Regulation is recorded for each station (natural, regulated or unknown), because the pilot's donor pool was natural only. The probe can flag regulation only from station names: 10 provincial stations (4 of them passing) and 15 Water Tool listings (none passing) read as regulated by name, and every other station is unknown [M, report "Regulation"]. Since #196 every station wet reads carries a status from what sits upstream of it (below, "Regulation per non-HYDAT station").

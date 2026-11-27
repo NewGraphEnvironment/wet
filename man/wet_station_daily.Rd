@@ -9,7 +9,7 @@ wet_station_daily(
   hydat = wet_hydat_path(),
   from = NULL,
   to = Sys.Date(),
-  sources = c("hydat", "provisional", "realtime", "bcenv", "bcwatertool"),
+  sources = c("hydat", "provisional", "realtime", "bcenv", "bcwatertool", "hakai"),
   snapshot = wet_bcenv_snapshot
 )
 }
@@ -25,7 +25,7 @@ download location.}
 \code{as.Date()} reads). \code{NULL} means no bound.}
 
 \item{sources}{Which sources to read, from \code{"hydat"}, \code{"provisional"},
-\code{"realtime"}, \code{"bcenv"} and \code{"bcwatertool"}. The first three read HYDAT-numbered stations
+\code{"realtime"}, \code{"bcenv"}, \code{"bcwatertool"} and \code{"hakai"}. The first three read HYDAT-numbered stations
 only, and each continues the one before it, per station, from
 that source's last day over its whole record: provisional days are used
 only after HYDAT's last day, and real-time days only after both, whatever
@@ -44,8 +44,15 @@ each publisher's file states, given as \code{credit} by \code{\link[=wet_station
 a day as the Tool gives it, a day above the same bound (its sub-drainage
 taken from the nearest HYDAT station) dropped; and the days of a Tool gauge
 at a provincial station's site before that station's record begins, under
-the provincial number. A station's own source comes first, and a second
-publisher's gauge at its site only for the days before it.}
+the provincial number. \code{"hakai"} reads Hakai Institute's published
+discharge package (Korver et al., \doi{10.21966/J99C-9C14}, CC-BY 4.0)
+for the days, 2014 to 2019, before three Calvert and Hecate island
+stations' provincial records begin, under the provincial number: a day is
+a Pacific Standard Time day with at least 20 of Hakai's hourly means, a
+day above the same bound dropped. Its file is fetched once from the
+package's pinned commit and kept in wet's cache. A station's own source
+comes first, and a second publisher's gauge at its site only for the days
+before it.}
 
 \item{snapshot}{The provincial snapshot to read, as \code{YYYYMMDD}; each pinned
 snapshot's files are held to md5s tracked in the package. Read only for
@@ -63,9 +70,11 @@ other ECCC day. A provincial day is \code{"provisional"} when every hour in it
 carries a grade and \code{"unchecked"} when any hour is graded Undefined or
 Unspecified: the province's files carry no approval, so none is
 \code{"approved"}. A Water Tool day is \code{"provisional"} where the Tool marks it
-quality checked and \code{"unchecked"} where it does not. Provisional,
-provincial and Tool days carry no ice symbol, so their \code{NA} means "not
-recorded", not "open water".
+quality checked and \code{"unchecked"} where it does not. A Hakai day is
+\code{"approved"} where Hakai accepted every hour of it after quality control
+(Hakai's approval, not Water Survey of Canada's) and \code{"provisional"}
+otherwise. Provisional, provincial, Tool and Hakai days carry no ice
+symbol, so their \code{NA} means "not recorded", not "open water".
 
 A gap between the end of one source and the start of the next (for
 example an old HYDAT ending before the provisional archive begins) is
@@ -93,8 +102,11 @@ snapshot of the Tool's daily files. Where such a gauge sits at a provincial
 station's site, its record continues the provincial one instead: its days
 before the provincial record begins (the first day the province's files hold
 any hour of the station) come back under the provincial number, with
-\code{source} \code{"bcwatertool"}, and none from that day on. Each provincial
-and Tool station's regulation, natural, regulated or unknown, is
+\code{source} \code{"bcwatertool"}, and none from that day on. Hakai Institute's
+published package does the same for three Calvert and Hecate island
+watersheds (H08KC0626, H08KC0703 and H08KC0844): its days from 2014 to
+2019 come back under the provincial number with \code{source} \code{"hakai"}. Each
+provincial and Tool station's regulation, natural, regulated or unknown, is
 \code{\link[=wet_station_list]{wet_station_list()}}'s \code{regulation}.
 
 Ported from \code{ngr::ngr_hyd_q_daily()}, which joined HYDAT with about 18
@@ -114,5 +126,10 @@ table(d$source, d$status)
 # BC Conservation Foundation's 2012-2015 gauge at the site before them
 r <- wet_station_daily("08HB0008")
 table(format(r$date, "\%Y"), r$source)
+
+# Calvert Island Watershed 626: Hakai's published years, 2014-2019, then the
+# province's from 2021
+k <- wet_station_daily("H08KC0626", sources = c("bcenv", "hakai"))
+table(format(k$date, "\%Y"), k$source)
 }
 }
