@@ -71,53 +71,38 @@ No plan gate in this pane: a coordinator-dispatched `park review`, parked for th
   - The script refuses an uncommitted `R/`, `scripts/` or `data/checks/`, and records the commit, as `scripts/gauge_monthly_compare.R:105–108` does.
 - **Pages that say no report scores these yet are updated in research only.** `research/pcic_scenarios.md:38` is updated, and `research/water_balance_method.md:730`'s "independent" for the isolines is corrected (they were drawn from WSC gauges). `scripts/pcic_coverage.R:259` says the same, but it is left alone, because changing it stales its tracked report; the findings note it.
 
-## Open decisions
+## Owner's decisions (2026-11-27, at the resume)
 
-1. **The registered rule: gauge set, metric and what counts as material.** The move says these are decided at the gate, and thresholds are the owner's, as in #188.
-   - **Recommended:**
-     - The gauge set is the shipped fit's 315 calibration gauges. A product is scored where it covers at least 95 % of the gauge's basin. The report lists the gauges dropped by coverage, by zone and with the reason: sea, large lake (18 calibration gauges sit at lake outlets), outside the isoline hull, outside BC.
-     - A hydrologic zone with at least 5 scored gauges is a material disagreement when the product's median annual error and the held-out balance's differ by more than 20 percentage points (exactly 20 is not material).
-     - The verdict is **theirs** when the product's median error is outside ±20 % and the balance's inside, **ours** when the reverse, and **unresolved** when both are outside.
-     - When both are inside ±20 %, the zone is not material, however far apart the two are.
-     - Each verdict is printed with its leave-one-gauge-out stability, as #45 did (`scripts/wb_term_diagnose.R:271–278`). A verdict that flips when one gauge is dropped is marked unstable.
-     - The province-wide medians get the same test.
-   - **Alternatives:**
-     - (b) Judge each zone by median absolute error or by its share within ±20 %, not the signed median, so a zone scattered ±50 % around 0 is not read as fine.
-     - (c) Judge each gauge instead of each zone.
-     - (d) Use a 10-point cut.
-2. **TerraClimate's host disallows `/thredds/fileServer/` in its robots.txt.**
-   - The robots.txt is THREDDS's default file.
-   - The 1981–2010 runoff climatology, `TerraClimate_19812010_q.nc`, answers 200 there. It is served only on that path and on subset services the same file also disallows.
-   - `wet_terraclimate_aet()` and `scripts/wb_inputs.R` already fetched the AET and precipitation climatologies from that path. No research file records a robots check for this host, so `research/runoff_products.md` will.
-   - Options:
-     - (a) **Recommended:** one logged fetch of that one file, with its md5 in the report, as the AET and precipitation files were fetched.
-     - (b) Build the climatology from Planetary Computer's copy of TerraClimate's monthly series.
-     - (c) Ask the Climatology Lab first, as the owner chose for PCIC (#169). This PR then ships the isolines alone and files TerraClimate as its own issue naming move 27, so #225 stays open for it.
-3. **The isolines describe 1961–1990, and observed flow is from complete years in 1981–2010.** An isoline "theirs" verdict could be a change in climate, not an error in the product.
-   - (a) **Recommended:** at the long-record natural HYDAT gauges with complete years in both periods, measure each zone's ratio of 1981–2010 runoff to 1961–1990 runoff (`wb_hydat()`). Where that ratio alone moves the isoline's median error back inside ±20 %, an isoline "theirs" becomes "unresolved (period)".
-   - (b) Report the period difference as evidence only, and let the verdict stand.
+1. **The registered rule: the signed median at 20 points.**
+   - The gauge set is the shipped fit's 315 calibration gauges. A product is scored where it covers at least 95 % of the gauge's basin. The report lists the gauges dropped by coverage, by zone and with the reason: sea, large lake (18 calibration gauges sit at lake outlets), outside the isoline hull, outside BC.
+   - A hydrologic zone with at least 5 scored gauges is a material disagreement when the product's median annual error and the held-out balance's differ by more than 20 percentage points (exactly 20 is not material).
+   - The verdict is **theirs** when the product's median error is outside ±20 % and the balance's inside, **ours** when the reverse, and **unresolved** when both are outside. When both are inside ±20 %, the zone is not material, however far apart the two are.
+   - Each verdict is printed with its leave-one-gauge-out stability, as #45 did (`scripts/wb_term_diagnose.R:271–278`). A verdict that flips when one gauge is dropped is marked unstable.
+   - The province-wide medians get the same test.
+2. **TerraClimate: one logged fetch** of `TerraClimate_19812010_q.nc` from `/thredds/fileServer/`, its md5 in the report, as the AET and precipitation climatologies were fetched. The robots fact is recorded in `research/runoff_products.md`.
+3. **The isolines' period: the period ratio test.** At the long-record natural HYDAT gauges with complete years in both 1961–1990 and 1981–2010, each zone's ratio of 1981–2010 runoff to 1961–1990 runoff is measured (`wb_hydat()`). Where that ratio alone moves the isoline's median error back inside ±20 %, an isoline "theirs" becomes "unresolved (period)".
 
 ## Phase 1: Split, then register before any number
 
-- [ ] Before building, run `bash "$T/skills/_shared/members_check.sh" "$(git remote get-url origin)" 243 243-backlog-move-27-the-runoff-products-no-r --batch 31` (T from `soul_published_tree`). If it exits non-zero, or prints any line not of the form `FREE #N`, build nothing of this batch: write the line under `## Open decisions` and stop.
-- [ ] Before any phase that needs it, ask the owner what `## Open decisions` lists that is still unanswered. This phase's rule needs decision 1, and its TerraClimate step needs decision 2.
-- [ ] File GEOGLOWS v2 as its own issue naming move 27. Leave it out of `planning/backlog.md`. The issue carries:
+- [x] Before building, run `bash "$T/skills/_shared/members_check.sh" "$(git remote get-url origin)" 243 243-backlog-move-27-the-runoff-products-no-r --batch 31` (T from `soul_published_tree`). If it exits non-zero, or prints any line not of the form `FREE #N`, build nothing of this batch: write the line under `## Open decisions` and stop.
+- [x] Before any phase that needs it, ask the owner what `## Open decisions` lists that is still unanswered. This phase's rule needs decision 1, and its TerraClimate step needs decision 2.
+- [x] File GEOGLOWS v2 as its own issue naming move 27 (#244). Leave it out of `planning/backlog.md`. The issue carries:
   - the TDX-Hydro reach crosswalk to the FWA, with its eligibility rule (the reach's drainage area within 10 % of the gauge's FWA area), the counterpart of this PR's 95 % coverage;
   - the uncorrected retrospective's 1981–2010 flow at the calibration gauges, so no gauge-corrected series is scored as independent;
   - scoring under this PR's rule, with the results appended to its disagreement log.
-- [ ] File the BC Water Tool's modelled estimates as their own issue naming move 27. Leave it out of `planning/backlog.md`. The issue carries #225's text:
+- [x] File the BC Water Tool's modelled estimates as their own issue naming move 27 (#245). Leave it out of `planning/backlog.md`. The issue carries #225's text:
   - a reader still to be written (`wet_bcwt_read()` does not exist; `R/wet_bcwatertool.R` reads the Tool's gauge records), on `fund_rollup_report`;
   - the release schema in `crate`, and the snapshot pinned;
   - its accuracy numbers, which are in-sample;
   - whether its ids are FWA or Foundry `watershed_feature_id`;
   - the questions for the Province, which go through the owner;
   - the metadata inconsistencies already found.
-- [ ] Edit #225's body to say:
+- [x] Edit #225's body to say:
   - what this PR carries;
   - the two issues the rest moved to;
   - a "Done when" rewritten to name TerraClimate runoff and the isolines.
-- [ ] Symlink `data/wb` and `data/hydz` to the main checkout. Export `WET_DATA_ROOT=/Users/airvine/Projects/repo/wet/data`.
-- [ ] Write `scripts/runoff_products_rule.R` from the owner's answers to decisions 1 and 3. It holds:
+- [x] Symlink `data/wb` and `data/hydz` to the main checkout. Export `WET_DATA_ROOT=/Users/airvine/Projects/repo/wet/data`.
+- [x] Write `scripts/runoff_products_rule.R` from the owner's answers to decisions 1 and 3. It holds:
   - the rule text, including what was public at registration;
   - the constants: coverage 0.95, zone minimum 5, within ±20 % (`<=`), the material cut;
   - `rp_verdict()`, with its leave-one-out stability.
