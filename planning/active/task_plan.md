@@ -107,7 +107,7 @@ No plan gate in this pane: a coordinator-dispatched `park review`, parked for th
   - the constants: coverage 0.95, zone minimum 5, within ±20 % (`<=`), the material cut;
   - `rp_verdict()`, with its leave-one-out stability.
   Commit it alone, before any product value is read. Do not compute `ppt_tc − aet_tc` against observed before this commit.
-- [ ] Write `tests/testthat/test-runoff_products_rule.R`. Gate it with `skip_if_not(dir.exists(scripts))`, as `tests/testthat/test-departure_donors_rule.R:4–9` does.
+- [x] Write `tests/testthat/test-runoff_products_rule.R`. Gate it with `skip_if_not(dir.exists(scripts))`, as `tests/testthat/test-departure_donors_rule.R:4–9` does.
   - Run `rp_verdict()` on made-up zones that reach each branch: theirs, ours, unresolved, not material (both inside ±20 %), too few gauges, unstable, and the boundaries exactly at 20 % and exactly at the cut.
   - Plant a wrong sign in the verdict, and watch the test fail.
 
