@@ -52,3 +52,12 @@ Start Phase 1 and run every phase to the PR (/code-check branch, /planning-archi
 /gh-pr-push). This message is the resume instruction that starts the run-to-PR
 mandate; the merge stays with me.
 ```
+
+## Phase 1 (rescoped to #233), 2026-11-27
+- Resumed on m1 in worktree wet-242; merged origin/main (docs only moved). The owner answered open decisions 1-5 as recommended.
+- Registered the newer pin's portal bar and Amendment 4 (82aa3f24), pushed before any new file was read.
+- The province's 2019-2021 archive was byte-identical to the 20261028 pin's, so the bar fails at four stations; the owner chose no new pin (answer 6). #232's body records it.
+- #233: registered the own stations' rules (645abbca); reader, list, registry and regulation code (0fcb7462); regulation rerun and Hakai report (1d526aea): 257 statuses unchanged, the four own stations unknown, each passing the station test.
+- Run logs: `data/logs/242/` in the main checkout.
+- Commits: 82aa3f24, 488cbae7, 645abbca, 0fcb7462, 1d526aea, and the docs commit.
+- Next: Validation; Phase 2 (#227) is a second PR.

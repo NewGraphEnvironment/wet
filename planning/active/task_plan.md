@@ -70,7 +70,7 @@ Rescoped by answer 6: #233 against the 20261028 pin. The pin's tasks (download, 
   - `wet_station_regulation()` holds all three registries, with a test that a mismatched `hakai_registry_md5` refuses;
   - rerun with `WET_REG_SNAPSHOT=20261124`, rewriting `regulation_20261028.csv` and `data/checks/station_regulation_20261028.txt`; assert the 257 earlier statuses unchanged (or attribute each that moved) and print the four Hakai statuses.
 - [x] Reports: `scripts/station_sources_hakai.R` extended to the own stations (days, status shares, window-years, the station test); the harvest's registry holds rerun if they read the Hakai registry. A rerun reproduces each byte for byte.
-- [ ] Update `research/station_sources.md` ("The answer", "The Hakai package in wet", "Regulation per non-HYDAT station", "Two copies that part in 2021" with the unchanged archive), `CLAUDE.md`'s Hakai and regulation lines, `NEWS.md`; #232's body records why it waits.
+- [x] Update `research/station_sources.md` ("The answer", "The Hakai package in wet", "Regulation per non-HYDAT station", "Two copies that part in 2021" with the unchanged archive), `CLAUDE.md`'s Hakai and regulation lines, `NEWS.md`; #232's body records why it waits.
 
 ## Phase 2: Batch 30: a HYDAT gauge continued by the provincial station at its site (#227)
 
