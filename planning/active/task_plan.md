@@ -23,6 +23,7 @@ Batch 17 (#198): re-run `scripts/segment_output.R`, `scripts/segment_daily_outpu
 - [x] `WET_FWAPG_COMMIT=5d50cc1 Rscript scripts/segment_daily_output.R` (about 2 h 12 min at its #99 run; the table is about 2.9e9 rows); compare as above; commit its report (its `elapsed` and commit lines differ by design).
 - [x] `Rscript scripts/discharge_publish.R` BUILD (about 3.5 h; `WET_PUBLISH` unset; `WET_FWAPG_COMMIT` is not read by the BUILD, so omit it), after both reports are committed.
 - [x] Pass condition, exactly: the report line `parts identical to the published build a0318b7: 512 of 512 here, 512 published`; `tree parts md5 d554e3aad481d86bffa4baef687287ed` unchanged; no `FAIL`; every cross-check `ok`; segment and daily parquet md5s equal to `_pre208`. Commit `data/checks/discharge_publish_20260717.txt`. Its `receipt hashed in N s`, arrow line and commit differ by design, so compare per part against the manifest, never the reports whole.
+- [x] Every live object checked against the live manifest (`wet_catalog_verify()`, anonymous HEAD): the BUILD compares only md5s the manifest lists (code-check round 2)
 
 ## Phase 3: Record
 - [x] Parts identical: nothing to publish. Accepted: the live manifest and receipt keep naming the old `wet_commit` and `wet_version`, since "no upload" leaves them; say so in the PR.
