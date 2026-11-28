@@ -191,16 +191,16 @@ Review: counts redefined, overlap with ECCC sites, reproducibility conditions, r
   - placement, from the tracked file, and sites within 0.5 km of an ECCC station;
   - per site: complete growing seasons, seasons needing only their shoulders, observed days against `min_days = 365`.
   It must be byte-identical on a second run from cache (`cmp`)
-- [ ] `research/station_water_temperature.md`: one row per series, with holder, licence, sites, years, time step, counts, and read or not and why. Rows for Nechako, Upper Bulkley, Morice, Weigert Creek and the dashboard; the held series as Decision 3 says. Update the header's Verified line and issues
-- [ ] `CLAUDE.md`: the logger reader, its registry, placement and pool in the water temperature paragraphs; `NEWS.md` bullet under the development heading
-- [ ] File the follow-up issue: the baseline (#213) scored on the logger pool, naming move 19
+- [x] `research/station_water_temperature.md`: one row per series, with holder, licence, sites, years, time step, counts, and read or not and why. Rows for Nechako, Upper Bulkley, Morice, Weigert Creek and the dashboard; the held series as Decision 3 says. Update the header's Verified line and issues
+- [x] `CLAUDE.md`: the logger reader, its registry, placement and pool in the water temperature paragraphs; `NEWS.md` bullet under the development heading
+- [x] File the follow-up issue: the baseline (#213) scored on the logger pool, naming move 19 (#253)
 
 ## Phase 6: Further series as issues of their own
 
 Review: Upper Bulkley split out under both options (S1, O5).
 
-- [ ] Upper Bulkley: its own issue naming move 19, with the inventory row and Decision 1's answer (under (a), the hand-fetch script and `fetch = FALSE` pin are its work)
-- [ ] Weigert Creek and Morice: an issue each, naming move 19, where Phase 1 found it readable; otherwise their rows say why not
+- [x] Upper Bulkley: its own issue naming move 19 (#251), with the inventory row and Decision 1's answer (under (a), the hand-fetch script and `fetch = FALSE` pin are its work)
+- [x] Weigert Creek and Morice: an issue each, naming move 19, where Phase 1 found it readable; otherwise their rows say why not (Morice #252; Weigert: no published record, its row says so)
 
 ## Validation
 
