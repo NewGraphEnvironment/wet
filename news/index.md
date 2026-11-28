@@ -1,6 +1,6 @@
 # Changelog
 
-## wet (development version)
+## wet 0.7.1
 
 - Hakai Institute’s four other Calvert and Hecate island watersheds are
   stations of their own
