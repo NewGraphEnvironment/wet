@@ -170,8 +170,11 @@ unit_rx <- paste0("(?<![0-9.,])[", dash, "]?(?:[0-9]+(?:[.,][0-9]+)*|\\.[0-9]+)[
 whole_rx <- function(f) paste0("(?<![0-9.,", dash, "])\\Q", f, "\\E(?![0-9[:alpha:]-])")
 # a source's literal, whole at its numeric edges: no digit, point or dash before a leading digit, no digit after a
 # trailing one, so "5 degC and stays there" is not found in "15 degC and stays there"
-edge_rx <- function(l) paste0(if (grepl("^[0-9]", l)) paste0("(?<![0-9.,", dash, "])") else "", "\\Q", l, "\\E",
-                              if (grepl("[0-9]$", l)) "(?![0-9])" else "")
+edge_rx <- function(l) {
+  before <- if (grepl("^[0-9]", l)) paste0("(?<![0-9.,", dash, "])") else ""
+  after <- if (grepl("[0-9]$", l)) "(?![0-9])" else ""
+  paste0(before, "\\Q", l, "\\E", after)
+}
 # a number written with a minus sign is a figure too, unit or none (after a letter it is a label, as in UTC\u22128)
 signed_rx <- paste0("(?<![0-9.,[:alpha:]])[", dash, "][0-9]+(?:\\.[0-9]+)?")
 
@@ -442,8 +445,11 @@ if (is_review) {
       if (identical(fn, as.name("wet_fill_prepare")) || (is.call(fn) && identical(fn[[3]], as.name("wet_fill_prepare")))) {
         n_calls <<- n_calls + 1L
         a <- as.list(e)[-1]
-        v <- vapply(a[6:7], function(x) if (is.name(x) && !is.null(consts[[as.character(x)]])) consts[[as.character(x)]] else
-          if (is_const(x)) eval(x) else NA_real_, numeric(1))
+        value_of <- function(x) {
+          if (is.name(x) && !is.null(consts[[as.character(x)]])) return(consts[[as.character(x)]])
+          if (is_const(x)) eval(x) else NA_real_
+        }
+        v <- vapply(a[6:7], value_of, numeric(1))
         if (length(a) < 7 || !is.null(names(a)) && any(nzchar(names(a)[6:7])) || anyNA(v) || any(abs(v - want) > 1e-12)) {
           bad("coverage: a wet_fill_prepare() call in ", f, " does not pass wet_temp_fill()'s min_days and obs_sd^2 by position")
         }
