@@ -153,9 +153,11 @@ catalogue (Decision 1).
 - **Two sites sit beside ECCC temperature stations:** Skins Lake Spillway 0.46 km from 08JA023, Nadina Lake 0.50 km
   from 08JB007.
 - **The earlier record's clock:** its files stamp an hour twice at the autumn and spring clock changes, and at
-  Whitesail (WTL) and Chedakuz (CNR) its readings match the later record better with the stamp moved an hour, so its
-  "UTC" carries a daylight-saving shift over part of the record; days differ by up to 0.51 °C there and at most 0.08 °C
-  elsewhere. The later record has no repeated stamp.
+  Chedakuz (CNR, 18,684 equal readings an hour back against 9,936 unshifted) and Endako (ESR, 15,581 against 14,496)
+  its readings match the later record better with the stamp moved an hour back, so its "UTC" carries a daylight-saving
+  shift over part of the record. At Whitesail (WTL) the records agree on about 16 % of readings at every alignment:
+  not a clock shift, unresolved (code-check round 2 corrected an earlier draft that named Whitesail as shifted). Days
+  differ by up to 0.51 °C at WTL and CNR and at most 0.08 °C elsewhere. The later record has no repeated stamp.
 - **Counts:** 34,017 of 34,778 days kept (650 by the hour rule, 100 deployment ends, 11 air days, no stuck run);
   30 complete growing seasons at 22 sites and 24 seasons needing only shoulders at 18 sites, far above the plan's
   "near zero" expectation; 31 of 32 sites reach 365 kept days.
