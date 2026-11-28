@@ -57,7 +57,9 @@ Each break planted on copies in a detached worktree of HEAD plus the new files, 
 | a registry entry for a name the scope does not set | 1 | registry names `gone`, which the scope no longer sets |
 | a row dropped | 1 | no row for `rule_tie` |
 | a stray quote mark near a citation | 1 | quote mark within 200 characters of a page citation |
-| no PDFs (`ZOTERO_DIR=/nonexistent`) | 0 | QUOTES NOT CHECKED; no log written in default mode |
+| no PDFs (`ZOTERO_DIR=/nonexistent`) | 2 (0 until code-check round 1) | QUOTES NOT CHECKED, PASS WITHOUT QUOTES; no log written in default mode |
+| (round 1) unlisted figures inside listed ones: 7 °C, 1 °C, 4 %, 0 °C-days, and 3 °C with a no-break space | 1 each (passed before the fix) | not in `figures` |
+| (round 1) a listed figure removed where a longer number still contains it (0 °C) | 1 (passed before the fix) | listed but not in the file |
 
 A constant inserted mid-file fails first on the moved anchors, which is the check working too; appended at the end it isolates the coverage failure.
 

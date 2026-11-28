@@ -34,7 +34,8 @@
 # OUTPUT: data/checks/temperature_bayesian_alignment_<yyyymmdd>.txt for the research file with no MD set and the
 #         quotes checked; none for any MD= or without the books. Exits 1 on any failure.
 # RUN:    Rscript scripts/temperature_bayesian_alignment_check.R   (from the repo root; needs pdftotext for the
-#         quotes; without it or the PDFs the rest runs and it prints QUOTES NOT CHECKED)
+#         quotes; without it or the PDFs the rest runs, it prints QUOTES NOT CHECKED and PASS WITHOUT QUOTES,
+#         and exits 2, never 0)
 # ---------------------------------------------------------------------------
 options(warn = 1)
 
@@ -162,7 +163,12 @@ figures <- list(
   fig("50 \u00B0C-days", "scripts/temp_baseline_rule.R", "tb_close <- 50"),
   fig("90 % interval", "scripts/temp_baseline_lib.R", "tb_level <- 0.9")
 )
-unit_rx <- "[0-9]+(?:\\.[0-9]+)?\\s?(?:\u00B0C-days|\u00B0C|degC|%)"
+unit_rx <- "(?<![0-9.,])[0-9]+(?:\\.[0-9]+)?[\\s\\x{00A0}\\x{202F}]?(?:\u00B0C-days|\u00B0C|degC|%)"
+# `needle` in `hay` as a whole figure: no digit, point or comma before it, and no digit, letter or hyphen after
+# it, so "7 degC" is not found in "128.7 degC-days" nor "0 degC" in "10 degC-days" (written here in degC)
+has_whole <- function(hay, needle) {
+  grepl(paste0("(?<![0-9.,\u2212-])\\Q", needle, "\\E(?![0-9[:alpha:]-])"), hay, perl = TRUE)
+}
 
 md_path <- Sys.getenv("MD", review)
 is_review <- identical(normalizePath(md_path, mustWork = FALSE), normalizePath(review, mustWork = FALSE))
@@ -320,9 +326,9 @@ for (k in seq_along(cite)) if (cite[k] > 0) substr(fig_txt, cite[k], cite[k] + a
   strrep(" ", attr(cite, "match.length")[k])
 nums <- regmatches(fig_txt, gregexpr(unit_rx, fig_txt, perl = TRUE))[[1]]
 listed <- vapply(figures, `[[`, character(1), "text")
-in_file <- vapply(listed, function(f) grepl(f, txt, fixed = TRUE), logical(1))
+in_file <- vapply(listed, function(f) has_whole(txt, f), logical(1))
 for (x in unique(nums)) {
-  if (!any(vapply(listed[in_file], function(f) grepl(x, f, fixed = TRUE), logical(1)))) {
+  if (!any(vapply(listed[in_file], function(f) has_whole(f, x), logical(1)))) {
     bad("figure \"", x, "\" is not in `figures`, or not written as its entry is")
   }
 }
@@ -411,10 +417,11 @@ if (is_review) {
   for (k in names(registry)[!registry %in% names(choices)]) bad("coverage: ", k, "'s choice ", registry[[k]], " is not in `choices`")
   say("coverage: ", length(unique(found)), " formals and constants, each covered by a choice")
 }
-say(if (fail) paste0("FAILED: ", fail, " problems") else "PASS")
+say(if (fail) paste0("FAILED: ", fail, " problems") else if (!with_books) "PASS WITHOUT QUOTES: the rest passes; the quotes were not read on their pages" else "PASS")
 
 if (is_review && !nzchar(Sys.getenv("MD")) && with_books) {
   out <- file.path("data", "checks", paste0("temperature_bayesian_alignment_", format(Sys.time(), "%Y%m%d", tz = "UTC"), ".txt"))
   writeLines(log, out)
 }
 if (fail) quit(status = 1L)
+if (!with_books) quit(status = 2L)   # not a pass: the quotes went unchecked
