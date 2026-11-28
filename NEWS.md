@@ -1,3 +1,7 @@
+# wet (development version)
+
+* Daily air temperature on every Freshwater Atlas stream segment (#216). `wet_air_daily()` reads a segment's daily mean, maximum and minimum from a new published tree, `air_temperature/fwa/v1`: `segment_cell` gives every segment the ERA5-Land cell whose series it reads, and `cell_daily` holds each used cell's days from 1950, copied unchanged from cd's daily cube. A segment takes the cell cd gives its midpoint, moved to the nearest cell with data where its own has none, and a segment with no cell is listed, not dropped. The result is what `wet_temp_fill()` takes as `air`. `scripts/air_publish.R` builds and checks the tree; `scripts/air_station_check.R` holds it to cd at the temperature stations. The cell's elevation is not given yet (#246).
+
 # wet 0.7.0
 
 * Swift Creek and Naver Creek now also run under their own stocks' cited chinook windows, the upper Fraser's (UFRA) and the Cottonwood's (COTR), beside the Bulkley's (#182). Four new site and snow reports were added, and the comparison article reports both streams under their own windows: each stream's spawning-window drop barely moves (Swift −15 %, Naver −35 %), and neither range clears no change. `data-raw/life_history_data.R` reads knowledge's life history table at a475dfe7, and `lh_pin_guard()` stops the read if any Bulkley or Morice window would move. The article's limits now say the Fraser windows' edges are survey estimates.
