@@ -220,3 +220,25 @@ test_that("Hakai's own watersheds are listed as stations, and a continued statio
   local_mocked_bindings(wet_station_regulation = wrong_source)
   expect_error(wet_station_list("hakai"), "no hakai row for WTS9002")
 })
+
+test_that("a Hakai registry whose rows all continue provincial stations lists no Hakai station", {
+  local_mocked_bindings(
+    wet_station_regulation = function(snapshot) {
+      data.frame(station_number = "08ZZ0001", source = "bcenv", regulation = "unknown")
+    },
+    wet_bcenv_stations = function(snapshot) {
+      data.frame(station_number = "08ZZ0001", name = "Alpha", lon = -128, lat = 51.6,
+                 first = as.Date("2021-10-01"), last = as.Date("2026-10-27"), regulation = "unknown",
+                 hydat_site = NA_character_, hydat_km = NA_real_)
+    },
+    wet_hakai_stations = function(version = "8318556d2baf") {
+      data.frame(station_number = "WTS9001", watershed = "9001", name = "Test", lon = -128, lat = 51.6,
+                 continues = "08ZZ0001", continues_before = as.Date("2021-10-01"), first = as.Date("2014-08-02"),
+                 last = as.Date("2019-09-30"), licence = "CC-BY 4.0", credit = "Hakai Institute et al.",
+                 bcenv_snapshot = "20261028", bcenv_days = wet_bcenv_days_key("20261028"))
+    })
+  s <- wet_station_list("hakai")
+  expect_equal(nrow(s), 0)
+  expect_named(s, names(wet_station_list_empty()))
+  expect_equal(wet_station_list(c("bcenv", "hakai"))$station_number, "08ZZ0001")
+})
