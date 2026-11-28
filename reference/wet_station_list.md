@@ -21,8 +21,8 @@ wet_station_list(
 - sources:
 
   Which networks to list, from `"bcenv"`, `"bcwatertool"` and `"hakai"`.
-  `"hakai"` alone lists no station: its watersheds only continue
-  provincial ones, which it changes when `"bcenv"` is listed too.
+  `"hakai"` lists Hakai's own stations, and changes the provincial
+  stations it continues when `"bcenv"` is listed too.
 
 - snapshot:
 
@@ -45,13 +45,15 @@ file's own statement, its liability disclaimer left out).
 
 ## Details
 
-Two such networks: the province's non-integrated hydrometric network
+Three such sources: the province's non-integrated hydrometric network
 (`"bcenv"`), stations run by the province and its partners whose hourly
-discharge the province publishes beside HYDAT, and the third-party
-gauges the BC Water Tool serves (`"bcwatertool"`): regional districts,
+discharge the province publishes beside HYDAT; the third-party gauges
+the BC Water Tool serves (`"bcwatertool"`): regional districts,
 industry, BC Hydro, the Regulator and research projects, each `network`
-the Tool names. Both lists come from pinned snapshots made with the
-package, so they need no download.
+the Tool names; and Hakai Institute's published package (`"hakai"`) for
+seven small Calvert and Hecate island watersheds, 2013-2019. All three
+lists come from pinned copies made with the package, so they need no
+download.
 
 A station at a HYDAT site keeps its own number, and its days are never
 joined to the HYDAT station's: `hydat_site` names that station (the same
@@ -61,9 +63,9 @@ provincial record begins continue that station's record under the
 provincial number (see
 [`wet_station_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_station_daily.md)),
 and the provincial row's `first`, `licence` and `credit` say so when
-both sources are listed. Hakai Institute's published package (`"hakai"`)
-continues three Calvert and Hecate island stations the same way and
-lists no station of its own.
+both sources are listed. Three of Hakai's watersheds continue provincial
+stations the same way; its other four are stations of their own, listed
+under the package's numbers (`"WTS693"`, ...).
 
 `regulation` is each station's status from what sits upstream of it, one
 for the year as a whole, under a rule registered before it was applied:
@@ -92,8 +94,8 @@ no licence record is reproduced.
 s <- wet_station_list()
 table(s$source)
 #> 
-#>       bcenv bcwatertool 
-#>         211          46 
+#>       bcenv bcwatertool       hakai 
+#>         211          46           4 
 # stations at a HYDAT station's site, carrying its record on in new years
 head(s[!is.na(s$hydat_site), c("station_number", "name", "first", "last", "hydat_site", "hydat_km")])
 #>    station_number                                    name      first       last

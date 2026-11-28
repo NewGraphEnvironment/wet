@@ -24,8 +24,8 @@ wet_station_daily(
 - stations:
 
   Character vector of station numbers: HYDAT's (`"08EE013"`), the
-  provincial network's (`"08EE0001"`) or a Water Tool gauge's
-  (`"HRB3142"`), mixed freely.
+  provincial network's (`"08EE0001"`), a Water Tool gauge's
+  (`"HRB3142"`) or a Hakai watershed's (`"WTS693"`), mixed freely.
 
 - hydat:
 
@@ -67,13 +67,14 @@ wet_station_daily(
   station's record begins, under the provincial number. `"hakai"` reads
   Hakai Institute's published discharge package (Korver et al.,
   [doi:10.21966/J99C-9C14](https://doi.org/10.21966/J99C-9C14) , CC-BY
-  4.0) for the days, 2014 to 2019, before three Calvert and Hecate
-  island stations' provincial records begin, under the provincial
-  number: a day is a Pacific Standard Time day with at least 20 of
-  Hakai's hourly means, a day above the same bound dropped. Its file is
-  fetched once from the package's pinned commit and kept in wet's cache.
-  A station's own source comes first, and a second publisher's gauge at
-  its site only for the days before it.
+  4.0) for its own four watersheds' days, 2013 to 2019, and for the
+  days, 2014 to 2019, before three Calvert and Hecate island stations'
+  provincial records begin, under the provincial number: a day is a
+  Pacific Standard Time day with at least 20 of Hakai's hourly means, a
+  day above the same bound dropped. Its file is fetched once from the
+  package's pinned commit and kept in wet's cache. A station's own
+  source comes first, and a second publisher's gauge at its site only
+  for the days before it.
 
 - snapshot:
 
@@ -129,8 +130,10 @@ back under the provincial number, with `source` `"bcwatertool"`, and
 none from that day on. Hakai Institute's published package does the same
 for three Calvert and Hecate island watersheds (H08KC0626, H08KC0703 and
 H08KC0844): its days from 2014 to 2019 come back under the provincial
-number with `source` `"hakai"`. Each provincial and Tool station's
-regulation, natural, regulated or unknown, is
+number with `source` `"hakai"`. Its other four watersheds are stations
+of their own, read under the package's numbers (`"WTS693"`, `"WTS708"`,
+`"WTS819"`, `"WTS1015"`). Each station's regulation, natural, regulated
+or unknown, is
 [`wet_station_list()`](https://newgraphenvironment.github.io/wet/reference/wet_station_list.md)'s
 `regulation`.
 

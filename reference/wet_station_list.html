@@ -68,8 +68,8 @@ stations, use <code><a href="wet_station_select.html">wet_station_select()</a></
 
 <dl><dt id="arg-sources">sources<a class="anchor" aria-label="anchor" href="#arg-sources"></a></dt>
 <dd><p>Which networks to list, from <code>"bcenv"</code>, <code>"bcwatertool"</code> and
-<code>"hakai"</code>. <code>"hakai"</code> alone lists no station: its watersheds only continue
-provincial ones, which it changes when <code>"bcenv"</code> is listed too.</p></dd>
+<code>"hakai"</code>. <code>"hakai"</code> lists Hakai's own stations, and changes the
+provincial stations it continues when <code>"bcenv"</code> is listed too.</p></dd>
 
 
 <dt id="arg-snapshot">snapshot<a class="anchor" aria-label="anchor" href="#arg-snapshot"></a></dt>
@@ -92,22 +92,23 @@ out).</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Two such networks: the province's non-integrated hydrometric network
+    <p>Three such sources: the province's non-integrated hydrometric network
 (<code>"bcenv"</code>), stations run by the province and its partners whose hourly
-discharge the province publishes beside HYDAT, and the third-party gauges
-the BC Water Tool serves (<code>"bcwatertool"</code>): regional districts, industry,
-BC Hydro, the Regulator and research projects, each <code>network</code> the Tool
-names. Both lists come from pinned snapshots made with the package, so they
-need no download.</p>
+discharge the province publishes beside HYDAT; the third-party gauges the
+BC Water Tool serves (<code>"bcwatertool"</code>): regional districts, industry, BC
+Hydro, the Regulator and research projects, each <code>network</code> the Tool names;
+and Hakai Institute's published package (<code>"hakai"</code>) for seven small Calvert
+and Hecate island watersheds, 2013-2019. All three lists come from pinned
+copies made with the package, so they need no download.</p>
 <p>A station at a HYDAT site keeps its own number, and its days are never
 joined to the HYDAT station's: <code>hydat_site</code> names that station (the same
 stream name within 1 km) so a caller can join the two. A Water Tool gauge at
 a provincial station's site is not listed: its days before the provincial
 record begins continue that station's record under the provincial number
 (see <code><a href="wet_station_daily.html">wet_station_daily()</a></code>), and the provincial row's <code>first</code>, <code>licence</code> and
-<code>credit</code> say so when both sources are listed. Hakai Institute's published
-package (<code>"hakai"</code>) continues three Calvert and Hecate island stations the
-same way and lists no station of its own.</p>
+<code>credit</code> say so when both sources are listed. Three of Hakai's watersheds
+continue provincial stations the same way; its other four are stations of
+their own, listed under the package's numbers (<code>"WTS693"</code>, ...).</p>
 <p><code>regulation</code> is each station's status from what sits upstream of it, one
 for the year as a whole, under a rule registered before it was applied:
 <code>"regulated"</code> where the name says so (a dam, diversion, intake and
@@ -134,8 +135,8 @@ Province of British Columbia's water rights licences, whose terms are
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">s</span> <span class="op">&lt;-</span> <span class="fu">wet_station_list</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">source</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       bcenv bcwatertool </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         211          46 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       bcenv bcwatertool       hakai </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         211          46           4 </span>
 <span class="r-in"><span><span class="co"># stations at a HYDAT station's site, carrying its record on in new years</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">s</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">hydat_site</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"station_number"</span>, <span class="st">"name"</span>, <span class="st">"first"</span>, <span class="st">"last"</span>, <span class="st">"hydat_site"</span>, <span class="st">"hydat_km"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    station_number                                    name      first       last</span>

@@ -1,5 +1,21 @@
 # Changelog
 
+## wet (development version)
+
+- Hakai Institute’s four other Calvert and Hecate island watersheds are
+  stations of their own
+  ([\#233](https://github.com/NewGraphEnvironment/wet/issues/233)):
+  [`wet_station_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_station_daily.md)
+  reads WTS693, WTS708, WTS819 and WTS1015 under those numbers
+  (`sources = "hakai"`), 2013–2019, and `wet_station_list("hakai")`
+  lists them. Each has 5–6 complete Chinook-window years; all four are
+  `unknown` for regulation, since their names give no stream to place
+  them on. The other 257 stations’ regulation statuses are unchanged. A
+  newer pin of the province’s files waits: the province has not
+  republished its 2019–2021 archive, so a new copy would not bring the
+  revised 2021 months
+  ([\#232](https://github.com/NewGraphEnvironment/wet/issues/232)).
+
 ## wet 0.7.0
 
 - Swift Creek and Naver Creek now also run under their own stocks’ cited

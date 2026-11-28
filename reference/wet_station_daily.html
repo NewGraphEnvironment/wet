@@ -75,8 +75,8 @@ rests on (ice-affected winter flows are estimates).</p>
 
 <dl><dt id="arg-stations">stations<a class="anchor" aria-label="anchor" href="#arg-stations"></a></dt>
 <dd><p>Character vector of station numbers: HYDAT's
-(<code>"08EE013"</code>), the provincial network's (<code>"08EE0001"</code>) or a Water Tool
-gauge's (<code>"HRB3142"</code>), mixed freely.</p></dd>
+(<code>"08EE013"</code>), the provincial network's (<code>"08EE0001"</code>), a Water Tool
+gauge's (<code>"HRB3142"</code>) or a Hakai watershed's (<code>"WTS693"</code>), mixed freely.</p></dd>
 
 
 <dt id="arg-hydat">hydat<a class="anchor" aria-label="anchor" href="#arg-hydat"></a></dt>
@@ -113,10 +113,11 @@ at a provincial station's site before that station's record begins, under
 the provincial number. <code>"hakai"</code> reads Hakai Institute's published
 discharge package (Korver et al., <a href="https://doi.org/10.21966/J99C-9C14" class="external-link">doi:10.21966/J99C-9C14</a>
 , CC-BY 4.0)
-for the days, 2014 to 2019, before three Calvert and Hecate island
-stations' provincial records begin, under the provincial number: a day is
-a Pacific Standard Time day with at least 20 of Hakai's hourly means, a
-day above the same bound dropped. Its file is fetched once from the
+for its own four watersheds' days, 2013 to 2019, and for the days, 2014
+to 2019, before three Calvert and Hecate island stations' provincial
+records begin, under the provincial number: a day is a Pacific Standard
+Time day with at least 20 of Hakai's hourly means, a day above the same
+bound dropped. Its file is fetched once from the
 package's pinned commit and kept in wet's cache. A station's own source
 comes first, and a second publisher's gauge at its site only for the days
 before it.</p></dd>
@@ -168,9 +169,11 @@ any hour of the station) come back under the provincial number, with
 <code>source</code> <code>"bcwatertool"</code>, and none from that day on. Hakai Institute's
 published package does the same for three Calvert and Hecate island
 watersheds (H08KC0626, H08KC0703 and H08KC0844): its days from 2014 to
-2019 come back under the provincial number with <code>source</code> <code>"hakai"</code>. Each
-provincial and Tool station's regulation, natural, regulated or unknown, is
-<code><a href="wet_station_list.html">wet_station_list()</a></code>'s <code>regulation</code>.</p>
+2019 come back under the provincial number with <code>source</code> <code>"hakai"</code>. Its
+other four watersheds are stations of their own, read under the package's
+numbers (<code>"WTS693"</code>, <code>"WTS708"</code>, <code>"WTS819"</code>, <code>"WTS1015"</code>). Each station's
+regulation, natural, regulated or unknown, is <code><a href="wet_station_list.html">wet_station_list()</a></code>'s
+<code>regulation</code>.</p>
 <p>Ported from <code>ngr::ngr_hyd_q_daily()</code>, which joined HYDAT with about 18
 months of real-time flow.</p>
     </div>
