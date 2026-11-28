@@ -1,7 +1,7 @@
 # TerraClimate runoff and the 1961-1990 runoff isolines at the calibration gauges (#243, #225), HYDAT 20260717
 
 The rule: scripts/runoff_products_rule.R, registered before this script or any product value existed.
-Rule commit a5e867cf, md5 86c789502042e6d310afa9ea00fae4f0. Code commit 487dc7c3 (the last commit to R/, scripts/, data-raw/, inst/vignette-data/).
+Rule commit a5e867cf, md5 86c789502042e6d310afa9ea00fae4f0. Code commit 096ac4be (the last commit to R, scripts, data-raw, inst/vignette-data, DESCRIPTION).
 Fit: cv_aet-cfu.rds under scoring md5 df3280b5; gauges and routed PCIC from inst/vignette-data/monthly_values.rds (md5 a8093a1a76704e5365a0392ae4ac8c0e), held equal to the fit.
 Both products are references here, never inputs. Error is modelled over observed, in %; within is |error| <= 20 %.
 
@@ -21,63 +21,64 @@ Samples: TerraClimate 571f1ec516, isolines c6d7c91381, over 236 watershed groups
 315 calibration gauges (19 lake outlets); routed PCIC's shared set 283. A product is scored where it covers at least 95 % of the basin.
 TerraClimate scores 315; isolines (both surfaces) 292.
 
-Not scored, with coverage (reason: a lake outlet, or TerraClimate's empty sea and coastal cells; for the isolines, beyond the TIN's triangulation or 50 km from a vertex):
+Not scored, with each product's coverage and the reason, which is the only way a cell has no value: for TerraClimate, a cell the file leaves empty;
+for the isolines, a cell beyond the TIN's triangulation or more than 50 km from an isoline vertex. The lake-outlet flag is shown beside, not tested.
 
-station  zone lake    tc_cov  iso_cov  name
-08DB001  01   no       1.000    0.899  NASS RIVER ABOVE SHUMAL CREEK
-08EB004  01   no       1.000    0.911  KISPIOX RIVER NEAR HAZELTON
-08CD001  02   no       1.000    0.942  TUYA RIVER NEAR TELEGRAPH CREEK
-10AC006  02   no       1.000    0.829  DEASE RIVER NEAR THE MOUTH
-07EA005  03   no       1.000    0.880  FINLAY RIVER ABOVE AKIE RIVER
-10AC004  03   no       1.000    0.843  BLUE RIVER NEAR THE MOUTH
-10BA001  03   no       1.000    0.788  TURNAGAIN RIVER ABOVE SANDPILE CREEK
-10BB002  03   no       1.000    0.859  KECHIKA RIVER ABOVE BOYA CREEK
-10BE008  03   no       1.000    0.635  GEDDES CREEK AT THE MOUTH
-10BE012  03   no       1.000    0.731  RABBIT RIVER NEAR THE MOUTH
-10CB001  03   no       1.000    0.912  SIKANNI CHIEF RIVER NEAR FORT NELSON
-10CC002  04   no       0.978    0.542  FORT NELSON RIVER ABOVE MUSKWA RIVER
-08CA001  05   no       1.000    0.176  SPATSIZI RIVER NEAR THE MOUTH
-08CA002  05   no       1.000    0.486  STIKINE RIVER BELOW SPATSIZI RIVER
-08CB001  05   no       1.000    0.773  STIKINE RIVER ABOVE GRAND CANYON
-08CE001  05   no       1.000    0.840  STIKINE RIVER AT TELEGRAPH CREEK
-08CF001  05   no       1.000    0.871  STIKINE RIVER ABOVE BUTTERFLY CREEK
-08EB005  05   no       1.000    0.235  SKEENA RIVER ABOVE BABINE RIVER
-07FD004  06   no       1.000    0.000  ALCES RIVER AT 22ND BASE LINE
-08EC013  08   yes      1.000    0.935  BABINE RIVER AT OUTLET OF NILKITKWA LAKE
-08EF001  08   no       1.000    0.729  SKEENA RIVER AT USK
-08NP003  20   no       1.000    0.676  HOWELL CREEK ABOVE CABIN CREEK
-08NP004  20   no       1.000    0.209  CABIN CREEK NEAR THE MOUTH
+station  zone lake    tc_cov  iso_cov  name                                 reason
+08DB001  01   no       1.000    0.899  NASS RIVER ABOVE SHUMAL CREEK        isolines: beyond the surfaces
+08EB004  01   no       1.000    0.911  KISPIOX RIVER NEAR HAZELTON          isolines: beyond the surfaces
+08CD001  02   no       1.000    0.942  TUYA RIVER NEAR TELEGRAPH CREEK      isolines: beyond the surfaces
+10AC006  02   no       1.000    0.829  DEASE RIVER NEAR THE MOUTH           isolines: beyond the surfaces
+07EA005  03   no       1.000    0.880  FINLAY RIVER ABOVE AKIE RIVER        isolines: beyond the surfaces
+10AC004  03   no       1.000    0.843  BLUE RIVER NEAR THE MOUTH            isolines: beyond the surfaces
+10BA001  03   no       1.000    0.788  TURNAGAIN RIVER ABOVE SANDPILE CREEK isolines: beyond the surfaces
+10BB002  03   no       1.000    0.859  KECHIKA RIVER ABOVE BOYA CREEK       isolines: beyond the surfaces
+10BE008  03   no       1.000    0.635  GEDDES CREEK AT THE MOUTH            isolines: beyond the surfaces
+10BE012  03   no       1.000    0.731  RABBIT RIVER NEAR THE MOUTH          isolines: beyond the surfaces
+10CB001  03   no       1.000    0.912  SIKANNI CHIEF RIVER NEAR FORT NELSON isolines: beyond the surfaces
+10CC002  04   no       0.978    0.542  FORT NELSON RIVER ABOVE MUSKWA RIVER isolines: beyond the surfaces
+08CA001  05   no       1.000    0.176  SPATSIZI RIVER NEAR THE MOUTH        isolines: beyond the surfaces
+08CA002  05   no       1.000    0.486  STIKINE RIVER BELOW SPATSIZI RIVER   isolines: beyond the surfaces
+08CB001  05   no       1.000    0.773  STIKINE RIVER ABOVE GRAND CANYON     isolines: beyond the surfaces
+08CE001  05   no       1.000    0.840  STIKINE RIVER AT TELEGRAPH CREEK     isolines: beyond the surfaces
+08CF001  05   no       1.000    0.871  STIKINE RIVER ABOVE BUTTERFLY CREEK  isolines: beyond the surfaces
+08EB005  05   no       1.000    0.235  SKEENA RIVER ABOVE BABINE RIVER      isolines: beyond the surfaces
+07FD004  06   no       1.000    0.000  ALCES RIVER AT 22ND BASE LINE        isolines: beyond the surfaces
+08EC013  08   yes      1.000    0.935  BABINE RIVER AT OUTLET OF NILKITKWA LAKE isolines: beyond the surfaces
+08EF001  08   no       1.000    0.729  SKEENA RIVER AT USK                  isolines: beyond the surfaces
+08NP003  20   no       1.000    0.676  HOWELL CREEK ABOVE CABIN CREEK       isolines: beyond the surfaces
+08NP004  20   no       1.000    0.209  CABIN CREEK NEAR THE MOUTH           isolines: beyond the surfaces
 
-By zone: gauges, TerraClimate not scored (of them lake outlets), isolines not scored
-  zone 01:  12 gauges, TerraClimate  0 (0), isolines  2
-  zone 02:   5 gauges, TerraClimate  0 (0), isolines  2
-  zone 03:  21 gauges, TerraClimate  0 (0), isolines  7
-  zone 04:   5 gauges, TerraClimate  0 (0), isolines  1
-  zone 05:   7 gauges, TerraClimate  0 (0), isolines  6
-  zone 06:   3 gauges, TerraClimate  0 (0), isolines  1
-  zone 07:   9 gauges, TerraClimate  0 (0), isolines  0
-  zone 08:  23 gauges, TerraClimate  0 (0), isolines  2
-  zone 09:   7 gauges, TerraClimate  0 (0), isolines  0
-  zone 10:   9 gauges, TerraClimate  0 (0), isolines  0
-  zone 11:   2 gauges, TerraClimate  0 (0), isolines  0
-  zone 12:   3 gauges, TerraClimate  0 (0), isolines  0
-  zone 13:  10 gauges, TerraClimate  0 (0), isolines  0
-  zone 14:  22 gauges, TerraClimate  0 (0), isolines  0
-  zone 15:  19 gauges, TerraClimate  0 (0), isolines  0
-  zone 16:   6 gauges, TerraClimate  0 (0), isolines  0
-  zone 17:   4 gauges, TerraClimate  0 (0), isolines  0
-  zone 18:  12 gauges, TerraClimate  0 (0), isolines  0
-  zone 19:  11 gauges, TerraClimate  0 (0), isolines  0
-  zone 20:  10 gauges, TerraClimate  0 (0), isolines  2
-  zone 21:  13 gauges, TerraClimate  0 (0), isolines  0
-  zone 22:  15 gauges, TerraClimate  0 (0), isolines  0
-  zone 23:   8 gauges, TerraClimate  0 (0), isolines  0
-  zone 24:   9 gauges, TerraClimate  0 (0), isolines  0
-  zone 25:  16 gauges, TerraClimate  0 (0), isolines  0
-  zone 26:  13 gauges, TerraClimate  0 (0), isolines  0
-  zone 27:  12 gauges, TerraClimate  0 (0), isolines  0
-  zone 28:  16 gauges, TerraClimate  0 (0), isolines  0
-  zone 29:  13 gauges, TerraClimate  0 (0), isolines  0
+By zone: gauges, TerraClimate not scored, isolines not scored
+  zone 01:  12 gauges, TerraClimate  0, isolines  2
+  zone 02:   5 gauges, TerraClimate  0, isolines  2
+  zone 03:  21 gauges, TerraClimate  0, isolines  7
+  zone 04:   5 gauges, TerraClimate  0, isolines  1
+  zone 05:   7 gauges, TerraClimate  0, isolines  6
+  zone 06:   3 gauges, TerraClimate  0, isolines  1
+  zone 07:   9 gauges, TerraClimate  0, isolines  0
+  zone 08:  23 gauges, TerraClimate  0, isolines  2
+  zone 09:   7 gauges, TerraClimate  0, isolines  0
+  zone 10:   9 gauges, TerraClimate  0, isolines  0
+  zone 11:   2 gauges, TerraClimate  0, isolines  0
+  zone 12:   3 gauges, TerraClimate  0, isolines  0
+  zone 13:  10 gauges, TerraClimate  0, isolines  0
+  zone 14:  22 gauges, TerraClimate  0, isolines  0
+  zone 15:  19 gauges, TerraClimate  0, isolines  0
+  zone 16:   6 gauges, TerraClimate  0, isolines  0
+  zone 17:   4 gauges, TerraClimate  0, isolines  0
+  zone 18:  12 gauges, TerraClimate  0, isolines  0
+  zone 19:  11 gauges, TerraClimate  0, isolines  0
+  zone 20:  10 gauges, TerraClimate  0, isolines  2
+  zone 21:  13 gauges, TerraClimate  0, isolines  0
+  zone 22:  15 gauges, TerraClimate  0, isolines  0
+  zone 23:   8 gauges, TerraClimate  0, isolines  0
+  zone 24:   9 gauges, TerraClimate  0, isolines  0
+  zone 25:  16 gauges, TerraClimate  0, isolines  0
+  zone 26:  13 gauges, TerraClimate  0, isolines  0
+  zone 27:  12 gauges, TerraClimate  0, isolines  0
+  zone 28:  16 gauges, TerraClimate  0, isolines  0
+  zone 29:  13 gauges, TerraClimate  0, isolines  0
 
 ## 3. Plumbing check: TerraClimate's runoff against the province run's ppt_tc - aet_tc
 
@@ -86,7 +87,7 @@ ppt_tc and aet_tc are bilinear on the 30" grid and filled from climr and CGIAR w
 
 ## 4. Annual error, % (median [middle half], share within +-20 %), each beside the balance and routed PCIC at the same gauges
 
-Routed PCIC over those gauges that are also among its 283 shared gauges. Zones with fewer than 5 scored gauges are marked * and not read.
+Routed PCIC over those gauges that are also among its 283 shared gauges. A row whose product scores fewer than 5 gauges in its zone is marked * and not read.
 
 BC   TerraClimate n 315   -33.0 [ -45.5,  -13.3]  23 % | balance   -3.6 [ -15.8,  +24.4]  53 % | routed n 283   -2.6 [ -12.8,  +12.8]  65 %
 BC   isolines TIN  n 292    +1.8 [ -14.0,  +17.8]  61 % | balance   -4.5 [ -15.8,  +24.7]  52 % | routed n 270   -2.5 [ -13.1,  +13.7]  64 %
@@ -95,16 +96,16 @@ BC   isolines IDW  n 292    +1.3 [ -14.9,  +17.5]  60 %
 01   TerraClimate n  12   -38.4 [ -43.9,  -27.2]   8 % | balance  -13.4 [ -16.9,  +31.3]  50 % | routed n  10   +3.0 [  -5.2,   +9.3]  90 %
 01   isolines TIN  n  10   -12.7 [ -14.5,  +14.8]  50 % | balance  -13.4 [ -16.8,  +21.9]  50 % | routed n   8   +7.6 [  -1.3,  +10.2]  88 %
 01   isolines IDW  n  10   -11.4 [ -14.0,  +28.1]  50 %
-02*  TerraClimate n   5   -38.6 [ -45.7,  -30.2]   0 % | balance  -21.9 [ -29.8,   -9.9]  20 % | routed n   1   -8.4 [  -8.4,   -8.4] 100 %
+02   TerraClimate n   5   -38.6 [ -45.7,  -30.2]   0 % | balance  -21.9 [ -29.8,   -9.9]  20 % | routed n   1   -8.4 [  -8.4,   -8.4] 100 %
 02*  isolines TIN  n   3    +6.4 [  -9.1,  +34.1]  33 % | balance  -29.8 [ -33.7,   -1.1]   0 % | routed n   0                        -     -
 02*  isolines IDW  n   3    +7.0 [  -8.8,  +31.4]  33 %
 03   TerraClimate n  21   -39.5 [ -47.3,  -27.8]   5 % | balance   +7.3 [ -11.0,  +15.2]  71 % | routed n  10   -5.5 [ -11.3,   +2.0]  90 %
 03   isolines TIN  n  14    +0.4 [ -12.6,  +21.1]  64 % | balance   +6.4 [ -14.3,  +14.5]  79 % | routed n   9   -4.9 [  -7.5,   +3.6]  89 %
 03   isolines IDW  n  14    +1.5 [ -12.6,  +14.3]  64 %
-04*  TerraClimate n   5   -64.7 [ -67.4,  -41.8]   0 % | balance  -32.9 [ -38.7,  -18.5]  40 % | routed n   0                        -     -
+04   TerraClimate n   5   -64.7 [ -67.4,  -41.8]   0 % | balance  -32.9 [ -38.7,  -18.5]  40 % | routed n   0                        -     -
 04*  isolines TIN  n   4    +4.3 [  -0.0,   +7.3] 100 % | balance  -28.6 [ -39.8,  -11.9]  50 % | routed n   0                        -     -
 04*  isolines IDW  n   4    -6.2 [ -16.8,   +4.1] 100 %
-05*  TerraClimate n   7   -33.8 [ -35.8,  -31.7]   0 % | balance   -7.3 [ -20.0,   +0.8]  71 % | routed n   7   -4.8 [  -8.7,   -1.9] 100 %
+05   TerraClimate n   7   -33.8 [ -35.8,  -31.7]   0 % | balance   -7.3 [ -20.0,   +0.8]  71 % | routed n   7   -4.8 [  -8.7,   -1.9] 100 %
 05*  isolines TIN  n   1   -14.1 [ -14.1,  -14.1] 100 % | balance  -26.6 [ -26.6,  -26.6]   0 % | routed n   1   -4.8 [  -4.8,   -4.8] 100 %
 05*  isolines IDW  n   1   -21.5 [ -21.5,  -21.5]   0 %
 06*  TerraClimate n   3   -18.4 [ -26.4,  -16.4]  67 % | balance  +28.0 [  +8.9,  +32.9]  33 % | routed n   3  +25.0 [ +18.1,  +64.8]  33 %
