@@ -20,7 +20,7 @@ ok   line 69 mcelreath2020StatisticalRethinking p. 233
 ok   line 69 gelman_etal2013Bayesiandata p. 226
 ok   line 69 gelman_etal2013Bayesiandata p. 199
 quotes: 20 checked in research/temperature_bayesian_alignment.md
-figures: 21 numbers with a unit; 24 of 24 listed figures in this file, each held to its source
+figures: 32 numbers with a unit, each inside a listed figure; 24 of 24 listed figures in this file, each held to its source
 Choices: 64 rows for 64; aligned 12, differs 21, differs by design 7, outside the books 24
 coverage: 24 formals and constants, each covered by a choice
 PASS

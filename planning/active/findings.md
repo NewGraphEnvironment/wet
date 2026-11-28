@@ -60,6 +60,9 @@ Each break planted on copies in a detached worktree of HEAD plus the new files, 
 | no PDFs (`ZOTERO_DIR=/nonexistent`) | 2 (0 until code-check round 1) | QUOTES NOT CHECKED, PASS WITHOUT QUOTES; no log written in default mode |
 | (round 1) unlisted figures inside listed ones: 7 °C, 1 °C, 4 %, 0 °C-days, and 3 °C with a no-break space | 1 each (passed before the fix) | not in `figures` |
 | (round 1) a listed figure removed where a longer number still contains it (0 °C) | 1 (passed before the fix) | listed but not in the file |
+| (round 2) a signed figure, −4 °C and -5 °C, beside listed 4 °C and 5 °C | 1 (passed after round 1) | not inside a listed figure |
+| (round 2) a listed number with another meaning: 95 % of stations, 0.1 °C, 50 %, 4 °C | 1 (passed after round 1) | not inside a listed figure |
+| (round 2) .5 °C, 1,600 %, 89-94 % | 1 (skipped by the extractor before) | not inside a listed figure |
 
 A constant inserted mid-file fails first on the moved anchors, which is the check working too; appended at the end it isolates the coverage failure.
 

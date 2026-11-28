@@ -143,7 +143,7 @@ figures <- list(
   fig("130.4 \u00B0C-days", "data/checks/temp_fill_validate.txt", "season 897      -0.165             0.828    897        130.43        128.74"),
   fig("128.7 \u00B0C-days", "data/checks/temp_fill_validate.txt", "season 897      -0.165             0.828    897        130.43        128.74"),
   fig("about 11 \u00B0C-days", "research/station_temperature_fill.md", "So the benchmark here is in-sample by about 11 \u00B0C-days."),
-  fig("\u22120.49", "research/station_temperature_fill.md", "(correlation \u22120.49)"),
+  fig("correlated at \u22120.49", "research/station_temperature_fill.md", "(correlation \u22120.49)"),
   fig("87 to 94 %", "research/station_temperature_fill.md", "87 to 94 % of the time at a nominal 90 %"),
   fig("nominal 90 %", "research/station_temperature_fill.md", "87 to 94 % of the time at a nominal 90 %"),
   fig("89.6 to 90.2 %", "research/station_temperature_fill.md", "89.6 to 90.2 % of the time"),
@@ -151,11 +151,11 @@ figures <- list(
   fig("298.0 \u00B0C-days", "data/checks/temp_baseline.txt", "leakfree regression    298.0"),
   fig("4.1 \u00B0C-days", "research/station_temperature_fill.md", "costs the nearest-stations mean 11.5 \u00B0C-days and the regression 4.1"),
   fig("11.5 \u00B0C-days", "research/station_temperature_fill.md", "costs the nearest-stations mean 11.5 \u00B0C-days and the regression 4.1"),
-  fig("0 \u00B0C", "R/wet_temp_fill.R", "floored at 0 \u00B0C for ice"),
-  fig("0.1 \u00B0C", "R/wet_temp_fill.R", "obs_sd = 0.1, level = 0.95"),
-  fig("0.01 \u00B0C", "research/station_temperature_fill.md", "\u03C3 \u2265 0.01 \u00B0C"),
-  fig("5 \u00B0C", "R/wet_temp_gsdd.R", "5 \u00B0C and stays there"),
-  fig("4 \u00B0C", "R/wet_temp_gsdd.R", "below 4 \u00B0C, and GSDD is the sum"),
+  fig("at 0 \u00B0C", "R/wet_temp_fill.R", "floored at 0 \u00B0C for ice"),
+  fig("error of 0.1 \u00B0C", "R/wet_temp_fill.R", "obs_sd = 0.1, level = 0.95"),
+  fig("at least 0.01 \u00B0C", "research/station_temperature_fill.md", "\u03C3 \u2265 0.01 \u00B0C"),
+  fig("above 5 \u00B0C", "R/wet_temp_gsdd.R", "5 \u00B0C and stays there"),
+  fig("below 4 \u00B0C", "R/wet_temp_gsdd.R", "below 4 \u00B0C, and GSDD is the sum"),
   fig("0.1 degC", "scripts/temp_baseline_traits.R", "0.1 degC is a sensor reading one value"),
   fig("95 % of the basin", "scripts/temp_baseline_traits.R", "Kept: snapped and accepted, at least 95 % of the basin inside BC"),
   fig("traits 50 %, network 25 %, noise 25 %", "data/checks/temp_baseline_recover.txt", "theta's variance: traits 50 %, network 25 %, noise 25 %"),
@@ -163,12 +163,9 @@ figures <- list(
   fig("50 \u00B0C-days", "scripts/temp_baseline_rule.R", "tb_close <- 50"),
   fig("90 % interval", "scripts/temp_baseline_lib.R", "tb_level <- 0.9")
 )
-unit_rx <- "(?<![0-9.,])[0-9]+(?:\\.[0-9]+)?[\\s\\x{00A0}\\x{202F}]?(?:\u00B0C-days|\u00B0C|degC|%)"
-# `needle` in `hay` as a whole figure: no digit, point or comma before it, and no digit, letter or hyphen after
-# it, so "7 degC" is not found in "128.7 degC-days" nor "0 degC" in "10 degC-days" (written here in degC)
-has_whole <- function(hay, needle) {
-  grepl(paste0("(?<![0-9.,\u2212-])\\Q", needle, "\\E(?![0-9[:alpha:]-])"), hay, perl = TRUE)
-}
+unit_rx <- "(?<![0-9.,])[\u2212-]?(?:[0-9]+(?:[.,][0-9]+)*|\\.[0-9]+)[\\s\\x{00A0}\\x{202F}]?(?:\u00B0C-days|\u00B0C|degC|%)"
+# a listed figure as a whole: no digit, point, comma or sign before it, and no digit, letter or hyphen after it
+whole_rx <- function(f) paste0("(?<![0-9.,\u2212-])\\Q", f, "\\E(?![0-9[:alpha:]-])")
 
 md_path <- Sys.getenv("MD", review)
 is_review <- identical(normalizePath(md_path, mustWork = FALSE), normalizePath(review, mustWork = FALSE))
@@ -324,12 +321,22 @@ fig_txt <- masked
 cite <- gregexpr("\\([A-Za-z0-9_]+, pp?\\. [0-9]+(?:[-\u2013][0-9]+)?\\)", fig_txt, perl = TRUE)[[1]]
 for (k in seq_along(cite)) if (cite[k] > 0) substr(fig_txt, cite[k], cite[k] + attr(cite, "match.length")[k] - 1L) <-
   strrep(" ", attr(cite, "match.length")[k])
-nums <- regmatches(fig_txt, gregexpr(unit_rx, fig_txt, perl = TRUE))[[1]]
 listed <- vapply(figures, `[[`, character(1), "text")
-in_file <- vapply(listed, function(f) has_whole(txt, f), logical(1))
-for (x in unique(nums)) {
-  if (!any(vapply(listed[in_file], function(f) has_whole(f, x), logical(1)))) {
-    bad("figure \"", x, "\" is not in `figures`, or not written as its entry is")
+# every whole match of every listed figure, as spans of the text; a figure is in the file when it has one
+span_of <- function(m) {
+  if (m[1] < 0) return(matrix(integer(), 0, 2))
+  cbind(as.integer(m), as.integer(m) + attr(m, "match.length") - 1L)
+}
+spans <- lapply(listed, function(f) span_of(gregexpr(whole_rx(f), fig_txt, perl = TRUE)[[1]]))
+in_file <- vapply(spans, nrow, integer(1)) > 0
+cover <- do.call(rbind, spans)
+# every number written with a unit, its sign included, must lie inside a whole match of a listed figure
+nm <- gregexpr(unit_rx, fig_txt, perl = TRUE)[[1]]
+occ <- span_of(nm)
+nums <- regmatches(fig_txt, list(nm))[[1]]
+for (k in seq_len(nrow(occ))) {
+  if (!any(cover[, 1] <= occ[k, 1] & cover[, 2] >= occ[k, 2])) {
+    bad("line ", line_at(occ[k, 1]), ": figure \"", nums[k], "\" is not inside a listed figure as its entry is written")
   }
 }
 for (f in figures[in_file]) {
@@ -342,7 +349,7 @@ for (f in figures[in_file]) {
   }, integer(1)))
   if (n != 1L) bad("figure \"", f$text, "\": its literal occurs ", n, " times in ", f$source, ", not once")
 }
-say("figures: ", length(unique(nums)), " numbers with a unit; ", sum(in_file), " of ", length(figures),
+say("figures: ", length(nums), " numbers with a unit, each inside a listed figure; ", sum(in_file), " of ", length(figures),
     " listed figures in this file, each held to its source")
 if (is_review && !all(in_file)) {
   for (f in listed[!in_file]) bad("figure \"", f, "\" is listed but not in the file")
