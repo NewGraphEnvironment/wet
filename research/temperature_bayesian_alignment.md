@@ -10,7 +10,7 @@ The two books are McElreath, *Statistical Rethinking*, 2nd ed. (2020; Rethinking
 
 **What was asked.** Where does each choice sit against Bayesian practice as these two books teach it: aligned, different, different on purpose, or outside what the books cover? And for each difference, what does it cost, in wet's own results?
 
-**How it was judged.** Each statement about the method was read from the code (file and line, in the table under Choices), not from its documentation. Each statement about the books was found through the store and read on its page.
+**How it was judged.** Each statement about the method was read from the code (file and line, in the table under Choices); two choices that no line of code makes are cited at the function's own documentation, which states them (`air_day_offset`, cd's fixed day for air, and `gsdd_no_interval`). Each statement about the books was found through the store and read on its page.
 
 **What stands.** The test design is what the books ask for when the question is a new site: whole stations are held out, the folds follow the drainage, and the leak-free pool removes the neighbours that share a stretch of stream with the station being predicted. The candidates were run first on data simulated from known values, and that recovery checked interval coverage as BDA3's fake-data debugging does. The regression's predictive interval is the one a flat-prior Bayesian regression gives.
 

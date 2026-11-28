@@ -66,6 +66,25 @@ Each break planted on copies in a detached worktree of HEAD plus the new files, 
 
 A constant inserted mid-file fails first on the moved anchors, which is the check working too; appended at the end it isolates the coverage failure.
 
+### Code-check round 3: the mechanism and its enumeration
+
+Round 3 named the mechanism behind rounds 1 and 2: each guard turns one fact into two patterns (a number with a unit and a listed figure; a figure's text and its source literal; a choice's anchor and its line; the registry and the parsed scope; the quote regex and the near-citation scan; code spans and prose), and whatever a pattern does not produce is never compared, which reads as a pass. Every pair, after the round-3 fix (each probed in a detached worktree, all exit 1):
+
+| pair | closed by | probe |
+|---|---|---|
+| extractor vs numbers as written | `unit_rx`: every dash as a sign, °C/ºC/℃/degC/%/percent, emphasis and no-break or thin spaces between number and unit | `**330.0** °C-days`, `6 ºC`, `6 ℃`, `99 percent`, `–4.1 °C-days`, `5–10 °C-days` |
+| extractor vs matcher | one `dash` set shared by `unit_rx`, `whole_rx`, `edge_rx`, `signed_rx` | as above |
+| a figure with no unit | `signed_rx`: any number with a minus, hyphen or dash sign (not after a letter, as in UTC−8) | `−0.59`, `-0.59`, `–0.3` |
+| figure text vs a listed number elsewhere | each occurrence inside a whole match of a listed entry; bare entries carry context words | round 2's four |
+| source literal vs its source | `edge_rx`: whole at numeric edges | `15 °C` in wet_temp_gsdd.R |
+| anchor vs the line | whole-line equality | `stuck_sd <- 0.15`, `n_sim <- 16000`, `wet_air_gap <- 30`, the ice floor commented out |
+| registry vs values passed by position | every `wet_fill_prepare()` call in scripts/ passes `wet_temp_fill()`'s `min_days` and `obs_sd^2` | `180, 0.5^2` |
+| code spans vs prose | backticks paired within a line | a stray backtick hiding `6 °C` |
+| quote citation vs spacing | `sp_rx` with U+202F and U+2009 | an invented quote at `p.` + U+202F |
+| quote marks vs the near-citation scan | guillemets added | `«so on»` near a citation |
+
+Accepted, as no honest edit writes them: numbers in words; a block quote with no quote marks; an author-colon citation form; a wrong value written in the same context words as a listed figure. Starting values inside function bodies (the optimiser's) are not constants in scope; the rows cover the choices they belong to (`two_starts`, `departure_ml`). The research file's sentence that every statement was read from code, not documentation, was false for two rows and is corrected.
+
 ## Errors Encountered
 
 | Error | Resolution |

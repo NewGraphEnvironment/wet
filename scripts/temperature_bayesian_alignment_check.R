@@ -163,9 +163,17 @@ figures <- list(
   fig("50 \u00B0C-days", "scripts/temp_baseline_rule.R", "tb_close <- 50"),
   fig("90 % interval", "scripts/temp_baseline_lib.R", "tb_level <- 0.9")
 )
-unit_rx <- "(?<![0-9.,])[\u2212-]?(?:[0-9]+(?:[.,][0-9]+)*|\\.[0-9]+)[\\s\\x{00A0}\\x{202F}]?(?:\u00B0C-days|\u00B0C|degC|%)"
-# a listed figure as a whole: no digit, point, comma or sign before it, and no digit, letter or hyphen after it
-whole_rx <- function(f) paste0("(?<![0-9.,\u2212-])\\Q", f, "\\E(?![0-9[:alpha:]-])")
+dash <- "\\-\u2010-\u2015\u2212"   # a hyphen, the Unicode dashes and the minus sign, as clean() reads them
+unit_rx <- paste0("(?<![0-9.,])[", dash, "]?(?:[0-9]+(?:[.,][0-9]+)*|\\.[0-9]+)[*_]{0,2}[\\s\\x{00A0}\\x{202F}\\x{2009}]?",
+                  "[*_]{0,2}(?:\u00B0C-days|[\u00B0\u00BA]C|\u2103|degC|%|percent|per cent)")
+# a listed figure as a whole: no digit, point, comma or dash before it, and no digit, letter or hyphen after it
+whole_rx <- function(f) paste0("(?<![0-9.,", dash, "])\\Q", f, "\\E(?![0-9[:alpha:]-])")
+# a source's literal, whole at its numeric edges: no digit, point or dash before a leading digit, no digit after a
+# trailing one, so "5 degC and stays there" is not found in "15 degC and stays there"
+edge_rx <- function(l) paste0(if (grepl("^[0-9]", l)) paste0("(?<![0-9.,", dash, "])") else "", "\\Q", l, "\\E",
+                              if (grepl("[0-9]$", l)) "(?![0-9])" else "")
+# a number written with a minus sign is a figure too, unit or none (after a letter it is a label, as in UTC\u22128)
+signed_rx <- paste0("(?<![0-9.,[:alpha:]])[", dash, "][0-9]+(?:\\.[0-9]+)?")
 
 md_path <- Sys.getenv("MD", review)
 is_review <- identical(normalizePath(md_path, mustWork = FALSE), normalizePath(review, mustWork = FALSE))
@@ -235,7 +243,7 @@ page_text <- function(key, p) {
 txt <- paste(md, collapse = " ")
 ends <- cumsum(nchar(md) + 1L)
 line_at <- function(pos) findInterval(pos - 1L, c(0L, ends))
-sp_rx <- "[\\s\\x{00A0}]"
+sp_rx <- "[\\s\\x{00A0}\\x{202F}\\x{2009}]"   # a no-break, narrow no-break or thin space too
 rx <- paste0("\"([^\"]+)\"", sp_rx, "*(\\(|\\[@)([A-Za-z0-9_]+),", sp_rx, "*pp?\\.", sp_rx, "*([0-9]+)(?:", sp_rx,
              "*[-\u2013]", sp_rx, "*([0-9]+))?(\\)|\\])")
 sm <- gregexpr(rx, txt, perl = TRUE)[[1]]
@@ -247,10 +255,13 @@ masked <- txt
 for (k in seq_len(nrow(strict))) {
   substr(masked, strict$p_start[k], strict$p_end[k]) <- strrep(" ", strict$p_end[k] - strict$p_start[k] + 1L)
 }
-cm <- gregexpr("`[^`]*`", masked)[[1]]
-for (k in seq_along(cm)) if (cm[k] > 0) substr(masked, cm[k], cm[k] + attr(cm, "match.length")[k] - 1L) <-
-  strrep("x", attr(cm, "match.length")[k])
-mark_rx <- "[\"\u201C\u201D\u2018]|(?<![[:alnum:]*_])'(?=[[:alnum:]])"
+starts <- c(0L, utils::head(ends, -1L))
+for (i in seq_along(md)) {
+  cm <- gregexpr("`[^`]*`", md[i])[[1]]
+  for (k in seq_along(cm)) if (cm[k] > 0) substr(masked, starts[i] + cm[k], starts[i] + cm[k] + attr(cm, "match.length")[k] - 1L) <-
+    strrep("x", attr(cm, "match.length")[k])
+}
+mark_rx <- "[\"\u201C\u201D\u2018\u00AB\u00BB]|(?<![[:alnum:]*_])'(?=[[:alnum:]])"
 marks <- gregexpr(mark_rx, masked, perl = TRUE)[[1]]
 marks <- if (marks[1] > 0) as.integer(marks) else integer()
 pg <- gregexpr(paste0("\\b(pp?|pg|pages?)\\.?", sp_rx, "*[0-9]|\\[@"), masked, perl = TRUE)[[1]]
@@ -330,10 +341,12 @@ span_of <- function(m) {
 spans <- lapply(listed, function(f) span_of(gregexpr(whole_rx(f), fig_txt, perl = TRUE)[[1]]))
 in_file <- vapply(spans, nrow, integer(1)) > 0
 cover <- do.call(rbind, spans)
-# every number written with a unit, its sign included, must lie inside a whole match of a listed figure
+# every number written with a unit, its sign included, and every number with a minus sign must lie inside a whole
+# match of a listed figure
 nm <- gregexpr(unit_rx, fig_txt, perl = TRUE)[[1]]
-occ <- span_of(nm)
-nums <- regmatches(fig_txt, list(nm))[[1]]
+sg <- gregexpr(signed_rx, fig_txt, perl = TRUE)[[1]]
+occ <- rbind(span_of(nm), span_of(sg))
+nums <- c(regmatches(fig_txt, list(nm))[[1]], regmatches(fig_txt, list(sg))[[1]])
 for (k in seq_len(nrow(occ))) {
   if (!any(cover[, 1] <= occ[k, 1] & cover[, 2] >= occ[k, 2])) {
     bad("line ", line_at(occ[k, 1]), ": figure \"", nums[k], "\" is not inside a listed figure as its entry is written")
@@ -345,7 +358,7 @@ for (f in figures[in_file]) {
     next
   }
   n <- sum(vapply(readLines(f$source, warn = FALSE, encoding = "UTF-8"), function(l) {
-    lengths(regmatches(l, gregexpr(f$literal, l, fixed = TRUE)))
+    lengths(regmatches(l, gregexpr(edge_rx(f$literal), l, perl = TRUE)))
   }, integer(1)))
   if (n != 1L) bad("figure \"", f$text, "\": its literal occurs ", n, " times in ", f$source, ", not once")
 }
@@ -380,9 +393,9 @@ if (is_review) {
   crows <- stats::setNames(rows, ids)
   for (k in names(choices)) {
     src <- readLines(choices[[k]][1], warn = FALSE, encoding = "UTF-8")
-    at <- which(grepl(choices[[k]][2], src, fixed = TRUE))
+    at <- which(trimws(src) == choices[[k]][2])   # the whole line, so a value changed in it or a line commented out fails
     if (length(at) != 1L) {
-      bad("choice ", k, ": its anchor occurs ", length(at), " times in ", choices[[k]][1], ", not once")
+      bad("choice ", k, ": its anchor is the whole of ", length(at), " lines in ", choices[[k]][1], ", not one")
       next
     }
     if (is.null(crows[[k]])) next
@@ -418,11 +431,38 @@ if (is_review) {
     a <- as.list(def[[1]][[3]][[2]])
     found <- c(found, names(a)[!vapply(a, function(x) identical(x, quote(expr = )), logical(1))])
   }
+  # the baseline passes the fill's settings to wet_fill_prepare() by position: each call's min_days and squared
+  # observation error must be wet_temp_fill()'s defaults, the values the rows `min_days` and `obs_sd_fixed` read
+  fd <- Filter(function(e) is_assign(e) && identical(as.character(e[[2]]), "wet_temp_fill"), parse(scope_formals[["wet_temp_fill"]], keep.source = FALSE))
+  want <- c(eval(fd[[1]][[3]][[2]]$min_days), eval(fd[[1]][[3]][[2]]$obs_sd)^2)
+  n_calls <- 0L
+  walk <- function(e, consts, f) {
+    if (is.call(e)) {
+      fn <- e[[1]]
+      if (identical(fn, as.name("wet_fill_prepare")) || (is.call(fn) && identical(fn[[3]], as.name("wet_fill_prepare")))) {
+        n_calls <<- n_calls + 1L
+        a <- as.list(e)[-1]
+        v <- vapply(a[6:7], function(x) if (is.name(x) && !is.null(consts[[as.character(x)]])) consts[[as.character(x)]] else
+          if (is_const(x)) eval(x) else NA_real_, numeric(1))
+        if (length(a) < 7 || !is.null(names(a)) && any(nzchar(names(a)[6:7])) || anyNA(v) || any(abs(v - want) > 1e-12)) {
+          bad("coverage: a wet_fill_prepare() call in ", f, " does not pass wet_temp_fill()'s min_days and obs_sd^2 by position")
+        }
+      }
+      for (x in as.list(e)[-1]) if (!missing(x)) walk(x, consts, f)
+    }
+  }
+  for (f in grep("^scripts/", scope, value = TRUE)) {   # in R/ the call passes wet_temp_fill()'s own arguments
+    ex <- parse(f, keep.source = FALSE)
+    consts <- list()
+    for (e in ex) if (is_assign(e) && is_const(e[[3]])) consts[[as.character(e[[2]])]] <- eval(e[[3]])
+    for (e in ex) walk(e, consts, f)
+  }
   for (k in unique(found[duplicated(found)])) bad("coverage: ", k, " is assigned more than once in the scope")
   for (k in setdiff(found, names(registry))) bad("coverage: ", k, " has no entry in `registry`")
   for (k in setdiff(names(registry), found)) bad("coverage: `registry` names ", k, ", which the scope no longer sets")
   for (k in names(registry)[!registry %in% names(choices)]) bad("coverage: ", k, "'s choice ", registry[[k]], " is not in `choices`")
-  say("coverage: ", length(unique(found)), " formals and constants, each covered by a choice")
+  say("coverage: ", length(unique(found)), " formals and constants, each covered by a choice; ", n_calls,
+      " wet_fill_prepare() calls passing the fill's defaults")
 }
 say(if (fail) paste0("FAILED: ", fail, " problems") else if (!with_books) "PASS WITHOUT QUOTES: the rest passes; the quotes were not read on their pages" else "PASS")
 
