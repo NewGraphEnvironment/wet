@@ -344,6 +344,7 @@ test_that("a logger series pools with its sub-drainage's stations in the fill an
   filled <- f[f$station_number == logger & f$date >= as.Date("2019-06-01") & f$date <= as.Date("2019-06-20"), ]
   expect_equal(nrow(filled), 20L)
   expect_true(all(!is.na(filled$t_mean_c)))
+  skip_if_not_installed("gsdd")
   g <- wet_temp_gsdd(f[f$station_number == logger, ])
   expect_true(all(g$station_number == logger))
   expect_true(any(is.finite(g$value)))

@@ -10,6 +10,8 @@ logger_readings <- function(code, start, n, t, flag = "P", step = 15) {
 
 logger_fixture <- function(readings, dir = withr::local_tempdir(.local_envir = parent.frame()), fetch = TRUE,
                            subdrainage = "08J", day_offset = -8) {
+  # utils::zip() runs the zip program R_ZIPCMD names, else `zip`
+  testthat::skip_if(!nzchar(Sys.getenv("R_ZIPCMD", Sys.which("zip"))), "no zip program to build the fixture")
   ext <- file.path(dir, "extdata")
   cache <- file.path(dir, "cache")
   rec <- file.path(cache, "temp_loggers", "tst", "1")
