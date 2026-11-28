@@ -38,6 +38,23 @@ So **a temperature departure is taken against 2016–2025, never 1981–2010**. 
 
 The departure itself is cd's, in degrees C: `wet_window_stats(value = "t_mean_c", level_anomaly = "absolute", unit = "degC")`, then `cd_baseline(x, 2016:2025)` and `cd_anomaly()`.
 
+## Logger records
+
+**Rules registered:** 2026-11-27, before any logger day was screened · **Issues:** #235 (move 19), #215 · **Produced by:** `scripts/temp_logger_thresholds.R` → `data/checks/temp_logger_thresholds.txt`
+
+Small-stream loggers are read by `wet_temp_daily()` from pinned published packages (`R/wet_logger_daily.R`). Their days are made as the archive's are (the `valid` range, local standard time, hourly means, at least 20 hours, `t_mean_c` the mean of hourly means), with four more rules that apply to logger series only, in this order:
+
+1. **Stuck runs, on readings' hourly means.** In May–September, a run of consecutive hours whose hourly means are identical (to 10⁻⁶ °C) and above 0.5 °C is dropped when it lasts more than **154 hours**. Near 0 °C a constant value is ice cover, so it is kept.
+2. **The hour rule**, as for the archive.
+3. **Deployment ends.** A deployment is a run of readings with no gap longer than 6 hours; its first and last calendar days are dropped, so a logger's half-days in air at installation and retrieval do not count.
+4. **Air days.** In May–September, a day whose range of hourly means exceeds its month's threshold is dropped: **12.09 °C in May, 13.86 in June, 16.83 in July, 16.59 in August, 18.38 in September**. Outside those months no threshold is measured and none applies.
+
+Each dropped day is counted by reason in the series' check report. Where a series ships quality flags of its own, they are read and reported beside these rules, not used in their place.
+
+**How the thresholds were measured** (the owner's rule, decision 5 in #235). On the archive's open-water days (May–September, diurnal range of hourly means at least 1 °C, the definition `scripts/temp_day_boundary.R` uses): the air threshold is the 99.9th percentile, by month, of the diurnal range at stations under 1,000 km² gross drainage area (every station in a month where those hold fewer than 1,000 station-days; none did), rounded up to 0.01 °C; the stuck threshold is the 99.9th percentile of the longest run per station-year, over every station, rounded up to a whole hour. The archive is mostly rivers, whose daily ranges are smaller than small streams', so these thresholds lean toward keeping a logger's day.
+
+**Amendment 1** (the owner, 2026-11-27, after the first measurement and before any screening). Unscreened, the tails were the archive's own faulty sensors: 08LG048 held 4.00 °C for 3,314 hours and 07FA004 8.50 °C for 676, and August ranges reached 35.5 °C. Those gave a stuck threshold of 687 hours and an August air threshold of 24.97 °C, so the percentiles measured the faults the rules exist to catch. The rule assumed a reference free of those faults; the archive is ECCC's provisional data, which `wet_temp_daily()` screens only by range. The reference is now screened first by bounds set wide of anything flowing water does: the 6 station-years holding a run of 168 hours or more are left out of both measures, and so are 135 further days with a range above 20 °C. The report gives the unscreened values beside the shipped ones.
+
 ## Not yet done
 
 - Gaps are filled at stations by `wet_temp_fill()` and GSDD computed by `wet_temp_gsdd()` (#40, `station_temperature_fill.md`); not a per-segment estimate.

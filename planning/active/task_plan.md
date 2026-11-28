@@ -120,6 +120,11 @@ shape and first series) are answered here as recommendations and put to the owne
    open-water days at ECCC stations under 1,000 km² gross drainage area (all stations where a month holds fewer than
    1,000 station-days); stuck runs at the 99.9th percentile of the longest open-water run of identical hourly means
    per station-year above 0.5 °C. `scripts/temp_logger_thresholds.R` reports option (b) beside it.
+   **Amendment 1** (the owner, 2026-11-27, after the first measurement, before any screening): the raw archive's
+   tails were its own faulty sensors (stuck 687 h from 08LG048 and 07FA004; August air 24.97 °C), so the reference is
+   screened first: station-years with a run of identical hourly means of 168 h or more, and days with a range above
+   20 °C, are left out, then (a)'s percentiles taken. Shipped: air 12.09, 13.86, 16.83, 16.59, 18.38 °C (May–Sep),
+   stuck 154 h.
 
 ## Phase 1: Inventory from what is public
 
@@ -153,8 +158,8 @@ Decisions 2 and 4 (O3).
 Review: rules ordered and made concrete, thresholds measured by a named script, registered in a commit of their own,
 routing by registry, tests named (B1, G3, G8, O1, O4, AC3); screening waits on Decision 5.
 
-- [ ] `scripts/temp_logger_thresholds.R` → `data/checks/temp_logger_thresholds.txt`: both options of Decision 5, measured on the ECCC archive
-- [ ] Register the rules and the chosen thresholds in `research/station_water_temperature.md` (a new section that stands alone, since move 20 edits the same file), in a commit of their own, before any logger day is screened
+- [x] `scripts/temp_logger_thresholds.R` → `data/checks/temp_logger_thresholds.txt`: both options of Decision 5, measured on the ECCC archive
+- [x] Register the rules and the chosen thresholds in `research/station_water_temperature.md` (a new section that stands alone, since move 20 edits the same file), in a commit of their own, before any logger day is screened
 - [ ] `wet_logger_daily()`: readings to days by the rules above, QA in the stated order; returns the `wet_temp_daily()` shape with `source` the series code, and `status` from the series' approval where it states one, else `"provisional"`; constants for the thresholds
 - [ ] `wet_temp_daily()`: registry routing, `sources`, duckdb and tidyhydat checks inside the ECCC branch, radix sort; roxygen documents the registry path (`system.file("extdata", "temp_loggers", ...)`) and logger days; `@examples` updated; `devtools::document()`
 - [ ] Tests:
