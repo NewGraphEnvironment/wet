@@ -22,20 +22,20 @@
       "dataset": "air_temperature/fwa/v1/cell_daily",
       "schema": {
         "package": "crate",
-        "version": "0.21.0",
+        "version": "0.22.0",
         "source": "nge",
         "file_name": "air_temperature/fwa/v1/cell_daily",
-        "url": "https://github.com/NewGraphEnvironment/crate/blob/v0.21.0/inst/extdata/schemas/nge/air_temperature/fwa/v1/cell_daily.yaml"
+        "url": "https://github.com/NewGraphEnvironment/crate/blob/v0.22.0/inst/extdata/schemas/nge/air_temperature/fwa/v1/cell_daily.yaml"
       }
     },
     {
       "dataset": "air_temperature/fwa/v1/segment_cell",
       "schema": {
         "package": "crate",
-        "version": "0.21.0",
+        "version": "0.22.0",
         "source": "nge",
         "file_name": "air_temperature/fwa/v1/segment_cell",
-        "url": "https://github.com/NewGraphEnvironment/crate/blob/v0.21.0/inst/extdata/schemas/nge/air_temperature/fwa/v1/segment_cell.yaml"
+        "url": "https://github.com/NewGraphEnvironment/crate/blob/v0.22.0/inst/extdata/schemas/nge/air_temperature/fwa/v1/segment_cell.yaml"
       }
     }
   ],
