@@ -35,7 +35,7 @@ PCIC's robots.txt disallows both paths (`pcic_hydrology.md`, "Access and robots.
 
 The CMIP6 count per group is by domain, from the pilot's listings at its scored gauges' outlets (9 GCMs, 8 on the coast, where TaiESM1 has no series); rule 4 would make it per outlet.
 
-**Not in the table, because no report scores them yet:** GEOGLOWS v2 (#244) and the BC Water Tool's modelled estimates (not released; #245). Already scored elsewhere: routed PCIC (`pcic_routed_compare`, `gauge_monthly_compare`), the balance (held out, and `gauge_monthly_compare`), PCIC's gridded PNWNAmet run through fwapg (`water_balance_method.md` §0), WALLY (`wally_compare`, by zone), TerraClimate runoff and the BC 1961–1990 runoff isolines (`runoff_products_compare`, `runoff_products.md`). The coverage report's line saying no report scores TerraClimate runoff predates that report and is left as it ran.
+**Not in the table, because no report scores them yet:** GEOGLOWS v2 (#244) and the BC Water Tool's modelled estimates (not released; #245). Already scored elsewhere: routed PCIC (`pcic_routed_compare`, `gauge_monthly_compare`), the balance (held out, and `gauge_monthly_compare`), PCIC's gridded PNWNAmet run through fwapg (`water_balance_method.md` §0), WALLY (`wally_compare`, by zone), TerraClimate runoff and the BC 1961–1990 runoff isolines (`runoff_products_compare`, `runoff_products.md`). The coverage report's two lines saying no report scores TerraClimate runoff or the isolines predate that report and are left as they ran; `scripts/pcic_coverage.R` still prints them, and is left unchanged so its tracked report stays current.
 
 ## Rule 4: what each CMIP6 run lacks
 

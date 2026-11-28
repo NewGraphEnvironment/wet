@@ -4,7 +4,7 @@
 
 ## The answer
 
-At the 315 calibration gauges, **TerraClimate's runoff runs a median 33 % below observed mean annual runoff** (middle half −46 to −13 %; 23 % of gauges within ±20 %), where the held-out balance is −4 % and routed PCIC −3 %. Under the rule that is "theirs" province-wide and in 14 hydrologic zones (two more unstable), "unresolved" in the Northern Interior Plains, and "ours" in the Southern Thompson Plateau (zone 24), where the balance runs +36 % and TerraClimate −13 %. Most of TerraClimate's shortfall is its precipitation: at the median gauge its precipitation is 202 mm below climr's, its AET 85 mm below ours.
+At the 315 calibration gauges, **TerraClimate's runoff runs a median 33 % below observed mean annual runoff** (middle half −46 to −13 %; 23 % of gauges within ±20 %), where the held-out balance is −4 % and routed PCIC −3 %. Under the rule that is "theirs" province-wide and in 14 hydrologic zones (two more unstable), "unresolved" in the Northern Interior Plains, and "ours" in the Southern Thompson Plateau (zone 24), where the balance runs +36 % and TerraClimate −13 %. Most of TerraClimate's shortfall is its precipitation: over the 315 gauges, the median of its precipitation's difference from climr's is −202 mm, and of its AET's from ours −85 mm.
 
 **The 1961–1990 runoff isolines are a median +2 % from observed** at the 292 gauges they cover (middle half −14 to +18 %; 61 % within ±20 %), against the balance's −5 % at the same gauges: not material province-wide or in 17 zones (two more unstable; 7 have too few gauges). They are "ours" in the Southern Thompson Plateau, where the balance's +36 % is the outlier, "ours" but unstable in the Southern Hazelton Mountains (zone 9), and "theirs" in Western Vancouver Island (zone 29: isolines −22 %, balance +9 %), where too few long-record gauges give a period ratio to test whether 1961–1990 explains it.
 
@@ -29,7 +29,7 @@ So the isolines, drawn from the same gauges for an earlier period, match the gau
 
 ## Sampling on BC Albers with terra
 
-terra 1.9.50's exact extraction (`extract(exact = TRUE)`, which `wet_ws_sample(method = "area")` calls) takes each cell's ellipsoidal area on a projected CRS. It was about 75–90 ms per FWA polygon on the 1 km BC Albers grid, 15–45 minutes per watershed group, against about 1 ms per polygon on a lon/lat lattice. Neither the raster's extent nor its cell size moved it. With raster and polygons labelled `"local"` (the same coordinates), the same call was about 100 times faster, with fractions within 1.1 × 10⁻⁷ of the ellipsoidal ones. BC Albers is equal-area, so planar fractions are its area fractions, and the script samples the isolines that way. The province run samples on lon/lat and is not affected.
+terra 1.9.50's exact extraction (`extract(exact = TRUE)`, which `wet_ws_sample(method = "area")` calls) takes each cell's ellipsoidal area on a projected CRS. It was about 75–90 ms per FWA polygon on the 1 km BC Albers grid, 15–45 minutes per watershed group, against about 1 ms per polygon on a lon/lat lattice. Neither the raster's extent nor its cell size moved it. With raster and polygons labelled `"local"` (the same coordinates), the same call was more than 100 times faster (0.025 s against 3.6 s for 50 SALR polygons), with fractions within 1.1 × 10⁻⁷ of the ellipsoidal ones. BC Albers is equal-area, so planar fractions are its area fractions, and the script samples the isolines that way. The province run samples on lon/lat and is not affected.
 
 ## Disagreement log
 
@@ -37,9 +37,9 @@ One row per material disagreement under the rule (a zone with at least 5 scored 
 
 | Product | Where | Product | Balance | Verdict | Evidence |
 |---|---|---|---|---|---|
-| TerraClimate runoff | BC (315 gauges) | −33.0 | −3.6 | theirs | precipitation −202 mm at the median gauge; gauge-free |
+| TerraClimate runoff | BC (315 gauges) | −33.0 | −3.6 | theirs | precipitation term's median −202 mm; gauge-free |
 | TerraClimate runoff | 01 Northern Coast Mountains | −38.4 | −13.4 | theirs | precipitation −467 mm |
-| TerraClimate runoff | 03 Northern Rocky Mountains | −39.5 | +7.3 | theirs | precipitation −138 mm |
+| TerraClimate runoff | 03 Northern Rocky Mountains | −39.5 | +7.3 | theirs | precipitation −138 mm; the zone adjustment adds 142 mm to the balance, the larger term |
 | TerraClimate runoff | 04 Northern Interior Plains | −64.7 | −32.9 | unresolved | both low; 5 gauges |
 | TerraClimate runoff | 05 Northern Central Uplands | −33.8 | −7.3 | theirs | precipitation −147 mm |
 | TerraClimate runoff | 07 Southern Rocky Mountain Foothills | −38.4 | −5.2 | theirs | precipitation −196 mm |
@@ -50,7 +50,7 @@ One row per material disagreement under the rule (a zone with at least 5 scored 
 | TerraClimate runoff | 19 Upper Kootenay Basin | −37.0 | −14.0 | unstable (theirs) | precipitation −147 mm |
 | TerraClimate runoff | 20 Central Kootenay Basin | −42.9 | −9.4 | theirs | precipitation −173 mm |
 | TerraClimate runoff | 21 Lower Kootenay Basin | −22.6 | +1.9 | theirs | precipitation −346 mm |
-| TerraClimate runoff | 22 Lower Columbia Basin | −22.5 | +0.2 | theirs | precipitation −171 mm |
+| TerraClimate runoff | 22 Lower Columbia Basin | −22.5 | +0.2 | theirs | precipitation −171 mm; the zone adjustment adds 203 mm to the balance, the larger term |
 | TerraClimate runoff | 24 Southern Thompson Plateau | −12.5 | +36.4 | ours | the balance's dry-interior overshoot (`monthly_error.md`) |
 | TerraClimate runoff | 25 Eastern South Coast Mountains | −59.3 | +8.9 | theirs | precipitation −546 mm; the zone adjustment adds 299 mm to the balance |
 | TerraClimate runoff | 26 Central South Coast Mountains | −55.1 | −0.7 | theirs | precipitation −1,017 mm; zone adjustment 491 mm |
