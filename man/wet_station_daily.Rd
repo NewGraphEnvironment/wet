@@ -15,8 +15,8 @@ wet_station_daily(
 }
 \arguments{
 \item{stations}{Character vector of station numbers: HYDAT's
-(\code{"08EE013"}), the provincial network's (\code{"08EE0001"}) or a Water Tool
-gauge's (\code{"HRB3142"}), mixed freely.}
+(\code{"08EE013"}), the provincial network's (\code{"08EE0001"}), a Water Tool
+gauge's (\code{"HRB3142"}) or a Hakai watershed's (\code{"WTS693"}), mixed freely.}
 
 \item{hydat}{Path to the HYDAT sqlite database. Defaults to tidyhydat's
 download location.}
@@ -46,10 +46,11 @@ taken from the nearest HYDAT station) dropped; and the days of a Tool gauge
 at a provincial station's site before that station's record begins, under
 the provincial number. \code{"hakai"} reads Hakai Institute's published
 discharge package (Korver et al., \doi{10.21966/J99C-9C14}, CC-BY 4.0)
-for the days, 2014 to 2019, before three Calvert and Hecate island
-stations' provincial records begin, under the provincial number: a day is
-a Pacific Standard Time day with at least 20 of Hakai's hourly means, a
-day above the same bound dropped. Its file is fetched once from the
+for its own four watersheds' days, 2013 to 2019, and for the days, 2014
+to 2019, before three Calvert and Hecate island stations' provincial
+records begin, under the provincial number: a day is a Pacific Standard
+Time day with at least 20 of Hakai's hourly means, a day above the same
+bound dropped. Its file is fetched once from the
 package's pinned commit and kept in wet's cache. A station's own source
 comes first, and a second publisher's gauge at its site only for the days
 before it.}
@@ -105,9 +106,11 @@ any hour of the station) come back under the provincial number, with
 \code{source} \code{"bcwatertool"}, and none from that day on. Hakai Institute's
 published package does the same for three Calvert and Hecate island
 watersheds (H08KC0626, H08KC0703 and H08KC0844): its days from 2014 to
-2019 come back under the provincial number with \code{source} \code{"hakai"}. Each
-provincial and Tool station's regulation, natural, regulated or unknown, is
-\code{\link[=wet_station_list]{wet_station_list()}}'s \code{regulation}.
+2019 come back under the provincial number with \code{source} \code{"hakai"}. Its
+other four watersheds are stations of their own, read under the package's
+numbers (\code{"WTS693"}, \code{"WTS708"}, \code{"WTS819"}, \code{"WTS1015"}). Each station's
+regulation, natural, regulated or unknown, is \code{\link[=wet_station_list]{wet_station_list()}}'s
+\code{regulation}.
 
 Ported from \code{ngr::ngr_hyd_q_daily()}, which joined HYDAT with about 18
 months of real-time flow.

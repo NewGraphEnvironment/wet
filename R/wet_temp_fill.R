@@ -71,7 +71,10 @@
 #' @param pool `NULL` (every station in the call shares its anomaly), or a
 #'   character vector of groups named by `station_number`, e.g. the WSC
 #'   sub-drainage `substr(station_number, 1, 3)`. Peers come only from a
-#'   station's own group.
+#'   station's own group. A logger id (`"NHG_01FW007"`) carries no
+#'   sub-drainage in its number: take its group from its registry's
+#'   `subdrainage` column (see [wet_temp_daily()], "Logger records"), so it
+#'   pools with the ECCC stations around it.
 #' @param from,to First and last day to fill, as `Date` or `"YYYY-MM-DD"`.
 #'   `NULL` (the default) uses each station's first and last observed day. A
 #'   seasonal logger needs `from` and `to` to cover the growing season (March

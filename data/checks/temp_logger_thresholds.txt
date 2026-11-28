@@ -1,0 +1,45 @@
+Archive s3://water-temp-bc/data/canonical/Parameter=5/, read 2026-11-27: 17,312,829 readings in -1.00 to 35.00 degC; HYDAT 20260717 for drainage areas.
+Open-water days: months 5-9 by the day's local standard start, at least 20 hours, range of hourly means
+at least 1 degC. Percentiles are R's type 7.
+
+## Amendment 1: the reference screened of its own faults
+Left out: 6 station-years holding a run of identical hourly means of 168 hours or more, and 135 further
+open-water days whose range exceeds 20 degC (May 14, Jun 11, Jul 22, Aug 66, Sep 22).
+  07FA004 2025: longest run 168 h
+  07FA004 2026: longest run 676 h
+  07FD002 2016: longest run 281 h
+  08LG048 2024: longest run 1704 h
+  08LG048 2025: longest run 3314 h
+  08MH056 2026: longest run 391 h
+Unscreened, as the first run measured them:
+  air a: May 14.08, Jun 13.86, Jul 17.37, Aug 24.97, Sep 19.67 degC; stuck a: 687 h
+
+## Air threshold: diurnal range of hourly means (degC), by month (screened)
+Option a: 99.9th percentile at stations under 1,000 km2 gross drainage area (all stations where those hold
+fewer than 1,000 station-days). Option b: 99.5th percentile at all stations. Rounded up to 0.01 degC.
+  month      days  stations  days<1000  stns<1000  subset (a)              a        b      max
+    May    38,092       295     19,037        166  under 1,000 km2     12.09     7.43    20.00
+    Jun    36,916       293     18,900        164  under 1,000 km2     13.86     8.93    19.88
+    Jul    40,121       291     20,358        164  under 1,000 km2     16.83    11.82    19.99
+    Aug    39,904       294     20,132        164  under 1,000 km2     16.59    11.50    19.87
+    Sep    34,104       295     17,924        164  under 1,000 km2     18.38    11.20    20.00
+
+## Stuck threshold: longest run of identical hourly means above 0.5 degC per station-year (hours, screened)
+1,985 station-years in months 5-9, all stations. Option a: 99.9th percentile; option b: 99.5th.
+  a: 153.06 hours (154 rounded up)   b: 93.88 hours (94 rounded up)
+  station-years by longest run: median 5.00 h, 99th percentile 59.00 h, longest 162 h
+The ten longest runs, before the screen:
+  08LG048  2025-05-15    4.00 degC   3314 h
+  08LG048  2024-05-22    4.00 degC   1704 h
+  08LG048  2024-08-01    4.00 degC   1452 h
+  07FA004  2026-08-30    8.50 degC    676 h
+  08MH056  2026-09-14    2.00 degC    391 h
+  08LG048  2025-05-01    4.00 degC    357 h
+  07FD002  2016-08-09   13.50 degC    281 h
+  07FA004  2025-09-14   12.00 degC    168 h
+  08GA030  2026-08-01   13.00 degC    162 h
+  08NH127  2025-07-02    9.80 degC    157 h
+
+## Shipped (option a, the owner's, under Amendment 1)
+  wet_logger_air_c   = c(`5` = 12.09, `6` = 13.86, `7` = 16.83, `8` = 16.59, `9` = 18.38)
+  wet_logger_stuck_h = 154
