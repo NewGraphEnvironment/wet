@@ -152,7 +152,7 @@ No plan gate in this pane: a coordinator-dispatched `park review`, parked for th
 ## Validation
 
 - [x] Tests pass (4,038 passed, 0 failed, 5 skipped, 2026-11-28)
-- [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
+- [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
 - [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
