@@ -125,6 +125,8 @@ The build's check functions on mutated copies of the built parts (`air_check_cel
 
 The station check (`data/checks/air_station_check_2025.txt`, 4 min): 342 archive stations, 314 placed; through the tree against cd at the segment's point, 26,065,701 values compared, 0 differing; 300 stations share their segment's cell (24,983,100 values equal) and 14 sit in a neighbouring cell, 47 to 1,463 m from the midpoint. On a copy of the tree with 08EE013's segment (17094080) given its east neighbour's cell, it failed as it must: 74,696 values differing, largest 4.75 °C.
 
+A second BUILD at b2de756e (1 h 19 min, the cube cached) wrote parts with the same digest (97d7eeeaab4fa8948cd0897857d534af) and a report equal to the first but for its commit line; it is the tracked report. The reader on the built tree, local parts through duckdb: one own segment from each of the 246 groups, a year of three variables, 246 calls, median 0.02 s, max 0.05 s, none missing; a whole group (VICT, 2,147 segments) for tmean 1950–2025, 30.0 s, 59,598,573 rows, 3,469,875 NA (its 125 no_data segments × 27,759 days).
+
 ## Errors Encountered
 
 | Error | Resolution |

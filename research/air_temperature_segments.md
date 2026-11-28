@@ -52,4 +52,5 @@ They prove the lookup and the copy. They do not test the air series: both sides 
 
 - The lookup: about 6 min for the province from cd's cached file, nearly all of it cd's per-point neighbour search (about 8.4 ms per point in a no-data cell, about 42,700 such points; a point in a data cell costs next to nothing).
 - The series: about 7.6 s per year for 13,613 cells and three variables from the cached cube. As parquet (zstd, values as 4-byte floats, which hold the cube's values exactly) `cell_daily` is 76 parts, 1.55 GB (one year alone projected 1.99 GB), and `segment_cell` 246 parts, 153 MB.
-- The build: 1 h 52 min on its first run, nearly all of it downloading the cube's 228 files (2.8 GB) and reading every value back from them.
+- The build: 1 h 52 min on its first run, nearly all of it downloading the cube's 228 files (2.8 GB) and reading every value back from them; 1 h 19 min with the cube cached. A second build wrote byte-identical parts.
+- The reader, from local parts: a year of three variables for one segment in about 0.02 s; a whole watershed group (VICT, 2,147 segments) over 1950–2025 of `tmean` in 30 s, 59.6 million rows. Over HTTPS it is timed once the tree is published.

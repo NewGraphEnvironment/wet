@@ -177,16 +177,16 @@ nothing in wet gives air temperature on stream segments.
   - completeness: every cell the lookup uses has every day of every year in `cell_daily`, and no other cell is there;
   - every `cell_daily` value against the cube read directly with terra at that cell, for every year.
 - [x] Each check shown able to fail, in a copy of the tree: an `own` segment's cell moved to a neighbour; a `moved` segment's cell changed to another of the eight around its own; one `cell_daily` value changed; one cell's rows for one year dropped; one status flipped. Each must turn its own check red; the table of mutation and outcome goes in `findings.md`.
-- [ ] A second BUILD from the same inputs writes byte-identical parts and report; the report says so by the tree's digest.
+- [x] A second BUILD from the same inputs writes byte-identical parts and report; the report says so by the tree's digest.
 - [x] `scripts/air_station_check.R` run on the built tree, and shown able to fail by one station's segment given a neighbour's cell in a copy.
-- [ ] `wet_air_daily()` reads one segment from each of the 246 watershed groups from the built tree, and one whole group for every year, timed.
+- [x] `wet_air_daily()` reads one segment from each of the 246 watershed groups from the built tree, and one whole group for every year, timed.
 
 ## Phase 5: What is known, written down
 
-- [ ] Before building: the member re-check of Phase 1, run again.
-- [ ] `research/air_temperature_segments.md`: the header line (verified date, issues, what produced it), the tree's ID and layout, the cell rule, the point and the mask day, the counts by status, what the checks prove and what they do not (the lookup and the copy, not the air series: both sides read one cube), the day boundary and the missing elevation adjustment as limits, the timings. `research/README.md` gains its row; `research/discharge_publish.md`'s naming rule is restated for a second variable, a dataset with no time step and a dataset keyed to a grid, as decided.
-- [ ] `CLAUDE.md` above the marker: the architecture paragraph for the air tree, its scripts, reports and reader.
-- [ ] `NEWS.md` bullet under the development heading; `Bump: minor` in the pull request body.
+- [x] Before building: the member re-check of Phase 1, run again.
+- [x] `research/air_temperature_segments.md`: the header line (verified date, issues, what produced it), the tree's ID and layout, the cell rule, the point and the mask day, the counts by status, what the checks prove and what they do not (the lookup and the copy, not the air series: both sides read one cube), the day boundary and the missing elevation adjustment as limits, the timings. `research/README.md` gains its row; `research/discharge_publish.md`'s naming rule is restated for a second variable, a dataset with no time step and a dataset keyed to a grid, as decided.
+- [x] `CLAUDE.md` above the marker: the architecture paragraph for the air tree, its scripts, reports and reader.
+- [x] `NEWS.md` bullet under the development heading; `Bump: minor` in the pull request body.
 - [ ] #216's body: what was built, the reports' counts, and what is still owed.
 
 ## Phase 6: The upload, with the pull request open (decision 8(a))
