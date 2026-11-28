@@ -169,16 +169,16 @@ nothing in wet gives air temperature on stream segments.
 
 - [x] Before building: the member re-check of Phase 1, run again.
 - [x] Both crate schemas (and the `date` type under 4(a)) are in the installed crate at a released version; if the crate pull request is not merged and released, write that under `## Open decisions` and stop here.
-- [ ] Probe the database with a 10-second connect timeout, commit, then run the BUILD in the background with a deadline, its log under `<WET_DATA_ROOT>/logs/237/`; touch nothing it reads while it runs.
-- [ ] `data/checks/air_publish_2025.txt`, written by the BUILD, holds: the segments read against the table's `count(*)`; the main-flow tree's segments found in the lookup against the tree table's row count (#216: every segment on the tree has a cell or is listed as having none), counted by status for the province and by watershed group; the cells used; rows and bytes per dataset; each year part's cube files; the mask's file; the grid.
-- [ ] The BUILD's checks, each reported as compared, differing and largest difference, any difference failing it:
+- [x] Probe the database with a 10-second connect timeout, commit, then run the BUILD in the background with a deadline, its log under `<WET_DATA_ROOT>/logs/237/`; touch nothing it reads while it runs.
+- [x] `data/checks/air_publish_2025.txt`, written by the BUILD, holds: the segments read against the table's `count(*)`; the main-flow tree's segments found in the lookup against the tree table's row count (#216: every segment on the tree has a cell or is listed as having none), counted by status for the province and by watershed group; the cells used; rows and bytes per dataset; each year part's cube files; the mask's file; the grid.
+- [x] The BUILD's checks, each reported as compared, differing and largest difference, any difference failing it:
   - every `own` row's cell from `point_x`, `point_y` and the grid (terra's rule on the grid's definition; the report says so, since a point computed to lie exactly on a cell edge is where plain `floor()` arithmetic disagrees);
   - every `moved` row: its own cell no-data in the mask, and its cell the one cd's stated rule names, recomputed from the mask and the point; every `no_data` row's nine cells no-data; every `outside` row's point outside the box;
   - completeness: every cell the lookup uses has every day of every year in `cell_daily`, and no other cell is there;
   - every `cell_daily` value against the cube read directly with terra at that cell, for every year.
-- [ ] Each check shown able to fail, in a copy of the tree: an `own` segment's cell moved to a neighbour; a `moved` segment's cell changed to another of the eight around its own; one `cell_daily` value changed; one cell's rows for one year dropped; one status flipped. Each must turn its own check red; the table of mutation and outcome goes in `findings.md`.
+- [x] Each check shown able to fail, in a copy of the tree: an `own` segment's cell moved to a neighbour; a `moved` segment's cell changed to another of the eight around its own; one `cell_daily` value changed; one cell's rows for one year dropped; one status flipped. Each must turn its own check red; the table of mutation and outcome goes in `findings.md`.
 - [ ] A second BUILD from the same inputs writes byte-identical parts and report; the report says so by the tree's digest.
-- [ ] `scripts/air_station_check.R` run on the built tree, and shown able to fail by one station's segment given a neighbour's cell in a copy.
+- [x] `scripts/air_station_check.R` run on the built tree, and shown able to fail by one station's segment given a neighbour's cell in a copy.
 - [ ] `wet_air_daily()` reads one segment from each of the 246 watershed groups from the built tree, and one whole group for every year, timed.
 
 ## Phase 5: What is known, written down

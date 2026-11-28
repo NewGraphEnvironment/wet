@@ -42,8 +42,8 @@ if (!identical(band1(min(years)), band1(as.integer(substr(air_mask_day, 1, 4))))
 
 # ---- the archive's stations, and where HYDAT places them -------------------------------------
 duck <- DBI::dbConnect(duckdb::duckdb())
-DBI::dbExecute(duck, "INSTALL httpfs; LOAD httpfs;")
-DBI::dbExecute(duck, "CREATE SECRET wet_anon (TYPE s3, PROVIDER config, REGION 'us-west-2')")
+invisible(DBI::dbExecute(duck, "INSTALL httpfs; LOAD httpfs;"))
+invisible(DBI::dbExecute(duck, "CREATE SECRET wet_anon (TYPE s3, PROVIDER config, REGION 'us-west-2')"))
 temp_root <- getOption("wet.temp_root", "s3://water-temp-bc/data/canonical/Parameter=5/")
 archive <- sort(DBI::dbGetQuery(duck, sprintf("SELECT DISTINCT STATION_NUMBER AS s FROM read_parquet(%s)",
                                               DBI::dbQuoteString(duck, paste0(temp_root, "*.parquet"))))$s,

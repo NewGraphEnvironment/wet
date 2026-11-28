@@ -106,6 +106,25 @@ Script kept out of the repo (a scratch probe); every number below is its printed
 
 `scripts/air_publish.R` copied to the scratch directory and patched to skip the crate release-tag check (the schemas were on crate's branch, installed into a throwaway library), to read only watershed groups VICT and CLAY and their table and tree counts, and years 2024 and 2025, writing under a scratch `WET_DATA_ROOT`. Not the build: no report was committed. Its report: 19,259 segments read against 19,259 in the table, all 18,199 tree segments with a row; 18,378 `own`, 756 `moved`, 125 `no_data`, 0 `outside`; 73 cells used; every check passing (18,378 own, 756 moved and 125 no-data rows recomputed with 0 differing; 53,363 cell-days complete; 160,089 values equal to the cube read with terra). A second run after round 1's fixes (the checks reading the written parts) wrote the same report byte for byte. Under a minute each from the cached cube.
 
+## The province build and its mutation table (2026-11-28)
+
+BUILD at wet e461b677 (crate 0.22.0, cd 0.6.13, fwapg 5d50cc1), 1 h 52 min, nearly all of it the first download of the cube's 228 files and the per-year value check: report `data/checks/air_publish_2025.txt`, every check passing. 4,907,441 segments read against `count(*)`; all 4,510,368 main-flow tree segments have a row; own 4,864,743, moved 41,734, no_data 962, outside 2 (the sizing probe's estimates, exactly); 13,613 cells used (the moved targets fall in cells already used); `cell_daily` 76 parts, 377,883,267 rows, 1.55 GB (the projection said 1.99: zstd does better over more years); `segment_cell` 246 parts, 153 MB; 1,133,649,801 values equal to the cube read with terra. Log `data/logs/237/air_publish_20261128T002555Z.log` (main checkout).
+
+The build's check functions on mutated copies of the built parts (`air_check_cells()` on every non-own row and 2,000 own rows; the completeness and value checks on the 1990 part read back; a scratch script, not committed):
+
+| mutation | check | result |
+|---|---|---|
+| none (the sample as built) | all four cell checks | pass |
+| an own segment's cell moved to its east neighbour | own rows | FAIL |
+| a moved segment's cell changed to another of the eight around its own | moved rows | FAIL |
+| an own segment's status flipped to moved | moved rows | FAIL |
+| a no_data segment's status flipped to outside | outside rows | FAIL |
+| none (cell_daily 1990 as written) | completeness and values | pass |
+| one cell_daily value changed by 0.25 degrees | values against the cube | FAIL |
+| one cell's rows for 1990 dropped | completeness | FAIL |
+
+The station check (`data/checks/air_station_check_2025.txt`, 4 min): 342 archive stations, 314 placed; through the tree against cd at the segment's point, 26,065,701 values compared, 0 differing; 300 stations share their segment's cell (24,983,100 values equal) and 14 sit in a neighbouring cell, 47 to 1,463 m from the midpoint. On a copy of the tree with 08EE013's segment (17094080) given its east neighbour's cell, it failed as it must: 74,696 values differing, largest 4.75 °C.
+
 ## Errors Encountered
 
 | Error | Resolution |
