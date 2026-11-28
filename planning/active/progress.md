@@ -54,3 +54,4 @@ mandate; the merge stays with me.
 - Phase 3: report at 7ecf867, two runs byte-identical; `research/runoff_products.md`, cross-references and the CLAUDE.md bullet at 57dbdb9.
 - Validation: full suite 4,038 passed, 0 failed; `/code-check branch` round 1 four fragile findings fixed (096ac4b, report rebuilt and byte-identical again).
 - Run logs: `<main checkout>/data/logs/243/` (runs 1–6 and the fetch log); caches `<main checkout>/data/runoff_products/`.
+- Code-check rounds 2 and 3 (wording and copies that drifted from their producer; round 3 enumerated every claim in the branch). The report as tracked, from code commit a61e7ddc: runs 9 and 10 (`data/logs/243/runoff_products_compare_run9.log`, `run10.log`) both md5 `665a72d38634e311d64017a9c91f4c78`.

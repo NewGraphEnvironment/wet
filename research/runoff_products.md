@@ -29,7 +29,7 @@ So the isolines, drawn from the same gauges for an earlier period, match the gau
 
 ## Sampling on BC Albers with terra
 
-terra 1.9.50's exact extraction (`extract(exact = TRUE)`, which `wet_ws_sample(method = "area")` calls) takes each cell's ellipsoidal area on a projected CRS. It was about 75–90 ms per FWA polygon on the 1 km BC Albers grid, 15–45 minutes per watershed group, against about 1 ms per polygon on a lon/lat lattice. Neither the raster's extent nor its cell size moved it. With raster and polygons labelled `"local"` (the same coordinates), the same call was more than 100 times faster (0.025 s against 3.6 s for 50 SALR polygons), with fractions within 1.1 × 10⁻⁷ of the ellipsoidal ones. BC Albers is equal-area, so planar fractions are its area fractions, and the script samples the isolines that way. The province run samples on lon/lat and is not affected.
+terra 1.9.50's exact extraction (`extract(exact = TRUE)`, which `wet_ws_sample(method = "area")` calls) takes each cell's ellipsoidal area on a projected CRS. It was about 70–100 ms per FWA polygon on the 1 km BC Albers grid, 15–50 minutes per watershed group, against under 1 ms per polygon on a lon/lat lattice. Neither the raster's extent nor its cell size moved it. With raster and polygons labelled `"local"` (the same coordinates), the same call was more than 100 times faster (0.025 s against 3.6 s for 50 SALR polygons, `planning/archive/2026-11-issue-243-runoff-products/findings.md`), with fractions within 1.1 × 10⁻⁷ of the ellipsoidal ones. BC Albers is equal-area, so planar fractions are its area fractions, and the script samples the isolines that way. The province run samples on lon/lat and is not affected.
 
 ## Disagreement log
 

@@ -18,9 +18,10 @@
 # Stages 1-3 are cached under <WET_DATA_ROOT>/runoff_products/: stage 1 keyed on
 # its inputs' md5s and its parameters, not on this script's code; stage 2 on
 # stage 1's key, wet_ws_sample.R and wet_ws_fetch.R, and `sample_version`, bumped
-# by hand; stage 3 on stage 2's key and the upstream code. After changing stage 1
-# or 2 here, remove the caches or bump `sample_version`; fwapg and installed
-# packages are in no key either. Stages 4 and 5 are recomputed on every run:
+# by hand; stage 3 on stage 2's key and the upstream code in R/. After changing
+# stage 1 here, remove its .tif files (sample_version is not in their keys); after
+# changing stage 2 or 3 here, bump `sample_version`. fwapg and installed packages
+# are in no key either. Stages 4 and 5 are recomputed on every run:
 #   1. TerraClimate cropped to BC at its own 1/24 degree lattice; the isolines
 #      densified to 1 km and gridded by sf's GDAL to a TIN and an inverse-distance
 #      surface on one fixed 1 km BC Albers grid, with a flat-triangle layer;
