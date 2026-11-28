@@ -112,6 +112,16 @@
 # coordinates cannot be told apart that closely. Amended: a point on the station's own blue
 # line in its own reach is dropped only when it indexes more than rg_own_margin_m below the
 # station; within that, a tie included, it counts as upstream (rg_own_below()).
+#
+# ---- Amendment 4, 2026-11-27 (the owner's decision 3 at #242's plan gate, before any Hakai ----
+# station of its own was listed or placed) -----------------------------------------------------
+# The population grows by Hakai's stations of their own: the rows of the Hakai registry
+# (hakai_<version>_hydat.csv) with no `continues`, which wet_station_list() lists under their
+# own number. A Hakai row that continues a provincial record stays that provincial station, as
+# a Tool listing that continues one does. Nothing else changes: snap, registers, status order,
+# thresholds and the counted licences are as above. A Hakai station's drainage area could come
+# only from a Tool header or a HYDAT site, and it has neither, so only the name leg can snap
+# it. The population's counts are the report's, not this header's.
 # ---------------------------------------------------------------------------------------------
 
 rg_share <- 0.10              # L or S at or above this share of the mean annual flow: regulated

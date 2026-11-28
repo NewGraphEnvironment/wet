@@ -5,13 +5,14 @@
 #' the HYDAT station at the same site where there is one. For HYDAT's own
 #' stations, use [wet_station_select()].
 #'
-#' Two such networks: the province's non-integrated hydrometric network
+#' Three such sources: the province's non-integrated hydrometric network
 #' (`"bcenv"`), stations run by the province and its partners whose hourly
-#' discharge the province publishes beside HYDAT, and the third-party gauges
-#' the BC Water Tool serves (`"bcwatertool"`): regional districts, industry,
-#' BC Hydro, the Regulator and research projects, each `network` the Tool
-#' names. Both lists come from pinned snapshots made with the package, so they
-#' need no download.
+#' discharge the province publishes beside HYDAT; the third-party gauges the
+#' BC Water Tool serves (`"bcwatertool"`): regional districts, industry, BC
+#' Hydro, the Regulator and research projects, each `network` the Tool names;
+#' and Hakai Institute's published package (`"hakai"`) for seven small Calvert
+#' and Hecate island watersheds, 2013-2019. All three lists come from pinned
+#' copies made with the package, so they need no download.
 #'
 #' A station at a HYDAT site keeps its own number, and its days are never
 #' joined to the HYDAT station's: `hydat_site` names that station (the same
@@ -19,9 +20,9 @@
 #' a provincial station's site is not listed: its days before the provincial
 #' record begins continue that station's record under the provincial number
 #' (see [wet_station_daily()]), and the provincial row's `first`, `licence` and
-#' `credit` say so when both sources are listed. Hakai Institute's published
-#' package (`"hakai"`) continues three Calvert and Hecate island stations the
-#' same way and lists no station of its own.
+#' `credit` say so when both sources are listed. Three of Hakai's watersheds
+#' continue provincial stations the same way; its other four are stations of
+#' their own, listed under the package's numbers (`"WTS693"`, ...).
 #'
 #' `regulation` is each station's status from what sits upstream of it, one
 #' for the year as a whole, under a rule registered before it was applied:
@@ -44,8 +45,8 @@
 #' "Access Only": no licence record is reproduced.
 #'
 #' @param sources Which networks to list, from `"bcenv"`, `"bcwatertool"` and
-#'   `"hakai"`. `"hakai"` alone lists no station: its watersheds only continue
-#'   provincial ones, which it changes when `"bcenv"` is listed too.
+#'   `"hakai"`. `"hakai"` lists Hakai's own stations, and changes the
+#'   provincial stations it continues when `"bcenv"` is listed too.
 #' @param snapshot The provincial snapshot, as `YYYYMMDD`. The Water Tool's is
 #'   the one the package pins.
 #' @return `data.frame(station_number, name, lon, lat, source, network,
@@ -100,7 +101,13 @@ wet_station_list <- function(sources = c("bcenv", "bcwatertool", "hakai"), snaps
                                   hydat_site = t$hydat_site, hydat_km = t$hydat_km,
                                   licence = NA_character_, credit = t$credit)
   }
-  # Hakai's watersheds are continuations only, so "hakai" alone lists no station
+  if (!is.null(hakai) && any(is.na(hakai$continues))) {
+    k <- hakai[is.na(hakai$continues), ]
+    out$hakai <- data.frame(station_number = k$station_number, name = k$name, lon = k$lon, lat = k$lat,
+                            source = "hakai", network = "Hakai Institute", first = k$first, last = k$last,
+                            regulation = wet_regulation_of(status, k$station_number, "hakai"),
+                            hydat_site = NA_character_, hydat_km = NA_real_, licence = k$licence, credit = k$credit)
+  }
   out <- do.call(rbind, c(list(wet_station_list_empty()), unname(out)))
   rownames(out) <- NULL
   out
@@ -141,8 +148,9 @@ wet_continue_list <- function(p, reg, licence) {
 # Each station's regulation status, written by scripts/station_regulation.R
 # for a provincial snapshot and shipped with the package (#196):
 # data.frame(station_number, source, regulation, why, ...), one row per station
-# of both registries. Refused unless it was built from the registries shipped
-# beside it (their snapshots and md5s) and every status is in the vocabulary.
+# of the three registries (a continuing row counted as the station it
+# continues). Refused unless it was built from the registries shipped beside it
+# (their snapshots or version and md5s) and every status is in the vocabulary.
 wet_station_regulation <- function(snapshot) {
   path <- wet_station_sources_path(sprintf("regulation_%s.csv", snapshot))
   if (!nzchar(path)) {
@@ -151,14 +159,15 @@ wet_station_regulation <- function(snapshot) {
   }
   r <- utils::read.csv(path, na.strings = "", encoding = "UTF-8", colClasses = "character")
   reg <- c(bcenv = sprintf("bcenv_%s_hydat.csv", snapshot),
-           bcwatertool = sprintf("bcwatertool_%s_hydat.csv", wet_bcwatertool_snapshot))
+           bcwatertool = sprintf("bcwatertool_%s_hydat.csv", wet_bcwatertool_snapshot),
+           hakai = sprintf("hakai_%s_hydat.csv", wet_hakai_version))
   md5 <- vapply(reg, function(f) {
     p <- wet_station_sources_path(f)
     if (nzchar(p)) unname(tools::md5sum(p)) else NA_character_
   }, "")
-  built <- c(unique(r$bcenv_snapshot), unique(r$bcwatertool_snapshot), unique(r$bcenv_registry_md5),
-             unique(r$bcwatertool_registry_md5))
-  if (!identical(built, c(snapshot, wet_bcwatertool_snapshot, unname(md5)))) {
+  built <- c(unique(r$bcenv_snapshot), unique(r$bcwatertool_snapshot), unique(r$hakai_version),
+             unique(r$bcenv_registry_md5), unique(r$bcwatertool_registry_md5), unique(r$hakai_registry_md5))
+  if (!identical(built, c(snapshot, wet_bcwatertool_snapshot, wet_hakai_version, unname(md5)))) {
     stop("the regulation status ", path, " was built from other station registries than those shipped beside it",
          "; rewrite it with scripts/station_regulation.R", call. = FALSE)
   }

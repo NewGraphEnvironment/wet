@@ -1,3 +1,7 @@
+# wet (development version)
+
+* Hakai Institute's four other Calvert and Hecate island watersheds are stations of their own (#233): `wet_station_daily()` reads WTS693, WTS708, WTS819 and WTS1015 under those numbers (`sources = "hakai"`), 2013–2019, and `wet_station_list("hakai")` lists them. Each has 5–6 complete Chinook-window years; all four are `unknown` for regulation, since their names give no stream to place them on. The other 257 stations' regulation statuses are unchanged. A newer pin of the province's files waits: the province has not republished its 2019–2021 archive, so a new copy would not bring the revised 2021 months (#232).
+
 * `wet_temp_daily()` reads small-stream logger records beside the ECCC gauges (#235, #215). The first series is UNBC's Northern Hydrometeorology Group's Nechako loggers (32 sites, 2019–2024, 15-minute readings, CC BY 4.0 on Zenodo), ids `NHG_<site code>`, fetched once and held to Zenodo's checksums; `sources =` names what is read. Logger days are made as gauge days are, then screened for stuck sensors, deployment ends and days a logger read air, under thresholds registered before any logger day was screened (`research/station_water_temperature.md`). The series holds 30 complete growing seasons at 22 sites; 28 sites are placed on the Freshwater Atlas and its main-flow tree, and each carries the sub-drainage that pools it with its ECCC neighbours in `wet_temp_fill()`.
 
 # wet 0.7.0
