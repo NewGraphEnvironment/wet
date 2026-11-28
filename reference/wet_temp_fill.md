@@ -46,7 +46,10 @@ wet_temp_fill(
   `NULL` (every station in the call shares its anomaly), or a character
   vector of groups named by `station_number`, e.g. the WSC sub-drainage
   `substr(station_number, 1, 3)`. Peers come only from a station's own
-  group.
+  group. A logger id (`"NHG_01FW007"`) carries no sub-drainage in its
+  number: take its group from its registry's `subdrainage` column (see
+  [`wet_temp_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_temp_daily.md),
+  "Logger records"), so it pools with the ECCC stations around it.
 
 - from, to:
 

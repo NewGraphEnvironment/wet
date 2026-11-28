@@ -16,6 +16,22 @@
   revised 2021 months
   ([\#232](https://github.com/NewGraphEnvironment/wet/issues/232)).
 
+- [`wet_temp_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_temp_daily.md)
+  reads small-stream logger records beside the ECCC gauges
+  ([\#235](https://github.com/NewGraphEnvironment/wet/issues/235),
+  [\#215](https://github.com/NewGraphEnvironment/wet/issues/215)). The
+  first series is UNBC’s Northern Hydrometeorology Group’s Nechako
+  loggers (32 sites, 2019–2024, 15-minute readings, CC BY 4.0 on
+  Zenodo), ids `NHG_<site code>`, fetched once and held to Zenodo’s
+  checksums; `sources =` names what is read. Logger days are made as
+  gauge days are, then screened for stuck sensors, deployment ends and
+  days a logger read air, under thresholds registered before any logger
+  day was screened (`research/station_water_temperature.md`). The series
+  holds 30 complete growing seasons at 22 sites; 28 sites are placed on
+  the Freshwater Atlas and its main-flow tree, and each carries the
+  sub-drainage that pools it with its ECCC neighbours in
+  [`wet_temp_fill()`](https://newgraphenvironment.github.io/wet/reference/wet_temp_fill.md).
+
 ## wet 0.7.0
 
 - Swift Creek and Naver Creek now also run under their own stocks’ cited
