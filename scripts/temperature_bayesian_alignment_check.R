@@ -134,6 +134,14 @@ registry <- c(
   stuck_sd = "truth_stuck", n_sim = "sim_size", n_e2e = "sim_size", seed = "sim_size",
   share = "sim_known_values", z_max = "leak_check"
 )
+# and the value each is set to, as R deparses it: a value changed on a line no anchor holds fails here
+registry_values <- c(
+  pool = "NULL", from = "NULL", to = "NULL", min_days = "365", obs_sd = "0.1", level = "0.95",
+  value = "\"t_mean_c\"", by = "\"station_number\"", start_date = "as.Date(\"1972-03-01\")",
+  end_date = "as.Date(\"1972-11-30\")", wet_air_gap = "3", r2 = "0.1^2", tb_k = "5", tb_level = "0.9",
+  tb_close = "50", tb_displace = "10", tb_digits = "1", min_frac = "0.95", stuck_sd = "0.1", n_sim = "1600",
+  n_e2e = "5", seed = "213", share = "c(traits = 0.5, network = 0.25, noise = 0.25)", z_max = "3"
+)
 
 # each figure the files state: its text as written, where it comes from, and a literal found once there
 fig <- function(text, source, literal) list(text = text, source = source, literal = literal)
@@ -164,15 +172,16 @@ figures <- list(
   fig("90 % interval", "scripts/temp_baseline_lib.R", "tb_level <- 0.9")
 )
 dash <- "\\-\u2010-\u2015\u2212"   # a hyphen, the Unicode dashes and the minus sign, as clean() reads them
-unit_rx <- paste0("(?<![0-9.,])[", dash, "]?(?:[0-9]+(?:[.,][0-9]+)*|\\.[0-9]+)[*_]{0,2}[\\s\\x{00A0}\\x{202F}\\x{2009}]?",
-                  "[*_]{0,2}(?:\u00B0C-days|[\u00B0\u00BA]C|\u2103|degC|%|percent|per cent)")
+unit_rx <- paste0("(?<![0-9.,])[", dash, "]?(?:[0-9]+(?:[.,][0-9]+)*|\\.[0-9]+)[*_]{0,2}",
+                  "(?:[\\s\\x{00A0}\\x{202F}\\x{2009}]|&nbsp;|&#160;){0,3}[*_]{0,2}",
+                  "(?:(?:[\u00B0\u00BA]|&deg;|&#176;)\\s?C(?:-days)?|\u2103|degC|%|&#37;|percent|per cent)")
 # a listed figure as a whole: no digit, point, comma or dash before it, and no digit, letter or hyphen after it
 whole_rx <- function(f) paste0("(?<![0-9.,", dash, "])\\Q", f, "\\E(?![0-9[:alpha:]-])")
 # a source's literal, whole at its numeric edges: no digit, point or dash before a leading digit, no digit after a
 # trailing one, so "5 degC and stays there" is not found in "15 degC and stays there"
 edge_rx <- function(l) {
   before <- if (grepl("^[0-9]", l)) paste0("(?<![0-9.,", dash, "])") else ""
-  after <- if (grepl("[0-9]$", l)) "(?![0-9])" else ""
+  after <- if (grepl("[0-9]$", l)) "(?![0-9]|[.,][0-9])" else ""
   paste0(before, "\\Q", l, "\\E", after)
 }
 # a number written with a minus sign is a figure too, unit or none (after a letter it is a label, as in UTC\u22128)
@@ -268,8 +277,12 @@ mark_rx <- "[\"\u201C\u201D\u2018\u00AB\u00BB]|(?<![[:alnum:]*_])'(?=[[:alnum:]]
 marks <- gregexpr(mark_rx, masked, perl = TRUE)[[1]]
 marks <- if (marks[1] > 0) as.integer(marks) else integer()
 pg <- gregexpr(paste0("\\b(pp?|pg|pages?)\\.?", sp_rx, "*[0-9]|\\[@"), masked, perl = TRUE)[[1]]
+for (i in which(lengths(regmatches(md, gregexpr("`", md))) %% 2L == 1L)) {
+  bad("line ", i, ": an odd number of backticks, so a code span is unclosed and could hide prose from these checks")
+}
 for (st in if (pg[1] > 0) as.integer(pg) else integer()) {
-  hit <- marks[abs(marks - st) <= near]
+  # a quote mark near the citation, or anywhere in its paragraph (a line here), so a long quote cannot outrun the window
+  hit <- marks[abs(marks - st) <= near | line_at(marks) == line_at(st)]
   if (length(hit)) {
     bad("line ", line_at(st), ": a quote mark within ", near, " characters of a page citation, outside the checked form ",
         "(\"...\" (<citekey>, p. N)), at: ", substr(masked, max(1L, hit[1] - 30L), hit[1] + 30L))
@@ -420,9 +433,13 @@ if (is_review) {
   }
   is_assign <- function(e) is.call(e) && is.name(e[[1]]) && as.character(e[[1]]) %in% c("<-", "=") && is.name(e[[2]])
   found <- character()
+  found_value <- list()
   for (f in scope) {
     for (e in parse(f, keep.source = FALSE)) {
-      if (is_assign(e) && is_const(e[[3]])) found <- c(found, as.character(e[[2]]))
+      if (is_assign(e) && is_const(e[[3]])) {
+        found <- c(found, as.character(e[[2]]))
+        found_value[[as.character(e[[2]])]] <- paste(deparse(e[[3]]), collapse = " ")
+      }
     }
   }
   for (fn in names(scope_formals)) {
@@ -432,7 +449,9 @@ if (is_review) {
       next
     }
     a <- as.list(def[[1]][[3]][[2]])
-    found <- c(found, names(a)[!vapply(a, function(x) identical(x, quote(expr = )), logical(1))])
+    dflt <- a[!vapply(a, function(x) identical(x, quote(expr = )), logical(1))]
+    found <- c(found, names(dflt))
+    for (k in names(dflt)) found_value[[k]] <- paste(deparse(dflt[[k]]), collapse = " ")
   }
   # the baseline passes the fill's settings to wet_fill_prepare() by position: each call's min_days and squared
   # observation error must be wet_temp_fill()'s defaults, the values the rows `min_days` and `obs_sd_fixed` read
@@ -464,6 +483,13 @@ if (is_review) {
     for (e in ex) walk(e, consts, f)
   }
   for (k in unique(found[duplicated(found)])) bad("coverage: ", k, " is assigned more than once in the scope")
+  for (k in intersect(names(registry_values), names(found_value))) {
+    if (!identical(found_value[[k]], registry_values[[k]])) {
+      bad("coverage: ", k, " is set to ", found_value[[k]], " where `registry_values` holds ", registry_values[[k]],
+          ": update the rows that read it, then the value")
+    }
+  }
+  for (k in setdiff(names(registry), names(registry_values))) bad("coverage: ", k, " has no entry in `registry_values`")
   for (k in setdiff(found, names(registry))) bad("coverage: ", k, " has no entry in `registry`")
   for (k in setdiff(names(registry), found)) bad("coverage: `registry` names ", k, ", which the scope no longer sets")
   for (k in names(registry)[!registry %in% names(choices)]) bad("coverage: ", k, "'s choice ", registry[[k]], " is not in `choices`")

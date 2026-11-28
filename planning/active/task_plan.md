@@ -70,7 +70,7 @@ No plan gate ran in this pane: a coordinator dispatched this session, and the co
 ## Validation
 
 - [ ] Tests pass
-- [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
+- [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
 - [ ] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 

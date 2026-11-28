@@ -85,6 +85,12 @@ Round 3 named the mechanism behind rounds 1 and 2: each guard turns one fact int
 
 Accepted, as no honest edit writes them: numbers in words; a block quote with no quote marks; an author-colon citation form; a wrong value written in the same context words as a listed figure. Starting values inside function bodies (the optimiser's) are not constants in scope; the rows cover the choices they belong to (`two_starts`, `departure_ml`). The research file's sentence that every statement was read from code, not documentation, was false for two rows and is corrected.
 
+### Code-check round 4 and the enumeration that ends the loop
+
+Round 4 found the round-3 fix open on five pairs (two spaces or an entity between number and unit; a stray backtick pairing within a line; a long single-quoted passage outrunning the 200-character window; values set on a line no anchor holds, such as `start_date`, `n_e2e`, `seed`, `z_max`, `tb_digits`; a decimal continuation past `edge_rx`), and the research header claiming every figure where only numbers with a unit or a sign are held. Fixed: `unit_rx` takes up to three spaces or `&nbsp;`, and `&deg;`/`° C`; a line with an odd number of backticks fails; a quote mark anywhere in a citation's paragraph fails; `registry_values` holds each registered name's value as R deparses it; `edge_rx` refuses a `.5` continuation; the header says what is held. Each probed in a detached worktree, all exit 1.
+
+The set the mechanism implies is the 11 pattern pairs the check compares: (1) extractor vs numbers as written, (2) the shared dash set, (3) signed numbers with no unit, (4) an occurrence vs a listed figure elsewhere, (5) a source literal vs its source, (6) an anchor vs its line, (7) the registry vs values on other lines (`registry_values`), (8) the registry vs positional values (`wet_fill_prepare()`, 5 calls by grep, none through `do.call` or an alias), (9) code spans vs prose, (10) the citation regex vs spacing, (11) quote marks vs the near-citation scan. Each is closed by the probes in rounds 3 and 4 or left as a stated residual: numbers in words; bare numbers with no unit or sign (`1,600 times`, `0.999`), held where they come from code by the whole-line anchors and `registry_values`, not as prose; a block quote with no quote marks; an author-colon citation form; a wrong value in the same context words as a listed figure; optimiser starting values inside function bodies.
+
 ## Errors Encountered
 
 | Error | Resolution |
