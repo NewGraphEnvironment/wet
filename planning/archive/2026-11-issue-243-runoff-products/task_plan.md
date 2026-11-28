@@ -64,8 +64,8 @@ No plan gate in this pane: a coordinator-dispatched `park review`, parked for th
   - The installed copy is 0.4.44 against the source's 0.6.0, but `scripts/wb_cv_lib.R:8` runs `devtools::load_all()`, so `wet:::` resolves to the source tree. The script sources it first.
   - `R CMD INSTALL` would swap the shared library under the seven other open worktrees.
   - Do not copy `scripts/wally_compare.R:122`'s `wet:::` call made before any `load_all()`.
-- **Runs on m1 from this worktree.**
-  - `data/wb` and `data/hydz` are symlinked to the main checkout, as `wet-188` does.
+- **Runs from this worktree, on the machine holding the province run.**
+  - `data/wb` and `data/hydz` are symlinked to the main checkout, as an earlier worktree did.
   - `WET_DATA_ROOT` names the main checkout's `data/` for the caches and logs, as `scripts/departure_donors.R:74` reads it, so `git worktree remove` loses nothing.
   - fwapg answers on 127.0.0.1.
   - The script refuses an uncommitted `R/`, `scripts/` or `data/checks/`, and records the commit, as `scripts/gauge_monthly_compare.R:105–108` does.
@@ -101,7 +101,7 @@ No plan gate in this pane: a coordinator-dispatched `park review`, parked for th
   - what this PR carries;
   - the two issues the rest moved to;
   - a "Done when" rewritten to name TerraClimate runoff and the isolines.
-- [x] Symlink `data/wb` and `data/hydz` to the main checkout. Export `WET_DATA_ROOT=/Users/airvine/Projects/repo/wet/data`.
+- [x] Symlink `data/wb` and `data/hydz` to the main checkout. Export `WET_DATA_ROOT=<main checkout>/data`.
 - [x] Write `scripts/runoff_products_rule.R` from the owner's answers to decisions 1 and 3. It holds:
   - the rule text, including what was public at registration;
   - the constants: coverage 0.95, zone minimum 5, within ±20 % (`<=`), the material cut;

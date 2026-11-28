@@ -16,7 +16,7 @@ Run these in order, and stop at the first that fails; each failure means what it
 
 cd ~/Projects/repo/wet && git fetch -q origin
 git worktree list | grep -F '[243-backlog-move-27-the-runoff-products-no-r]' || echo none   # a path printed: that tree holds the branch; cd to it and skip the checkout
-git branch --show-current; git status --porcelain --untracked-files=no   # another branch with changes, or one another session may be on: do not check out here; git worktree add ../wet-243 243-backlog-move-27-the-runoff-products-no-r and cd there
+git branch --show-current; git status --porcelain --untracked-files=no   # another branch with changes, or one another session may be on: do not check out here; git worktree add ../<worktree> 243-backlog-move-27-the-runoff-products-no-r and cd there
 git checkout 243-backlog-move-27-the-runoff-products-no-r   # fails: the branch is not on origin
 git pull --ff-only   # fails: this machine has commits origin lacks; resume where they were made
 git diff --name-only da85a4c4418bf6c3b76fea519a1567681857f2ae origin/main -- planning/backlog.md scripts/wb_cv_lib.R scripts/wb_fit_lib.R scripts/wb_province.R scripts/wb_term_diagnose.R   # plan files that moved on main since the park
@@ -45,7 +45,7 @@ Start Phase 1 and run every phase to the PR (/code-check branch, /planning-archi
 mandate; the merge stays with me.
 ```
 
-## Session 2026-11-27 (resume, m1, worktree wet-243)
+## Session 2026-11-27 (resume, in a worktree)
 
 - Merged origin/main (only `CLAUDE.md` and `planning/backlog.md` had moved; neither touches a phase). Members check `FREE #225`.
 - The owner answered the three open decisions (all recommended); written into #243's body. Filed #244 (GEOGLOWS v2) and #245 (the BC Water Tool's estimates); #225's body rewritten.

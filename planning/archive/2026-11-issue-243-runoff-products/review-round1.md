@@ -15,7 +15,7 @@ Index, diff and changed files read from file.
 - Rule vs code: coverage is `complete.cases()` over all sampled layers in `wet_ws_sample()`, and `iso_flat` is NA exactly where the TIN is, so isoline coverage is "both surfaces have a value"; GDAL `linear:radius=0` never extrapolates; the period scaling, LOO stability (no minimum on subsets), province-wide no-minimum and surface-dependent marking match the header.
 - The four-term split is an identity, and `p_yr − aet_cfu` is `wet_wb_raw(, "cfu")`, so "zone adjustment" is the right label.
 - Monthly units: `obs_mm` months sum to month 0 exactly at every gauge; TerraClimate `q` is mm per month; NSE comparisons are like for like.
-- The grid (x 270000–1880000, y 360000–1740000) covers `ST_Extent(fwa_watershed_groups_poly)` = (273315, 367781, 1870652, 1735771) on m1's fwapg.
+- The grid (x 270000–1880000, y 360000–1740000) covers `ST_Extent(fwa_watershed_groups_poly)` = (273315, 367781, 1870652, 1735771) on the local fwapg.
 - `$` reads on `cv` (`obs`, `aet`, `zone`, `cv_ann`) and on data-frame rows all have exact keys; `clusterApplyLB()` is not reached with zero tasks; every sort uses radix; the period-gauge query and zone extraction match the rule.
 - research/runoff_products.md's numbers checked against the report: 14 zones "theirs" plus 2 unstable; 19 TerraClimate log rows and 3 isoline rows equal section 9's list; P largest except zones 03 and 22; AET +29 to +147; storage under 10; zone adjustment 119 to 491 in zones 25–27, 29; 23 isoline drops; 95 gauges above 0.5 flat; period ratios 0.951–1.033; scaling changes no isoline verdict (checked in every zone that has a ratio, zone 23 included); share NSE 0.55 / 0.94 / 0.89 at 283. The terra timing figures are in planning/active/findings.md.
 
