@@ -46,3 +46,7 @@ mandate; the merge stays with me.
 
 - Merged origin/main (f943096d, v0.7.0). Of the plan's files only `scripts/discharge_publish_own.R` moved: #169 added non-inputs. Plan corrected.
 - `members_check.sh` batch 17: `FREE #198`. #208's body is unchanged since the plan.
+- Phase 1: probes pass; old `segment/` and `segment_daily/` md5s recorded and the directories moved to `_pre208` beside the fit.
+- Phase 2: the three runs pass; commits 40e25e56, 2ee50dc4, 08a8c552 (one report each). Run logs in the main checkout's `data/logs/208/`.
+- Phase 3: parts identical, so nothing to publish; the live manifest and receipt still name a0318b7 / 0.4.35. No part differed, so no issue is owed for a difference. No `data-raw/` script ran. The `_pre208` set-aside (40 GB) is left for the owner.
+- Merged origin/main again (c64f84bf, v0.7.1). It moved none of this plan's three reports, nor `segment_output.R`, `segment_daily_output.R`, `discharge_publish.R`, `discharge_publish_own.R` or `wb_output.R`; it did change other reports, and files under `R/` and `scripts/` that the BUILD's code guards watch (findings.md). Next: code check, archive, PR.
