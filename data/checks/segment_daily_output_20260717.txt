@@ -1,11 +1,11 @@
 # Per-segment daily flow from either source (#99)
 
-wet commit bc55d30 (segment table built at 66cf795); fit 20260717, province run 768876badf, scoring code df3280b5c3ff52385f631bc09d3eaadd
+wet commit 40e25e56 (segment table built at 6a1d7316); fit 20260717, province run 768876badf, scoring code df3280b5c3ff52385f631bc09d3eaadd
 routed: pcic.discharge_monthly (PNWNAmet historical 1981-2010), built by NewGraphEnvironment/fwapg at 5d50cc1
 table: 40524444 rows, 3377037 segments, 0 null flows, total 179854603.510890 m3/s
 daily: 13961436 rows, 38146 sub-basins, total q_acc 636692683.390903 m3/s; weights 3377037 rows, shares 566023.132307756
 balance shape: donor, k = 5, shape code 5ce21a5e1b50cbcb1e7a3cb9d8c5296e
-elapsed: 136.7 min
+elapsed: 129.8 min
 
 ## Rows
 segments: 3377037 routed, 4529939 balance; rows: 2886046240 (246 groups)
