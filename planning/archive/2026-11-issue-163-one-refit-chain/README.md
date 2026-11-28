@@ -25,3 +25,9 @@
 #164's body also carries what waits on the new live build: the `inst/vignette-data/` bundles, the segment-discharge article's Nechako sentences, the README figure, and reloading m1's `pcic` from fwapg 5d50cc1's export.
 
 Closed by: branch `163-backlog-move-1-one-refit-chain-input-key` (the PR is linked from #163)
+
+## From research/discharge_publish.md (moved by #189)
+
+On 2026-11-14 the build under #163 replaced it: province run `768876badf` (equal to `92b893c4da` in every file) and fwapg 5d50cc1's routed rebuild, which places the Nechako Reservoir (fwapg#24), built at wet 3e8a968 (segment table 66cf795, daily table bc55d30, crate 0.16.0), 512 parts and 33.36 GB. Every check passed (0 values differing). 13 parts were uploaded in about 2 min and 0 stale keys deleted: drainage 100's monthly parts for both sources, both sources' daily parts for CHES, LEUT, LNRS, UEUT and UNRS, and routed PCIC's daily part for CHIL; the other 499 were already live with the same bytes. A balance part changes where `pick` moved, because each row carries it. The tracked report's live-build line is PUBLISH's own.
+
+`scripts/segment_daily_output.R` reads the run's `pcic.subbasin_daily` (13,961,436 rows and 38,146 sub-basins at fwapg 5d50cc1 since #163, 13,786,122 and 37,667 before; 366 day-of-year bins)

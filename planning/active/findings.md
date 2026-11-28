@@ -83,6 +83,66 @@ Cited reports, by file, with the last commit of each beside the file's Verified 
 `planning/active/numbers_check.py` was proven on a copy of `discharge_publish.md`: 0 candidates unchanged; with one
 `33.23` removed and `987654` appended, both were listed.
 
+## Phase 2: `research/discharge_publish.md` (#183)
+
+Read on 2026-11-27: the live manifest and `receipt.json` (anonymous GET), `data/checks/discharge_publish_20260717.txt`
+(R), `data/checks/segment_daily_output_20260717.txt` (D), `R/wet_db_load.R`, `R/wet_catalog.R`,
+`R/wet_segment_monthly.R`, `R/wet_values_compare.R`, `scripts/discharge_publish.R`, `scripts/discharge_publish_lib.R`.
+
+**Disagreed with its source (the note's error: not updated at #163's republish):** routed-day clamp 1.092 % → 1.183 %
+(14,577,433), mid-network 0.050 % → 0.054 % (53,610 of 99,306,645), worst day 874 → 944 segments; days-vs-months
+1,869,949 (4.614 %) / 1,021,601 → 1,908,991 (4.711 %) / 1,036,583; sizes summing to 33.23 GB (build b4bbc50) →
+33.36 GB (1.16 / 0.73 / 31.48); "monthly parts byte-identical to 8ca2dee" (no longer, #163 changed drainage 100);
+"Monthly is the finest step both sources share" (daily is published for both). The tracked report's check table
+agreed row by row.
+
+| claim kept | source | build it names | verdict |
+|---|---|---|---|
+| build identity, crate, arrow, duckdb, built 2026-11-15 | manifest `provenance`, `built`; R head | a0318b7 | agrees |
+| 512 parts; rows 102,790,688 / 41,904,356 / 2,886,046,240; 43 / 24 / 445; GB; largest SETN 373 MB | manifest `parts` | a0318b7 | agrees |
+| 247 fit files, 1.44 GB; parts digest d554e3aa…; recipe_id; receipt bytes and md5 | manifest, R, `wet:::wet_catalog_digest()` on the live catalog | a0318b7 | agrees |
+| routed table, 40,524,444 rows, 3,377,037 segments, total, fwapg 5d50cc1 | manifest `sources`, R | a0318b7 | agrees |
+| AET refusal | `discharge_publish.R` L243-247 | tree | agrees |
+| PUBLISH skips a part already live by md5 | `discharge_publish.R` L111-123 | tree | agrees |
+| 2 h 59 min; 759 files hashed in 94 s | #164 archive; R (94 s) | a0318b7 | agrees (duration from the archive) |
+| 15,040,448,264 compared; the nine check rows and their diffs; 0 tie steps | R (15 rows, summed) | a0318b7 | agrees |
+| 1e-9 tolerance | `wet_values_compare()` default | tree | agrees |
+| daily table: 13,961,436 rows, 38,146 sub-basins, 3,377,037 weights | R, D | 5d50cc1 | agrees |
+| months rebuilt = fwapg on 40,524,444, 0 ties | D | 5d50cc1 | agrees |
+| clamp, mid-network, worst day, days-vs-months, 197.24528, -0.12366 | D L18-27 | 5d50cc1 | corrected (above) |
+| fwapg clamp shares 0.978/0.977/0.049/0.048 against 1.092/0.050 | #99 | 7c30f58-era | not re-read: labelled as the earlier build |
+| weekly parity in five groups | #99 probe | earlier | not re-run: said so, row count left in #99 |
+| 37 of 847 February day-years | 7 leap years in 1981-2010; 30×28+7 | arithmetic | agrees |
+| balance days: 38,680,224, 1.2e-15, 1.3e-15 | D L15-16 | 5d50cc1 | agrees |
+| row groups of 2,048 segments' days; ~28× rows; ~6 GB part-200 | `discharge_publish.R` L381; manifest rows (28.08); #99 | | agrees |
+| 507 row groups in 43 segment parts | R | a0318b7 | agrees |
+| fresh subquery 4,532,843 = 3,213,337 + 1,319,506 | R "What a reader sees" | a0318b7 | corrected (the note gave #103's split) |
+| reader 3.3 s / 27 s, about 131 of 507 | #59 archive | 2026-10-14 | not re-timed: dated |
+| load into `wet_load` 102 s, 43 parts | #164 archive | 2026-11-15 | not re-timed: dated |
+| load 23.9 min / 20 GB, 10.7 / 8.5; 39 / 17 GB; reloads 2× and 4× (46.1, 100.6 min) | #7, #77, #103 archives | earlier builds | not re-timed: said so |
+| query 6.7 s, 0.7 s, 197 s | #7 archive | earlier build | not re-timed: said so |
+| versioning, lifecycle, policy, encryption | the note's own dated probes | 2026-10-12/24 | not re-read (no AWS read): dated |
+| hydromosaic 68,716 outlets, 19 series, 9 GCMs | the note's dated probe | 2026-10-12 | not re-read (robots.txt): dated |
+
+Ledger of the old file:
+
+| old paragraph or bullet | disposition |
+|---|---|
+| Verified line | replaced; short |
+| Status paragraph, upload by upload | current build kept ("What is published now"); history already in the #77, #102, #103, #163, #164, #165 archives, or moved to #76, #91, #99, #101, #163; "PUBLISH writes the live line, no BUILD follows" kept in "How a build is checked" |
+| Naming rule, table, level bullets, v2 decision, `segment_daily` | kept; two stale sentences fixed (above) |
+| Hive block, key table, nine bullets | kept; the routed 1951-2012 history dropped from `period` (in #103) |
+| Where: five bullets | kept; the manifest bullet's fingerprint history already in #101/#103, the acb820f source moved to #101 |
+| Receipt and fit: three paragraphs | kept; live recipe_id and hashing time added |
+| Checks intro, table, tolerance paragraph | kept; table's history parentheses and older fingerprints dropped (in #64, #101, #103); BUILD timings in #64, #99, #163 |
+| Article and publish-report paragraph | kept |
+| Routed days intro and four bullets | kept with current figures; old rows moved to #163, old clamp bullet to #99; the 4-of-6 tie probe and 200,006 values already in #99 |
+| Why not STAC | kept |
+| Postgres: join, reader, wet_load, load cost | kept |
+| Postgres: 2026-10-13 load, 10-15 and 10-19 reloads | one "Cost of a load" paragraph; dated detail already in #7 and #77, #103's moved there |
+| Evidence: hydromosaic, policy, drainage codes | kept |
+| Evidence: first publish bullet | already in the #7 discharge-upload README (03:29-03:31, 67 verified, part-400) |
+
 ## Errors Encountered
 
 | Error | Resolution |

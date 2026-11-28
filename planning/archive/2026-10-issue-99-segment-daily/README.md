@@ -21,3 +21,11 @@ Published `discharge/fwa/v1/segment_daily` (#99): every FWA segment's mean flow 
 - Remove the m4 worktree after moving its `data/logs/99/` into the main checkout
 
 Closed by: PR (opened from branch `99-publish-segment-daily-the-balance-s-dail`)
+
+## From research/discharge_publish.md (moved by #189)
+
+and on 2026-10-20 by the build adding `segment_daily` (#99; under 70 min from the BUILD's end to the live manifest naming it, nearly all of it the 445 new daily parts, the 67 monthly parts being already live with the same bytes).
+
+After #99's upload it was the BUILD rerun at wet 608147e, with every check passing (15,040,448,264 values compared, 0 differing) and 512 of 512 parts byte-identical to the live build.
+
+- **The clamp, per day.** 13,456,319 of 1,232,618,505 routed segment-days are clamped at zero (1.092 %, against fwapg's 0.978 % of months and 0.977 % of weeks); mid-network, by fwapg's `qa_report_clamped.sql` definition, 48,440 of 97,680,205 (0.050 %, against 0.049 % and 0.048 %). The rule set before measuring was to publish whatever it is and to state it as a weakness above 0.1 % mid-network; it is under. The worst day mid-network is 16 May (874 segments).

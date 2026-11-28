@@ -53,3 +53,8 @@ mandate; the merge stays with me.
 - Completed: merged origin/main (clean); members #181, #183, #184 FREE, #206 open with no PR or branch on it; numbers_check.py written and proven; baseline recorded; #206 row added to #189's body
 - Commits: this one
 - Next: Phase 2
+
+## Phase 2, 2026-11-27
+- Completed: discharge_publish.md rewritten around build a0318b7; six stale statements corrected; history appended to six archive READMEs; claim table and ledger in findings.md
+- Commits: this one
+- Next: Phase 3
