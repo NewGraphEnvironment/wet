@@ -171,7 +171,7 @@ Ledger of the old file:
 | Gosnell spawning-normal upper quartile +60 %; 25 of 29 picks routed | the 2026-10-30 report's (build before #163: log q75 0.468). Current report: 0.384 (+47 %), 29 of 29 routed |
 | spawning drop comparisons and held-out "from X to Y" pairs | held-out pairs mixed section 3's all-donor pool with section 6's covered pool; the new table is section 6 throughout (Swift's distance too) |
 | snow R2 .41/.41/.51/.51 and spawning .01/.16/.02/.04 "at every site" | those are inverse-distance, peak-SWE-only fits; on the shipped route: .42/.41/.53/.48 and .01/.16/.04/.20 |
-| "20-30 years of 1951-1980 on every other route" | Gosnell MORR migration min7 17, Naver BULK spawning cov_day 18 |
+| "20-30 years of 1951-1980 on every other route" | Gosnell MORR migration min7 17, Naver BULK spawning cov_day 18, Naver COTR migration max 14; and Maxan's carried max has 30, not 10 (code-check round 1) |
 
 The Plan review also called false "the spawning drop is largest at Maxan and Naver" under `covariance_pick`. It is true as a
 ranking (-66, -35, then Gosnell -29), and `flow-change-sparse-gauges.Rmd` guards exactly that; the new note prints the
@@ -188,7 +188,7 @@ by the cited windows and 2016-2025).
 | archive extent, 2023's 75 days, join with no gap, symbols, DJF provisional values | read-only `wet_provisional_daily()`; bundle `station_daily.rds` | corrected (above) |
 | ice shares; March 2025 `NO_DAYS` 31 with two values | HYDAT 20260717 query | corrected (ice), agrees |
 | GeoMet approved end | not re-read: dated 2026-09-28 | dated |
-| approved DJF means 0.06-2.1, median 0.55; August figures | HYDAT 20260717 | restated from the read |
+| approved Dec, Jan and Feb monthly means from 1981: 0.025-3.94, median 0.55 (round 1: the first draft set winter-pooled range beside a monthly median); August figures | HYDAT 20260717 | restated from the read |
 | seasonal gauging; 1 DJF year; complete years 1971, 2011-2024; 10 and 5 year rules | bundle months table; `station_departure_report.txt`; `scripts/station_departure.R` | corrected (months), agrees |
 | window rules, min7, cov_day, 0.8 | `R/wet_window_stats.R` | agrees |
 | Mann-Kendall message | cd behaviour, not re-read | dated in the header |
