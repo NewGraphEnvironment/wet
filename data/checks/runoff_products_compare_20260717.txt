@@ -1,7 +1,7 @@
 # TerraClimate runoff and the 1961-1990 runoff isolines at the calibration gauges (#243, #225), HYDAT 20260717
 
 The rule: scripts/runoff_products_rule.R, registered before this script or any product value existed.
-Rule commit a5e867cf, md5 86c789502042e6d310afa9ea00fae4f0. Code commit b6692079 (the last commit to R, scripts, data-raw, inst/vignette-data, DESCRIPTION).
+Rule commit a5e867cf, md5 86c789502042e6d310afa9ea00fae4f0. Code commit a3918b6e (the last commit to R, scripts, data-raw, inst/vignette-data, DESCRIPTION).
 Fit: cv_aet-cfu.rds under scoring md5 df3280b5; gauges and routed PCIC from inst/vignette-data/monthly_values.rds (md5 a8093a1a76704e5365a0392ae4ac8c0e), held equal to the fit.
 Both products are references here, never inputs. Error is modelled over observed, in %; within is |error| <= 20 %.
 
