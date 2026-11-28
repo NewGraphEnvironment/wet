@@ -44,3 +44,13 @@ Start Phase 1 and run every phase to the PR (/code-check branch, /planning-archi
 /gh-pr-push). This message is the resume instruction that starts the run-to-PR
 mandate; the merge stays with me.
 ```
+
+## Session 2026-11-27 (resume, m1, worktree wet-243)
+
+- Merged origin/main (only `CLAUDE.md` and `planning/backlog.md` had moved; neither touches a phase). Members check `FREE #225`.
+- The owner answered the three open decisions (all recommended); written into #243's body. Filed #244 (GEOGLOWS v2) and #245 (the BC Water Tool's estimates); #225's body rewritten.
+- Phase 1: the rule committed alone at a5e867c; its test at db83be6 (34 expectations; four planted defects each turn it red).
+- Phase 2: `scripts/runoff_products_compare.R` at 487dc7c. First run's isoline sampling ran 15–45 min a group (terra's ellipsoidal path on a projected CRS); sampled under a `"local"` label, the whole run took about 15 minutes with 6 workers, then a minute from cache.
+- Phase 3: report at 7ecf867, two runs byte-identical; `research/runoff_products.md`, cross-references and the CLAUDE.md bullet at 57dbdb9.
+- Validation: full suite 4,038 passed, 0 failed; `/code-check branch` round 1 four fragile findings fixed (096ac4b, report rebuilt and byte-identical again).
+- Run logs: `<main checkout>/data/logs/243/` (runs 1–6 and the fetch log); caches `<main checkout>/data/runoff_products/`.

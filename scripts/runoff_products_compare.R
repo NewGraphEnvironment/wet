@@ -29,9 +29,9 @@
 #      wet_station_monthly());
 #   5. scores and verdicts under the rule.
 # Report: data/checks/runoff_products_compare_<release>.txt, byte-identical on a
-# rerun from the caches. Connection from WET_PG*. It refuses an uncommitted R/,
-# scripts/, data-raw/, inst/vignette-data/ or data/checks/, and records the last
-# commit that changed the code or the gauge bundle.
+# rerun from the caches. Connection from WET_PG*. It refuses an uncommitted file
+# under `code_paths` (R/, scripts/, data-raw/, inst/vignette-data/, DESCRIPTION) or
+# data/checks/, and records the last commit to `code_paths`.
 
 source("scripts/wb_cv_lib.R")  # load_all(), cal, release, fit_dir, wb_hydat(), stamp(), score_code_md5
 source("scripts/runoff_products_rule.R")
