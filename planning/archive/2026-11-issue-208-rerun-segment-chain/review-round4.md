@@ -1,0 +1,22 @@
+## Checklist read
+- code-check.md: the prose of all 14 H3 under `## Mechanisms` (table rows skipped) and "Documentation Staleness". 15 of 38 H3 read, 23 not read.
+- code-check-r.md: "Regenerated binaries churn git even when nothing changed" and "`identical()` on two reader results tests the reader, not the file". 132 of 134 not read.
+- code-check-shell.md: "`git diff a..b` compares TIPS..." and "A sed/awk range can run to EOF". 73 of 75 not read.
+- code-check-spatial.md: none of its 99 read (the diff uses no spatial tool).
+- index, diff and changed files read from file
+
+## Findings
+
+- **[severity: fragile]** planning/active/review-enumeration.md:7. "Every sentence or line in `research/`, `CLAUDE.md`, `README.md`, `NEWS.md` and `vignettes/` that names one of the three regenerated reports: 34, each read." The number 34 is a count of pattern matches (sentences, on 25 lines), and the pattern includes the bare phrase "tracked report". 8 of the 34 are about other reports: `CLAUDE.md` lines 62 (the temperature recovery run) and 72 (the temperature fill), `research/pcic_scenarios.md:61` (a scenario or coverage run), `research/temperature_bayesian_alignment.md:5` and `research/temperature_network_model.md:28` (the temperature fill reports), and `research/water_balance_method.md` lines 329 (a sandbox reproduction under "The AET incumbent since #89"), 340 and 345 (the pooled-zone test). So 26 of the matches name one of the three. Say "34 matches, 26 of them naming one of the three". No stale sentence was found among them beyond the one round 3 fixed.
+  - **Rule:** code-check.md, "A guard's scope, escape hatches, and remedies"
+
+- **[severity: fragile]** planning/active/review-enumeration.md:8. "Every value the report diff removed (...)" is followed by a list that omits one: the diff also removes the publish report's build commit, `a0318b7` (old line 3, `wet commit a0318b7`). The conclusion "the hits are in one paragraph of `research/discharge_publish.md`" does not hold with it included. `a0318b7` also appears at `research/discharge_publish.md:125`, `research/pcic_scenarios.md:3` and `research/segment_group.md:57`. All three refer to the live build or a past load from it, which this rerun did not change, so none is stale. Either add the value with that result, or drop "Every".
+  - **Rule:** code-check.md, "A guard's scope, escape hatches, and remedies"
+
+## The rest of the fix, checked and held
+- The three rewordings answer round 3. The new past-tense sentence about wet 34f38a9 agrees with git history: the report committed then has no parts digest, and the next committed change to it (the #163 BUILD) has one. "2026-11-27 and 28 (UTC)" agrees with the run logs.
+- No other sentence found that states what a committed copy of one of the three reports now says and is false. The written candidate set leaves out `R/`, `scripts/`, `data-raw/`, `tests/` and `inst/`. A wider pattern run over the first four returned only this branch's own sentence in `research/`, and the matches seen in `inst/receipt/discharge_fwa_v1.yaml` say how a fingerprint is printed. These searches match fixed phrases and paths, so a pointer that says only "the report" is outside them; the report sentences in `research/discharge_publish.md` were also searched on the bare word and none is newly false.
+- The script rerun gives 17 HOLDS, 0 fail. The monthly guard check uses the same pathspec as the BUILD's guard, the paths in the checks that expect an empty diff that were listed here exist, and the upload-line pattern matches the form of the lines PUBLISH prints.
+- Two checks are weaker than their labels, though what they report is true. The three report-diff checks read added lines only, so a line that was only deleted would still pass "alone"; the zero-context diff shows equal removed and added lines in all three reports. The crate check judges by file name; `crt_schema_conform()`'s direct calls and a search for the changed files' functions showed no dependence of it on the changed code, and the changed files under the schema and R paths include no receipt file.
+- Neither list in part B (the 17 checks, and what is "not recomputable") includes the "Guards after the runs" paragraph of findings.md (round 1 reports rerunning it; not rerun here) or round 3's new sentence about wet 34f38a9 (checked above).
+- A search of the branch's added lines for machine labels and connection terms found nothing.
