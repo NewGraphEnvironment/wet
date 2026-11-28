@@ -22,3 +22,7 @@ The shipped fit `fit_20260717` is current again under #89's scoring code (md5 `a
 Logs: `data/logs/91/` in m4's main checkout (moved there from the removed `wet-91` worktree): `chain2.*`, `chain3.*`, `check_ship.*` and per-step `*.log`. On m1, `data/logs/91/m1_*`. Reports: `data/checks/*_20260717.txt` (tracked).
 
 Closed by: PR (branch 91-rescore-fit-20260717-under-89-s-scoring)
+
+## From research/discharge_publish.md (moved by #189)
+
+The reports before those were #101's rebuild at wet 1d0faf8 (58 of 67 identical, never uploaded) and #91's at wet 71af15a (67 of 67).

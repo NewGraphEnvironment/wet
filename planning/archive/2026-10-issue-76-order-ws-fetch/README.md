@@ -48,3 +48,9 @@ Measurements are in `findings.md` (Phase 1, Phase 3, sweep, plan review and roun
 - [ ] NewGraphEnvironment/fwapg#39: fix on the fork (end both orderings on `linear_feature_id`); post the draft upstream only on the user's word
 
 Closed by: PR #115 (relates to #76, left open for the owed runs)
+
+## From research/discharge_publish.md (moved by #189)
+
+The `historical` scenario as #76 published it, built at wet b4bbc50 (segment table 28105a3, daily table f99df25, fit 20260717, province run 92b893c4da, crate 0.8.0; #99's 77585a8 under province run e675918817 before it), is 512 parts and 33.23 GB: 43 `segment_monthly` (102,790,688 rows, 1.15 GB), 24 `watershed_monthly` (41,904,356 rows, 0.73 GB) and 445 `segment_daily`, one per watershed group and source (2,886,046,240 rows, 31.35 GB; the largest, `wet_balance` SETN, 373 MB). The monthly parts are byte-identical to #102's build 8ca2dee.
+
+The tracked report is the BUILD rerun after that upload, at wet 34f38a9: every check passing and 512 of 512 parts byte-identical to the live build. Its line predates the parts' digests (#94), so the vignette data scripts refuse it until the next BUILD writes them.

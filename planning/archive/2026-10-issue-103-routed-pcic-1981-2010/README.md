@@ -27,3 +27,7 @@ Durable record: `research/discharge_publish.md` (Status, manifest, Postgres) and
 - Reports: `data/checks/{pcic_routed_compare,segment_output,discharge_publish}_20260717.txt`.
 
 Closed by: PR (this branch, `103-routed-pcic-over-1981-2010-switch-the-pc`)
+
+## From research/discharge_publish.md (moved by #189)
+
+Reloaded on 2026-10-19 (#103) from the 94deeb5 manifest, the same way, into the existing tables. Segments took 100.6 min and watersheds 47.6 min, about twice the #77 reload again. Afterwards the segment table was 41 GB with indexes and the watershed table 8.5 GB. A count of the rows fresh's subquery selects gave 4,532,843 (3,154,131 routed, 1,378,712 balance, the segment report's picks) in 11.7 s, every routed and balance row's period is 1981-2010, and both table comments name 94deeb5.
