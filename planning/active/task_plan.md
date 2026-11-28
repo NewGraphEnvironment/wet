@@ -187,7 +187,7 @@ nothing in wet gives air temperature on stream segments.
 - [x] `research/air_temperature_segments.md`: the header line (verified date, issues, what produced it), the tree's ID and layout, the cell rule, the point and the mask day, the counts by status, what the checks prove and what they do not (the lookup and the copy, not the air series: both sides read one cube), the day boundary and the missing elevation adjustment as limits, the timings. `research/README.md` gains its row; `research/discharge_publish.md`'s naming rule is restated for a second variable, a dataset with no time step and a dataset keyed to a grid, as decided.
 - [x] `CLAUDE.md` above the marker: the architecture paragraph for the air tree, its scripts, reports and reader.
 - [x] `NEWS.md` bullet under the development heading; `Bump: minor` in the pull request body.
-- [ ] #216's body: what was built, the reports' counts, and what is still owed.
+- [x] #216's body: what was built, the reports' counts, and what is still owed.
 
 ## Phase 6: The upload, with the pull request open (decision 8(a))
 
