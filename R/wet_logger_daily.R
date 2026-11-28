@@ -178,7 +178,7 @@ wet_logger_months <- 5:9
 wet_logger_read <- function(path) {
   x <- utils::read.csv(path, colClasses = "character", check.names = FALSE, na.strings = character(),
                        encoding = "UTF-8")
-  nhg <- c("station_code", "timestamp (UTC)", "wtmp (°C)", "wtmp_flag")
+  nhg <- c("station_code", "timestamp (UTC)", "wtmp (\u00b0C)", "wtmp_flag")
   if (!identical(names(x), nhg)) stop(path, " is not a logger file in a format wet reads", call. = FALSE)
   time <- as.POSIXct(x[[2]], format = "%Y-%m-%d %H:%M", tz = "UTC")
   if (anyNA(time)) stop(path, ": a timestamp is not YYYY-MM-DD HH:MM, such as \"", x[[2]][is.na(time)][1], "\"",
@@ -239,6 +239,10 @@ wet_logger_days <- function(r, clock_offset = 0, day_offset = -8, valid = c(-1, 
   stuck_days <- unique(hours$dd[stuck])
   all_days <- unique(hours$dd)
   hours <- hours[!stuck, ]
+  if (!nrow(hours)) {
+    return(data.frame(date = as.Date(all_days, origin = "1970-01-01"), t_mean_c = NA_real_, t_min_c = NA_real_,
+                      t_max_c = NA_real_, n_hours = 0L, n_flagged = 0L, drop = "stuck"))
+  }
 
   # days from the hours left
   df <- c(TRUE, diff(hours$dd) != 0)

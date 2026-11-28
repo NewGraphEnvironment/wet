@@ -183,6 +183,13 @@ test_that("a stuck run over 154 hours in open water is dropped; 154 hours, ice a
   expect_false(any(d$drop %in% "stuck"))
   d <- stuck("2020-10-01", 200, 8)
   expect_false(any(d$drop %in% "stuck"))
+  # a file stuck from its first reading to its last: every day is dropped as stuck, none errors
+  all_stuck <- data.frame(time = as.POSIXct("2020-07-01 08:00", tz = "UTC") + (0:799) * 900, t = 8, flag = "P",
+                          pass = TRUE)
+  d <- wet_logger_days(all_stuck)
+  expect_equal(nrow(d), 9L)
+  expect_true(all(d$drop == "stuck"))
+  expect_identical(lapply(d, class), lapply(wet_logger_days(as_read(diurnal("A", "2020-07-01", 3))), class))
 })
 
 test_that("an open-water day whose range exceeds its month's threshold is an air day", {
