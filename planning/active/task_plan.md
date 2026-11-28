@@ -101,12 +101,12 @@ which facts live where first.
 - [x] Run `numbers_check.py`, complete the two tables, commit
 
 ## Phase 6: links, index and record
-- [ ] Before building: the member re-check of Phase 1
-- [ ] For every heading removed or renamed in the five files, grep all tracked files for the old name and for `research/<file>.md`; fix `CLAUDE.md` (above the soul marker only), the other `research/` files, articles and archive `README.md` files. A script that cites a section keeps resolving without an edit
-- [ ] Re-run the cross-pointer and anchor check across all five after every file is done (`discharge_publish.md` and `water_balance_method.md` point at each other's daily-layout text)
-- [ ] Revise the five rows of `research/README.md` to what each file now holds
-- [ ] Run `research_check.sh` over the five and `--added origin/main`; record words before and after, sections merged, numbers checked, each number that disagreed with its report (with whose error it was), and what the pass says about the rule and its thresholds, in `findings.md` for the archive README
-- [ ] `git diff --name-only origin/main` lists only `research/`, `planning/`, `CLAUDE.md` and any article link fix
+- [x] Before building: the member re-check of Phase 1
+- [x] For every heading removed or renamed in the five files, grep all tracked files for the old name and for `research/<file>.md`; fix `CLAUDE.md` (above the soul marker only), the other `research/` files, articles and archive `README.md` files. A script that cites a section keeps resolving without an edit
+- [x] Re-run the cross-pointer and anchor check across all five after every file is done (`discharge_publish.md` and `water_balance_method.md` point at each other's daily-layout text)
+- [x] Revise the five rows of `research/README.md` to what each file now holds (four: the fifth is #261's)
+- [x] Run `research_check.sh` over the five and `--added origin/main`; record words before and after, sections merged, numbers checked, each number that disagreed with its report (with whose error it was), and what the pass says about the rule and its thresholds, in `findings.md` for the archive README
+- [x] `git diff --name-only origin/main` lists only `research/`, `planning/`, `CLAUDE.md` and any article link fix
 
 ## Validation
 

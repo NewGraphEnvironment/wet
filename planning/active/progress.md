@@ -71,3 +71,8 @@ mandate; the merge stays with me.
 - Completed: fwapg_mad_method.md re-read against fwapg 6aa6c2d and wet's code; sections dated; one paragraph moved to #71
 - Commits: this one
 - Next: Phase 6
+
+## Phase 6, 2026-11-28
+- Completed: pointers checked, four index rows rewritten, pass record in findings.md
+- Commits: this one
+- Next: tests, /code-check branch, /planning-archive, /gh-pr-push

@@ -257,7 +257,40 @@ full re-check (only the #2 findings hold it); said so. "Count in the report" is 
 Ledger: every section kept; the headings dropped their issue numbers; one paragraph (the article's worked parity, #28 to
 #64, link removed by #71) moved to the #71 archive.
 
+## Phase 6: what the pass did (for the archive README)
+
+Links: no live pointer into the four files quotes a removed heading. Hits for old names are archive history and moved
+blocks, left as written. One pointer inside the new notes quoted part of a heading and was made exact.
+`CLAUDE.md`'s four pointers still describe their targets; no edit. `research/README.md`: four rows rewritten
+(`water_balance_method.md`'s is unchanged, its file now being #261's). `research_check.sh --added origin/main`: no
+issue-headed heading added. The diff touches `research/` and `planning/` only.
+
+| file | prose words, before to after | issue-headed sections | verified | flag after |
+|---|---|---|---|---|
+| `discharge_publish.md` | 4,546 to 3,463 | 3 to 0 | 2026-11-27 | words |
+| `station_flow_departure.md` | 3,186 to 2,243 | 5 to 0 | 2026-11-27 | none |
+| `chinook_sites.md` | 3,221 to 3,427 (it took Maxan's results from the method file) | 2 to 0 | 2026-11-27 | words |
+| `fwapg_mad_method.md` | 1,037 to 1,296 (dated sections) | 2 to 0 | 2026-11-27 | none |
+| total | 11,990 to 10,429 | 12 to 0 | | |
+
+**What it says about the revise-in-place rule #181 tests.**
+- Every stale number found had been carried over from an earlier build or release under a later Verified date: the routed
+  days after #163's republish, Gosnell's normal error after the same rebuild, the ice count after the HYDAT bump. The
+  change that rebuilt the artifact updated its report and not the sentences that quote it. Appending a dated section hides
+  this; revising in place only helps if the change that rebuilds an artifact also greps `research/` for its old values.
+- A header date over a whole file overstates what was re-read. Dates per section (fwapg) or per measurement
+  (publish timings) say which is which.
+- A claim about a live source can change with no commit here (water-temp-bc's provisional values). Such a claim needs
+  its read date in the sentence.
+- The 3,000-word line: both files still over it are tables and current facts. `chinook_sites.md` is seven site-window
+  sets by four statistics; `discharge_publish.md` is a layout contract. Neither has history left to move, so for a note
+  that is a reference table the word flag does not by itself mean a log.
+- Checking was the cost, not rewriting. The number checker found departures and inventions but, as designed, none of the
+  stale numbers: all of those came from reading each claim against its report.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
+| A shell function named `d` failed to define (`syntax error near unexpected token`): it is an alias here | Wrote the commands out |
+| Read the pilot's spawning intercept range against the two-predictor fits only and "corrected" a right sentence | Restored: the range is over all three models (caught by the homeless-number check) |
