@@ -51,3 +51,13 @@ Start Phase 1 and run every phase to the PR (/code-check branch, /planning-archi
 /gh-pr-push). This message is the resume instruction that starts the run-to-PR
 mandate; the merge stays with me.
 ```
+
+## Build, 2026-11-27 (resumed from the park)
+
+- Merged origin/main (#187's release; no plan file moved in substance). Members check: `FREE #215`.
+- Phase 1: inventory (Zenodo robots.txt read first; both Nechako records read at Zenodo's md5s). eae9ba04
+- Owner's decisions 1-5 answered (all recommended), then Amendment 1 to decision 5 after the first threshold run.
+- Phase 2: pin and registry, backup to s3. 734a3565
+- Phase 3: thresholds registered in their own commit 150807c9; reader and QA fec2cddd; every guard shown red with its rule removed (stuck, deployment, air, hours, routing, valid, ice exemption, fetch flag).
+- Phases 4-5: placement and report d78d0b34; research, CLAUDE.md, NEWS e88a6185; issues #251, #252, #253.
+- Validation: full suite 4,104 passed, 0 failed, 5 skipped (fwapg-version skips in the snap tests); lint_package against origin/main: 15 new lints, the 6 indentation ones fixed, the rest in classes the baseline carries (test helpers and sourced script helpers seen as undefined); check_pkgdown clean.

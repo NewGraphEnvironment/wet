@@ -34,7 +34,8 @@ logger_fixture <- function(readings, dir = withr::local_tempdir(.local_envir = p
     data.frame(file = "01_Data.zip", bytes = file.size(zip), md5 = unname(tools::md5sum(zip)),
                url = "https://zenodo.org/records/1/files/01_Data.zip?download=1", fetch = fetch),
     data.frame(file = paste0("01_Data.zip/", inner), bytes = file.size(m), md5 = unname(tools::md5sum(m)),
-               url = NA_character_, fetch = NA))
+               url = NA_character_, fetch = NA)
+  )
   utils::write.csv(man, file.path(ext, "tst_1.csv"), row.names = FALSE, na = "")
   reg <- data.frame(station_number = paste0("TST_", codes), code = codes, record = "1",
                     member = paste0("01_Data.zip/", inner), name = paste("Site", codes), lon = -124, lat = 54,

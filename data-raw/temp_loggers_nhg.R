@@ -59,7 +59,8 @@ files <- data.frame(
   file = c("ReadMe.txt", "01_Data.zip", "02_SupplementaryMaterials.zip", "NHG Data ReadMe.txt", "Data.zip"),
   bytes = c(5853, 13830401, 23591136, 8297, 3092827),
   md5 = c("7e0d696f4520dba176b6efc66dbe58c1", "d47b825dc74fd8d5e7b83843a8000921", "52e65a375a4db9d5ccd11964dab8f20a",
-          "b68f4df218144556ea0f85b228f04acb", "9e02d845709aca59c50133f40cf2cd7e"))
+          "b68f4df218144556ea0f85b228f04acb", "9e02d845709aca59c50133f40cf2cd7e")
+)
 files$url <- sprintf("https://zenodo.org/records/%s/files/%s?download=1", files$record,
                      vapply(files$file, utils::URLencode, "", reserved = TRUE))
 
@@ -110,7 +111,8 @@ dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
 members <- list(
   rbind(member_rows(version, "01_Data.zip", "^01_Data/.+[.]csv$"),
         member_rows(version, "02_SupplementaryMaterials.zip", "/Site_Metadata[.]txt$")),
-  member_rows(prior, "Data.zip", "^Data/.+[.]csv$"))
+  member_rows(prior, "Data.zip", "^Data/.+[.]csv$")
+)
 names(members) <- c(version, prior)
 for (r in c(version, prior)) {
   top <- files[files$record == r, ]

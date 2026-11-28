@@ -153,13 +153,12 @@ test_that("a deployment's days are means of hourly means, its first and last day
 
 test_that("a gap over 6 hours splits deployments; one of 6 hours does not", {
   a <- diurnal("A", "2020-07-01", 6)
-  split7 <- a[!(a$time >= as.POSIXct("2020-07-04 02:00", tz = "UTC") & a$time < as.POSIXct("2020-07-04 09:00",
-                                                                                             tz = "UTC")), ]
+  utc <- function(x) as.POSIXct(x, tz = "UTC")
+  split7 <- a[!(a$time >= utc("2020-07-04 02:00") & a$time < utc("2020-07-04 09:00")), ]
   d <- wet_logger_days(as_read(split7), min_hours = 1)
   expect_equal(day_drop(d, "2020-07-03"), "deployment")
   expect_equal(day_drop(d, "2020-07-04"), "deployment")
-  split6 <- a[!(a$time > as.POSIXct("2020-07-04 02:00", tz = "UTC") & a$time < as.POSIXct("2020-07-04 08:00",
-                                                                                          tz = "UTC")), ]
+  split6 <- a[!(a$time > utc("2020-07-04 02:00") & a$time < utc("2020-07-04 08:00")), ]
   d <- wet_logger_days(as_read(split6), min_hours = 1)
   expect_true(is.na(day_drop(d, "2020-07-03")))
   expect_true(is.na(day_drop(d, "2020-07-04")))
@@ -200,11 +199,11 @@ test_that("an open-water day whose range exceeds its month's threshold is an air
 
 test_that("a day short of min_hours is dropped for hours; the holder's flags are counted, not used", {
   a <- diurnal("A", "2020-07-01", 5, flag = "P")
-  i <- which(a$time >= as.POSIXct("2020-07-03 08:00", tz = "UTC") & a$time < as.POSIXct("2020-07-03 13:00",
-                                                                                       tz = "UTC"))
+  utc <- function(x) as.POSIXct(x, tz = "UTC")
+  i <- which(a$time >= utc("2020-07-03 08:00") & a$time < utc("2020-07-03 13:00"))
   a$t[i] <- NA
   a$flag[i] <- "M"
-  s <- which(a$time >= as.POSIXct("2020-07-04 08:00", tz = "UTC"))[1:3]
+  s <- which(a$time >= utc("2020-07-04 08:00"))[1:3]
   a$flag[s] <- "S"
   d <- wet_logger_days(as_read(a))
   expect_equal(day_drop(d, "2020-07-03"), "hours")

@@ -197,8 +197,10 @@ seasons <- lapply(seq_len(nrow(reg)), function(i) season(kept[[i]], reg$station_
 
 # ---- write ------------------------------------------------------------------------------------
 fmt <- function(x) format(x, big.mark = ",", scientific = FALSE, trim = TRUE)
-md5_line <- function(m) sprintf("  %-70s %12s  %s%s", m$file, fmt(m$bytes), m$md5,
-                                ifelse(is.na(m$fetch), "", ifelse(m$fetch, "  fetch", "  no fetch")))
+md5_line <- function(m) {
+  sprintf("  %-70s %12s  %s%s", m$file, fmt(m$bytes), m$md5,
+          ifelse(is.na(m$fetch), "", ifelse(m$fetch, "  fetch", "  no fetch")))
+}
 n_read <- vapply(reads, function(r) sum(!is.na(r$t)), 0)
 alld <- do.call(rbind, lapply(names(days), function(s) cbind(station_number = s, days[[s]])))
 flags <- table(factor(unlist(lapply(reads, function(r) r$flag[!is.na(r$t) | r$flag == "M"]))))
@@ -293,7 +295,8 @@ lines <- c(
   sprintf("  %-12s %-44s %3s %4s %6s %5s %5s %5s %5s %5s %6s %4s %4s %3s", "site", "name", "sub", "kept", "read",
           "stuck", "hours", "deplo", "air", "air_f", "years", "full", "shld", "365"),
   site_rows,
-  sprintf("  all: %d sites, %d site-years, %d complete growing seasons at %d sites, %d needing only shoulders at %d sites;",
+  sprintf(paste("  all: %d sites, %d site-years, %d complete growing seasons at %d sites, %d needing only shoulders",
+                "at %d sites;"),
           nrow(reg), nrow(tot_s), sum(tot_s$complete),
           sum(vapply(seasons, function(s) any(s$complete), FALSE)), sum(tot_s$shoulders),
           sum(vapply(seasons, function(s) any(s$shoulders), FALSE))),
