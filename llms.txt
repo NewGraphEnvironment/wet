@@ -142,7 +142,7 @@ MIT (see
 Read the per-segment and per-watershed discharge wet publishes.
 
 - [`wet_catalog()`](https://newgraphenvironment.github.io/wet/reference/wet_catalog.md)
-  : Published discharge: the parts a manifest lists
+  : Published discharge and air temperature: the parts a manifest lists
 - [`wet_db_load()`](https://newgraphenvironment.github.io/wet/reference/wet_db_load.md)
   : Load one scenario of published discharge into Postgres
 - [`wet_segment_monthly()`](https://newgraphenvironment.github.io/wet/reference/wet_segment_monthly.md)
@@ -186,6 +186,14 @@ degree days.
   : Daily water temperature with gaps filled from air temperature
 - [`wet_temp_gsdd()`](https://newgraphenvironment.github.io/wet/reference/wet_temp_gsdd.md)
   : Growing season degree days per station-year
+
+## Air temperature
+
+Daily air temperature on every stream segment, read from the copy of
+ERA5-Land wet publishes.
+
+- [`wet_air_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_air_daily.md)
+  : Daily air temperature on FWA segments
 
 ## Date windows
 

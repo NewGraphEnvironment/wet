@@ -1,10 +1,13 @@
-# Published discharge: the parts a manifest lists
+# Published discharge and air temperature: the parts a manifest lists
 
-Reads the `manifest.json` of a published discharge tree and returns one
-row per parquet part, with where to fetch it and how to check it. The
-tree is `s3://fresh-bc/discharge/fwa/v1/`, read anonymously over HTTPS.
-The bucket allows no listing, so the manifest is how a reader finds the
-keys.
+Reads the `manifest.json` of a published tree and returns one row per
+parquet part, with where to fetch it and how to check it. wet publishes
+two trees, read anonymously over HTTPS: discharge,
+`s3://fresh-bc/discharge/fwa/v1/` (the default), and daily air
+temperature, `s3://fresh-bc/air_temperature/fwa/v1/`
+([`wet_air_daily()`](https://newgraphenvironment.github.io/wet/reference/wet_air_daily.md)
+reads it). The bucket allows no listing, so the manifest is how a reader
+finds the keys.
 
 ## Usage
 
