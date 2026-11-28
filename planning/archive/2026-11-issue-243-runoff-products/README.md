@@ -12,6 +12,6 @@ Backlog move 27 (#243, closing #225's available half): TerraClimate's 1981–201
 
 ## Evidence
 
-`data/logs/243/runoff_products_compare_run*.log` and `data/logs/243/runoff_products_fetch.tsv` in the main checkout (m1); caches under its `data/runoff_products/`. The tracked report's md5 per code commit is in `progress.md` (final: `cfdc304b4cfc81a978ed00162010d0b9`, runs 15 and 16).
+`data/logs/243/runoff_products_compare_run*.log` and `data/logs/243/runoff_products_fetch.tsv` in the main checkout (m1); caches under its `data/runoff_products/`. The tracked report's md5 per code commit is in `progress.md` (final, after merging main: `9c78e624c708d546ce77685564505093` from code commit 01e52b2b, runs 17 and 18).
 
 Closed by: PR for branch `243-backlog-move-27-the-runoff-products-no-r` (closes #243, #225)
