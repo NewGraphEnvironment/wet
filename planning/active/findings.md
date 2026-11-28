@@ -165,7 +165,7 @@ Ledger of the old file:
 | provisional `Symbol` NA on every row | 2026-11-27: 3 rows (08EE013) and 8 (08EE003) carry PN, PX or SD, none in DJF 2025-26 |
 | Buck provisional DJF 2025-26 6.5-15 m3/s (present tense) | true of the 2026-10-01 bundle (6.56, 7.75, 15.0); on 2026-11-27 the archive reads 0.68, 0.65, 0.68. Cause not traced |
 | archive "since 2024-10"; an old HYDAT leaves a hole until water-temp-bc#19 | the archive holds both stations from 2016; #19 closed 2026-09-30; 2024 is complete |
-| 08EE003 "April/May-October until 2010, year-round from 2011" | May-October 1981-1998 (April some years), spot values 2000-2009, none 1999, year-round from September 2010 |
+| 08EE003 "April/May-October until 2010, year-round from 2011" | seasonal 1981-1998 (from April to 1988, else 1 May; ending 30 September 1982-1984 to 30 November), spot values 2000-2009, none 1999, year-round from September 2010 (round 5 corrected the first draft) |
 | "54-87 % below ... August, September and JJA in every year 2023-2026" (moved to #25) | no August 2025 row at 08EE003, no September 2026 row at either; the percentages agree on the rows that exist |
 | 08EE003 trend p "0.07-0.32" for the same windows (moved to #25) | JJA, September mean, September min7 and spawning: 0.065-0.26 (0.32 is August min7) |
 | Gosnell spawning-normal upper quartile +60 %; 25 of 29 picks routed | the 2026-10-30 report's (build before #163: log q75 0.468). Current report: 0.384 (+47 %), 29 of 29 routed |
