@@ -1,15 +1,27 @@
-Hakai's package as wet reads it: the Hakai report (#192), package 8318556d2baf, provincial snapshot 20261028
+Hakai's package as wet reads it: the Hakai report (#192, #233), package 8318556d2baf, provincial snapshot 20261028
 Rules: research/station_sources.md, "The Hakai package in wet". No timestamp.
 
 The file: 2013-2019_Discharge_Hourly.csv, 31425750 bytes, md5 1353e7067afea4c98bafbf2293991814
 
-Per watershed: station, continues, hours read, SVD hours dropped, PST days, complete days, days the bound drops,
-  days kept before the provincial record begins, days kept on or after it, % of kept days approved
-    WTS626 H08KC0626  45252   0  1886  1885   0  1885   0  98.5
-    WTS703 H08KC0703  45207   0  1885  1883   0  1883   0  93.4
-    WTS844 H08KC0844  44312   0  1847  1846   0  1846   0  95.0
+Per watershed: station, continues, hours read, SVD hours dropped, hours dropped for no Qrate, PST days,
+  complete days, days the bound drops, days kept (a continued watershed's before the provincial record begins),
+  days kept on or after it, % of kept days approved
+    WTS1015 -          45296   0  0  1888  1887   0  1887   0  90.0
+    WTS626  H08KC0626  45252   0  0  1886  1885   0  1885   0  98.5
+    WTS693  -          45249   0  0  1886  1885   0  1885   0  97.6
+    WTS703  H08KC0703  45207   0  0  1885  1883   0  1883   0  93.4
+    WTS708  -          52904   0  1  2206  2203   0  2203   0  90.1
+    WTS819  -          45274   0  0  1887  1886   0  1886   0  85.2
+    WTS844  H08KC0844  44312   0  0  1847  1846   0  1846   0  95.0
 
 The hours' first-tier codes and levels: station, codes, Qlevel, hours
+    WTS1015 AV           2  44011
+    WTS1015 EV           2   1000
+    WTS1015 AV+EV        2    191
+    WTS1015 AV+BR+EV     2     52
+    WTS1015 SVC          2     31
+    WTS1015 AV+SVC       2     10
+    WTS1015 EV+SVC       2      1
     WTS626 AV           2  45112
     WTS626 EV           2     80
     WTS626 AV+EV        2     36
@@ -18,6 +30,9 @@ The hours' first-tier codes and levels: station, codes, Qlevel, hours
     WTS626 AV+SVC       2      3
     WTS626 AV           1      2
     WTS626 BR+EV+SVC    2      1
+    WTS693 AV           2  45176
+    WTS693 AV+EV        2     38
+    WTS693 AV+BR+EV     2     35
     WTS703 AV           2  43821
     WTS703 SVC          2    851
     WTS703 EV           2    413
@@ -27,6 +42,23 @@ The hours' first-tier codes and levels: station, codes, Qlevel, hours
     WTS703 EV+SVC       2      6
     WTS703 AV           1      1
     WTS703 AV+MV        1      1
+    WTS708 AV           2  51268
+    WTS708 EV           2    677
+    WTS708 SVC          2    501
+    WTS708 AV+EV        2    237
+    WTS708 EV           3    144
+    WTS708 AV+SVC       2     49
+    WTS708 AV+BR+EV     2     25
+    WTS708 EV+SVC       2      1
+    WTS708 SVC          1      1
+    WTS819 AV           2  40494
+    WTS819 EV           3   4012
+    WTS819 SVC          2    329
+    WTS819 EV           2    195
+    WTS819 AV+EV        2    166
+    WTS819 AV+SVC       2     47
+    WTS819 AV+BR+EV     2     30
+    WTS819 EV+MV        2      1
     WTS844 AV           2  43696
     WTS844 EV           3    344
     WTS844 AV+EV        2    131
@@ -42,5 +74,12 @@ The station test (>= 3 complete Chinook-window years; no HYDAT station at these 
     H08KC0626    5    5   5 ->  10   TRUE -> TRUE   2014-08-03 to 2026-10-27
     H08KC0703    1    2   2 ->   7   FALSE -> TRUE   2014-08-04 to 2026-10-27
     H08KC0844    4    4   4 ->   9   TRUE -> TRUE   2014-09-11 to 2026-10-27
+
+The stations of their own (#233), Hakai's days alone: station, migration and spawning window-years, most of
+  either, passes, first and last day
+    WTS1015      5    6   6   TRUE   2014-08-01 to 2019-09-30
+    WTS693       5    5   5   TRUE   2014-08-03 to 2019-09-30
+    WTS708       6    6   6   TRUE   2013-09-09 to 2019-09-30
+    WTS819       5    5   5   TRUE   2014-08-02 to 2019-09-30
 
 The registry against the reader: first, last and continues_before equal for every watershed

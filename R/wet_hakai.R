@@ -1,5 +1,5 @@
-# Hakai Institute's published discharge at three Calvert and Hecate island
-# watersheds, 2014-2019 (#192).
+# Hakai Institute's published discharge at seven Calvert and Hecate island
+# watersheds, 2013-2019 (#192, #233).
 #
 # Hakai's data package (Korver, Haughton, Floyd and Giesbrecht, "High-resolution
 # hydrometeorological data from seven small coastal watersheds, British
@@ -17,18 +17,22 @@
 # Three of the package's watersheds, 626, 703 and 844, are provincial stations
 # H08KC0626, H08KC0703 and H08KC0844, whose provincial records begin on
 # 2021-10-01. The registry, inst/extdata/station_sources/hakai_<version>_hydat.csv,
-# written with the pin by data-raw/station_sources_hakai.R, names them: each
+# written with the pin by data-raw/station_sources_hakai.R, names them: such a
 # row continues a provincial station (`continues`), and only its days before
 # `continues_before`, the first day the provincial files hold any usable hour
 # of that station, are read, under the provincial number, as the Water Tool's
-# continuing listings are. The rules (registered in research/station_sources.md,
-# "The Hakai package in wet", before any day was counted):
+# continuing listings are. The other four, 693, 708, 819 and 1015, continue no
+# provincial station: each is a station of its own under the package's number
+# (WTS693, ...), with no `continues` and no `continues_before`. The rules
+# (registered in research/station_sources.md, "The Hakai package in wet",
+# before any day was counted; the own stations' amendment before theirs):
 # - a row's Datetime is the end of its hour in Pacific Standard Time, as the
 #   package states, though the file writes a trailing "Z";
 # - a day is a PST day: the hours labelled d 01:00 to d+1 00:00; it needs at
 #   least 20 hours, and its flow is their mean (Qrate, m^3/s);
 # - the first-tier flag is the upper-case codes at the head of Qflag; an hour
 #   flagged SVD is dropped; a code outside wet_hakai_codes is refused;
+# - an hour whose Qrate is "NA" carries no value and is dropped;
 # - a day whose every hour is flagged AV alone at Qlevel 2 is "approved",
 #   every other "provisional";
 # - a negative day is dropped, and a day above wet_bcenv_bound["08K"] times
@@ -92,7 +96,8 @@ wet_hakai_manifest <- function(version) {
 }
 
 # The registry of a package version: one row per watershed wet reads, each
-# continuing a provincial station.
+# continuing a provincial station or a station of its own (no `continues`,
+# and then no `continues_before`).
 wet_hakai_stations <- function(version = wet_hakai_version) {
   wet_hakai_manifest(version)
   path <- wet_station_sources_path(sprintf("hakai_%s_hydat.csv", version))
@@ -101,8 +106,11 @@ wet_hakai_stations <- function(version = wet_hakai_version) {
             lat = "numeric", continues = "character", continues_before = "Date", first = "Date", last = "Date",
             licence = "character", credit = "character", bcenv_snapshot = "character", bcenv_days = "character")
   s <- utils::read.csv(path, na.strings = "", encoding = "UTF-8", colClasses = cols)
-  if (anyDuplicated(s$station_number) || anyNA(s$station_number) || anyNA(s$continues)) {
-    stop("the station registry ", path, " does not hold one row per watershed, each continuing a provincial station",
+  if (anyDuplicated(s$station_number) || anyNA(s$station_number)) {
+    stop("the station registry ", path, " does not hold one row per watershed", call. = FALSE)
+  }
+  if (any(is.na(s$continues) & !is.na(s$continues_before))) {
+    stop("the station registry ", path, " gives a row a cut only where it continues a provincial station",
          call. = FALSE)
   }
   s[order(s$station_number, method = "radix"), ]
@@ -127,7 +135,8 @@ wet_hakai_daily <- function(stations, version = wet_hakai_version, bound = wet_b
 # The hourly rows of watersheds `stations` in the package file at `path`:
 # data.frame(station_number, label, q_m3s, codes, level), `label` the hour's
 # end as written (PST clock digits, read as UTC so no zone shifts them),
-# `codes` its first-tier codes joined by "+". Hours flagged SVD are dropped.
+# `codes` its first-tier codes joined by "+". Hours flagged SVD, and hours
+# whose Qrate is "NA" (no value), are dropped.
 wet_hakai_hours <- function(path, stations) {
   x <- utils::read.csv(path, colClasses = "character", na.strings = character(), encoding = "UTF-8")
   want <- c("Watershed", "Datetime", "Qlevel", "Qflag", "Qrate")
@@ -150,11 +159,13 @@ wet_hakai_hours <- function(path, stations) {
   if (length(unknown)) bad("a quality code wet does not know", unknown)
   lv <- !x$Qlevel %in% c("1", "2", "3")
   if (any(lv)) bad("a Qlevel other than 1, 2 or 3", x$Qlevel[lv])
+  none <- x$Qrate == "NA"
   q <- suppressWarnings(as.numeric(x$Qrate))
-  if (any(!is.finite(q))) bad("a Qrate that is not a finite number", x$Qrate[!is.finite(q)])
+  q[none] <- NA_real_
+  if (any(!is.finite(q) & !none)) bad("a Qrate that is not a finite number", x$Qrate[!is.finite(q) & !none])
   twice <- duplicated(data.frame(x$Watershed, label))
   if (any(twice)) bad("two rows for one hour", x$Datetime[twice])
-  keep <- !vapply(codes, function(k) "SVD" %in% k, FALSE)
+  keep <- !vapply(codes, function(k) "SVD" %in% k, FALSE) & !none
   data.frame(station_number = x$Watershed, label = label, q_m3s = q,
              codes = vapply(codes, paste, "", collapse = "+"), level = x$Qlevel)[keep, ]
 }
@@ -190,15 +201,17 @@ wet_hakai_shape <- function(d, bound = wet_bcenv_bound, min_hours = 20L) {
              source = "hakai", status = ifelse(d$accepted, "approved", "provisional"))
 }
 
-# Hakai's days for the non-HYDAT numbers asked: each watershed's days before
-# its provincial station's record begins, under the provincial number. `tool`
+# Hakai's days for the non-HYDAT numbers asked: an own station's under its
+# number, and a continuing watershed's days before its provincial station's
+# record begins, under the provincial number. `tool`
 # is the Water Tool's registry when that source is read in the same call, so
 # the registry check covers every registry the call opens.
 wet_hakai_station_days <- function(stations, snapshot, tool = NULL) {
   reg <- wet_registry_against(wet_hakai_stations(), snapshot, "Hakai", "data-raw/station_sources_hakai.R")
   prov <- wet_bcenv_stations(snapshot)
   wet_registry_check(tool, prov, snapshot, hakai = reg)
+  own <- reg$station_number[is.na(reg$continues) & reg$station_number %in% stations]
   cont <- wet_continuing(reg, stations, prov)
-  if (!nrow(cont)) return(wet_daily_empty())
-  wet_continue_days(wet_hakai_daily(cont$station_number), cont)
+  if (!length(own) && !nrow(cont)) return(wet_daily_empty())
+  wet_continue_days(wet_hakai_daily(c(own, cont$station_number)), cont)
 }

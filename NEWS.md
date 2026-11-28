@@ -1,3 +1,7 @@
+# wet (development version)
+
+* Hakai Institute's four other Calvert and Hecate island watersheds are stations of their own (#233): `wet_station_daily()` reads WTS693, WTS708, WTS819 and WTS1015 under those numbers (`sources = "hakai"`), 2013–2019, and `wet_station_list("hakai")` lists them. Each has 5–6 complete Chinook-window years; all four are `unknown` for regulation, since their names give no stream to place them on. The other 257 stations' regulation statuses are unchanged. A newer pin of the province's files waits: the province has not republished its 2019–2021 archive, so a new copy would not bring the revised 2021 months (#232).
+
 # wet 0.7.0
 
 * Swift Creek and Naver Creek now also run under their own stocks' cited chinook windows, the upper Fraser's (UFRA) and the Cottonwood's (COTR), beside the Bulkley's (#182). Four new site and snow reports were added, and the comparison article reports both streams under their own windows: each stream's spawning-window drop barely moves (Swift −15 %, Naver −35 %), and neither range clears no change. `data-raw/life_history_data.R` reads knowledge's life history table at a475dfe7, and `lh_pin_guard()` stops the read if any Bulkley or Morice window would move. The article's limits now say the Fraser windows' edges are survey estimates.
