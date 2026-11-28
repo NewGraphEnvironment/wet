@@ -33,3 +33,15 @@ and what holds the copy to it; nothing sits above its source.
 Loop ended by this enumeration: 20 facts, each held. Commits after this one (the crate floor,
 the rebuilt example manifest, the build's report and Phase 5's prose) get a review round of
 their own before the verdict.
+
+## Addendum after round 5
+
+Round 5 reviewed the commits after this enumeration (crate floor, example manifest, the two reports,
+NEWS, CLAUDE.md, research) and walked every number in their prose against the reports, the run
+logs and findings: status counts and the 246 group rows summing to 4,907,441; tree statuses to
+4,510,368; 13,613 × 27,759 = 377,883,267 cell-days and three times that in values; the two
+reports differing only in the commit line; the timings; the station report's 314 + 28 = 342 and
+300 + 14 = 314; the sizes; the VICT read. Two claims did not hold and were fixed: the province
+mutation table now turns the `no_data` check red too (row 18's claim, the class round 2 closed in
+the fixtures), and NEWS states the move rule's bound (row 17's kind). Loop ended by enumeration:
+the 20 facts above, plus every number in the post-enumeration prose and reports.
