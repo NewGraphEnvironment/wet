@@ -1,0 +1,154 @@
+Logger series nhg, record 15053907 (earlier record 6426024 compared). wet's reader, logger rules registered in
+research/station_water_temperature.md ("Logger records"); placement from the tracked file, not the database.
+
+## Pinned files
+Manifest nhg_15053907.csv (md5 825eeea12b5349a9b7b6797bee201eec):
+  01_Data.zip                                                              13,830,401  d47b825dc74fd8d5e7b83843a8000921  fetch
+  02_SupplementaryMaterials.zip                                            23,591,136  52e65a375a4db9d5ccd11964dab8f20a  fetch
+  ReadMe.txt                                                                    5,853  7e0d696f4520dba176b6efc66dbe58c1  fetch
+  and 33 zip members, each held to its md5
+Manifest nhg_6426024.csv (md5 751aa60a7d798fa0c4b0c179bed99ca3):
+  Data.zip                                                                  3,092,827  9e02d845709aca59c50133f40cf2cd7e  fetch
+  NHG Data ReadMe.txt                                                           8,297  b68f4df218144556ea0f85b228f04acb  fetch
+  and 24 zip members, each held to its md5
+Registry nhg_15053907_sites.csv (md5 7988e113447d393036f0390c191ce2e6): 32 sites.
+
+## Readings and days
+3,361,829 readings with a value at 32 sites, 2019-06-27 03:00 to 2024-12-15 00:00 (UTC); 34,778 local standard days with a valid reading,
+34,017 kept.
+Days dropped, by the first rule that dropped each:
+  stuck             0
+  hours           650
+  deployment      100
+  air              11
+The holder's flags on the readings (P passed, A averaged from passing sensors, B icing, S spike or dewatering,
+E outside sensor limits, M missing, V site visit, C averaged from failing sensors; NHG's ReadMe):
+  A      28,970
+  B     239,843
+  C          90
+  E          92
+  M     488,595
+  P   3,083,266
+  S       9,298
+  V         270
+Days with at least one valid reading the holder did not pass, by our outcome (their flags are not used):
+  stuck             0
+  hours           566
+  deployment       94
+  air              11
+  kept          3,153
+
+## The two records compared (24 sites in both)
+The earlier record's readings (times stamped twice left out: the earlier files repeat an hour at clock changes),
+those at a UTC time the later record holds, and how many are equal to 0.005 degC at the same time and with the
+earlier stamp moved an hour back or forward; then days kept by the same rules in both, and the largest difference
+in a shared day's mean (degC).
+  site         code  earlier twice   shared    equal   eq_-1h   eq_+1h  only_er days_e shared only_e max_diff
+  NHG_01FW001  KTE    33,409     8   33,409   25,682    6,439   14,775        0    347    347      0    0.036
+  NHG_01FW002  ESR    21,783     0   21,779   14,496   15,581    7,562        4    226    226      0    0.076
+  NHG_01FW003  CSC    38,276     0   38,276   38,159   19,947   19,947        0    398    398      0    0.004
+  NHG_01FW004  SFL    27,253     0   27,253   27,253    3,693    3,693        0    283    283      0    0.000
+  NHG_01FW005  NMI    42,997     0   42,997   42,997   11,010   11,010        0    447    447      0    0.000
+  NHG_01FW007  OFL    45,969     0   45,969   45,969    6,659    6,659        0    478    478      0    0.000
+  NHG_01FW010  SLS    37,302     8   37,301   16,033   11,552   14,394        1    388    388      0    0.047
+  NHG_01FW011  TSL    33,325     0   33,325   33,325   10,221   10,221        0    337    337      0    0.000
+  NHG_01FW012  NFL    41,543     0   41,543   41,171   14,279   14,279        0    432    432      0    0.003
+  NHG_01FW013  NDR    70,169     0   70,169   68,173   26,156   25,660        0    730    730      0    0.017
+  NHG_01FW015  SNR    32,160     0   32,159   32,159   12,142   12,142        1    334    334      0    0.015
+  NHG_01FW016  NSL    33,203     8   33,203   26,272    8,596   15,673        0    345    345      0    0.017
+  NHG_01FW017  NCC    70,162     8   70,154   63,135   28,557   36,048        8    730    730      0    0.049
+  NHG_01FW018  CTL    35,637     0   35,636   35,636    7,232    7,232        1    371    371      0    0.000
+  NHG_01FW019  MTL    33,295     8   33,295   26,604   10,329   17,577        0    346    346      0    0.053
+  NHG_01FW020  TPL    33,222     0   33,222   33,222    9,697    9,697        0    345    345      0    0.000
+  NHG_01FW021  PSL    33,309     0   33,309   33,309    5,687    5,688        0    346    346      0    0.000
+  NHG_01FW022  CNE    36,751     0   36,751   36,751    7,140    7,140        0    382    382      0    0.000
+  NHG_01FW023  KMR    33,303     0   33,303   33,303    6,417    6,417        0    346    346      0    0.000
+  NHG_01NE002  WTL    36,362     8   36,334    5,899    6,012    5,800       28    378    378      0    0.503
+  NHG_01NE003  WHC     4,014     0    4,014    4,013      455      455        0     41     41      0    0.038
+  NHG_01NE004  RSC    41,356     0   41,356   41,198   19,394   19,394        0    430    430      0    0.004
+  NHG_01NE005  LTL    36,352     0   36,352   36,230   15,953   15,953        0    378    378      0    0.004
+  NHG_01NE006  CNR    33,756     0   33,756    9,936   18,684    2,380        0    351    351      0    0.511
+  all: 884,908 earlier readings, 884,865 at times the later record holds, 770,925 of those equal (281,832 an hour back, 289,796 an
+  hour forward); 0 earlier days the later record does not keep.
+
+## Placement
+From nhg_15053907_placement.csv (main-flow tree of 4,510,368 rows when placed): 28 of 32 sites placed; by leg: name 24, nearest 4.
+On the tree: on tree 28.
+  unplaced: NHG_01FW003 (no candidate on the named stream and none within 100 m)
+  unplaced: NHG_01FW009 (no candidate on the named stream and none within 100 m)
+  unplaced: NHG_01FW010 (no candidate on the named stream and none within 100 m)
+  unplaced: NHG_02FW002 (no candidate on the named stream and none within 100 m)
+  site         leg       dist_m  stream                          blue_line   measure_m  wsg tree          
+  NHG_01FW001  name        11.7  Kuzkwa River                    356362700     28791.6 LTRE on tree       
+  NHG_01FW002  name         1.2  Endako River                    356361442     12358.3 FRAN on tree       
+  NHG_01FW003  -              -  (unnamed)                               -           -    - -             
+  NHG_01FW004  name        31.6  Stellako River                  356362768      4676.5 FRAN on tree       
+  NHG_01FW005  name       102.6  Nechako River                   356362759     21304.1 LCHL on tree       
+  NHG_01FW006  nearest     15.1  (unnamed)                       356219902        20.9 FRAN on tree       
+  NHG_01FW007  nearest     13.0  Finger Creek                    356326864      4538.3 CHIL on tree       
+  NHG_01FW008  name        11.0  Cheslatta River                 356358538      3113.9 CHES on tree       
+  NHG_01FW009  -              -  (unnamed)                               -           -    - -             
+  NHG_01FW010  -              -  (unnamed)                               -           -    - -             
+  NHG_01FW011  name        56.0  Tachie River                    356363076      9046.3 LTRE on tree       
+  NHG_01FW012  name        12.2  Nadina River                    356363472     42229.8 FRAN on tree       
+  NHG_01FW013  name        50.1  Nechako River                   356362759    116936.1 NECR on tree       
+  NHG_01FW014  nearest     78.3  (unnamed)                       356258550       430.9 FRAN on tree       
+  NHG_01FW015  name        56.8  Stuart River                    356364095     46873.5 STUR on tree       
+  NHG_01FW016  name         7.3  Necoslie River                  356358624      5834.0 STUR on tree       
+  NHG_01FW017  name        32.1  Nechako River                   356362759     98137.1 NECR on tree       
+  NHG_01FW018  name        23.4  Chilako River                   356363121    214233.5 CHIL on tree       
+  NHG_01FW019  name        40.5  Middle River                    356363115      4736.5 MIDR on tree       
+  NHG_01FW020  name        12.6  Tsilcoh River                   356363723      8503.2 STUL on tree       
+  NHG_01FW021  name         8.1  Pinchi Creek                    356347583      6488.4 STUL on tree       
+  NHG_01FW022  name        43.3  Chilako River                   356363121     25193.0 LCHL on tree       
+  NHG_01FW023  name        29.7  Kazchek Creek                   356362330       831.0 MIDR on tree       
+  NHG_01FW024  name         7.4  McMillan Creek                  356344532       225.2 LCHL on tree       
+  NHG_01FW025  name        83.6  Nechako River                   356362759      2880.9 LCHL on tree       
+  NHG_01NE001  name        27.7  Kasalka Creek                   356364307      1754.5 UNRS on tree       
+  NHG_01NE002  nearest     32.9  (unnamed)                       356303795      2016.4 UNRS on tree       
+  NHG_01NE003  name         9.6  Whiting Creek                   356360333      9574.5 UNRS on tree       
+  NHG_01NE004  name         9.0  Rhine Creek                     356319386      2266.2 UNRS on tree       
+  NHG_01NE005  name        14.0  Laventie Creek                  356358054      1974.9 UNRS on tree       
+  NHG_01NE006  name         9.6  Chedakuz Creek                  356362521     43758.1 LNRS on tree       
+  NHG_02FW002  -              -  (unnamed)                               -           -    - -             
+Sites within 0.5 km of an ECCC water temperature station (so not counted twice in a pool): NHG_01FW009 0.50 km from 08JB007; NHG_01FW010 0.46 km from 08JA023.
+
+## What can be scored, per site
+Kept days; days read; dropped by stuck, hours, deployment and air (air with a holder flag); years with any day;
+complete growing seasons (a wet_temp_gsdd() value, which needs 1 March-30 November all but unbroken); seasons that
+need only their shoulders filled; and whether the kept days reach wet_temp_fill()'s min_days = 365.
+  site         name                                         sub kept   read stuck hours deplo   air air_f  years full shld 365
+  NHG_01FW001  Kuzkwa River below Tezzeron Lake             08J 1437  1,441     0     3     1     0     0      5    2    0 yes
+  NHG_01FW002  Endako River above Stellako River            08J 1005  1,011     0     6     0     0     0      5    0    0 yes
+  NHG_01FW003  Cheslatta Lake above Sather Creek            08J 1198  1,294     0    77    19     0     0      5    1    2 yes
+  NHG_01FW004  Stellako River above Fraser Lake             08J  906    910     0     4     0     0     0      5    1    0 yes
+  NHG_01FW005  Nechako River at Miworth                     08K 1281  1,299     0    16     2     0     0      5    1    1 yes
+  NHG_01FW006  Glacier Creek above Nadina Lake              08J  714    716     0     2     0     0     0      3    1    0 yes
+  NHG_01FW007  Otter Creek below Finger Lake                08J 1503  1,505     0     2     0     0     0      5    3    0 yes
+  NHG_01FW008  Cheslatta River below Murray Lake            08J  716    747     0    30     1     0     0      3    0    1 yes
+  NHG_01FW009  Nadina Lake                                  08J  667    669     0     1     1     0     0      3    1    0 yes
+  NHG_01FW010  Skins Lake Spillway                          08J  998  1,002     0     4     0     0     0      5    1    0 yes
+  NHG_01FW011  Tachie River above Stuart Lake               08J 1125  1,244     0   103    16     0     0      5    0    3 yes
+  NHG_01FW012  Nadina River above Francois Lake             08J 1134  1,138     0     4     0     0     0      5    1    1 yes
+  NHG_01FW013  Nechako River off Dellwood Road              08J 1145  1,192     0    40     7     0     0      6    1    1 yes
+  NHG_01FW014  Nadina River above Nadina Lake               08J  301    303     0     2     0     0     0      2    0    0  no
+  NHG_01FW015  Stuart River above Nechako River             08J 1268  1,385     0    98    16     3     3      5    0    3 yes
+  NHG_01FW016  Necoslie River above Stuart Lake             08J  909    915     0     6     0     0     0      5    0    1 yes
+  NHG_01FW017  Nechako River above Cluculz Creek            08J 1255  1,326     0    59     5     7     7      5    1    1 yes
+  NHG_01FW018  Chilako River below Tatuk Lake               08J  779    783     0     4     0     0     0      3    0    1 yes
+  NHG_01FW019  Middle River above Trembleur Lake            08J 1300  1,387     0    76    11     0     0      5    1    1 yes
+  NHG_01FW020  Tsilcoh River above Pinchi Lake              08J  955    961     0     6     0     0     0      5    1    0 yes
+  NHG_01FW021  Pinchi Creek above Stuart Lake               08J 1218  1,230     0    10     2     0     0      5    0    2 yes
+  NHG_01FW022  Chilako River above Nechako River            08J 1255  1,261     0     6     0     0     0      5    1    1 yes
+  NHG_01FW023  Kazchek Creek above Middle River             08J 1371  1,375     0     4     0     0     0      5    2    0 yes
+  NHG_01FW024  McMillan Creek above Nechako River           08K  411    413     0     2     0     0     0      2    0    1 yes
+  NHG_01FW025  Nechako River at Pulpmill Road               08K  389    407     0    14     4     0     0      2    0    1 yes
+  NHG_01NE001  Kasalka Creek above Tahtsa Lake              08J  990  1,048     0    45    12     1     1      4    1    1 yes
+  NHG_01NE002  Whitesail Middle Creek above Tahtsa Reach    08J 1090  1,094     0     4     0     0     0      5    1    0 yes
+  NHG_01NE003  Whiting Creek                                08J 1133  1,135     0     2     0     0     0      4    2    1 yes
+  NHG_01NE004  Rhine Creek above Sweeney Creek              08J 1456  1,459     0     3     0     0     0      5    2    0 yes
+  NHG_01NE005  Laventie Creek above Tahtsa Lake             08J 1090  1,094     0     4     0     0     0      5    1    0 yes
+  NHG_01NE006  Chedakuz Creek above Nechako Reservoir       08J 1055  1,057     0     2     0     0     0      4    2    0 yes
+  NHG_02FW002  Ness Lake                                    08J 1963  1,977     0    11     3     0     0      6    2    1 yes
+  all: 32 sites, 142 site-years, 30 complete growing seasons at 22 sites, 24 needing only shoulders at 18 sites;
+  31 sites reach 365 kept days.
