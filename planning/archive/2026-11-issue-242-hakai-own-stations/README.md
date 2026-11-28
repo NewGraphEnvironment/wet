@@ -15,7 +15,7 @@ Planned as batch 29 (a newer provincial pin, #232, and Hakai's other four waters
 
 ## Evidence
 
-`data/logs/242/` in m1's main wet checkout (`station_regulation_20261127T*`, `station_sources_hakai_20261127*`, `test_20261127.log`).
+`data/logs/242/` in the main checkout of the machine that ran them (`station_regulation_20261127T*`, `station_sources_hakai_20261127*`, `test_20261127.log`).
 
 ## Owed
 

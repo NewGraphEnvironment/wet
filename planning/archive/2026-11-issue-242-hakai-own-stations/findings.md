@@ -56,7 +56,7 @@ Not yet decided: the snapshot date (the day the files are downloaded, in the gat
 - `wet_hakai_stations()` refuses a row with no `continues`; `wet_station_list()` lists no Hakai station of its own.
 - The regulation rule header (`scripts/station_regulation_rule.R`) names the population as the provincial registry (211) and the Tool's own listings (46); `scripts/station_regulation.R` refuses a rule file that differs from `rule_commit` 6c9cb1e5.
 - The rule takes a drainage area only from a Tool header or a HYDAT site, so Hakai's own stations will come out unknown, as the three continued ones did.
-- Hakai's raw files and README PDF are on m1 at `data/station_sources/raw/hakai/<commit>/` in the main checkout.
+- Hakai's raw files and README PDF are at `data/station_sources/raw/hakai/<commit>/` in the main checkout.
 
 ## The province has not republished its 2019-2021 archive (2026-11-27)
 
