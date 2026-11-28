@@ -9,12 +9,14 @@ wet_temp_daily(
   from = NULL,
   to = Sys.Date(),
   valid = c(-1, 35),
-  min_hours = 20
+  min_hours = 20,
+  sources = c("provisional", names(wet_logger_versions))
 )
 }
 \arguments{
-\item{stations}{Character vector of HYDAT station numbers (\code{"08EE013"}),
-as water-temp-bc archives them.}
+\item{stations}{Character vector of station numbers: HYDAT numbers
+(\code{"08EE013"}) as water-temp-bc archives them, or logger ids
+(\code{"NHG_01FW007"}).}
 
 \item{from, to}{Optional first and last date (a \code{Date} or a string
 \code{as.Date()} reads). \code{NULL} means no bound.}
@@ -23,6 +25,10 @@ as water-temp-bc archives them.}
 
 \item{min_hours}{Hours of the day (1 to 24) that must have a valid reading
 for the day to count.}
+
+\item{sources}{Which sources to read: \code{"provisional"}, the ECCC archive,
+and the logger series codes (\code{"nhg"}). An id whose source is not named
+returns no days.}
 }
 \value{
 \code{data.frame(station_number, date, t_mean_c, t_min_c, t_max_c, n_hours, source, status)}, one row per station-day kept, ordered by
@@ -30,7 +36,8 @@ station and date: the shape of \code{\link[=wet_station_daily]{wet_station_daily
 columns in place of \code{q_m3s}, and no \code{symbol}. There is no ice flag, so
 \code{\link[=wet_window_stats]{wet_window_stats()}} reports \code{frac_ice} as \code{NA}, unknown, not zero.
 \code{source} is \code{"provisional"}, the water-temp-bc archive, as in
-\code{\link[=wet_station_daily]{wet_station_daily()}}. \code{status} is \code{"approved"} only when every reading
+\code{\link[=wet_station_daily]{wet_station_daily()}}, or a logger day's series code (\code{"nhg"}), whose
+\code{status} is \code{"provisional"}. \code{status} is \code{"approved"} only when every reading
 that day is final. No reading in the archive was final on 2026-10-06:
 its approvals are ECCC's codes \code{1} and \code{4}, whose meanings were never
 published with the dump and are treated as provisional, none, or
@@ -40,7 +47,8 @@ with duckdb.
 }
 \description{
 One daily water-temperature series per station, from the ECCC readings that
-water-temp-bc archives (about 300 BC stations, mostly hourly, from 2002).
+water-temp-bc archives (about 340 BC stations, mostly hourly, from 2002),
+and from small-stream logger records wet pins (see "Logger records" below).
 Readings are reduced to a daily mean, minimum and maximum in the station's
 local standard time. The result has the shape of \code{\link[=wet_station_daily]{wet_station_daily()}}, so
 it feeds \code{\link[=wet_window_stats]{wet_window_stats()}} with \code{value = "t_mean_c"} (or \code{t_min_c},
@@ -67,6 +75,30 @@ one. \code{t_min_c} and \code{t_max_c} are over the readings themselves.
 its 24 hours. Short days are dropped, not filled; \code{n_hours} is
 returned so a caller can be stricter.
 }
+}
+
+\section{Logger records}{
+
+An id listed in a logger registry is read from that series' pinned files
+instead of the ECCC archive; every other id goes to the archive. The first
+series is UNBC's Northern Hydrometeorology Group's Nechako loggers (32
+sites, 2019-2024, 15-minute readings, CC BY 4.0, Zenodo record 15053907),
+ids \code{"NHG_<site code>"}. List a series' sites, with coordinates, credit and
+the sub-drainage that pools a logger with its ECCC neighbours in
+\code{\link[=wet_temp_fill]{wet_temp_fill()}}, from its registry:
+\code{read.csv(system.file("extdata", "temp_loggers", "nhg_15053907_sites.csv", package = "wet"))}. The files are fetched once per machine into
+\code{tools::R_user_dir("wet", "cache")} and held to their published checksums.
+
+Logger days follow the steps above (with the readings' own clock), and three
+more rules screen what a gauge does not need screening for, in this order:
+runs of identical hourly means above 0.5 degrees C lasting more than 154
+hours in May-September (a stuck sensor) are dropped before the hour rule;
+the first and last day of each deployment (readings with no gap over 6
+hours) are dropped; and a May-September day whose range of hourly means
+exceeds its month's threshold (12.09 to 18.38 degrees C) is dropped as a
+logger reading air. The thresholds were measured on the ECCC archive and
+are registered in \code{research/station_water_temperature.md}. A series that
+cannot be read is skipped with a warning.
 }
 
 \section{Baseline}{
@@ -104,5 +136,10 @@ s <- rbind(
 # Departure in degrees C from 2016-2025, one series per cd call
 m <- s[s$variable == "t_mean", ]
 cd::cd_anomaly(m, cd::cd_baseline(m, 2016:2025))
+
+# A small-stream logger, Otter Creek below Finger Lake in the Nechako
+# (fetched once, 14 MB, from Zenodo)
+o <- wet_temp_daily("NHG_01FW007", sources = "nhg")
+range(o$date)
 }
 }

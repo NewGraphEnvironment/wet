@@ -1,8 +1,8 @@
-test_that("the list is one row per station with the documented columns, provincial then Tool", {
+test_that("the list is one row per station with the documented columns, provincial, Tool, then Hakai", {
   s <- wet_station_list()
   expect_named(s, c("station_number", "name", "lon", "lat", "source", "network", "first", "last", "regulation",
                     "hydat_site", "hydat_km", "licence", "credit"))
-  expect_equal(as.vector(table(s$source)[c("bcenv", "bcwatertool")]), c(211, 46))
+  expect_equal(as.vector(table(s$source)[c("bcenv", "bcwatertool", "hakai")]), c(211, 46, 4))
   expect_false(anyDuplicated(s$station_number) > 0)
   key <- paste(s$source, s$station_number)
   expect_identical(key, sort(key, method = "radix"))
@@ -69,7 +69,7 @@ test_that("a continued provincial station with no complete day takes the listing
                  continues = "08ZZ0001", continues_before = as.Date("2021-09-30"), bcenv_snapshot = "20261028",
                  bcenv_days = wet_bcenv_days_key("20261028"))
     })
-  s <- wet_station_list()
+  s <- wet_station_list(c("bcenv", "bcwatertool"))
   expect_equal(nrow(s), 1)
   expect_equal(c(s$first, s$last), as.Date(c("2012-08-17", "2015-11-10")))
   expect_s3_class(s$last, "Date")
@@ -165,12 +165,63 @@ test_that("the status file is refused when it does not match the registries or t
   x <- r
   x$bcenv_snapshot[2] <- "20261027"
   expect_error(read_with(x), "built from other station registries")
+  # the Hakai registry is held too
+  x <- r
+  x$hakai_registry_md5 <- "00000000000000000000000000000000"
+  expect_error(read_with(x), "built from other station registries")
+  x <- r
+  x$hakai_version <- "000000000000"
+  expect_error(read_with(x), "built from other station registries")
   # no status file for the snapshot
   local_mocked_bindings(wet_station_sources_path = function(f) "")
   expect_error(wet_station_regulation("20261028"), "write it with scripts/station_regulation.R")
 })
 
-test_that("Hakai's package lists no station of its own, and a continued station says so", {
+test_that("Hakai's own watersheds are listed as stations, and a continued station says so", {
+  local_mocked_bindings(
+    wet_station_regulation = function(snapshot) {
+      data.frame(station_number = c("08ZZ0001", "WTS9002"), source = c("bcenv", "hakai"),
+                 regulation = c("unknown", "natural"))
+    },
+    wet_bcenv_stations = function(snapshot) {
+      data.frame(station_number = "08ZZ0001", name = "Alpha", lon = -128, lat = 51.6,
+                 first = as.Date("2021-10-01"), last = as.Date("2026-10-27"), regulation = "unknown",
+                 hydat_site = NA_character_, hydat_km = NA_real_)
+    },
+    wet_hakai_stations = function(version = "8318556d2baf") {
+      data.frame(station_number = c("WTS9001", "WTS9002"), watershed = c("9001", "9002"), name = c("Test", "Own"),
+                 lon = c(-128, -128.1), lat = c(51.6, 51.7), continues = c("08ZZ0001", NA),
+                 continues_before = as.Date(c("2021-10-01", NA)), first = as.Date(c("2014-08-02", "2014-09-01")),
+                 last = as.Date(c("2019-09-30", "2019-09-29")), licence = "CC-BY 4.0",
+                 credit = "Hakai Institute et al.", bcenv_snapshot = "20261028",
+                 bcenv_days = wet_bcenv_days_key("20261028"))
+    })
+  s <- wet_station_list("hakai")
+  expect_equal(s$station_number, "WTS9002")
+  expect_named(s, names(wet_station_list("bcenv")))
+  expect_equal(s$source, "hakai")
+  expect_equal(s$network, "Hakai Institute")
+  expect_equal(c(s$first, s$last), as.Date(c("2014-09-01", "2019-09-29")))
+  expect_equal(s$regulation, "natural")
+  expect_true(is.na(s$hydat_site) && is.na(s$hydat_km))
+  expect_equal(s$licence, "CC-BY 4.0")
+  expect_equal(s$credit, "Hakai Institute et al.")
+  expect_s3_class(s$first, "Date")
+  p <- wet_station_list(c("bcenv", "hakai"))
+  expect_equal(p$station_number, c("08ZZ0001", "WTS9002"))
+  expect_equal(p$source, c("bcenv", "hakai"))
+  expect_equal(c(p$first[1], p$last[1]), as.Date(c("2014-08-02", "2026-10-27")))
+  expect_equal(p$licence[1], "OGL-BC 2.0; days before 2021-10-01: CC-BY 4.0")
+  expect_match(p$credit[1], "; days before 2021-10-01: Hakai Institute et al.", fixed = TRUE)
+  # an own station the status file does not hold under "hakai" is refused
+  wrong_source <- function(snapshot) {
+    data.frame(station_number = c("08ZZ0001", "WTS9002"), source = "bcenv", regulation = "unknown")
+  }
+  local_mocked_bindings(wet_station_regulation = wrong_source)
+  expect_error(wet_station_list("hakai"), "no hakai row for WTS9002")
+})
+
+test_that("a Hakai registry whose rows all continue provincial stations lists no Hakai station", {
   local_mocked_bindings(
     wet_station_regulation = function(snapshot) {
       data.frame(station_number = "08ZZ0001", source = "bcenv", regulation = "unknown")
@@ -188,10 +239,6 @@ test_that("Hakai's package lists no station of its own, and a continued station 
     })
   s <- wet_station_list("hakai")
   expect_equal(nrow(s), 0)
-  expect_named(s, names(wet_station_list("bcenv")))
-  expect_s3_class(s$first, "Date")
-  p <- wet_station_list(c("bcenv", "hakai"))
-  expect_equal(c(p$first, p$last), as.Date(c("2014-08-02", "2026-10-27")))
-  expect_equal(p$licence, "OGL-BC 2.0; days before 2021-10-01: CC-BY 4.0")
-  expect_match(p$credit, "; days before 2021-10-01: Hakai Institute et al.", fixed = TRUE)
+  expect_named(s, names(wet_station_list_empty()))
+  expect_equal(wet_station_list(c("bcenv", "hakai"))$station_number, "08ZZ0001")
 })
