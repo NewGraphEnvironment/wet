@@ -49,24 +49,14 @@ No gate in the planning pane: parked for the coordinator's plan gate. Mechanism,
   superseded**: `vignettes/short-record-flow.Rmd` still publishes them and links `station_flow_departure.md`. They stay
   in one labelled place in `chinook_sites.md`, beside the shipped `covariance_pick` ones, and
   `station_flow_departure.md` points there where the article's reader lands.
+- **`water_balance_method.md` leaves this pull request** (owner, 2026-11-27, asked before Phase 4): filed as wet#261, naming
+  move 12 and left out of `planning/backlog.md`. The other four files land here; the PR closes #183, #184 and #206;
+  #181 and #189 stay open for the owner to close or re-scope at the merge.
 - **How a file is checked.** Two tables in `findings.md`, and the script only helps them. (1) A claim-by-source row for
   **every number the new file keeps, unchanged ones included**: the claim, the report line (or query), the build or
   commit that source names, agrees or disagrees. A stale number carried over unchanged is what this catches. (2) A
   ledger of every paragraph and bullet of the old file, numbers or not: kept, moved to X, already in X (quote the line),
   or dropped with the reason. A verdict, limit or attribution is lost without any number leaving.
-
-## Open decisions
-
-- **Does `research/water_balance_method.md` stay in this pull request?** Its section 0 is about 12,500 words, and the Plan
-  review found present-tense numbers in it that already disagree with the current report (the 32.5 % nested selection,
-  now 30.7 % in `data/checks/wb_aet_compare_20260717.txt`), so it needs re-verifying and not only reordering. The move's
-  model is Sonnet.
-  (a) Recommended: land the other four files here, file `water_balance_method.md` as its own issue naming move 12 (left
-  out of `planning/backlog.md`), for its own pull request with a stronger builder. #181 and so #189 then stay open:
-  Phase 4 is skipped and its boxes are marked as carried by the new issue, and the PR body closes #183, #184 and #206
-  only, with #181 and #189 closed or re-scoped as the owner says at the merge.
-  (b) Keep all five in one pull request. Phase 4 runs after the departure files among the files, so it can still be split off if it fails.
-  Ask before Phase 4.
 
 ## Phase 1: the ledger and the baseline
 - [ ] Before building: `bash "$T/skills/_shared/members_check.sh" "$(git remote get-url origin)" 189 189-backlog-move-12-research-files-around-th --batch 14` (T from `soul_published_tree`). On a non-zero exit or any line but `FREE`, build nothing: write the line under `## Open decisions` and stop. #206 is not in the body's table, so check by hand that it is open and that no open pull request or branch is on it
@@ -100,19 +90,8 @@ which facts live where first.
 - [x] Keep the heading "Natural stations outside HYDAT as donors" (`station_sources.md` cites it). Check that the short-record article's link still leads to its numbers
 - [x] Run `numbers_check.py` on both, complete the two tables, commit with the archive README additions
 
-## Phase 4: `research/water_balance_method.md` (#181, second file; see Open decisions)
-- [ ] Before building: the member re-check of Phase 1
-- [ ] Section 0 around what ships, in this order: the provenance line (short); inputs; stations; method choices; the AET and how it is chosen (the incumbent rule, decision files); the gate; pooled zones; monthly shares (snow predictors, donor); the daily shape; skill of the shipped fit (HYDAT 2026-07-17); accepting the next refit; routed PCIC against the balance and the segment pick; the dry-interior diagnosis (#45, #50, #53 as one verdict with what remains open); reproducing #15 and #18; what it says about the BC Water Tools; follow-ups
-- [ ] Known to disagree: the nested selection reads 32.5 % against 30.7 % shipped for stage 1, stage 2, "`cfu` alone" and the rescore on the shipped fit, and the BC Water Tools verdict builds on it. `data/checks/wb_aet_compare_20260717.txt` lines 29, 40, 47 and 48 give 30.7 for all, since #47's gate. Quote the current report; keep 32.5 only where dated as before #47 (a registered rule's disclosure). "`cfu` is the only variant kept by the override" is retired too. "The selected number is optimistic by about a point" and "32.3 % is the honest estimate" are the 2025-10-14 fit's: do not carry them as current
-- [ ] Give every bullet under the #11 heading its own destination before moving anything. Current facts there: "Zone steps" (section 7 item 9, #199, `wb_runoff_annual.png`), "No output" (22,041 watersheds, `wb_output_20260717.txt`), the definition of pooled zones, Chapman's published figures. "Large rivers are good" is 2025-fit text: rewrite from the shipped report or move it
-- [ ] **Keep PCIC's gridded run through fwapg in section 0** (the older-annual-table comparison at the 178 gauges). `scripts/pcic_coverage.R`, `data/checks/pcic_coverage_20260717.txt` and `pcic_scenarios.md` say section 0 is its only record: it is not a superseded comparison
-- [ ] The routed-PCIC and per-segment-pick statements sit today under "Skill with CGIAR AET, as built in #11", a superseded heading: give them their own subsection before the #11 table and its commentary move to the #11 archive README
-- [ ] Superseded results move to their archives: the #11 skill table, the 2025-10-14 fit's figures, the fold counts from before #89, the 1951–2012 and fwapg 7c30f58 comparisons, the retired override. A registered rule's text, a verdict and a disclosed limit stay
-- [ ] Check every kept number against its tracked report (`data/checks/wb_*.txt`, `stations_wb.txt`, `climr_eccc.txt`, `pcic_routed_compare_20260717.txt`, `segment_output_20260717.txt`). Read the shipped fit's reports, not the unsuffixed 2025-10-14 ones, for any present-tense claim. A number with no tracked report (the #58 Prince George gauges, the #89 sandbox, side-channel sample counts, reprojection errors) names the commit or archive that made it, or moves there
-- [ ] Re-read each follow-up against its issue's state (on 2026-11-27: #14, #76 and #199 open, #85 and #176 closed; #76 reads done in code while open, so say that and do not call it closed) and `monthly_error.md`'s current small-basin verdict
-- [ ] Sections 1–7 (the paper read against the build) keep their numbering. Revise only statements about what wet does that are no longer true, and say in the header what was and was not re-read: the paper itself is re-read only where a claim is in doubt
-- [ ] For each citation of this file by a script, report or article, confirm the cited **claim** is still under that anchor: `scripts/wb_cv_lib.R`, `wb_fit_accept.R`, `wb_gate_rule.R`, `wb_aet_compare.R` (section 7 item 3), `departure_pcic.R` (PCIC's calibration gauges unpublished), `pcic_coverage.R`, `discharge_publish_lib.R`, the interior-plateau comment in `vignettes/segment-discharge.Rmd`
-- [ ] Run `numbers_check.py`, complete the two tables, commit
+## Phase 4: `research/water_balance_method.md` (#181, second file): carried by wet#261
+- [x] Skipped by the owner's decision above; the phase's checks are in wet#261's body
 
 ## Phase 5: `research/fwapg_mad_method.md` (#206)
 - [ ] Before building: the member re-check of Phase 1
