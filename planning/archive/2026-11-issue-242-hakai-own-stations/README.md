@@ -15,6 +15,8 @@ Planned as batch 29 (a newer provincial pin, #232, and Hakai's other four waters
 
 ## Evidence
 
+`bar_arithmetic.R` here produced the bar's old-pin shares and the off-hour matchings (run from the package root with `WET_DATA_ROOT` naming the data directory that holds the 2026-11-25 portal export).
+
 `data/logs/242/` in the main checkout of the machine that ran them (`station_regulation_20261127T*`, `station_sources_hakai_20261127*`, `test_20261127.log`).
 
 ## Owed
