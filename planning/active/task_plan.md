@@ -209,8 +209,8 @@ Review: Upper Bulkley split out under both options (S1, O5).
 
 - [x] Tests pass (`devtools::test()`, with `NOT_CRAN=true` on any single-file rerun)
 - [x] `lintr::lint_package()` adds no lint (per file, linter and line, against a worktree of `origin/main`); `pkgdown::check_pkgdown()` clean
-- [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
+- [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`): five rounds, ended on an enumeration
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
 Verification:
