@@ -41,7 +41,7 @@
 #' package = "wet"))`. The files are fetched once per machine into
 #' `tools::R_user_dir("wet", "cache")` and held to their published checksums.
 #'
-#' Logger days follow the steps above (with the readings' own clock), and four
+#' Logger days follow the steps above (with the readings' own clock), and three
 #' more rules screen what a gauge does not need screening for, in this order:
 #' runs of identical hourly means above 0.5 degrees C lasting more than 154
 #' hours in May-September (a stuck sensor) are dropped before the hour rule;

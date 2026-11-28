@@ -20,7 +20,7 @@
 #
 # Amendment 1 (the owner, 2026-11-27, after the first run and before any logger day was
 # screened): that run's tails were the archive's own faulty sensors (08LG048 at 4.00 degC for
-# 3,314 hours; August ranges to 35.5 degC), so the percentiles measured the faults the rules
+# 3,314 hours; 135 open-water days with a range above 20 degC), so the percentiles measured the faults the rules
 # exist to catch. The reference is now screened first, by bounds set wide of anything flowing
 # water does: a station-year holding a run of identical hourly means of 7 days (168 hours) or
 # more is left out of both measures, and so is a day whose range exceeds 20 degC. Both options
