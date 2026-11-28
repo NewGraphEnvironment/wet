@@ -191,21 +191,21 @@ nothing in wet gives air temperature on stream segments.
 
 ## Phase 6: The upload, with the pull request open (decision 8(a))
 
-- [ ] Before building: the member re-check of Phase 1, run again.
-- [ ] `/planning-archive`, then `/gh-pr-push`; the pull request body says it waits on the owner for the bucket policy and the upload, with the one command to run and what its first line must read.
+- [x] Before building: the member re-check of Phase 1, run again.
+- [x] `/planning-archive`, then `/gh-pr-push`; the pull request body says it waits on the owner for the bucket policy and the upload, with the one command to run and what its first line must read.
 - [ ] After the owner's upload: the report it rewrote is committed on the branch; `wet_air_daily()` reads one group over HTTPS, timed, the time added to `research/air_temperature_segments.md`.
 
 ## Owed at the end (reported, done after merge)
 
 - [ ] `cell_elev_m`, once cd holds the cube's cell elevation (the wet issue Phase 1 files).
-- [ ] Under decision 8(b) only: the bucket policy, the upload, the report's commit through a pull request of its own, and the timed read over HTTPS.
+- [x] (n/a: decision 8(a) was chosen) Under decision 8(b) only: the bucket policy, the upload, the report's commit through a pull request of its own, and the timed read over HTTPS.
 
 ## Validation
 
 - [x] Tests pass
 - [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
 - [x] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] `/planning-archive` on completion
 
 How each change is proved: the reader and the cell rule by the fixture tests, which compare with `cd::cd_extract_daily()`
 on a masked copy of cd's own example cube; the catalog change by the existing tests passing unchanged and a
