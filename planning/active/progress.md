@@ -76,3 +76,7 @@ mandate; the merge stays with me.
 - Completed: pointers checked, four index rows rewritten, pass record in findings.md
 - Commits: this one
 - Next: tests, /code-check branch, /planning-archive, /gh-pr-push
+
+## Validation, 2026-11-28
+- Completed: devtools::test() 4144 passed, 0 failed, 0 errors, 5 skipped (at c3559f24; later commits touch research/ and planning/ only); /code-check branch, 5 rounds
+- Next: /planning-archive, /gh-pr-push

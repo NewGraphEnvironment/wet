@@ -267,11 +267,11 @@ issue-headed heading added. The diff touches `research/` and `planning/` only.
 
 | file | prose words, before to after | issue-headed sections | verified | flag after |
 |---|---|---|---|---|
-| `discharge_publish.md` | 4,546 to 3,463 | 3 to 0 | 2026-11-27 | words |
-| `station_flow_departure.md` | 3,186 to 2,243 | 5 to 0 | 2026-11-27 | none |
-| `chinook_sites.md` | 3,221 to 3,427 (it took Maxan's results from the method file) | 2 to 0 | 2026-11-27 | words |
+| `discharge_publish.md` | 4,546 to 3,510 | 3 to 0 | 2026-11-27 | words |
+| `station_flow_departure.md` | 3,186 to 2,283 | 5 to 0 | 2026-11-27 | none |
+| `chinook_sites.md` | 3,221 to 3,647 (it took Maxan's results from the method file) | 2 to 0 | 2026-11-27 | words |
 | `fwapg_mad_method.md` | 1,037 to 1,296 (dated sections) | 2 to 0 | 2026-11-27 | none |
-| total | 11,990 to 10,429 | 12 to 0 | | |
+| total | 11,990 to 10,736 (after code-check) | 12 to 0 | | |
 
 **What it says about the revise-in-place rule #181 tests.**
 - Every stale number found had been carried over from an earlier build or release under a later Verified date: the routed
@@ -287,6 +287,15 @@ issue-headed heading added. The diff touches `research/` and `planning/` only.
   that is a reference table the word flag does not by itself mean a log.
 - Checking was the cost, not rewriting. The number checker found departures and inventions but, as designed, none of the
   stale numbers: all of those came from reading each claim against its report.
+
+## Code-check
+
+Five rounds (`review-round1.md` to `review-round5.md`), 17 findings, all fixed. Rounds 1-4: 5, 4, 3, 3; one round-4
+finding was inside round 3's fix, so the loop ended on round 5's enumeration of 306 sentences carrying a scope claim
+(276 hold, 11 hold with a stated limit, 17 not checkable read-only, 2 wrong, fixed and re-checked against HYDAT and the
+reports). The mechanism: a sentence whose scope (route, window set, statistic, site, release, table state) was wider than
+its figures, usually after being merged away from the heading that had qualified it. Matching figures against reports,
+which the claim tables did, does not catch it.
 
 ## Errors Encountered
 
