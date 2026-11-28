@@ -38,7 +38,7 @@
 #' @seealso [wet_temp_fill()], which takes this as `air`.
 #' @examples
 #' # a tiny made-up tree laid out as the published one, from cd's example cube
-#' cat <- wet_catalog(system.file("extdata", "air_example", "manifest.json", package = "wet"))
+#' cat <- wet_catalog(system.file("air", "manifest.json", package = "wet"))
 #' a <- wet_air_daily(c(1, 2, 4), "2002-07-01", "2002-07-03", groups = "AAAA", catalog = cat)
 #' a
 #' @export
@@ -146,8 +146,9 @@ wet_air_id <- "air_temperature/fwa/v1"
 wet_air_catalog_url <- "https://fresh-bc.s3.us-west-2.amazonaws.com/air_temperature/fwa/v1/manifest.json"
 
 # The day whose cube band decides which cells hold data: 1 January of the
-# cube's last year (cd reads "has data" from the first band of the first file
-# a call opens). The manifest names its file.
+# cube's last year (cd reads "has data" from band 1 of the first variable's
+# file for the `from` year, which for a one-day call is that day's file). The
+# manifest names its file.
 wet_air_mask_day <- "2025-01-01"
 
 wet_air_date <- function(x, what) {

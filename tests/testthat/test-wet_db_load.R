@@ -87,7 +87,7 @@ test_that("arguments are checked before anything is written", {
 
 test_that("the air temperature tree is refused before any part is fetched (#216)", {
   skip_if_not_installed("duckdb")
-  cat <- wet_catalog(system.file("extdata", "air_example", "manifest.json", package = "wet"))
+  cat <- wet_catalog(system.file("air", "manifest.json", package = "wet"))
   cache <- withr::local_tempdir()
   for (d in c("air_temperature/fwa/v1/cell_daily", "air_temperature/fwa/v1/segment_cell")) {
     expect_error(wet_db_load(NULL, cat, d, cache_dir = cache), "wet_air_daily")

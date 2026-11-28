@@ -4,7 +4,7 @@
 # wet_catalog().
 
 air_cat <- function() {
-  wet_catalog(system.file("extdata", "air_example", "manifest.json", package = "wet"))
+  wet_catalog(system.file("air", "manifest.json", package = "wet"))
 }
 
 air_cube <- function() {

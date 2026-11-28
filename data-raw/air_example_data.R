@@ -1,4 +1,4 @@
-# The bundled air temperature tree, inst/extdata/air_example/ (#216): a manifest and a few
+# The bundled air temperature tree, inst/air/ (#216): a manifest and a few
 # kilobytes of parquet laid out as the published air_temperature/fwa/v1, for
 # wet_air_daily()'s example and tests. Made from cd's example daily cube (2002, 5 x 5 cells)
 # with cells set to no-data (tests/testthat/helper-air.R) and seven made-up segments in two
@@ -13,7 +13,9 @@ pkgload::load_all(".", quiet = TRUE)
 source("scripts/air_publish_lib.R")
 source("tests/testthat/helper-air.R")
 
-root <- file.path("inst", "extdata", "air_example")
+# inst/air/, not inst/extdata/air_example/: the parts' Hive keys are 83-85 bytes, and R CMD check
+# notes a tarball path over 100 (wet/inst/air/<key> is at most 98)
+root <- file.path("inst", "air")
 unlink(root, recursive = TRUE)
 dir.create(root, recursive = TRUE)
 cube <- air_masked_cube(file.path(tempdir(), "air_cube"))

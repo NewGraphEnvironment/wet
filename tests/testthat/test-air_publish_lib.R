@@ -125,6 +125,12 @@ test_that("the cell checks pass the fixture and each turns red on its own mutati
   m <- lk
   m$cell_status[m$linear_feature_id == 1] <- "outside"
   expect_true(fails(m, 4))
+  # a moved segment said to have no data around it
+  m <- lk
+  i <- which(m$linear_feature_id == 3)
+  m$cell_status[i] <- "no_data"
+  m$cell_id[i] <- NA
+  expect_true(fails(m, 3))
 })
 
 test_that("completeness and values pass a year part and turn red on a dropped or changed row", {

@@ -22,8 +22,8 @@ their lookup parts are read. A segment outside them reads as missing.}
 \value{
 \code{data.frame(id, date, variable, value, cell_id, cell_x, cell_y, cell_moved, cell_status)}, one row per segment, variable and day, ordered
 by segment as given, variable as given and date. \code{id} is the
-\code{linear_feature_id}; \code{cell_id} numbers the cell on ERA5-Land's own 0.1°
-grid (not cd's cell number); \code{cell_moved} is \code{TRUE} for a \code{"moved"}
+\code{linear_feature_id}; \code{cell_id} numbers the cell on the regular 0.1° grid
+ERA5-Land is distributed on (not cd's cell number); \code{cell_moved} is \code{TRUE} for a \code{"moved"}
 segment. A segment with no cell, or one the lookup does not hold
 (\code{cell_status} \code{NA}), has its days with \code{value} \code{NA}.
 }
@@ -55,7 +55,7 @@ calendar day, not an instant.
 
 \examples{
 # a tiny made-up tree laid out as the published one, from cd's example cube
-cat <- wet_catalog(system.file("extdata", "air_example", "manifest.json", package = "wet"))
+cat <- wet_catalog(system.file("air", "manifest.json", package = "wet"))
 a <- wet_air_daily(c(1, 2, 4), "2002-07-01", "2002-07-03", groups = "AAAA", catalog = cat)
 a
 }
