@@ -20,7 +20,8 @@
 # after changing stage 1 here, remove them. Stage 2 is keyed on the md5 of the
 # .tif it samples (so a rebuilt .tif is sampled again), wet_ws_sample.R,
 # wet_ws_fetch.R and `sample_version`; stage 3 on stage 2's key and the upstream
-# code in R/. After changing sample_group() or upstream() here, bump
+# code in R/. After changing stage 2 or 3's code here (sample_group(), upstream(),
+# the `sets` entries other than their keys, the group extents in `ext_g`), bump
 # `sample_version`. fwapg and installed packages are in no key. Stages 4 and 5 are
 # recomputed on every run:
 #   1. TerraClimate cropped to BC at its own 1/24 degree lattice; the isolines
@@ -262,7 +263,7 @@ stopifnot(identical(names(iso), c("iso_tin", "iso_idw", "iso_flat")))
 iso_cells <- unlist(terra::global(!is.na(iso), "sum"))
 
 # ---- 2. one sample per watershed group and layer set -----------------------------------------
-sample_version <- "2"  # bump whenever sample_group() or upstream() changes what it stores
+sample_version <- "2"  # when to bump: the header, "Stages 1-3"
 sample_code <- md5(file.path("R", c("wet_ws_sample.R", "wet_ws_fetch.R")))
 # keyed on what each .tif holds, not on the key that named it
 sets <- list(tc = list(file = f_tc_bc, key = key_of(md5(f_tc_bc), sample_code, sample_version), crs = "EPSG:4326"),
