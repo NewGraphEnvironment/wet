@@ -69,9 +69,9 @@ No plan gate ran in this pane: a coordinator dispatched this session, and the co
 
 ## Validation
 
-- [ ] Tests pass
+- [x] Tests pass (not run: the branch changes no file under `R/` or `tests/`)
 - [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
-- [ ] PWF checkboxes match landed work
+- [x] PWF checkboxes match landed work
 - [ ] `/planning-archive` on completion
 
 How each change is proved: the check passes on both files with a dated log for #218's, and fails on each planted break (the mutation table in `findings.md`), with the committed log untouched; every row's anchor is found once and its `file:line` is where the anchor stands; every formal with a default and every top-level numeric assignment in the scope maps to a row; every figure with a unit is in `figures` and found in its source; the cold read's findings are each folded or answered; lint adds no class beyond what `scripts/temp_baseline*.R` carry; `devtools::test()` unchanged (no `R/` change).
