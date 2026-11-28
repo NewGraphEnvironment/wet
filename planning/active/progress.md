@@ -61,3 +61,15 @@ mandate; the merge stays with me.
 - `R/wet_air_daily.R`: `wet_air_daily()` (exported) and internal `wet_air_cells()`, `wet_air_cell_id()`. One change from the plan's wording: the result carries `cell_id` (ERA5-Land's own grid, decision 3) and `cell_status` in place of cd's `cell`, since the published key is not cd's cell number; the values, dates, centres and `cell_moved` are compared `identical()` with `cd_extract_daily()` at the stored points.
 - `tests/testthat/helper-air.R` masks cd's example cube (cells 1, 2, 6, 7, 19), giving every status; `data-raw/air_example_data.R` writes `inst/extdata/air_example/` (about 22 KB) through `scripts/air_publish_lib.R`'s writer, byte-identical on a rerun.
 - `wet_receipt_write()` takes its summary from the declaration and its file from the tree ID: the discharge fixture's receipt and manifest are byte-identical before and after (md5 6e12167e… and fc2b3501…). `wet_db_load()` refuses the air tree before any fetch. cd floor 0.6.13; `wet_air_daily` in the reference index.
+
+## Phase 3, 2026-11-27
+- `scripts/air_publish.R`, `scripts/air_publish_lib.R`, `scripts/air_station_check.R`; the lib's tests derive the upload guard's file list from the scripts' calls (they caught `R/wet_db_load.R`'s `%||%`). A trial of the build on VICT and CLAY, 2024–2025, passed every check.
+- `/code-check branch`: rounds 1–4 found eleven instances of one mechanism (a fact held in two places, nothing holding them equal), round 4 one inside round 3's fix; ended on an enumeration of 20 facts (`review-enumeration.md`). Bundled tree moved to `inst/air/` so no tarball path passes 100 bytes.
+- crate PR #82 merged with the owner's approval and released as crate 0.22.0 (the schemas and the `date` type); installed.
+
+## Phase 4, 2026-11-28
+- BUILD at e461b677: 1 h 52 min, every check passing; mutation table in findings; station check passing (314 stations), shown able to fail; second BUILD at b2de756e byte-identical in its parts (digest 97d7eeea), its report the tracked one; reader timed.
+
+## Phase 5, 2026-11-28
+- `research/air_temperature_segments.md`, `research/discharge_publish.md`'s naming rule, `research/README.md`, CLAUDE.md, NEWS, #216's body. Review round 5 over these and the reports; verdict `review-verdict.md` (enumeration, 5 rounds).
+- Not done here, waiting on the owner: the bucket policy for `air_temperature/*` and the upload (Phase 6 and the PR body).
