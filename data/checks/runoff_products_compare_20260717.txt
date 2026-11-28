@@ -1,0 +1,646 @@
+# TerraClimate runoff and the 1961-1990 runoff isolines at the calibration gauges (#243, #225), HYDAT 20260717
+
+The rule: scripts/runoff_products_rule.R, registered before this script or any product value existed.
+Rule commit a5e867cf, md5 86c789502042e6d310afa9ea00fae4f0. Code commit 01e52b2b (the last commit to R, scripts, data-raw, inst/vignette-data, DESCRIPTION).
+Fit: cv_aet-cfu.rds under scoring md5 df3280b5; gauges and routed PCIC from inst/vignette-data/monthly_values.rds (md5 a8093a1a76704e5365a0392ae4ac8c0e), held equal to the fit.
+Both products are references here, never inputs. Error is modelled over observed, in %; within is |error| <= 20 %.
+
+## 1. Inputs
+
+TerraClimate: http://thredds.northwestknowledge.net:8080/thredds/fileServer/TERRACLIMATE_ALL/climatology/TerraClimate_19812010_q.nc, md5 691e6bfe3d37e0b377f61ccf3607b3e6; variable q, 12 layers, read at its own 0.041667 x 0.041667 degree lattice, cropped to lon -140 to -113, lat 47 to 61.
+Isolines: WHSE_WATER_MANAGEMENT.HYDZ_ANNUAL_RUNOFF_LINE (OGL-BC), 66 lines (the server's numberMatched 66), md5 c56e6747e35dd0e4d3d278c67b58fde0.
+  levels (mm): 50 x1, 100 x5, 200 x5, 500 x10, 1000 x11, 1500 x4, 2000 x17, 3000 x6, 4000 x7
+  no two lines of different levels touch or cross.
+  densified to 1000 m: 31474 points. Gridded by sf's GDAL 3.8.5 on BC Albers, 1000 m cells, x 270000 to 1880000, y 360000 to 1740000:
+  TIN -a linear:radius=0:nodata=-9999; inverse distance -a invdistnn:power=2:radius=50000:max_points=12:nodata=-9999.
+  cells with a value: TIN 1234489, inverse distance 1161809; flat-triangle cells (TIN within 0.001 mm of a level) 408582.
+Samples: TerraClimate 666ff278b6, isolines 5176108a9b, over 236 watershed groups; upstream means over 14 first-level codes: 100 200 300 400 500 600 800 900 910 920 930 940 950 960.
+
+## 2. Gauges each product scores
+
+315 calibration gauges (19 lake outlets); routed PCIC's shared set 283. A product is scored where it covers at least 95 % of the basin.
+TerraClimate scores 315; isolines (both surfaces) 292.
+
+Not scored, with each product's coverage and the reason, which is the only way a cell has no value: for TerraClimate, a cell the file leaves empty;
+for the isolines, a cell beyond the TIN's triangulation or more than 50 km from an isoline vertex. The lake-outlet flag is shown beside, not tested.
+
+station  zone lake    tc_cov  iso_cov  name                                 reason
+08DB001  01   no       1.000    0.899  NASS RIVER ABOVE SHUMAL CREEK        isolines: beyond the surfaces
+08EB004  01   no       1.000    0.911  KISPIOX RIVER NEAR HAZELTON          isolines: beyond the surfaces
+08CD001  02   no       1.000    0.942  TUYA RIVER NEAR TELEGRAPH CREEK      isolines: beyond the surfaces
+10AC006  02   no       1.000    0.829  DEASE RIVER NEAR THE MOUTH           isolines: beyond the surfaces
+07EA005  03   no       1.000    0.880  FINLAY RIVER ABOVE AKIE RIVER        isolines: beyond the surfaces
+10AC004  03   no       1.000    0.843  BLUE RIVER NEAR THE MOUTH            isolines: beyond the surfaces
+10BA001  03   no       1.000    0.788  TURNAGAIN RIVER ABOVE SANDPILE CREEK isolines: beyond the surfaces
+10BB002  03   no       1.000    0.859  KECHIKA RIVER ABOVE BOYA CREEK       isolines: beyond the surfaces
+10BE008  03   no       1.000    0.635  GEDDES CREEK AT THE MOUTH            isolines: beyond the surfaces
+10BE012  03   no       1.000    0.731  RABBIT RIVER NEAR THE MOUTH          isolines: beyond the surfaces
+10CB001  03   no       1.000    0.912  SIKANNI CHIEF RIVER NEAR FORT NELSON isolines: beyond the surfaces
+10CC002  04   no       0.978    0.542  FORT NELSON RIVER ABOVE MUSKWA RIVER isolines: beyond the surfaces
+08CA001  05   no       1.000    0.176  SPATSIZI RIVER NEAR THE MOUTH        isolines: beyond the surfaces
+08CA002  05   no       1.000    0.486  STIKINE RIVER BELOW SPATSIZI RIVER   isolines: beyond the surfaces
+08CB001  05   no       1.000    0.773  STIKINE RIVER ABOVE GRAND CANYON     isolines: beyond the surfaces
+08CE001  05   no       1.000    0.840  STIKINE RIVER AT TELEGRAPH CREEK     isolines: beyond the surfaces
+08CF001  05   no       1.000    0.871  STIKINE RIVER ABOVE BUTTERFLY CREEK  isolines: beyond the surfaces
+08EB005  05   no       1.000    0.235  SKEENA RIVER ABOVE BABINE RIVER      isolines: beyond the surfaces
+07FD004  06   no       1.000    0.000  ALCES RIVER AT 22ND BASE LINE        isolines: beyond the surfaces
+08EC013  08   yes      1.000    0.935  BABINE RIVER AT OUTLET OF NILKITKWA LAKE isolines: beyond the surfaces
+08EF001  08   no       1.000    0.729  SKEENA RIVER AT USK                  isolines: beyond the surfaces
+08NP003  20   no       1.000    0.676  HOWELL CREEK ABOVE CABIN CREEK       isolines: beyond the surfaces
+08NP004  20   no       1.000    0.209  CABIN CREEK NEAR THE MOUTH           isolines: beyond the surfaces
+
+By zone: gauges, TerraClimate not scored, isolines not scored
+  zone 01:  12 gauges, TerraClimate  0, isolines  2
+  zone 02:   5 gauges, TerraClimate  0, isolines  2
+  zone 03:  21 gauges, TerraClimate  0, isolines  7
+  zone 04:   5 gauges, TerraClimate  0, isolines  1
+  zone 05:   7 gauges, TerraClimate  0, isolines  6
+  zone 06:   3 gauges, TerraClimate  0, isolines  1
+  zone 07:   9 gauges, TerraClimate  0, isolines  0
+  zone 08:  23 gauges, TerraClimate  0, isolines  2
+  zone 09:   7 gauges, TerraClimate  0, isolines  0
+  zone 10:   9 gauges, TerraClimate  0, isolines  0
+  zone 11:   2 gauges, TerraClimate  0, isolines  0
+  zone 12:   3 gauges, TerraClimate  0, isolines  0
+  zone 13:  10 gauges, TerraClimate  0, isolines  0
+  zone 14:  22 gauges, TerraClimate  0, isolines  0
+  zone 15:  19 gauges, TerraClimate  0, isolines  0
+  zone 16:   6 gauges, TerraClimate  0, isolines  0
+  zone 17:   4 gauges, TerraClimate  0, isolines  0
+  zone 18:  12 gauges, TerraClimate  0, isolines  0
+  zone 19:  11 gauges, TerraClimate  0, isolines  0
+  zone 20:  10 gauges, TerraClimate  0, isolines  2
+  zone 21:  13 gauges, TerraClimate  0, isolines  0
+  zone 22:  15 gauges, TerraClimate  0, isolines  0
+  zone 23:   8 gauges, TerraClimate  0, isolines  0
+  zone 24:   9 gauges, TerraClimate  0, isolines  0
+  zone 25:  16 gauges, TerraClimate  0, isolines  0
+  zone 26:  13 gauges, TerraClimate  0, isolines  0
+  zone 27:  12 gauges, TerraClimate  0, isolines  0
+  zone 28:  16 gauges, TerraClimate  0, isolines  0
+  zone 29:  13 gauges, TerraClimate  0, isolines  0
+
+## 3. Plumbing check: TerraClimate's runoff against the province run's ppt_tc - aet_tc
+
+Median |q - (ppt_tc - aet_tc)| / (ppt_tc - aet_tc): 0.70 % at the 314 gauges TerraClimate covers fully (bound 5 %: passed); 0.92 % at the other 1.
+ppt_tc and aet_tc are bilinear on the 30" grid and filled from climr and CGIAR where TerraClimate is empty, so only full cover tests the sampling.
+
+## 4. Annual error, % (median [middle half], share within +-20 %), each beside the balance and routed PCIC at the same gauges
+
+Routed PCIC over those gauges that are also among its 283 shared gauges. A row whose product scores fewer than 5 gauges in its zone is marked * and not read.
+
+BC   TerraClimate n 315   -33.0 [ -45.5,  -13.3]  23 % | balance   -3.6 [ -15.8,  +24.4]  53 % | routed n 283   -2.6 [ -12.8,  +12.8]  65 %
+BC   isolines TIN  n 292    +1.8 [ -14.0,  +17.8]  61 % | balance   -4.5 [ -15.8,  +24.7]  52 % | routed n 270   -2.5 [ -13.1,  +13.7]  64 %
+BC   isolines IDW  n 292    +1.3 [ -14.9,  +17.5]  60 %
+
+01   TerraClimate n  12   -38.4 [ -43.9,  -27.2]   8 % | balance  -13.4 [ -16.9,  +31.3]  50 % | routed n  10   +3.0 [  -5.2,   +9.3]  90 %
+01   isolines TIN  n  10   -12.7 [ -14.5,  +14.8]  50 % | balance  -13.4 [ -16.8,  +21.9]  50 % | routed n   8   +7.6 [  -1.3,  +10.2]  88 %
+01   isolines IDW  n  10   -11.4 [ -14.0,  +28.1]  50 %
+02   TerraClimate n   5   -38.6 [ -45.7,  -30.2]   0 % | balance  -21.9 [ -29.8,   -9.9]  20 % | routed n   1   -8.4 [  -8.4,   -8.4] 100 %
+02*  isolines TIN  n   3    +6.4 [  -9.1,  +34.1]  33 % | balance  -29.8 [ -33.7,   -1.1]   0 % | routed n   0                        -     -
+02*  isolines IDW  n   3    +7.0 [  -8.8,  +31.4]  33 %
+03   TerraClimate n  21   -39.5 [ -47.3,  -27.8]   5 % | balance   +7.3 [ -11.0,  +15.2]  71 % | routed n  10   -5.5 [ -11.3,   +2.0]  90 %
+03   isolines TIN  n  14    +0.4 [ -12.6,  +21.1]  64 % | balance   +6.4 [ -14.3,  +14.5]  79 % | routed n   9   -4.9 [  -7.5,   +3.6]  89 %
+03   isolines IDW  n  14    +1.5 [ -12.6,  +14.3]  64 %
+04   TerraClimate n   5   -64.7 [ -67.4,  -41.8]   0 % | balance  -32.9 [ -38.7,  -18.5]  40 % | routed n   0                        -     -
+04*  isolines TIN  n   4    +4.3 [  -0.0,   +7.3] 100 % | balance  -28.6 [ -39.8,  -11.9]  50 % | routed n   0                        -     -
+04*  isolines IDW  n   4    -6.2 [ -16.8,   +4.1] 100 %
+05   TerraClimate n   7   -33.8 [ -35.8,  -31.7]   0 % | balance   -7.3 [ -20.0,   +0.8]  71 % | routed n   7   -4.8 [  -8.7,   -1.9] 100 %
+05*  isolines TIN  n   1   -14.1 [ -14.1,  -14.1] 100 % | balance  -26.6 [ -26.6,  -26.6]   0 % | routed n   1   -4.8 [  -4.8,   -4.8] 100 %
+05*  isolines IDW  n   1   -21.5 [ -21.5,  -21.5]   0 %
+06*  TerraClimate n   3   -18.4 [ -26.4,  -16.4]  67 % | balance  +28.0 [  +8.9,  +32.9]  33 % | routed n   3  +25.0 [ +18.1,  +64.8]  33 %
+06*  isolines TIN  n   2   +70.2 [ +69.6,  +70.9]   0 % | balance  +13.9 [  +1.8,  +25.9]  50 % | routed n   2  +18.1 [ +14.7,  +21.6]  50 %
+06*  isolines IDW  n   2   +67.8 [ +64.7,  +70.8]   0 %
+07   TerraClimate n   9   -38.4 [ -43.3,  -30.7]  11 % | balance   -5.2 [  -8.2,  +29.8]  56 % | routed n   9   -1.9 [  -3.1,  +19.5]  67 %
+07   isolines TIN  n   9   +18.7 [ +15.6,  +28.8]  56 % | balance   -5.2 [  -8.2,  +29.8]  56 % | routed n   9   -1.9 [  -3.1,  +19.5]  67 %
+07   isolines IDW  n   9   +17.4 [  -4.7,  +20.0]  67 %
+08   TerraClimate n  23   -25.6 [ -42.6,  -11.9]  30 % | balance  +16.1 [  -8.3,  +35.6]  43 % | routed n  22   -1.0 [ -11.7,  +19.6]  68 %
+08   isolines TIN  n  21    +9.4 [  -5.9,  +24.6]  52 % | balance  +18.0 [  +2.3,  +42.3]  38 % | routed n  20   -0.5 [ -12.3,  +23.2]  65 %
+08   isolines IDW  n  21    +6.8 [ -10.8,  +11.3]  62 %
+09   TerraClimate n   7   -13.0 [ -28.2,   -8.6]  57 % | balance  -25.2 [ -30.0,   -8.9]  43 % | routed n   7   -9.9 [ -18.8,   -9.8]  71 %
+09   isolines TIN  n   7   +10.7 [ -10.9,  +19.7]  57 % | balance  -25.2 [ -30.0,   -8.9]  43 % | routed n   7   -9.9 [ -18.8,   -9.8]  71 %
+09   isolines IDW  n   7    +8.1 [  -7.7,  +18.4]  71 %
+10   TerraClimate n   9   -31.1 [ -39.1,  -20.2]  22 % | balance  -11.1 [ -22.1,   -4.7]  56 % | routed n   9   -1.1 [  -7.7,  +22.9]  56 %
+10   isolines TIN  n   9    +2.8 [  -3.9,  +13.4]  67 % | balance  -11.1 [ -22.1,   -4.7]  56 % | routed n   9   -1.1 [  -7.7,  +22.9]  56 %
+10   isolines IDW  n   9    +6.2 [  -2.4,  +10.3]  67 %
+11*  TerraClimate n   2   -15.1 [ -15.6,  -14.6] 100 % | balance   +5.8 [  -3.1,  +14.6]  50 % | routed n   2  +13.1 [  +9.4,  +16.9]  50 %
+11*  isolines TIN  n   2    -2.2 [  -3.8,   -0.6] 100 % | balance   +5.8 [  -3.1,  +14.6]  50 % | routed n   2  +13.1 [  +9.4,  +16.9]  50 %
+11*  isolines IDW  n   2    -4.6 [  -5.0,   -4.2] 100 %
+12*  TerraClimate n   3   -65.7 [ -67.5,  -60.5]   0 % | balance  -29.0 [ -32.0,  -28.3]   0 % | routed n   3   -9.5 [ -20.8,   -6.0]  67 %
+12*  isolines TIN  n   3    -7.5 [  -9.1,   -6.1] 100 % | balance  -29.0 [ -32.0,  -28.3]   0 % | routed n   3   -9.5 [ -20.8,   -6.0]  67 %
+12*  isolines IDW  n   3    -3.6 [  -5.2,   -1.1] 100 %
+13   TerraClimate n  10   -43.7 [ -47.7,  -39.8]   0 % | balance  -14.5 [ -19.3,  -10.9]  80 % | routed n  10   -6.5 [ -11.5,   -1.2]  80 %
+13   isolines TIN  n  10    +8.3 [  +1.3,  +13.9]  80 % | balance  -14.5 [ -19.3,  -10.9]  80 % | routed n  10   -6.5 [ -11.5,   -1.2]  80 %
+13   isolines IDW  n  10    +8.5 [  +1.1,  +16.5]  80 %
+14   TerraClimate n  22   -34.8 [ -41.8,  -21.7]  14 % | balance   -3.9 [ -15.2,  +21.8]  55 % | routed n  21   -9.3 [ -15.4,   -5.5]  81 %
+14   isolines TIN  n  22    +1.8 [ -10.1,   +8.8]  82 % | balance   -3.9 [ -15.2,  +21.8]  55 % | routed n  21   -9.3 [ -15.4,   -5.5]  81 %
+14   isolines IDW  n  22    +1.7 [ -11.3,   +7.9]  77 %
+15   TerraClimate n  19    -2.9 [ -29.7,  +21.4]  26 % | balance   -2.2 [  -7.8,  +12.1]  58 % | routed n  18   +2.3 [  -7.6,  +17.1]  61 %
+15   isolines TIN  n  19    +3.3 [ -11.7,  +31.1]  53 % | balance   -2.2 [  -7.8,  +12.1]  58 % | routed n  18   +2.3 [  -7.6,  +17.1]  61 %
+15   isolines IDW  n  19    +9.0 [ -10.7,  +29.7]  53 %
+16   TerraClimate n   6    -9.7 [ -24.1,  +17.8]  33 % | balance  -10.7 [ -16.6,   -4.7]  67 % | routed n   6  -15.6 [ -20.4,   -6.5]  50 %
+16   isolines TIN  n   6    -8.2 [ -21.3,   +0.1]  50 % | balance  -10.7 [ -16.6,   -4.7]  67 % | routed n   6  -15.6 [ -20.4,   -6.5]  50 %
+16   isolines IDW  n   6   -16.2 [ -29.4,  -13.6]  67 %
+17*  TerraClimate n   4  +141.3 [+104.6, +244.1]   0 % | balance  +47.6 [ +37.1,  +58.0]   0 % | routed n   4  -14.9 [ -66.2,  +63.6]   0 %
+17*  isolines TIN  n   4   +25.9 [  -7.6,  +76.6]  25 % | balance  +47.6 [ +37.1,  +58.0]   0 % | routed n   4  -14.9 [ -66.2,  +63.6]   0 %
+17*  isolines IDW  n   4   +25.8 [ -17.9,  +83.6]  25 %
+18   TerraClimate n  12   -20.8 [ -36.2,   -7.3]  50 % | balance  -10.5 [ -16.5,   -1.1]  58 % | routed n  12   +8.6 [  -0.8,  +12.2]  92 %
+18   isolines TIN  n  12    -2.3 [  -8.5,  +26.5]  58 % | balance  -10.5 [ -16.5,   -1.1]  58 % | routed n  12   +8.6 [  -0.8,  +12.2]  92 %
+18   isolines IDW  n  12    -2.2 [ -11.2,  +26.8]  50 %
+19   TerraClimate n  11   -37.0 [ -42.9,  -30.4]   9 % | balance  -14.0 [ -22.2,  -10.2]  45 % | routed n  11   +8.9 [  +1.0,  +20.2]  73 %
+19   isolines TIN  n  11   +11.2 [  -6.4,  +22.8]  27 % | balance  -14.0 [ -22.2,  -10.2]  45 % | routed n  11   +8.9 [  +1.0,  +20.2]  73 %
+19   isolines IDW  n  11   +10.8 [  -6.4,  +23.1]  27 %
+20   TerraClimate n  10   -42.9 [ -44.8,  -33.9]  20 % | balance   -9.4 [ -11.3,  +36.3]  40 % | routed n   7  -22.0 [ -30.2,   +6.0]  29 %
+20   isolines TIN  n   8    -0.2 [  -6.4,  +24.5]  75 % | balance  -10.5 [ -17.4,   +2.0]  50 % | routed n   7  -22.0 [ -30.2,   +6.0]  29 %
+20   isolines IDW  n   8    +2.0 [  -6.4,  +26.9]  75 %
+21   TerraClimate n  13   -22.6 [ -35.2,  -15.8]  15 % | balance   +1.9 [  -8.5,  +52.1]  69 % | routed n  13   +0.3 [  -7.8,  +43.5]  62 %
+21   isolines TIN  n  13    -2.1 [ -11.7,   +9.5]  62 % | balance   +1.9 [  -8.5,  +52.1]  69 % | routed n  13   +0.3 [  -7.8,  +43.5]  62 %
+21   isolines IDW  n  13    +2.8 [ -11.7,  +17.9]  62 %
+22   TerraClimate n  15   -22.5 [ -35.1,  -17.5]  33 % | balance   +0.2 [ -10.4,  +19.0]  53 % | routed n  14   -0.2 [  -9.1,  +11.8]  79 %
+22   isolines TIN  n  15    +0.1 [ -11.5,  +17.4]  67 % | balance   +0.2 [ -10.4,  +19.0]  53 % | routed n  14   -0.2 [  -9.1,  +11.8]  79 %
+22   isolines IDW  n  15    +0.1 [ -10.8,  +18.1]  73 %
+23   TerraClimate n   8    -0.7 [  -9.9,  +26.9]  50 % | balance   +4.5 [  -5.2,  +41.0]  50 % | routed n   8   -0.0 [ -11.1,  +15.8]  75 %
+23   isolines TIN  n   8   -14.7 [ -31.4,   +8.5]  50 % | balance   +4.5 [  -5.2,  +41.0]  50 % | routed n   8   -0.0 [ -11.1,  +15.8]  75 %
+23   isolines IDW  n   8   -20.3 [ -34.3,   +5.5]  38 %
+24   TerraClimate n   9   -12.5 [ -14.4,  +15.2]  78 % | balance  +36.4 [ +22.3, +115.2]  22 % | routed n   9  +21.2 [ +14.1,  +52.0]  22 %
+24   isolines TIN  n   9    -8.2 [ -23.9,  +16.0]  56 % | balance  +36.4 [ +22.3, +115.2]  22 % | routed n   9  +21.2 [ +14.1,  +52.0]  22 %
+24   isolines IDW  n   9    -6.1 [ -23.9,  +16.5]  44 %
+25   TerraClimate n  16   -59.3 [ -66.6,  -45.3]   6 % | balance   +8.9 [ -15.1,  +59.6]  31 % | routed n  16  -12.0 [ -19.0,   -1.8]  69 %
+25   isolines TIN  n  16    +6.0 [  -5.7,  +14.0]  75 % | balance   +8.9 [ -15.1,  +59.6]  31 % | routed n  16  -12.0 [ -19.0,   -1.8]  69 %
+25   isolines IDW  n  16    +5.4 [  -9.5,  +14.8]  69 %
+26   TerraClimate n  13   -55.1 [ -64.9,  -50.1]   0 % | balance   -0.7 [ -14.8,  +26.6]  54 % | routed n  13   -4.3 [ -25.8,   +9.5]  46 %
+26   isolines TIN  n  13    +6.3 [ -13.6,  +19.7]  77 % | balance   -0.7 [ -14.8,  +26.6]  54 % | routed n  13   -4.3 [ -25.8,   +9.5]  46 %
+26   isolines IDW  n  13    +8.7 [ -12.6,  +21.1]  62 %
+27   TerraClimate n  12   -53.6 [ -62.1,  -12.2]  33 % | balance   -9.3 [ -14.7,   +0.5]  83 % | routed n   9  -21.7 [ -24.1,   +1.4]  22 %
+27   isolines TIN  n  12    -4.7 [ -11.3,   +8.1]  83 % | balance   -9.3 [ -14.7,   +0.5]  83 % | routed n   9  -21.7 [ -24.1,   +1.4]  22 %
+27   isolines IDW  n  12    -3.2 [  -8.5,  +11.7]  83 %
+28   TerraClimate n  16   -15.9 [ -33.0,   -5.8]  56 % | balance   +9.3 [ -10.0,  +26.0]  50 % | routed n  16   -4.0 [  -8.8,   +5.0]  69 %
+28   isolines TIN  n  16    +1.1 [ -24.0,  +15.2]  44 % | balance   +9.3 [ -10.0,  +26.0]  50 % | routed n  16   -4.0 [  -8.8,   +5.0]  69 %
+28   isolines IDW  n  16    -0.3 [ -25.5,  +15.0]  50 %
+29   TerraClimate n  13   -43.3 [ -55.1,  -21.1]  23 % | balance   +8.8 [ -10.8,  +14.4]  62 % | routed n  13   -4.0 [ -20.9,   +8.4]  54 %
+29   isolines TIN  n  13   -21.9 [ -41.2,  -10.2]  31 % | balance   +8.8 [ -10.8,  +14.4]  62 % | routed n  13   -4.0 [ -20.9,   +8.4]  54 %
+29   isolines IDW  n  13   -21.9 [ -34.7,  -10.2]  15 %
+
+## 5. TerraClimate's months: median per-gauge NSE (monthly runoff) and share NSE (twelve monthly shares)
+
+At the 315 gauges TerraClimate scores: TerraClimate monthly 0.44, share 0.55; balance monthly 0.81, share 0.94.
+At the 283 of them in routed PCIC's shared set: TerraClimate monthly 0.45, share 0.55; balance 0.82, 0.94; routed PCIC 0.82, 0.89.
+
+## 6. The isolines: TIN against inverse distance, and the flat-triangle share
+
+Inverse distance over TIN, % at the 292 scored gauges: median +0.0, middle half -2.0 to +1.7, largest |difference| 36.6.
+Share of basin area on flat triangles: median 0.20; 95 gauges above 0.5. Both surfaces share that bias; their spread cannot show it.
+The isolines were drawn from Water Survey of Canada gauges, so they are not independent of the gauges they are scored at.
+
+zone   n    IDW-TIN %   flat share
+01    10         +1.4         0.38
+02     3         +0.0         0.84
+03    14         +0.0         0.74
+04     4         -6.1         0.00
+05     1         -8.6         0.41
+06     2         -1.5         0.20
+07     9         +0.4         0.23
+08    21         -3.3         0.00
+09     7         +0.2         0.00
+10     9         +1.2         0.13
+11     2         -2.3         0.52
+12     3         +1.1         0.45
+13    10         +0.3         0.43
+14    22         +0.0         0.19
+15    19         -0.0         0.00
+16     6        -10.9         0.00
+17     4         -4.7         0.10
+18    12         +0.0         0.76
+19    11         +0.0         0.99
+20     8         +0.0         1.00
+21    13         +0.0         1.00
+22    15         +0.1         0.69
+23     8         -4.0         0.08
+24     9         +0.4         0.16
+25    16         +0.0         0.05
+26    13         +1.1         0.18
+27    12         +0.7         0.14
+28    16         -2.6         0.03
+29    13         +0.0         0.20
+
+## 7. The period: 1981-2010 over 1961-1990 mean annual flow at long-record natural HYDAT gauges
+
+121 natural BC gauges with at least 20 complete years in each period; province-wide ratio 0.985. A zone needs 3 for a ratio.
+  zone 01:  4 gauges, ratio  1.026
+  zone 02:  6 gauges, ratio  0.992
+  zone 03:  2 gauges, ratio      -
+  zone 04:  1 gauges, ratio      -
+  zone 05:  1 gauges, ratio      -
+  zone 06:  4 gauges, ratio  0.987
+  zone 07:  2 gauges, ratio      -
+  zone 08:  7 gauges, ratio  0.960
+  zone 09:  2 gauges, ratio      -
+  zone 10:  4 gauges, ratio  1.013
+  zone 11:  1 gauges, ratio      -
+  zone 12:  2 gauges, ratio      -
+  zone 13:  3 gauges, ratio  0.954
+  zone 14:  4 gauges, ratio  0.982
+  zone 15: 11 gauges, ratio  1.033
+  zone 16:  6 gauges, ratio  1.009
+  zone 17:  2 gauges, ratio      -
+  zone 18:  4 gauges, ratio  0.951
+  zone 19:  2 gauges, ratio      -
+  zone 20:  3 gauges, ratio  0.952
+  zone 21:  6 gauges, ratio  0.992
+  zone 22:  8 gauges, ratio  0.976
+  zone 23:  5 gauges, ratio  0.989
+  zone 24:  8 gauges, ratio  0.968
+  zone 25:  6 gauges, ratio  0.979
+  zone 26:  4 gauges, ratio  0.974
+  zone 27:  6 gauges, ratio  0.957
+  zone 28:  5 gauges, ratio  0.998
+  zone 29:  2 gauges, ratio      -
+  outside every zone polygon: 0 gauges.
+
+## 8. Verdicts (median annual error, %, product and balance over the product's scored gauges)
+
+zone   n      TC     bal  TerraClimate                 |   n     TIN     IDW     bal  period  isolines (TIN)                               isolines (IDW)
+BC   315  -33.0   -3.6  theirs                       | 292   +1.8   +1.3   -4.5   +0.2  not material                                 not material
+01    12  -38.4  -13.4  theirs                       |  10  -12.7  -11.4  -13.4  -10.4  not material                                 not material
+02     5  -38.6  -21.9  not material                 |   3   +6.4   +7.0  -29.8   +5.6  too few                                      too few
+03    21  -39.5   +7.3  theirs                       |  14   +0.4   +1.5   +6.4      -  not material                                 not material
+04     5  -64.7  -32.9  unresolved                   |   4   +4.3   -6.2  -28.6      -  too few                                      too few
+05     7  -33.8   -7.3  theirs                       |   1  -14.1  -21.5  -26.6      -  too few                                      too few
+06     3  -18.4  +28.0  too few                      |   2  +70.2  +67.8  +13.9  +68.1  too few                                      too few
+07     9  -38.4   -5.2  theirs                       |   9  +18.7  +17.4   -5.2      -  unstable (not material), surface-dependent   not material
+08    23  -25.6  +16.1  theirs                       |  21   +9.4   +6.8  +18.0   +5.0  not material                                 not material
+09     7  -13.0  -25.2  not material                 |   7  +10.7   +8.1  -25.2      -  unstable (ours)                              unstable (ours)
+10     9  -31.1  -11.1  unstable (theirs)            |   9   +2.8   +6.2  -11.1   +4.2  not material                                 not material
+11     2  -15.1   +5.8  too few                      |   2   -2.2   -4.6   +5.8      -  too few                                      too few
+12     3  -65.7  -29.0  too few                      |   3   -7.5   -3.6  -29.0      -  too few                                      too few
+13    10  -43.7  -14.5  theirs                       |  10   +8.3   +8.5  -14.5   +3.4  not material                                 not material
+14    22  -34.8   -3.9  theirs                       |  22   +1.8   +1.7   -3.9   -0.0  not material                                 not material
+15    19   -2.9   -2.2  not material                 |  19   +3.3   +9.0   -2.2   +6.8  not material                                 not material
+16     6   -9.7  -10.7  not material                 |   6   -8.2  -16.2  -10.7   -7.3  not material                                 not material
+17     4 +141.3  +47.6  too few                      |   4  +25.9  +25.8  +47.6      -  too few                                      too few
+18    12  -20.8  -10.5  not material                 |  12   -2.3   -2.2  -10.5   -7.1  not material                                 not material
+19    11  -37.0  -14.0  unstable (theirs)            |  11  +11.2  +10.8  -14.0      -  not material                                 not material
+20    10  -42.9   -9.4  theirs                       |   8   -0.2   +2.0  -10.5   -5.0  not material                                 not material
+21    13  -22.6   +1.9  theirs                       |  13   -2.1   +2.8   +1.9   -2.8  not material                                 not material
+22    15  -22.5   +0.2  theirs                       |  15   +0.1   +0.1   +0.2   -2.3  not material                                 not material
+23     8   -0.7   +4.5  not material                 |   8  -14.7  -20.3   +4.5  -15.6  unstable (not material), surface-dependent   unstable (theirs)
+24     9  -12.5  +36.4  ours                         |   9   -8.2   -6.1  +36.4  -11.1  ours                                         ours
+25    16  -59.3   +8.9  theirs                       |  16   +6.0   +5.4   +8.9   +3.8  not material                                 not material
+26    13  -55.1   -0.7  theirs                       |  13   +6.3   +8.7   -0.7   +3.5  not material                                 not material
+27    12  -53.6   -9.3  theirs                       |  12   -4.7   -3.2   -9.3   -8.8  not material                                 not material
+28    16  -15.9   +9.3  not material                 |  16   +1.1   -0.3   +9.3   +1.0  not material                                 not material
+29    13  -43.3   +8.8  theirs                       |  13  -21.9  -21.9   +8.8      -  theirs (period untested)                     theirs (period untested)
+
+period: the TIN's median error with its values multiplied by the zone's period ratio (section 7).
+
+## 9. Evidence for each material disagreement
+
+TerraClimate: its gap to the balance (q - cv_ann), median mm over the zone's scored gauges, in four terms that sum to it at every gauge:
+precipitation ppt_tc - p_yr; AET -(aet_tc - aet_cfu); TerraClimate's storage and fill q - (ppt_tc - aet_tc); the zone adjustment -(cv_ann - (p_yr - aet_cfu)).
+Each column is that term's median, so the four sum to the gap at every gauge but their medians need not sum to the gap's median.
+TerraClimate uses no gauge.
+zone verdict                          gap       P     AET storage zone adj
+BC   theirs                          -197    -202     +85      +3     -50
+01   theirs                          -583    -467    +112      +9    -196
+03   theirs                          -213    -138     +53      +2    -142
+04   unresolved                       -63     -32     -23      +2      -0
+05   theirs                          -158    -147     +64      +3     -77
+07   theirs                          -157    -196     +29      +4      -0
+08   theirs                          -122    -126     +60      +3     -56
+10   unstable (theirs)               -534    -624    +123      +8      -0
+13   theirs                          -214    -282     +79      +5      -0
+14   theirs                          -204    -151     +75      +4    -142
+19   unstable (theirs)                -89    -147    +104      +2     -34
+20   theirs                          -184    -173    +104      +2    -129
+21   theirs                          -260    -346    +111      +3      -0
+22   theirs                          -204    -171    +107      +6    -203
+24   ours                            -102    -210     +73      +2      -0
+25   theirs                          -675    -546    +147      +2    -299
+26   theirs                         -1358   -1017    +144      +2    -491
+27   theirs                         -1535   -1404    +100      +1    -119
+29   theirs                         -1414   -1126     +98      +3    -408
+
+Isolines: drawn from Water Survey of Canada gauges, for 1961-1990; the period ratio and the period-scaled median are in sections 7 and 8.
+zone verdict                                          TIN     bal   ratio  period
+09   unstable (ours)                               +10.7  -25.2       -      -
+24   ours                                           -8.2  +36.4   0.968  -11.1
+29   theirs (period untested)                      -21.9   +8.8       -      -
+
+## 10. Per gauge (annual mm; errors in %)
+
+station  zone     obs    bal routed   tc_mm     tc    tin    idw   flat  lake  tc_cv iso_cv
+08CG001  01      1551  -12.9   +6.4     978  -37.0  -14.6  -14.6   0.46    no  1.000  1.000
+08CG004  01      1279  -13.9   -0.4     769  -39.9  -11.5  -11.4   0.30    no  1.000  1.000
+08CG005  01      1786  -15.9   +8.7    1024  -42.7   -6.3   -5.8   0.21    no  1.000  1.000
+08CG006  01      2917  -34.8  +12.5    1354  -53.6  -32.1  -31.4   0.80    no  1.000  1.000
+08DA005  01      2280  -31.8  -13.4    1108  -51.4  -14.0  -12.3   0.62    no  1.000  1.000
+08DB001  01      1332  -16.8   -5.6     759  -43.0      -      -   0.11    no  1.000  0.899
+08DB013  01      1435  +46.6      -    1282  -10.6  +21.8  +39.4   0.00    no  1.000  1.000
+08DB014  01      1029 +116.0      -    1364  +32.5  +70.3  +94.4   0.00    no  1.000  1.000
+08DC006  01      2574  -17.1   +9.5    1377  -46.5  -22.3  -22.3   1.00    no  1.000  1.000
+08DD001  01      2257   +9.0   -4.1    1611  -28.6  -14.0  -11.4   0.68    no  1.000  1.000
+08EB004  01       753  +47.4   -6.7     477  -36.7      -      -   0.00    no  1.000  0.911
+08EG017  01      1258  +26.2  +28.6     970  -22.9  +24.6  +58.9   0.00    no  1.000  1.000
+08CD001  02       324   -9.9   -8.4     226  -30.2      -      -   1.00    no  1.000  0.942
+09AA013  02       505  +27.6      -     370  -26.7  +61.8  +55.7   0.00   yes  1.000  0.994
+10AC002  02       467  -29.8      -     254  -45.7   +6.4   +7.0   0.84    no  1.000  0.999
+10AC005  02       662  -37.6      -     307  -53.6  -24.5  -24.5   1.00    no  1.000  1.000
+10AC006  02       388  -21.9      -     238  -38.6      -      -   0.56    no  1.000  0.829
+07EA002  03       687  -24.0  -19.9     295  -57.1  -27.2  -27.2   1.00    no  1.000  1.000
+07EA004  03       451  +17.0  +25.0     278  -38.3  +11.8  +10.8   0.80    no  1.000  1.000
+07EA005  03       530   +4.7  -12.5     287  -45.9      -      -   0.73    no  1.000  0.880
+07EA007  03       584  -15.8   -6.1     306  -47.5  -14.3  -14.3   1.00    no  1.000  1.000
+07EB002  03       612  -15.4   -7.5     305  -50.1  -18.3  -18.3   1.00    no  1.000  1.000
+07EC003  03       482   -0.4   -4.9     251  -47.9   +3.8   +3.8   1.00    no  1.000  1.000
+07FA003  03       308  -17.4   +3.6     223  -27.8  +29.8  +41.0   0.06    no  1.000  0.984
+07FA005  03       355   +5.5  +14.9     265  -25.3  +24.2  +31.9   0.31    no  1.000  1.000
+07FA006  03       245  -11.0   -2.6     188  -23.2  +41.3  +43.8   0.11    no  1.000  0.991
+08CA003  03       540  +12.4  -16.2     285  -47.3   -7.4   -7.4   1.00    no  1.000  1.000
+10AC004  03       347  +11.9      -     267  -23.1      -      -   0.13    no  1.000  0.843
+10BA001  03       424  +15.1      -     258  -39.0      -      -   0.61    no  1.000  0.788
+10BB002  03       410  +24.0      -     251  -38.8      -      -   0.96    no  1.000  0.859
+10BE004  03       536  +28.9      -     286  -46.5   -6.6   -6.6   1.00    no  1.000  1.000
+10BE007  03       437   +7.3      -     227  -48.1   +4.4  +14.4   0.21    no  1.000  1.000
+10BE008  03        77  +57.4      -     119  +53.8      -      -   0.00    no  1.000  0.635
+10BE009  03       175  +58.7      -     159   -9.3  +79.2  +14.1   0.00    no  1.000  0.954
+10BE010  03       490  +15.2      -     266  -45.6   -2.9   -0.8   0.69    no  1.000  1.000
+10BE011  03       297   +9.7      -     171  -42.3  -16.8  -32.6   0.00    no  1.000  1.000
+10BE012  03       340   +5.7      -     206  -39.5      -      -   0.19    no  1.000  0.731
+10CB001  03       382  -21.2      -     258  -32.5      -      -   0.37    no  1.000  0.912
+10CC002  04       197  -32.9      -      69  -64.7      -      -   0.19    no  0.978  0.542
+10CD001  04       333  -18.5      -     194  -41.8   +1.9   +3.6   0.15    no  1.000  0.964
+10CD003  04       139   +7.8      -     108  -22.7   +6.7   +5.4   0.00    no  1.000  1.000
+10CD004  04       247  -43.1      -      80  -67.4   +9.0  -19.0   0.00    no  1.000  1.000
+10CD005  04       238  -38.7      -      75  -68.6   -5.8  -16.1   0.00    no  1.000  1.000
+08CA001  05       548  -13.3   -1.6     393  -28.3      -      -   0.61    no  1.000  0.176
+08CA002  05       548   +2.6   -0.0     359  -34.6      -      -   0.64    no  1.000  0.486
+08CB001  05       533   -7.3   -8.3     335  -37.0      -      -   0.76    no  1.000  0.773
+08CC001  05       654  -26.6   -4.8     433  -33.8  -14.1  -21.5   0.41    no  1.000  0.991
+08CE001  05       454   -1.0  -13.5     307  -32.4      -      -   0.80    no  1.000  0.840
+08CF001  05       587  +13.3   -9.1     405  -31.0      -      -   0.66    no  1.000  0.871
+08EB005  05       894  -38.1   -2.3     391  -56.2      -      -   0.18    no  1.000  0.235
+07FC003  06        90  -10.2  +25.0      74  -18.4  +71.6  +73.8   0.15    no  1.000  1.000
+07FD001  06        86  +37.9  +11.3      74  -14.3  +68.9  +61.7   0.25    no  1.000  1.000
+07FD004  06        53  +28.0 +104.5      35  -34.4      -      -     NA    no  1.000  0.000
+07EF004  07       525  +70.2  +84.0     323  -38.4   -4.8   -4.7   0.98    no  1.000  1.000
+07FB001  07       475   -5.2   -3.1     269  -43.3  +16.9  +17.4   0.32    no  1.000  1.000
+07FB002  07       472   -6.4   -2.1     274  -41.9  +28.8  +29.4   0.23    no  1.000  1.000
+07FB003  07       670  -25.0  -10.4     346  -48.4  +15.6  +18.2   0.22    no  1.000  1.000
+07FB004  07       210  +17.7  +53.5     178  -15.1  +28.5   -4.7   0.00    no  1.000  1.000
+07FB005  07       233   -8.2  -54.8     147  -36.9  +35.4  -14.2   0.00    no  1.000  1.000
+07FB006  07       755  -13.5   +1.0     356  -52.8  +14.2  +14.6   0.48    no  1.000  1.000
+07FB008  07       235  +33.7  +19.5     163  -30.7  +18.7  +20.0   0.67    no  1.000  1.000
+07FB009  07       270  +29.8   -1.9     196  -27.3  +48.6  +59.4   0.00    no  1.000  1.000
+07EC002  08       533  -19.6  -14.2     244  -54.3   -5.9   -6.1   0.94    no  1.000  1.000
+07EC004  08       581  -36.7   +1.2     245  -57.7  -13.9  -13.9   1.00    no  1.000  1.000
+07ED001  08       401   +2.3  -14.4     204  -49.2   +5.8   +9.8   0.20    no  1.000  0.998
+07ED003  08       388   +6.7  -17.4     210  -45.9   +4.2   +7.6   0.13    no  1.000  0.959
+07EE009  08       496  +28.9   -0.7     362  -27.0  +24.3   +7.8   0.00    no  1.000  1.000
+07EE010  08       364  +16.1  -13.1     271  -25.6  +12.4  +14.8   0.00   yes  1.000  1.000
+08EC013  08       230  +12.0   -4.0     167  -27.6      -      -   0.11   yes  1.000  0.935
+08EE008  08       449  +44.8  +23.0     393  -12.5  +24.6  +11.3   0.00    no  1.000  1.000
+08EE012  08       631  +20.0  +34.1     423  -33.0  -19.7  -20.7   0.49    no  1.000  1.000
+08EE013  08       238  -18.9  +35.2     211  -11.5 +122.0 +110.2   0.04    no  1.000  1.000
+08EE025  08       180  +85.3 +199.9     296  +64.0 +268.1 +177.4   0.00    no  1.000  1.000
+08EE028  08       894  -39.7      -     493  -44.8  -28.5  -44.1   0.00    no  1.000  1.000
+08EF001  08       675  -19.5   -1.4     403  -40.3      -      -   0.12    no  1.000  0.729
+08JA016  08       468   +3.9  -21.0     395  -15.5  +32.6   +6.8   0.00    no  1.000  1.000
+08JB002  08       145  +42.3   +9.3     219  +51.4 +208.1 +207.9   0.00    no  1.000  1.000
+08JB003  08       133  +42.9   +2.3     177  +33.2 +153.9 +150.8   0.01   yes  1.000  1.000
+08JC017  08       135  +60.4   -3.0     101  -25.0  -25.8  -25.8   1.00    no  1.000  1.000
+08JD006  08       731  -37.5  -10.6     312  -57.4  -23.1  -31.6   0.00    no  1.000  1.000
+08JE001  08       285   +2.7   -2.5     171  -40.0   +9.4   +5.8   0.20   yes  1.000  0.983
+08JE004  08       180  +18.0   -0.4     150  -16.5   +0.4   +7.5   0.00    no  1.000  1.000
+08KC001  08       205  +25.8  -12.0     182  -11.0   +4.0   -8.2   0.00    no  1.000  1.000
+08KC003  08       224  +24.3  +23.9     197  -12.3  +13.0  -10.8   0.00    no  1.000  1.000
+08KE032  08       210  +83.4  +29.9     218   +3.7  +10.1   -4.8   0.00    no  1.000  1.000
+08ED001  09      1266   -7.0   -9.7    1143   -9.7  +10.7   +8.1   0.00   yes  1.000  1.000
+08ED002  09      1235   -6.7   -9.9    1142   -7.5  +17.6  +17.9   0.00   yes  1.000  1.000
+08EE004  09       561  -10.9   -9.9     538   -4.2  +47.7  +48.0   0.04    no  1.000  1.000
+08EE020  09      1234  -35.9  -11.5     721  -41.6  -34.8  -28.1   0.00    no  1.000  1.000
+08EF005  09      1128  -25.2   +0.9     837  -25.8   -9.1  -13.1   0.00    no  1.000  1.000
+08JA015  09      2046  -25.7  -26.1    1417  -30.7  -12.7   -2.3   0.00    no  1.000  1.000
+08JA028  09       786  -34.4  -29.1     684  -13.0  +21.7  +18.9   0.00   yes  1.000  1.000
+08DB010  10      1428  +43.0  +57.6    1214  -15.0  +37.4  +40.1   0.13    no  1.000  1.000
+08DB011  10      2971  -37.1   -7.7    1276  -57.1  -32.7  -32.7   1.00    no  1.000  1.000
+08EG011  10      2020   -4.7   -1.1    1391  -31.1   -2.0   -0.9   0.00    no  1.000  1.000
+08EG012  10      3699  -23.2  +15.0    1922  -48.0   +2.8   +6.4   0.27    no  1.000  1.000
+08FE003  10      2599  -12.5  +22.9    1725  -33.6   -6.4   -8.9   0.00    no  1.000  1.000
+08FF001  10      2051  -11.1   -3.5    1495  -27.1   +7.1  +10.3   0.09    no  1.000  1.000
+08FF002  10      1941   +6.2  -22.0    1548  -20.2  +13.4   +6.2   0.00    no  1.000  1.000
+08FF003  10      3075  -22.1   -9.4    1872  -39.1   -3.9   -2.4   0.63    no  1.000  1.000
+08FF006  10      2189   -8.4  +24.4    2057   -6.1  +37.0  +37.0   1.00    no  1.000  1.000
+08OA002  11      1955  -11.9   +5.7    1639  -16.2   +0.9   -3.8   0.03    no  1.000  1.000
+08OB002  11      3170  +23.4  +20.6    2725  -14.0   -5.4   -5.4   1.00   yes  1.000  1.000
+07EE007  12       938  -29.0   -2.4     419  -55.3   -7.5   -6.9   0.45    no  1.000  1.000
+08KB003  12      1330  -27.5   -9.5     456  -65.7   -4.6   -3.6   0.45    no  1.000  1.000
+08KB006  12      1435  -35.0  -32.1     440  -69.3  -10.8   +1.3   0.00    no  1.000  1.000
+08KA001  13      1059  -18.6  -18.0     641  -39.5   +4.1   +3.7   0.09    no  1.000  1.000
+08KA004  13       771  -11.7   -2.2     487  -36.9  +14.0  +14.2   0.44    no  1.000  1.000
+08KA005  13       884  -17.2  +15.6     525  -40.6  +12.5  +13.3   0.56    no  1.000  1.000
+08KA007  13       820  -19.5   -4.5     477  -41.8  +13.4  +17.2   0.53   yes  1.000  1.000
+08KA008  13       922  -27.1   -8.5     483  -47.6   -3.0   +2.0   0.30    no  1.000  1.000
+08KA009  13      1026  -24.7  -27.7     536  -47.7   +2.1   -2.4   0.00    no  1.000  1.000
+08KA012  13       756   -3.6  +51.7     549  -27.4  +32.2  +32.2   1.00    no  1.000  1.000
+08KA013  13       933  -10.7   -0.8     463  -50.4  +48.8  +51.6   0.51    no  1.000  1.000
+08KB001  13       771  -11.8  -12.0     419  -45.6   +1.0   +0.8   0.33    no  1.000  1.000
+08NC004  13      1522  -10.6   -9.9     720  -52.7   -9.7   -9.4   0.41    no  1.000  1.000
+08KD006  14       403  +18.1   -2.7     354  -12.2   +8.9   +7.0   0.07    no  1.000  1.000
+08KD007  14       606   -1.4  -11.2     455  -25.0  +16.4  +18.7   0.27    no  1.000  1.000
+08KE009  14       398  -33.4  -10.1     290  -27.1   -6.2  -11.2   0.00    no  1.000  1.000
+08KE024  14       663  -16.8   -7.6     426  -35.9  -14.2  -24.6   0.00    no  1.000  1.000
+08KH001  14       686  -22.8   -1.9     434  -36.7   +9.7   +9.4   0.09   yes  1.000  1.000
+08KH003  14       904  -20.5  -12.1     518  -42.7   +5.2   +6.6   0.12    no  1.000  1.000
+08KH006  14       655  -25.1      -     399  -39.1   +7.0   +6.9   0.08    no  1.000  1.000
+08KH030  14      1063  -10.2  +29.3     604  -43.2  +23.8  +26.4   0.04    no  1.000  1.000
+08LA001  14       683   -6.5   -9.3     432  -36.8   -0.7   -0.9   0.18    no  1.000  1.000
+08LA007  14      1384  -19.2  -12.0     646  -53.3   -6.3   -4.7   0.40   yes  1.000  1.000
+08LB038  14      1251  +34.3  -22.6     703  -43.8  -18.7  -20.1   0.75    no  1.000  1.000
+08LB047  14      1061  +35.3   -6.7     647  -39.0   +0.4   +0.6   0.44    no  1.000  1.000
+08LB064  14       681  +14.9   -7.2     460  -32.4   +3.3   +2.7   0.20    no  1.000  1.000
+08LC040  14       226  +50.1  -16.9     295  +30.5  -22.1  -13.6   0.00    no  1.000  1.000
+08LD001  14       700  +23.1   +6.9     550  -21.5  +16.6  +18.4   0.03   yes  1.000  1.000
+08LE024  14      1266   -9.8   -3.9     839  -33.7  +16.1  +17.2   0.09    no  1.000  1.000
+08LE027  14      1429  -10.4  -19.1     813  -43.1   -2.7   -1.5   0.22    no  1.000  1.000
+08LE031  14       608  +13.4   -6.9     510  -16.2   +6.6   +6.7   0.24    no  1.000  1.000
+08LE077  14       413  +29.7  -38.5     358  -13.4  -69.2  -69.5   0.42    no  1.000  1.000
+08LE108  14       181 +183.2  -24.7     297  +64.2  -44.7  -44.7   1.00    no  1.000  1.000
+08LF051  14       436  +12.5   -5.5     339  -22.2   +8.6   +8.2   0.30    no  1.000  1.000
+08ND019  14      1691  -10.4  -15.4     905  -46.5  -11.3  -11.3   1.00    no  1.000  1.000
+08FC003  15       130   -2.8  -43.7     161  +23.8  +60.6  +62.5   0.00    no  1.000  1.000
+08GD008  15       110   +7.7   +3.2     120   +9.0 +104.4 +110.6   0.04    no  1.000  1.000
+08JA014  15       185  -35.7   -9.0     124  -33.2   -5.8   +8.2   0.00    no  1.000  1.000
+08KE016  15        97  -32.9   +1.4      51  -47.4  -28.8  -34.4   0.00    no  1.000  1.000
+08KF001  15        44  +93.4  +22.8      28  -37.1  +24.5  +18.7   0.56    no  1.000  1.000
+08KG001  15        84   +4.0  -10.6      55  -34.1  +11.3  +10.0   0.22    no  1.000  1.000
+08KG003  15        64  +41.4      -      49  -23.5  +35.2  +37.5   0.00    no  1.000  1.000
+08LA027  15        91   -5.9  +39.3     165  +81.8   +3.3   +9.0   0.00    no  1.000  1.000
+08LB012  15        78   -7.4   -2.3     112  +43.3   -8.6  -19.3   0.00    no  1.000  1.000
+08LB024  15       181  -43.0  -24.9     203  +12.0  -18.5   -8.4   0.00    no  1.000  1.000
+08LE075  15       174   -7.9 +106.0     186   +6.9  -14.7  -12.9   0.00    no  1.000  1.000
+08MA001  15       412   -2.2   -3.4     257  -37.6  +40.1  +38.0   0.00    no  1.000  1.000
+08MA006  15       254  -34.1  +17.7     187  -26.3  +27.0  +20.7   0.00    no  1.000  1.000
+08MB005  15       169  +25.3  +10.3     126  -25.7  +63.7  +60.3   0.09    no  1.000  1.000
+08MB006  15       187  +65.1  +14.5     241  +28.6  +22.0  +21.9   0.00    no  1.000  1.000
+08MB007  15       452   +1.8  -35.6     404  -10.6  -16.0  -15.4   0.00    no  1.000  1.000
+08MC045  15        66  +12.6  +15.6      64   -2.9   +2.3   -3.3   0.08    no  1.000  1.000
+08ME025  15       236  +11.6 +185.1     288  +21.9  -18.8  -29.5   0.00    no  1.000  1.000
+08NM174  15       181   -7.7   +0.1     219  +20.9   -7.5   -2.4   0.04    no  1.000  1.000
+08KH010  16       783   -4.4  -21.3     565  -27.8  -12.1  -18.2   0.00    no  1.000  1.000
+08KH019  16       192  +35.6 +115.8     254  +32.1   -4.3  -14.1   0.00    no  1.000  1.000
+08LA028  16       286  -16.9  -17.6     356  +24.5  -45.3  -44.3   0.00    no  1.000  1.000
+08LB020  16       400   -5.5   -4.1     391   -2.2  +32.3  +15.1   0.01    no  1.000  1.000
+08LB069  16       577  -15.8  -13.7     479  -17.1   +1.6  -13.4   0.00    no  1.000  1.000
+08LB076  16       747  -28.7  -22.2     549  -26.4  -24.4  -33.1   0.00    no  1.000  1.000
+08LF081  17        20  +64.6 +149.4     112 +465.6 +151.6 +151.6   1.00    no  1.000  1.000
+08LF084  17        88  +39.4  +35.0     239 +170.2  -30.6  -43.4   0.00    no  1.000  1.000
+08LG056  17        55  +30.2  -64.8     100  +81.5   +0.1   -9.4   0.19    no  1.000  1.000
+08LG066  17        62  +55.8  -70.3     132 +112.4  +51.6  +60.9   0.00    no  1.000  1.000
+08NA002  18       492  +21.1   -0.3     474   -3.7  +51.6  +51.3   0.58    no  1.000  1.000
+08NA006  18       687  -11.9  +10.1     529  -23.0  -23.8  -24.7   0.82    no  1.000  1.000
+08NB005  18       537   -1.3   +3.5     492   -8.4  +29.7  +29.4   0.61    no  1.000  1.000
+08NB012  18       890  -27.5  -17.2     579  -34.9   -5.4   -2.8   0.23    no  1.000  1.000
+08NB013  18      1643  -14.8   +7.1    1122  -31.7   -8.7   -8.7   1.00    no  1.000  1.000
+08NB014  18      1340   -5.2  +17.9    1092  -18.5   +9.2   +9.3   0.88    no  1.000  1.000
+08NB015  18      1021  -20.0  -13.1     598  -41.4   -8.4   -2.5   0.38    no  1.000  1.000
+08NB016  18       653  -15.3  +11.7     658   +0.8   -2.8  -23.4   0.00    no  1.000  1.000
+08NB019  18      1126   -0.4  +10.3    1065   -5.4  +25.4  +25.9   0.70    no  1.000  1.000
+08ND018  18      1848   -9.0   -2.2    1046  -43.4  -18.8  -18.8   1.00    no  1.000  1.000
+08NF001  18       354  +43.0  +45.3     326   -7.9  +41.4  +41.4   1.00    no  1.000  1.000
+08NF002  18       510  -23.4  +14.0     305  -40.1   -1.9   -1.9   1.00    no  1.000  1.000
+08NA045  19       342  +29.1   +4.5     352   +2.9  +85.9  +84.3   0.59   yes  1.000  1.000
+08NF005  19       725  +11.6   -0.9     362  -50.0  -31.0  -31.0   1.00    no  1.000  1.000
+08NF006  19       703  -14.0  -10.7     323  -54.0  -28.8  -28.8   1.00    no  1.000  1.000
+08NG053  19       478  -11.8  +12.9     318  -33.3  +11.2  +10.8   0.90    no  1.000  1.000
+08NG065  19       460   -8.7   +2.8     318  -30.9  +21.8  +22.5   0.85    no  1.000  1.000
+08NK002  19       460  -22.3   +8.9     290  -37.0   +8.7   +8.7   0.99    no  1.000  1.000
+08NK016  19       416  -20.5  +32.1     292  -29.8  +20.1  +20.1   0.99    no  1.000  1.000
+08NK018  19       390  -12.9  +33.9     279  -28.4  +28.2  +28.2   1.00    no  1.000  1.000
+08NK019  19       404  -26.9  -17.4     248  -38.7  +23.8  +23.8   1.00    no  1.000  1.000
+08NK022  19       462  -22.1  +14.7     289  -37.5   +8.2   +8.2   1.00    no  1.000  1.000
+08NK027  19       632  -31.0  +25.7     334  -47.1  -20.9  -20.9   0.97    no  1.000  1.000
+08NG012  20       645   -8.5  -28.0     433  -33.0   +7.4  +10.6   0.59    no  1.000  1.000
+08NG046  20       818  -10.7  -32.4     519  -36.6   -1.0   +3.5   0.38   yes  1.000  1.000
+08NG076  20       285  +91.0  +17.3     257   -9.6  +75.7  +75.7   1.00    no  1.000  1.000
+08NG077  20      1056  -34.9  -40.9     579  -45.2   -5.3   -5.3   0.98    no  1.000  1.000
+08NG078  20       221  +33.6  +27.7     232   +5.3 +126.6 +126.6   1.00    no  1.000  1.000
+08NH120  20       587  -38.1      -     333  -43.2  -14.8  -14.8   1.00    no  1.000  1.000
+08NK020  20       497  -11.6   -5.3     285  -42.6   +0.6   +0.6   1.00    no  1.000  1.000
+08NK026  20       553  -10.2  -22.0     286  -48.3   -9.6   -9.6   1.00    no  1.000  1.000
+08NP003  20       622  +63.1      -     351  -43.5      -      -   1.00    no  1.000  0.676
+08NP004  20       628  +37.2      -     338  -46.2      -      -   1.00    no  1.000  0.209
+08NH005  21       914   -5.9   -1.0     720  -21.2   +9.5   +9.5   1.00    no  1.000  1.000
+08NH016  21       566  +18.0  +15.1     410  -27.6  -11.7  -11.7   1.00    no  1.000  1.000
+08NH084  21       664   -9.7   -7.8     392  -41.0  -24.7  -24.7   1.00    no  1.000  1.000
+08NH115  21       280  +52.1 +109.9     314  +11.9  +78.3  +78.3   1.00    no  1.000  1.000
+08NH130  21      1016  -10.6  -11.0     648  -36.2   -1.6   -1.6   1.00    no  1.000  1.000
+08NH131  21      1219  -10.8  -21.1     655  -46.3  -18.0  -18.0   1.00    no  1.000  1.000
+08NH132  21      1108   -8.5   -4.3     787  -29.0   -9.8   -9.8   1.00    no  1.000  1.000
+08NJ026  21       806   +1.9   +0.3     623  -22.6   -2.1   +5.8   0.00    no  1.000  1.000
+08NJ061  21       973   -8.3  -13.1     631  -35.2   -4.8   +2.8   0.13    no  1.000  1.000
+08NJ129  21       412 +145.9 +157.2     528  +28.2  +21.3  +21.3   0.99    no  1.000  1.000
+08NJ130  21       413 +132.8 +150.5     525  +27.3  +21.1  +21.1   1.00    no  1.000  1.000
+08NJ160  21       803  +17.7  +12.5     676  -15.8   +7.5  +17.9   0.11    no  1.000  1.000
+08NJ168  21       795  +54.0  +43.5     623  -21.6  -36.5  -37.1   0.83    no  1.000  1.000
+08ND012  22      1287  +12.3   +5.7     942  -26.8  +16.6  +16.6   1.00    no  1.000  1.000
+08ND013  22      1432   +7.5   -0.5    1192  -16.7   -4.5   -4.4   0.71    no  1.000  1.000
+08NE001  22      1732  -23.1  -18.1    1128  -34.9  -18.4  -18.2   0.83    no  1.000  1.000
+08NE006  22      1336   -4.0   -9.7     911  -31.8   +1.2   +1.4   0.48    no  1.000  1.000
+08NE008  22       858  +25.6  +29.2     933   +8.8  +18.2  +16.6   0.72    no  1.000  1.000
+08NE039  22       490  -14.1      -     317  -35.3  -26.2  -18.6   0.00    no  1.000  1.000
+08NE087  22       379  +71.0  +75.0     443  +16.7  +18.5  +31.8   0.00    no  1.000  1.000
+08NE114  22       885  +42.2  -11.6     501  -43.3  -43.5  -43.5   1.00    no  1.000  1.000
+08NE117  22      1498   -6.8  -12.6     963  -35.7   +0.1   +0.1   1.00    no  1.000  1.000
+08NH007  22      1083   +0.2   +9.0     884  -18.3  +28.0  +28.6   0.63    no  1.000  1.000
+08NH119  22      1480  -33.5  +12.7     930  -37.2   -3.6   -1.9   0.69    no  1.000  1.000
+08NH138  22      1254   -1.8   +0.2    1009  -19.6   +8.7  +19.6   0.00    no  1.000  1.000
+08NJ013  22       863   +1.4   -6.5     687  -20.4   -1.3   -1.5   0.19    no  1.000  1.000
+08NJ162  22       309  +41.3  +76.2     425  +37.4  +61.6  +61.6   1.00    no  1.000  1.000
+08NN023  22       604  -28.2   -7.2     468  -22.5  -31.7  -17.2   0.00    no  1.000  1.000
+08NE077  23       602   +1.5   +0.7     625   +3.8   -8.3  -17.0   0.00    no  1.000  1.000
+08NE110  23       406  +31.6  +40.4     568  +40.0  +16.6  +23.1   0.02    no  1.000  1.000
+08NM142  23       130  +91.7  -14.1     267 +104.9  +12.1   +4.9   0.00    no  1.000  1.000
+08NN002  23       464  -28.2   -0.7     330  -29.0  -31.2  -34.3   0.00    no  1.000  1.000
+08NN015  23       474   -2.8  -10.1     429   -9.5  -50.5  -57.8   0.13    no  1.000  1.000
+08NN019  23       304  -12.6  -16.1     270  -11.2  -32.0  -34.3   0.54    no  1.000  1.000
+08NN022  23       262   +7.5   +7.6     248   -5.1  -21.0  -23.6   0.72    no  1.000  1.000
+08NN028  23       186  +69.4  +88.5     229  +22.6   +7.4   +7.3   0.91    no  1.000  1.000
+08LG016  24       263  +36.4  +21.2     225  -14.4  -23.9  -23.9   1.00    no  1.000  1.000
+08LG064  24       166  +76.6  +52.0     192  +15.2  +16.6  +20.2   0.32    no  1.000  1.000
+08NL036  24       169 +144.9  +75.1     240  +41.8  +16.0  +16.5   0.03    no  1.000  1.000
+08NL050  24       186  +26.5  -37.5     151  -18.6   -8.2   -6.1   0.36    no  1.000  1.000
+08NM134  24       128 +115.2  +12.0     117   -8.5  +12.3   +9.6   0.00    no  1.000  1.000
+08NM171  24       239  +22.3  +24.5     210  -12.5  -16.7  -16.5   0.96    no  1.000  1.000
+08NM173  24        50 +391.4 +120.8      90  +82.1 +159.0 +146.9   0.16    no  1.000  1.000
+08NM240  24       349   +7.5  +14.1     285  -18.2  -55.0  -46.1   0.00    no  1.000  1.000
+08NM241  24       329  +14.0  +21.0     285  -13.3  -52.3  -42.8   0.00    no  1.000  1.000
+08FB006  25       330 +199.9  +10.8     351   +6.6  +57.3  +58.8   0.00    no  1.000  1.000
+08FB007  25       766  +60.8   -7.7     463  -39.6   +1.7   -0.7   0.00    no  1.000  1.000
+08GD004  25      1503   -1.7   +7.3     440  -70.7  +12.6  +12.6   0.12    no  1.000  1.000
+08GD007  25      1007   +6.0  -14.5     391  -61.2   +5.6   +4.6   0.00    no  1.000  1.000
+08GE002  25      1618  +11.8  -13.5     539  -66.7  +18.4  +18.2   0.24    no  1.000  1.000
+08LG008  25       402  +47.8  -45.7     203  -49.4  -15.9  -15.3   0.10    no  1.000  1.000
+08LG048  25       665  +74.1  -17.7     273  -58.9   +6.5   +6.2   0.24    no  1.000  1.000
+08MA002  25       641  -10.3  -14.0     354  -44.8  +42.2  +40.8   0.00   yes  1.000  1.000
+08ME023  25      2724  -64.2  -25.4     625  -77.0  -34.5  -28.8   0.01   yes  1.000  1.000
+08ME027  25      1364  -34.3  -50.9     550  -59.7   +2.2   -7.6   0.00    no  1.000  1.000
+08ME028  25      1632  -46.3   -8.3     547  -66.5  -14.4  -21.1   0.00    no  1.000  1.000
+08MF062  25      1195  +47.8  +63.2     352  -70.5  -16.3  -16.3   1.00    no  1.000  1.000
+08MF065  25      1571   +1.3  -23.0     689  -56.1   -2.8   +1.2   0.00    no  1.000  1.000
+08MG005  25      1856  -29.2   -4.8     641  -65.5  +10.3  +13.6   0.12    no  1.000  1.000
+08NL024  25       355  +99.8   +8.5     222  -37.5  +38.7  +41.7   0.10    no  1.000  1.000
+08NL071  25       808  +59.3  -10.5     441  -45.5   +7.4  +10.5   0.29    no  1.000  1.000
+08FA002  26      2520  +46.2   -0.3    1245  -50.6  +41.2  +39.7   0.21   yes  1.000  1.000
+08FB004  26      1734  -23.1  -30.5     913  -47.3  -13.6  -12.6   0.00    no  1.000  1.000
+08FB005  26      1772  -14.8  -23.2     885  -50.1   -9.1   +8.7   0.00    no  1.000  1.000
+08FB009  26      2100  +26.6  +13.0    1307  -37.8  +21.6  +25.3   0.00    no  1.000  1.000
+08GA071  26      2689   -0.7  -25.8     862  -67.9  +12.4  +14.4   0.17    no  1.000  1.000
+08GA072  26      2074   +4.0   -4.3     938  -54.8   +6.3   -0.7   0.09    no  1.000  1.000
+08GA075  26      2827  +15.8   -2.4    1269  -55.1  +19.7  +21.1   0.21    no  1.000  1.000
+08GB013  26      3447  -15.6  -28.1    1211  -64.9  -16.5  -14.4   0.47    no  1.000  1.000
+08GE003  26      3952  -30.1  -51.4     890  -77.5   +1.2   +1.2   1.00    no  1.000  1.000
+08MF068  26      1323  +41.0  +32.2     508  -61.6  -18.0  -24.4   0.39    no  1.000  1.000
+08MG013  26      1756   -5.6   -7.3     764  -56.5   +9.2  +12.9   0.18   yes  1.000  1.000
+08MG026  26      1267  +42.7  +95.4     874  -31.0  +58.6  +57.8   0.77    no  1.000  1.000
+08MH147  26      3708  -10.8   +9.5    1150  -69.0  -15.7  -18.5   0.07    no  1.000  1.000
+08GA047  27      1087  +65.0  +26.9    1123   +3.3   -2.9   -8.0   0.30    no  1.000  1.000
+08GA077  27      3527  -14.0  -25.6    1476  -58.2  +11.7  +12.0   0.74    no  1.000  1.000
+08GA079  27      3427  -11.3  -23.6    1526  -55.5  +15.5  +15.6   0.81    no  1.000  1.000
+08GF005  27      3848  -12.1   -5.6    1279  -66.8  -22.9  -22.0   0.00    no  1.000  1.000
+08GF006  27      3143   +6.5  +23.5    1213  -61.4  -34.5  -36.4   0.00    no  1.000  1.000
+08MG001  27      3119   -6.7  -21.7    1110  -64.4  -11.1  -10.2   0.36    no  1.000  1.000
+08MH006  27      2501  -23.4  -29.7    1525  -39.0   +6.9   +8.4   0.00    no  1.000  1.000
+08MH076  27      1731   -1.5  -24.1    1429  -17.4   -6.8   -6.4   0.00    no  1.000  1.000
+08MH141  27      4277  -18.0      -    1411  -67.0   -6.5   -6.5   1.00    no  1.000  1.000
+08MH154  27      1000  -16.7      -    1082   +8.2  -11.8   +0.0   0.00    no  1.000  1.000
+08MH155  27       896   -7.4      -     994  +11.0   -1.2  +11.6   0.00    no  1.000  1.000
+08MH166  27      3265  +14.2   +1.4    1573  -51.8  +15.5  +17.1   0.28    no  1.000  1.000
+08HA001  28      1680   +2.7   -3.8    1360  -19.0   -1.4   -3.1   0.02    no  1.000  1.000
+08HA003  28      1328  +18.5   +8.5    1242   -6.5  +17.6  +19.1   0.03    no  1.000  1.000
+08HB024  28      2280  -12.3  -21.5    1313  -42.4  -16.5  -18.9   0.01    no  1.000  1.000
+08HB025  28      1989   -8.7   -7.4    1333  -33.0  -27.3  -31.6   0.01    no  1.000  1.000
+08HB032  28       796  +30.2  +23.5     843   +5.9  +26.0  +25.6   0.92    no  1.000  1.000
+08HB074  28      2689  -19.5  -18.0    1553  -42.3  -20.2  -24.6   0.00    no  1.000  1.000
+08HB075  28      1469   -9.2  -13.1    1103  -24.9  -25.3  -31.9   0.40    no  1.000  1.000
+08HB089  28      1445   -6.1   -5.3    1182  -18.2  -23.9  -30.8   0.32    no  1.000  1.000
+08HC002  28      2955  -21.6   -1.2    1975  -33.2   +5.9   +3.5   0.00    no  1.000  1.000
+08HC006  28      3406  -42.2  -45.7    1755  -48.5  -26.8  -28.3   0.00    no  1.000  1.000
+08HD007  28      1038  +62.9  +32.3    1528  +47.3  +57.1  +48.9   0.32    no  1.000  1.000
+08HD011  28      1471  +24.5   +3.9    1382   -6.0   +3.6   +5.5   0.07    no  1.000  1.000
+08HD015  28      1635  +15.9   -5.4    1547   -5.4  +21.8  +14.5   0.03    no  1.000  1.000
+08HF004  28      1954  +76.4   +1.5    1930   -1.2   +8.3   +2.6   0.25    no  1.000  1.000
+08HF005  28      2476  +21.8   -4.3    2164  -12.6  +14.5  +16.5   0.01    no  1.000  1.000
+08HF012  28      2649  +54.5  +28.2    2290  -13.5  -24.5  -24.5   1.00    no  1.000  1.000
+08HA010  29      2622  -10.8  +14.5    1830  -30.2  -13.3  -20.0   0.05    no  1.000  1.000
+08HA069  29      4714  -36.8  -27.3    2002  -57.5  -47.7  -56.8   0.00    no  1.000  1.000
+08HA070  29      3527  -22.6   -7.0    1885  -46.6  -27.7  -25.0   0.00    no  1.000  1.000
+08HA072  29      1743  +47.9   +3.2    1655   -5.1  +42.0  +23.7   0.00    no  1.000  1.000
+08HB014  29      3839   -7.3  -16.6    2146  -44.1  -21.9  -21.9   1.00    no  1.000  1.000
+08HB048  29      2528  +14.4   +8.4    2198  -13.1  +18.7  +18.7   1.00    no  1.000  1.000
+08HB086  29      5523  -12.9  -22.0    2152  -61.0  -30.7  -27.6   0.20    no  1.000  1.000
+08HE007  29      6127   -4.6  -29.2    2750  -55.1  -42.1  -34.7   0.00    no  1.000  1.000
+08HE008  29      2994  +91.7  +47.8    2361  -21.1  +29.9  +32.5   0.33    no  1.000  1.000
+08HE009  29      6210  +14.3  -20.9    2652  -57.3  -45.2  -51.7   0.00    no  1.000  1.000
+08HE010  29      4454   +8.8   +0.7    2524  -43.3  -10.2  -10.2   1.00    no  1.000  1.000
+08HF006  29      3400  +10.7   -4.0    2242  -34.1  -41.2  -41.2   1.00    no  1.000  1.000
+08HF013  29      2530  +26.3  +33.8    2266  -10.4  -19.9  -21.0   0.44    no  1.000  1.000
