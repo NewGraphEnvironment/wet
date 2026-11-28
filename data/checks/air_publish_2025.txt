@@ -1,6 +1,6 @@
 # Daily air temperature on Freshwater Atlas segments (air_temperature/fwa/v1), built by scripts/air_publish.R
 
-wet commit e461b677 (e461b6772bad2f7bfff5892fdb942a8488dfd6ff); crate 0.22.0; cd 0.6.13; fwapg 5d50cc1
+wet commit b2de756e (b2de756e1d2a17f7ba1c6f9e14cf6de6203ee7f7); crate 0.22.0; cd 0.6.13; fwapg 5d50cc1
 
 ## Segments
 segments read: 4,907,441; whse_basemapping.fwa_stream_networks_sp count(*): 4,907,441 -> pass
