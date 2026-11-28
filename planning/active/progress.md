@@ -58,3 +58,8 @@ mandate; the merge stays with me.
 - Completed: discharge_publish.md rewritten around build a0318b7; six stale statements corrected; history appended to six archive READMEs; claim table and ledger in findings.md
 - Commits: this one
 - Next: Phase 3
+
+## Phase 3, 2026-11-27
+- Completed: both departure notes rewritten (method in one, per-site results in the other); superseded sections moved to six archive READMEs; disagreements, claim table and ledger in findings.md
+- Commits: this one
+- Next: the open decision on water_balance_method.md, before Phase 4

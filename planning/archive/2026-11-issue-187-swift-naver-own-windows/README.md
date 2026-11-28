@@ -34,3 +34,7 @@ Four new site and snow reports were added, and the four BULK reports for Swift a
 - File a follow-up issue (no number written before it exists): re-pin and rerun when knowledge#242 revises the UFRA or COTR rows (knowledge#256 closed at the resume). Drafted in `followup-issue.md`; auto mode refused `gh issue create`, so it waits on the owner.
 
 Closed by: PR (this branch), closing #187 and #182.
+
+## From research/chinook_sites.md (moved by #189)
+
+- **The bundle** gains the two window sets' rows and two donor gauges used only under COTR (08JE001, 08KF001), which widen the article's Fraser map. The article reports the second window sets in one paragraph and keeps its figures on the Bulkley windows, as it did for the Morice.

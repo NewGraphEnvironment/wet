@@ -32,3 +32,18 @@ Four /code-check rounds kept finding one mechanism: the from/to window standing 
 `data/checks/station_departure_report.txt`; plan and code reviews in `review-*.md` here.
 
 Closed by: PR (see branch `25-flow-in-date-windows-at-hydrometric-stat`)
+
+## From research/station_flow_departure.md (moved by #189)
+
+## Result, 2023–2026 (open-water windows, departure from 1981–2010 mean)
+
+- Both stations are 54–87% below the 1981–2010 mean for August, September and summer (JJA) in every year 2023–2026.
+- In the example Chinook spawning window (1 Aug – 15 Sep), both are 58–82% below in every year.
+- 7-day minima are 51–88% below in the same windows.
+- Buck Creek: every August day in 2023–2026 fell below 20% of MAD (share up 0.33 on the baseline).
+- Trends in the Buck Creek anomaly since 2000 are negative for summer and early fall:
+  - JJA mean −2.1 %/yr (Mann-Kendall p 0.03);
+  - September mean −2.6 %/yr (p 0.006);
+  - September 7-day minimum −1.9 %/yr (p 0.02);
+  - Chinook spawning-window mean −1.8 %/yr (p 0.03).
+- At 08EE003 the same windows' slopes are negative but not significant (p 0.07–0.32, 15–16 years since 2000).

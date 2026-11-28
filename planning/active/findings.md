@@ -143,6 +143,92 @@ Ledger of the old file:
 | Evidence: hydromosaic, policy, drainage codes | kept |
 | Evidence: first publish bullet | already in the #7 discharge-upload README (03:29-03:31, 67 verified, part-400) |
 
+## Phase 3: `station_flow_departure.md` (#184) and `chinook_sites.md` (#181)
+
+### Which facts live where
+
+| facts | home |
+|---|---|
+| sources and seams, ice and provisional winters, seasonal-gauge baselines, residuals, method choices | `station_flow_departure.md` |
+| 2016-2025 against 1981-2010 at the two measured gauges, nested catchments, the resampled range | `station_flow_departure.md` |
+| extension and carry rules, the pool, held-out scores, record-size thresholds; `covariance_pick` in one paragraph (pointer to `pcic_hydrology.md`); snow specification, verdict, parity, method limits | `station_flow_departure.md` |
+| which streams, windows per group, per-site scores, current changes, snow per site, Gosnell's normal | `chinook_sites.md` |
+| Maxan by inverse distance (1931-2024 changes, the pilot's snow slopes and their site-specific limits) | `chinook_sites.md`, "Maxan by inverse distance", pointed to from the method file where the short-record article's link lands |
+| natural stations outside HYDAT as donors | `chinook_sites.md` (heading kept) |
+
+### Disagreements found (all ours: a note not updated, or a wider sentence than its source)
+
+| old statement | what the source says |
+|---|---|
+| 08EE013 ice 7,885 of 18,193 days | HYDAT 20260717: 8,101 of 18,620 (43.5 %). The old count is the 2025-10-14 release's (#25 archive) |
+| August 1981-2010 monthly median 0.73 | 0.754 (mean 0.95); range 0.14-4.12 and second-lowest rank agree |
+| provisional `Symbol` NA on every row | 2026-11-27: 3 rows (08EE013) and 8 (08EE003) carry PN, PX or SD, none in DJF 2025-26 |
+| Buck provisional DJF 2025-26 6.5-15 m3/s (present tense) | true of the 2026-10-01 bundle (6.56, 7.75, 15.0); on 2026-11-27 the archive reads 0.68, 0.65, 0.68. Cause not traced |
+| archive "since 2024-10"; an old HYDAT leaves a hole until water-temp-bc#19 | the archive holds both stations from 2016; #19 closed 2026-09-30; 2024 is complete |
+| 08EE003 "April/May-October until 2010, year-round from 2011" | May-October 1981-1998 (April some years), spot values 2000-2009, none 1999, year-round from September 2010 |
+| "54-87 % below ... August, September and JJA in every year 2023-2026" (moved to #25) | no August 2025 row at 08EE003, no September 2026 row at either; the percentages agree on the rows that exist |
+| 08EE003 trend p "0.07-0.32" for the same windows (moved to #25) | JJA, September mean, September min7 and spawning: 0.065-0.26 (0.32 is August min7) |
+| Gosnell spawning-normal upper quartile +60 %; 25 of 29 picks routed | the 2026-10-30 report's (build before #163: log q75 0.468). Current report: 0.384 (+47 %), 29 of 29 routed |
+| spawning drop comparisons and held-out "from X to Y" pairs | held-out pairs mixed section 3's all-donor pool with section 6's covered pool; the new table is section 6 throughout (Swift's distance too) |
+| snow R2 .41/.41/.51/.51 and spawning .01/.16/.02/.04 "at every site" | those are inverse-distance, peak-SWE-only fits; on the shipped route: .42/.41/.53/.48 and .01/.16/.04/.20 |
+| "20-30 years of 1951-1980 on every other route" | Gosnell MORR migration min7 17, Naver BULK spawning cov_day 18 |
+
+The Plan review also called false "the spawning drop is largest at Maxan and Naver" under `covariance_pick`. It is true as a
+ranking (-66, -35, then Gosnell -29), and `flow-change-sparse-gauges.Rmd` guards exactly that; the new note prints the
+whole order.
+
+The 2023-2026 block: moved to the #25 archive, not kept (its windows were examples pending knowledge#25, since replaced
+by the cited windows and 2016-2025).
+
+### Claims kept, by source (verified 2026-11-27)
+
+| claims | source | verdict |
+|---|---|---|
+| sources table, join rule, 540 days, non-HYDAT numbers | `R/wet_station_daily.R` | agrees |
+| archive extent, 2023's 75 days, join with no gap, symbols, DJF provisional values | read-only `wet_provisional_daily()`; bundle `station_daily.rds` | corrected (above) |
+| ice shares; March 2025 `NO_DAYS` 31 with two values | HYDAT 20260717 query | corrected (ice), agrees |
+| GeoMet approved end | not re-read: dated 2026-09-28 | dated |
+| approved DJF means 0.06-2.1, median 0.55; August figures | HYDAT 20260717 | restated from the read |
+| seasonal gauging; 1 DJF year; complete years 1971, 2011-2024; 10 and 5 year rules | bundle months table; `station_departure_report.txt`; `scripts/station_departure.R` | corrected (months), agrees |
+| window rules, min7, cov_day, 0.8 | `R/wet_window_stats.R` | agrees |
+| Mann-Kendall message | cd behaviour, not re-read | dated in the header |
+| 2016-2025 changes, 12/12, 11, 17/18, Buck 2016, baseline medians, gaps, 85/93 and 37/46 | bundle, recomputed with `wet_window_stats()` | agrees |
+| catchments 567 / 2,315 km2, 24 %, 0.997 / 0.998 | `station_map.rds` | agrees |
+| coverage 0.834-0.867 | `departure_interval_coverage.txt` | agrees |
+| pool 53/21/31/13; blocks 220/218; OLS/MOVE/ratio; leak-free; multi-donor; day-by-day; min7 | `departure_pilot_20260717.txt` s1-2 | agrees |
+| carry .63 (.34-.75), .69 of 12, .92, .57, .49, .23 | same, s3 | agrees |
+| covariance_pick .72/.67/.48/.71, 290 gauges | `pcic_hydrology.md` / `departure_pcic_20260717.txt` as cited | kept as the pointer's summary |
+| Maxan chain, years by donor, changes and ranges, r .93/.78, 80 of 94, 31/30 | same, s4 | agrees |
+| snow slopes, r, lag-1, intercepts, over-record change, -17/-11, parity | `departure_snow_20260717.txt` | agrees |
+| Chinook use table and gauge notes | `chinook_sites_use.txt` | agrees |
+| covered counts, scores, verdicts, shipped-route and extended tables | site reports s3, s5, s6 (7 reports) | agrees (extracted by script) |
+| extension race per box; extension pools | site reports s1-2 | agrees (UFRA and COTR added) |
+| interval coverage 0.904-1.000 and 0.92+; OLS band 83-85 % | site reports s5, s6, s2 (82.7-85.3) | agrees |
+| snow per site, snow gauges, SWE and melt change | `departure_site_snow_*` s2, s3, s6 | corrected (route, above) |
+| Gosnell normals and error | `departure_site_gosnell_*` | corrected |
+| Naver donors since 1999 | `departure_site_naver_bulk` s4 per-year | agrees |
+| donor test result and sensitivities | `departure_donors_20260717_20261028.txt` | agrees; "as seen before registration" counts match its s1 |
+| UFRA/COTR windows and pin guard; literature | the old note; `life_history_*.csv` tests | not re-read |
+| upstream states | `gh api` 2026-11-27: cd#92, water-temp-bc#19, knowledge#25/#174/#256 closed; cd#95, wet#227, wet#232 open | |
+
+### Ledger
+
+| old section | disposition |
+|---|---|
+| departure: Sources; What a departure rests on; Residuals; Method choices | kept, corrected; MAD rule kept |
+| departure: Result 2023-2026 | moved whole to #25 |
+| departure: Species windows first pass | moved whole to #27 station-flow-vignette |
+| departure: 2022-2026 | moved whole to #27 chinook-revision; standing facts (nested catchments, 1981-1998 baseline, 2025 gaps, median/mean, dropped winter windows) restated for the current windows |
+| departure: 2016-2025 | kept as a table |
+| departure: Maxan pilot (#120) | method and held-out kept; Maxan's 1931-2024 results to `chinook_sites.md` |
+| departure: Snow (#121) | specification, verdict, parity, method limits kept; slopes, over-record arithmetic and site limits to `chinook_sites.md` |
+| chinook: Which streams | kept |
+| chinook: What the method finds | moved whole to #126; Gosnell normal, snow gauges and rule amendment, Naver donors restated |
+| chinook: 1951-1980 (#152) | moved whole to #152; periods, coverage tests, snow restated; Maxan distance row kept |
+| chinook: covariance_pick (#147) | rule, score table, shipped changes kept; three dated bullets to #167 |
+| chinook: Swift and Naver own windows | folded into "How each site is run" and the tables; the "bundle gains ..." bullet moved to #187 |
+| chinook: Natural stations as donors | kept unchanged but one issue-number parenthesis |
+
 ## Errors Encountered
 
 | Error | Resolution |
