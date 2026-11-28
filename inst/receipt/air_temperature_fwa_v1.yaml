@@ -1,0 +1,25 @@
+# The receipt declaration for a published air temperature build,
+# s3://fresh-bc/air_temperature/fwa/v1/ (#216): what only wet knows about the build's
+# receipt. crate::crt_receipt_keys() reads it; R/wet_catalog.R's wet_receipt_write() hands
+# crate::crt_receipt_write() the values (scripts/air_publish.R).
+#
+# Inputs, each one version_id string: cube_manifest, the md5 of cd's daily cube manifest
+# as read by the build (it lists every file's checksum and run time); cd_commits, every
+# distinct cd commit the cube files the build read name, sorted and joined by commas;
+# fwapg, the fwapg commit whose Freshwater Atlas the segments came from
+# (WET_FWAPG_COMMIT), with the stream table's row count. Settings: the crate release whose
+# schemas the parts were conformed to, the point of a segment that takes its cell, and the
+# day whose band decides which cells hold data. The parts' bytes are hashed as files; no
+# table is fingerprinted (cell_daily holds about 378 million rows), and so no tolerance is
+# declared: a rerun on the same inputs and software writes identical parts.
+receipt_keys: 1
+output: air_temperature/fwa/v1
+recipe:
+  settings: [crate_version, point, mask_day]
+  inputs: [cube_manifest, cd_commits, fwapg]
+  seed: false
+result:
+  summary:
+    parts: {}
+    rows_segment_cell: {}
+    rows_cell_daily: {}

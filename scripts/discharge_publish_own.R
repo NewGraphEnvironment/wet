@@ -31,5 +31,8 @@ publish_own <- c(
   # called by the MAD and term scripts, not by the three table scripts or what they source
   "R/wet_pcic_fetch.R", "R/wet_pcic_monthly.R", "R/wet_runoff_monthly.R",
   "scripts/scenario_basis.R", "scripts/scenario_basis_lib.R", "scripts/pcic_coverage.R",
-  "scripts/pcic_coverage_map.R"
+  "scripts/pcic_coverage_map.R",
+  # the air temperature tree (#216): its reader and its build, which read the Freshwater Atlas
+  # and cd's cube and no discharge table; none is sourced or called by the three table scripts
+  "R/wet_air_daily.R", "scripts/air_publish.R", "scripts/air_publish_lib.R", "scripts/air_station_check.R"
 )

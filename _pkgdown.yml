@@ -27,6 +27,10 @@ reference:
   - wet_temp_daily
   - wet_temp_fill
   - wet_temp_gsdd
+- title: Air temperature
+  desc: Daily air temperature on every stream segment, read from the copy of ERA5-Land wet publishes.
+  contents:
+  - wet_air_daily
 - title: Date windows
   desc: Define month-day windows, and take mean flow or per-year statistics of flow or temperature over them.
   contents:

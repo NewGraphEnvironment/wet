@@ -76,6 +76,12 @@ wet_db_load <- function(conn, catalog, dataset = "discharge/fwa/v1/segment_month
             isTRUE(pick_only) || isFALSE(pick_only),
             is.null(groups) || (is.character(groups) && length(groups) > 0L && !anyNA(groups)))
   tbl <- wet_dataset_table(dataset)
+  # the air temperature tree is read by wet_air_daily(), not loaded (#216): its cell_daily
+  # would otherwise be read as a day-of-year table and fail after the download
+  if (startsWith(dataset, paste0(wet_air_id, "/"))) {
+    stop("wet_db_load() does not load the air temperature tree; read ", dataset, " with wet_air_daily()",
+         call. = FALSE)
+  }
   tb <- wet_timebase(dataset)
   keep <- if (tb$col == "month") months else doys
   parts <- catalog[catalog$dataset == dataset & catalog$scenario == scenario, , drop = FALSE]
