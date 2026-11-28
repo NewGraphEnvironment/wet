@@ -130,10 +130,11 @@ catalogue (Decision 1).
   registry carries `clock_offset` (hours the timestamps run ahead of UTC; 0) and `day_offset` (the local standard
   time of the days, the nearest HYDAT station's `standard_offset` in `tidyhydat::allstations`; −8 at every site).
   No series read keeps daylight saving, so `dst` and `tz` are not built; a series that needs them adds them.
-- **Sub-drainage from the nearest HYDAT station** (the Water Tool registry's rule) puts three sites in 08K though
-  they drain to the Nechako or lie beside it: Nechako River at Pulpmill Road (01FW025), McMillan Creek above Nechako
-  River (01FW024) and Ness Lake (02FW002), whose nearest gauges are on the Fraser at Prince George. They pool with 08K
-  in `wet_temp_fill()`; the report lists each site's sub-drainage.
+- **Sub-drainage from the nearest HYDAT station** (the Water Tool registry's rule) puts three sites on the lower
+  Nechako in 08K: Nechako River at Miworth (01FW005), McMillan Creek above Nechako River (01FW024) and Nechako River at
+  Pulpmill Road (01FW025), whose nearest gauges are on the Fraser at Prince George. They pool with 08K in
+  `wet_temp_fill()`; the report lists each site's sub-drainage. (An earlier draft of this note named Ness Lake; the
+  registry gives it 08J.)
 - **The ECCC archive lists 342 stations** on 2026-11-27 (306 in `data/checks/temp_coverage_report.txt`, 2026-10-06);
   no Nechako id is in it.
 - **The earlier record's coordinates** are parsed from its ReadMe's DMS; every site lies within 0.01 km of its later
@@ -143,8 +144,25 @@ catalogue (Decision 1).
 - **Backup:** both records' files and `.md5`s at `s3://fresh-bc/temp_loggers/nhg/<record>/` (2026-11-27, each
   object's size and ETag checked). A second run of the script wrote the three tracked files byte for byte.
 
+## Phases 4 and 5 (2026-11-27)
+
+- **Placement:** 28 of 32 sites placed, 24 by name and 4 by the nearest leg (Glacier Creek, Otter Creek below Finger
+  Lake on FWA's Finger Creek, Nadina River above Nadina Lake, Whitesail Middle Creek: the last three on unnamed or
+  differently named FWA streams); all 28 on the main-flow tree. Unplaced: the four lake sites (Cheslatta Lake, Nadina
+  Lake, Skins Lake Spillway, Ness Lake), no candidate on the named stream within 100 m.
+- **Two sites sit beside ECCC temperature stations:** Skins Lake Spillway 0.46 km from 08JA023, Nadina Lake 0.50 km
+  from 08JB007.
+- **The earlier record's clock:** its files stamp an hour twice at the autumn and spring clock changes, and at
+  Whitesail (WTL) and Chedakuz (CNR) its readings match the later record better with the stamp moved an hour, so its
+  "UTC" carries a daylight-saving shift over part of the record; days differ by up to 0.51 °C there and at most 0.08 °C
+  elsewhere. The later record has no repeated stamp.
+- **Counts:** 34,017 of 34,778 days kept (650 by the hour rule, 100 deployment ends, 11 air days, no stuck run);
+  30 complete growing seasons at 22 sites and 24 seasons needing only shoulders at 18 sites, far above the plan's
+  "near zero" expectation; 31 of 32 sites reach 365 kept days.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
 | `aws: Unknown options` on `NHG Data ReadMe.txt` | `system2()` passes arguments unquoted: `shQuote()` them |
+| `prior_read`: `!anyDuplicated(time)` | the earlier record repeats an hour at clock changes: both copies left out and counted |

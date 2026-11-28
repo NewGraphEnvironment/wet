@@ -178,13 +178,13 @@ routing by registry, tests named (B1, G3, G8, O1, O4, AC3); screening waits on D
 Review: the name leg's real home, distances, the unnamed-site rule, a separate placement file, the tree required
 (G4, G5, O2).
 
-- [ ] Placement section of `scripts/temp_loggers.R`, run once to write `inst/extdata/temp_loggers/nhg_15053907_placement.csv` (`registry_md5`, leg, distance, `blue_line_key`, `downstream_route_measure`, `linear_feature_id`, tree segment, reason); refuses without `whse_basemapping.fwa_stream_networks_mainflow_tree` and records its row count; unplaced sites with reasons
+- [x] Placement section of `scripts/temp_loggers.R`, run once to write `inst/extdata/temp_loggers/nhg_15053907_placement.csv` (`registry_md5`, leg, distance, `blue_line_key`, `downstream_route_measure`, `linear_feature_id`, tree segment, reason); refuses without `whse_basemapping.fwa_stream_networks_mainflow_tree` and records its row count; unplaced sites with reasons
 
 ## Phase 5: Check report, counts and the research file
 
 Review: counts redefined, overlap with ECCC sites, reproducibility conditions, rows for every series (G1, G11, AC1, AC2).
 
-- [ ] `scripts/temp_loggers.R` → `data/checks/temp_loggers_nhg_15053907.txt`:
+- [x] `scripts/temp_loggers.R` → `data/checks/temp_loggers_nhg_15053907.txt`:
   - the manifests' md5s, and sites and days read;
   - days dropped by reason, and the series' own flags beside ours;
   - the two records compared on shared site-days;
