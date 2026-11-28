@@ -30,7 +30,19 @@ When the plan finds that a batch, or one of its members, is more than one PR's w
 - **Installed packages:** `check_pkg_stale.sh` lists wet 0.4.44 installed against 0.6.0 (and drift, fresh, link, ngr, spacehakr, xciter, none used here). Scripts call `wet:::`, so wet is installed from the branch before a run.
 - **GEOGLOWS v2:** per reach on TDX-Hydro (about 7 M reaches), CC BY 4.0, on AWS (`research/runoff_prior_art.md` §2 row 3). A gauge-to-reach crosswalk held to drainage area is its own piece of work, hence the split.
 
+## At the resume (2026-11-27)
+
+- **Owner's decisions:** the three recommended options (signed median at 20 points; one logged TerraClimate fetch; the period ratio test). Written into #243's body; #225's body rewritten; GEOGLOWS v2 is #244, the BC Water Tool's estimates #245.
+- **Members check:** `FREE #225`, exit 0 (soul's `members_check.sh`, called by path: `soul_published_tree` is a function in `skills/_shared/soul_shared.sh`, not on PATH).
+- **Lake outlets:** 19 of the 315 calibration gauges (`cal$lake`), not 18.
+- **First-level codes:** the 315 gauges sit under 14 first-level watershed codes, spanning 236 of the 246 watershed groups.
+- **TerraClimate's robots.txt** (read 2026-11-27, THREDDS's default file) disallows `/thredds/catalog/`, `dodsC`, `wcs`, `wms`, `ncss`, `fileServer`, `cdmremote` and the catalog services. The one fetch of `TerraClimate_19812010_q.nc` (86,671,480 bytes, md5 `691e6bfe3d37e0b377f61ccf3607b3e6`) is logged in `<WET_DATA_ROOT>/logs/243/runoff_products_fetch.tsv`, beside the two WFS requests.
+- **The isolines:** 66 lines; densified to 1 km they give 31,474 points.
+- **terra's exact extract on a projected CRS is slow.** terra 1.9.50 `extract(exact = TRUE)` on the 1 km BC Albers isoline grid took about 75–90 ms per FWA polygon (16 s for 200 SALR polygons, 15–45 min per watershed group), against about 1 ms on TerraClimate's lon/lat lattice; neither the raster's extent nor its cell size moved it. TerraClimate reprojected to Albers was as slow; with raster and polygons labelled `"local"` (same coordinates) the same call took 0.025 s for 50 polygons, fractions within 1.1e-7 of the ellipsoidal ones. So on a projected CRS terra computes ellipsoidal cell areas. BC Albers is equal-area, so the script samples the isolines under the `"local"` label (`sample_group()`). The province run samples on lon/lat and never met this.
+
 ## Errors Encountered
 
 | Error | Resolution |
 |-------|------------|
+| `matrix(NA_real_, nrow(cv), 12)`: non-numeric extent | `cv_aet-cfu.rds` is a list: `length(cv$station_number)` |
+| isoline sampling at 15–45 min per watershed group | terra's ellipsoidal path on a projected CRS; planar under a `"local"` label (above) |

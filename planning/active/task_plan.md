@@ -113,30 +113,30 @@ No plan gate in this pane: a coordinator-dispatched `park review`, parked for th
 
 ## Phase 2: The two products at the gauges
 
-- [ ] Write `scripts/runoff_products_compare.R`'s inputs. Source `scripts/wb_cv_lib.R` first, then:
+- [x] Write `scripts/runoff_products_compare.R`'s inputs. Source `scripts/wb_cv_lib.R` first, then:
   - Hold the rule file to `rule_commit`.
   - Refuse an uncommitted tree.
   - Hold `monthly_values.rds`'s gauge table to `cv_aet-cfu.rds`. Shared = 283.
-- [ ] TerraClimate: fetch `TerraClimate_19812010_q.nc` once, as decision 2 says, into `<WET_DATA_ROOT>/runoff_products/raw/`.
+- [x] TerraClimate: fetch `TerraClimate_19812010_q.nc` once, as decision 2 says, into `<WET_DATA_ROOT>/runoff_products/raw/`.
   - Log each request to `<WET_DATA_ROOT>/logs/243/runoff_products_fetch.tsv`. Put the file's md5 in the report.
   - Read it as the Decided-at-the-gate note on TerraClimate says.
-- [ ] Isolines: read `WHSE_WATER_MANAGEMENT.HYDZ_ANNUAL_RUNOFF_LINE` (OGL-BC) from the BC WFS once.
+- [x] Isolines: read `WHSE_WATER_MANAGEMENT.HYDZ_ANNUAL_RUNOFF_LINE` (OGL-BC) from the BC WFS once.
   - Use `resultType=hits`, then hold the read to the server's `numberMatched` (66 lines, levels 50 to 4,000 mm, when probed), as in `scripts/wb_gauge_diversion.R:41–76`.
   - Save the raw read with its md5.
   - Refuse lines of different levels that cross.
   - Build the TIN and inverse-distance surfaces exactly as specified under Decided at the gate.
-- [ ] Sample each watershed group once, cached. Accumulate per first-level code holding a calibration gauge. Keep each layer set's coverage and each gauge's flat-triangle share.
-- [ ] Run the plumbing check: q's annual sum against `ppt_tc − aet_tc`, on coverage-1 gauges and on the rest, under the 5 % bound.
+- [x] Sample each watershed group once, cached. Accumulate per first-level code holding a calibration gauge. Keep each layer set's coverage and each gauge's flat-triangle share.
+- [x] Run the plumbing check: q's annual sum against `ppt_tc − aet_tc`, on coverage-1 gauges and on the rest, under the 5 % bound.
 
 ## Phase 3: Score, attribute, write up
 
-- [ ] Write the report `data/checks/runoff_products_compare_20260717.txt`. It holds:
+- [x] Write the report `data/checks/runoff_products_compare_20260717.txt`. It holds:
   - inputs, md5s, the commit, sf's GDAL version, and the gauges dropped by coverage with their reasons;
   - for each product, its annual error % (median, middle half) and its share within ±20 %, province-wide and by hydrologic zone, beside the held-out balance and routed PCIC at the same gauges. Zones with fewer than 5 gauges are printed and marked, not read;
   - TerraClimate's monthly NSE and share NSE, beside the balance's and routed PCIC's;
   - the isoline spread (TIN against inverse distance) and the flat-triangle share;
   - each zone's verdict, with its stability.
-- [ ] For each material disagreement, add the evidence:
+- [x] For each material disagreement, add the evidence:
   - TerraClimate: the four-term split of `q − cv_ann`, its sum asserted;
   - the isolines: the period ratio under decision 3, and that they were drawn from WSC gauges;
   - independence: TerraClimate is gauge-free.
