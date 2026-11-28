@@ -284,7 +284,8 @@ wet_logger_registry <- function(series = names(wet_logger_versions)) {
 
 # Days of logger sites `stations` (registry ids of one or more series), in wet_temp_daily()'s
 # shape with `source` the series code. Ids outside every registry are refused.
-wet_logger_daily <- function(stations, from = as.Date(-Inf), to = as.Date(Inf), valid = c(-1, 35),
+wet_logger_daily <- function(stations, from = as.Date(-Inf, origin = "1970-01-01"),
+                             to = as.Date(Inf, origin = "1970-01-01"), valid = c(-1, 35),
                              min_hours = 20, cache_dir = wet_logger_cache()) {
   reg <- wet_logger_registry()
   unknown <- setdiff(stations, reg$station_number)

@@ -38,7 +38,8 @@ shape and first series) are answered here as recommendations and put to the owne
   - **Both records are pinned** (review G7, A1): 10.5281/zenodo.15053907 (2019–2024, `01_Data.zip`, 13.8 MB) and
     10.5281/zenodo.6426024 (2019–2021, `Data.zip`, 3.1 MB), under separate Zenodo concepts.
   - A site's days come from the later record where it holds that site, else from the earlier, so the sites #215 says
-    the 2024 network model used are not lost.
+    the 2024 network model used are not lost. (As built: every earlier site is in the later record, so every day comes
+    from the later record and no code reads days from the earlier one.)
   - The check report compares every site-day the two share.
 - **Pinned like Hakai's package** (`R/wet_hakai.R`, #192):
   - `<version>` is the Zenodo record id. The tracked manifest `inst/extdata/temp_loggers/nhg_<version>.csv` holds
@@ -53,12 +54,13 @@ shape and first series) are answered here as recommendations and put to the owne
     provincial and Tool snapshots do, so no session ever requests from a host whose robots.txt refuses it.
   - Zenodo's robots.txt is read before the first fetch and recorded in the research file.
 - **Days as ECCC days are made:** the `valid` range first, local standard time, hourly means, `min_hours` (default 20),
-  `t_mean_c` the mean of hourly means, `t_min_c` and `t_max_c` over readings. The registry's `utc_offset` column holds a
-  fixed standard-time offset in hours; a series whose clock kept daylight saving is marked `dst = TRUE` with its Olson
-  zone in `tz`, converted to UTC with that zone, so the repeated autumn hour falls in two hours and the gap in spring is
-  an hour without readings. Which applies is read from each series' ReadMe in Phase 1 (review G9).
-- **Logger QA, in this order** (review G3): the `valid` range; stuck runs, on readings; the hour rule; deployment-end
-  days; air days, on days. Every rule applies to logger series only.
+  `t_mean_c` the mean of hourly means, `t_min_c` and `t_max_c` over readings. As built (Phase 2): the
+  registry's `clock_offset` says how far the timestamps run ahead of UTC (0 for both Nechako records, which are UTC)
+  and `day_offset` the local standard time of the days (the nearest HYDAT station's, −8). The planned `utc_offset`,
+  `dst` and `tz` columns were not built: no series read keeps daylight saving (review G9; findings, "Plan corrections").
+- **Logger QA, in this order** (review G3): the `valid` range; stuck runs, on hourly means; the hour rule;
+  deployment-end days; air days, on days. The stuck, deployment and air rules apply to logger series only; the `valid`
+  range and the hour rule are the archive's.
   - **Deployment:** a run of readings with no gap longer than 6 hours. Its first and last calendar days are dropped.
   - **Stuck run:** identical hourly means for more than the stuck threshold in hours. Only open-water months count
     (May–September) and only values above 0.5 °C, so a run near 0 °C under ice is kept (ECCC holds a sensor stuck at
@@ -85,12 +87,12 @@ shape and first series) are answered here as recommendations and put to the owne
     column (the precedent is `regulation_<snapshot>.csv`), and the check report reads that file, never the database.
 - **Pools** (review G2): the fill pools by the caller's `pool`, which callers build as `substr(station_number, 1, 3)`,
   so an id like `NHG_…` would be cut off from its ECCC peers. The registry therefore carries `subdrainage`,
-  `nearest_eccc` and `nearest_km`, as the Tool registry does. The `pool` roxygen in `R/wet_temp_fill.R` and CLAUDE.md's
+  `nearest_eccc` and its distance (built as `eccc_km`), as the Tool registry does. The `pool` roxygen in `R/wet_temp_fill.R` and CLAUDE.md's
   fill paragraph say a logger is pooled through `subdrainage`. The report lists logger sites within 0.5 km of an ECCC
   temperature station, so no site enters a pool twice.
 - **Counts** (review G1): a complete growing season is a site-year with a `wet_temp_gsdd()` value. That needs 274 of
-  the 275 days from 1 March to 30 November observed in one run, so for seasonal loggers the count will be near zero,
-  and the report says so. A season "needing only its shoulders" has every missing window day in 1 March–15 May or
+  the 275 days from 1 March to 30 November observed in one run, so for seasonal loggers the count was expected near
+  zero; as built the Nechako series holds 30 at 22 sites, and the report counts them. A season "needing only its shoulders" has every missing window day in 1 March–15 May or
   1 October–30 November and none from 16 May to 30 September, the shape the fill's validation scored
   (`research/station_temperature_fill.md`). The report also gives each site's observed days against
   `wet_temp_fill(min_days = 365)`, since a site with one season cannot be filled at the defaults.
@@ -146,8 +148,9 @@ Decisions 2 and 4 (O3).
 - [x] `data-raw/temp_loggers_nhg.R`:
   - fetch both records' pinned files at Zenodo's checksums into the cache;
   - write the manifests `inst/extdata/temp_loggers/nhg_15053907.csv` and `nhg_6426024.csv`, with zip members listed;
-  - write the registry `nhg_15053907_sites.csv`: id, holder's code, record, name, lon, lat, `utc_offset`, `dst`, `tz`,
-    `subdrainage`, `nearest_eccc`, `nearest_km`, first, last, credit;
+  - write the registry `nhg_15053907_sites.csv`: id, holder's code, record, member, name, lon, lat, elevation,
+    `clock_offset`, `day_offset`, `subdrainage`, `nearest_hydat`, `nearest_eccc`, `eccc_km`, first and last reading,
+    licence, credit, and the earlier record's code and member;
   - refuse HYDAT-shaped ids and ids in the ECCC archive;
   - back up both records with `WET_BACKUP=1`.
 - [x] Internal `wet_logger(series, version)` gives cache paths checked against the manifest; it fetches a missing file only where `fetch` is `TRUE`, and otherwise calls `wet_snapshot_unavailable()`. Add `wet_logger_versions`
