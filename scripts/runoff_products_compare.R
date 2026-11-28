@@ -58,10 +58,12 @@ rule_md5 <- local({
 })
 if (release != rp_release) stop("the rule names HYDAT ", rp_release, ", not ", release, call. = FALSE)
 
-dirty <- git("status", "--porcelain", "--", "R", "scripts", "data-raw", "inst/vignette-data", "data/checks")
+# one set of paths: the clean-tree guard, the recorded commit and the report's label
+code_paths <- c("R", "scripts", "data-raw", "inst/vignette-data", "DESCRIPTION")
+dirty <- git("status", "--porcelain", "--", code_paths, "data/checks")
 if (length(dirty)) stop("commit these first, so the recorded commit can rebuild the report:\n",
                         paste(dirty, collapse = "\n"), call. = FALSE)
-code_commit <- git("log", "-1", "--format=%h", "--", "R", "scripts", "data-raw", "inst/vignette-data", "DESCRIPTION")
+code_commit <- git("log", "-1", "--format=%h", "--", code_paths)
 
 workers <- as.integer(commandArgs(trailingOnly = TRUE)[1])
 if (is.na(workers)) workers <- 4L
@@ -473,8 +475,8 @@ shares <- function(m) m / rowSums(m)
 say(sprintf("# TerraClimate runoff and the 1961-1990 runoff isolines at the calibration gauges (#243, #225), HYDAT %s", release),
     "",
     "The rule: scripts/runoff_products_rule.R, registered before this script or any product value existed.",
-    sprintf("Rule commit %s, md5 %s. Code commit %s (the last commit to R/, scripts/, data-raw/, inst/vignette-data/).",
-            substr(rule_commit, 1, 8), rule_md5, code_commit),
+    sprintf("Rule commit %s, md5 %s. Code commit %s (the last commit to %s).",
+            substr(rule_commit, 1, 8), rule_md5, code_commit, paste(code_paths, collapse = ", ")),
     sprintf("Fit: cv_aet-cfu.rds under scoring md5 %s; gauges and routed PCIC from %s (md5 %s), held equal to the fit.",
             substr(score_code_md5, 1, 8), f_bundle, md5(f_bundle)),
     "Both products are references here, never inputs. Error is modelled over observed, in %; within is |error| <= 20 %.",
@@ -502,17 +504,19 @@ say(sprintf("# TerraClimate runoff and the 1961-1990 runoff isolines at the cali
             sum(g$lake), 100 * rp_coverage),
     sprintf("TerraClimate scores %d; isolines (both surfaces) %d.", sum(g$tc_ok), sum(g$iso_ok)),
     "",
-    "Not scored, with coverage (reason: a lake outlet, or TerraClimate's empty sea and coastal cells; for the isolines, beyond the TIN's triangulation or 50 km from a vertex):",
+    "Not scored, with each product's coverage and the reason, which is the only way a cell has no value: for TerraClimate, a cell the file leaves empty;",
+    "for the isolines, a cell beyond the TIN's triangulation or more than 50 km from an isoline vertex. The lake-outlet flag is shown beside, not tested.",
     "")
 nd <- g[!g$tc_ok | !g$iso_ok, ]
-say(sprintf("%-8s %-4s %-5s %8s %8s  %s", "station", "zone", "lake", "tc_cov", "iso_cov", "name"),
-    sprintf("%-8s %-4s %-5s %8.3f %8.3f  %s", nd$station_number, nd$zone, ifelse(nd$lake, "yes", "no"),
-            nd$tc_cov, nd$iso_cov, nd$station_name), "")
-say("By zone: gauges, TerraClimate not scored (of them lake outlets), isolines not scored",
-    sprintf("  zone %s: %3d gauges, TerraClimate %2d (%d), isolines %2d", zones,
+nd$reason <- ifelse(!nd$tc_ok & !nd$iso_ok, "both: empty TerraClimate cells; beyond the isolines' surfaces",
+                    ifelse(!nd$tc_ok, "TerraClimate: empty cells", "isolines: beyond the surfaces"))
+say(sprintf("%-8s %-4s %-5s %8s %8s  %-36s %s", "station", "zone", "lake", "tc_cov", "iso_cov", "name", "reason"),
+    sprintf("%-8s %-4s %-5s %8.3f %8.3f  %-36s %s", nd$station_number, nd$zone, ifelse(nd$lake, "yes", "no"),
+            nd$tc_cov, nd$iso_cov, nd$station_name, nd$reason), "")
+say("By zone: gauges, TerraClimate not scored, isolines not scored",
+    sprintf("  zone %s: %3d gauges, TerraClimate %2d, isolines %2d", zones,
             vapply(zones, function(z) sum(g$zone == z), 1L),
             vapply(zones, function(z) sum(g$zone == z & !g$tc_ok), 1L),
-            vapply(zones, function(z) sum(g$zone == z & !g$tc_ok & g$lake), 1L),
             vapply(zones, function(z) sum(g$zone == z & !g$iso_ok), 1L)), "")
 
 say("## 3. Plumbing check: TerraClimate's runoff against the province run's ppt_tc - aet_tc",
@@ -522,24 +526,25 @@ say("## 3. Plumbing check: TerraClimate's runoff against the province run's ppt_
     "ppt_tc and aet_tc are bilinear on the 30\" grid and filled from climr and CGIAR where TerraClimate is empty, so only full cover tests the sampling.",
     "")
 
-score_rows <- function(d, label) {
+score_rows <- function(d, label, star_tc = FALSE, star_iso = FALSE) {
   dt <- d[d$tc_ok, ]
   di <- d[d$iso_ok, ]
-  c(sprintf("%-4s TerraClimate n %3d  %s %s | balance %s %s | routed n %3d %s %s", label, nrow(dt), fq(dt$err_tc), fw(dt$err_tc),
+  lt <- paste0(label, if (star_tc) "*" else "")
+  li <- paste0(label, if (star_iso) "*" else "")
+  c(sprintf("%-4s TerraClimate n %3d  %s %s | balance %s %s | routed n %3d %s %s", lt, nrow(dt), fq(dt$err_tc), fw(dt$err_tc),
             fq(dt$err_b), fw(dt$err_b), sum(dt$shared), fq(dt$err_r[dt$shared]), fw(dt$err_r[dt$shared])),
-    sprintf("%-4s isolines TIN  n %3d  %s %s | balance %s %s | routed n %3d %s %s", label, nrow(di), fq(di$err_tin), fw(di$err_tin),
+    sprintf("%-4s isolines TIN  n %3d  %s %s | balance %s %s | routed n %3d %s %s", li, nrow(di), fq(di$err_tin), fw(di$err_tin),
             fq(di$err_b), fw(di$err_b), sum(di$shared), fq(di$err_r[di$shared]), fw(di$err_r[di$shared])),
-    sprintf("%-4s isolines IDW  n %3d  %s %s", label, nrow(di), fq(di$err_idw), fw(di$err_idw)))
+    sprintf("%-4s isolines IDW  n %3d  %s %s", li, nrow(di), fq(di$err_idw), fw(di$err_idw)))
 }
 say("## 4. Annual error, % (median [middle half], share within +-20 %), each beside the balance and routed PCIC at the same gauges",
     "",
-    "Routed PCIC over those gauges that are also among its 283 shared gauges. Zones with fewer than 5 scored gauges are marked * and not read.",
+    "Routed PCIC over those gauges that are also among its 283 shared gauges. A row whose product scores fewer than 5 gauges in its zone is marked * and not read.",
     "",
     score_rows(g, "BC"), "")
 for (z in zones) {
   d <- g[g$zone == z, ]
-  lab <- paste0(z, if (sum(d$tc_ok) < rp_min_gauges || sum(d$iso_ok) < rp_min_gauges) "*" else "")
-  say(score_rows(d, lab))
+  say(score_rows(d, z, star_tc = sum(d$tc_ok) < rp_min_gauges, star_iso = sum(d$iso_ok) < rp_min_gauges))
 }
 say("")
 
