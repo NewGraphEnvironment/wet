@@ -1,0 +1,57 @@
+# Station check of the air temperature lookup (air_temperature/fwa/v1), by scripts/air_station_check.R
+
+tree: 322 parts, parts md5 97d7eeeaab4fa8948cd0897857d534af; HYDAT 20260717; days 1950-01-01 to 2025-12-31, tmean, tmax, tmin
+archive stations (water-temp-bc Parameter=5): 342, list md5 38fd4a8c2c5a130039136cd7c43cc9f4
+placed on a segment by wet_station_snap(): 314; not placed: 28
+
+## Through the lookup against cd_extract_daily() at the segment's stored point (the condition)
+station segments, every day, year and variable: compared 26065701, differing 0, largest difference 0 -> pass
+
+## Against the station's own coordinates
+stations whose own cell is their segment's: 300 of 314
+those stations, every day, year and variable: compared 24983100, differing 0, largest difference - -> pass
+stations in another cell than their segment's: 14 (listed, not failed)
+  07EA005 segment 49095881: station cell 1186748, segment cell 1186747, 47 m between station and midpoint
+  07EF002 segment 166060680: station cell 1226363, segment cell 1226362, 1011 m between station and midpoint
+  08EE013 segment 17094080: station cell 1283933, segment cell 1283934, 175 m between station and midpoint
+  08KH030 segment 702642615: station cell 1341593, segment cell 1341592, 124 m between station and midpoint
+  08LC018 segment 703822050: station cell 1431615, segment cell 1431614, 560 m between station and midpoint
+  08LF094 segment 700898457: station cell 1399191, segment cell 1399192, 870 m between station and midpoint
+  08ME023 segment 702849463: station cell 1409965, segment cell 1409966, 559 m between station and midpoint
+  08ME029 segment 702848913: station cell 1413572, segment cell 1413571, 180 m between station and midpoint
+  08MG026 segment 701721918: station cell 1438771, segment cell 1438770, 1463 m between station and midpoint
+  08NH005 segment 707069972: station cell 1446030, segment cell 1446031, 267 m between station and midpoint
+  08NH138 segment 706757757: station cell 1420825, segment cell 1420824, 785 m between station and midpoint
+  08NM240 segment 707348241: station cell 1453206, segment cell 1456806, 456 m between station and midpoint
+  08NM241 segment 707348241: station cell 1453206, segment cell 1456806, 103 m between station and midpoint
+  08OB002 segment 137011310: station cell 1330679, segment cell 1330680, 132 m between station and midpoint
+
+## Stations not placed
+  07FA008: not in HYDAT 20260717
+  08DA013: not in HYDAT 20260717
+  08DB015: not in HYDAT 20260717
+  08EC003: not placed: area ratio 0.23 outside 1 +/- 0.10
+  08EC014: not placed: area ratio 1.27 outside 1 +/- 0.10
+  08FB012: not in HYDAT 20260717
+  08HA016: not placed: area ratio 1.11 outside 1 +/- 0.10
+  08HA068: not placed: area ratio 1.33 outside 1 +/- 0.10
+  08HB087: no coordinates or gross drainage area in HYDAT 20260717
+  08HD024: no coordinates or gross drainage area in HYDAT 20260717
+  08HD026: not placed: area ratio 0.79 outside 1 +/- 0.10
+  08JA018: not placed: area ratio 0.02 outside 1 +/- 0.10
+  08JA023: not placed: area ratio 0.00 outside 1 +/- 0.10
+  08LG046: not placed: area ratio 0.72 outside 1 +/- 0.10
+  08MA003: not placed: area ratio 1.15 outside 1 +/- 0.10
+  08ME003: not placed: area ratio 1.88 outside 1 +/- 0.10
+  08ME030: no coordinates or gross drainage area in HYDAT 20260717
+  08MH029: not placed: area ratio 1.19 outside 1 +/- 0.10
+  08MH032: no coordinates or gross drainage area in HYDAT 20260717
+  08NHX18: not in HYDAT 20260717
+  08NK031: no coordinates or gross drainage area in HYDAT 20260717
+  08NM083: not placed: area ratio 0.41 outside 1 +/- 0.10
+  08NM084: not placed: area ratio 0.00 outside 1 +/- 0.10
+  08NM242: not placed: area ratio 0.56 outside 1 +/- 0.10
+  08NM249: no coordinates or gross drainage area in HYDAT 20260717
+  08NM250: not placed: area ratio 0.89 outside 1 +/- 0.10
+  08NN029: not placed: area ratio 0.39 outside 1 +/- 0.10
+  09AA001: not placed: area ratio 0.00 outside 1 +/- 0.10

@@ -1,0 +1,80 @@
+{
+  "manifest_version": 1,
+  "id": "air_temperature/fwa/v1",
+  "built": "2026-11-27T00:00:00Z",
+  "provenance": {
+    "wet_version": "example",
+    "wet_commit": "example"
+  },
+  "sources": [
+    {
+      "source": "cd_daily",
+      "description": "Made-up example: cd's example daily cube (2002, 5 x 5 cells) with five cells set to no-data.",
+      "citation": "Example data, not for use.",
+      "provenance": {
+        "cube": "cd extdata/example_daily, masked",
+        "mask_day": "2002-01-01"
+      }
+    }
+  ],
+  "datasets": [
+    {
+      "dataset": "air_temperature/fwa/v1/cell_daily",
+      "schema": {
+        "package": "crate",
+        "version": "0.22.0",
+        "source": "nge",
+        "file_name": "air_temperature/fwa/v1/cell_daily",
+        "url": "https://github.com/NewGraphEnvironment/crate/blob/v0.22.0/inst/extdata/schemas/nge/air_temperature/fwa/v1/cell_daily.yaml"
+      }
+    },
+    {
+      "dataset": "air_temperature/fwa/v1/segment_cell",
+      "schema": {
+        "package": "crate",
+        "version": "0.22.0",
+        "source": "nge",
+        "file_name": "air_temperature/fwa/v1/segment_cell",
+        "url": "https://github.com/NewGraphEnvironment/crate/blob/v0.22.0/inst/extdata/schemas/nge/air_temperature/fwa/v1/segment_cell.yaml"
+      }
+    }
+  ],
+  "parts": [
+    {
+      "key": "cell_daily/scenario=historical/forcing=ERA5-Land/source=cd_daily/part-2002.parquet",
+      "dataset": "air_temperature/fwa/v1/cell_daily",
+      "scenario": "historical",
+      "forcing": "ERA5-Land",
+      "source": "cd_daily",
+      "code": "2002",
+      "drainage": "2002",
+      "rows": 1460,
+      "bytes": 13604,
+      "md5": "3628febafae88136e90109ed857ccfc9"
+    },
+    {
+      "key": "segment_cell/scenario=historical/forcing=ERA5-Land/source=cd_daily/part-AAAA.parquet",
+      "dataset": "air_temperature/fwa/v1/segment_cell",
+      "scenario": "historical",
+      "forcing": "ERA5-Land",
+      "source": "cd_daily",
+      "code": "AAAA",
+      "drainage": "AAAA",
+      "rows": 6,
+      "bytes": 3233,
+      "md5": "3f48aaa77e3e76c2f00faa3593c9173d"
+    },
+    {
+      "key": "segment_cell/scenario=historical/forcing=ERA5-Land/source=cd_daily/part-BBBB.parquet",
+      "dataset": "air_temperature/fwa/v1/segment_cell",
+      "scenario": "historical",
+      "forcing": "ERA5-Land",
+      "source": "cd_daily",
+      "code": "BBBB",
+      "drainage": "BBBB",
+      "rows": 1,
+      "bytes": 3025,
+      "md5": "3e02fbfa3a992ddaac9b52a38000b509"
+    }
+  ]
+}
