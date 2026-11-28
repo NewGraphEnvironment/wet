@@ -33,8 +33,8 @@ Batch 17 (#198): re-run `scripts/segment_output.R`, `scripts/segment_daily_outpu
 ## Validation
 
 - [x] Reports in `data/checks/` committed; `git status` clean on the full-run machine before each run
-- [ ] `/code-check` clean (each commit, or once over the branch with `/code-check branch`; the diff is three reports)
+- [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`; the diff is three reports)
 - [x] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] `/planning-archive` on completion
 
 How each change is proved: the BUILD report's per-part line reads 512 of 512 identical to live, its tree parts md5 equals the live parts md5, and the segment tables' md5s equal `_pre208`'s or each difference is attributed.
