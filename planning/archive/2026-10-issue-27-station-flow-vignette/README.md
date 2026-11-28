@@ -27,3 +27,17 @@ Set up pkgdown for wet and added its first vignette. The scaffold is `_pkgdown.y
 - **Reviews:** `review-27.md` (plan) and `review-round1..3.md`.
 
 Closed by: PR (see `git log`), Relates to #27
+
+## From research/station_flow_departure.md (moved by #189)
+
+## Species windows (#27, first pass)
+
+The first version of `vignettes/station-flow.Rmd` (#29) ran the same path over the 11 complete BULK windows in knowledge's `life_history_timing.csv` at c97c4d0. The 12th, CO migration, has no end date. Seven of the 11 have no source yet.
+
+- **The provisional-winter rule reaches spring windows.** Five of the 11 touch November–April: CH and BT incubation, CH emergence, CO spawning and ST spawning. CH emergence and ST spawning lose 2025–2026 only because they start on 15 April. That was the rule as decided at #27's first plan gate, and that version listed every window-year it dropped.
+- **08EE003 is gauged through the winter only in 1971 and 2011–2026**, taking at least 80% of January–February days as the test. So CH incubation, BT incubation and ST spawning have under 10 baseline years and get no departure. Its "from 2000" trends start in 2010 or 2011.
+- **Median against mean.** The CH spawning window's 1981–2010 mean at Buck Creek is 0.91 m³/s; the median year is 0.59. A typical year therefore reads 36% below the mean normal, so a figure drawn against the daily median and a departure from the mean must be named apart.
+- **Trends, from 1981 and from 2000, for window mean and 7-day minimum.**
+  - There are 68 distinct slopes; CH and SK spawning share their dates, so they count once.
+  - 5 are significant at p < 0.05, where chance alone would give about 3.
+  - All 5 are negative: at Buck Creek, CH/SK spawning mean, CO spawning and BT spawning 7-day minimum since 2000; at 08EE003, CH migration and CH emergence mean since 2000.

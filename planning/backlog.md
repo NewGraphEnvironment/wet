@@ -91,7 +91,7 @@ counts them): run `/backlog-sweep` again, the backlog is not finished.
 | - [ ] 24 | #240 | 26: PCIC's water temperature at the stations (1 issue) | **waiting** on PCIC's answer on how it would like bulk reads done, or mid-December 2026 with none (the owner, 2026-11-25) | J | — | opus |
 | - [ ] 25 | #241 | 27: the registered scenario checks, and the research file re-read (2 issues) | **waiting** on PCIC's answer on how it would like bulk reads done, or mid-December 2026 with none (the owner, 2026-11-25) | J | 24 | sonnet |
 | - [ ] 26 | #242 | 29, 30: a newer provincial pin and Hakai's other watersheds, a HYDAT gauge continued at its site (3 issues) | open | B | 17 | opus |
-| - [ ] 27 | #243 | 31: the runoff products no report covers yet (1 issue) | open | K | — | opus |
+| - [x] 27 | #243 | 31: the runoff products no report covers yet (1 issue) | done: https://github.com/NewGraphEnvironment/wet/pull/257 | K | — | opus |
 
 Tracks are separate efforts, not moves: the cross-repo provenance track, whose wet member is #161
 (labelled `track:provenance`), batched here in batch 3 because #88 and #160 take its names.
@@ -551,7 +551,7 @@ them; a same-flow check before any join; how provisional days are labelled besid
 
 ### 31. The runoff products no report covers yet
 
-- [ ] Carried by move 27, #243
+- [x] Carried by move 27, #243 (merged in https://github.com/NewGraphEnvironment/wet/pull/257)
 
 #225 compares GEOGLOWS v2, TerraClimate runoff and the 1961–1990 runoff isolines with the balance and HYDAT at the same
 gauges, with a disagreement log. The BC Water Tool's modelled estimates wait on the Province's release, so the plan files

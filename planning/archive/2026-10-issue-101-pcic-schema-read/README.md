@@ -18,3 +18,9 @@ The same class stands in wet#76 and in link (link#356, filed here). No soul conv
 m4: `~/Projects/repo/wet/data/logs/101/` (segment and BUILD logs, part md5s before and after, `segcmp.*`). m1: `data/logs/101/`. Reports: `data/checks/{pcic_routed_compare,segment_output,discharge_publish}_20260717.txt`.
 
 Closed by: PR (this branch, `101-read-routed-pcic-from-fwapg-s-pcic-schem`)
+
+## From research/discharge_publish.md (moved by #189)
+
+The reports before those were #101's rebuild at wet 1d0faf8 (58 of 67 identical, never uploaded) and #91's at wet 71af15a (67 of 67).
+
+The acb820f manifest before it named `whse_basemapping.fwa_stream_networks_discharge_monthly` at fwapg 341b078, the 1951–2012 run. #101 had moved the read to the same rows in `pcic.discharge_monthly`, equal value for value, and to a routed month 0 summed in month order (the old parts had summed in the frozen table's storage order, a difference of at most 1.81 units in the last place); that rebuild was never uploaded.

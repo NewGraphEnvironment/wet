@@ -25,3 +25,11 @@ Backlog move 5 (#167) became batch 8 alone. At the plan gate the four chinook si
 `data/logs/167/` in m1's checkout (gitignored): `pcic_years_fill_*`, `trial_site_maxan_*`, `site_*_20261119.log`, `snow_*_20261119.log`, `site_runs_*`, `chinook_sites_*`, `short_record_vignette_data_*`, `test_suite_*`. The tracked reports are `data/checks/departure_site[_snow]_*_20260717.txt`.
 
 Closed by: PR for branch `167-backlog-move-5-more-donors-and-pcic-s-ye` (closes #135, #147; #167's umbrella)
+
+## From research/chinook_sites.md (moved by #189)
+
+- **Maxan's 1951–1980 base is 10 years** under covariance_pick: its donors (08EE003, 08EE013, 08JA016, and 08JB002 for max) hold no record from 1952 to 1970, against 20–30 years on every other route.
+
+- **Held-out scores rise** wherever it ships, most in the spawning window (Maxan 0.49 → 0.66, Naver 0.42 → 0.60, Gosnell 0.45 → 0.71) and for the lowest seven-day flow, now below the 0.5 bar in 4 of 8 site-windows rather than 7.
+
+- **Gosnell's normal-error rows moved** for another reason: the published build changed under the report (digest 0f4f8caa → d554e3aa, #163's upload of LEUT, UEUT and UNRS on 2026-11-14), so four Nechako box gauges' picked source and the error quartiles changed. The mouth's normal did not.
