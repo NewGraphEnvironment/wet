@@ -59,6 +59,30 @@ When the plan finds that a batch, or one of its members, is more than one PR's w
   body table lacks #206, which `planning/backlog.md`'s batch 14 names.
 - None of the member issues carries a comment.
 
+## Phase 1: baseline (2026-11-27, after merging origin/main at f1c698d3)
+
+Moved on main since the park, re-read against the phases: `CLAUDE.md`, `R/wet_station_daily.R`, `research/README.md`,
+`research/station_sources.md` (Hakai's four own stations, #233; Phase 3's "sources" check includes them), five
+`data/checks/` reports none of the five files cites, and the #235, #238 and #242 archives. The plan stands.
+Open PR #257 (move 27) also edits `research/water_balance_method.md`, `research/README.md`, `research/pcic_scenarios.md`
+and `CLAUDE.md`.
+
+`research_check.sh` (soul ee19c925) at the merge repeats the planning table exactly: the five files' words, sections,
+dates and flags are unchanged.
+
+Cited reports, by file, with the last commit of each beside the file's Verified date:
+
+| file (verified) | cited `data/checks` reports | newest commit among them |
+|---|---|---|
+| `discharge_publish.md` (2026-11-15) | `discharge_publish_20260717` (11-15), `segment_daily_output_20260717` (11-13) | 2026-11-15 |
+| `station_flow_departure.md` (2026-09-28) | `station_departure_report` (09-28), `departure_pilot_20260717` (10-25), `departure_snow_20260717` (10-26), `departure_interval_coverage` (10-30) | 2026-10-30, after Verified |
+| `chinook_sites.md` (2026-10-28) | `chinook_sites_use` (10-28), `departure_interval_coverage` (10-30), `departure_donors_20260717_20261028` (11-25), `departure_site[_snow]_*` (11-18 and 11-25) | 2026-11-25, after Verified |
+| `fwapg_mad_method.md` (2026-09-25) | `upstream_area_100_full`, `_sample` (09-26) | 2026-09-26, after Verified |
+| `water_balance_method.md` (2026-11-13) | about 55 `data/checks` reports, `wb_*` the bulk | 2026-11-25 (`pcic_coverage`, site reports), after Verified |
+
+`planning/active/numbers_check.py` was proven on a copy of `discharge_publish.md`: 0 candidates unchanged; with one
+`33.23` removed and `987654` appended, both were listed.
+
 ## Errors Encountered
 
 | Error | Resolution |

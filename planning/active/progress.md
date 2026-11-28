@@ -48,3 +48,8 @@ Start Phase 1 and run every phase to the PR (/code-check branch, /planning-archi
 /gh-pr-push). This message is the resume instruction that starts the run-to-PR
 mandate; the merge stays with me.
 ```
+
+## Phase 1, 2026-11-27
+- Completed: merged origin/main (clean); members #181, #183, #184 FREE, #206 open with no PR or branch on it; numbers_check.py written and proven; baseline recorded; #206 row added to #189's body
+- Commits: this one
+- Next: Phase 2
