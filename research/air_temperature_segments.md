@@ -1,8 +1,8 @@
 # Daily air temperature on every stream segment
 
-**Verified:** 2026-11-27 (the method, the fixture, the sizing and a build of two watershed groups and two years; the province build is pending) · **Issues:** #216 (from move 21, #237); crate#81 (the schemas and the `date` type); cd#161 (cell elevation, which cd does not hold); #246 (`cell_elev_m`, waiting on cd#161) · **Produced by:** `scripts/air_publish.R` → `data/checks/air_publish_2025.txt`, `scripts/air_station_check.R` → `data/checks/air_station_check_2025.txt`, `tests/testthat/test-wet_air_daily.R` and `test-air_publish_lib.R` on a masked copy of cd's example cube; the sizing probes in `planning/archive/2026-11-issue-237-*/findings.md`
+**Verified:** 2026-11-27 (the method, the fixture and the sizing; the province build is pending) · **Issues:** #216 (from move 21, #237); crate#81 (the schemas and the `date` type); cd#161 (cell elevation, which cd does not hold); #246 (`cell_elev_m`, waiting on cd#161) · **Produced by:** `tests/testthat/test-wet_air_daily.R` and `test-air_publish_lib.R` on a masked copy of cd's example cube; the sizing probes and a trial of the build in `planning/archive/2026-11-issue-237-*/findings.md`; the province build's reports, `data/checks/air_publish_2025.txt` (`scripts/air_publish.R`) and `data/checks/air_station_check_2025.txt` (`scripts/air_station_check.R`), are pending
 
-**Status:** built and checked on two watershed groups (VICT and CLAY) for 2024–2025; the province build waits on the crate release carrying the two schemas. Not published.
+**Status:** not built for the province, not published: the build waits on the crate release carrying the two schemas. A trial of the build (a copy of the script limited to two watershed groups and two years, recorded in the #237 findings) passed every check.
 
 ## What it is
 

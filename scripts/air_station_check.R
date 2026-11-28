@@ -92,7 +92,7 @@ DBI::dbDisconnect(duck, shutdown = TRUE)
 pt <- pt[match(segs, pt$linear_feature_id), ]
 quiet_cd <- function(p) {
   expected <- "^(Outside the daily cube's extent|No ERA5-Land data in or around the cell for)"
-  withCallingHandlers(cd::cd_extract_daily(p, from, to, air_vars),
+  withCallingHandlers(cd::cd_extract_daily(p, from, to, air_vars, source = air_cube_url),
                       warning = function(w) if (grepl(expected, conditionMessage(w))) invokeRestart("muffleWarning"))
 }
 at_seg <- quiet_cd(data.frame(id = segs, lon = pt$point_x, lat = pt$point_y))

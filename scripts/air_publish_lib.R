@@ -16,8 +16,8 @@ air_source <- "cd_daily"
 air_mask_day <- wet:::wet_air_mask_day
 air_vars <- c("tmean", "tmax", "tmin")
 
-# cd's daily cube as the build reads it: the published grid, which the build holds every
-# file to (cd's own compareGeom() within a call; this across calls)
+# cd's daily cube as the build reads it, passed to every cd call (never cd's option), and the
+# published grid: the build holds the mask file and every year's three files to it
 air_cube_url <- "https://stac-era5-land.s3.us-west-2.amazonaws.com/daily"
 air_grid <- list(xmin = -140.05, xmax = -113.95, ymin = 47.95, ymax = 60.05, nrow = 121L, ncol = 261L,
                  res = 0.1, crs = "EPSG:4326")

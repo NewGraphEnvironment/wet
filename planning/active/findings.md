@@ -102,6 +102,10 @@ Script kept out of the repo (a scratch probe); every number below is its printed
 - A probe slip worth keeping: `terra::rast()` on the SpatRaster cd returns an empty template, so the first try read
   every cell as no data; the probe then used cd's raster as returned.
 
+## A trial of the build (2026-11-27, before the province build)
+
+`scripts/air_publish.R` copied to the scratch directory and patched to skip the crate release-tag check (the schemas were on crate's branch, installed into a throwaway library), to read only watershed groups VICT and CLAY and their table and tree counts, and years 2024 and 2025, writing under a scratch `WET_DATA_ROOT`. Not the build: no report was committed. Its report: 19,259 segments read against 19,259 in the table, all 18,199 tree segments with a row; 18,378 `own`, 756 `moved`, 125 `no_data`, 0 `outside`; 73 cells used; every check passing (18,378 own, 756 moved and 125 no-data rows recomputed with 0 differing; 53,363 cell-days complete; 160,089 values equal to the cube read with terra). A second run after round 1's fixes (the checks reading the written parts) wrote the same report byte for byte. Under a minute each from the cached cube.
+
 ## Errors Encountered
 
 | Error | Resolution |

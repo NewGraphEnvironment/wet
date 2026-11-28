@@ -212,7 +212,7 @@ for (i in seq_len(nrow(grp))) {
     ORDER BY linear_feature_id", params = list(g))
   if (!nrow(p)) next
   if (any(p$empty) || anyNA(p[c("lon", "lat")])) stop(g, ": a segment has no geometry")
-  cells <- wet:::wet_air_cells(p[c("linear_feature_id", "lon", "lat")])
+  cells <- wet:::wet_air_cells(p[c("linear_feature_id", "lon", "lat")], source = air_cube_url)
   x <- air_conform(air_lookup_frame(p, cells), "segment_cell")
   air_part_write(x, root, "segment_cell", g)
   lookup[[i]] <- x
@@ -248,7 +248,7 @@ checks <- list(complete = c(0, 0), values = c(0, 0, 0))
 for (k in seq_along(years)) {
   yr <- years[k]
   x <- withCallingHandlers(
-    cd::cd_extract_daily(pts, sprintf("%d-01-01", yr), sprintf("%d-12-31", yr), air_vars),
+    cd::cd_extract_daily(pts, sprintf("%d-01-01", yr), sprintf("%d-12-31", yr), air_vars, source = air_cube_url),
     warning = function(w) stop("cd warned for ", yr, ": ", conditionMessage(w), call. = FALSE)
   )
   files <- unique(data.frame(variable = x$variable, checksum = x$checksum, cd_sha = x$cd_sha))
@@ -265,7 +265,14 @@ for (k in seq_along(years)) {
   y$tmax_c <- as.numeric(y$tmax_c)
   y$tmin_c <- as.numeric(y$tmin_c)
   cc <- air_check_complete(y, used, yr)
-  vv <- air_check_values(y, stats::setNames(lapply(air_vars, cube_file, yr = yr), air_vars))
+  yr_files <- stats::setNames(lapply(air_vars, cube_file, yr = yr), air_vars)
+  # every file of every year on the published grid, not only the mask's
+  for (v in air_vars) {
+    if (!isTRUE(terra::compareGeom(terra::rast(yr_files[[v]]), template, stopOnError = FALSE))) {
+      stop("the cube's ", v, " file for ", yr, " is not on air_grid")
+    }
+  }
+  vv <- air_check_values(y, yr_files)
   checks$complete <- checks$complete + c(cc$compared, cc$differing)
   checks$values <- c(checks$values[1] + vv$compared, checks$values[2] + vv$differing, max(checks$values[3], vv$largest))
   stamp("series: ", yr, ", ", nrow(y), " cell-days")
