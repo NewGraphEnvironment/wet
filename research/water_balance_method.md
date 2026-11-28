@@ -727,7 +727,7 @@ Their accuracy figures are in-sample, and after the undocumented "final adjustme
   - Contents: shapefile, BC Albers, 43 features, DBF dated 2021-03-19, fields `HYDZN_NO` and `HYDZN_NAME`, plus US HUC6 fields.
   - The record describes the zones as "defined previously by Obedkoff and others" and "extended into the neighbouring province, territories, and states" for the 2020 RFFA project.
   - **[I]** This extended version is the one to use, because the calibration gauges lie in Alberta and the NWT.
-- **[S] Also available.** `WHSE_WATER_MANAGEMENT.HYDZ_ANNUAL_RUNOFF_LINE` (Normal Annual Runoff isolines, 1961–1990; OGL-BC), a legacy Obedkoff-era product that makes a useful independent reference surface.
+- **[S] Also available.** `WHSE_WATER_MANAGEMENT.HYDZ_ANNUAL_RUNOFF_LINE` (Normal Annual Runoff isolines, 1961–1990; OGL-BC), a legacy Obedkoff-era product and a useful reference surface, though not an independent one: it was drawn from Water Survey of Canada gauges. Scored at the calibration gauges in `runoff_products.md`.
 
 ## 6. Coverage by tool
 

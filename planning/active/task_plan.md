@@ -140,14 +140,14 @@ No plan gate in this pane: a coordinator-dispatched `park review`, parked for th
   - TerraClimate: the four-term split of `q − cv_ann`, its sum asserted;
   - the isolines: the period ratio under decision 3, and that they were drawn from WSC gauges;
   - independence: TerraClimate is gauge-free.
-- [ ] Run twice; the two reports must be byte-identical.
-- [ ] Write up:
+- [x] Run twice; the two reports must be byte-identical.
+- [x] Write up:
   - `research/runoff_products.md`: the answer first, then each product, the TerraClimate robots fact, and the disagreement log (one row per material disagreement: product, where, size, ours/theirs/unresolved, evidence, report section);
   - a row in `research/README.md`;
   - `research/runoff_prior_art.md`'s rows 5 and 6 point to it;
   - `research/pcic_scenarios.md:38` and `research/water_balance_method.md:730` corrected;
   - a script bullet in `CLAUDE.md`.
-- [ ] Before `git worktree remove`, move `data/logs/243/` into the main checkout if any log landed in the worktree.
+- [x] Before `git worktree remove`, move `data/logs/243/` into the main checkout if any log landed in the worktree.
 
 ## Validation
 
