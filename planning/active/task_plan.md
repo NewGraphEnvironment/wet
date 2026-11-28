@@ -160,9 +160,9 @@ routing by registry, tests named (B1, G3, G8, O1, O4, AC3); screening waits on D
 
 - [x] `scripts/temp_logger_thresholds.R` → `data/checks/temp_logger_thresholds.txt`: both options of Decision 5, measured on the ECCC archive
 - [x] Register the rules and the chosen thresholds in `research/station_water_temperature.md` (a new section that stands alone, since move 20 edits the same file), in a commit of their own, before any logger day is screened
-- [ ] `wet_logger_daily()`: readings to days by the rules above, QA in the stated order; returns the `wet_temp_daily()` shape with `source` the series code, and `status` from the series' approval where it states one, else `"provisional"`; constants for the thresholds
-- [ ] `wet_temp_daily()`: registry routing, `sources`, duckdb and tidyhydat checks inside the ECCC branch, radix sort; roxygen documents the registry path (`system.file("extdata", "temp_loggers", ...)`) and logger days; `@examples` updated; `devtools::document()`
-- [ ] Tests:
+- [x] `wet_logger_daily()`: readings to days by the rules above, QA in the stated order; returns the `wet_temp_daily()` shape with `source` the series code, and `status` from the series' approval where it states one, else `"provisional"`; constants for the thresholds
+- [x] `wet_temp_daily()`: registry routing, `sources`, duckdb and tidyhydat checks inside the ECCC branch, radix sort; roxygen documents the registry path (`system.file("extdata", "temp_loggers", ...)`) and logger days; `@examples` updated; `devtools::document()`
+- [x] Tests:
   - `test-wet_temp_daily.R` passes unchanged, including the `08ZZ999` warning;
   - an id outside the registry that is not HYDAT-shaped still goes to the ECCC query;
   - a logger-only call works with duckdb mocked absent;
@@ -171,7 +171,7 @@ routing by registry, tests named (B1, G3, G8, O1, O4, AC3); screening waits on D
   - the threshold constants equal the report's numbers;
   - zero-row results keep the shape;
   - `wet_temp_gsdd()` and `wet_temp_fill()` accept a logger series pooled by `subdrainage`.
-- [ ] `R/wet_temp_fill.R`'s `pool` roxygen: logger ids are pooled through the registry's `subdrainage`
+- [x] `R/wet_temp_fill.R`'s `pool` roxygen: logger ids are pooled through the registry's `subdrainage`
 
 ## Phase 4: Each site on the network
 

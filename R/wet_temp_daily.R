@@ -1,7 +1,8 @@
 #' Daily water temperature at hydrometric stations
 #'
 #' One daily water-temperature series per station, from the ECCC readings that
-#' water-temp-bc archives (about 300 BC stations, mostly hourly, from 2002).
+#' water-temp-bc archives (about 340 BC stations, mostly hourly, from 2002),
+#' and from small-stream logger records wet pins (see "Logger records" below).
 #' Readings are reduced to a daily mean, minimum and maximum in the station's
 #' local standard time. The result has the shape of [wet_station_daily()], so
 #' it feeds [wet_window_stats()] with `value = "t_mean_c"` (or `t_min_c`,
@@ -28,6 +29,29 @@
 #'     returned so a caller can be stricter.
 #' }
 #'
+#' @section Logger records:
+#' An id listed in a logger registry is read from that series' pinned files
+#' instead of the ECCC archive; every other id goes to the archive. The first
+#' series is UNBC's Northern Hydrometeorology Group's Nechako loggers (32
+#' sites, 2019-2024, 15-minute readings, CC BY 4.0, Zenodo record 15053907),
+#' ids `"NHG_<site code>"`. List a series' sites, with coordinates, credit and
+#' the sub-drainage that pools a logger with its ECCC neighbours in
+#' [wet_temp_fill()], from its registry:
+#' `read.csv(system.file("extdata", "temp_loggers", "nhg_15053907_sites.csv",
+#' package = "wet"))`. The files are fetched once per machine into
+#' `tools::R_user_dir("wet", "cache")` and held to their published checksums.
+#'
+#' Logger days follow the steps above (with the readings' own clock), and four
+#' more rules screen what a gauge does not need screening for, in this order:
+#' runs of identical hourly means above 0.5 degrees C lasting more than 154
+#' hours in May-September (a stuck sensor) are dropped before the hour rule;
+#' the first and last day of each deployment (readings with no gap over 6
+#' hours) are dropped; and a May-September day whose range of hourly means
+#' exceeds its month's threshold (12.09 to 18.38 degrees C) is dropped as a
+#' logger reading air. The thresholds were measured on the ECCC archive and
+#' are registered in `research/station_water_temperature.md`. A series that
+#' cannot be read is skipped with a warning.
+#'
 #' @section Baseline:
 #' Year-round records are short: few stations have most of their days in
 #' most years of any decade before the 2010s. A temperature departure is
@@ -42,8 +66,12 @@
 #' maximum is a second call on `t_max_c`.
 #'
 #' @inheritParams wet_station_daily
-#' @param stations Character vector of HYDAT station numbers (`"08EE013"`),
-#'   as water-temp-bc archives them.
+#' @param stations Character vector of station numbers: HYDAT numbers
+#'   (`"08EE013"`) as water-temp-bc archives them, or logger ids
+#'   (`"NHG_01FW007"`).
+#' @param sources Which sources to read: `"provisional"`, the ECCC archive,
+#'   and the logger series codes (`"nhg"`). An id whose source is not named
+#'   returns no days.
 #' @param valid Plausible range of a reading, in degrees C, both ends kept.
 #' @param min_hours Hours of the day (1 to 24) that must have a valid reading
 #'   for the day to count.
@@ -53,7 +81,8 @@
 #'   columns in place of `q_m3s`, and no `symbol`. There is no ice flag, so
 #'   [wet_window_stats()] reports `frac_ice` as `NA`, unknown, not zero.
 #'   `source` is `"provisional"`, the water-temp-bc archive, as in
-#'   [wet_station_daily()]. `status` is `"approved"` only when every reading
+#'   [wet_station_daily()], or a logger day's series code (`"nhg"`), whose
+#'   `status` is `"provisional"`. `status` is `"approved"` only when every reading
 #'   that day is final. No reading in the archive was final on 2026-10-06:
 #'   its approvals are ECCC's codes `1` and `4`, whose meanings were never
 #'   published with the dump and are treated as provisional, none, or
@@ -78,10 +107,15 @@
 #' # Departure in degrees C from 2016-2025, one series per cd call
 #' m <- s[s$variable == "t_mean", ]
 #' cd::cd_anomaly(m, cd::cd_baseline(m, 2016:2025))
+#'
+#' # A small-stream logger, Otter Creek below Finger Lake in the Nechako
+#' # (fetched once, 14 MB, from Zenodo)
+#' o <- wet_temp_daily("NHG_01FW007", sources = "nhg")
+#' range(o$date)
 #' }
 #' @export
 wet_temp_daily <- function(stations, from = NULL, to = Sys.Date(), valid = c(-1, 35),
-                           min_hours = 20) {
+                           min_hours = 20, sources = c("provisional", names(wet_logger_versions))) {
   if (!is.character(stations) || !length(stations) || anyNA(stations)) {
     stop("`stations` must be a non-empty character vector of station numbers", call. = FALSE)
   }
@@ -97,10 +131,41 @@ wet_temp_daily <- function(stations, from = NULL, to = Sys.Date(), valid = c(-1,
   from <- if (is.null(from)) as.Date(-Inf, origin = "1970-01-01") else as.Date(from)
   to <- if (is.null(to)) as.Date(Inf, origin = "1970-01-01") else as.Date(to)
   if (from > to) stop("`from` is after `to`", call. = FALSE)
+  known <- c("provisional", names(wet_logger_versions))
+  if (!is.character(sources) || !length(sources) || anyNA(sources) || !all(sources %in% known)) {
+    stop("`sources` must name one or more of: ", paste(known, collapse = ", "), call. = FALSE)
+  }
+  stations <- unique(stations)
+  # a registry id is a logger site; every other id is asked of the ECCC archive
+  reg <- wet_logger_registry()
+  series <- reg$series[match(stations, reg$station_number)]
+  eccc <- stations[is.na(series)]
+  parts <- list(wet_temp_empty())
+  if (length(eccc) && "provisional" %in% sources) {
+    parts <- c(parts, list(wet_temp_eccc(eccc, from, to, valid, min_hours)))
+  }
+  for (k in intersect(sources, unique(stats::na.omit(series)))) {
+    ids <- stations[!is.na(series) & series == k]
+    parts <- c(parts, list(tryCatch(wet_logger_daily(ids, from, to, valid, min_hours), error = function(e) {
+      warning("source \"", k, "\" skipped: ", conditionMessage(e), call. = FALSE)
+      wet_temp_empty()
+    })))
+  }
+  d <- do.call(rbind, parts)
+  d <- d[order(d$station_number, d$date, method = "radix"), ]
+  rownames(d) <- NULL
+  none <- setdiff(stations, d$station_number)
+  if (length(none)) {
+    warning("no water temperature found for: ", paste(none, collapse = ", "), call. = FALSE)
+  }
+  d
+}
+
+# The ECCC archive's days for `stations`, under wet_temp_daily()'s rules.
+wet_temp_eccc <- function(stations, from, to, valid, min_hours) {
   if (!requireNamespace("duckdb", quietly = TRUE)) {
     stop("install duckdb to read water temperature", call. = FALSE)
   }
-  stations <- unique(stations)
   offset <- wet_temp_offsets(stations)
   no_tz <- stations[is.na(offset)]
   offset[is.na(offset)] <- -8
@@ -149,10 +214,6 @@ wet_temp_daily <- function(stations, from = NULL, to = Sys.Date(), valid = c(-1,
   no_tz <- intersect(no_tz, d$station_number)
   if (length(no_tz)) {
     warning("no time zone for: ", paste(no_tz, collapse = ", "), "; taken as UTC-8", call. = FALSE)
-  }
-  none <- setdiff(stations, d$station_number)
-  if (length(none)) {
-    warning("no water temperature found for: ", paste(none, collapse = ", "), call. = FALSE)
   }
   # data.frame() cannot recycle the scalar source onto zero rows
   source <- rep("provisional", nrow(d))
