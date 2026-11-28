@@ -11,8 +11,8 @@ wet_station_list(
 }
 \arguments{
 \item{sources}{Which networks to list, from \code{"bcenv"}, \code{"bcwatertool"} and
-\code{"hakai"}. \code{"hakai"} alone lists no station: its watersheds only continue
-provincial ones, which it changes when \code{"bcenv"} is listed too.}
+\code{"hakai"}. \code{"hakai"} lists Hakai's own stations, and changes the
+provincial stations it continues when \code{"bcenv"} is listed too.}
 
 \item{snapshot}{The provincial snapshot, as \code{YYYYMMDD}. The Water Tool's is
 the one the package pins.}
@@ -36,13 +36,14 @@ the HYDAT station at the same site where there is one. For HYDAT's own
 stations, use \code{\link[=wet_station_select]{wet_station_select()}}.
 }
 \details{
-Two such networks: the province's non-integrated hydrometric network
+Three such sources: the province's non-integrated hydrometric network
 (\code{"bcenv"}), stations run by the province and its partners whose hourly
-discharge the province publishes beside HYDAT, and the third-party gauges
-the BC Water Tool serves (\code{"bcwatertool"}): regional districts, industry,
-BC Hydro, the Regulator and research projects, each \code{network} the Tool
-names. Both lists come from pinned snapshots made with the package, so they
-need no download.
+discharge the province publishes beside HYDAT; the third-party gauges the
+BC Water Tool serves (\code{"bcwatertool"}): regional districts, industry, BC
+Hydro, the Regulator and research projects, each \code{network} the Tool names;
+and Hakai Institute's published package (\code{"hakai"}) for seven small Calvert
+and Hecate island watersheds, 2013-2019. All three lists come from pinned
+copies made with the package, so they need no download.
 
 A station at a HYDAT site keeps its own number, and its days are never
 joined to the HYDAT station's: \code{hydat_site} names that station (the same
@@ -50,9 +51,9 @@ stream name within 1 km) so a caller can join the two. A Water Tool gauge at
 a provincial station's site is not listed: its days before the provincial
 record begins continue that station's record under the provincial number
 (see \code{\link[=wet_station_daily]{wet_station_daily()}}), and the provincial row's \code{first}, \code{licence} and
-\code{credit} say so when both sources are listed. Hakai Institute's published
-package (\code{"hakai"}) continues three Calvert and Hecate island stations the
-same way and lists no station of its own.
+\code{credit} say so when both sources are listed. Three of Hakai's watersheds
+continue provincial stations the same way; its other four are stations of
+their own, listed under the package's numbers (\code{"WTS693"}, ...).
 
 \code{regulation} is each station's status from what sits upstream of it, one
 for the year as a whole, under a rule registered before it was applied:

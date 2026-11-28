@@ -22,16 +22,21 @@
 #    s3://fresh-bc/station_sources/hakai/<version>/ (aws CLI), one PUT with its
 #    Content-MD5, and checks the object's size and ETag.
 # 5. Writes the station registry inst/extdata/station_sources/hakai_<version>_hydat.csv:
-#    the package's watersheds 626, 703 and 844 (decision 6 in #210 leaves out
-#    693, 708, 819 and 1015), each continuing the provincial station whose
-#    number ends in its watershed number (H08KC0626, ...), refused unless the
-#    provincial registry holds that number, its name names the watershed, and
-#    the package's coordinates (README_Hakai_Discharge.pdf, Table 1, the stage
-#    monitoring device) lie within the survey's same-site 0.5 km of the
-#    provincial station's. `continues_before` is the first day the provincial
-#    files hold any usable hour of the station, complete or not, as for the
-#    Water Tool's continuing listings; `first` and `last` are the days the
-#    package adds before it under the shipped rules (wet_hakai_shape()).
+#    the package's seven watersheds. A watershed whose provincial number
+#    (H08KC + its watershed number, 626 -> H08KC0626) the provincial registry
+#    holds continues that station, refused unless the station's name names the
+#    watershed and the package's coordinates lie within the survey's same-site
+#    0.5 km of the provincial station's; `continues_before` is the first day
+#    the provincial files hold any usable hour of the station, complete or
+#    not, as for the Water Tool's continuing listings, and `first` and `last`
+#    are the days the package adds before it under the shipped rules
+#    (wet_hakai_shape()). A watershed the registry holds no number for is a
+#    station of its own (#233) under the package's number (WTS693), named as
+#    the continued rows are, with no `continues` or `continues_before`, and
+#    `first` and `last` its whole record. Coordinates are the stage monitoring
+#    device's in README_Hakai_Discharge.pdf, Table 1, except WTS708's, which
+#    that table gives WTS693's: WTS708 takes stream sensor node SSN708's from
+#    Korver et al. (2022, ESSD 14, 4231), Table A1.
 #    Refused: a number shaped like HYDAT's or held by the provincial or Water
 #    Tool registry, and a provincial station the Water Tool already continues.
 #    wet_station_daily() and wet_station_list() read the registry only beside
@@ -50,9 +55,13 @@ lfs_sha256 <- "dbee8370c585ade4f42a66a274d1afb0c56ab6a1cb3a1f1bbad62aec84c998a1"
 url <- sprintf("https://media.githubusercontent.com/media/HakaiInstitute/essd2021-hydromet-datapackage/%s/%s",
                commit, file)
 watersheds <- data.frame(
-  station_number = c("WTS626", "WTS703", "WTS844"), watershed = c("626", "703", "844"),
-  # README_Hakai_Discharge.pdf, Table 1: the stage monitoring device (pressure transducer)
-  lat = c(51.64111, 51.64661, 51.66083), lon = c(-128.12056, -128.02572, -128.00250))
+  station_number = c("WTS626", "WTS693", "WTS703", "WTS708", "WTS819", "WTS844", "WTS1015"),
+  watershed = c("626", "693", "703", "708", "819", "844", "1015"),
+  island = c("Calvert", "Calvert", "Calvert", "Calvert", "Hecate", "Hecate", "Hecate"),
+  # README_Hakai_Discharge.pdf, Table 1: the stage monitoring device (pressure transducer); WTS708 from
+  # Korver et al. 2022, Table A1 (SSN708), since README Table 1 repeats WTS693's position for it
+  lat = c(51.64111, 51.64500, 51.64661, 51.6486, 51.66222, 51.66083, 51.69056),
+  lon = c(-128.12056, -127.99778, -128.02572, -128.0684, -128.04194, -128.00250, -128.06528))
 licence <- "CC-BY 4.0"
 credit <- paste("Hakai Institute, Maartje Korver, Emily Haughton, Bill Floyd and Ian Giesbrecht:",
                 "High-resolution hydrometeorological data from seven small coastal watersheds, British Columbia,",
@@ -120,9 +129,12 @@ if (identical(Sys.getenv("WET_BACKUP"), "1")) {
 prov <- wet_bcenv_stations(snapshot)
 tool <- wet_bcwatertool_stations()
 watersheds$continues <- sprintf("H08KC%04d", as.integer(watersheds$watershed))
+watersheds$continues[!watersheds$continues %in% prov$station_number] <- NA
+own <- watersheds[is.na(watersheds$continues), ]
+watersheds <- watersheds[!is.na(watersheds$continues), ]
+message("  stations of their own (no provincial number in snapshot ", snapshot, "): ",
+        paste(own$station_number, collapse = ", "))
 i <- match(watersheds$continues, prov$station_number)
-if (anyNA(i)) stop("the provincial registry lacks ", paste(watersheds$continues[is.na(i)], collapse = ", "),
-                   call. = FALSE)
 named <- mapply(function(n, w) grepl(paste0("Watershed ", w, "$"), n), prov$name[i], watersheds$watershed)
 if (!all(named)) stop("a provincial name does not name its watershed: ", paste(prov$name[i][!named], collapse = "; "),
                       call. = FALSE)
@@ -137,6 +149,10 @@ if (any(km > same_site_km)) {
 message(paste(sprintf("  %s continues %s (%s), %.3f km apart", watersheds$station_number, watersheds$continues,
                       prov$name[i], km), collapse = "\n"))
 watersheds$name <- prov$name[i]
+own$name <- sprintf("Hakai Institute - %s Island Watershed %s", own$island, own$watershed)
+stopifnot(all(mapply(function(n, w) grepl(paste0("Watershed ", w, "$"), n), watersheds$name, watersheds$watershed)),
+          all(grepl(" Island Watershed ", watersheds$name)))
+watersheds <- rbind(watersheds, own)
 taken <- intersect(watersheds$continues, stats::na.omit(tool$continues))
 if (length(taken)) stop("the Water Tool already continues ", paste(taken, collapse = ", "), call. = FALSE)
 bad <- watersheds$station_number[grepl(wet_hydat_number, watersheds$station_number) |
@@ -145,7 +161,8 @@ if (length(bad)) stop("registry numbers shaped like HYDAT's or held by another r
                       paste(bad, collapse = ", "), call. = FALSE)
 
 # the cut: the first day the provincial files hold any usable hour of the station
-pdays <- wet_bcenv_days_read(wet_bcenv_days(snapshot, tools::R_user_dir("wet", "cache")), watersheds$continues)
+pdays <- wet_bcenv_days_read(wet_bcenv_days(snapshot, tools::R_user_dir("wet", "cache")),
+                             stats::na.omit(watersheds$continues))
 pstart <- vapply(split(as.numeric(pdays$date), pdays$station_number), min, 0)
 watersheds$continues_before <- as.Date(unname(pstart[watersheds$continues]), origin = "1970-01-01")
 
@@ -168,4 +185,5 @@ reg <- data.frame(station_number = watersheds$station_number, watershed = waters
 reg <- reg[order(reg$station_number, method = "radix"), ]
 reg_path <- file.path(out_dir, sprintf("hakai_%s_hydat.csv", version))
 utils::write.csv(reg, reg_path, row.names = FALSE, na = "", fileEncoding = "UTF-8")
-message("wrote ", reg_path, ": ", nrow(reg), " watersheds, each continuing a provincial station")
+message("wrote ", reg_path, ": ", nrow(reg), " watersheds, ", sum(!is.na(reg$continues)),
+        " continuing a provincial station, ", sum(is.na(reg$continues)), " of their own")

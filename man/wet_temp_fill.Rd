@@ -27,7 +27,10 @@ with \code{variable == "tmean"} are used.}
 \item{pool}{\code{NULL} (every station in the call shares its anomaly), or a
 character vector of groups named by \code{station_number}, e.g. the WSC
 sub-drainage \code{substr(station_number, 1, 3)}. Peers come only from a
-station's own group.}
+station's own group. A logger id (\code{"NHG_01FW007"}) carries no
+sub-drainage in its number: take its group from its registry's
+\code{subdrainage} column (see \code{\link[=wet_temp_daily]{wet_temp_daily()}}, "Logger records"), so it
+pools with the ECCC stations around it.}
 
 \item{from, to}{First and last day to fill, as \code{Date} or \code{"YYYY-MM-DD"}.
 \code{NULL} (the default) uses each station's first and last observed day. A
