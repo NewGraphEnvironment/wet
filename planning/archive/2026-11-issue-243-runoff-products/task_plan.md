@@ -154,7 +154,7 @@ No plan gate in this pane: a coordinator-dispatched `park review`, parked for th
 - [x] Tests pass (4,038 passed, 0 failed, 5 skipped, 2026-11-28)
 - [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`)
 - [x] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] `/planning-archive` on completion
 
 How each change is proved:
 - The rule commit precedes the first value. The script refuses a rule file that differs from `rule_commit`.
