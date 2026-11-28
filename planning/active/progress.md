@@ -63,3 +63,11 @@ mandate; the merge stays with me.
 - Completed: both departure notes rewritten (method in one, per-site results in the other); superseded sections moved to six archive READMEs; disagreements, claim table and ledger in findings.md
 - Commits: this one
 - Next: the open decision on water_balance_method.md, before Phase 4
+
+## Phase 4, 2026-11-28
+- Skipped: the owner split water_balance_method.md into #261
+
+## Phase 5, 2026-11-28
+- Completed: fwapg_mad_method.md re-read against fwapg 6aa6c2d and wet's code; sections dated; one paragraph moved to #71
+- Commits: this one
+- Next: Phase 6

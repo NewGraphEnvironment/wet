@@ -94,11 +94,11 @@ which facts live where first.
 - [x] Skipped by the owner's decision above; the phase's checks are in wet#261's body
 
 ## Phase 5: `research/fwapg_mad_method.md` (#206)
-- [ ] Before building: the member re-check of Phase 1
-- [ ] Read fwapg's current `extras/discharge/` (`discharge.sh`, `sql/*.sql`) from `main` of both `smnorris/fwapg` and the NewGraphEnvironment fork (read only), naming the commits read, and re-read each method claim against them. `pcic_hydrology.md` records that `discharge.sh` still requests PCIC's old host without `-L`, so as written it saves the redirect page: state it or point there
-- [ ] Re-read each wet claim against `scripts/mad_parity.R`, `scripts/mad_basin.R`, `scripts/upstream_area_check.R` (read only) and the functions they call, listing what changed since 2026-09-26 (#76's fetch order and summation, #169's PCIC fetch)
-- [ ] Sources: the upstream-area numbers are in `data/checks/upstream_area_100_full.txt` and `_sample.txt`, cited correctly today. The Fraser tables (99.782 %, 2,189 differences and their causes, groups at 100 %, the flips, the basin sensitivity, Hope) are in the tracked `data/basin/100_report.txt` with `100_run.log`. The SALR parity and sampling tables are in `planning/archive/2026-09-issue-1-scope-discharge/` (`findings.md`, `README.md`). The review did not find "60 files, 24 min" or 1,457 irregular polygons in the Fraser report: trace them. All of it is a record of a run from before #76 and #169: say it was not re-run and give its date
-- [ ] Run `numbers_check.py`, complete the two tables, commit
+- [x] Before building: the member re-check of Phase 1
+- [x] Read fwapg's current `extras/discharge/` (`discharge.sh`, `sql/*.sql`) from `main` of both `smnorris/fwapg` and the NewGraphEnvironment fork (read only), naming the commits read, and re-read each method claim against them. `pcic_hydrology.md` records that `discharge.sh` still requests PCIC's old host without `-L`, so as written it saves the redirect page: state it or point there
+- [x] Re-read each wet claim against `scripts/mad_parity.R`, `scripts/mad_basin.R`, `scripts/upstream_area_check.R` (read only) and the functions they call, listing what changed since 2026-09-26 (#76's fetch order and summation, #169's PCIC fetch)
+- [x] Sources: the upstream-area numbers are in `data/checks/upstream_area_100_full.txt` and `_sample.txt`, cited correctly today. The Fraser tables (99.782 %, 2,189 differences and their causes, groups at 100 %, the flips, the basin sensitivity, Hope) are in the tracked `data/basin/100_report.txt` with `100_run.log`. The SALR parity and sampling tables are in `planning/archive/2026-09-issue-1-scope-discharge/` (`findings.md`, `README.md`). The review did not find "60 files, 24 min" or 1,457 irregular polygons in the Fraser report: trace them. All of it is a record of a run from before #76 and #169: say it was not re-run and give its date
+- [x] Run `numbers_check.py`, complete the two tables, commit
 
 ## Phase 6: links, index and record
 - [ ] Before building: the member re-check of Phase 1

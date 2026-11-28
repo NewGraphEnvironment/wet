@@ -229,6 +229,34 @@ by the cited windows and 2016-2025).
 | chinook: Swift and Naver own windows | folded into "How each site is run" and the tables; the "bundle gains ..." bullet moved to #187 |
 | chinook: Natural stations as donors | kept unchanged but one issue-number parenthesis |
 
+## Phase 5: `research/fwapg_mad_method.md` (#206)
+
+Read 2026-11-27: `smnorris/fwapg` and `NewGraphEnvironment/fwapg` `main` (both 6aa6c2d; `extras/discharge/` last changed
+8af59a4, 2026-07-13, before the note's previous date); wet's three scripts and their functions, with the diff since
+921f5ce1. Changed on wet's side: #76 (ordered fetches and sums), #169 (`wet_pcic_fetch()`), #46 (Hope's HYDAT release).
+
+**Disagreements:** none in a number. Wording corrected or added: the CMIP5 label is also in fwapg's table docs
+(`docs/02_tables_views.md`), not only the README and column comment; the order-8 skip is now stated as the SQL does it; the
+centroid groups' source stated; `discharge.sh`'s old host. The 13 s / 2.1 GB timing's report was overwritten by the
+full re-check (only the #2 findings hold it); said so. "Count in the report" is now the count, 186.
+
+| claims | source | verdict |
+|---|---|---|
+| download, cdo, centroid, weighting, rounding, skip, lut, forcing, CMIP5 labels | fwapg at 6aa6c2d: `discharge.sh`, the four SQL files, README, `db/schema.sql`, docs | agrees |
+| self counts as upstream; NULL handling | `discharge03_wsd.sql` joins on `FWA_Upstream`; `sum()` skips NULL. Self-inclusion not re-derived (the SALR parity is its evidence) | agrees, dated |
+| SALR coverage, parity, sampling tables, LSAL polygons | #1 `findings.md` | agrees; not re-run, dated 2026-09-25 |
+| two ranges, segment tree, irregular correction | `R/wet_upstream_sums.R` | agrees |
+| 4.4e-16 before #76 | #76 archive (4.41e-16) | agrees |
+| 204 / 1,457 irregular; 1,540 trees | #2 review files (`review-p4-round3.md`, `review-round2.md`) | agrees; said where from |
+| 13 s, 2.1 GB | #2 findings | not in a current report: said so |
+| 1,731 mismatches, 401 sample, 3.6e-14, 3.1 h; code-pair contradiction | `upstream_area_100_full.txt` / `_sample.txt`; #2 findings and README | agrees |
+| Fraser parity, causes, flips, Hope, basin sensitivity, 3.4 min | `data/basin/100_report.txt`, `100_run.log` | agrees |
+| 60 files, 24 min; order-1 and order-5 flip sources | #2 README and `review-p4-round1.md`, `round2.md`, `round3.md` | agrees |
+| LILL, UEUT examples; 1.8e-8 / 5.7e-6 gap | #2 archive reviews and the note's own run | kept as the run's record |
+
+Ledger: every section kept; the headings dropped their issue numbers; one paragraph (the article's worked parity, #28 to
+#64, link removed by #71) moved to the #71 archive.
+
 ## Errors Encountered
 
 | Error | Resolution |

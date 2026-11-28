@@ -24,3 +24,7 @@ What review taught: the four defects the plan review and the code check found in
 Run logs are local to m1 (`data/logs/71/`, gitignored). Tracked inputs: `data/checks/segment_output_20260717.txt` and `data/checks/discharge_publish_20260717.txt`. The reviews are in this directory: `review-plan.md` and `review-round{1,2,3}.md`.
 
 Closed by: PR #72
+
+## From research/fwapg_mad_method.md (moved by #189)
+
+The vignette `vignettes/segment-discharge.Rmd` carried a worked version of the parity and the sampling sensitivity on SALR, with figures, from #28 until #64, which moved it out of the article (now about the published product) and left a link here; #71 removed that link, since the article no longer draws on fwapg's annual table. The tables below are the record; the scripts in the "Produced by" line above reproduce them.
