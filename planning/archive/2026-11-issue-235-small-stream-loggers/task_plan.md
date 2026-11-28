@@ -211,7 +211,7 @@ Review: Upper Bulkley split out under both options (S1, O5).
 - [x] `lintr::lint_package()` adds no lint (per file, linter and line, against a worktree of `origin/main`); `pkgdown::check_pkgdown()` clean
 - [x] `/code-check` clean (each commit, or once over the branch with `/code-check branch`): five rounds, ended on an enumeration
 - [x] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] `/planning-archive` on completion
 
 Verification:
 - **QA guards:** each defect restored in a fixture, and the guard goes red.
