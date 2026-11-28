@@ -113,7 +113,7 @@ which facts live where first.
 - [x] Tests pass (`devtools::test()`; no code changes, so this shows nothing read a moved file)
 - [x] `/code-check` clean (once over the branch with `/code-check branch`), briefed to look for facts dropped without an archive home, numbers that disagree with their report, and broken anchors
 - [x] PWF checkboxes match landed work
-- [ ] `/planning-archive` on completion
+- [x] `/planning-archive` on completion
 
 **Verification.** Per file: `numbers_check.py` with every candidate accounted for; a claim-by-source table in
 `findings.md` and the paragraph ledger; for each anchor a script, report or article cites, the cited claim read under it
