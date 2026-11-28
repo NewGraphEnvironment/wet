@@ -1,6 +1,6 @@
 # wet (development version)
 
-* Daily air temperature on every Freshwater Atlas stream segment (#216). `wet_air_daily()` reads a segment's daily mean, maximum and minimum from a new published tree, `air_temperature/fwa/v1`: `segment_cell` gives every segment the ERA5-Land cell whose series it reads, and `cell_daily` holds each used cell's days from 1950, copied unchanged from cd's daily cube. A segment takes the cell cd gives its midpoint, moved to the nearest cell with data where its own has none, and a segment with no cell is listed, not dropped. The result is what `wet_temp_fill()` takes as `air`. `scripts/air_publish.R` builds and checks the tree; `scripts/air_station_check.R` holds it to cd at the temperature stations. The cell's elevation is not given yet (#246).
+* Daily air temperature on every Freshwater Atlas stream segment (#216). `wet_air_daily()` reads a segment's daily mean, maximum and minimum from a new published tree, `air_temperature/fwa/v1`: `segment_cell` gives every segment the ERA5-Land cell whose series it reads, and `cell_daily` holds each used cell's days from 1950, copied unchanged from cd's daily cube. A segment takes the cell cd gives its midpoint, or, where that cell has no data, the nearest of the eight cells around it that has; a segment with no cell is listed, not dropped. The result is what `wet_temp_fill()` takes as `air`. `scripts/air_publish.R` builds and checks the tree; `scripts/air_station_check.R` holds it to cd at the temperature stations. The cell's elevation is not given yet (#246).
 
 # wet 0.7.0
 

@@ -118,6 +118,7 @@ The build's check functions on mutated copies of the built parts (`air_check_cel
 | an own segment's cell moved to its east neighbour | own rows | FAIL |
 | a moved segment's cell changed to another of the eight around its own | moved rows | FAIL |
 | an own segment's status flipped to moved | moved rows | FAIL |
+| a moved segment set to no_data, its cell cleared (added after review round 5) | no_data rows | FAIL |
 | a no_data segment's status flipped to outside | outside rows | FAIL |
 | none (cell_daily 1990 as written) | completeness and values | pass |
 | one cell_daily value changed by 0.25 degrees | values against the cube | FAIL |

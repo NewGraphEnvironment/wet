@@ -2,7 +2,7 @@
 
 **Verified:** 2026-11-28 (the province build and its checks, the station check, the fixture); 2026-11-27 (the method and the sizing) · **Issues:** #216 (from move 21, #237); crate#81 (the schemas and the `date` type); cd#161 (cell elevation, which cd does not hold); #246 (`cell_elev_m`, waiting on cd#161) · **Produced by:** `scripts/air_publish.R` → `data/checks/air_publish_2025.txt`, `scripts/air_station_check.R` → `data/checks/air_station_check_2025.txt`, `tests/testthat/test-wet_air_daily.R` and `test-air_publish_lib.R` on a masked copy of cd's example cube; the sizing probes, a trial of the build and the mutation table in `planning/archive/2026-11-issue-237-*/findings.md`; run logs `data/logs/237/`
 
-**Status:** built for the province at wet e461b677 (crate 0.22.0, cd 0.6.13, the cube's 2025 manifest md5 125d1f83…), every check passing; not yet published: `air_temperature/*` needs anonymous reads opened on the bucket before the upload.
+**Status:** built for the province at wet b2de756e, the tracked report's build (first at e461b677, with byte-identical parts; crate 0.22.0, cd 0.6.13, the cube's 2025 manifest md5 125d1f83…), every check passing; not yet published: `air_temperature/*` needs anonymous reads opened on the bucket before the upload.
 
 ## What it is
 
