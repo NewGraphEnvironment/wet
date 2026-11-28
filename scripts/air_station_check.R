@@ -29,6 +29,17 @@ years <- sort(as.integer(cat_air$code[cat_air$dataset == paste(air_id, "cell_dai
 from <- sprintf("%d-01-01", min(years))
 to <- sprintf("%d-12-31", max(years))
 
+# cd places points on band 1 of the first year it reads, the tree's lookup on air_mask_day's band:
+# the comparisons below hold only while the two have the same empty cells
+band1 <- function(yr) {
+  r <- terra::rast(cd::cd_cache_fetch(sprintf("%s/tmean_daily_%d.tif", air_cube_url, yr)))[[1]]
+  is.na(terra::values(r, mat = FALSE))
+}
+if (!identical(band1(min(years)), band1(as.integer(substr(air_mask_day, 1, 4))))) {
+  stop("band 1 of ", min(years), " and the mask day's band have different empty cells: cd would place points ",
+       "differently from the lookup; check from ", air_mask_day, "'s year instead")
+}
+
 # ---- the archive's stations, and where HYDAT places them -------------------------------------
 duck <- DBI::dbConnect(duckdb::duckdb())
 DBI::dbExecute(duck, "INSTALL httpfs; LOAD httpfs;")

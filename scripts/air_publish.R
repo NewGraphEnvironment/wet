@@ -212,7 +212,11 @@ for (i in seq_len(nrow(grp))) {
     ORDER BY linear_feature_id", params = list(g))
   if (!nrow(p)) next
   if (any(p$empty) || anyNA(p[c("lon", "lat")])) stop(g, ": a segment has no geometry")
-  cells <- wet:::wet_air_cells(p[c("linear_feature_id", "lon", "lat")], source = air_cube_url)
+  # cd's two expected warnings are muffled inside; any other (a cached file of another build) stops
+  cells <- withCallingHandlers(
+    wet:::wet_air_cells(p[c("linear_feature_id", "lon", "lat")], source = air_cube_url),
+    warning = function(w) stop(g, ": cd warned while placing segments: ", conditionMessage(w), call. = FALSE)
+  )
   x <- air_conform(air_lookup_frame(p, cells), "segment_cell")
   air_part_write(x, root, "segment_cell", g)
   lookup[[i]] <- x
@@ -279,6 +283,15 @@ for (k in seq_along(years)) {
 }
 cd_shas <- sort(unique(unlist(lapply(year_files, function(e) vapply(e$files, `[[`, "", "cd_sha")))), method = "radix")
 mask_entry <- cube_files[[mask_name]]
+# the cube the tree was read from is the one the manifest names: cd re-reads its manifest and files
+# on every call of a long build, so a republish during it would leave the recorded md5 and the
+# mask's checksum describing another build
+if (!identical(unname(tools::md5sum(man_path)), cube_md5)) stop("cd's daily manifest changed during the build: rerun it")
+last_files <- year_files[[length(year_files)]]$files
+mask_read <- vapply(last_files, `[[`, "", "checksum")[vapply(last_files, `[[`, "", "name") == mask_name]
+if (!identical(unname(mask_read), mask_entry[["file:checksum"]])) {
+  stop("the mask file cd read (", mask_read, ") is not the manifest's ", mask_name, " (", mask_entry[["file:checksum"]], ")")
+}
 
 # ---- the checks on the lookup -------------------------------------------------------------------
 cell_lines <- air_check_cells(lookup, template, mask)
