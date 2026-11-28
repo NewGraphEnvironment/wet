@@ -15,13 +15,14 @@
 #     2026-11-27, research/runoff_products.md);
 #   - WHSE_WATER_MANAGEMENT.HYDZ_ANNUAL_RUNOFF_LINE from the BC WFS (OGL-BC), held
 #     to the server's numberMatched.
-# Stages 1-3 are cached under <WET_DATA_ROOT>/runoff_products/: stage 1 keyed on
-# its inputs' md5s and its parameters, not on this script's code; stage 2 on
-# stage 1's key, wet_ws_sample.R and wet_ws_fetch.R, and `sample_version`, bumped
-# by hand; stage 3 on stage 2's key and the upstream code in R/. After changing
-# stage 1 here, remove its .tif files (sample_version is not in their keys); after
-# changing stage 2 or 3 here, bump `sample_version`. fwapg and installed packages
-# are in no key either. Stages 4 and 5 are recomputed on every run:
+# Stages 1-3 are cached under <WET_DATA_ROOT>/runoff_products/. Stage 1's .tif
+# files are named for their inputs' md5s and parameters, not this script's code:
+# after changing stage 1 here, remove them. Stage 2 is keyed on the md5 of the
+# .tif it samples (so a rebuilt .tif is sampled again), wet_ws_sample.R,
+# wet_ws_fetch.R and `sample_version`; stage 3 on stage 2's key and the upstream
+# code in R/. After changing sample_group() or upstream() here, bump
+# `sample_version`. fwapg and installed packages are in no key. Stages 4 and 5 are
+# recomputed on every run:
 #   1. TerraClimate cropped to BC at its own 1/24 degree lattice; the isolines
 #      densified to 1 km and gridded by sf's GDAL to a TIN and an inverse-distance
 #      surface on one fixed 1 km BC Albers grid, with a flat-triangle layer;
@@ -261,10 +262,11 @@ stopifnot(identical(names(iso), c("iso_tin", "iso_idw", "iso_flat")))
 iso_cells <- unlist(terra::global(!is.na(iso), "sum"))
 
 # ---- 2. one sample per watershed group and layer set -----------------------------------------
-sample_version <- "2"  # bump whenever sample_group() changes what it stores
+sample_version <- "2"  # bump whenever sample_group() or upstream() changes what it stores
 sample_code <- md5(file.path("R", c("wet_ws_sample.R", "wet_ws_fetch.R")))
-sets <- list(tc = list(file = f_tc_bc, key = key_of(tc_key, sample_code, sample_version), crs = "EPSG:4326"),
-             iso = list(file = f_iso, key = key_of(iso_key, sample_code, sample_version), crs = "EPSG:3005"))
+# keyed on what each .tif holds, not on the key that named it
+sets <- list(tc = list(file = f_tc_bc, key = key_of(md5(f_tc_bc), sample_code, sample_version), crs = "EPSG:4326"),
+             iso = list(file = f_iso, key = key_of(md5(f_iso), sample_code, sample_version), crs = "EPSG:3005"))
 for (s in names(sets)) {
   sets[[s]]$dir <- file.path(rp_dir, paste0("sample_", s), sets[[s]]$key)
   dir.create(sets[[s]]$dir, recursive = TRUE, showWarnings = FALSE)
